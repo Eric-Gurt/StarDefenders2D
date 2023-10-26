@@ -19,6 +19,7 @@ import sdArea from './sdArea.js';
 import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
 import sdWeaponBench from './sdWeaponBench.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 import sdGunClass from './sdGunClass.js';
 
@@ -1203,8 +1204,21 @@ class sdGun extends sdEntity
 						}
 						// In else case it is weapon bench
 					}
-
-					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
+					let is_stimmed = false;
+					if ( ( sdGun.classes[ this.class ].is_sword || ( this.class === sdGun.CLASS_SHOVEL || this.class === sdGun.CLASS_SHOVEL_MK2 ) )  && this._held_by ) // Swords and shovels get the benefit of the stimpack
+						{
+						if ( this.class !== sdGun.CLASS_TELEPORT_SWORD && this.class !== sdGun.CLASS_CUBE_SPEAR ) // These two would be overpowered with stim effect.
+						{
+							let effects = sdStatusEffect.entity_to_status_effects.get( this._held_by );
+							if ( effects !== undefined )
+							for ( let i = 0; i < effects.length; i++ )
+							{
+								if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
+								is_stimmed = true; // Increase sword/shovel swing speed by 100%
+							}
+						}
+					}
+					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && is_stimmed ) ? 2 : 1 ) );
 				}
 			}
 		}

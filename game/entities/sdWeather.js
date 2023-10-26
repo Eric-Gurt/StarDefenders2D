@@ -71,6 +71,7 @@ import sdVeloxMiner from './sdVeloxMiner.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -133,6 +134,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SHURG =					event_counter++; // 39
 		sdWeather.EVENT_SHURG_CONVERTER =			event_counter++; // 40
 		sdWeather.EVENT_TIME_SHIFTER =				event_counter++; // 41
+		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =				event_counter++; // 42
 
 		
 		sdWeather.supported_events = [];
@@ -196,6 +198,7 @@ class sdWeather extends sdEntity
 		this._max_ai_count = 8; //  Can be altered with onAfterSnapshotLoad inside sdServerConfig
 		this._max_velox_mech_count = 3;
 		this._max_setr_destroyer_count = 3;
+		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
 		this._max_drone_count = 40;
 		this._max_portal_count = 4;
 
@@ -406,6 +409,57 @@ class sdWeather extends sdEntity
 			instances--;
 		}
 	}
+	
+	static NotifyExtractableSoldiers(){ // Notify players on the map that some SD soldiers and criminals need extraction via LRTP.
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			if ( !sdCharacter.characters[ i ]._is_being_removed )
+			if ( sdCharacter.characters[ i ]._ai )
+			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
+			{
+				//if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+				//ais++;
+
+				//Alert players of other AI Star Defenders on the map which need addressing, otherwise they might be buried corpses somewhere forever
+
+				if ( sdCharacter.characters[ i ]._ai_team === 0 && sdCharacter.characters[ i ].title === 'Star Defender' )
+				{
+					let id = sdCharacter.characters[ i ]._net_id;
+					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+id, 
+							executer: sdWorld.sockets[ j ].character,
+							target: sdCharacter.characters[ i ],
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Rescue Star Defender',
+							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
+						});
+					}
+				}
+
+				if ( sdCharacter.characters[ i ]._ai_team === 6 && sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+				{
+					let id = sdCharacter.characters[ i ]._net_id;
+					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+id, 
+							executer: sdWorld.sockets[ j ].character,
+							target: sdCharacter.characters[ i ],
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Arrest Star Defender',
+							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+						});
+					}
+				}
+			}
+		}
 	static SetRandomSpawnLocation( ent ) // GetSpawnPosition // GetRandom // Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
 	{
 		// Note: SimpleSpawner supports some more features, but other than that these 2 methods are kind of same
@@ -923,16 +977,19 @@ class sdWeather extends sdEntity
 	}
 	ExecuteEvent( r = -1 ) // Used to be under OnThink ( GSPEED ) but swapped for this so any event can be executed at any time, from any entity
 	{
+		sdWeather.NotifyExtractableSoldiers(); // Upon every event execution, notify players about remaining SD soldiers for LRTP extraction
+		// This is implemented this way because players connect after a SD soldier spawns and task is not given to the later connected players.
+		
 		//console.log( r );
-		if ( r === 0 || r === 14 || r === 15 || r === 19 )
+		if ( r === sdWeather.EVENT_ACID_RAIN || r === sdWeather.EVENT_WATER_RAIN || r === sdWeather.EVENT_SNOW || r === sdWeather.EVENT_MATTER_RAIN )
 		{
 			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
 		}
 
-		if ( r === 1 )
+		if ( r === sdWeather.EVENT_ASTEROIDS )
 		this._asteroid_spam_amount = 30 * 15 * ( 1 + Math.random() * 2 );
 
-		if ( r === 2 )
+		if ( r === sdWeather.EVENT_CUBES )
 		{
 			sdWeather.SimpleSpawner({
 
@@ -967,7 +1024,7 @@ class sdWeather extends sdEntity
 			}*/
 		}
 
-		if ( r === 3 )
+		if ( r === sdWeather.EVENT_FALKOKS )
 		{
 			let ais = 0;
 
@@ -1032,7 +1089,7 @@ class sdWeather extends sdEntity
 			}
 		}
 
-		if ( r === 4 )
+		if ( r === sdWeather.EVENT_ASPS )
 		{
 			if ( sdAsp.asps_tot < 25 )
 			sdWeather.SimpleSpawner({
@@ -1064,7 +1121,7 @@ class sdWeather extends sdEntity
 			}*/
 		}
 					
-		if ( r === 5 ) // Falkok invasion event
+		if ( r === sdWeather.EVENT_FALKOKS_INVASION ) // Falkok invasion event
 		{
 			if ( this._invasion === false ) // Prevent invasion resetting
 			{
@@ -1103,7 +1160,7 @@ class sdWeather extends sdEntity
 						
 		}
 
-		if ( r === 6 ) // Big virus event
+		if ( r === sdWeather.EVENT_BIG_VIRUS ) // Big virus event
 		{
 			let instances = 0;
 			let instances_tot = 1 + Math.ceil( Math.random() * 3 );
@@ -1151,7 +1208,7 @@ class sdWeather extends sdEntity
 			}
 		}
 					
-		if ( r === 7 ) // Flying Mech event
+		if ( r === sdWeather.EVENT_FLYING_MECH ) // Flying Mech event
 		{
 			let instances = 0;
 			let instances_tot = Math.ceil( ( Math.random() * sdWorld.GetPlayingPlayersCount() ) / 3 );
@@ -1179,13 +1236,13 @@ class sdWeather extends sdEntity
 			}
 		}
 					
-		if ( r === 8 ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
+		if ( r === sdWeather.EVENT_QUAKE ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
 		{
 			this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
 			this._quake_temporary_not_regen_near.length = 0;
 		}
 					
-		if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
+		if ( r === sdWeather.EVENT_BAD_DOGS ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
 		{
 			sdWeather.SimpleSpawner({
 				
@@ -1195,7 +1252,7 @@ class sdWeather extends sdEntity
 			});
 		}
 
-		if ( r === 10 ) // Portal event
+		if ( r === sdWeather.EVENT_RIFT_PORTAL ) // Portal event
 		{
 			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
@@ -1271,7 +1328,7 @@ class sdWeather extends sdEntity
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 					
-		if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
+		if ( r === sdWeather.EVENT_ERTHALS ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 		{
 			let spider_type = Math.random() < 0.35 ? 1 : 0; // 35% chance for it to be a mini tank bot
 			sdWeather.SimpleSpawner({
@@ -1343,7 +1400,7 @@ class sdWeather extends sdEntity
 				}
 			}
 		}
-		if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
+		if ( r === sdWeather.EVENT_OBELISK ) // Spawn an obelisk near ground where players don't see them
 		{
 			if ( sdObelisk.obelisks_counter < 17 )
 			sdWeather.SimpleSpawner({
@@ -1420,7 +1477,7 @@ class sdWeather extends sdEntity
 			}*/
 		}
 		
-		if ( r === 13 ) // Ground corruption start from random block
+		if ( r === sdWeather.EVENT_CORRUPTION ) // Ground corruption start from random block
 		{
 			for ( let tr = 0; tr < 100; tr++ )
 			{
@@ -1488,7 +1545,7 @@ class sdWeather extends sdEntity
 			}
 		}
 
-		if ( r === 16 ) // Spawn a Large Anti-Crystal anywhere on the map outside player views which drains active players' matter if they're close enough
+		if ( r === sdWeather.EVENT_LARGE_ANTICRYSTAL ) // Spawn a Large Anti-Crystal anywhere on the map outside player views which drains active players' matter if they're close enough
 		{
 			if ( Math.random() < 0.2 ) // 20% chance for the Large Anti-Crystal to spawn
 			{
@@ -1588,7 +1645,7 @@ class sdWeather extends sdEntity
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
 				//if ( !sdCharacter.characters[ i ]._ai )
-				if ( sdCharacter.characters[ i ].build_tool_level > 5 )
+				if ( sdCharacter.characters[ i ].build_tool_level > 20 )
 				{
 					percent++;
 				}
@@ -1596,7 +1653,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
 			{
 				let instances = 0;
-				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+				let instances_tot = 4 + ( ~~( Math.random() * 3 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
 
@@ -1633,7 +1690,9 @@ class sdWeather extends sdEntity
 				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : ( Math.random() < 0.10 ) ? 12 : 3 });
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
+						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
+						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/});
 
 					sdEntity.entities.push( drone );
 
@@ -1649,7 +1708,7 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
-		if ( r === 18 ) // Spawn a Council Bomb anywhere on the map outside player views which detonates in 10 minutes
+		if ( r === sdWeather.EVENT_COUNCIL_BOMB ) // Spawn a Council Bomb anywhere on the map outside player views which detonates in 10 minutes
 		{
 			let chance = 0;
 			let req_char = 0;
@@ -1962,6 +2021,9 @@ class sdWeather extends sdEntity
 			let ais = 0;
 			let hostile = ( Math.random() < 0.5 );
 
+			let instances = 0;
+			let instances_tot = 1;
+			
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
@@ -1969,50 +2031,7 @@ class sdWeather extends sdEntity
 			{
 				if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
 				ais++;
-
-				//Also alert players of other AI Star Defenders on the map which need addressing, otherwise they might be buried corpses somewhere forever
-
-				if ( sdCharacter.characters[ i ]._ai_team === 0 && sdCharacter.characters[ i ].title === 'Star Defender' )
-				{
-					let id = sdCharacter.characters[ i ]._net_id;
-					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
-					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'EXTRACT-'+id, 
-							executer: sdWorld.sockets[ j ].character,
-							target: sdCharacter.characters[ i ],
-							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
-							//lrtp_ents_needed: 1,
-							title: 'Rescue Star Defender',
-							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
-						});
-					}
-				}
-
-				if ( sdCharacter.characters[ i ]._ai_team === 6 && sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
-				{
-					let id = sdCharacter.characters[ i ]._net_id;
-					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
-					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'EXTRACT-'+id, 
-							executer: sdWorld.sockets[ j ].character,
-							target: sdCharacter.characters[ i ],
-							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
-							//lrtp_ents_needed: 1,
-							title: 'Arrest Star Defender',
-							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
-						});
-					}
-				}
 			}
-
-			let instances = 0;
-			let instances_tot = 1;
 
 			//let left_side = ( Math.random() < 0.5 );
 
@@ -3088,6 +3107,18 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Zektaron Dreadnought, main boss of the Zektarons
+		{
+			if ( sdZektaronDreadnought.dreadnought_counter < this._max_zektaron_dreadnought_count )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdZektaronDreadnought,
+				
+				aerial: true
+				
+			});
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

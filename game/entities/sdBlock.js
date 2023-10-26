@@ -582,6 +582,57 @@ class sdBlock extends sdEntity
 							}
 						}
 						else
+						if ( this._contains_class === 'sdBiter.TYPE_LARGE' ) // Infectious biter and some other things in future, maybe?
+						{
+							let map = {};
+							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+
+							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( !blocks_near[ i ]._is_being_removed )
+							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
+
+							done:
+							for ( let xx = -1; xx <= 0; xx++ )
+							for ( let yy = -1; yy <= 0; yy++ )
+							{
+								if ( map[ ( xx + 0 ) + ':' + ( yy + 0 ) ] )
+								if ( map[ ( xx + 1 ) + ':' + ( yy + 0 ) ] )
+								if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
+								if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
+								{
+									let parts = this._contains_class.split( '.' );
+									this._contains_class = parts[ 0 ];
+
+									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, tag:( parts.length > 1 )?parts[1]:null };
+
+									if ( this._contains_class_params )
+									{
+										for ( let i in this._contains_class_params )
+										params[ i ] = this._contains_class_params[ i ];
+									}
+
+									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+									sdEntity.entities.push( ent );
+									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+
+
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
+									
+									//setTimeout(()=>{ent.DamageWithEffect( Infinity )}, 2000 ); // Hack
+
+									break done;
+								}
+							}
+						}
+						else
 						{
 							if ( this._contains_class === 'weak_ground' )
 							{

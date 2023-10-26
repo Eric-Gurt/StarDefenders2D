@@ -18,7 +18,7 @@ class sdFactions extends sdEntity
 		sdFactions.FACTION_FALKOK = 1; // Falkoks
 		sdFactions.FACTION_ERTHAL = 2; // Erthals
 		sdFactions.FACTION_COUNCIL = 3; // Council
-		sdFactions.FACTION_SARRONIAN = 4; // Sarronians
+		sdFactions.FACTION_SARRONIAN = 4; // Sarronians & Zektaron
 		sdFactions.FACTION_VELOX = 5; // Velox
 		sdFactions.FACTION_SETR = 6; // Setr
 		sdFactions.FACTION_TZYRG = 7; // Tzyrg
@@ -142,12 +142,26 @@ class sdFactions extends sdEntity
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL_VANGUARD );
 		}
 
-		if ( faction === sdFactions.FACTION_SARRONIAN ) // Sarronians
+		if ( faction === sdFactions.FACTION_SARRONIAN ) // Sarronians & Zektaron
 		{
-			if ( Math.random() < 0.3 )
+			if ( Math.random() < 0.4 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
-				character_entity._ai_gun_slot = 5;
+				if ( Math.random() < 0.2 )
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
+					character_entity._ai_gun_slot = 5;
+				}
+				else
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN }) );
+					character_entity._ai_gun_slot = 4;
+				}
+			}
+			else
+			if ( Math.random() < 0.65 )
+			{
+				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE }) );
+				character_entity._ai_gun_slot = 2;
 			}
 			else
 			{
@@ -158,7 +172,13 @@ class sdFactions extends sdEntity
 			if ( character_entity._ai_gun_slot === 1 )
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN );
 			else
-			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIANE6 );
+			if ( character_entity._ai_gun_slot === 5 )
+			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN_HEAVY );
+			else
+			if ( character_entity._ai_gun_slot === 2 )
+			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT );
+			else
+			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER );
 		}
 
 		if ( faction === sdFactions.FACTION_VELOX ) // Velox

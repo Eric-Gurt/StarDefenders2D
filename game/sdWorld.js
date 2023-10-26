@@ -915,28 +915,12 @@ class sdWorld
 			//let enemy_rand_num = Math.random();
 			let random_enemy = null;
 			
-			//if ( Math.random() < 0.2 )
-			{
-				// Format is [ type, relative probability ]
-				let chances = ( hp_mult <= 1 ) ? 
-					[ // Surface
+			// Format is [ type, relative probability ]
+			let surface_mobs = 	[ // Surface
 						'sdBadDog', 2
-					] 
-					: 
-					[ // Deep
-						'sdSandWorm', 1.0,
-						'sdOctopus', 1.5,
-						'sdFaceCrab', 1.5,
-						'sdTutel', 1.5,
-						'sdWater.toxic', 1.0,
-						'sdWater.lava', 0.5,
-						'sdWater.acid', 1.0,
-						'sdDrone.DRONE_CUT_DROID', 0.35
-					]
-				;
-				
-				// Add general creatures
-				chances.push( ...[
+					];
+			
+			let general_mobs = [
 					
 						'sdVirus', 5 / hp_mult,
 						'sdQuickie', 5 / hp_mult,
@@ -947,7 +931,35 @@ class sdWorld
 						'sdGrub', 2 / hp_mult,
 						'sdJunk', 4,
 						'sdWater.water', 3
-				] );
+					];
+			let deep_mobs = [ // Deep
+						'sdSandWorm', 1.0,
+						'sdOctopus', 1.5,
+						'sdFaceCrab', 1.5,
+						'sdTutel', 1.5,
+						'sdWater.toxic', 1.0,
+						'sdWater.lava', 0.5,
+						'sdWater.acid', 1.0,
+						'sdDrone.DRONE_CUT_DROID', 0.35
+					];
+			let really_deep_mobs = [ // Really deep
+						'sdCube.KIND_ANCIENT', 0.4,
+						'sdBiter.TYPE_LARGE', 0.4,
+
+					];
+			
+			//if ( Math.random() < 0.2 )
+			{
+				let chances = [];
+				
+				if ( hp_mult <= 1 )
+				chances.push( ...surface_mobs );
+				else
+				chances.push( ...deep_mobs ); // Deep mobs
+				if ( hp_mult >= 9 )
+				chances.push( ...really_deep_mobs ); // Really deep mobs
+				// Add general creatures
+				chances.push( ...general_mobs );
 				
 				let sum_chance = 0;
 				for ( let i = 0; i < chances.length; i += 2 )
