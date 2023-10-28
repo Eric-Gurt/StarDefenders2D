@@ -30,7 +30,8 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.img_character_fsb = sdWorld.CreateImageFromFile( 'helmets/helmet_omega' );
 		sdFactionTools.img_character_ts = sdWorld.CreateImageFromFile( 'helmets/helmet_forge' );
 		sdFactionTools.img_character_pilot = sdWorld.CreateImageFromFile( 'helmets/helmet_pilot' );
-		sdFactionTools.img_character_zektaron = sdWorld.CreateImageFromFile( 'helmets/helmet_biohazard' );
+		sdFactionTools.img_character_zektaron = sdWorld.CreateImageFromFile( 'helmets/helmet_scope' );
+		sdFactionTools.img_character_zektaron2 = sdWorld.CreateImageFromFile( 'helmets/helmet_overseer' );
 
 		sdFactionTools.img_gun_sd1 = sdWorld.CreateImageFromFile( 'sniper' );
 		sdFactionTools.img_gun_sd2 = sdWorld.CreateImageFromFile( 'shotgun' );
@@ -281,7 +282,7 @@ class sdFactionTools extends sdEntity
 		}
 		if ( this.type === sdFactionTools.FT_ZEKTARON_B )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_zektaron, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_zektaron2, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_zektaron2, -8, -16, 32,32 );
 		}
 
@@ -456,7 +457,7 @@ class sdFactionTools extends sdEntity
 			if ( this.type === sdFactionTools.FT_ZEKTARON_A )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 				sdEntity.entities.push( character_entity );
@@ -470,7 +471,7 @@ class sdFactionTools extends sdEntity
 			if ( this.type === sdFactionTools.FT_ZEKTARON_B )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 				sdEntity.entities.push( character_entity );

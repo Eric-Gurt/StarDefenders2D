@@ -590,7 +590,7 @@ class sdDatabase
 		
 		// Outdated users cleanup
 		{
-			let table = sdDatabase.data.moderation.activity_logs.table;
+			let table = sdDatabase.data.players.table;
 			let time_to_live_empty = 1000 * 60 * 60; // 1 hour
 			let time_to_live_important = 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
 			
@@ -804,6 +804,8 @@ class sdDatabase
 	{
 		let user = sdDatabase.data.players.table[ uid ];
 		
+		let t = Date.now();
+		
 		if ( !user )
 		{
 			user = JSON.parse( JSON.stringify( sdDatabase.data.players.sample_row ) );
@@ -815,13 +817,13 @@ class sdDatabase
 			user.current_server = '?';
 			user.current_access_token = '?';
 			
-			user.registration_time = Date.now();
-			user.last_activity_time = Date.now();
-			user.last_character_creation_time = Date.now();
+			user.registration_time = t;
+			user.last_activity_time = t;
+			user.last_character_creation_time = t;
 		}
 		else
 		{
-			user.last_activity_time = Date.now();
+			user.last_activity_time = t;
 		}
 		
 		return user;

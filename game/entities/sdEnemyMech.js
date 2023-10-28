@@ -81,7 +81,7 @@ class sdEnemyMech extends sdEntity
 		this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._bullets = 50;
+		this._bullets = 75;
 		this._rockets = 4;
 		
 		this.side = 1;
@@ -554,7 +554,7 @@ class sdEnemyMech extends sdEntity
 			{
 				if ( this._attack_timer <= 0 )
 				{
-					this._attack_timer = 3;
+					this._attack_timer = 2;
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
@@ -632,7 +632,7 @@ class sdEnemyMech extends sdEntity
 
 						if ( this._bullets <= 0 )
 						{
-							this._bullets = 50;
+							this._bullets = 75;
 							this._attack_timer = 30 * 4;
 							this.lmg_an = Math.PI / 2 * 100;
 						}
