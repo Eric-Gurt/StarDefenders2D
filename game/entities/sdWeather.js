@@ -97,44 +97,44 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_CUBES =					event_counter++; // 2
 		sdWeather.EVENT_FALKOKS =				event_counter++; // 3
 		sdWeather.EVENT_ASPS =					event_counter++; // 4
-		sdWeather.EVENT_FALKOKS_INVASION =			event_counter++; // 5
+		sdWeather.EVENT_INVASION =				event_counter++; // 5
 		sdWeather.EVENT_BIG_VIRUS =				event_counter++; // 6
-		sdWeather.EVENT_FLYING_MECH =				event_counter++; // 7
+		sdWeather.EVENT_FLYING_MECH =			event_counter++; // 7
 		sdWeather.EVENT_QUAKE =					event_counter++; // 8
 		sdWeather.EVENT_BAD_DOGS =				event_counter++; // 9
-		sdWeather.EVENT_RIFT_PORTAL =				event_counter++; // 10
+		sdWeather.EVENT_RIFT_PORTAL =			event_counter++; // 10
 		sdWeather.EVENT_ERTHALS =				event_counter++; // 11
 		sdWeather.EVENT_OBELISK =				event_counter++; // 12
-		sdWeather.EVENT_CORRUPTION =				event_counter++; // 13
-		sdWeather.EVENT_WATER_RAIN =				event_counter++; // 14
+		sdWeather.EVENT_CORRUPTION =			event_counter++; // 13
+		sdWeather.EVENT_WATER_RAIN =			event_counter++; // 14
 		sdWeather.EVENT_SNOW =					event_counter++; // 15
-		sdWeather.EVENT_LARGE_ANTICRYSTAL =			event_counter++; // 16
-		sdWeather.EVENT_SARRONIANS =				event_counter++; // 17
-		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
-		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
+		sdWeather.EVENT_LARGE_ANTICRYSTAL =		event_counter++; // 16
+		sdWeather.EVENT_SARRONIANS =			event_counter++; // 17
+		sdWeather.EVENT_COUNCIL_BOMB =			event_counter++; // 18
+		sdWeather.EVENT_MATTER_RAIN =			event_counter++; // 19
 		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
-		sdWeather.EVENT_ERTHAL_BEACON =				event_counter++; // 21
+		sdWeather.EVENT_ERTHAL_BEACON =			event_counter++; // 21
 		sdWeather.EVENT_VELOX =					event_counter++; // 22
-		sdWeather.EVENT_CRYSTAL_BLOCKS =			event_counter++; // 23
-		sdWeather.EVENT_SD_EXTRACTION =				event_counter++; // 24
+		sdWeather.EVENT_CRYSTAL_BLOCKS =		event_counter++; // 23
+		sdWeather.EVENT_SD_EXTRACTION =			event_counter++; // 24
 		sdWeather.EVENT_SETR =					event_counter++; // 25
-		sdWeather.EVENT_SETR_DESTROYER =			event_counter++; // 26
-		sdWeather.EVENT_CRYSTALS_MATTER =			event_counter++; // 27
+		sdWeather.EVENT_SETR_DESTROYER =		event_counter++; // 26
+		sdWeather.EVENT_CRYSTALS_MATTER =		event_counter++; // 27
 		sdWeather.EVENT_DIRTY_AIR =				event_counter++; // 28
 		sdWeather.EVENT_AMPHIDS =				event_counter++; // 29
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
 		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
-		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
-		sdWeather.EVENT_COUNCIL_PORTAL =			event_counter++; // 33
+		sdWeather.EVENT_FLESH_DIRT =			event_counter++; // 32
+		sdWeather.EVENT_COUNCIL_PORTAL =		event_counter++; // 33
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
-		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
+		sdWeather.EVENT_FALKOK_OUTPOST =		event_counter++; // 36
 		sdWeather.EVENT_GUANAKO =				event_counter++; // 37
-		sdWeather.EVENT_TZYRG_DEVICE =				event_counter++; // 38
+		sdWeather.EVENT_TZYRG_DEVICE =			event_counter++; // 38
 		sdWeather.EVENT_SHURG =					event_counter++; // 39
-		sdWeather.EVENT_SHURG_CONVERTER =			event_counter++; // 40
-		sdWeather.EVENT_TIME_SHIFTER =				event_counter++; // 41
-		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =				event_counter++; // 42
+		sdWeather.EVENT_SHURG_CONVERTER =		event_counter++; // 40
+		sdWeather.EVENT_TIME_SHIFTER =			event_counter++; // 41
+		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =	event_counter++; // 42
 
 		
 		sdWeather.supported_events = [];
@@ -187,6 +187,8 @@ class sdWeather extends sdEntity
 		this._invasion_timer = 0; // invasion length timer
 		this._invasion_spawn_timer = 0; // invasion spawn timer
 		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end. Counter for falkoks left to spawn
+		this._invasion_event = 0;
+		this._potential_invasion_events = []; // array of possible invasion events. Selected during daily event selection
 
 
 		// Max entity count variables
@@ -237,6 +239,7 @@ class sdWeather extends sdEntity
 	}
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
+		this._potential_invasion_events = [];
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
 		if ( allowed_event_ids.indexOf( 8 ) !== -1 ) // Only if allowed
@@ -269,6 +272,8 @@ class sdWeather extends sdEntity
 				{
 					this._daily_events.push( n );
 					daily_event_count--;
+					if ( n === sdWeather.EVENT_FALKOKS || n === sdWeather.EVENT_ASPS || n === sdWeather.EVENT_BITERS ) 
+					this._potential_invasion_events.push( n );
 				}
 				time--;
 			}
@@ -1121,39 +1126,15 @@ class sdWeather extends sdEntity
 			}*/
 		}
 					
-		if ( r === sdWeather.EVENT_FALKOKS_INVASION ) // Falkok invasion event
+		if ( r === sdWeather.EVENT_INVASION ) // Invasion event
 		{
 			if ( this._invasion === false ) // Prevent invasion resetting
 			{
 				this._invasion = true;
-				this._invasion_timer = 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
+				this._invasion_timer = 30 * 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
 				this._invasion_spawn_timer = 0;
-				this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end
-				//console.log('Invasion incoming!');
-				{ // Spawn some drones as invasion starts
-					let instances = 0;
-					let instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-					let left_side = ( Math.random() < 0.5 );
-
-					while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
-					{
-
-						let drone_type = Math.random() < 0.2 ? 10 : 1;
-						let drone = new sdDrone({ x:0, y:0, type: drone_type, _ai_team: 1});
-						//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
-
-						sdEntity.entities.push( drone );
-
-						if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-						{
-							drone.remove();
-							drone._broken = false;
-							break;
-						}
-						instances++;
-					}
-				}
+				this._invasion_spawns_con = 15; // At least 15 Event executions must happen otherwise invasion will not end
+				this._invasion_event = this._potential_invasion_events[ Math.floor( Math.random() * this._potential_invasion_events.length ) ];; // Random event which can fit the invasion is selected.
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // if the event is already active, quickly initiate something else
@@ -3148,8 +3129,8 @@ class sdWeather extends sdEntity
 			
 			if ( this._invasion ) // Falkok invasion event. Maybe it could be changed to just execute randomly selected event so we can have all kinds of invasions?
 			{
-				this._invasion_timer -= 1 / 30  * GSPEED;
-				this._invasion_spawn_timer -= 1 / 30 * GSPEED;
+				this._invasion_timer -= GSPEED;
+				this._invasion_spawn_timer -= GSPEED;
 				if ( this._invasion_timer <= 0 && this._invasion_spawns_con <= 0 )
 				{
 					this._invasion = false;
@@ -3157,230 +3138,11 @@ class sdWeather extends sdEntity
 				}
 				if ( this._invasion_spawn_timer <= 0 )
 				{
-					this._invasion_spawn_timer = 6 + ( Math.random() * 4 ) ;// Every 6+ to 10 seconds it will respawn enemies
-					let ais = 0;
-
-					for ( var i = 0; i < sdCharacter.characters.length; i++ )
-					if ( sdCharacter.characters[ i ].hea > 0 )
-					if ( !sdCharacter.characters[ i ]._is_being_removed )
-					if ( sdCharacter.characters[ i ]._ai )
-					if ( sdCharacter.characters[ i ]._ai_team === 1 ) // Otherwise it will prevent potentially spawning other factions, like Setr, Velox and Erthal
-					{
-						ais++;
-					}
-
-					let instances = 0;
-					let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
-
-					//let left_side = ( Math.random() < 0.5 );
-
-					while ( instances < instances_tot && ais < this._max_ai_count * 2 ) // max AI value up to 2x max ai count during invasion, but should be reduced if laggy for server
-					{
-
-						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-						sdEntity.entities.push( character_entity );
-
-						{
-							if ( sdWeather.SetRandomSpawnLocation( character_entity ) )
-							{
-								if ( Math.random() < 0.07 )
-								{
-									if ( Math.random() < 0.2 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-										character_entity._ai_gun_slot = 4;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-										character_entity._ai_gun_slot = 3;
-									}
-								}
-								else
-								{ 
-									if ( Math.random() < 0.1 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
-										character_entity._ai_gun_slot = 2;
-									}
-									else
-									if ( Math.random() < 0.0025 ) // even at 1% it's still to common given the fact regular Falkoks die from anything
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
-										character_entity._ai_gun_slot = 2;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-										character_entity._ai_gun_slot = 2;
-									}
-								}
-								let falkok_settings;
-								if ( character_entity._ai_gun_slot === 2 )
-								falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","color_extra1":"#240000","helmet1":false,"helmet2":true,"body60":true,"legs60":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-								if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
-								falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
-								character_entity.title = falkok_settings.hero_name;
-								if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
-								{
-									character_entity.matter = 85;
-									character_entity.matter_max = 85;
-
-									character_entity.hea = 125; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-									character_entity.hmax = 125;
-
-									//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
-								}
-
-								if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
-								{
-									character_entity.matter = 125;
-									character_entity.matter_max = 125;
-
-									character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
-									character_entity.hmax = 250;
-
-									//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-								}	
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-								character_entity._ai_level = Math.floor( 1 + Math.random() * 3 ); // AI Levels from 1 to 3
-
-								character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-								//this._invasion_spawns_con -= 1;
-							}
-							else
-							{
-								character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
-								character_entity.remove();
-								character_entity._broken = false;
-							}
-							
-							/*let x,y;
-							let tr = 1000;
-							do
-							{
-								if ( left_side )
-								x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-								else
-								x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
-
-								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
-								{
-									character_entity.x = x;
-									character_entity.y = y;
-
-									//sdWorld.UpdateHashPosition( ent, false );
-									if ( Math.random() < 0.07 )
-									{
-										if ( Math.random() < 0.2 )
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-											character_entity._ai_gun_slot = 4;
-										}
-										else
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-											character_entity._ai_gun_slot = 3;
-										}
-									}
-									else
-									{ 
-										if ( Math.random() < 0.1 )
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
-											character_entity._ai_gun_slot = 2;
-										}
-										else
-										if ( Math.random() < 0.0025 ) // even at 1% it's still to common given the fact regular Falkoks die from anything
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
-											character_entity._ai_gun_slot = 2;
-										}
-										else
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-											character_entity._ai_gun_slot = 2;
-										}
-									}
-									let falkok_settings;
-									if ( character_entity._ai_gun_slot === 2 )
-									falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","color_extra1":"#240000","helmet1":false,"helmet2":true,"body60":true,"legs60":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-									if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
-									falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-
-									character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
-									character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
-									character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
-									character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
-									character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
-									character_entity.title = falkok_settings.hero_name;
-									if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
-									{
-										character_entity.matter = 85;
-										character_entity.matter_max = 85;
-
-										character_entity.hea = 125; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-										character_entity.hmax = 125;
-
-										//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
-									}
-
-									if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
-									{
-										character_entity.matter = 125;
-										character_entity.matter_max = 125;
-
-										character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
-										character_entity.hmax = 250;
-
-										//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-									}	
-									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-									character_entity._ai_level = Math.floor( 1 + Math.random() * 3 ); // AI Levels from 1 to 3
-
-									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-									character_entity._jetpack_allowed = true; // Jetpack
-									//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
-									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-									character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
-									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-									//this._invasion_spawns_con -= 1;
-
-									break;
-								}
-
-								tr--;
-								if ( tr < 0 )
-								{
-									character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
-									character_entity.remove();
-									break;
-								}
-							} while( true );*/
-						}
-
-						instances++;
-						ais++;
-						this._invasion_spawns_con -= 1;
-					}
+					this._invasion_spawn_timer = 30 * ( 5 + ( Math.random() * 5 ) ) ;// Every 5+ to 10 seconds it will summon an event
+					this._invasion_spawns_con -= 1;
+					
+					this.ExecuteEvent( this._invasion_event );
+					
 				}
 			}
 			this._asteroid_timer += GSPEED;

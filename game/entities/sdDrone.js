@@ -941,7 +941,7 @@ class sdDrone extends sdEntity
 				{
 					this._last_attack = sdWorld.time; // So it is not so much calc intensive
 
-					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdGuanako', 'sdShurgTurret', 'sdShurgExcavator', 'sdTzyrgDevice', 'sdVeloxMiner', 'sdSetrDestroyer' ] );
+					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, sdCom.com_faction_attack_classes );
 					let from_entity;
 
 					let nears = [];
