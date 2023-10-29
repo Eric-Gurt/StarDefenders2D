@@ -278,7 +278,7 @@ class sdDrone extends sdEntity
 			{
 				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 				{
-					if ( ent._ai_team !== this._ai_team ) // Is this not a friendly faction?
+					if ( ent._ai_team !== this._ai_team && sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < sdDrone.max_seek_range )  ) // Is this not a friendly faction? And is this close enough?
 					return ent; // Target it
 				}
 				else
@@ -289,6 +289,7 @@ class sdDrone extends sdEntity
 	
 	PlayAIAlertedSound( closest )
 	{
+		// Closest isn't really used here
 		if ( this.type === sdDrone.DRONE_ERTHAL )
 		sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1, pitch:2 });
 		else
@@ -812,7 +813,10 @@ class sdDrone extends sdEntity
 				{
 					let potential_target = this.GetRandomTarget();
 					if ( potential_target )
-					this.SetTarget( potential_target );
+					{
+						this.SetTarget( potential_target );
+						this.PlayAIAlertedSound();
+					}
 					
 				}
 				/*if ( sdWorld.is_server )

@@ -175,7 +175,12 @@ class sdShurgTurret extends sdEntity
 					if ( this.y > ( this._starting_y - ( Math.random() * 64 ) ) )
 					this.sy = Math.max( -1.5, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
 
-					
+					if ( this.sx !== 0 )
+					{
+						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98 , GSPEED );
+						if ( this.sx > -0.05 && this.sx < 0.05 )
+						this.sx = 0;
+					}
 				}
 
 
