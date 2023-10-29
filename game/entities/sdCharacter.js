@@ -1825,10 +1825,17 @@ THING is cosmic mic drop!`;
 		if ( sdWorld.last_hit_entity )
 		{
 			let found_enemy = false;
-			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer'
-			|| sdWorld.last_hit_entity.GetClass() === 'sdVeloxMiner' || sdWorld.last_hit_entity.GetClass() === 'sdShurgExcavator' || sdWorld.last_hit_entity.GetClass() === 'sdShurgTurret' || sdWorld.last_hit_entity.GetClass() === 'sdTzyrgDevice' )
-			if ( sdWorld.last_hit_entity._ai_team !== from_entity._ai_team )
-			found_enemy = true;
+			let array_of_enemies = sdCom.com_faction_attack_classes;
+			if ( array_of_enemies.indexOf( sdWorld.last_hit_entity.GetClass() ) !== -1 ) // If line of sight check found a potential target class inside that array
+			{
+				if ( typeof sdWorld.last_hit_entity._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+				{
+					if ( sdWorld.last_hit_entity._ai_team !== from_entity._ai_team ) // Is this not a friendly faction?
+					found_enemy = true; // Target it
+				}
+				else
+				found_enemy = true; // Target it
+			}
 		
 			if ( sdWorld.last_hit_entity.IsVehicle() )
 			{
@@ -1881,23 +1888,8 @@ THING is cosmic mic drop!`;
 					found_enemy = true;
 				}
 			}
-
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
-			if ( from_entity._ai_team !== 0 )
-			found_enemy = true;
-
-			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdAsp' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdVirus' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
-					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ||
-					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) ) ||
+			// Entities outside sdCom.faction_attack_classes
+			if (	( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) ) ||
 					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
 			) 
 			found_enemy = true;
@@ -2919,7 +2911,7 @@ THING is cosmic mic drop!`;
 				this._ai.target = null;
 				
 				this._ai.target = sdCharacter.GetRandomEntityNearby( this );
-				if ( this._ai.target)
+				if ( this._ai.target )
 				this.PlayAIAlertedSound( this._ai.target );
 			}
 

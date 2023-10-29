@@ -218,7 +218,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
-		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdEnemyMech', 'sdOverlord', 'sdSpider', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdVeloxMiner', 'sdShurgExcavator' ].indexOf( e.GetClass() ) !== -1 )
+		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdEnemyMech', 'sdOverlord', 'sdSpider', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdVeloxMiner', 'sdShurgExcavator', 'sdZektaronDreadnought' ].indexOf( e.GetClass() ) !== -1 )
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )
 		{
@@ -627,7 +627,7 @@ class sdSetrDestroyer extends sdEntity
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdSetrDestroyer.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdEnemyMech', 'sdOverlord', 'sdSpider' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdSetrDestroyer.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdEnemyMech', 'sdOverlord', 'sdSpider', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought' ] );
 
 					let targets = [];
 
