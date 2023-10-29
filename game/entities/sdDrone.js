@@ -278,7 +278,7 @@ class sdDrone extends sdEntity
 			{
 				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 				{
-					if ( ent._ai_team !== this._ai_team && sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < sdDrone.max_seek_range ) // Is this not a friendly faction? And is this close enough?
+					if ( ent._ai_team !== this._ai_team && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdDrone.max_seek_range ) // Is this not a friendly faction? And is this close enough?
 					return ent; // Target it
 				}
 				else
