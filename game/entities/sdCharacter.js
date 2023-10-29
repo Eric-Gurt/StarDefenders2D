@@ -2764,7 +2764,7 @@ THING is cosmic mic drop!`;
 	}
 	IsHostileAI() // Used to check if standartized score will be given for killing them and also for turrets to attack them
 	{
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
+		if ( this._ai_team !== 0 ) // Quite simple, if AI isn't on SD team, it's hostile
 		{
 			return true;
 		}
