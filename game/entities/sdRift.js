@@ -20,6 +20,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdWeather from './sdWeather.js';
 
 import sdTask from './sdTask.js';
+import sdFactions from './sdFactions.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -353,38 +354,39 @@ class sdRift extends sdEntity
 					}
 				}, 1223 );
 
-					if ( this.type === 5 )
+				if ( this.type === 5 )
+				{
+					let ais = 0;
+					for ( var i = 0; i < sdCharacter.characters.length; i++ )
 					{
-						let ais = 0;
-						for ( var i = 0; i < sdCharacter.characters.length; i++ )
+						if ( sdCharacter.characters[ i ].hea > 0 )
+						if ( !sdCharacter.characters[ i ]._is_being_removed )
+						if ( sdCharacter.characters[ i ]._ai_team === 3 )
 						{
-							if ( sdCharacter.characters[ i ].hea > 0 )
-							if ( !sdCharacter.characters[ i ]._is_being_removed )
-							if ( sdCharacter.characters[ i ]._ai_team === 3 )
-							{
-								ais++;
-								//console.log( 'AI count:' + ais );
-							}
+							ais++;
+							//console.log( 'AI count:' + ais );
 						}
+					}
+					{
+
+						let councils = 0;
+						let councils_tot = 1;
+
+						let left_side = ( Math.random() < 0.5 );
+
+						while ( councils < councils_tot && ais < 6 )
 						{
-		
-							let councils = 0;
-							let councils_tot = 1;
 
-							let left_side = ( Math.random() < 0.5 );
+							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
-							while ( councils < councils_tot && ais < 6 )
+							sdEntity.entities.push( character_entity );
+							character_entity.s = 110;
 							{
-
-								let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-
-								sdEntity.entities.push( character_entity );
-								character_entity.s = 110;
-								{
 								let x,y;
 								{
-									x = this.x
+									x = this.x;
 									y = this.y;
+									
 									{
 										character_entity.x = x;
 										character_entity.y = y;
@@ -406,11 +408,11 @@ class sdRift extends sdEntity
 										setInterval( logic, 1000 );
 	
 										break;
+									}
 								}
 							}
-						}
-						councils++;
-						ais++;
+							councils++;
+							ais++;
 						}
 					}
 				}
