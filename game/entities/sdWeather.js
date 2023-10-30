@@ -68,11 +68,11 @@ import sdShurgConverter from './sdShurgConverter.js';
 import sdShurgTurret from './sdShurgTurret.js';
 import sdShurgExcavator from './sdShurgExcavator.js';
 import sdVeloxMiner from './sdVeloxMiner.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+import sdDropPod from './sdDropPod.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
-import sdZektaronDreadnought from './sdZektaronDreadnought.js';
-
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -135,7 +135,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SHURG_CONVERTER =		event_counter++; // 40
 		sdWeather.EVENT_TIME_SHIFTER =			event_counter++; // 41
 		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =	event_counter++; // 42
-
+		sdWeather.EVENT_KIVORTEC_WEAPONS_POD =	event_counter++; // 43
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -203,6 +203,7 @@ class sdWeather extends sdEntity
 		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
 		this._max_drone_count = 40;
 		this._max_portal_count = 4;
+		this._max_pod_count = 3;
 
 		//
 		//
@@ -3096,6 +3097,18 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdZektaronDreadnought,
+				
+				aerial: true
+				
+			});
+		}
+		if ( r === sdWeather.EVENT_KIVORTEC_WEAPONS_POD ) // KIVORTEC Weapons Pod. Has to be hacked before being opened and giving Star Defenders random KVT weaponry.
+		{
+			if ( sdDropPod.pod_counter < ( this._max_pod_count + sdWorld.GetPlayingPlayersCount() ) ) // +1 for every player online.
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdDropPod,
 				
 				aerial: true
 				
