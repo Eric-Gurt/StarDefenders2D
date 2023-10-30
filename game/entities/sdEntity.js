@@ -113,6 +113,14 @@ class sdEntity
 		return null;
 	}
 	
+	static GetRandomActiveEntity() // For drones and more things in future?
+	{
+		if ( sdEntity.active_entities.length > 0 )
+		return sdEntity.active_entities[ Math.floor( Math.random() * sdEntity.active_entities.length ) ];
+	
+		return null;
+	}
+	
 	GetCollisionMode()
 	{
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;

@@ -1,5 +1,5 @@
 
-/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase, Buffer, Infinity, sdServerConfigFull, sdInterface, sdLongRangeTeleport, sdServerToServerProtocol, sdCharacter, sdDeepSleep, sdPlayerSpectator, sdStorage, os, sdGun, sdMemoryLeakSeeker, zlib, Promise, sdDictionaryWords, sdSound, LZW, sdEffect, sdTask, WorkerServiceLogic, await, imported, FakeCanvasContext */
+/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase, Buffer, Infinity, sdServerConfigFull, sdInterface, sdLongRangeTeleport, sdServerToServerProtocol, sdCharacter, sdDeepSleep, sdPlayerSpectator, sdStorage, os, sdGun, sdMemoryLeakSeeker, zlib, Promise, sdDictionaryWords, sdSound, LZW, sdEffect, sdTask, WorkerServiceLogic, await, imported, FakeCanvasContext, Server, geckos, https, spawn, http */
 
 let port0 = 3000;
 let CloudFlareSupport = false;
@@ -244,7 +244,7 @@ if ( SOCKET_IO_MODE ) // Socket.io
 	  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
 	  httpCompression: {
 		threshold: 1024
-	  },
+	  }
 	  //transports: [ 'websocket' ] // Trying to disable polling one, maybe this will work better?
 	});
 }
@@ -1105,6 +1105,10 @@ const js_challenge_lzw = LZW.lzw_encode( fs.readFileSync( sdWorld.browser_finger
 
 const cached_bans = {};
 
+const hash_flood_prevention = []; // Array of { hash, expire_on } - used to prevent database hash flooding
+const unique_hash_queue_length = 50; // It will likely limit number of online players by 50, at least if they connect at the same time
+const hash_floor_expire_in = 1000 * 30;
+
 let next_drop_log = 0;
 io.on( 'connection', ( socket )=> 
 //io.onConnection( socket =>
@@ -1439,8 +1443,8 @@ io.on( 'connection', ( socket )=>
 	socket.forced_entity_params = {};
 	
 	socket.last_player_settings = null;
-	socket.Respawn = ( player_settings, force_allow=false ) => { 
-		
+	socket.Respawn = ( player_settings, force_allow=false )=>
+	{ 
 		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
 	
@@ -1492,10 +1496,56 @@ io.on( 'connection', ( socket )=>
 			socket.my_hash = player_settings.my_hash;
 		}*/
 		
+		if ( typeof player_settings.my_hash !== 'string' )
+		{
+			socket.SDServiceMessage( 'Connection Error: No "my_hash" string was provided.' );
+			return;
+		}
+		
 		if ( player_settings.my_hash.length > 300 )
 		{
-			socket.SDServiceMessage( 'Connection Error: Your "my_hash" is {1} characters long, but 300 is a maximum allowed length. Contact us if this happens to you for no reason.', [ my_hash.length ] );
+			socket.SDServiceMessage( 'Connection Error: Your "my_hash" is {1} characters long, but 300 is a maximum allowed length. Contact us if this happens to you for no reason.', [ player_settings.my_hash.length ] );
 			return;
+		}
+		
+		let t = Date.now();
+		
+		let new_recent_hash = true;
+		
+		for ( let i = 0; i < hash_flood_prevention.length; i++ )
+		{
+			let row = hash_flood_prevention[ i ];
+			if ( row.hash === player_settings.my_hash )
+			{
+				row.expire_on = t + hash_floor_expire_in;
+				new_recent_hash = false;
+			}
+			else
+			{
+				if ( t > row.expire_on )
+				{
+					hash_flood_prevention.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+		}
+		
+		if ( new_recent_hash )
+		{
+			if ( hash_flood_prevention.length > unique_hash_queue_length )
+			{
+				// Someone is trying random hashes consistently? Implement some sort of hash guessing bans there at some point.
+				socket.SDServiceMessage( 'Connection Error: Connection queue exceeds {1} hashes. Try again in few minutes or report this issue if it continues.', [ unique_hash_queue_length ] );
+				return;
+			}
+			else
+			{
+				hash_flood_prevention.push({
+					hash: player_settings.my_hash,
+					expire_on: hash_floor_expire_in
+				});
+			}
 		}
 			
 		socket.my_hash = player_settings.my_hash;

@@ -433,12 +433,14 @@ class sdWater extends sdEntity
 	// For flow only
 	CanCollideWithEntity( e, this_x, this_y )
 	{
-		return ( !e._is_being_removed && 
-				( e.is( sdWater ) || ( e.is( sdBlock ) && !e.IsLetsLiquidsThrough() ) || e.is( sdDoor ) || ( e.is( sdDeepSleep ) && e.ThreatAsSolid() ) ) &&
-				e.x + e._hitbox_x1 < this_x + 16 &&
-				e.x + e._hitbox_x2 > this_x &&
-				e.y + e._hitbox_y1 < this_y + 16 &&
-				e.y + e._hitbox_y2 > this_y
+		return (
+					( e._is_bg_entity === this._is_bg_entity || e._is_bg_entity === 10 ) && // 10 is sdDeepSleep
+					e.x + e._hitbox_x1 < this_x + 16 &&
+					e.x + e._hitbox_x2 > this_x &&
+					e.y + e._hitbox_y1 < this_y + 16 &&
+					e.y + e._hitbox_y2 > this_y &&
+					!e._is_being_removed && 
+					( e.is( sdWater ) || ( e.is( sdBlock ) && !e.IsLetsLiquidsThrough() ) || e.is( sdDoor ) || ( e.is( sdDeepSleep ) && e.ThreatAsSolid() ) )
 				);
 	}
 	onThink( GSPEED ) // Class-specific, if needed

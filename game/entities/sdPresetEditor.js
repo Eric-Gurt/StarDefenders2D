@@ -10,6 +10,7 @@ import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -329,8 +330,22 @@ class sdPresetEditor extends sdEntity
 		
 		//return snapshots;
 	}
+	IsOutsideWorldBounds(){
+			let outside_bounds = false;
+			if ( this.x < sdWorld.world_bounds.x1 || this.x > sdWorld.world_bounds.x2 || this.x + this.w < sdWorld.world_bounds.x1 || this.x + this.w > sdWorld.world_bounds.x2 )
+			outside_bounds = true;
+			if ( this.y < sdWorld.world_bounds.y1 || this.y > sdWorld.world_bounds.y2 || this.y + this.h < sdWorld.world_bounds.y1 || this.y + this.h > sdWorld.world_bounds.y2 ) // Checking all corners just in case
+			outside_bounds = true;
+			return outside_bounds;
+	}
 	CanLoadPreset( force_load = false ){ // Force load means if it should override BSU protected entities, since loading a preset deletes everything inside the region of loaded preset before the preset spawns objects.
 		let ents_to_delete = this.GetEntitiesInside();
+			// Don't load even if forced if the region is outside world borders
+			let outside_bounds = this.IsOutsideWorldBounds();
+			
+			if ( outside_bounds )
+			return false;
+			//
 			if ( force_load )
 			{
 				for ( let i = 0; i < ents_to_delete.length; i++ )
@@ -342,6 +357,19 @@ class sdPresetEditor extends sdEntity
 			}
 			else
 			{
+				//Check if preset corners are outside BSU ranges )
+				let outside_bsus = true;
+				{
+					if ( !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x, this.y ) ||
+					!sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x + this.w, this.y ) ||
+					!sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x, this.y + this.h ) ||
+					!sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x + this.w, this.y + this.h ) 
+					)
+						outside_bsus = false;
+				}
+				if ( outside_bsus === false )
+				return false;
+			
 				let delete_ents = true;
 				for ( let i = 0; i < ents_to_delete.length; i++ )
 				{
@@ -518,6 +546,9 @@ class sdPresetEditor extends sdEntity
 		ctx.globalAlpha = 0.3 * alpha;
 		
 		ctx.fillStyle = '#ffffff';
+		
+		if ( this.IsOutsideWorldBounds() )
+		ctx.fillStyle = '#ff0000'; // Highlight the region red to let player know it can't load outside world bounds
 		//ctx.sd_color_mult_r = this.r / 255;
 		//ctx.sd_color_mult_g = this.g / 255;
 		//ctx.sd_color_mult_b = this.b / 255;

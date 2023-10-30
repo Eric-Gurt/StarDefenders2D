@@ -1,4 +1,6 @@
 
+/* global Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -19,6 +21,8 @@ import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 //import sdPlayerSpectator from './sdPlayerSpectator.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -785,7 +789,8 @@ class sdCube extends sdEntity
 					e.is( sdDrone ) || 
 					e.is( sdSetrDestroyer ) || 
 					e.is( sdSpider ) || 
-					e.is( sdOverlord ) );
+					e.is( sdOverlord ) ||
+					e.is( sdZektaronDreadnought ) );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -1076,7 +1081,8 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdSpider' && target._hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdDrone' && target._hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
-								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) )
+								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
+								( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) )								 )
 							{
 								if ( 
 										sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) 
@@ -1326,14 +1332,12 @@ class sdCube extends sdEntity
 		if ( ent._target.GetClass() === 'sdCube' )
 		return false;
 		
-		if ( ent.GetClass() === 'sdEnemyMech' ) // Flying mechs are targetable by cubes now
+		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
 		return false;
 		
 		if ( ent.GetClass() === 'sdBot' )
 		return false;
 
-		if ( ent.GetClass() === 'sdSetrDestroyer' ) // Flying mechs are targetable by cubes now
-		return false;
 
 		return true;
 	}

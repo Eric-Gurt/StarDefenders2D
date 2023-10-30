@@ -240,7 +240,7 @@ class sdDrone extends sdEntity
 		}
 
 	}
-	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( character.driver_of )
 		character = character.driver_of;
@@ -268,7 +268,36 @@ class sdDrone extends sdEntity
 				}
 			}
 		}
+	}*/
+	
+	GetRandomTarget()
+	{
+		let ent = sdEntity.GetRandomActiveEntity();
+		let array_of_enemies = sdCom.com_faction_attack_classes;
+		if ( array_of_enemies.indexOf( ent.GetClass() ) !== -1 ) // If line of sight check found a potential target class inside that array
+			{
+				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+				{
+					if ( ent._ai_team !== this._ai_team && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdDrone.max_seek_range ) // Is this not a friendly faction? And is this close enough?
+					return ent; // Target it
+				}
+				else
+				return ent; // Target it
+			}
+		return null;
 	}
+	
+	PlayAIAlertedSound( closest )
+	{
+		// Closest isn't really used here
+		if ( this.type === sdDrone.DRONE_ERTHAL )
+		sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1, pitch:2 });
+		else
+		if ( this.type === sdDrone.DRONE_CUT_DROID )
+		sdSound.PlaySound({ name:'cut_droid_alert', x:this.x, y:this.y, volume: 1, pitch:1 });
+		
+	}
+	
 
 	GetBleedEffect()
 	{
@@ -781,6 +810,16 @@ class sdDrone extends sdEntity
 			{
 				// No target
 				if ( sdWorld.is_server )
+				{
+					let potential_target = this.GetRandomTarget();
+					if ( potential_target )
+					{
+						this.SetTarget( potential_target );
+						this.PlayAIAlertedSound();
+					}
+					
+				}
+				/*if ( sdWorld.is_server )
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
 				{
 					if ( sdWorld.sockets[ i ].character )
@@ -808,7 +847,7 @@ class sdDrone extends sdEntity
 							break;
 						}
 					}
-				}
+				}*/
 			}
 		}
 		
@@ -906,7 +945,7 @@ class sdDrone extends sdEntity
 				{
 					this._last_attack = sdWorld.time; // So it is not so much calc intensive
 
-					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdGuanako', 'sdShurgTurret', 'sdShurgExcavator', 'sdTzyrgDevice', 'sdVeloxMiner', 'sdSetrDestroyer' ] );
+					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, sdCom.com_faction_attack_classes );
 					let from_entity;
 
 					let nears = [];
