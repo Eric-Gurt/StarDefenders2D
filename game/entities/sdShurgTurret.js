@@ -175,7 +175,12 @@ class sdShurgTurret extends sdEntity
 					if ( this.y > ( this._starting_y - ( Math.random() * 64 ) ) )
 					this.sy = Math.max( -1.5, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
 
-					
+					if ( this.sx !== 0 )
+					{
+						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98 , GSPEED );
+						if ( this.sx > -0.05 && this.sx < 0.05 )
+						this.sx = 0;
+					}
 				}
 
 
@@ -239,7 +244,7 @@ class sdShurgTurret extends sdEntity
 							this.side = ( dx > 0 ) ? 1 : -1;
 
 							let should_fire = true;
-							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone', 'sdShurgConverter' ] ) )
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone', 'sdShurgConverter', 'sdShurgTurret', 'sdShurgExcavator' ] ) )
 							{
 								if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 								should_fire = false;

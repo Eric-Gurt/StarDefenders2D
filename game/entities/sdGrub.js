@@ -302,7 +302,7 @@ class sdGrub extends sdEntity
 		if ( this._current_target )
 		if ( this._last_bite < sdWorld.time - 500 )
 		{
-			let nears = sdWorld.GetAnythingNear( this.x, this.y, 8 );
+			let nears = sdWorld.GetAnythingNear( this.x, this.y, 12 );
 			let from_entity;
 				
 			sdWorld.shuffleArray( nears );

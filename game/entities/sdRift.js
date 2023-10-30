@@ -56,6 +56,9 @@ class sdRift extends sdEntity
 	{
 		super( params );
 		
+		
+		this.type = params.type || 1; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
+		// this.type needs to be placed before hmax and hea so council portals can actually last long enough. Otherwise it disappears in a minute or so
 		this.hmax = this.type === 5 ? 36000 : 2560; // a 2560 matter crystal is enough for a rift to be removed over time
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
@@ -66,7 +69,6 @@ class sdRift extends sdEntity
 		this._spawn_timer_cd = this._spawn_timer; // Countdown/cooldown for spawn timer
 		this._teleport_timer = 30 * 60 * 10; // Time for the portal to switch location
 		this._time_until_teleport = this._teleport_timer;
-		this.type = params.type || 1; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
 		this._rotate_timer = 10; // Timer for rotation sprite index
 		this.frame = 0; // Rotation sprite index
 		this.scale = 1; // Portal scaling when it's about to be destroyed/removed
@@ -387,55 +389,7 @@ class sdRift extends sdEntity
 										character_entity.x = x;
 										character_entity.y = y;
 
-										//sdWorld.UpdateHashPosition( ent, false );
-										if ( Math.random() > ( 0.1 + ( ( this.hea / this.hmax )* 0.4 ) ) ) // Chances change as the portal machine has less health
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
-											character_entity._ai_gun_slot = 4;
-										}
-										else
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
-											character_entity._ai_gun_slot = 1;
-										}
-										let robot_settings;
-										//if ( character_entity._ai_gun_slot === 2 )
-										robot_settings = {"hero_name":"Council Vanguard","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet23":true,"body11":true,"legs8":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
-
-										character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
-										character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
-										character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
-										character_entity.title = robot_settings.hero_name;
-										character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
-										character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
-										//if ( character_entity._ai_gun_slot === 4 || character_entity._ai_gun_slot === 1 )
-										{
-											character_entity.matter = 300;
-											character_entity.matter_max = 300; // Let player leech matter off the bodies
-
-											character_entity.hea = 1750;
-											character_entity.hmax = 1750;
-
-											//character_entity.armor = 1500;
-											//character_entity.armor_max = 1500;
-											//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
-
-											//character_entity._damage_mult = 1; // Supposed to put up a challenge
-										}
-										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-										//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
-											
-										character_entity._ai_level = 10;
-										
-										character_entity._matter_regeneration = 10 + character_entity._ai_level; // At least some ammo regen
-										character_entity._jetpack_allowed = true; // Jetpack
-										//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-										character_entity._ai_team = 3; // AI team 3 is for the Council
-										character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
-										character_entity._ai.next_action = 5;
-
+										sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_COUNCIL );
 										sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
 
 										const logic = ()=>

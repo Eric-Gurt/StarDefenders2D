@@ -69,7 +69,7 @@ class sdFactions extends sdEntity
 		}
 		if ( faction === sdFactions.FACTION_FALKOK ) // Falkoks
 		{
-			if ( Math.random() < 0.07 )
+			if ( Math.random() < 0.14 )
 			{
 				if ( Math.random() < 0.2 )
 				{

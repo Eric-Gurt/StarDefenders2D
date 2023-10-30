@@ -111,7 +111,7 @@ class sdSpider extends sdEntity
 		
 		this.side = 1;
 	}
-	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
 		//if ( character.IsTargetable() && character.IsVisible() )
@@ -132,6 +132,23 @@ class sdSpider extends sdEntity
 				this._attack_in = 45;
 			}
 		}
+	}*/
+	
+	GetRandomTarget()
+	{
+		let ent = sdEntity.GetRandomActiveEntity();
+		let array_of_enemies = sdCom.com_faction_attack_classes;
+		if ( array_of_enemies.indexOf( ent.GetClass() ) !== -1 ) // Random entity check found a potential target class inside that array
+			{
+				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+				{
+					if ( ent._ai_team !== this._ai_team && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdSpider.max_seek_range ) // Is this not a friendly faction? And is this close enough?
+					return ent; // Target it
+				}
+				else
+				return ent; // Target it
+			}
+		return null;
 	}
 	GetBleedEffect()
 	{
@@ -258,103 +275,119 @@ class sdSpider extends sdEntity
 			this._high_fire_rate -= GSPEED;
 		
 			if ( sdWorld.is_server )
-			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea ) <= 0 || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSpider.max_seek_range + 32 )
-				this._current_target = null;
-				else
+				if ( this._current_target )
 				{
-					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
-
-					if ( sdWorld.is_server )
-					if ( this._last_jump < sdWorld.time - 100 )
-					if ( this.hurt_anim <= 0 )
-					if ( this.attack_anim <= 0 )
+					if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea ) <= 0 || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSpider.max_seek_range + 32 )
+					this._current_target = null;
+					else
 					{
-						if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
-						{
-							this._last_jump = sdWorld.time;
+						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 
-							let dx = ( this._current_target.x - this.x );
-							let dy = ( this._current_target.y - this.y );
-							
-							let di = sdWorld.Dist2D_Vector( dx, dy );
-							
-							if ( dx > 0 )
-							dx = this.type === 1 ? 0.5 : 1;
-							else
-							dx = this.type === 1 ? -0.5 : -1;
-							
-							if ( di > 300 )
+						if ( sdWorld.is_server )
+						if ( this._last_jump < sdWorld.time - 100 )
+						if ( this.hurt_anim <= 0 )
+						if ( this.attack_anim <= 0 )
+						{
+							if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
 							{
-							}
-							else
-							if ( di < 150 )
-							{
-								dx *= -1;
-							}
-							else
-							{
-								dx = 0;
-							}
+								this._last_jump = sdWorld.time;
+
+								let dx = ( this._current_target.x - this.x );
+								let dy = ( this._current_target.y - this.y );
 							
-							if ( this._current_target.is( sdCharacter ) )
-							if ( Math.random() < 0.3 || ( 
-								this._current_target._inventory[ this._current_target.gun_slot ] && 
-								!sdGun.classes[ this._current_target._inventory[ this._current_target.gun_slot ].class ].is_sword && 
-								this._current_target._key_states.GetKey( 'Mouse1' ) ) )
-                            {
-                            	let ray_x = this._current_target.look_x - this._current_target.x;
-                            	let ray_y = this._current_target.look_y - this._current_target.y;
-                            	let ray_di = sdWorld.Dist2D_Vector( ray_x, ray_y );
-                            	if ( ray_di > 1 )
-                            	{
-                            		ray_x /= ray_di;
-                            		ray_y /= ray_di;
-									
-									let point = sdWorld.TraceRayPoint( this._current_target.x, this._current_target.y, this._current_target.x + ray_x * 1000, this._current_target.y + ray_y * 1000, this._current_target, null, sdCom.com_visibility_unignored_classes_plus_erthals, null );
-									
-									if ( point )
+								let di = sdWorld.Dist2D_Vector( dx, dy );
+							
+								if ( dx > 0 )
+								dx = this.type === 1 ? 0.5 : 1;
+								else
+								dx = this.type === 1 ? -0.5 : -1;
+							
+								if ( di > 300 )
+								{
+								}
+								else
+								if ( di < 150 )
+								{
+									dx *= -1;
+								}
+								else
+								{
+									dx = 0;
+								}
+							
+								if ( this._current_target.is( sdCharacter ) )
+								if ( Math.random() < 0.3 || ( 
+									this._current_target._inventory[ this._current_target.gun_slot ] && 
+									!sdGun.classes[ this._current_target._inventory[ this._current_target.gun_slot ].class ].is_sword && 
+									this._current_target._key_states.GetKey( 'Mouse1' ) ) )
+								{
+									let ray_x = this._current_target.look_x - this._current_target.x;
+									let ray_y = this._current_target.look_y - this._current_target.y;
+									let ray_di = sdWorld.Dist2D_Vector( ray_x, ray_y );
+									if ( ray_di > 1 )
 									{
-										if ( sdWorld.inDist2D_Boolean( point.x, point.y, this.x, this.y, 32 ) )
+										ray_x /= ray_di;
+										ray_y /= ray_di;
+									
+										let point = sdWorld.TraceRayPoint( this._current_target.x, this._current_target.y, this._current_target.x + ray_x * 1000, this._current_target.y + ray_y * 1000, this._current_target, null, sdCom.com_visibility_unignored_classes_plus_erthals, null );
+									
+										if ( point )
 										{
-											if ( point.x < this.x )
-											dx = 1.5;
-											else
-											dx = -1.5;
+											if ( sdWorld.inDist2D_Boolean( point.x, point.y, this.x, this.y, 32 ) )
+											{
+												if ( point.x < this.x )
+												dx = 1.5;
+												else
+												dx = -1.5;
+											}
 										}
 									}
-                            	}
 								
-								let cx = ( this._current_target.x + this.x ) / 2;
-								let cy = ( this._current_target.y + this.y ) / 2 - 64;
+									let cx = ( this._current_target.x + this.x ) / 2;
+									let cy = ( this._current_target.y + this.y ) / 2 - 64;
 								
-								if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, cx, cy, this._current_target, null, sdCom.com_visibility_unignored_classes, null ) )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, null, sdCom.com_visibility_unignored_classes, null ) )
-								{
-									this._high_fire_rate = 150;
-									if ( this._attack_in > 90 )
-									this._attack_in = 45;
+									if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, cx, cy, this._current_target, null, sdCom.com_visibility_unignored_classes, null ) )
+									if ( sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, null, sdCom.com_visibility_unignored_classes, null ) )
+									{
+										this._high_fire_rate = 150;
+										if ( this._attack_in > 90 )
+										this._attack_in = 45;
+									}
 								}
-                            }
 							
-                            if ( dx !== 0 )
-                            {
-								this.sx += dx;
-
-								if ( !this.CanMoveWithoutOverlap( this.x + dx, this.y, 0 ) )
+								if ( dx !== 0 )
 								{
-									if ( this.CanMoveWithoutOverlap( this.x + dx, this.y - 9, 0 ) )
+									this.sx += dx;
+
+									if ( !this.CanMoveWithoutOverlap( this.x + dx, this.y, 0 ) )
 									{
-										this.y -= 9;
-									}
-									else
-									if ( this.CanMoveWithoutOverlap( this.x + dx, this.y -  17, 0 ) )
-									{
-										this.y -= 17;
+										if ( this.CanMoveWithoutOverlap( this.x + dx, this.y - 9, 0 ) )
+										{
+											this.y -= 9;
+										}
+										else
+										if ( this.CanMoveWithoutOverlap( this.x + dx, this.y -  17, 0 ) )
+										{
+											this.y -= 17;
+										}
 									}
 								}
-                            }
+							}
+						}
+					}
+				}
+				else
+				{
+					{
+						let potential_target = this.GetRandomTarget();
+						if ( potential_target )
+						{
+							this._current_target = potential_target;
+							sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1 });
+						
+							if ( this._attack_in < 30 )
+							this._attack_in = 45;
 						}
 					}
 				}
