@@ -126,16 +126,31 @@ class sdEnemyMech extends sdEntity
 	}*/
 	CanAttackEnt( ent )
 	{
-		if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level > 9 )
-		return true;
+		if ( ent.GetClass() !== 'sdCharacter' )
+		{
+			if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+			{
+				if ( ent._ai_team !== this._ai_team && ( ( ent._hea || ent.hea || -1 ) > 0 ) ) // Is this not a friendly faction? And is this close enough? (And is it alive?)
+				return true; // Target it
+			}
+			else
+			return true; // Target it
+		}
 		else
 		{
-			if ( ( ( ent.build_tool_level >= 10 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
+			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level >= 10  )
+			return true;
+			else
 			{
-				this._current_target = ent; // Don't stop targetting if the player has below 800 matter mid fight
-				return true; // Only players have mercy from mechs
+				if ( ( ( ent.build_tool_level >= 10 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
+				{
+					this._current_target = ent; // Don't stop targetting if the player has below 800 matter mid fight
+					return true; // Only players have mercy from mechs
+				}
 			}
 		}
+		
+		return false;
 	}
 	GetRandomEntityNearby() // Scans random area on map for potential entities
 	{
@@ -154,7 +169,7 @@ class sdEnemyMech extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
-		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdVeloxMiner', 'sdShurgExcavator', 'sdZektaronDreadnought' ].indexOf( e.GetClass() ) !== -1 )
+		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 )
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )
 		{
@@ -558,27 +573,20 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought' ] );
+					let array_of_enemies = sdCom.com_faction_attack_classes;
+					array_of_enemies.push( 'sdCube' );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, array_of_enemies );
 
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== this._ai_team && targets_raw[ i ].hea > 0 && this.CanAttackEnt( targets_raw[ i ] )  ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdManualTurret' ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdOverlord' ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdSetrDestroyer' ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdSpider' ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdPlayerOverlord' ) ||
-						( targets_raw[ i ].GetClass() === 'sdCommandCentre' ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < ( this._hmax / 3 ) ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._ai_team !== this._ai_team && targets_raw[ i ]._hea > 0 ) )
+					if ( array_of_enemies.indexOf( targets_raw[ i ].GetClass() ) !== -1 )
 					{
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+						if ( this.CanAttackEnt( targets_raw[ i ] ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
 							targets.push( targets_raw[ i ] );
 						else
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
 						if ( sdWorld.last_hit_entity )
 						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) ) // Target shield blocks and trap blocks aswell
 						targets.push( sdWorld.last_hit_entity );

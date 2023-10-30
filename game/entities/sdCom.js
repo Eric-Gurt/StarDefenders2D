@@ -44,7 +44,7 @@ class sdCom extends sdEntity
 
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
-		sdCom.com_faction_attack_classes = [ 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
+		sdCom.com_faction_attack_classes = [ 'sdManualTurret', 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
 		
 		sdCom.com_vision_blocking_classes = [ 'sdBlock', 'sdDoor' ];
 		
