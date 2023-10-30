@@ -1,4 +1,6 @@
 
+/* global Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -19,6 +21,8 @@ import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 //import sdPlayerSpectator from './sdPlayerSpectator.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 

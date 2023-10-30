@@ -51,7 +51,7 @@ class sdPathFinding
 		
 		sdPathFinding.exist_until_extra_time = 7000; // 5000 was not enough by something like 860 ms, 1326 ms
 		
-		sdPathFinding.max_range_from_target = 2048; // Could be too small?
+		sdPathFinding.max_range_from_target = 2048; // Could be too small? But also smaller range is saving on memory (there is one range map per each target, meaning multiple travelers will reuse same map)
 		
 		//sdPathFinding.STRATEGY_FOLLOW = 1;
 		
@@ -88,6 +88,7 @@ class sdPathFinding
 		let params = this.params;
 		
 		if ( params.target )
+		if ( sdWorld.inDist2D_Boolean( params.traveler.x, params.traveler.y, params.target.x, params.target.y, sdPathFinding.max_range_from_target ) )
 		{
 			this.target = params.target;
 			
@@ -134,6 +135,9 @@ class sdPathFinding
 	{
 		if ( !sdWorld.is_server && !sdPathFinding.allow_client_side )
 		return this.control_pattern;
+	
+		if ( this.rect_space_map === null ) // This will happen if target was never near within sdPathFinding.max_range_from_target range from traveler
+		return null;
 			
 		if ( this.rect_space_map._is_being_removed )
 		{
