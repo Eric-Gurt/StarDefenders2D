@@ -2957,16 +2957,15 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades([
-				{ 
-					title: 'Upgrade to Mark II',
-					cost: 480,
-					action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_KVT_MMG_MK2;
-					gun.extra[ ID_DAMAGE_VALUE ] = 42 * 1.14 } // = 48 (value is rounded off)
-					// gun.sound = 'gun_the_ripper2';
-					// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
-					// gun.spread = 0.03; // Spread and rate of fire are also unaffected
-				} ])
+			upgrades: AddGunDefaultUpgrades([ { 
+				title: 'Upgrade to Mark II',
+				cost: 480,
+				action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_KVT_MMG_MK2;
+				gun.extra[ ID_DAMAGE_VALUE ] = 42 * 1.14 } // = 48 (value is rounded off)
+				// gun.sound = 'gun_the_ripper2';
+				// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
+				// gun.spread = 0.03; // Spread and rate of fire are also unaffected
+			} ])
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
@@ -3965,7 +3964,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
@@ -6395,7 +6394,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_HANDCANNON = 105 ] = // sprite made by LordBored
@@ -6439,7 +6438,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_THROWABLE_GRENADE = 106 ] = 
