@@ -158,7 +158,8 @@ class sdDrone extends sdEntity
 		this._player_damage = 0;
 
 		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
-		
+		this._is_minion_of = null; // Is this a minion of a boss?
+
 		this.side = 1;
 		
 		this.attack_frame = 0;
@@ -505,6 +506,11 @@ class sdDrone extends sdEntity
 				sdSound.PlaySound({ name:'cut_droid_death', x:this.x, y:this.y, volume:1, pitch:1, channel:this._voice_channel });
 			}
 			
+			if ( this._is_minion_of !== null ) // If spawned by boss
+			{
+				this._is_minion_of._current_minions_count--;
+			}
+
 			if ( Math.random() < 0.2 ) // 20% chance to drop a faction-specific drop on destruction
 			{
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
@@ -1391,7 +1397,6 @@ class sdDrone extends sdEntity
 
 									sdEntity.entities.push( bullet_obj );
 								}
-
 								// bullet_obj.sx = dx;
 								// bullet_obj.sy = dy;
 								// bullet_obj.x += bullet_obj.sx * 1;
