@@ -1610,7 +1610,7 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
-		if ( r === sdWeather.EVENT_SARRONIANS ) // Sarronian faction spawn. Spawns humanoids and drones.
+		if ( r === sdWeather.EVENT_SARRONIANS ) // Sarronian & Zektaron factions spawn. Spawns humanoids and drones.
 		{
 			let ais = 0;
 			let percent = 0;
@@ -1632,7 +1632,7 @@ class sdWeather extends sdEntity
 					percent++;
 				}
 			}
-			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
+			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 20 levels
 			{
 				let instances = 0;
 				let instances_tot = 4 + ( ~~( Math.random() * 3 ) );
@@ -3092,6 +3092,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Zektaron Dreadnought, main boss of the Zektarons
 		{
+			if ( sdWorld.sockets[ i ].character.build_tool_level >= 25 ) // If atleast one player is level 25 or above
 			if ( sdZektaronDreadnought.dreadnought_counter < this._max_zektaron_dreadnought_count )
 			sdWeather.SimpleSpawner({
 				
@@ -3101,6 +3102,8 @@ class sdWeather extends sdEntity
 				aerial: true
 				
 			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_KIVORTEC_WEAPONS_POD ) // KIVORTEC Weapons Pod. Has to be hacked before being opened and giving Star Defenders random KVT weaponry.
 		{
