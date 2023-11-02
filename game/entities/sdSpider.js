@@ -380,7 +380,7 @@ class sdSpider extends sdEntity
 				else
 				{
 					{
-						let potential_target = this.GetRandomTarget();
+						let potential_target = sdCharacter.GetRandomEntityNearby( this );
 						if ( potential_target )
 						{
 							this._current_target = potential_target;

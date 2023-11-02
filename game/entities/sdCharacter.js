@@ -341,9 +341,9 @@ class sdCharacter extends sdEntity
 						return sdWorld.AnyOf( [ 
 							'This universe is doomed. You cannot stop it.', 
 							'Give in. You are not to survive.', 
-							'You challenge me? You cannot contest character. ', 
-							'You will bring down the wrath by doing character.',
-							'I will stop character.',
+							'You challenge me? You cannot contest this.', 
+							'You will bring down the wrath by doing this.',
+							'I will stop this.',
 							'You can only delay your inevitable death.',
 							'You cannot harm me, you can only send me back.'
 							] );
@@ -1907,7 +1907,10 @@ THING is cosmic mic drop!`;
 			found_enemy = true;
 
 			if ( found_enemy === true )
-			return sdWorld.last_hit_entity;
+			{
+				if ( sdWorld.last_hit_entity.IsTargetable( from_entity ) && sdWorld.last_hit_entity.IsVisible( from_entity ) )
+				return sdWorld.last_hit_entity;
+			}
 		}
 		return null;
 	}
