@@ -817,7 +817,7 @@ class sdDrone extends sdEntity
 				// No target
 				if ( sdWorld.is_server )
 				{
-					let potential_target = this.GetRandomTarget();
+					let potential_target = sdCharacter.GetRandomEntityNearby( this );
 					if ( potential_target )
 					{
 						this.SetTarget( potential_target );

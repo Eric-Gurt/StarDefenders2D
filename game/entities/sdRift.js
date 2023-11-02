@@ -33,6 +33,12 @@ class sdRift extends sdEntity
 		sdRift.img_rift_anim = sdWorld.CreateImageFromFile( 'rift_anim' );
 		sdRift.portals = 0;
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+		
+		sdRift.TYPE_CRYSTALLIZED_PORTAL = 1; // Crystal asps and quickies
+		sdRift.TYPE_CUBE_PORTAL = 2; // Cubes
+		sdRift.TYPE_ASTEROID_PORTAL = 3; // Asteroid Portal
+		sdRift.TYPE_DIMENSIONAL_TEAR = 4; // "Black hole" / dimensional tear
+		sdRift.TYPE_COUNCIL_PORTAL = 5; // Council portal, from failing the portal machine task
 	}
 	get hitbox_x1() { return -7; }
 	get hitbox_x2() { return 7; }
@@ -58,13 +64,15 @@ class sdRift extends sdEntity
 		super( params );
 		
 		
-		this.type = params.type || 1; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
+		let portal_type = ( Math.random() < 0.2 ) ? sdRift.TYPE_DIMENSIONAL_TEAR : ( Math.random() < 0.35 ) ? sdRift.TYPE_ASTEROID_PORTAL : ( Math.random() < 0.45 ) ? sdRift.TYPE_CUBE_PORTAL : sdRift.TYPE_CRYSTALLIZED_PORTAL; // Portal chances since they're no longer determined in sdWeather
+		
+		this.type = params.type || portal_type; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
 		// this.type needs to be placed before hmax and hea so council portals can actually last long enough. Otherwise it disappears in a minute or so
-		this.hmax = this.type === 5 ? 36000 : 2560; // a 2560 matter crystal is enough for a rift to be removed over time
+		this.hmax = this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 36000; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this._cooldown = 0;
-		this.matter_crystal_max = 5120; // a 5K crystal is max what it can be fed with
+		this._matter_crystal_max = 20480;
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._spawn_timer = params._spawn_timer || 30 * 60; // Either defined by spawn or 60 seconds
 		this._spawn_timer_cd = this._spawn_timer; // Countdown/cooldown for spawn timer
@@ -74,12 +82,13 @@ class sdRift extends sdEntity
 		this.frame = 0; // Rotation sprite index
 		this.scale = 1; // Portal scaling when it's about to be destroyed/removed
 		this.teleport_alpha = 0; // Alpha/transparency ( divided by 60 in draw code ) when portal is about to change location
+		this._tear_range = 48; // It starts out weak so players have a chance to close it, then grows stronger over time
 
 		//this._pull_entities = []; // For dimensional tear
 
-		/*if ( this.type === 1 )
+		/*if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
 		this.filter = 'hue-rotate(' + 75 + 'deg)';
-		if ( this.type === 2 )
+		if ( this.type === sdRift.TYPE_CUBE_PORTAL )
 		this.filter = 'none';*/
 
 		if ( this.type !== 5 ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
@@ -87,24 +96,24 @@ class sdRift extends sdEntity
 	}
 	GetFilterColor()
 	{
-		/*if ( this.type === 1 )
+		/*if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
 		this.filter = 'hue-rotate(' + 75 + 'deg)';
-		if ( this.type === 2 )
+		if ( this.type === sdRift.TYPE_CUBE_PORTAL )
 		this.filter = 'none';*/
 	
-		if ( this.type === 1 )
+		if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
 		return 'hue-rotate(' + 75 + 'deg)';
 	
-		if ( this.type === 2 )
+		if ( this.type === sdRift.TYPE_CUBE_PORTAL )
 		return 'none';
 
-		if ( this.type === 3 )
+		if ( this.type === sdRift.TYPE_ASTEROID_PORTAL )
 		return 'hue-rotate(' + 180 + 'deg)';
 
-		if ( this.type === 4 )
+		if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR )
 		return 'saturate(0.1) brightness(0.4)';
 
-		if ( this.type === 5 )
+		if ( this.type === sdRift.TYPE_COUNCIL_PORTAL )
 		return 'brightness(2) saturate(0.1)';
 	}
 	MeasureMatterCost()
@@ -127,28 +136,39 @@ class sdRift extends sdEntity
 				this._rotate_timer = 10 * this.scale;
 			}
 
-			if ( this.type === 4 ) // Black portal / Black hole attack
+			if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Black portal / Black hole attack
 			{
+				this._tear_range = Math.min( 192, this._tear_range + ( 4 * GSPEED / ( 30 * 60 ) ) ); // It expands range by 4 every minute? Should have max power after 32 minutes.
+				// This way it can't really go away on it's own easily, but doesn't become too annoying for players from the start.
+				
 				/*this._pull_entities = [];
 				let ents = sdWorld.GetAnythingNear( this.x, this.y, 192 );
 				for ( let i = 0; i < ents.length; i++ )
 				this._pull_entities.push( ents[ i ] );*/
 				
-				let range = 192;
+				//let range = this._tear_range;
 
-				let pull_entities = this.GetAnythingNearCache( this.x, this.y, 192 );
+				let pull_entities = this.GetAnythingNearCache( this.x, this.y, this._tear_range );
 
 				//Set task for players to remove the dimensional tear
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
 				{
+					let potential_description;
+					switch( 2 ) // switch ( ~~( Math.random() * 2 ) )
+					{
+						case 0: potential_description = 'We have a dimensional tear on the planet. Close it down before it\'s influence grows too much. Intel claims you can put enough crystals in there to close it.'; break;
+						case 1: potential_description = 'Dimensional tear appeared - you need to close it by putting crystals inside it. If we wait for too long it\'s force will grow stronger.'; break;
+						case 2: potential_description = 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it by putting crystals inside it.'; break;
+					}
+					// Tried multiple descriptions here - they just override each other in interface of the player - flicker so to speak, so I've just set it to old description - Booraz149
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'DESTROY-'+this._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.167 * sdTask.GetTaskDifficultyScaler(),		
+						difficulty: 0.1 * sdTask.GetTaskDifficultyScaler(),		
 						title: 'Close the dimensional tear',
-						description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
+						description: potential_description
 					});
 				}
 
@@ -170,7 +190,7 @@ class sdRift extends sdEntity
 							if ( di < 1 )
 							continue;
 
-							let strength_damage_scale = Math.max( 0, Math.min( 1, 1 - di / range ) ) / 4;
+							let strength_damage_scale = Math.max( 0, Math.min( 1, 1 - di / this._tear_range ) ) / 4;
 
 							let strength = strength_damage_scale * 10 * GSPEED / di;
 
@@ -257,9 +277,10 @@ class sdRift extends sdEntity
 			this._regen_timeout -= GSPEED;
 			else
 			{
-				if ( this.hea < this.hmax && this.type !== 5 && this.type !== 4 ) // Council portal fades away on it's own, dimensional tear too // Almost Copy [ 1 / 2 ]
+				let max_size = Math.min( 1, this._tear_range / 64 ); // If it grows to max power, it will need 15k matter to shut down
+				if ( this.hea < ( this.hmax * max_size )  && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for 4 minutes
 				{
-					this.hea = Math.min( this.hea + GSPEED, this.hmax );
+					this.hea = Math.min( this.hea + GSPEED, this.hmax * max_size );
 				}
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
@@ -272,7 +293,7 @@ class sdRift extends sdEntity
 				setTimeout( ()=>
 				{
 
-					if ( this.type === 1 ) // Quickies and Asps
+					if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL ) // Quickies and Asps
 					{
 						let spawn_type = Math.random();
 						if ( spawn_type < 0.333 )
@@ -307,7 +328,7 @@ class sdRift extends sdEntity
 							sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones
 						}
 					}
-					if ( this.type === 2 ) // Cube portal
+					if ( this.type === sdRift.TYPE_CUBE_PORTAL ) // Cube portal
 					{
 						if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) || sdWorld.server_config.aggressive_hibernation ) // 20
 						{
@@ -331,7 +352,7 @@ class sdRift extends sdEntity
 							sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
 						}
 					}
-					if ( this.type === 3 ) // Asteroid portal, always creates asteroids which explode on impact
+					if ( this.type === sdRift.TYPE_ASTEROID_PORTAL ) // Asteroid portal, always creates asteroids which explode on impact
 					{
 						{
 							let asteroid = new sdAsteroid({ 
@@ -354,7 +375,7 @@ class sdRift extends sdEntity
 					}
 				}, 1223 );
 
-				if ( this.type === 5 )
+				if ( this.type === sdRift.TYPE_COUNCIL_PORTAL )
 				{
 					let ais = 0;
 					for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -417,17 +438,17 @@ class sdRift extends sdEntity
 					}
 				}
 
-				//this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
-				this._spawn_timer_cd = ( this.type === 5 ? 0.5 : this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, Math.pow( Math.random(), 0.5 ) ); // Reset spawn timer countdown, but randomly while prioritizing longer spawns to prevent farming or not feeding any crystals to portal for too long
+				//this._spawn_timer_cd = ( this.type === sdRift.TYPE_ASTEROID_PORTAL ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
+				this._spawn_timer_cd = ( this.type === sdRift.TYPE_COUNCIL_PORTAL ? 0.35 : this.type === sdRift.TYPE_ASTEROID_PORTAL ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, Math.pow( Math.random(), 0.5 ) ); // Reset spawn timer countdown, but randomly while prioritizing longer spawns to prevent farming or not feeding any crystals to portal for too long
 			}
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
 			{
-				this.hea = Math.max( this.hea - 1, 0 );
-				this.matter_crystal--;
+				this.hea = Math.max( this.hea - GSPEED, 0 );
+				this.matter_crystal -= GSPEED;
 			}
 			
-			if ( this.type === 5 || this.type === 4 ) // Council portal fades away on it's own, dimensional tear too // Almost Copy [ 2 / 2 ]
+			if ( this.type !== 4 ) // All but dimensional tears disappear over time
 			this.hea = Math.max( this.hea - GSPEED, 0 );
 		
 			if ( this._time_until_teleport > 0 )
@@ -476,9 +497,9 @@ class sdRift extends sdEntity
 			}
 			if ( this.scale <= 0 )
 			{
-				let r = Math.random();
+				//let r = Math.random();
 
-				if ( r < ( 0.23 + ( 0.05 * this.type ) ) && this.type !== 5 )
+				if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Dimensional tears drop score, others don't since they disappear over time
 				{
 					let x = this.x;
 					let y = this.y;
@@ -510,10 +531,10 @@ class sdRift extends sdEntity
 		if ( this.teleport_alpha < 55 ) // Prevent crystal feeding if it's spawning or dissapearing
 		return;
 
-		if ( this.type === 5 ) // No feeding for council portals
+		if ( this.type === sdRift.TYPE_COUNCIL_PORTAL ) // No feeding for council portals
 		return;
 
-		/*if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
+		/*if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Black portal deals damage / vacuums stuff inside
 		{
 			from_entity.DamageWithEffect( 0.25 );
 			if ( typeof from_entity.sx !== 'undefined' )
@@ -521,35 +542,15 @@ class sdRift extends sdEntity
 			if ( typeof from_entity.sy !== 'undefined' )
 			from_entity.sy -= ( from_entity.y - this.y ) / 40;
 		}*/
-
+		if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only black portals can be fed crystals now, others disappear over time
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 		{
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-				if ( this.type !== 4 ) // Black portal needs anticrystal to be shut down
-				{
-					this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
-					this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
-				}
-				else
-				{
-					if ( from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG && from_entity.type !== sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-					{
-						if ( from_entity.matter_max === sdCrystal.anticrystal_value )
-						{
-							this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
-							this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
-						}
-					}
-					else
-					if ( from_entity.matter_max === sdCrystal.anticrystal_value * 4 )
-					{
-						this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
-						this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
-					}
-				}
+				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
 				//this._update_version++;
 				from_entity.remove();
 			}
@@ -561,14 +562,14 @@ class sdRift extends sdEntity
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
-				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
+				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
+				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
 				//this._update_version++;
 				from_entity.remove();
 			}
 		}
 
-		if ( from_entity.is( sdJunk ) )
+		/*if ( from_entity.is( sdJunk ) )
 		if ( from_entity.type === 1 ) // Is it an alien battery?
 		if ( this.type !== 2 && this.type !== 4 ) // The portal is not a "cube" one?
 		{
@@ -588,11 +589,11 @@ class sdRift extends sdEntity
 			});
 
 			from_entity.remove();
-		}
+		}*/
 	}
 	get title()
 	{
-		//if ( this.matter_crystal < this.hea)
+		//if ( this.matter_crystal < this.hea )
 		return 'Dimensional portal';
 	}
 	Draw( ctx, attached )

@@ -627,7 +627,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdRift', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdRift', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
