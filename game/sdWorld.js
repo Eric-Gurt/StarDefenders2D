@@ -2818,7 +2818,7 @@ class sdWorld
 	{
 		sdWorld.world_has_unsaved_changes = true;
 		
-		const DEBUG_TIME_MODE = false;
+		const DEBUG_TIME_MODE = globalThis.DEBUG_TIME_MODE;
 		
 		
 		let old_time = sdWorld.time;
@@ -3210,8 +3210,8 @@ class sdWorld
 					if ( DEBUG_TIME_MODE )
 					{
 						time_to = Date.now();
-						if ( time_to - time_from > 5 )
-						sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
+						//if ( time_to - time_from > 5 )
+						//sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
 
 						IncludeTimeCost( e.GetClass(), time_to - time_from );
 					}
@@ -3431,13 +3431,29 @@ class sdWorld
 				else
 				sdEntity.snapshot_clear_crawler_i = 0;
 			}
+			
+			let t7 = Date.now();
+			IncludeTimeCost( 'snapshot_clear_crawler', t7 - t6 );
 
 			sdDeepSleep.GlobalThink( GSPEED );
 
+			let t8 = Date.now();
+			IncludeTimeCost( 'sdDeepSleep', t8 - t7 );
+			
 			sdWater.GlobalThink( GSPEED );
+
+			let t9 = Date.now();
+			IncludeTimeCost( 'sdWater', t9 - t8 );
+			
 			sdRescueTeleport.GlobalThink( GSPEED );
+
+			let t10 = Date.now();
+			IncludeTimeCost( 'sdRescueTeleport', t10 - t9 );
+			
 			sdBaseShieldingUnit.GlobalThink( GSPEED );
-			//sdSteeringWheel.GlobalThink( GSPEED );
+
+			let t11 = Date.now();
+			IncludeTimeCost( 'sdBaseShieldingUnit', t11 - t10 );
 
 			// Keep it last:
 			sdWorld.frame++;

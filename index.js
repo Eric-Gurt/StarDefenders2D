@@ -1105,9 +1105,12 @@ const js_challenge_lzw = LZW.lzw_encode( fs.readFileSync( sdWorld.browser_finger
 
 const cached_bans = {};
 
+globalThis.DEBUG_TIME_MODE = false;
+
 const hash_flood_prevention = []; // Array of { hash, expire_on } - used to prevent database hash flooding
 const unique_hash_queue_length = 50; // It will likely limit number of online players by 50, at least if they connect at the same time
 const hash_floor_expire_in = 1000 * 30;
+globalThis.hash_flood_prevention = hash_flood_prevention;
 
 let next_drop_log = 0;
 io.on( 'connection', ( socket )=> 
@@ -1543,7 +1546,7 @@ io.on( 'connection', ( socket )=>
 			{
 				hash_flood_prevention.push({
 					hash: player_settings.my_hash,
-					expire_on: hash_floor_expire_in
+					expire_on: t + hash_floor_expire_in
 				});
 			}
 		}
