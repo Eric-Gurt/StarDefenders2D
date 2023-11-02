@@ -277,9 +277,10 @@ class sdRift extends sdEntity
 			this._regen_timeout -= GSPEED;
 			else
 			{
-				if ( this.hea < this.hmax && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for 4 minutes
+				let max_size = Math.min( 1, this._tear_range / 64 ); // If it grows to max power, it will need 15k matter to shut down
+				if ( this.hea < ( this.hmax * max_size )  && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for 4 minutes
 				{
-					this.hea = Math.min( this.hea + ( GSPEED / 2 ), this.hmax );
+					this.hea = Math.min( this.hea + GSPEED, this.hmax * max_size );
 				}
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
@@ -548,9 +549,8 @@ class sdRift extends sdEntity
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-				let matter_reduction = Math.min( 1, this._tear_range / 64 ); // If it grows to max power, it will need 15k matter to shut down
-				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + ( from_entity.matter_max / matter_reduction ) ); // Drain the crystal for it's max value and destroy it
-				this._regen_timeout = 30 * 60 * 4; // 4 minutes until it starts regenerating if it didn't drain matter
+				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+				this._regen_timeout = Math.min( 30 * 60, from_entity.matter_max * 10 ); // Regen depends on how much matter did it get fed with
 				//this._update_version++;
 				from_entity.remove();
 			}
@@ -563,7 +563,7 @@ class sdRift extends sdEntity
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
 				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
-				this._regen_timeout = 30 * 60 * 4; // 4 minutes until it starts regenerating if it didn't drain matter
+				this._regen_timeout = Math.min( 30 * 60, from_entity.matter_max * 10 ); // Regen depends on how much matter did it get fed with
 				//this._update_version++;
 				from_entity.remove();
 			}
