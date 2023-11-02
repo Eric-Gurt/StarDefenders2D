@@ -701,10 +701,7 @@ class sdLongRangeTeleport extends sdEntity
 			else
 			if ( rng < 1 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
-			else
-			if ( rng < 1.2 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_KVT_MMG_MK2 }); // What is sdGun.CLASS_MMG_THE_RIPPER_T3 ? It does not exist
-			else
+			else // 1.2 is gone, idk if anyone would like to distribute it among the other weapons or if rayrifle should fill the gap so i left it like this for now - Ghost581
 			if ( rng < 1.4 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
 			else

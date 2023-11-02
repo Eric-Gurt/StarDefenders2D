@@ -2166,21 +2166,20 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#1fff69', 15, 'laser point' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_SMG = 32 ] = { // Sprite made by Ghost581
 			image: sdWorld.CreateImageFromFile( 'kvt_smg' ),
 			sound: 'gun_pistol',
-			title: 'KVT SMG "The Advocate"',
+			title: 'KVT SMG P49 "The Advocate"',
 			slot: 1,
 			reload_time: 1.9,
 			muzzle_x: 6,
 			ammo_capacity: 28,
 			spread: 0.06,
 			count: 1,
-			min_build_tool_level: 25,
-			matter_cost: 90,
+			spawnable: false,
 			projectile_properties: { _damage: 18, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -2879,7 +2878,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'f_marksman' ),
 			sound: 'gun_f_rifle',
-			sound_pitch: 2.4,
+			sound_pitch: 2.2,
 			title: 'Falkonian Marksman Rifle',
 			slot: 2,
 			reload_time: 18,
@@ -2891,7 +2890,7 @@ class sdGunClass
 			projectile_properties: { _damage: 64, color: '#92D0EC', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#92D0EC', _dirt_mult: -0.5 };
+				let obj = { color: '#92d0ec', _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -2922,7 +2921,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'kvt_mmg' ),
 			sound: 'gun_the_ripper2',
 			//sound_pitch: 0.7,
-			sound_pitch: 1.6,
+			sound_pitch: 1.4,
 			//sound_volume: 1.75,
 			title: 'KVT MMG P04 "The Ripper"',
 			slot: 2,
@@ -2931,7 +2930,6 @@ class sdGunClass
 			ammo_capacity: 48,
 			spread: 0.03,
 			count: 1,
-			matter_cost: 140,
 			spawnable: false,
 			projectile_properties: { _damage: 42, color: '#ffeb00', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -2959,7 +2957,15 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades([ { 
+				title: 'Upgrade to Mark II',
+				cost: 480,
+				action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_KVT_MMG_MK2;
+				gun.extra[ ID_DAMAGE_VALUE ] = 42 * 1.14 } // = 48 (value is rounded off)
+				// gun.sound = 'gun_the_ripper2';
+				// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
+				// gun.spread = 0.03; // Spread and rate of fire are also unaffected
+			} ])
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
@@ -2967,21 +2973,20 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'kvt_mmg_mk2' ),
 			sound: 'gun_the_ripper2',
 			//sound_pitch: 1.6,
-			sound_pitch: 0.7,
+			sound_pitch: 0.8,
 			//sound_volume: 1.65,
-			title: 'KVT MMG "The Ripper" MK2',
+			title: 'KVT MMG P04 "The Ripper" MK2',
 			slot: 2,
 			reload_time: 4.2,
 			muzzle_x: 9,
 			ammo_capacity: 56,
 			spread: 0.02,
 			count: 1,
-			matter_cost: 190,
 			spawnable: false,
-			projectile_properties: { _damage: 48, color: '#FFEB00', _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 48, color: '#ffeb00', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#FFEB00', _dirt_mult: -0.5 };
+				let obj = { color: '#ffeb00', _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -3025,9 +3030,8 @@ class sdGunClass
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
-            matter_cost: 270,
+			spawnable: false,
             projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20 },
-            min_build_tool_level: 18,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 20 };
@@ -3933,9 +3937,7 @@ class sdGunClass
 			count: 1,
 			burst: 2,
 			burst_reload: 26, 
-			min_build_tool_level: 9,
-			min_workbench_level: 2,
-			matter_cost: 240,
+			spawnable: false,
 			projectile_properties: { time_left: 180, explosion_radius: 12, model: 'mini_missile_p241', _damage: 34, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -3962,7 +3964,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
@@ -4406,8 +4408,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			matter_cost: 320,
-			min_build_tool_level: 18,
+			spawnable: false,
 			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7' }, // 3x more damage against vehicles
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -6356,18 +6357,16 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'kvt_rifle' ),
 			sound: 'gun_the_ripper2',
-			sound_pitch: 1.3,
+			sound_pitch: 1.1,
 			title: 'KVT Assault Rifle P54 "CER54"',
 			slot: 2,
 			reload_time: 2,
 			muzzle_x: 7,
-			ammo_capacity: 44,
+			ammo_capacity: 36,
 			burst: 4,
 			burst_reload: 18,
 			count: 1,
-			matter_cost: 290,
-			min_build_tool_level: 22,
-			spawnable: true,
+			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.1,
 			projectile_properties: { _damage: 35, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -6395,14 +6394,14 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_HANDCANNON = 105 ] = // sprite made by LordBored
 		{
 			image: sdWorld.CreateImageFromFile( 'kvt_handcannon' ),
 			sound: 'gun_the_ripper2',
-			sound_pitch: 0.3,
+			sound_pitch: 0.5,
 			title: 'KVT Handcannon P36 "Iron Bull"',
 			slot: 1,
 			reload_time: 16,
@@ -6410,9 +6409,8 @@ class sdGunClass
 			ammo_capacity: 6,
 			spread: 0,
 			count: 1,
-			matter_cost: 140,
-			min_build_tool_level: 12,
 			fire_type: 2,
+			spawnable: false,
 			projectile_properties: { _damage: 63, _dirt_mult: -0.5 },
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -6440,7 +6438,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_THROWABLE_GRENADE = 106 ] = 

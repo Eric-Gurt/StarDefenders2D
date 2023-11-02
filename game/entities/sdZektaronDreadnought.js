@@ -72,6 +72,7 @@ class sdZektaronDreadnought extends sdEntity
 		this._lasers_attack_timer = 0;
 		this._focusbeam_attack_timer = 0; // focus beam phase attack timer
 		this._deploy_minions_timer = 0;
+		this._current_minions_count = 0; // Limit the amount of drones that are spawned as they can be overwhelming
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
 		//this._bullets = 150;
@@ -719,7 +720,7 @@ class sdZektaronDreadnought extends sdEntity
 						}
 					}
 
-					if ( this._deploy_minions_timer <= 0 ) // spawn drones to help in combat.
+					if ( this._deploy_minions_timer <= 0 && this._current_minions_count < 8 ) // Limit the amount of drones that are spawned as they can be overwhelming
 					{
 						if ( this.hea > ( this._hmax / 2 ) )
 						{
@@ -731,8 +732,8 @@ class sdZektaronDreadnought extends sdEntity
 							drone.sx *= -0.1;
 							if ( Math.abs( drone.sy ) < 0.5 )
 							drone.sy *= 0.1;
-			
 							drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
+							drone._is_minion_of = this;
 			
 							sdEntity.entities.push( drone );
 
@@ -740,7 +741,8 @@ class sdZektaronDreadnought extends sdEntity
 			
 							drone2.sx = 0;
 							drone2.sy = 0;
-			
+							drone2._is_minion_of = this;
+
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
 							drone2.sx *= -0.1;
@@ -748,9 +750,11 @@ class sdZektaronDreadnought extends sdEntity
 							drone2.sy *= 0.1;
 			
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
-			
+							
 							sdEntity.entities.push( drone2 );
 
+							this._current_minions_count++;
+							this._current_minions_count++;
 							this._deploy_minions_timer = 450;
 						}
 						else
@@ -761,7 +765,8 @@ class sdZektaronDreadnought extends sdEntity
 			
 							drone.sx = 0;
 							drone.sy = 0;
-			
+							drone._is_minion_of = this;
+
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
 							drone.sx *= -0.1;
@@ -776,6 +781,7 @@ class sdZektaronDreadnought extends sdEntity
 			
 							drone2.sx = 0;
 							drone2.sy = 0;
+							drone2._is_minion_of = this;
 			
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
@@ -787,6 +793,8 @@ class sdZektaronDreadnought extends sdEntity
 			
 							sdEntity.entities.push( drone2 );
 							
+							this._current_minions_count++;
+							this._current_minions_count++;
 							this._deploy_minions_timer = 450
 
 						}
