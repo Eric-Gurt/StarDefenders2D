@@ -549,7 +549,7 @@ class sdRift extends sdEntity
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-				this.matter_crystal = Math.max( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
 				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
 				//this._update_version++;
 				from_entity.remove();
@@ -562,7 +562,7 @@ class sdRift extends sdEntity
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.max( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
+				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
 				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
 				//this._update_version++;
 				from_entity.remove();
