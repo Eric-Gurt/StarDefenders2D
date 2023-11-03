@@ -818,6 +818,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1528,6 +1530,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1613,6 +1617,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range, not sure if this should exist for rail shotguns
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
+				//Rails... not sure if they should have shotgun dirt multiplier since they're rails? - Booraz149
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -2058,6 +2065,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4370,6 +4379,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4815,6 +4826,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -5121,6 +5134,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6247,6 +6262,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6332,6 +6349,8 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -8075,6 +8094,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._point_blank_mult = 1; // 2x damage at point blank range
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
