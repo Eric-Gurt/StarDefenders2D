@@ -2809,7 +2809,7 @@ class sdEntity
 				
 				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 || onThinkString.indexOf( 'BossLikeTargetScan' ) !== -1 );
 				
-				this.onThink.has_needs_angular_range_cache = ( onThinkString.indexOf( 'BossLikeTargetScan' ) !== -1 );
+				this.onThink.has_needs_angular_range_cache = ( onThinkString.indexOf( 'BossLikeTargetScan' ) !== -1 || onThinkString.indexOf( 'CheckLineOfSightAngularCache' ) !== -1 );
 				
 				this.onThink.has_GiveLiquid = ( onThinkString.indexOf( 'GiveLiquid' ) !== -1 );
 				
