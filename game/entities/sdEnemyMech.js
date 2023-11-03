@@ -1,4 +1,6 @@
 
+/* global Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -34,6 +36,14 @@ class sdEnemyMech extends sdEntity
 		
 		sdEnemyMech.attack_range = 375;
 		
+		// These exist because square brackets make JavaScript create new array instances and add extra work for garbage collector - thus we make arrays just once and reuse them
+		sdEnemyMech.reusable_vision_blocking_entities_array = [ this.name ];
+		sdEnemyMech.reusable_vision_block_ignored_entities_array = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdSetrDestroyer as well
+		
+		sdEnemyMech.current_boss = null;
+		sdEnemyMech.current_boss_is_low_health = false;
+		sdEnemyMech.current_boss_reusable_vision_blocking_entities_array = null;
+		sdEnemyMech.current_boss_reusable_vision_block_ignored_entities_array = null;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -112,6 +122,63 @@ class sdEnemyMech extends sdEntity
 			this._last_seen_player = sdWorld.time;
 		}
 	}
+	
+	// boss_entity is expected to have .CanAttackEnt( e ) method. Used by sdSetrDestroyer and Dreadnout too. It should be best to not copy classes if only small part of them is being changed, at least let's reuse functions. But class extension should be still better (like in sdCharacter and sdPlayerDrone case, all classes might even inherit typical sdBoss class)
+	static BossLikeTargetScan( boss_entity, attack_range, reusable_vision_blocking_entities_array, reusable_vision_block_ignored_entities_array )
+	{
+		let is_low_health = ( ( boss_entity.hea || boss_entity._hea || 0 ) < ( boss_entity.hmax || boss_entity._hmax || 0 ) / 3 );
+		
+		sdEnemyMech.current_boss = boss_entity;
+		sdEnemyMech.current_boss_is_low_health = is_low_health;
+		sdEnemyMech.current_boss_reusable_vision_blocking_entities_array = reusable_vision_blocking_entities_array;
+		sdEnemyMech.current_boss_reusable_vision_block_ignored_entities_array = reusable_vision_block_ignored_entities_array;
+		
+		//let targets = boss_entity.GetAnythingNearCache( boss_entity.x, boss_entity.y, attack_range, null, sdCom.com_faction_attack_classes, true, sdEnemyMech.BossLikeTargetScan_Filter );
+		let targets = boss_entity.GetAnythingNearCache( boss_entity.x, boss_entity.y, attack_range, null, null, true, sdEnemyMech.BossLikeTargetScan_Filter );
+		
+		sdEnemyMech.current_boss = null;
+		
+		return targets;
+	}
+	static BossLikeTargetScan_Filter( e ) // Preventing dynamic function creation. Though maybe that isn't better than looking up global objects and properties
+	{
+		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 )
+		{
+			let boss_entity = sdEnemyMech.current_boss;
+			
+			if ( boss_entity.CanAttackEnt( e ) )
+			{
+				let is_low_health = sdEnemyMech.current_boss_is_low_health;
+				let reusable_vision_blocking_entities_array = sdEnemyMech.current_boss_reusable_vision_blocking_entities_array;
+				let reusable_vision_block_ignored_entities_array = sdEnemyMech.current_boss_reusable_vision_block_ignored_entities_array;
+
+				//let line_of_sight = sdWorld.CheckLineOfSight( boss_entity.x, boss_entity.y, e.x, e.y, e, reusable_vision_blocking_entities_array, reusable_vision_block_ignored_entities_array );
+				let line_of_sight = boss_entity.CheckLineOfSightAngularCache( e, reusable_vision_blocking_entities_array, reusable_vision_block_ignored_entities_array );
+				let sight_blocking_entity = sdWorld.last_hit_entity;
+
+				if ( line_of_sight )
+				{
+					return true;
+				}
+				else
+				{
+					if ( sight_blocking_entity && sight_blocking_entity.is( sdBlock ) && ( sight_blocking_entity.material === sdBlock.MATERIAL_TRAPSHIELD || sight_blocking_entity.material === sdBlock.MATERIAL_SHARP || sight_blocking_entity.texture_id === sdBlock.TEXTURE_ID_CAGE ) ) // Target shield blocks and trap blocks aswell
+					{
+						//targets.push( sight_blocking_entity );
+						return true; // Should be ok to target not the shield but entity behind it?
+					}
+					else
+					if ( is_low_health && e.is( sdCharacter ) && e._ai_team !== boss_entity._ai_team && boss_entity.CanAttackEnt( e ) ) // Highly wanted by sdEnemyMechs in this case
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+	
 	/*GetBleedEffect()
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
@@ -126,7 +193,8 @@ class sdEnemyMech extends sdEntity
 	}*/
 	CanAttackEnt( ent )
 	{
-		if ( ent.GetClass() !== 'sdCharacter' )
+		//if ( ent.GetClass() !== 'sdCharacter' )
+		if ( !ent.is( sdCharacter ) )
 		{
 			if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 			{
@@ -251,8 +319,8 @@ class sdEnemyMech extends sdEntity
 			//if ( initiator )
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
 
-			sdWorld.SpawnGib( this.x - (6 * this.side ), this.y + this._hitbox_y1, this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, this.side, sdGib.CLASS_VELOX_MECH_HEAD , this.filter, null )
-			sdWorld.SpawnGib( this.x + (12 * this.side ), this.y + this._hitbox_y2 + 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 2, this.side, sdGib.CLASS_VELOX_MECH_PARTS , this.filter, null )
+			sdWorld.SpawnGib( this.x - (6 * this.side ), this.y + this._hitbox_y1, this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, this.side, sdGib.CLASS_VELOX_MECH_HEAD , this.filter, null );
+			sdWorld.SpawnGib( this.x + (12 * this.side ), this.y + this._hitbox_y2 + 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 2, this.side, sdGib.CLASS_VELOX_MECH_PARTS , this.filter, null );
 			let that = this;
 			for ( var i = 0; i < 20; i++ )
 			{
@@ -363,7 +431,7 @@ class sdEnemyMech extends sdEntity
 
 						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-							let random_value = Math.random();
+							//let random_value = Math.random();
 
 							let gun;
 
@@ -573,38 +641,40 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let array_of_enemies = sdCom.com_faction_attack_classes;
-					array_of_enemies.push( 'sdCube' );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, array_of_enemies );
+					
+					//let array_of_enemies = sdCom.com_faction_attack_classes;
+					//array_of_enemies.push( 'sdCube' ); No
+					/*let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, sdCom.com_faction_attack_classes );
 
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( array_of_enemies.indexOf( targets_raw[ i ].GetClass() ) !== -1 )
+					//if ( array_of_enemies.indexOf( targets_raw[ i ].GetClass() ) !== -1 ) This was already tested for in sdWorld.GetAnythingNear
 					{
 						if ( this.CanAttackEnt( targets_raw[ i ] ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], sdEnemyMech.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array ) )
 							targets.push( targets_raw[ i ] );
 						else
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], sdEnemyMech.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) ) // Target shield blocks and trap blocks aswell
+						if ( sdWorld.last_hit_entity.is( sdBlock ) && ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) ) // Target shield blocks and trap blocks aswell
 						targets.push( sdWorld.last_hit_entity );
 						else
 						{
 							if ( this.hea < ( this._hmax / 3 ) )
-							if ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== this._ai_team && this.CanAttackEnt( targets_raw[ i ] ) ) // Highly wanted by sdEnemyMechs in this case
+							if ( targets_raw[ i ].is( sdCharacter ) && targets_raw[ i ]._ai_team !== this._ai_team && this.CanAttackEnt( targets_raw[ i ] ) ) // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
 							}
 						}
 					}
 
-					sdWorld.shuffleArray( targets );
-
+					sdWorld.shuffleArray( targets );*/
+					
+					let targets = sdEnemyMech.BossLikeTargetScan( this, sdEnemyMech.attack_range, sdEnemyMech.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array );
+					
 					for ( let i = 0; i < targets.length; i++ )
 					{
-
 						this._follow_target = targets[ i ];
 
 						if ( this._alert_intensity < 45 )// Delay attack
