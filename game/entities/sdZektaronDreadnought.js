@@ -1,4 +1,6 @@
 
+/* global Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -14,6 +16,7 @@ import sdDrone from './sdDrone.js';
 import sdGib from './sdGib.js';
 import sdShop from '../client/sdShop.js';
 import sdLost from './sdLost.js';
+import sdEnemyMech from './sdEnemyMech.js';
 
 class sdZektaronDreadnought extends sdEntity
 {
@@ -29,6 +32,7 @@ class sdZektaronDreadnought extends sdEntity
 		
 		sdZektaronDreadnought.attack_range = 425;
 		
+		sdZektaronDreadnought.reusable_vision_blocking_entities_array = [ this.name ];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -152,7 +156,7 @@ class sdZektaronDreadnought extends sdEntity
 						{
 							sdLost.ApplyAffection( nears[ i ], 10, bullet_obj1, sdLost.FILTER_GLASSED ); // Might have to be lowered depending on this unit's performance, will usually be in pairs.
 						}
-					}
+					};
 
 					sdEntity.entities.push( bullet_obj1 );
 
@@ -190,7 +194,7 @@ class sdZektaronDreadnought extends sdEntity
 						{
 							sdLost.ApplyAffection( nears[ i ], 15, bullet_obj2, sdLost.FILTER_GLASSED ); // Might have to be lowered depending on this unit's performance, will usually be in pairs.
 						}
-					}
+					};
 
 					sdEntity.entities.push( bullet_obj2 );
 
@@ -228,7 +232,7 @@ class sdZektaronDreadnought extends sdEntity
 						{
 							sdLost.ApplyAffection( nears[ i ], 10, bullet_obj3, sdLost.FILTER_GLASSED ); // Might have to be lowered depending on this unit's performance, will usually be in pairs.
 						}
-					}
+					};
 
 					sdEntity.entities.push( bullet_obj3 );
 	}
@@ -801,8 +805,8 @@ class sdZektaronDreadnought extends sdEntity
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let array_of_enemies = sdCom.com_faction_attack_classes;
-					array_of_enemies.push( 'sdCube' );
+					/*let array_of_enemies = sdCom.com_faction_attack_classes;
+					array_of_enemies.push( 'sdCube' ); No
 					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdZektaronDreadnought.attack_range, null, array_of_enemies );
 
 					let targets = [];
@@ -828,7 +832,9 @@ class sdZektaronDreadnought extends sdEntity
 						}
 					}
 
-					sdWorld.shuffleArray( targets );
+					sdWorld.shuffleArray( targets );*/
+					
+					let targets = sdEnemyMech.BossLikeTargetScan( this, sdZektaronDreadnought.attack_range, sdZektaronDreadnought.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array );
 
 					if ( this._lasers_attack_timer <= 0 )
 					//if ( this.hea < ( this._hmax / 2 ) ) // Second phase of the mech, rocket launcher can fire now

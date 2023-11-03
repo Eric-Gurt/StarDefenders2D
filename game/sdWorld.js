@@ -2056,19 +2056,26 @@ class sdWorld
 					}
 					else
 					if ( filter_candidates_function === null || filter_candidates_function( e ) )
-					if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
 					{
-						x1 = e._hitbox_x1;
-						x2 = e._hitbox_x2;
-						y1 = e._hitbox_y1;
-						y2 = e._hitbox_y2;
+						/*if ( specific_classes )
+						{
+							debugger;
+						}*/
+						
+						if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
+						{
+							x1 = e._hitbox_x1;
+							x2 = e._hitbox_x2;
+							y1 = e._hitbox_y1;
+							y2 = e._hitbox_y2;
 
-						cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
-						cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+							cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
+							cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
 
-						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
-						if ( ret.indexOf( e ) === -1 )
-						ret.push( e );
+							if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
+							if ( ret.indexOf( e ) === -1 )
+							ret.push( e );
+						}
 					}
 				}
 			}
@@ -2818,7 +2825,7 @@ class sdWorld
 	{
 		sdWorld.world_has_unsaved_changes = true;
 		
-		const DEBUG_TIME_MODE = false;
+		const DEBUG_TIME_MODE = globalThis.DEBUG_TIME_MODE;
 		
 		
 		let old_time = sdWorld.time;
@@ -3210,8 +3217,8 @@ class sdWorld
 					if ( DEBUG_TIME_MODE )
 					{
 						time_to = Date.now();
-						if ( time_to - time_from > 5 )
-						sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
+						//if ( time_to - time_from > 5 )
+						//sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
 
 						IncludeTimeCost( e.GetClass(), time_to - time_from );
 					}
@@ -3431,13 +3438,29 @@ class sdWorld
 				else
 				sdEntity.snapshot_clear_crawler_i = 0;
 			}
+			
+			let t7 = Date.now();
+			IncludeTimeCost( 'snapshot_clear_crawler', t7 - t6 );
 
 			sdDeepSleep.GlobalThink( GSPEED );
 
+			let t8 = Date.now();
+			IncludeTimeCost( 'sdDeepSleep', t8 - t7 );
+			
 			sdWater.GlobalThink( GSPEED );
+
+			let t9 = Date.now();
+			IncludeTimeCost( 'sdWater', t9 - t8 );
+			
 			sdRescueTeleport.GlobalThink( GSPEED );
+
+			let t10 = Date.now();
+			IncludeTimeCost( 'sdRescueTeleport', t10 - t9 );
+			
 			sdBaseShieldingUnit.GlobalThink( GSPEED );
-			//sdSteeringWheel.GlobalThink( GSPEED );
+
+			let t11 = Date.now();
+			IncludeTimeCost( 'sdBaseShieldingUnit', t11 - t10 );
 
 			// Keep it last:
 			sdWorld.frame++;

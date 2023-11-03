@@ -37,7 +37,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -822,6 +822,44 @@ class sdModeration
 		if ( parts[ 0 ] === 'admin' || parts[ 0 ] === 'a' || parts[ 0 ] === 'adm' )
 		{
 			socket.emit( 'OPEN_INTERFACE', 'sdAdminPanel' );
+		}
+		else
+		if ( parts[ 0 ] === 'eval' )
+		{
+			if ( my_admin_row.access_level !== 0 )
+			socket.SDServiceMessage( 'This command is not allowed for non-first admins' );
+			else
+			if ( sdWorld.server_config.let_server_owner_run_eval_command )
+			{
+				let result = undefined;
+				let error = false;
+				
+				try
+				{
+					let eval0 = eval; // NetBeans bug fix
+					result = eval0( parts.slice( 1 ).join(' ') );
+				
+					trace( result );
+				}
+				catch ( e )
+				{
+					result = e.toString();
+					console.warn( e );
+					error = true;
+				}
+				
+				result += '';
+				
+				if ( result.length > 1000 )
+				result = result.substring( 0, 1000 ) + '...';
+				
+				if ( error )
+				socket.SDServiceMessage( 'JS Error: ' + result );
+				else
+				socket.SDServiceMessage( 'JS Evalution result: ' + result );
+			}
+			else
+			socket.SDServiceMessage( 'let_server_owner_run_eval_command is disabled in config' );
 		}
 		else
 		if ( parts[ 0 ] === 'quickstart' || parts[ 0 ] === 'qs' )

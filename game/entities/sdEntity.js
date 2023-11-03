@@ -2807,7 +2807,9 @@ class sdEntity
 				
 				this.onThink.has_MatterGlow = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 );
 				
-				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
+				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 || onThinkString.indexOf( 'BossLikeTargetScan' ) !== -1 );
+				
+				this.onThink.has_needs_angular_range_cache = ( onThinkString.indexOf( 'BossLikeTargetScan' ) !== -1 || onThinkString.indexOf( 'CheckLineOfSightAngularCache' ) !== -1 );
 				
 				this.onThink.has_GiveLiquid = ( onThinkString.indexOf( 'GiveLiquid' ) !== -1 );
 				
@@ -2839,6 +2841,12 @@ class sdEntity
 			{
 				this._connected_ents = null; // Can be array, for slower update rate
 				this._connected_ents_next_rethink = 0;
+			}
+			
+			if ( this.onThink.has_needs_angular_range_cache )
+			{
+				this._angular_range_cache = [];
+				this._angular_range_cache_per_entity = new WeakMap();
 			}
 			
 			if ( this.onRemove.has_broken_property_check === undefined )
@@ -3087,6 +3095,91 @@ class sdEntity
 		}
 	}
 	
+	CheckLineOfSightAngularCache( target_entity, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
+	{
+		// Remember once visible targets for 2 seconds instead of 0.5 + 0.5 * random
+		let by_target = this._angular_range_cache_per_entity.get( target_entity );
+		if ( by_target !== undefined )
+		{
+			if ( sdWorld.time < by_target )
+			return true;
+		}
+		
+		let step = 8;
+		
+		let x1 = this.x;
+		let y1 = this.y;
+		
+		let x2 = target_entity.x + ( target_entity._hitbox_x1 + target_entity._hitbox_x2 ) / 2;
+		let y2 = target_entity.y + ( target_entity._hitbox_y1 + target_entity._hitbox_y2 ) / 2;
+		
+		let di = sdWorld.Dist2D( x1,y1,x2,y2 );
+		
+		//if ( di > max_range )
+		//return false;
+			
+		let an = Math.floor( ( Math.atan2( x2-x1, y2-y1 ) + Math.PI ) / ( Math.PI * 2 ) * 32 );
+		
+		let cache_object = this._angular_range_cache[ an ];
+		
+		if ( !cache_object )
+		{
+			this._angular_range_cache[ an ] = 
+				cache_object = 
+					{
+						last_s: step / 2,
+						exprie_on: 0,//sdWorld.time + 500 + Math.random() * 500
+						hit: null
+					};
+		}
+		else
+		{
+			if ( sdWorld.time > cache_object.exprie_on )
+			{
+				cache_object.last_s = step / 2;
+				cache_object.hit = null;
+			}
+			else
+			{
+				if ( di > cache_object.last_s && cache_object.hit )
+				{
+					sdWorld.last_hit_entity = cache_object.hit;
+					return false;
+				}
+				
+				if ( di <= cache_object.last_s && !cache_object.hit )
+				{
+					this._angular_range_cache_per_entity.set( target_entity, sdWorld.time + 2000 );
+					return true;
+				}
+			}
+		}
+			
+		cache_object.exprie_on = sdWorld.time + 500 + Math.random() * 500;
+		
+		
+		for ( let s = cache_object.last_s; s < di - step / 2; s += step )
+		{
+			let x = x1 + ( x2 - x1 ) / di * s;
+			let y = y1 + ( y2 - y1 ) / di * s;
+			if ( sdWorld.CheckWallExists( x, y, target_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
+			{
+				cache_object.last_s = s;
+				cache_object.hit = sdWorld.last_hit_entity;
+				
+				sdWorld.last_hit_entity = cache_object.hit;
+				return false;
+			}
+		}
+		
+		cache_object.last_s = di;
+		//cache_object.hit = null;
+		
+		this._angular_range_cache_per_entity.set( target_entity, sdWorld.time + 2000 );
+		return true;
+		
+		//sdWorld.CheckLineOfSight( x1, y1, x2, y2, target_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method )
+	}
 	
 	GetComsNearCache( x, y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=true )
 	{
@@ -3110,7 +3203,8 @@ class sdEntity
 	
 	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null, shuffle=true, filter_candidates_function=null )
 	{
-		if ( append_to !== null || specific_classes !== null )
+		//if ( append_to !== null || specific_classes !== null ) Why was it like this?
+		if ( append_to !== null )
 		throw new Error('Bad usage of GetAnythingNearCache, use sdWorld.GetAnythingNear instead for this kind of use');
 	
 		let anything_near = this._anything_near || [];
@@ -5051,6 +5145,12 @@ class sdEntity
 		
 			if ( typeof this._targets_raw_cache !== 'undefined' )
 			this._targets_raw_cache = null;
+		
+			if ( typeof this._angular_range_cache !== 'undefined' )
+			{
+				this._angular_range_cache = null;
+				this._angular_range_cache_per_entity = null;
+			}
 
 			if ( typeof this._phys_last_touch !== 'undefined' )
 			{
