@@ -3092,6 +3092,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Zektaron Dreadnought, main boss of the Zektarons
 		{
+			if ( sdWorld.sockets[ i ].character )
 			if ( sdWorld.sockets[ i ].character.build_tool_level >= 25 ) // If atleast one player is level 25 or above
 			if ( sdZektaronDreadnought.dreadnought_counter < this._max_zektaron_dreadnought_count )
 			sdWeather.SimpleSpawner({
