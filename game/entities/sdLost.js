@@ -81,8 +81,8 @@ class sdLost extends sdEntity
 			if ( mult <= 0 )
 			return;
 			
-			if ( mult > 1 )
-			mult = 1;
+			//if ( mult > 1 ) PvP damage scaling would neglect armor protection like this... So lost effect from player to player is now scaled with PvP damage scale too
+			//mult = 1;
 		
 			amonut *= mult;
 
