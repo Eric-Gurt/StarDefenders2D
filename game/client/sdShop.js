@@ -83,6 +83,9 @@ class sdShop
 			//if ( globalThis.isWin )
 			sdShop.options.push({ _class: 'sdVirus', _category:'root', _godmode_only: true, _opens_category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_FALKOK_RIFLE, _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionSpawner', _category:'root', _godmode_only: true, _opens_category:'Faction outpost tools' });
+			
+			//
 
 			sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 			sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });
@@ -757,7 +760,6 @@ class sdShop
 				sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdVeloxMiner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.FALKOK_SPAWNER, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDropPod', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
@@ -773,6 +775,17 @@ class sdShop
 			sdShop.options.push({ _class: 'sdPresetEditor', w:1, h:1, _category:'Admin tools' });
 			//sdShop.options.push({ _class: 'sdDeepSleep', w:64, h:64, type:0, _category:'Admin tools' });
 			//sdShop.options.push({ _class: 'sdDeepSleep', w:64, h:64, type:1, _category:'Admin tools' });
+			
+			// Outpost stuff
+			//
+			//Falkok
+			sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.FALKOK_SPAWNER, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdDoor', w:32, h:32, model: sdDoor.MODEL_FALKOK, open_type: 1, _ai_team: 1, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdDoor', w:4, h:32, model: sdDoor.MODEL_FALKOK, open_type: 1, _ai_team: 1, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdDoor', w:32, h:4, model: sdDoor.MODEL_FALKOK, open_type: 1, _ai_team: 1, _category:'Faction outpost tools' });
+			//
+			
+			//
 
 			//let remover_sd_filter = sdWorld.CreateSDFilter();
 			//sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );
