@@ -6053,7 +6053,7 @@ THING is cosmic mic drop!`;
 
 					if ( command_name === 'REMOVE_EFFECTS' )
 					{
-						exectuter_character.stim_ef = 0;
+						//exectuter_character.stim_ef = 0;
 						exectuter_character.power_ef = 0;
 						exectuter_character.time_ef = 0;
 					}
