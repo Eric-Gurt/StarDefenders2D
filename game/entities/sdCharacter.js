@@ -3247,7 +3247,13 @@ THING is cosmic mic drop!`;
 					sdWorld.last_hit_entity = null;
 
 					if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this._hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this._hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
-					this._key_states.SetKey( 'KeyW', 1 );
+					{
+						if ( Math.random() < 0.5 )
+						this._key_states.SetKey( 'KeyW', 1 ); // Move up
+						else
+						if ( Math.random() < 0.5 )
+						this._ai.direction = - this._ai.direction; // Change direction
+					}
 					else
 					{
 						// Try to go through walls of any kinds
