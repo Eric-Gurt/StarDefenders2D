@@ -243,9 +243,18 @@ class sdWeather extends sdEntity
 		this._potential_invasion_events = [];
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
-		if ( allowed_event_ids.indexOf( 8 ) !== -1 ) // Only if allowed
-		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-				
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_QUAKE ) !== -1 ) // Only if allowed
+		this._daily_events = [ sdWeather.EVENT_QUAKE ]; // Always enable earthquakes so ground can regenerate
+		// Potential invasion events
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_FALKOKS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_FALKOKS );
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_ASPS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_ASPS );
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_BITERS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_BITERS );
+		//		
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
 		// allowed_event_ids = [ 8 ]; // Hack
@@ -273,8 +282,6 @@ class sdWeather extends sdEntity
 				{
 					this._daily_events.push( n );
 					daily_event_count--;
-					if ( n === sdWeather.EVENT_FALKOKS || n === sdWeather.EVENT_ASPS || n === sdWeather.EVENT_BITERS ) 
-					this._potential_invasion_events.push( n );
 				}
 				time--;
 			}
@@ -1097,7 +1104,7 @@ class sdWeather extends sdEntity
 
 		if ( r === sdWeather.EVENT_ASPS )
 		{
-			if ( sdAsp.asps_tot < 25 )
+			if ( sdAsp.asps_tot < 25 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 1 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
@@ -1132,9 +1139,9 @@ class sdWeather extends sdEntity
 			if ( this._invasion === false ) // Prevent invasion resetting
 			{
 				this._invasion = true;
-				this._invasion_timer = 30 * 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
+				this._invasion_timer = 30 * 60 * 3; // 3 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
 				this._invasion_spawn_timer = 0;
-				this._invasion_spawns_con = 15; // At least 15 Event executions must happen otherwise invasion will not end
+				this._invasion_spawns_con = 25; // At least 25 Event executions must happen otherwise invasion will not end
 				this._invasion_event = this._potential_invasion_events[ Math.floor( Math.random() * this._potential_invasion_events.length ) ];; // Random event which can fit the invasion is selected.
 			}
 			else
@@ -2385,7 +2392,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_BITERS )
 		{
-			if ( sdBiter.biters_counter < 35 )
+			if ( sdBiter.biters_counter < 35 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 				
 				count: [ 1, Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
@@ -3149,7 +3156,7 @@ class sdWeather extends sdEntity
 				this.GetDailyEvents();
 			}
 			
-			if ( this._invasion ) // Falkok invasion event. Maybe it could be changed to just execute randomly selected event so we can have all kinds of invasions?
+			if ( this._invasion ) // Invasion event. Selects one of possible invasion events randomly.
 			{
 				this._invasion_timer -= GSPEED;
 				this._invasion_spawn_timer -= GSPEED;
@@ -3160,7 +3167,7 @@ class sdWeather extends sdEntity
 				}
 				if ( this._invasion_spawn_timer <= 0 )
 				{
-					this._invasion_spawn_timer = 30 * ( 5 + ( Math.random() * 5 ) ) ;// Every 5+ to 10 seconds it will summon an event
+					this._invasion_spawn_timer = 30 * ( 5 + ( Math.random() * 5 ) ) ; // Every 5+ to 10 seconds it will summon an event
 					this._invasion_spawns_con -= 1;
 					
 					this.ExecuteEvent( this._invasion_event );
