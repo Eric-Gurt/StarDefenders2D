@@ -213,14 +213,21 @@ class sdWeather extends sdEntity
 		this._quake_temporary_not_regen_near = []; // Prevent too much ground being regenerated in same place during event
 		
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
+		this._time_until_weather_event = 30 * 30; // 30 seconds since world reset
+		this._time_until_sd_task_event = 30 * 30; // 30 seconds since world reset
 		//this._daily_events = [ 8 ];
-		this._daily_events = []; // Let's start with some silence. Also we need check to make sure server modification allows earthquakes
+		this._daily_weather_events = []; // Daily weather events are stored here. Also we need check to make sure server modification allows earthquakes
+		this._daily_events = []; // Let's start with some silence.
+		this._daily_sd_task_events = []; // Task events related to SD faction ( Rescue/Arrest SD, Planet scan etc )
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
 		
 		this.day_time = 30 * 60 * 24 / 3;
+		
 		this._event_rotation_time = ( 30 * 60 * 14 ) + ( 30 * 45 ); // Time until potential events rotate, set to 14 minutes and 45 seconds so it can roll new events when fresh game starts instead of having earthquakes only for 15 minutes
+		this._weather_rotation_time = ( 30 * 60 * 17 ); // Same as above but for weather, set to 17 minutes so 3 minutes after it selects new weather events
+		this._sd_task_rotation_time = ( 30 * 60 * 25 ); // 25 minutes, selects new at 30
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -238,13 +245,36 @@ class sdWeather extends sdEntity
 	{
 		return -Math.cos( this.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
 	}
-	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
+	IsWeatherEvent( n ) // Determines if event is a weather one. Put future weather events here
+	{
+		if ( n === sdWeather.EVENT_ACID_RAIN || n === sdWeather.EVENT_ASTEROIDS || n === sdWeather.EVENT_QUAKE ||
+		n === sdWeather.EVENT_WATER_RAIN || n === sdWeather.EVENT_SNOW ||n === sdWeather.EVENT_MATTER_RAIN ||
+		n === sdWeather.EVENT_DIRTY_AIR )
+		return true;
+		
+		return false;
+	}
+	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
+	{
+		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER )
+		return true;
+		
+		return false;
+	}
+	IsGeneralEvent( n ) // Determines if event is a general one.
+	{
+		if ( !this.IsWeatherEvent( n ) && !this.IsSDEvent( n ) )
+		return true;
+	
+		return false;
+	}
+	GetDailyEvents() // Basically this function selects 15 general events ( No weather or SD task events )
 	{
 		this._potential_invasion_events = [];
+		this._daily_events = [];
+		
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_QUAKE ) !== -1 ) // Only if allowed
-		this._daily_events = [ sdWeather.EVENT_QUAKE ]; // Always enable earthquakes so ground can regenerate
 		// Potential invasion events
 		if ( allowed_event_ids.indexOf( sdWeather.EVENT_FALKOKS ) !== -1 )
 		this._potential_invasion_events.push( sdWeather.EVENT_FALKOKS );
@@ -278,7 +308,7 @@ class sdWeather extends sdEntity
 			{
 				old_n = n;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n )
+				if ( old_n !== n && this.IsGeneralEvent( n ) ) // Make sure only general events are allowed here
 				{
 					this._daily_events.push( n );
 					daily_event_count--;
@@ -286,7 +316,88 @@ class sdWeather extends sdEntity
 				time--;
 			}
 		}
-		//console.log( this._daily_events );
+		console.log( "General events: " + this._daily_events );
+	}
+	GetDailyWeatherEvents() // Select up to 3 weather events, 2 if you don't count earthquakes
+	{
+		this._daily_weather_events = [];
+		
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
+				
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_QUAKE ) !== -1 ) // Only if allowed
+		this._daily_weather_events = [ sdWeather.EVENT_QUAKE ]; // Always enable earthquakes so ground can regenerate
+
+		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
+				
+		// allowed_event_ids = [ 8 ]; // Hack
+				
+		for ( let d = 0; d < allowed_event_ids.length; d++ )
+		if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
+		{
+			allowed_event_ids.splice( d, 1 );
+			d--;
+			continue;
+		}
+				
+		if ( allowed_event_ids.length > 0 )
+		{
+			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+			let old_n = n;
+			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
+			let weather_event_count = Math.min( allowed_event_ids.length, ~~(Math.random() * 2 ) ); // Up to 2 events, can also be 0
+			let time = 1000;
+			while ( weather_event_count > 0 && time > 0 )
+			{
+				old_n = n;
+				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+				if ( old_n !== n && this.IsWeatherEvent( n ) ) // Make sure only weather events are allowed here
+				{
+					this._daily_weather_events.push( n );
+					weather_event_count--;
+				}
+				time--;
+			}
+		}
+		console.log( "Weather events: " + this._daily_weather_events );
+	}
+	GetDailySDEvents() // Select up to 2 SD related task events
+	{
+		this._daily_sd_task_events = [];
+		
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
+
+		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
+				
+		// allowed_event_ids = [ 8 ]; // Hack
+				
+		for ( let d = 0; d < allowed_event_ids.length; d++ )
+		if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
+		{
+			allowed_event_ids.splice( d, 1 );
+			d--;
+			continue;
+		}
+				
+		if ( allowed_event_ids.length > 0 )
+		{
+			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+			let old_n = n;
+			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
+			let sd_event_count = Math.min( allowed_event_ids.length,  (1 + ~~(Math.random() * 1 ) ) ); // Up to 2 events, min 1 so the tasks can keep coming
+			let time = 1000;
+			while ( sd_event_count > 0 && time > 0 )
+			{
+				old_n = n;
+				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+				if ( old_n !== n && this.IsSDEvent( n ) ) // Make sure only weather events are allowed here
+				{
+					this._daily_sd_task_events.push( n );
+					sd_event_count--;
+				}
+				time--;
+			}
+		}
+		console.log( "SD Task events: " + this._daily_sd_task_events );
 	}
 	
 	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
@@ -1391,7 +1502,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_OBELISK ) // Spawn an obelisk near ground where players don't see them
 		{
-			if ( sdObelisk.obelisks_counter < 17 )
+			if ( sdObelisk.obelisks_counter < 17 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 1 ],
@@ -1713,7 +1824,7 @@ class sdWeather extends sdEntity
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.4; // Chance to execute this event depends on how many players reached 15+ , max 40% chance
+			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 15+ , max 60% chance
 
 			if ( Math.random() < chance )
 			{
@@ -1835,7 +1946,7 @@ class sdWeather extends sdEntity
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.4; // Chance to execute this event depends on how many players reached 5+ , max 40% chance
+			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
 
 			if ( Math.random() < chance )
 			{
@@ -2478,7 +2589,7 @@ class sdWeather extends sdEntity
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.8; // 80% chance to roll if all players are level 15 or above
+			chance = ( req_char / char ); // 100% chance to roll if all players are level 15 or above
 			
 			if ( Math.random() < chance )
 			{
@@ -2808,7 +2919,6 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_TZYRG_DEVICE ) // Spawn a Tzyrg device. When players find it they should destroy it ( Since they do stop earthquakes when they exist on the map )
 		{
-			if ( Math.random() < 0.95 ) // 95% chance
 			{
 				sdWeather.SimpleSpawner({
 
@@ -2882,8 +2992,8 @@ class sdWeather extends sdEntity
 				}
 				*/
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_SHURG ) // Shurg faction spawn. Spawns humanoids.
 		{
@@ -2942,7 +3052,6 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
 		{
-			if ( Math.random() < 0.95 ) // 95% chance
 			{
 				let instances = 0;
 				let instances_tot = 1;
@@ -2987,8 +3096,8 @@ class sdWeather extends sdEntity
 				}
 
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_TIME_SHIFTER ) // Spawn a time shifter, very rarely though
 		{
@@ -3144,6 +3253,8 @@ class sdWeather extends sdEntity
 
 			this.day_time += GSPEED;
 			this._event_rotation_time += GSPEED;
+			this._weather_rotation_time += GSPEED;
+			this._sd_task_rotation_time += GSPEED;
 			//if ( this.day_time > 30 * 60 * 24 ) // While in sandbox mode and not that many events - might seem too boring. Also It does not change when nobody is online which can effectively make it rotate on weekly basis
 			if ( this.day_time > 30 * 60 * 24 ) // This is the day time cycle, 24 minutes
 			{
@@ -3154,6 +3265,18 @@ class sdWeather extends sdEntity
 				this._event_rotation_time = 0;
 
 				this.GetDailyEvents();
+			}
+			if ( this._weather_rotation_time > 30 * 60 * 20 ) // Weather rotation cycle
+			{
+				this._weather_rotation_time = 0;
+
+				this.GetDailyWeatherEvents();
+			}
+			if ( this._sd_task_rotation_time > 30 * 60 * 30 ) // SD task event rotation cycle
+			{
+				this._sd_task_rotation_time = 0;
+
+				this.GetDailySDEvents();
 			}
 			
 			if ( this._invasion ) // Invasion event. Selects one of possible invasion events randomly.
@@ -3831,25 +3954,35 @@ class sdWeather extends sdEntity
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
 			{
-				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				//this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
-				//this._time_until_event = Math.random() * ( sdWorld.server_config.GetEventSpeed() ? sdWorld.server_config.GetEventSpeed() : 30 * 60 * 3 * ( 3 / 2 ) ); // Changed after introducing "daily events" since there is only up to 7 events that can happen to prevent them overflowing the map for new players
 				this._time_until_event = Math.random() * sdWorld.server_config.GetEventSpeed(); // Changed after introducing "daily events" since there is only up to 7 events that can happen to prevent them overflowing the map for new players
-				/*let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
-				
-				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
-				
-				//allowed_event_ids = [ 8 ]; // Hack
-				
-				for ( let d = 0; d < allowed_event_ids.length; d++ )
-				if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
-				{
-					allowed_event_ids.splice( d, 1 );
-					d--;
-					continue;
-				}*/
 
 				let allowed_event_ids = this._daily_events;
+				if ( allowed_event_ids.length > 0 )
+				{
+					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+					this.ExecuteEvent( r );
+				}
+			}
+			
+			this._time_until_weather_event -= GSPEED;
+			if ( this._time_until_weather_event < 0 )
+			{
+				this._time_until_weather_event = Math.random() * 30 * 60 * 6; // Need to add a server config option later - Booraz149
+
+				let allowed_event_ids = this._daily_weather_events;
+				if ( allowed_event_ids.length > 0 )
+				{
+					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+					this.ExecuteEvent( r );
+				}
+			}
+			
+			this._time_until_sd_task_event -= GSPEED;
+			if ( this._time_until_sd_task_event < 0 )
+			{
+				this._time_until_sd_task_event = 30 * 60 * 5 + Math.random() * 30 * 60 * 25; // Need to add a server config option later - Booraz149
+
+				let allowed_event_ids = this._daily_sd_task_events;
 				if ( allowed_event_ids.length > 0 )
 				{
 					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
