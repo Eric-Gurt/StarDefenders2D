@@ -41,9 +41,12 @@ class sdDoor extends sdEntity
 		sdDoor.img_a2door_no_matter = sdWorld.CreateImageFromFile( 'a2door_no_matter' ); // Reinforced doors, level 2
 		sdDoor.img_a2door_no_matter2 = sdWorld.CreateImageFromFile( 'a2door_no_matter2' );
 		
+		sdDoor.img_falkok_door = sdWorld.CreateImageFromFile( 'door_falkok' );
+		
 		sdDoor.MODEL_BASIC = 1;
 		sdDoor.MODEL_ARMORED = 2;
 		sdDoor.MODEL_ARMORED_LVL2 = 3;
+		sdDoor.MODEL_FALKOK = 4;
 		
 		sdDoor.OPEN_TYPE_COM_NODE = 0;
 		sdDoor.OPEN_TYPE_AI_TEAM = 1;
@@ -166,6 +169,9 @@ class sdDoor extends sdEntity
 		this._ai_team = params._ai_team || 0; // Used so AI humanoids don't attack their own base
 		
 		this.filter = params.filter;
+		
+		if ( this.open_type === 1 )
+		this.Damage( 1 ); // It creates sensor area for outposts this way
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -607,6 +613,13 @@ class sdDoor extends sdEntity
 			img_no_matter = ( sdWorld.time % 4000 < 2000 ) ? sdDoor.img_a2door_no_matter : sdDoor.img_a2door_no_matter2;
 			img_closed = sdDoor.img_a2door_closed;
 			img_normal = sdDoor.img_a2door;
+		}
+		
+		if ( this.model === sdDoor.MODEL_FALKOK )
+		{
+			img_no_matter = sdDoor.img_falkok_door;
+			img_closed = sdDoor.img_falkok_door;
+			img_normal = sdDoor.img_falkok_door;
 		}
 		
 		let STATE_NO_MATTER = 0;

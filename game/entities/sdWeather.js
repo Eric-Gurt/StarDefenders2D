@@ -316,7 +316,7 @@ class sdWeather extends sdEntity
 				time--;
 			}
 		}
-		console.log( "General events: " + this._daily_events );
+		//console.log( "General events: " + this._daily_events );
 	}
 	GetDailyWeatherEvents() // Select up to 3 weather events, 2 if you don't count earthquakes
 	{
@@ -358,7 +358,7 @@ class sdWeather extends sdEntity
 				time--;
 			}
 		}
-		console.log( "Weather events: " + this._daily_weather_events );
+		//console.log( "Weather events: " + this._daily_weather_events );
 	}
 	GetDailySDEvents() // Select up to 2 SD related task events
 	{
@@ -397,7 +397,7 @@ class sdWeather extends sdEntity
 				time--;
 			}
 		}
-		console.log( "SD Task events: " + this._daily_sd_task_events );
+		//console.log( "SD Task events: " + this._daily_sd_task_events );
 	}
 	
 	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
