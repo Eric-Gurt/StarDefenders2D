@@ -818,7 +818,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -1522,15 +1524,17 @@ class sdGunClass
 			count: 3,
 			projectile_velocity: 14 * 2,
 			spread: 0.11, // 0.15,
-			projectile_properties: { _damage: 40, color: '#DDDDDD', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
+			projectile_properties: { _damage: 40, color: '#dddddd', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
 			spawnable:false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#DDDDDD', penetrating: true, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { color: '#dddddd', penetrating: true, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -1617,7 +1621,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range, not sure if this should exist for rail shotguns
+				obj._critical_hit_mult = 1; // 2x damage at point blank range, not sure if this should exist for rail shotguns
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				//Rails... not sure if they should have shotgun dirt multiplier since they're rails? - Booraz149
 				
@@ -2065,7 +2071,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -2156,7 +2164,11 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				
+				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
+				obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
+
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				return obj;
@@ -2197,6 +2209,10 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
+				obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4379,7 +4395,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -4826,7 +4844,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -5134,7 +5154,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -6262,7 +6284,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -6349,7 +6373,9 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -6430,7 +6456,7 @@ class sdGunClass
 			count: 1,
 			fire_type: 2,
 			spawnable: false,
-			projectile_properties: { _damage: 63, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 48, _dirt_mult: -0.5 }, // 63, lowered as it can now fullfill it's role - Ghost581
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -6439,6 +6465,10 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._critical_hit_mult = 0.75; // 1.75x damage at point blank range, execution tool.
+				obj._critical_hit_range = 48; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 64; // 4 dirt blocks
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6453,7 +6483,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 63; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 48; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -7427,7 +7457,11 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				
+				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have some advantage over rifles at close range - Ghost581
+				obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
+
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				return obj;
@@ -8094,7 +8128,10 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				obj._point_blank_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_mult = 1; // 2x damage at point blank range
+				obj._critical_hit_range = 24; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 48; // 3 dirt blocks
+				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				

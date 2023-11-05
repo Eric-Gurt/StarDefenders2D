@@ -220,7 +220,7 @@ class sdBullet extends sdEntity
 		this._dirt_mult = 0; // bonus Damage multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
 		this._shield_block_mult = 0; // bonus Damage multiplier (relative to initial damage) against shield blocks, used in Life Box
 		this._vehicle_mult = 0; // bonus Damage multiplier (relative to initial damage) against vehicles
-		this._point_blank_mult = 0; // bonus Damage multiplier (relative to initial damage) at point blank ranges - for Shotguns
+		this._critical_hit_mult = 0; // bonus Damage multiplier (relative to initial damage) at close ranges - useful for Shotguns and SMGs for example.
 
 		this._bouncy = false;
 		
@@ -666,16 +666,16 @@ class sdBullet extends sdEntity
 		}
 	}
 	
-	GetPointBlankMult()
+	GetCriticalHitMult() // renamed from PointBlank to CriticalHit to make it easy to find in the future - Ghost581
 	{
-		if ( this._point_blank_mult !== 0 )
+		if ( this._critical_hit_mult !== 0 )
 		{
 			let di = sdWorld.Dist2D( this._start_x, this._start_y, this.x, this.y );
-			if ( di < 24 ) // A dirt block and a half
-			return ( 1 + this._point_blank_mult ); // Multiply by normal point blank value
+			if ( di < this._critical_hit_range ) // 24 - A dirt block and a half // 16 = 1 dirt block
+			return ( 1 + this._critical_hit_mult ); // Multiply by normal critical hit value
 			else
-			if ( di < 48 ) // 3 dirt blocks
-			return ( 1 + ( this._point_blank_mult / 2 ) ); // Multiply by half of point blank value
+			if ( di < this._weak_critical_hit_range ) // 48 - 3 dirt blocks
+			return ( 1 + ( this._critical_hit_mult / 2 ) ); // Multiply by half of critical hit value
 		}
 		
 		// If it's point blank multiplier is 0, or is outside bonus damage range, default the multiplier
@@ -755,9 +755,9 @@ class sdBullet extends sdEntity
 						{
 							let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 							
-							let point_blank_mult = this.GetPointBlankMult();
+							let critical_hit_mult = this.GetCriticalHitMult();
 							
-							let dmg = limb_mult * point_blank_mult * this._damage;
+							let dmg = limb_mult * critical_hit_mult * this._damage;
 							
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
@@ -911,7 +911,7 @@ class sdBullet extends sdEntity
 							{
 								let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 								
-								let point_blank_mult = this.GetPointBlankMult();
+								let critical_hit_mult = this.GetCriticalHitMult();
 
 								if ( !this._wave )
 								{
@@ -919,7 +919,7 @@ class sdBullet extends sdEntity
 									sdWorld.SendEffect({ x:this.x, y:this.y, type:( limb_mult === 1 ? from_entity.GetBleedEffect() : from_entity.GetBleedEffectDamageMultiplier() ) });
 								}
 
-								let dmg = this._damage * point_blank_mult;// * dmg_mult;
+								let dmg = this._damage * critical_hit_mult;// * dmg_mult;
 								
 
 								/*if ( this.ac > 0 )
