@@ -323,9 +323,12 @@ class sdRenderer
 
 
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
-							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
+							// Recolor. Firefox supports color correction in the PNG format and isn't supported in most softwares (exc: Microsoft Paint or MSPaint)
+							// See https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#png_portable_network_graphics
+							for ( let i = 1; i < data.length; i++ )
 							if ( data[ i ] !== 0 )
-							data[ i ] = sdRenderer.roundBGRA8( data, data[ i ], sd_filter.is_gun );
+							// sdRenderer.roundBGRA8( data, data[ i ], sd_filter.is_gun )
+							data[ i ] = sdRenderer.applyColorCorrection( data, data[ i ], sd_filter.is_gun );
 
 							/*
 							let array_buffer = data.buffer;
@@ -594,7 +597,7 @@ class sdRenderer
 		}
 	}
 
-	static roundBGRA8( data, number = 127, is_gun = false )
+	static applyColorCorrection( data, number = 127, is_gun = false ) // roundBGRA8( data, number = 127, is_gun = false )
 	{
 		switch( number )
 		{
