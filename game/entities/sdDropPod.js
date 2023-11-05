@@ -16,13 +16,14 @@ class sdDropPod extends sdEntity
 	static init_class()
 	{
 		sdDropPod.img_pod_kvt = sdWorld.CreateImageFromFile( 'sdDropPod_kvt' ); // Might be better to use sprite sheets for future purposes - Booraz149
+		sdDropPod.img_pod_sd = sdWorld.CreateImageFromFile( 'sdDropPod_sd' );
 		
 		sdDropPod.pod_counter = 0;
 
 		sdDropPod.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
 		sdDropPod.TYPE_KVT = 0; // First pod type is KVT
-		
+		sdDropPod.TYPE_SD = 1; // Star Defenders pod type
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -12; }
@@ -75,7 +76,7 @@ class sdDropPod extends sdEntity
 		//this.matter_max = 5500;
 		//this.matter = 100;
 		//this.delay = 0;
-		this.level = 0;
+		this.level = ( this.type === sdDropPod.TYPE_SD ) ? 2 : 0;
 		this.metal_shards = 0;
 		this.metal_shards_max = 7;
 		
@@ -226,6 +227,8 @@ class sdDropPod extends sdEntity
 	Draw( ctx, attached )
 	{
 		let xx = 0;
+		let img;
+		
 		if ( this.open && this.empty === false ) // Is this pod open (and not empty) ?
 		xx = 1;
 		else
@@ -234,7 +237,11 @@ class sdDropPod extends sdEntity
 	
 	
 		if ( this.type === sdDropPod.TYPE_KVT ) //Draw KVT pod
-		ctx.drawImageFilterCache( sdDropPod.img_pod_kvt, xx * 32, 0, 32,32, - 16, - 16, 32, 32 );
+		img = sdDropPod.img_pod_kvt;
+		if ( this.type === sdDropPod.TYPE_SD ) //Draw SD pod
+		img = sdDropPod.img_pod_sd;
+		
+		ctx.drawImageFilterCache( img, xx * 32, 0, 32,32, - 16, - 16, 32, 32 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{	
@@ -276,8 +283,7 @@ class sdDropPod extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			
-			if ( command_name === 'PROGRESS' )
+			if ( (this.type === sdDropPod.TYPE_KVT ) && command_name === 'PROGRESS' ) // All types which need unlocking should have this context option
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 * 1.25 ) )
 				{
@@ -383,7 +389,7 @@ class sdDropPod extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 * 1.5 ) )
 		{
-			if ( this.level < 2 )
+			if ( this.level < 2 && ( this.type === sdDropPod.TYPE_KVT ) )
 			this.AddContextOption( 'Attempt to bypass the locking mechanisms (Requires metal shards)', 'PROGRESS', [] );
 			// this.AddContextOption( 'Brute force the lock (SPECIAL ITEM)', 'FORCEPROGRESS', [] ); // - idea for later
 			if ( this.open === false && this.level >= 2 )
