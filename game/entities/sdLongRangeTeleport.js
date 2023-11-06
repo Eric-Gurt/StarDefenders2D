@@ -685,35 +685,39 @@ class sdLongRangeTeleport extends sdEntity
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
-			let gun, rng;
-			rng = Math.random() * 2; // With more gun rewards, these values will change
-			if ( rng < 0.2 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
-			else
-			if ( rng < 0.4 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
-			else
-			if ( rng < 0.6 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
-			else
-			if ( rng < 0.8 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
-			else
-			if ( rng < 1 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
-			else // 1.2 is gone, idk if anyone would like to distribute it among the other weapons or if rayrifle should fill the gap so i left it like this for now - Ghost581
-			if ( rng < 1.4 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
-			else
-			if ( rng < 1.6 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
-			else
-			if ( rng < 1.8 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CRYOGUN });
-			else
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
+			for( let i = 0; i < 2; i++ ) // Task rewards now drop 2 items. Kind of painful to recieve only one item when you can get 15K worth of crystals - Booraz149
+			{
+				let gun, rng;
+				rng = Math.random() * 0.9; // With more gun rewards, these values will change
+				//With each new gun, add 0.1 to rng multiplier
+				if ( rng < 0.1 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
+				else
+				if ( rng < 0.2 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
+				else
+				if ( rng < 0.3 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
+				else
+				if ( rng < 0.4 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
+				else
+				if ( rng < 0.5 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
+				else
+				if ( rng < 0.6 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
+				else
+				if ( rng < 0.7 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
+				else
+				if ( rng < 0.8 )
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CRYOGUN });
+				else
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
 		
-			sdEntity.entities.push( gun );
+				sdEntity.entities.push( gun );
+			}
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_CRYSTALS' )
