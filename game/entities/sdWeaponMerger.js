@@ -490,10 +490,11 @@ class sdWeaponMerger extends sdEntity
 						this._update_version++;
 					}
 				}
-				if ( !this.item0 && !this.item1 && !this.item2 )
+				/*if ( !this.item0 && !this.item1 && !this.item2 )
 				{
 					executer_socket.SDServiceMessage( 'No weapon found' );
-				}
+				}*/
+				
 			}
 			else
 			{

@@ -1411,9 +1411,9 @@ THING is cosmic mic drop!`;
 			for ( let i = 0; i < effects.length; i++ )
 			{
 				if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
-				is_stimmed = true; // Increase reload speed by 25%
+				is_stimmed = true; // Increase reload speed by 100% ( Compensation for slown down reload speed on high DPS weapons )
 			}
-			this.reload_anim -= GSPEED * ( ( is_stimmed ) ? 1.25 : 1 );
+			this.reload_anim -= GSPEED * ( ( is_stimmed ) ? 2 : 1 );
 
 			if ( this.reload_anim <= 0 )
 			{

@@ -557,7 +557,10 @@ class sdGun extends sdEntity
 	ReloadStart() // Can happen multiple times
 	{
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
+		if ( this._max_dps < 300 )
 		this._held_by.reload_anim = 15;
+		else
+		this._held_by.reload_anim = 30; // Slow down reload on high DPS weapons
 	}
 	ChangeFireModeStart() // Can happen multiple times
 	{
@@ -1745,6 +1748,14 @@ class sdGun extends sdEntity
 				{
 					if ( xx === 0 )
 					{
+						if ( this.extra[ 16 ] ) // Custom projectile color
+						{
+							ctx.sd_tint_filter = sdWorld.hexToRgb( this.extra[ 16 ] ); // Override projectile color if defined as custom
+							ctx.sd_tint_filter[ 0 ] /= 255;
+							ctx.sd_tint_filter[ 1 ] /= 255;
+							ctx.sd_tint_filter[ 2 ] /= 255;
+						}
+						else
 						if ( sdGun.classes[ this.class ].projectile_properties &&
 							 sdGun.classes[ this.class ].projectile_properties.color )
 						{
