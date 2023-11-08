@@ -1783,7 +1783,7 @@ class sdGunClass
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
-		sdGun.classes[ sdGun.CLASS_PISTOL_MK2 = 23 ] = { // sprite by Booraz149, resprite by Gravel
+		sdGun.classes[ sdGun.CLASS_LASER_PISTOL = 23 ] = { // sprite by Booraz149, resprite by Gravel
 			image: sdWorld.CreateImageFromFile( 'laser_pistol' ),
 			sound: 'gun_pistol',
 			sound_pitch: 0.7,
@@ -1795,9 +1795,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
-			matter_cost: 90,
-			min_build_tool_level: 10,
-			min_workbench_level: 1,
+			spawnable: false,
 			fire_type: 2,
 			projectile_properties: { _damage: 43, _dirt_mult: -0.5, color: '#cd1e1e' },
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -5816,7 +5814,7 @@ class sdGunClass
 					}
 					else
 					{
-						gun.extra[ ID_TITLE ] = 'Rifle';
+						gun.extra[ ID_TITLE ] = 'Custom Rifle';
 						gun.title_censored = 0;
 					}
 				

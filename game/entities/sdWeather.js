@@ -3279,6 +3279,19 @@ class sdWeather extends sdEntity
 				this.GetDailySDEvents();
 			}
 			
+			if ( sdTask.completed_tasks_count >= 4 ) // every 4 completed tasks on the map, drop an SD pod
+			{
+				sdTask.completed_tasks_count = 0; // Reset counter
+				sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdDropPod,
+				params: { type: sdDropPod.TYPE_SD },
+				aerial: true
+				});
+				
+			}
+			
 			if ( this._invasion ) // Invasion event. Selects one of possible invasion events randomly.
 			{
 				this._invasion_timer -= GSPEED;

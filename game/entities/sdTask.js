@@ -29,6 +29,8 @@ class sdTask extends sdEntity
 		sdTask.COLOR_WARNING = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ffff77' : '#dddd33'; };
 		sdTask.COLOR_ALERT = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ff7777' : '#ff3333'; };
 		
+		sdTask.completed_tasks_count = 0; // Whenever someone completes a task, this increases value by 1. Used to spawn SD Item pods
+		
 		sdTask.missions = [];
 		
 		let id = 0;
@@ -60,6 +62,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				sdTask.completed_tasks_count++;
 				// With LRTs, it is usually impossible to detect if something was removed or just teleported
 			},
 			onTimeOut: ( task )=>
@@ -95,6 +98,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
 			failure_condition: ( task )=>
@@ -226,6 +230,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
 			completion_condition: ( task )=>
