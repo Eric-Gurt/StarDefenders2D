@@ -641,11 +641,14 @@ class sdRenderer
 			break;
 
 			case 54:
+			case 53:
 			case 52:
 			case 27:
 			case 18:
+			case 17:
 			case 15:
 			case 11:
+			case 3:
 			case 2:
 			case 1:
 			if ( !is_gun )
