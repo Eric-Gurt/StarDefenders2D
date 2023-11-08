@@ -781,6 +781,12 @@ class sdLongRangeTeleport extends sdEntity
 				sdEntity.entities.push( crystal );
 			}
 		}
+		if ( rewards === 'CLAIM_MERGER_CORE' )
+		{
+			let core;
+			core = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MERGER_CORE });
+			sdEntity.entities.push( core );
+		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -1149,7 +1155,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_WEAPON' ||
 						command_name === 'CLAIM_REWARD_CRYSTALS' ||
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
-						command_name === 'CLAIM_REWARD_AD'
+						command_name === 'CLAIM_REWARD_AD' ||
+						command_name === 'CLAIM_MERGER_CORE'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1668,9 +1675,10 @@ class sdLongRangeTeleport extends sdEntity
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
 						{
 							this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
-							this.AddContextOption( 'Claim rewards ( weapon )', 'CLAIM_REWARD_WEAPON', [] );
+							this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
 							this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
 							this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
+							this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
 						}
 
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )

@@ -3651,7 +3651,7 @@ class sdGunClass
 						gun._held_by.matter -= 4;
 						gun._combo_timer = 30;
 						if ( gun._combo < 60 )
-						gun._combo++; // Speed up rate of fire, the longer it shoots
+						gun._combo += 2; // Speed up rate of fire, the longer it shoots
 					}
 				}
 				return true;
@@ -3697,7 +3697,7 @@ class sdGunClass
 			sound: 'gun_sniper',
 			title: 'Sniper rifle',
 			slot: 4,
-			reload_time: 90,
+			reload_time: 60,
 			muzzle_x: 11,
 			ammo_capacity: -1,
 			count: 1,
@@ -4239,7 +4239,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'metal_shard' ),
 			sound: 'gun_defibrillator',
-			title: 'Metal shard',
+			title: 'Alienic metal shard',
 			sound_pitch: 1,
 			slot: 7,
 			reload_time: 30,
@@ -4247,48 +4247,10 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_velocity: 16,
-			/*GetAmmoCost: ()=>
-			{
-				return 100;
-			},*/
-			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _custom_target_reaction:( bullet, target_entity )=>
-				{
-					if ( target_entity.GetClass() === 'sdBlock' || target_entity.GetClass() === 'sdDoor' )
-					{
-						if ( target_entity.GetClass() === 'sdBlock' )
-						if ( target_entity.material === sdBlock.MATERIAL_WALL || target_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || target_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
-						{
-							if ( target_entity._reinforced_level < target_entity._max_reinforced_level )
-							{
-							target_entity._reinforced_level += 0.5;
-							target_entity.HandleReinforceUpdate();
-							bullet.remove(); // Need this for some reason, otherwise it doubles the reinforced level for some reason ( +1 instead of +0.5 )
-						
-							if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ] )
-							bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ].remove();
-							}
-							else
-							bullet._owner.Say( 'This wall cannot be reinforced further' );
-						}
-						if ( target_entity.GetClass() === 'sdDoor' )
-						{
-							if ( target_entity._reinforced_level < target_entity._max_reinforced_level )
-							{
-							target_entity._reinforced_level += 0.5;
-							target_entity.HandleReinforceUpdate();
-							bullet.remove(); // Need this for some reason, otherwise it doubles the reinforced level for some reason ( +1 instead of +0.5 )
-						
-							if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ] )
-							bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ].remove();
-							}
-							else
-							bullet._owner.Say( 'This door cannot be reinforced further' );
-						}
-					}
-					else
-					bullet._owner.Say( 'I can use this to fortify walls and doors' );
-				}
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates
+			{ 
+				return false; 
 			}
 		};
 
@@ -4871,6 +4833,7 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddShotgunAmmoTypes([]), '#ff0000', 15 ) )
 		};
+		
 		
 		// ID ranges 85...88 (including) are reserved by Basilix
 		
@@ -6015,7 +5978,7 @@ class sdGunClass
 				if ( sdWorld.is_server )
 				if ( gun._held_by )
 				if ( gun._held_by.IsPlayerClass() )
-				if ( gun._held_by.matter >= 25 )
+				if ( gun._held_by.matter >= 35 )
 				if ( sdWorld.inDist2D_Boolean( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, 400 ) )
 				{
 					let damage_value = 100 + Math.min( 200, 10 * gun._combo ); // Damage increases with combo so it can be efficient against higher health enemies
@@ -6988,10 +6951,10 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { _rail: true, _damage: 28, color: '#ffff00', _temperature_addition: 200 }, // Combined with fire rate
+			projectile_properties: { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 200 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, _damage: 28, color: '#ffff00', _temperature_addition: 200 };
+				let obj = { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 200 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -7010,7 +6973,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 32; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 					
 					gun._max_dps = ( 30 / ( 3 ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
@@ -7026,7 +6989,7 @@ class sdGunClass
 			sound_pitch: 1.7,
 			title: 'Shurg sniper rifle',
 			slot: 4,
-			reload_time: 70,
+			reload_time: 60,
 			muzzle_x: 11,
 			ammo_capacity: -1,
 			count: 1,
@@ -8433,6 +8396,25 @@ class sdGunClass
 			projectile_properties: { _rail: true, _damage: 1, color: '#d6981e', _custom_target_reaction: ancient_cgun_target_reaction /*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_MERGER_CORE = 132 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'merger_core' ),
+			sound: 'gun_defibrillator',
+			title: 'Weapon merger core',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
+			}
 		};
 
 		// Add new gun classes above this line //

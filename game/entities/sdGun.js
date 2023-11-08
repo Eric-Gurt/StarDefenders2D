@@ -19,6 +19,7 @@ import sdArea from './sdArea.js';
 import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
 import sdWeaponBench from './sdWeaponBench.js';
+import sdWeaponMerger from './sdWeaponMerger.js';
 import sdStatusEffect from './sdStatusEffect.js';
 
 import sdGunClass from './sdGunClass.js';
@@ -509,7 +510,7 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
-			if ( this._held_by.is( sdWeaponBench ) )
+			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) )
 			return true;
 			else
 			if ( this._held_by.is( sdStorage ) )
@@ -1356,14 +1357,14 @@ class sdGun extends sdEntity
 	}
 	UpdateHeldPosition()
 	{
-		if ( !this.extra ) // Is the gun missing damage upgrade properties for weapon bench?
+		/*if ( !this.extra ) // Is the gun missing damage upgrade properties for weapon bench?
 		{
 			if ( sdGun.classes[ this.class].onMade )
 			if ( sdGun.classes[ this.class].upgrades )
 			{
-				/*let upgradeString = sdGun.classes[ this.class ].upgrades.toString(); // Convert to string so we can see if gun has new damage upgrade stuff
-				let has_upgrades = ( upgradeString.indexOf( 'AddGunDefaultUpgrades' ) !== -1 )
-				if ( has_upgrades )*/
+				//let upgradeString = sdGun.classes[ this.class ].upgrades.toString(); // Convert to string so we can see if gun has new damage upgrade stuff
+				//let has_upgrades = ( upgradeString.indexOf( 'AddGunDefaultUpgrades' ) !== -1 )
+				//if ( has_upgrades )
 				// I tried checking if it has the new upgrade function but I don't know what I am doing wrong. Can someone help / tell me? - Booraz149
 				// Current iteration below seems to work without issues, however I think it would be ideal if it could check if "upgrades" section of gun class has explicitly "AddGunDefaultUpgrades"
 				{
@@ -1373,7 +1374,7 @@ class sdGun extends sdEntity
 					return;
 				}
 			}
-		}
+		}*/
 		if ( this._held_by ) // Should not happen but just in case
 		{
 			let old_x = this.x;
