@@ -761,7 +761,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdVeloxMiner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDropPod', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDropPod', type: 0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
