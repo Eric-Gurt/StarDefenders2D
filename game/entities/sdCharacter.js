@@ -3495,7 +3495,7 @@ THING is cosmic mic drop!`;
 		if ( this._socket )	
 		if ( this._god )
 		{
-			this.matter_max = 10000; // Hack
+			this.matter_max = 1000000; // Hack, some problems made it can't use presets edited weapons. --- Alone Guitar
 			this.matter = this.matter_max; // Hack
 			this.hea = this.hmax; // Hack
 			this._dying = false; // Hack
