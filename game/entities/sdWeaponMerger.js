@@ -68,10 +68,17 @@ class sdWeaponMerger extends sdEntity
 		
 		this._regen_timeout = 60;
 		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
 		if ( this._hea <= 0 )
 		{
 			this.remove();
 		}
+	}
+	
+	onMatterChanged( by=null ) // Update version so it is consistent
+	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	MergeWeapons()
 	{
@@ -178,7 +185,14 @@ class sdWeaponMerger extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdWeaponMerger.img_merger, -32, -32, 64, 64 );
+		ctx.drawImageFilterCache( sdWeaponMerger.img_merger, 0, 0, 64,64, - 32, - 32, 64, 64 );
+		
+		
+		ctx.globalAlpha = ( this.matter / sdWeaponMerger.max_matter );
+		
+		ctx.drawImageFilterCache( sdWeaponMerger.img_merger, 64, 0, 64,64, - 32, - 32, 64, 64 );
+		
+		ctx.globalAlpha = 1;
 		
 		if ( this.item0 )
 		{
@@ -344,6 +358,8 @@ class sdWeaponMerger extends sdEntity
 					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 					
 					this._current_category_stack = [];
+					
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					
 					this._update_version++;
 				}
