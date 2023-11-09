@@ -80,10 +80,20 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_POPCORN, _category:'root', _opens_category:'Other' });
 			sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' }); // Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins
 
+			// Page 2 for ackground walls
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'BG Walls plus+', _opens_category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls', _opens_category:'BG Walls plus+' });
+
+			// Page 2 for Equipment
+			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'Body Armor', _opens_category:'Equipment' });
+			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_LVL3_MEDIUM_ARMOR, _category:'Equipment', _opens_category:'Body Armor' });
+
 			//if ( globalThis.isWin )
 			sdShop.options.push({ _class: 'sdVirus', _category:'root', _godmode_only: true, _opens_category:'Development tests' });
-			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_FALKOK_RIFLE, _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
 			sdShop.options.push({ _class: 'sdFactionSpawner', _category:'root', _godmode_only: true, _opens_category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_FALKOK_RIFLE, _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR, _category:'root', _godmode_only: true, _opens_category:'Weapon Classes' });
+			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, matter_max: 5120 * 32, _category:'root', _godmode_only: true, _opens_category:'Crystal Spawner' });
 			
 			//
 
@@ -135,7 +145,7 @@ class sdShop
 
 			function AddBuildPack( filter )
 			{
-				for ( let i2 = 0; i2 < 3; i2++ )
+				for ( let i2 = 0; i2 < 1; i2++ )
 				{
 					let material = sdBlock.MATERIAL_WALL;
 
@@ -144,7 +154,7 @@ class sdShop
 					let _min_build_tool_level = 0;
 
 					let texture_id = sdBlock.TEXTURE_ID_WALL; // sdBG.TEXTURE_PLATFORMS_COLORED;
-
+					/*
 					if ( i2 === 1 )
 					{
 						//_min_build_tool_level = 7;
@@ -159,7 +169,7 @@ class sdShop
 						//_reinforced_level = 2;
 						//material = sdBlock.MATERIAL_REINFORCED_WALL_LVL2; // We probably no longer need 2 kinds of these if we could just switch texture
 						texture_id = sdBlock.TEXTURE_ID_REINFORCED_LVL2;
-					}
+					}*/
 
 					sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
 					sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
@@ -186,10 +196,10 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
 
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
 			}
 
 			/*for ( var i = 0; i < 11; i++ )
@@ -339,26 +349,31 @@ class sdShop
 			sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'saturate(0)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'none', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'none', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'saturate(0)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'none', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'none', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 2 });
+
+			// Page 2 for Storage
+			sdShop.options.push({ _class: 'sdCom', variation:1, _category:'Base Storage', _opens_category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'none', _category:'Base equipment', _opens_category:'Base Storage' });
+
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'saturate(0)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'none', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(220deg)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(135deg)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'saturate(0)', _category:'Base Storage', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'none', _category:'Base Storage', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base Storage', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(220deg)', _category:'Base Storage', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(135deg)', _category:'Base Storage', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'saturate(0)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'none', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(220deg)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(135deg)', _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'saturate(0)', _category:'Base Storage', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'none', _category:'Base Storage', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base Storage', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(220deg)', _category:'Base Storage', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(135deg)', _category:'Base Storage', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdNode', type:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:2, _category:'Base equipment' });
@@ -370,32 +385,33 @@ class sdShop
 			sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponMerger',_min_workbench_level: 5, _category:'Base equipment' });
 
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
+			// Page 2 for Base Protector
+			sdShop.options.push({ _class: 'sdCom', variation:1, _category:'Base Protector', _opens_category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _opens_category:'Base Protector' });
 
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
 
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
 
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _min_build_tool_level: 6 });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base equipment', _min_build_tool_level: 13 });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_FREEZER, _category:'Base equipment', _min_build_tool_level: 15 });
-			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:1, _category:'Base equipment', _min_build_tool_level: 20 });
-			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:0, _category:'Base equipment', _min_build_tool_level: 20 });
-			/*sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Protector' });
+
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base Protector', _min_build_tool_level: 6 });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base Protector', _min_build_tool_level: 13 });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_FREEZER, _category:'Base Protector', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:1, _category:'Base Protector', _min_build_tool_level: 20 });
+			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:0, _category:'Base Protector', _min_build_tool_level: 20 });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base Storage' });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base Storage', _min_build_tool_level: 3 });
 			
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:1, _category:'Base equipment', _min_build_tool_level: 3 });
@@ -407,8 +423,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:2, _category:'Base equipment', _min_build_tool_level: 27, _min_workbench_level: 3 });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:2, _category:'Base equipment', _min_build_tool_level: 30, _min_workbench_level: 4 });
 			
-			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
-			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
+			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base Storage', });
+			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base Storage', });
 
 			if ( sdWorld.server_config.do_green_base_shielding_units_consume_essence )
 			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( 0 ) !== -1 )
@@ -428,15 +444,15 @@ class sdShop
 			}
 			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null )
 			{
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base Protector' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base Protector' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base Protector' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base Protector' });
 			}
 			else
 			{
 				for ( let i = 0; i < sdWorld.server_config.allowed_base_shielding_unit_types.length; i++ )
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:sdWorld.server_config.allowed_base_shielding_unit_types[ i ], _category:'Base equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:sdWorld.server_config.allowed_base_shielding_unit_types[ i ], _category:'Base Protector' });
 			}
 			sdShop.options.push({ _class: 'sdConveyor', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(30deg) brightness(0.8)', _category:'Base equipment' });
@@ -449,7 +465,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdCamera', _category:'Base Protector', _min_build_tool_level: 1 });
 
 			sdShop.options.push({ _class: 'sdButton', type:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
@@ -484,19 +500,19 @@ class sdShop
 				if ( i === 2 )
 				filter2 = 'hue-rotate(44deg)brightness(.8)';
 
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
 			}
 
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'none', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.25)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.5)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.75)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'none', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.25)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.5)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.75)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
 
-			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'BG Walls plus+' });
 			//sdShop.options.push({ _class: 'sdWater' });
 
 			for ( var i = 0; i < sdGun.classes.length; i++ )
@@ -521,25 +537,25 @@ class sdShop
 							_class: 'sdGun',
 							class: i,
 							extra: 0,
-							_category:'Development tests'
+							_category:'Weapon Classes'
 						});
 						sdShop.options.push({
 							_class: 'sdGun',
 							class: i,
 							extra: 1,
-							_category:'Development tests'
+							_category:'Weapon Classes'
 						});
 						sdShop.options.push({
 							_class: 'sdGun',
 							class: i,
 							extra: -123,
-							_category:'Development tests'
+							_category:'Weapon Classes'
 						});
 						sdShop.options.push({
 							_class: 'sdGun',
 							class: i,
 							extra: 2,
-							_category:'Development tests'
+							_category:'Weapon Classes'
 						});
 					}
 					else
@@ -547,7 +563,7 @@ class sdShop
 						sdShop.options.push({
 							_class: 'sdGun',
 							class: i, 
-							_category:'Development tests'
+							_category:'Weapon Classes'
 						});
 					}
 				}
@@ -636,77 +652,10 @@ class sdShop
 				sdShop.options.push({ _class: 'sdRift', type: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 5, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 40, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 80, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 160, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 320, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 640, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 1280, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 2560, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 2, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 6, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 40, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 80, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 160, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 320, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 640, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 1280, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 2560, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120 * 2, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 160, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 320, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 640, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 1280, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 2560, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 2, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 16, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 32, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 160, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 320, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 640, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 1280, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 2560, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 2, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 16, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 32, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
- 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', _category:'Development tests' });
-				
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 40, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 80, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 160, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 320, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 640, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 1280, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 2560, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 2, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 4, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 8, _category:'Development tests' }); // Glowing one
-				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * sdCrystal.anticrystal_value, _category:'Development tests' });
-				
-				sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', _ai_team: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 10, _ai_team: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 2, _ai_team: 2, _category:'Development tests' });
@@ -721,8 +670,6 @@ class sdShop
 				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 11, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSpider', _ai_team: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSpider', type: 1, _ai_team: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdPlayerDrone', _category:'Development tests' });
@@ -807,9 +754,90 @@ class sdShop
 				});
 			}
 
+
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 40, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 80, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 160, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 320, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 640, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 1280, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 2560, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 2, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 4, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 8, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Crystal Spawner' });
+
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 40, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 80, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 160, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 320, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 640, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 1280, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 2560, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120 * 2, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120 * 4, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 5120 * 8, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Crystal Spawner' });
+
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 160, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 320, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 640, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 1280, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 2560, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 2, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 4, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 8, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 16, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 32, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Crystal Spawner' });
+
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 160, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 320, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 640, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 1280, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 2560, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 2, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 4, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 8, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 16, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 32, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Crystal Spawner' });
+ 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', _category:'Crystal Spawner' });
+
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 40, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 80, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 160, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 320, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 640, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 1280, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 2560, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 5120, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 5120 * 2, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 5120 * 4, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: 5120 * 8, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Crystal Spawner' });
+
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 40, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 80, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 160, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 320, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 640, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 1280, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 2560, _category:'Crystal Spawner' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 2, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 4, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 8, _category:'Crystal Spawner' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * sdCrystal.anticrystal_value, _category:'Crystal Spawner' });
+
+
 			// Make all admin tools have Infinite cost to prevent them from being build by non-admins
 			for ( let i = 0; i < sdShop.options.length; i++ )
-			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' )
+			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' || sdShop.options[ i ]._category === 'Weapon Classes' || sdShop.options[ i ]._category === 'Crystal Spawner' )
 			sdShop.options[ i ].matter_cost = Infinity;
 
 		}
