@@ -80,10 +80,6 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_POPCORN, _category:'root', _opens_category:'Other' });
 			sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' }); // Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins
 
-			// Page 2 for ackground walls
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'BG Walls plus+', _opens_category:'Background walls' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls', _opens_category:'BG Walls plus+' });
-
 			// Page 2 for Equipment
 			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'Body Armor', _opens_category:'Equipment' });
 			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_LVL3_MEDIUM_ARMOR, _category:'Equipment', _opens_category:'Body Armor' });
@@ -196,10 +192,10 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
 
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
 			}
 
 			/*for ( var i = 0; i < 11; i++ )
@@ -385,31 +381,31 @@ class sdShop
 			sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponMerger',_min_workbench_level: 5, _category:'Base equipment' });
 
-			// Page 2 for Base Protector
-			sdShop.options.push({ _class: 'sdCom', variation:1, _category:'Base Protector', _opens_category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _opens_category:'Base Protector' });
+			// Page 2 for Base Defense Equipment
+			sdShop.options.push({ _class: 'sdCom', variation:1, _category:'Base Defense Equipment', _opens_category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _opens_category:'Base Defense Equipment' });
 
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base Defense Equipment' });
 
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Protector', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Defense Equipment', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Defense Equipment', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Defense Equipment', _min_build_tool_level: 5 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base Defense Equipment', _min_build_tool_level: 5 });
 
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Protector' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base Defense Equipment' });
 
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base Protector' });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base Protector', _min_build_tool_level: 6 });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base Protector', _min_build_tool_level: 13 });
-			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_FREEZER, _category:'Base Protector', _min_build_tool_level: 15 });
-			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:1, _category:'Base Protector', _min_build_tool_level: 20 });
-			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:0, _category:'Base Protector', _min_build_tool_level: 20 });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base Defense Equipment' });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base Defense Equipment', _min_build_tool_level: 6 });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base Defense Equipment', _min_build_tool_level: 13 });
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_FREEZER, _category:'Base Defense Equipment', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:1, _category:'Base Defense Equipment', _min_build_tool_level: 20 });
+			sdShop.options.push({ _class: 'sdManualTurret', anti_base_mode:0, _category:'Base Defense Equipment', _min_build_tool_level: 20 });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base Storage' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base Storage', _min_build_tool_level: 3 });
 			
@@ -444,15 +440,15 @@ class sdShop
 			}
 			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null )
 			{
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base Protector' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base Protector' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base Protector' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base Protector' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base Defense Equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base Defense Equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base Defense Equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base Defense Equipment' });
 			}
 			else
 			{
 				for ( let i = 0; i < sdWorld.server_config.allowed_base_shielding_unit_types.length; i++ )
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:sdWorld.server_config.allowed_base_shielding_unit_types[ i ], _category:'Base Protector' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:sdWorld.server_config.allowed_base_shielding_unit_types[ i ], _category:'Base Defense Equipment' });
 			}
 			sdShop.options.push({ _class: 'sdConveyor', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(30deg) brightness(0.8)', _category:'Base equipment' });
@@ -465,7 +461,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdCamera', _category:'Base Protector', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdCamera', _category:'Base Defense Equipment', _min_build_tool_level: 1 });
 
 			sdShop.options.push({ _class: 'sdButton', type:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
@@ -500,19 +496,19 @@ class sdShop
 				if ( i === 2 )
 				filter2 = 'hue-rotate(44deg)brightness(.8)';
 
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'BG Walls plus+' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 			}
 
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'none', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.25)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.5)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.75)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW, _category:'BG Walls plus+' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'none', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.25)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.5)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.75)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
 
-			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'BG Walls plus+' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
 			//sdShop.options.push({ _class: 'sdWater' });
 
 			for ( var i = 0; i < sdGun.classes.length; i++ )
