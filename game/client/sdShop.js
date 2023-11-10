@@ -809,7 +809,7 @@ class sdShop
 
 			// Make all admin tools have Infinite cost to prevent them from being build by non-admins
 			for ( let i = 0; i < sdShop.options.length; i++ )
-			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' )
+			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' || sdShop.options[ i ]._category === 'Faction outpost tools' )
 			sdShop.options[ i ].matter_cost = Infinity;
 
 		}
