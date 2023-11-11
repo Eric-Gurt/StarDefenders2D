@@ -90,7 +90,6 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 			sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });
 			sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
-			sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 25 });
 			for ( let hue = 0; hue < 360; hue += 30 )
 			sdShop.options.push({ _class: 'sdGrass', variation: 3, hue:hue, _category:'Other' });
 			/*for ( let hue = 0; hue < 360; hue += 30 )
@@ -763,6 +762,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDropPod', type: 0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
