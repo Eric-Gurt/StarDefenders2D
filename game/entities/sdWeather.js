@@ -70,6 +70,8 @@ import sdShurgExcavator from './sdShurgExcavator.js';
 import sdVeloxMiner from './sdVeloxMiner.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdDropPod from './sdDropPod.js';
+import sdBeamProjector from './sdBeamProjector.js';
+
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
@@ -136,6 +138,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_TIME_SHIFTER =			event_counter++; // 41
 		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =	event_counter++; // 42
 		sdWeather.EVENT_KIVORTEC_WEAPONS_POD =	event_counter++; // 43
+		sdWeather.EVENT_BEAM_PROJECTOR =		event_counter++; // 44
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -256,7 +259,7 @@ class sdWeather extends sdEntity
 	}
 	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
 	{
-		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER )
+		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR )
 		return true;
 		
 		return false;
@@ -3238,6 +3241,26 @@ class sdWeather extends sdEntity
 				aerial: true
 				
 			});
+		}
+		if ( r === sdWeather.EVENT_BEAM_PROJECTOR ) // Dark matter beam projector spawns and players need to activate and defend it
+		{
+			let possible_spawn = false;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character )
+				if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 ) // If atleast one player is level 15 or above
+				possible_spawn = true;
+			}
+			if ( sdBeamProjector.projector_counter < 1 && possible_spawn )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdBeamProjector,
+				aerial: false
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
