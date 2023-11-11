@@ -357,7 +357,7 @@ class sdWeaponBench extends sdEntity
 								//slot_mult = 1.5;
 								//let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
 								let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) ); // Starter guns should be cheap, while endgame guns should be at 500 matter for damage
-								let normal_cost = Math.min( 500, matter_cost_dps * slot_mult );
+								let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
 									if ( upgrades[ i ].action )
@@ -384,7 +384,7 @@ class sdWeaponBench extends sdEntity
 								//slot_mult = 1.5;
 								//let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
 								let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
-								let normal_cost = Math.min( 250, ( matter_cost_dps * slot_mult ) / 2 );
+								let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
 									if ( upgrades[ i ].action )
@@ -517,7 +517,7 @@ class sdWeaponBench extends sdEntity
 							//if ( sdGun.classes[ this.item0.class ].slot === 2 )
 							//slot_mult = 1.5;
 							let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
-							let normal_cost = Math.min( 500, ( matter_cost_dps * slot_mult ) );
+							let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
 							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
@@ -529,7 +529,7 @@ class sdWeaponBench extends sdEntity
 							//if ( sdGun.classes[ this.item0.class ].slot === 2 )
 							//slot_mult = 1.5;
 							let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
-							let normal_cost = Math.min( 250, ( matter_cost_dps * slot_mult ) / 2 );
+							let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
 							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
