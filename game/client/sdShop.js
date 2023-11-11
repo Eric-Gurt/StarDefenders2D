@@ -87,8 +87,8 @@ class sdShop
 			//if ( globalThis.isWin )
 			sdShop.options.push({ _class: 'sdVirus', _category:'root', _godmode_only: true, _opens_category:'Development tests' });
 			sdShop.options.push({ _class: 'sdFactionSpawner', _category:'root', _godmode_only: true, _opens_category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_FALKOK_RIFLE, _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
-			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR, _category:'root', _godmode_only: true, _opens_category:'Weapon Classes' });
+			sdShop.options.push({ _class: 'sdFactionTools', type: sdFactionTools.FT_SD_D, _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_FALKOK_RIFLE, _category:'root', _godmode_only: true, _opens_category:'Weapon Classes' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, matter_max: 5120 * 32, _category:'root', _godmode_only: true, _opens_category:'Crystal Spawner' });
 			
 			//
@@ -833,7 +833,7 @@ class sdShop
 
 			// Make all admin tools have Infinite cost to prevent them from being build by non-admins
 			for ( let i = 0; i < sdShop.options.length; i++ )
-			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' || sdShop.options[ i ]._category === 'Weapon Classes' || sdShop.options[ i ]._category === 'Crystal Spawner' )
+			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' || sdShop.options[ i ]._category === 'Faction outpost tools'  || sdShop.options[ i ]._category === 'Weapon Classes' || sdShop.options[ i ]._category === 'Crystal Spawner' )
 			sdShop.options[ i ].matter_cost = Infinity;
 
 		}
