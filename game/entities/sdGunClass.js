@@ -2011,6 +2011,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 150,
 			min_workbench_level: 1,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
 				if ( character.ApplyArmor({ armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }) )
@@ -2044,6 +2045,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 250,
 			min_workbench_level: 1,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }) )
@@ -2077,6 +2079,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 350,
 			min_workbench_level: 1,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }) )
@@ -2649,11 +2652,6 @@ class sdGunClass
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
-							// Prevent yellow cubes from commiting not living
-							if ( nears[ i ].is( sdCube ) && bullet._owner === nears[ i ] )
-							{
-							}
-							else
 							sdLost.ApplyAffection( nears[ i ], 300, bullet );
 						}
 					}
@@ -2879,6 +2877,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 275,
 			min_workbench_level: 2,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }) )
@@ -2912,6 +2911,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 375,
 			min_workbench_level: 2,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }) )
@@ -2945,6 +2945,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 475,
 			min_workbench_level: 2,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) )
@@ -3248,6 +3249,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 125,
 			min_workbench_level: 3,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.armor > 0 )
@@ -3273,6 +3275,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 250,
 			min_workbench_level: 4,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.armor > 0 )
@@ -3298,6 +3301,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 375,
 			min_workbench_level: 7,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.armor > 0 )
@@ -3323,6 +3327,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 400,
 			min_workbench_level: 6,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }) )
@@ -3356,6 +3361,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 500,
 			min_workbench_level: 6,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }) )
@@ -3389,6 +3395,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 600,
 			min_workbench_level: 6,
+			category: 'Body Armor',
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }) )
