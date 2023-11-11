@@ -44,6 +44,7 @@ class sdWeaponBench extends sdEntity
 		this._regen_timeout = 0;
 
 		this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
+		this.item_dps = 1; // Value is given when item is placed on bench. Needed public variable so damage upgrade can have correct DPS for matter cost calculation - Booraz149
 		
 		this._current_category_stack = [];
 		
@@ -239,6 +240,8 @@ class sdWeaponBench extends sdEntity
 					}
 					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 					
+					this.item_dps = from_entity._max_dps || 100;
+					
 					this._current_category_stack = [];
 					
 					this._update_version++;
@@ -352,8 +355,9 @@ class sdWeaponBench extends sdEntity
 								slot_mult = 0.7;
 								if ( sdGun.classes[ this.item0.class ].slot === 2 )
 								slot_mult = 1.5;
-								let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-								let normal_cost = Math.min( 500, 30 + matter_cost_durability * slot_mult );
+								//let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+								let matter_cost_dps = this.item_dps / 3;
+								let normal_cost = Math.min( 500, matter_cost_dps * slot_mult );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
 									if ( upgrades[ i ].action )
@@ -378,8 +382,9 @@ class sdWeaponBench extends sdEntity
 								slot_mult = 0.7;
 								if ( sdGun.classes[ this.item0.class ].slot === 2 )
 								slot_mult = 1.5;
-								let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-								let normal_cost = Math.min( 250, ( 30 + matter_cost_durability * slot_mult ) / 2 );
+								//let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+								let matter_cost_dps = this.item_dps / 3;
+								let normal_cost = Math.min( 250, ( matter_cost_dps * slot_mult ) / 2 );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
 									if ( upgrades[ i ].action )
@@ -511,8 +516,8 @@ class sdWeaponBench extends sdEntity
 							slot_mult = 0.7;
 							if ( sdGun.classes[ this.item0.class ].slot === 2 )
 							slot_mult = 1.5;
-							let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-							let normal_cost = Math.min( 500, 30 + matter_cost_durability * slot_mult );
+							let matter_cost_dps = this.item_dps / 3;
+							let normal_cost = Math.min( 500, ( matter_cost_dps * slot_mult ) );
 							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
@@ -523,8 +528,8 @@ class sdWeaponBench extends sdEntity
 							slot_mult = 0.7;
 							if ( sdGun.classes[ this.item0.class ].slot === 2 )
 							slot_mult = 1.5;
-							let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-							let normal_cost = Math.min( 250, ( 30 + matter_cost_durability * slot_mult ) / 2 );
+							let matter_cost_dps = this.item_dps / 3;
+							let normal_cost = Math.min( 250, ( matter_cost_dps * slot_mult ) / 2 );
 							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
