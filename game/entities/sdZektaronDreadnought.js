@@ -336,6 +336,7 @@ class sdZektaronDreadnought extends sdEntity
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:1.7 });
 
 				let drone = new sdDrone({ x: this.x - 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team }); // We do a little trolling
+				sdEntity.entities.push( drone );
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone.sx ) < 0.5 )
@@ -355,9 +356,11 @@ class sdZektaronDreadnought extends sdEntity
 					sdWorld.UpdateHashPosition( drone, false );
 					//console.log('Drone spawned!');
 				}
-				sdEntity.entities.push( drone );
+				else
+				drone.remove(); // Otherwise they get stuck in walls
 
 				let drone2 = new sdDrone({ x: this.x + 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team }); // We do a little trolling
+				sdEntity.entities.push( drone2 );
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone2.sx ) < 0.5 )
@@ -376,9 +379,11 @@ class sdZektaronDreadnought extends sdEntity
 
 					sdWorld.UpdateHashPosition( drone2, false );
 					//console.log('Drone spawned!');
+					
 				}
+				else
+				drone2.remove(); // Otherwise they get stuck in walls
 
-				sdEntity.entities.push( drone2 );
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}
