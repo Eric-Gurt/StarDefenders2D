@@ -31,10 +31,10 @@ class sdLiquidAbsorber extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -7; }
-	get hitbox_x2() { return 7; }
-	get hitbox_y1() { return -12; }
-	get hitbox_y2() { return 16; }
+	get hitbox_x1() { return -4; }
+	get hitbox_x2() { return 4; }
+	get hitbox_y1() { return -4; }
+	get hitbox_y2() { return 4; }
 	
 	
 	//Players activate this entity and it removes liquids in it's radius over time for a minor matter cost.
@@ -153,6 +153,12 @@ class sdLiquidAbsorber extends sdEntity
 					if ( ( liquids[ i ].type === sdWater.TYPE_WATER || liquids[ i ].type === sdWater.TYPE_ACID ) && this._allow_liquid_removal )
 					{
 						liquids[ i ].remove();
+						
+						let gas_x = Math.floor( this.x / 16 ) * 16;
+						let gas_y = Math.floor( this.y / 16 ) * 16;
+						let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
+						sdEntity.entities.push( gas );
+						
 						this._allow_liquid_removal = false;
 						sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:15 });
 						this.matter = Math.max( 0, this.matter - sdLiquidAbsorber.cost_per_absorption );
