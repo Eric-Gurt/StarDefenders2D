@@ -160,7 +160,7 @@ class sdBeamProjector extends sdEntity
 				if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TRACK_ENTITY )
 				if ( sdTask.tasks[ i ]._target === this )
 				{
-					sdTask.tasks[ i ]._executer._task_reward_counter += 0.15 * sdTask.GetTaskDifficultyScaler(); // Reward players for completing the objective
+					sdTask.tasks[ i ]._executer._task_reward_counter += 0.125; // Reward players for completing the objective
 					
 					sdTask.completed_tasks_count++; // Like other task events (Erthal beacon, Council bomb), counter increases for each player.
 				}

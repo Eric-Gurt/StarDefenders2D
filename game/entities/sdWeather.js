@@ -2393,25 +2393,25 @@ class sdWeather extends sdEntity
 		if ( r === sdWeather.EVENT_CRYSTALS_MATTER ) // Task which tells players to deliver "X" amount of max matter worth of crystals.
 		{
 			let player_count = sdWorld.GetPlayingPlayersCount();
-				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
-				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'EXTRACT-'+this._net_id, 
-						executer: sdWorld.sockets[ i ].character,
-						//target: 'sdCrystal',
-						lrtp_class_proprty_value_array: [ 'sdCrystal' ],
-						mission: sdTask.MISSION_LRTP_EXTRACTION,
-						difficulty: 0.4,
-						//lrtp_ents_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
-						lrtp_matter_capacity_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
-						title: 'Teleport crystals',
-						time_left: 30 * 60 * 30,
-						for_all_players: true, // This task lets everyone contribute towards it's completion
-						//extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
-						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.',
-						//type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires
-					});
-				}
+			for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
+			{
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: sdWorld.sockets[ i ].character,
+					//target: 'sdCrystal',
+					lrtp_class_proprty_value_array: [ 'sdCrystal' ],
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: 0.2,
+					//lrtp_ents_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
+					lrtp_matter_capacity_needed: 5120 + ( 1280 * player_count ), // 6300 matter requirement for 1 player, although progress counts for all players I think
+					title: 'Teleport crystals',
+					time_left: 30 * 60 * 15,
+					for_all_players: true, // This task lets everyone contribute towards it's completion
+					//extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
+					description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.',
+					//type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires
+				});
+			}
 		}
 		if ( r === sdWeather.EVENT_DIRTY_AIR )
 		{

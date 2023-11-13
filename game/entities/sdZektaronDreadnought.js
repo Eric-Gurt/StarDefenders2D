@@ -504,7 +504,7 @@ class sdZektaronDreadnought extends sdEntity
 							let gun;
 
 							{
-								if ( random_value > 0.25 ) // 25% chance for the Hardlight Spear to replace Focus Beam
+								if ( random_value > 0.125 ) // 12.5% chance for the Hardlight Spear to replace Focus Beam
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_FOCUS_BEAM });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR });
