@@ -355,6 +355,8 @@ class sdZektaronDreadnought extends sdEntity
 
 					sdWorld.UpdateHashPosition( drone, false );
 					//console.log('Drone spawned!');
+					if ( initiator )
+					drone.SetTarget( initiator ); // Make sure drones don't wander off
 				}
 				else
 				drone.remove(); // Otherwise they get stuck in walls
@@ -379,6 +381,8 @@ class sdZektaronDreadnought extends sdEntity
 
 					sdWorld.UpdateHashPosition( drone2, false );
 					//console.log('Drone spawned!');
+					if ( initiator )
+					drone2.SetTarget( initiator ); // Make sure drones don't wander off
 					
 				}
 				else
@@ -484,9 +488,9 @@ class sdZektaronDreadnought extends sdEntity
 				if ( this._time_until_full_remove <= 0 )
 				{
 					let r = Math.random();
-					let shards = 2 + Math.round( Math.random() * 3);
+					let shards = 6 + Math.round( Math.random() * 6);
 			
-					if ( r < 0.35 )
+					if ( r < 0.20 ) // 20% chance for it to drop a weapon
 					{
 						let x = this.x;
 						let y = this.y;
@@ -500,7 +504,7 @@ class sdZektaronDreadnought extends sdEntity
 							let gun;
 
 							{
-								if ( random_value > 0.075 ) // 7.5% chance for the Hardlight Spear
+								if ( random_value > 0.25 ) // 25% chance for the Hardlight Spear to replace Focus Beam
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_FOCUS_BEAM });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR });
