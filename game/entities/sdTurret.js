@@ -49,6 +49,7 @@ import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdVeloxMiner from './sdVeloxMiner.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 
 class sdTurret extends sdEntity
 {
@@ -101,7 +102,8 @@ class sdTurret extends sdEntity
 			sdMimic,
 			sdTzyrgAbsorber,
 			sdVeloxMiner,
-			sdWorld.entity_classes.sdShurgTurret
+			sdWorld.entity_classes.sdShurgTurret,
+			sdZektaronDreadnought
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
