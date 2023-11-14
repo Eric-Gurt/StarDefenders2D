@@ -883,7 +883,7 @@ class sdModeration
 						}
 					}
 				}
-				socket.character._matter_capacity_boosters = 900;
+				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
 			}
 		}
 		else
