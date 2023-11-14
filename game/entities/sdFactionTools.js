@@ -909,6 +909,55 @@ class sdFactionTools extends sdEntity
 			this.remove();
 		}
 	}
+	get title()
+	{
+		if ( this.type === sdFactionTools.FT_SD_A || this.type === sdFactionTools.FT_SD_B || this.type === sdFactionTools.FT_SD_C || this.type === sdFactionTools.FT_SD_D )
+		return 'Star Defender';
+		if ( this.type === sdFactionTools.FT_SDR_A || this.type === sdFactionTools.FT_SDR_B || this.type === sdFactionTools.FT_SDR_C || this.type === sdFactionTools.FT_SDR_D )
+		return 'Extraction Star Defender';
+		if ( this.type === sdFactionTools.FT_SDA_A || this.type === sdFactionTools.FT_SDA_B || this.type === sdFactionTools.FT_SDA_C || this.type === sdFactionTools.FT_SDA_D )
+		return 'Criminal Star Defender';
+		if ( this.type === sdFactionTools.FT_FALKOK_A || this.type === sdFactionTools.FT_FALKOK_B || this.type === sdFactionTools.FT_FALKOK_C )
+		return 'Falkok';
+		if ( this.type === sdFactionTools.FT_PFALKOK_A || this.type === sdFactionTools.FT_PFALKOK_B )
+		return 'Phoenix Falkok';
+		if ( this.type === sdFactionTools.FT_SARRONIAN_A )
+		return 'Sarronian E6 Unit';
+		if ( this.type === sdFactionTools.FT_SARRONIAN_B )
+		return 'Sarronian E3 Unit';
+		if ( this.type === sdFactionTools.FT_VELOX_A )
+		return 'Velox Devastator';
+		if ( this.type === sdFactionTools.FT_VELOX_B || this.type === sdFactionTools.FT_VELOX_C )
+		return 'Velox Soldier';
+		if ( this.type === sdFactionTools.FT_SETR_A || this.type === sdFactionTools.FT_SETR_B )
+		return 'Setr Soldier';
+		if ( this.type === sdFactionTools.FT_TZYRG_A || this.type === sdFactionTools.FT_TZYRG_B )
+		return 'Tzyrg';
+		if ( this.type === sdFactionTools.FT_ERTHAL_A || this.type === sdFactionTools.FT_ERTHAL_B )
+		return 'Erthal';
+		if ( this.type === sdFactionTools.FT_SHURG_A )
+		return 'Shurg';
+		if ( this.type === sdFactionTools.FT_SHURG_B )
+		return 'Shurg Commander';
+		if ( this.type === sdFactionTools.FT_COUNCIL_A )
+		return 'Council Vanguard';
+		if ( this.type === sdFactionTools.FT_COUNCIL_B || this.type === sdFactionTools.FT_COUNCIL_C )
+		return 'Council Acolyte';
+		if ( this.type === sdFactionTools.FT_FSB )
+		return 'Falkonian Sword Bot';
+		if ( this.type === sdFactionTools.FT_TS )
+		return 'Time Shifter';
+		if ( this.type === sdFactionTools.FT_IR_A )
+		return 'Instructor';
+		if ( this.type === sdFactionTools.FT_IR_B )
+		return 'Combat Instructor';
+		if ( this.type === sdFactionTools.FT_PILOT )
+		return 'Extraction Pilot';
+		if ( this.type === sdFactionTools.FT_ZEKTARON_A )
+		return 'Zektaron Assault Unit';
+		if ( this.type === sdFactionTools.FT_ZEKTARON_B )
+		return 'Zektaron Seeker Unit';
+	}
 }
 
 export default sdFactionTools;

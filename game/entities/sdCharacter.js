@@ -174,6 +174,8 @@ class sdCharacter extends sdEntity
 			{ file:'helmets/helmet_architect', name:'Architect' }, //  by LordBored, index = 123
 			{ file:'helmets/helmet_architect2', name:'Architect Alt1' }, //  by LordBored, index = 124
 			{ file:'helmets/helmet_architect3', name:'Architect Alt2' }, //  by LordBored, index = 125
+			{ file:'helmets/helmet_sword', name:'Sword Devil' }, //  by Alone Guitar, index = 126
+			{ file:'helmets/helmet_robo', name:'Robo Grunt' }, //  by Alone Guitar, index = 127
 			
 			// Add new values at the end
 			// Note: Commas -> , are important since this is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
@@ -297,6 +299,7 @@ class sdCharacter extends sdEntity
 			{ file:'skins/architect', name:'Architect' }, // by LordBored, index = 93
 			{ file:'skins/architect2', name:'Architect Alt1' }, // by LordBored, index = 94
 			{ file:'skins/architect3', name:'Architect Alt2' }, // by LordBored, index = 95
+			{ file:'skins/robo', name:'Robo Grunt' }, // by Alone Guitar, index = 96
 		];
 		sdCharacter.skins = [];
 		for ( let i = 0; i < sdCharacter.skin_file_names_with_actual_names.length; i++ )
@@ -3495,7 +3498,7 @@ THING is cosmic mic drop!`;
 		if ( this._socket )	
 		if ( this._god )
 		{
-			this.matter_max = 10000; // Hack
+			this.matter_max = 1000000; // Hack, some problems made it can't use presets edited weapons. --- Alone Guitar
 			this.matter = this.matter_max; // Hack
 			this.hea = this.hmax; // Hack
 			this._dying = false; // Hack
