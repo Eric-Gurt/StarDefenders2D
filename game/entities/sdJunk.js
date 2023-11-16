@@ -140,6 +140,7 @@ class sdJunk extends sdEntity
 		this._rate = 120;
 		this._max_damage = 4000; // Max damage the council bomb can take under a timer
 		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
+		this._current_minions_count = 0; // Minion counter
 		//
 		this.hea = this.hmax;
 		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 ) : 320;
@@ -830,12 +831,12 @@ class sdJunk extends sdEntity
 					}
 					{
 						// Spawn a council support drone
-						if ( this.hea < ( this.hmax * 0.75 ) )
+						if ( this._current_minions_count < 3 )
 						{
 
 							let left_side = ( Math.random() < 0.5 );
 
-							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
 
 							sdEntity.entities.push( drone );
 
@@ -886,6 +887,7 @@ class sdJunk extends sdEntity
 
 										sdWorld.UpdateHashPosition( drone, false );
 										//console.log('Drone spawned!');
+										this._current_minions_count++;
 										break;
 									}
 

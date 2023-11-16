@@ -158,7 +158,7 @@ class sdDrone extends sdEntity
 		this._player_damage = 0;
 
 		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
-		this._is_minion_of = null; // Is this a minion of a boss?
+		this._is_minion_of = params.minion_of || null; // Is this a minion of a boss?
 
 		this.side = 1;
 		
@@ -176,8 +176,8 @@ class sdDrone extends sdEntity
 		
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
-		if ( this.type !== sdDrone.DRONE_SARRONIAN_DETONATOR ) // Detonators don't count towards drone count
 		sdDrone.drones_tot++;
+		
 		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
@@ -188,6 +188,13 @@ class sdDrone extends sdEntity
 		return false;
 		
 		return ( this._ignore_collisions_with !== from_entity );
+	}
+	
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_is_minion_of' ) return true;
+
+		return false;
 	}
 	
 	SetTarget( ent )
@@ -506,10 +513,6 @@ class sdDrone extends sdEntity
 				sdSound.PlaySound({ name:'cut_droid_death', x:this.x, y:this.y, volume:1, pitch:1, channel:this._voice_channel });
 			}
 			
-			if ( this._is_minion_of !== null ) // If spawned by boss
-			{
-				this._is_minion_of._current_minions_count--;
-			}
 
 			if ( Math.random() < 0.2 ) // 20% chance to drop a faction-specific drop on destruction
 			{
@@ -1288,7 +1291,7 @@ class sdDrone extends sdEntity
 												att_anim = true;
 												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#00c600' });
 												sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1, pitch:3.2 });
-												this._attack_timer = 75
+												this._attack_timer = 75;
 											}
 										}
 									}
@@ -1976,8 +1979,10 @@ class sdDrone extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.type !== sdDrone.DRONE_SARRONIAN_DETONATOR )
 		sdDrone.drones_tot--;
+		
+		if ( this._is_minion_of )
+		this._is_minion_of._current_minions_count--;
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
