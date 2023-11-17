@@ -206,7 +206,7 @@ class sdEnemyMech extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level >= 10  )
+			if ( ( ent === this._current_target || ent.build_tool_level >= 10 ) && ent._ai_team !== this._ai_team ) // Allow to play as teammate when _ai_team = 0. --- Alone Guitar
 			return true;
 			else
 			{
@@ -254,7 +254,7 @@ class sdEnemyMech extends sdEntity
 			// let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
 
 			if ( di_to_head < 16 )
-			return 5;
+			return 3;
 		}
 	
 		return 1;

@@ -250,7 +250,7 @@ class sdZektaronDreadnought extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level >= 25  )
+			if ( ( ent === this._current_target || ent.build_tool_level >= 25 ) && ent._ai_team !== this._ai_team ) // Allow to play as teammate when _ai_team = 0. --- Alone Guitar
 			return true;
 			else
 			{
@@ -335,8 +335,9 @@ class sdZektaronDreadnought extends sdEntity
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:1.7 });
 
-				let drone = new sdDrone({ x: this.x - 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team }); // We do a little trolling
+				let drone = new sdDrone({ x: this.x - ( 75 * 4 * Math.random() ), y: this.y - ( 30 * 4 * Math.random() ), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 				sdEntity.entities.push( drone );
+				drone._ai_team = this._ai_team;
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone.sx ) < 0.5 )
@@ -346,7 +347,7 @@ class sdZektaronDreadnought extends sdEntity
 
 				drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 
-				if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) )
+				if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, sdCom.com_visibility_ignored_classes, null ) )
 				//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 				//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 				{
@@ -359,10 +360,15 @@ class sdZektaronDreadnought extends sdEntity
 					drone.SetTarget( initiator ); // Make sure drones don't wander off
 				}
 				else
-				drone.remove(); // Otherwise they get stuck in walls
+				{
+					drone.remove(); // Otherwise they get stuck in walls or spawn through walls
+					drone._broken = false;
+				}
+				
 
-				let drone2 = new sdDrone({ x: this.x + 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team }); // We do a little trolling
+				let drone2 = new sdDrone({ x: this.x + 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 				sdEntity.entities.push( drone2 );
+				drone2._ai_team = this._ai_team;
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone2.sx ) < 0.5 )
@@ -372,7 +378,7 @@ class sdZektaronDreadnought extends sdEntity
 
 				drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 
-				if ( drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) )
+				if ( drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone2.x, drone2.y, this, sdCom.com_visibility_ignored_classes, null ) )
 				//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 				//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 				{
@@ -386,7 +392,10 @@ class sdZektaronDreadnought extends sdEntity
 					
 				}
 				else
-				drone2.remove(); // Otherwise they get stuck in walls
+				{
+					drone2.remove(); // Otherwise they get stuck in walls or spawn through walls
+					drone2._broken = false;
+				}
 
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
@@ -738,7 +747,7 @@ class sdZektaronDreadnought extends sdEntity
 						if ( this.hea > ( this._hmax / 2 ) )
 						{
 
-							let drone = new sdDrone({ x: this.x - 45, y: this.y + 35, type: sdDrone.DRONE_ZEKTARON, _ai_team: this._ai_team }); // We do a little trolling
+							let drone = new sdDrone({ x: this.x - 45, y: this.y + 35, type: sdDrone.DRONE_ZEKTARON, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 			
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
@@ -746,15 +755,25 @@ class sdZektaronDreadnought extends sdEntity
 							if ( Math.abs( drone.sy ) < 0.5 )
 							drone.sy *= 0.1;
 							drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
-							drone._is_minion_of = this;
 			
 							sdEntity.entities.push( drone );
+							drone._ai_team = this._ai_team;
+							
+							let potential_target = drone.GetRandomTarget();
+							
+							if ( potential_target )
+							drone.SetTarget( potential_target );
+						
+							if ( !drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) || !sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							{
+								drone.remove();
+								drone._broken = false; // Remove drones if they can't spawn without getting stuck
+							}
 
-							let drone2 = new sdDrone({ x: this.x + 45, y: this.y + 35, type: sdDrone.DRONE_ZEKTARON, _ai_team: this._ai_team }); // We do a little trolling
+							let drone2 = new sdDrone({ x: this.x + 45, y: this.y + 35, type: sdDrone.DRONE_ZEKTARON, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 			
 							drone2.sx = 0;
 							drone2.sy = 0;
-							drone2._is_minion_of = this;
 
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
@@ -765,6 +784,18 @@ class sdZektaronDreadnought extends sdEntity
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 							
 							sdEntity.entities.push( drone2 );
+							drone2._ai_team = this._ai_team;
+							
+							potential_target = drone2.GetRandomTarget();
+							
+							if ( potential_target )
+							drone2.SetTarget( potential_target );
+						
+							if ( !drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) || !sdWorld.CheckLineOfSight( this.x, this.y, drone2.x, drone2.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							{
+								drone2.remove();
+								drone2._broken = false; // Remove drones if they can't spawn without getting stuck
+							}
 
 							this._current_minions_count++;
 							this._current_minions_count++;
@@ -774,11 +805,10 @@ class sdZektaronDreadnought extends sdEntity
 						{
 							sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:2.8, pitch:1.9 });
 
-							let drone = new sdDrone({ x: this.x - 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, _ai_team: this._ai_team }); // We do a little trolling
+							let drone = new sdDrone({ x: this.x - 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 			
 							drone.sx = 0;
 							drone.sy = 0;
-							drone._is_minion_of = this;
 
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
@@ -789,12 +819,12 @@ class sdZektaronDreadnought extends sdEntity
 							drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 			
 							sdEntity.entities.push( drone );
+							drone._ai_team = this._ai_team;
 
-							let drone2 = new sdDrone({ x: this.x + 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, _ai_team: this._ai_team }); // We do a little trolling
+							let drone2 = new sdDrone({ x: this.x + 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 			
 							drone2.sx = 0;
 							drone2.sy = 0;
-							drone2._is_minion_of = this;
 			
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
@@ -805,6 +835,7 @@ class sdZektaronDreadnought extends sdEntity
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 			
 							sdEntity.entities.push( drone2 );
+							drone2._ai_team = this._ai_team;
 							
 							this._current_minions_count++;
 							this._current_minions_count++;
