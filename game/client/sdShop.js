@@ -613,6 +613,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSetrDestroyer', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCouncilIncinerator', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 0, _category:'Development tests' });
