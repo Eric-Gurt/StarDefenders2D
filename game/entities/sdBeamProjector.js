@@ -84,6 +84,9 @@ class sdBeamProjector extends sdEntity
 		this.no_obstacles = false; // Does it have any obstacles above it which prevents beam going to sky?
 		this._spawn_timer = 600;
 		this._enemies_spawned = 0; 
+		
+		this._spawned_ai = false; // Spawn SD AI
+		
 		//this.matter_max = 5500;
 		//this.matter = 100;
 		
