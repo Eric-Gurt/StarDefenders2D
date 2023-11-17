@@ -335,7 +335,7 @@ class sdZektaronDreadnought extends sdEntity
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:1.7 });
 
-				let drone = new sdDrone({ x: this.x - 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+				let drone = new sdDrone({ x: this.x - ( 75 * 4 * Math.random() ), y: this.y - ( 30 * 4 * Math.random() ), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 				sdEntity.entities.push( drone );
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other

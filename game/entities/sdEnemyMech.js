@@ -254,7 +254,7 @@ class sdEnemyMech extends sdEntity
 			// let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
 
 			if ( di_to_head < 16 )
-			return 5;
+			return 3;
 		}
 	
 		return 1;

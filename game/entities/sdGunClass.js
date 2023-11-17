@@ -7050,11 +7050,11 @@ class sdGunClass
 			},
 		};
 
-		sdGun.classes[ sdGun.CLASS_COUNCIL_WORM_GUN = 114 ] = // Sprite by Flora/Gravel
+		sdGun.classes[ sdGun.CLASS_COUNCIL_IMMOLATOR = 114 ] = // Sprite by Flora/Gravel
 		{
 			image: sdWorld.CreateImageFromFile( 'council_chargerail' ),
 			//sound: 'supercharge_combined2',
-			title: 'Council Worm Annihilator',
+			title: 'Council Immolator',
 			//sound_pitch: 0.5,
 			slot: 4,
 			reload_time: 0.3,
@@ -7103,10 +7103,10 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 200 }, // Combined with fire rate
+			projectile_properties: { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 200 };
+				let obj = { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }; // High fire damage. Custom guns go to 500 temperature, so why not.
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];

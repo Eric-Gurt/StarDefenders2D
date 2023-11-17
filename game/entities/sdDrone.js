@@ -1004,6 +1004,7 @@ class sdDrone extends sdEntity
 						{
 							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
+						
 					}
 
 					nears.sort((a,b)=>{
@@ -1515,7 +1516,7 @@ class sdDrone extends sdEntity
 							if ( this.type === sdDrone.DRONE_COUNCIL ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
 								this._attack_timer = 60;
-								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine' ] );
+								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine', 'sdCouncilIncinerator' ] );
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
 								{
@@ -1550,11 +1551,20 @@ class sdDrone extends sdEntity
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
 									}
-									if ( entities[ i ].GetClass() === 'sdCouncilMachine' ) // Council portal machine?
+									if ( entities[ i ].GetClass() === 'sdCouncilMachine' ) // Council portal machine
 									{
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{
 											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ].hmax ); // In that case, repair the machine
+											att_anim = true;
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
+										}
+									}
+									if ( entities[ i ].GetClass() === 'sdCouncilIncinerator' ) // Council incinerator
+									{
+										if ( entities[ i ].hea < entities[ i ]._hmax && entities[ i ].hea > 0 ) // Does it need repairing? (And is it alive?)
+										{
+											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ]._hmax ); // In that case, repair it
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}

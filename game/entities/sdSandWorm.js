@@ -13,6 +13,7 @@ import sdCharacter from './sdCharacter.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
 import sdRift from './sdRift.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 class sdSandWorm extends sdEntity
 {
@@ -56,6 +57,7 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.KIND_SPIKY_WORM = 1;
 		sdSandWorm.KIND_CORRUPTED_WORM = 2;
 		sdSandWorm.KIND_COUNCIL_WORM = 3;
+		sdSandWorm.KIND_CRYSTAL_HUNTING_WORM = 4;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -141,6 +143,11 @@ class sdSandWorm extends sdEntity
 			this.scale = 1;
 		}
 		
+		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+		{
+			this.scale = 0.6;
+		}
+		
 		this._can_spawn_more = true;
 	}
 	onBeforeRemove()
@@ -189,6 +196,7 @@ class sdSandWorm extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( !this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
 		if ( this._hea > 0 )
 		if ( character.IsVisible() )
 		if ( character.hea > 0 )
@@ -360,7 +368,7 @@ class sdSandWorm extends sdEntity
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 				let gun;
-				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_WORM_GUN });
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
 				//gun.sx = sx;
 				//gun.sy = sy;
@@ -388,6 +396,24 @@ class sdSandWorm extends sdEntity
 			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
+	
+	GetRandomCrystal()
+	{
+		let ent = sdEntity.GetRandomActiveEntity();
+		if ( ent.is( sdCrystal ) ) // Is it a crystal?
+			{
+				let far_from_all_players = true;
+				/*for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				{
+					let player = sdWorld.sockets.character[ i ];
+					if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+					far_from_all_players = false;
+				}*/
+				if ( far_from_all_players )
+				return ent; // Target it
+			}
+		return null;
+	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -624,6 +650,7 @@ class sdSandWorm extends sdEntity
 					
 					let G = Math.min( 1, GSPEED );
 
+
 					this.sx -= dx * G;
 					this.sy -= dy * G;
 
@@ -816,6 +843,10 @@ class sdSandWorm extends sdEntity
 					// No target
 					if ( sdWorld.is_server )
 					{
+						
+						
+						
+						
 						/*let closest = null;
 						let closest_di = Infinity;
 						for ( let i = 0; i < sdWorld.sockets.length; i++ )
@@ -841,6 +872,12 @@ class sdSandWorm extends sdEntity
 							
 							if ( this._current_target.is( sdSandWorm ) || ( this._current_target.is( sdCharacter ) && !this.HasEnoughMatter( this._current_target ) ) )
 							this._current_target = null;
+						
+							if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+							if ( this._current_target ) // Prevents crash
+							if ( !this._current_target.is( sdCrystal ) ) // Make sure it goes for crystals only
+							this._current_target = this.GetRandomCrystal();
+								
 						}
 					}
 				}
@@ -899,6 +936,9 @@ class sdSandWorm extends sdEntity
 
 			if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
 			sdEntity.Tooltip( ctx, "Council Mecha Worm" );
+		
+			if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+			sdEntity.Tooltip( ctx, "Crystal Hunting Worm" );
 		}
 	}
 	Draw( ctx, attached )
@@ -921,7 +961,7 @@ class sdSandWorm extends sdEntity
 		if ( !sdShop.isDrawing )
 		ctx.scale( this.scale, this.scale );
 		
-		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM  )
+		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM || this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM  )
 		{
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_head_attack, - 16, - 16, 32,32 );

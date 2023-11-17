@@ -71,6 +71,7 @@ import sdVeloxMiner from './sdVeloxMiner.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdDropPod from './sdDropPod.js';
 import sdBeamProjector from './sdBeamProjector.js';
+import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -139,6 +140,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =	event_counter++; // 42
 		sdWeather.EVENT_KIVORTEC_WEAPONS_POD =	event_counter++; // 43
 		sdWeather.EVENT_BEAM_PROJECTOR =		event_counter++; // 44
+		sdWeather.EVENT_COUNCIL_INCINERATOR =	event_counter++; // 45
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -204,6 +206,7 @@ class sdWeather extends sdEntity
 		this._max_velox_mech_count = 3;
 		this._max_setr_destroyer_count = 3;
 		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
+		this._max_council_incinerator_count = 2;
 		this._max_drone_count = 40;
 		this._max_portal_count = 4;
 		this._max_pod_count = 3;
@@ -3006,7 +3009,7 @@ class sdWeather extends sdEntity
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
 				if ( sdCharacter.characters[ i ]._ai )
-				if ( sdCharacter.characters[ i ]._ai_team === 8 )
+				if ( sdCharacter.characters[ i ]._ai_team === 9 )
 				{
 					ais++;
 				}
@@ -3257,6 +3260,27 @@ class sdWeather extends sdEntity
 				count: [ 1, 1 ],
 				class: sdBeamProjector,
 				aerial: false
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_COUNCIL_INCINERATOR ) // Council's Incinerator, mini boss from Council faction
+		{
+			let possible_spawn = false;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character )
+				if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 ) // If atleast one player is level 15 or above
+				possible_spawn = true;
+			}
+			if ( sdCouncilIncinerator.incinerator_counter < this._max_council_incinerator_count && possible_spawn )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdCouncilIncinerator,
+				
+				aerial: true
 				
 			});
 			else
