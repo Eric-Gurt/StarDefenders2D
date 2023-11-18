@@ -207,7 +207,7 @@ class sdWeather extends sdEntity
 		this._max_setr_destroyer_count = 3;
 		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
 		this._max_council_incinerator_count = 2;
-		this._max_drone_count = 40;
+		this._max_drone_count = 40; // Obsolete for now due to faction count.
 		this._max_portal_count = 4;
 		this._max_pod_count = 3;
 
@@ -1197,26 +1197,26 @@ class sdWeather extends sdEntity
 				ais++;
 			}
 			{ // Spawn some drones aswell
-				instances = 0;
-				instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
-				while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
-					let drone_type = Math.random() < 0.2 ? 10 : 1;
-					let drone = new sdDrone({ x:0, y:0, type: drone_type, _ai_team: 1});
-					//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
+				sdWeather.SimpleSpawner({
 
-					sdEntity.entities.push( drone );
+					count: [ 2, 3 ],
+					class: sdDrone,
+					params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
+					aerial: true
 
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					instances++;
+				});
+				
+				if ( Math.random() < 0.5 )
+				sdWeather.SimpleSpawner({
+
+					count: [ 2, 3 ],
+					class: sdDrone,
+					params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
+					aerial: true
+
+				});
 				}
-			}
 		}
 
 		if ( r === sdWeather.EVENT_ASPS )
@@ -1446,9 +1446,10 @@ class sdWeather extends sdEntity
 			});
 			sdWeather.SimpleSpawner({
 
-				count: [ 1, 2 ],
+				count: [ 2, 3 ],
 				class: sdDrone,
-				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL }
+				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL },
+				aerial: true
 
 			});
 			
@@ -1789,27 +1790,23 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
-				let drones = 0;
-				let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-
-				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
+				//let drones = 0;
+				//let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+				
+				let drone_type = ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
 						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
-						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/});
+						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/;
+						
+						
+				sdWeather.SimpleSpawner({
 
-					sdEntity.entities.push( drone );
+					count: [ 2, 4 ],
+					class: sdDrone,
+					params: { _ai_team: 4, type: drone_type },
+					aerial: true
 
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					drones++;
-				}
+				});
+				
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -2333,25 +2330,19 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
-				let drones = 0;
-				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+				//let drones = 0;
+				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
 
-				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
+				sdWeather.SimpleSpawner({
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 7, type: 7});
+					count: [ 3, 6 ],
+					class: sdDrone,
+					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
+					aerial: true
 
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					drones++;
-				}
+				});
+				
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -2803,26 +2794,25 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
+				
+				sdWeather.SimpleSpawner({
 
-				let drones = 0;
-				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+					count: [ 3, 5 ],
+					class: sdDrone,
+					params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
+					aerial: true
 
+				});
+				
+				if ( Math.random() < 0.25 )
+				sdWeather.SimpleSpawner({
 
-				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
+					count: [ 1, 2 ],
+					class: sdDrone,
+					params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
+					aerial: true
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
-
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					drones++;
-				}
+				});
 			}
 		}
 		if ( r === sdWeather.EVENT_FALKOK_OUTPOST ) // Falkok base / outpost spawn. Looks for fitting location to generate an outpost. Very primitive at the moment. 10x10 base size.
@@ -3056,7 +3046,7 @@ class sdWeather extends sdEntity
 
 			}
 		}
-		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
+		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter converter anywhere on the map outside player views.
 		{
 			{
 				let instances = 0;
