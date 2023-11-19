@@ -287,10 +287,17 @@ class sdTurret extends sdEntity
 				if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
 				{
 					var is_char = e.IsPlayerClass();
+					
+					if ( is_char )
+					{
+						let is_friendly = !e.IsHostileAI();
+						if ( is_friendly )
+						return false;
+					}
 
 					if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 					{
-						if ( is_char && is_char._god && !e.IsVisible() )
+						if ( is_char && ( is_char._god && !e.IsVisible() ) )
 						{
 						}
 						else
