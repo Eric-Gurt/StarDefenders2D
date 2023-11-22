@@ -200,7 +200,7 @@ class sdCouncilIncinerator extends sdEntity
 		return false;
 	}
 	IncinerationAttack(){
-		let attack_entities = this.GetAnythingNearCache( this.x, this.y, 192 );
+		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 192 );
 	
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )

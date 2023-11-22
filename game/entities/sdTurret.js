@@ -290,8 +290,7 @@ class sdTurret extends sdEntity
 					
 					if ( is_char )
 					{
-						let is_friendly = !e.IsHostileAI();
-						if ( is_friendly )
+						if ( !e.IsHostileAI() ) // Is this AI friendly?
 						return false;
 					}
 

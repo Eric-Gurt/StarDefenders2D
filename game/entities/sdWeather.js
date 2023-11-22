@@ -72,6 +72,7 @@ import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdDropPod from './sdDropPod.js';
 import sdBeamProjector from './sdBeamProjector.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
+import sdSandWorm from './sdSandWorm.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -141,6 +142,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_KIVORTEC_WEAPONS_POD =	event_counter++; // 43
 		sdWeather.EVENT_BEAM_PROJECTOR =		event_counter++; // 44
 		sdWeather.EVENT_COUNCIL_INCINERATOR =	event_counter++; // 45
+		sdWeather.EVENT_CRYSTAL_EATING_WORM =	event_counter++; // 46
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -207,7 +209,7 @@ class sdWeather extends sdEntity
 		this._max_setr_destroyer_count = 3;
 		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
 		this._max_council_incinerator_count = 2;
-		this._max_drone_count = 40; // Obsolete for now due to faction count.
+		this._max_drone_count = 15; // How much drones are allowed per faction?
 		this._max_portal_count = 4;
 		this._max_pod_count = 3;
 
@@ -1197,26 +1199,35 @@ class sdWeather extends sdEntity
 				ais++;
 			}
 			{ // Spawn some drones aswell
-
-				sdWeather.SimpleSpawner({
-
-					count: [ 2, 3 ],
-					class: sdDrone,
-					params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
-					aerial: true
-
-				});
-				
-				if ( Math.random() < 0.5 )
-				sdWeather.SimpleSpawner({
-
-					count: [ 2, 3 ],
-					class: sdDrone,
-					params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
-					aerial: true
-
-				});
+				let drones = 0;
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
+				{
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 1 ) // Falkok drone?
+					drones++;
 				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
+				{
+					sdWeather.SimpleSpawner({
+
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
+						aerial: true
+
+					});
+				
+					if ( Math.random() < 0.5 )
+					sdWeather.SimpleSpawner({
+
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
+						aerial: true
+
+					});
+				}
+			}
 		}
 
 		if ( r === sdWeather.EVENT_ASPS )
@@ -1444,6 +1455,15 @@ class sdWeather extends sdEntity
 				params: { _ai_team: 2, type: spider_type }
 
 			});
+			
+			let drones = 0;
+			for ( let i = 0; i < sdDrone.drones.length; i++ )
+			{
+				let drone = sdDrone.drones[ i ];
+				if ( drone._ai_team === 2 ) // Erthal drone?
+				drones++;
+			}
+			if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
 			sdWeather.SimpleSpawner({
 
 				count: [ 2, 3 ],
@@ -1797,7 +1817,14 @@ class sdWeather extends sdEntity
 						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
 						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/;
 						
-						
+				let drones = 0;
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
+				{
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 4 ) // Sarronian/Zektaron drone?
+					drones++;
+				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
 				sdWeather.SimpleSpawner({
 
 					count: [ 2, 4 ],
@@ -2333,7 +2360,14 @@ class sdWeather extends sdEntity
 				//let drones = 0;
 				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
-
+				let drones = 0;
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
+				{
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 7 ) // Setr drone?
+					drones++;
+				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
 				sdWeather.SimpleSpawner({
 
 					count: [ 3, 6 ],
@@ -2795,24 +2829,34 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 				
-				sdWeather.SimpleSpawner({
+				let drones = 0;
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
+				{
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 7 ) // Setr drone?
+					drones++;
+				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
+				{
+					sdWeather.SimpleSpawner({
 
-					count: [ 3, 5 ],
-					class: sdDrone,
-					params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
-					aerial: true
+						count: [ 3, 5 ],
+						class: sdDrone,
+						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
+						aerial: true
 
-				});
+					});
 				
-				if ( Math.random() < 0.25 )
-				sdWeather.SimpleSpawner({
+					if ( Math.random() < 0.25 )
+					sdWeather.SimpleSpawner({
 
-					count: [ 1, 2 ],
-					class: sdDrone,
-					params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
-					aerial: true
+						count: [ 1, 2 ],
+						class: sdDrone,
+						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
+						aerial: true
 
-				});
+					});
+				}
 			}
 		}
 		if ( r === sdWeather.EVENT_FALKOK_OUTPOST ) // Falkok base / outpost spawn. Looks for fitting location to generate an outpost. Very primitive at the moment. 10x10 base size.
@@ -3269,12 +3313,21 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdCouncilIncinerator,
-				
 				aerial: true
 				
 			});
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_CRYSTAL_EATING_WORM ) // Spawn a crystal hunting worm which eats crystals outside player's views and outside of base shielding units. Basically a crystal cleanup mob. Does not target players unless provoked.
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdSandWorm,
+				params: { kind: sdSandWorm.KIND_CRYSTAL_HUNTING_WORM }
+				
+			});
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

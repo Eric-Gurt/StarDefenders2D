@@ -99,6 +99,17 @@ class sdSandWorm extends sdEntity
 		this.kind = sdSandWorm.KIND_CORRUPTED_WORM;
 
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
+		
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		{
+			this._regen_timeout = 0; // For HP regen
+			this.scale = 1;
+		}
+		
+		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+		{
+			this.scale = 0.6;
+		}
 
 		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 12 : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
@@ -131,22 +142,14 @@ class sdSandWorm extends sdEntity
 		
 		this._last_attack = sdWorld.time;
 		
+		this._last_found_target = 0; // When has it last time found a target? Used for Crystal Hunting Worm.
+		
 		sdSandWorm.worms_tot++;
 		
 		this.hue = ~~( Math.random() * 360 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 		this.filter = 'saturate(0.5)';
 		
-		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
-		{
-			this._regen_timeout = 0; // For HP regen
-			this.scale = 1;
-		}
-		
-		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
-		{
-			this.scale = 0.6;
-		}
 		
 		this._can_spawn_more = true;
 	}
@@ -396,21 +399,29 @@ class sdSandWorm extends sdEntity
 			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
+	IsEntFarEnough( ent ) // Check if entity is outside BSU and far away from player's views
+	{
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character )
+		{
+			let player = sdWorld.sockets[ i ].character;
+			if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+			return false;
+		}
+		
+		return true;
+	}
 	
 	GetRandomCrystal()
 	{
 		let ent = sdEntity.GetRandomActiveEntity();
 		if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
-				let far_from_all_players = true;
-				/*for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				if ( this.IsEntFarEnough( ent ) && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < 2000 ) // Crystal far enough from BSUs and players, but not too far from the worm?
 				{
-					let player = sdWorld.sockets.character[ i ];
-					if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
-					far_from_all_players = false;
-				}*/
-				if ( far_from_all_players )
-				return ent; // Target it
+					this._last_found_target = 0;
+					return ent; // Target it
+				}
 			}
 		return null;
 	}
@@ -715,6 +726,12 @@ class sdSandWorm extends sdEntity
 			
 				if ( this._current_target )
 				{
+					if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM && !this.IsEntFarEnough( this._current_target ) )
+					{
+						this._current_target = null;
+						return;
+					}
+					
 					if ( this._current_target._is_being_removed || !this._current_target.IsVisible() /*|| sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSandWorm.max_seek_range + 32*/ )
 					this._current_target = null;
 					else
@@ -743,6 +760,9 @@ class sdSandWorm extends sdEntity
 							for ( let i = 0; i < arr.length; i++ )
 							{
 								let vel_scale = arr[ i ]._in_water ? 0.05 : 1;
+								
+								if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+								vel_scale *= 1.5; // Faster so it eats crystals faster
 								
 								let dx2 = 0;
 								let dy2 = 0;
@@ -873,12 +893,29 @@ class sdSandWorm extends sdEntity
 							if ( this._current_target.is( sdSandWorm ) || ( this._current_target.is( sdCharacter ) && !this.HasEnoughMatter( this._current_target ) ) )
 							this._current_target = null;
 						
+							if ( this._last_found_target > 250 ) // Over 250 attempts without finding a crystal to eat
+							{
+								if ( this.IsEntFarEnough( this ) ) // No players nearby?
+								this.Damage( 1000000 ); // Die in peace
+							}
+						
 							if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
-							if ( this._current_target ) // Prevents crash
-							if ( !this._current_target.is( sdCrystal ) ) // Make sure it goes for crystals only
-							this._current_target = this.GetRandomCrystal();
-								
+							{
+								if ( this._current_target ) // Prevents crash
+								{
+									if ( !this._current_target.is( sdCrystal ) ) // Make sure it goes for crystals only
+									{
+										this._current_target = this.GetRandomCrystal();
+										this._last_found_target++;
+									}
+								}
+								else
+								{
+									this._current_target = this.GetRandomCrystal(); // Focus on finding crystals anyway
+									this._last_found_target++;
+								}
 						}
+							}
 					}
 				}
 			}

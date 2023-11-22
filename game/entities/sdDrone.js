@@ -57,7 +57,7 @@ class sdDrone extends sdEntity
 		
 		sdDrone.max_seek_range = 1000;
 		
-		sdDrone.drones_tot = 0;
+		sdDrone.drones = []; // This way we can limit it to a count per faction rather than just "total" count
 
 		sdDrone.DRONE_FALKOK = 1;
 		sdDrone.DRONE_ERTHAL = 2;
@@ -176,7 +176,7 @@ class sdDrone extends sdEntity
 		
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
-		sdDrone.drones_tot++;
+		sdDrone.drones.push( this );
 		
 		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
@@ -1989,10 +1989,14 @@ class sdDrone extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		sdDrone.drones_tot--;
 		
 		if ( this._is_minion_of )
 		this._is_minion_of._current_minions_count--;
+	
+		let i = sdDrone.drones.indexOf( this );
+		
+		if ( i !== -1 )
+		sdDrone.drones.splice( i, 1 );
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
