@@ -604,7 +604,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 3, _category:'Development tests' });
-				//sdShop.options.push({ _class: 'sdSandWorm', kind: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSandWorm', kind: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', variation:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', variation:2, _category:'Development tests' });
