@@ -1278,7 +1278,7 @@ class sdBlock extends sdEntity
 					else
 					{
 						if ( from_entity.GetClass() === 'sdSandWorm' )
-						if ( from_entity.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
+						if ( from_entity.kind !== sdSandWorm.KIND_CORRUPTED_WORM && from_entity.kind !== sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
 						this.CorruptAttack( from_entity );
 
 						if ( from_entity.GetClass() === 'sdCrystal' )

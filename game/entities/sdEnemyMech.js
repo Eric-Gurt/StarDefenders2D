@@ -410,7 +410,7 @@ class sdEnemyMech extends sdEntity
 							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							//else
 							{
-								if ( random_value > 0.92 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
+								if ( random_value > 0.88 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });

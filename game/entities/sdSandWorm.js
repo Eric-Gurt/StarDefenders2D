@@ -35,6 +35,10 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_council_head_attack = sdWorld.CreateImageFromFile( 'worm_council_head_attack' );
 		sdSandWorm.img_worm_council_body = sdWorld.CreateImageFromFile( 'worm_council_body' );
 		
+		sdSandWorm.img_crystal_hunting_worm_head_idle = sdWorld.CreateImageFromFile( 'worm_chunter_head_idle' );
+		sdSandWorm.img_crystal_hunting_worm_head_attack = sdWorld.CreateImageFromFile( 'worm_chunter_head_attack' );
+		sdSandWorm.img_crystal_hunting_worm_body = sdWorld.CreateImageFromFile( 'worm_chunter_body' );
+		
 		sdSandWorm.post_death_ttl = 30 * 6;
 		
 		sdSandWorm.max_seek_range = 1000;
@@ -153,6 +157,12 @@ class sdSandWorm extends sdEntity
 		
 		this._can_spawn_more = true;
 	}
+	
+	isWaterDamageResistant()
+	{
+		return ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM );
+	}
+	
 	onBeforeRemove()
 	{
 		// Forget all pointers
@@ -337,7 +347,7 @@ class sdSandWorm extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
-			if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM ) // Spawn wyrmhide on ground if it's set to true
+			if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM && this.kind !== sdSandWorm.KIND_CRYSTAL_HUNTING_WORM ) // Spawn wyrmhide on ground if it's set to true
 			{
 				let x = this.x;
 				let y = this.y;
@@ -448,7 +458,7 @@ class sdSandWorm extends sdEntity
 				//this.sy = 0;
 				//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 				
-				if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM ) // Spawn wyrmhide on ground if it's set to true
+				if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM && this.kind !== sdSandWorm.KIND_CRYSTAL_HUNTING_WORM ) // Spawn wyrmhide on ground if it's set to true
 				{
 					let x = this.x;
 					let y = this.y;
@@ -998,7 +1008,7 @@ class sdSandWorm extends sdEntity
 		if ( !sdShop.isDrawing )
 		ctx.scale( this.scale, this.scale );
 		
-		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM || this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM  )
+		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM )
 		{
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_head_attack, - 16, - 16, 32,32 );
@@ -1008,7 +1018,7 @@ class sdSandWorm extends sdEntity
 			else
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_body, - 16, - 16, 32,32 );
 		}
-		if ( this.kind === sdSandWorm.KIND_SPIKY_WORM  )
+		if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
 		{
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_head_attack, - 16, - 16, 32,32 );
@@ -1041,6 +1051,16 @@ class sdSandWorm extends sdEntity
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_body, - 16, - 16, 32,32 );
+		}
+		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+		{
+			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
+			ctx.drawImageFilterCache( sdSandWorm.img_crystal_hunting_worm_head_attack, - 16, - 16, 32,32 );
+			else
+			if ( this.model === 0 )
+			ctx.drawImageFilterCache( sdSandWorm.img_crystal_hunting_worm_head_idle, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdSandWorm.img_crystal_hunting_worm_body, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
