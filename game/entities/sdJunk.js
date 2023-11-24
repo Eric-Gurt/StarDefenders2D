@@ -404,6 +404,18 @@ class sdJunk extends sdEntity
 				sdEntity.entities.push( gun );
 
 				}, 500 );
+				
+				if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && Math.random() < 0.25 ) // 25% chance for energy cell drop
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun2;
+				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ERTHAL_ENERGY_CELL });
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun2 );
+
+				}, 500 );
 
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.05 ) // 5% chance for Council Immolator
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
