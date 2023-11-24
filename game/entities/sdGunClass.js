@@ -8650,6 +8650,47 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades()
 		};
+		
+		sdGun.classes[ sdGun.CLASS_ERTHAL_ENERGY_CELL = 134 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'erthal_energy_cell' ),
+			title: 'Erthal energy cell',
+			no_tilt: true,
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			apply_shading: false,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				// 20 more levels, 20 * 45 more matter, 4 * 45 matter per shard
+				
+				//if ( character._upgrade_counters[ 'upgrade_energy' ] )
+				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
+				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
+				{
+					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
+					character.onScoreChange();
+					
+					//character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
+					//character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					
+					
+					if ( Math.random() > 0.5 )
+					character.Say( "These Erthal energy cells are efficient at storing matter" );
+					else
+					character.Say( "One of these! Should help my matter capacity last longer" );
+					gun.remove(); 
+				}
+
+				return false; 
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
 
 		// Add new gun classes above this line //
 		
