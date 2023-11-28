@@ -45,6 +45,7 @@ class sdJunk extends sdEntity
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
 
 		sdJunk.img_alien_artifact = sdWorld.CreateImageFromFile( 'artifact1' );
+		sdJunk.img_stealer_artifact = sdWorld.CreateImageFromFile( 'artifact2' );
 
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
@@ -59,6 +60,7 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6;
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
+		sdJunk.TYPE_STEALER_ARTIFACT = 9;
 
 		sdJunk.bounds_by_type = [];
 		sdJunk.bounds_by_type[ sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ] = { x1: -5, x2: 5, y1: -5, y2: 5 };
@@ -70,6 +72,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 17 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_STEALER_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -123,7 +126,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel )
 		this.hmax = 150;
 		else
-		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		this.hmax = 500;
 
 		// Variables for large anti-crystal
@@ -966,7 +969,7 @@ class sdJunk extends sdEntity
 					}
 				}
 			}
-			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 			{
 				this._time_to_drain -= GSPEED; // Just so it doesn't spam sdTask.MakeSureCharacterHasTask
 
@@ -1037,7 +1040,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
 		sdEntity.Tooltip( ctx, "Cryo-substance barrel" );
 
-		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		sdEntity.Tooltip( ctx, "Strange artifact" );
 	}
 	Draw( ctx, attached )
@@ -1127,7 +1130,11 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
 			{
-				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 18, 32,32 );
+				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 16, 32,32 );
+			}
+			if ( this.type === sdJunk.TYPE_STEALER_ARTIFACT ) // Alien / strange artifact from stealer
+			{
+				ctx.drawImageFilterCache( sdJunk.img_stealer_artifact, - 16, - 16, 32,32 );
 			}
 
 		}
