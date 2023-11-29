@@ -115,7 +115,7 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_SNIPER = 3;
 		sdTurret.KIND_FREEZER = 4;
 		
-		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
+		sdTurret.matter_capacity = 200; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -377,7 +377,7 @@ class sdTurret extends sdEntity
 			explosion_radius: explosion_radius
 		};
 	
-		return sdGun.GetProjectileCost( projectile_properties, 1, _temperature_addition );
+		return 10 * sdGun.GetProjectileCost( projectile_properties, 1, _temperature_addition );
 		/*
 		return ( Math.abs( dmg * dmg_mult ) * count + 
 				( is_rail ? 30 : 0 ) + 
