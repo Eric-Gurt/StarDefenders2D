@@ -155,7 +155,7 @@ class sdStealer extends sdEntity
 					{
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this ) )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, [ 'sdGrass' ], null ) )
 						{
 							if ( sdWorld.last_hit_entity )
 							{
