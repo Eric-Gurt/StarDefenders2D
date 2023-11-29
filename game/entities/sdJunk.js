@@ -146,7 +146,7 @@ class sdJunk extends sdEntity
 		this._current_minions_count = 0; // Minion counter
 		//
 		this.hea = this.hmax;
-		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 ) : 320;
+		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 * 10 ) : 320; // Why take 40k container when 3 5K's generate over 1 million matter overall? Make them 400k and they're sort of a short-term reward / good matter storage.
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things

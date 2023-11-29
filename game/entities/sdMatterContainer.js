@@ -105,7 +105,7 @@ class sdMatterContainer extends sdEntity
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 10 );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
 		
@@ -135,10 +135,10 @@ class sdMatterContainer extends sdEntity
 	//	return 0; // Hack
 		
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.matter_max == 2560 )
-		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.75;
-		if ( this.matter_max == 5120 )
-		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.5;
+		if ( this.matter_max == 25600 )
+		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.075;
+		if ( this.matter_max == 51200 )
+		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.05;
 	}
 }
 //sdMatterContainer.init_class();
