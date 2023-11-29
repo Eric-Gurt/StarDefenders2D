@@ -393,8 +393,8 @@ class sdShop
 			/*sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 10, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2 * 10, _category:'Base equipment', _min_build_tool_level: 3 });
 			sdShop.options.push({ _class: 'sdLiquidAbsorber', _category:'Base equipment' });
 			
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:1, _category:'Base equipment' });
@@ -624,6 +624,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 5, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdJunk', type: 6, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 8, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
