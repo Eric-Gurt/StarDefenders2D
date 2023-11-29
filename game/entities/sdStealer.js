@@ -82,6 +82,8 @@ class sdStealer extends sdEntity
 		if ( this.hea <= 0 && was_alive )
 		{	//sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 	
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB ); // Some score since it's hard to find and destroy usually
+	
 			sdWorld.SendEffect({ 
 				x: this.x,
 				y: this.y,
@@ -140,7 +142,7 @@ class sdStealer extends sdEntity
 	}
 	
 	StealNearbyCrystals(){
-		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 256 );
+		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 192 );
 		let stolen_crystals = 0; // How much crystals did it steal?
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )
@@ -148,7 +150,7 @@ class sdStealer extends sdEntity
 			let e = attack_entities[ i ];
 			if ( !e._is_being_removed )
 			{
-				if ( e.is( sdCrystal ) )
+				if ( e.is( sdCrystal ) || e.is( sdGun ) )
 				{
 					{
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;

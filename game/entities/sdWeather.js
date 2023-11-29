@@ -3321,9 +3321,10 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_STEALER ) // Spawn a Stealer which steals unattended crystals.
 		{
+			// No need for a cap, they disappear on their own when they can't find any unattended crystals
 			sdWeather.SimpleSpawner({
 				
-				count: [ 1, 1 ],
+				count: [ 2, 3 ],
 				class: sdStealer,
 				aerial: true
 				
