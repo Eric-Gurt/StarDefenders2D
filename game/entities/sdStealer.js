@@ -276,13 +276,13 @@ class sdStealer extends sdEntity
 			this._attack_timer -= GSPEED;
 			else
 			{
-				this._attack_timer = 180; // Every 6 seconds it should either look for a new crystal, steal one near it or teleport away
+				this._attack_timer = 120; // Every 4 seconds it should either look for a new crystal, steal one near it or teleport away
 				/* It should probably teleport away from players and teleport crystals, aswell as check if it can teleport to a new location
 				where crystals are outside of BSU and player range. Should be much more efficient at doing that rather than 
 				the crystal hunting worm, which would become obsolete since this entity will replace it.
 				Basically this steals crystals, maybe more entities will be needed to "steal" in future. */
 				
-				if ( this._last_found_target > 180 || ( this.hea < this._hmax * 0.2 && !this.IsEntFarEnough( this ) ) ) // Disappear if it can't find crystals or near players and low HP
+				if ( this._last_found_target > 240 || ( this.hea < this._hmax * 0.2 && !this.IsEntFarEnough( this ) ) ) // Disappear if it can't find crystals or near players and low HP
 				{
 					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -314,7 +314,7 @@ class sdStealer extends sdEntity
 							}
 						}
 						else
-						this._attack_timer = 30 + Math.random() * 30; // Speed up stealing
+						this._attack_timer = 15 + Math.random() * 15; // Speed up stealing
 					}
 					else
 					{
