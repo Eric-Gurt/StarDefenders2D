@@ -393,8 +393,12 @@ class sdShop
 			/*sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 10, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2 * 10, _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:2560 * 2, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:5120 * 2, _category:'Base equipment', _min_build_tool_level: 3 }); // Orange glow
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:10240 * 2, _category:'Base equipment', _min_build_tool_level: 9 });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:20480 * 2, _category:'Base equipment', _min_build_tool_level: 18 });
+			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:40960 * 2, _category:'Base equipment', _min_build_tool_level: 24, _min_workbench_level: 4 });
+
 			sdShop.options.push({ _class: 'sdLiquidAbsorber', _category:'Base equipment' });
 			
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:1, _category:'Base equipment' });
