@@ -610,6 +610,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdGrass', variation:2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', variation:3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', variation:4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdGrass', variation:6, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSetrDestroyer', _category:'Development tests' });
