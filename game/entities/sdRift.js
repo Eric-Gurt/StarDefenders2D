@@ -445,7 +445,7 @@ class sdRift extends sdEntity
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
 			{
 				this.hea = Math.max( this.hea - ( GSPEED * 3 ), 0 ); // Shrink
-				this.matter_crystal -= GSPEED;
+				this.matter_crystal -= GSPEED * 3;
 			}
 			
 			if ( this.type !== 4 ) // All but dimensional tears disappear over time
