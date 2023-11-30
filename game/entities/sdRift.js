@@ -273,7 +273,7 @@ class sdRift extends sdEntity
 			if ( this._spawn_timer_cd > 0 ) // Spawn entity timer
 			this._spawn_timer_cd -= GSPEED;
 		
-			if ( this._regen_timeout > 0 )
+			if ( this._regen_timeout > 0 && this.matter_crystal < this.hea ) // If overcharged - lose ability to regen back up
 			this._regen_timeout -= GSPEED;
 			else
 			{
@@ -444,7 +444,7 @@ class sdRift extends sdEntity
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
 			{
-				this.hea = Math.max( this.hea - GSPEED, 0 );
+				this.hea = Math.max( this.hea - ( GSPEED * 3 ), 0 ); // Shrink
 				this.matter_crystal -= GSPEED;
 			}
 			
