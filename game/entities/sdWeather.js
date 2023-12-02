@@ -3894,6 +3894,7 @@ class sdWeather extends sdEntity
 												{
 													sdWorld.last_hit_entity.DamageWithEffect( 20, null );
 													
+													if ( sdWorld.last_hit_entity ) // Apparently it crashed once without this?
 													if ( sdWorld.last_hit_entity._is_being_removed )
 													bg_nature_ent = sdWorld.last_hit_entity;
 												}
