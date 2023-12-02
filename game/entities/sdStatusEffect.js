@@ -901,7 +901,7 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
-				status_entity.charges_left = params.charges_left || 2;
+				status_entity.charges_left = params.charges_left || 3;
 				status_entity.low_hp = false; // Has Time Shifter reached low HP after losing all "charges"?
 				status_entity.time_to_defeat = 30 * 60 * 10; // 10 minutes per "charge"
 				
@@ -920,7 +920,7 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
-				if ( status_entity.charges < 2 )
+				if ( status_entity.charges < 3 )
 				status_entity.time_to_defeat -= GSPEED;
 				if ( status_entity.for.hea < 500 && status_entity.charges_left > 0 )
 				{
@@ -956,17 +956,26 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity.for.hea < 1250 && sdWorld.is_server )
 					{
 						status_entity.low_hp = true;
-						status_entity.for.Say( [ 
+						if ( Math.random() < 0.125 ) // 12.5% chance for blade to drop
+						{
+							status_entity.for.Say( [ 
 							'Well, well. You disarmed me. See you soon.',
 							'No! I lost my blade! I will get you next time!',
 							'I lost my sword, but I do not die today!',
 							'Agh, my blade! You will pay for this in time!'
-						][ ~~( Math.random() * 4 ) ], false, false, false );
-						status_entity.for._ai_gun_slot = -1;
-						status_entity.for.gun_slot = -1; // Hide the equipped weapon
-						sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
+							][ ~~( Math.random() * 4 ) ], false, false, false );
+							status_entity.for._ai_gun_slot = -1;
+							status_entity.for.gun_slot = -1; // Hide the equipped weapon
+							sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
+						}
 						// Spawn the weapon for players to pick up if they "beat" the Time Shifter
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
+						status_entity.for.Say( [ 
+							'I have to go, my planet needs me.',
+							'I will deal with you later.',
+							'I do not plan on dying today.',
+							'Until next time!'
+						][ ~~( Math.random() * 4 ) ], false, false, false );
 					}
 				}
 				else
