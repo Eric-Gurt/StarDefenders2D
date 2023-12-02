@@ -735,7 +735,6 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSpider', _ai_team: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSpider', type: 1, _ai_team: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdPlayerDrone', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', type: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', type: 3, _category:'Development tests' });
@@ -773,6 +772,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDropPod', type: 0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
