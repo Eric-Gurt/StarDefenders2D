@@ -1987,16 +1987,16 @@ class sdDrone extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	onRemove() // Class-specific, if needed
+	onRemoveAsFakeEntity()
 	{
-		
-		if ( this._is_minion_of )
-		this._is_minion_of._current_minions_count--;
-	
 		let i = sdDrone.drones.indexOf( this );
-		
 		if ( i !== -1 )
 		sdDrone.drones.splice( i, 1 );
+		
+	}
+	onRemove() // Class-specific, if needed
+	{
+		this.onRemoveAsFakeEntity();
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );

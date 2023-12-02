@@ -73,6 +73,7 @@ import sdDropPod from './sdDropPod.js';
 import sdBeamProjector from './sdBeamProjector.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdStealer from './sdStealer.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -143,6 +144,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_BEAM_PROJECTOR =		event_counter++; // 44
 		sdWeather.EVENT_COUNCIL_INCINERATOR =	event_counter++; // 45
 		sdWeather.EVENT_STEALER =				event_counter++; // 46
+		sdWeather.EVENT_LONG_RANGE_ANTENNA =	event_counter++; // 47
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -264,7 +266,7 @@ class sdWeather extends sdEntity
 	}
 	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
 	{
-		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR )
+		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA )
 		return true;
 		
 		return false;
@@ -283,16 +285,6 @@ class sdWeather extends sdEntity
 		
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
-		// Potential invasion events
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_FALKOKS ) !== -1 )
-		this._potential_invasion_events.push( sdWeather.EVENT_FALKOKS );
-	
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_ASPS ) !== -1 )
-		this._potential_invasion_events.push( sdWeather.EVENT_ASPS );
-	
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_BITERS ) !== -1 )
-		this._potential_invasion_events.push( sdWeather.EVENT_BITERS );
-		//		
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
 		// allowed_event_ids = [ 8 ]; // Hack
@@ -304,6 +296,16 @@ class sdWeather extends sdEntity
 			d--;
 			continue;
 		}
+		
+		// Potential invasion events
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_FALKOKS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_FALKOKS );
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_ASPS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_ASPS );
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_BITERS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_BITERS );
 				
 		if ( allowed_event_ids.length > 0 )
 		{
@@ -3330,6 +3332,19 @@ class sdWeather extends sdEntity
 				
 			});
 		}
+		if ( r === sdWeather.EVENT_LONG_RANGE_ANTENNA ) // Long range frequency antenna is placed by SD's and needs to be calibrated
+		{
+			if ( sdLongRangeAntenna.antennas.length < 4 )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdLongRangeAntenna,
+				aerial: false
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -3892,11 +3907,12 @@ class sdWeather extends sdEntity
 											{
 												if ( Math.random() < 0.1 ) // Chance to damage player-made backgrounds, will only work if they aren't protected
 												{
-													sdWorld.last_hit_entity.DamageWithEffect( 20, null );
-													
-													if ( sdWorld.last_hit_entity ) // Apparently it crashed once without this?
-													if ( sdWorld.last_hit_entity._is_being_removed )
-													bg_nature_ent = sdWorld.last_hit_entity;
+													let e = sdWorld.last_hit_entity;
+
+													e.DamageWithEffect( 20, null );
+
+													if ( e._is_being_removed )
+													bg_nature_ent = e;
 												}
 												else
 												bg_nature = false;

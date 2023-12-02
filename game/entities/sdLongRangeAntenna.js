@@ -16,27 +16,21 @@ import sdWeather from './sdWeather.js';
 import sdRenderer from '../client/sdRenderer.js';
 
 
-class sdBeamProjector extends sdEntity
+class sdLongRangeAntenna extends sdEntity
 {
 	static init_class()
 	{
-		sdBeamProjector.img_bp = sdWorld.CreateImageFromFile( 'sdBeamProjector' );
+		sdLongRangeAntenna.img_antenna = sdWorld.CreateImageFromFile( 'sdLongRangeAntenna' );
 
-		/*
-		sdBeamProjector.img_bp = sdWorld.CreateImageFromFile( 'beam_projector' );
-		sdBeamProjector.img_bp_working = sdWorld.CreateImageFromFile( 'beam_projector_working' );
-		sdBeamProjector.img_bp_blocked = sdWorld.CreateImageFromFile( 'beam_projector_blocked' );
-		*/
-		sdBeamProjector.img_crystal = sdWorld.CreateImageFromFile( 'merger_core' );
 		
-		sdBeamProjector.projector_counter = 0;
+		sdLongRangeAntenna.antennas = []; // Antenna array, will be used so LRTPs can teleport to nearest one
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
+	get hitbox_x1() { return -11; }
+	get hitbox_x2() { return 11; }
 	get hitbox_y1() { return -12; }
-	get hitbox_y2() { return 16; }
+	get hitbox_y2() { return 15; }
 	
 	get hard_collision()
 	{ return true; }
@@ -74,14 +68,13 @@ class sdBeamProjector extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 10000;
+		this.hmax = 2000;
 		this.hea = this.hmax;
-		this._regen_timeout = 30;
+		this._regen_timeout = 0;
 		this._cooldown = 0;
 		//this.has_anticrystal = false;
 		this.has_players_nearby = false; // Once a second it checks if any players are close to it so it can progress. Incentivizes defending by standing near it.
-		this.no_obstacles = false; // Does it have any obstacles above it which prevents beam going to sky?
-		this._spawn_timer = 600;
+		this._spawn_timer = 30;
 		this._enemies_spawned = 0; 
 		
 		this.progress = 0; // Task progress - needed for "Protect" task types
@@ -95,8 +88,41 @@ class sdBeamProjector extends sdEntity
 		
 		this._armor_protection_level = 0;
 		
-		sdBeamProjector.projector_counter++;
+		sdLongRangeAntenna.antennas.push( this );
 		//this._regen_mult = 1;
+	}
+	
+	AttemptTeleportToTarget( ent ){
+		if ( !ent )
+		return false;
+	
+		let i = 0;
+		let xx;
+		let yy;
+		while ( i < 60 )
+		{
+			xx = this.x - 64 + Math.random() * 128;
+			yy = this.y - 64 + Math.random() * 128;
+									
+			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, ent, sdCom.com_visibility_ignored_classes, null ) && ent.CanMoveWithoutOverlap( xx, yy, 4 ) )
+			{
+				sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+				sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+										
+				ent.x = xx;
+				ent.y = yy;
+				
+				if ( ent.IsPlayerClass() )
+				ent.ApplyServerSidePositionAndVelocity( true );
+										
+				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
+				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT });
+				return true;
+			}
+			i++;
+		}
+		
+		return false;
 	}
 
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -129,41 +155,49 @@ class sdBeamProjector extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this.progress >= 101 ) // Remove it after players recieved their rewards
 		{
-			sdWorld.SendEffect({ 
-				x:this.x, 
-				y:this.y, 
-				radius:70, // 80 was too much?
-				damage_scale: 0.01, // 5 was too deadly on relatively far range
-				type:sdEffect.TYPE_EXPLOSION, 
-				owner:this,
-				color:'#000000' 
-			});
-
-			let x = this.x;
-			let y = this.y;
-			//let sx = this.sx;
-			//let sy = this.sy;
-
-			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-
-			let gun;
-			gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-			gun.extra = 1;
-
-			//gun.sx = sx;
-			//gun.sy = sy;
-			sdEntity.entities.push( gun );
-
-			}, 500 );
-
-			this.remove();
-		}
-
-		{
-			if ( this._spawn_timer > 0 )
+			if ( this.progress >= 100 )
+			return;
+		
+			if ( this._spawn_timer > 0 && this.progress < 100 )
 			this._spawn_timer -= GSPEED;
+			else
+			{
+				this._spawn_timer = 150 + Math.random() * 150;
+
+				if ( sdWeather.only_instance._daily_events.length > 0 )
+					{
+						let n = 0;
+						let spawn_asps = false;
+						let spawn_biters = false;
+						for( let i = 0; i < sdWeather.only_instance._daily_events.length; i++)
+						{
+							n = sdWeather.only_instance._daily_events[ i ];
+							if ( n === 4 ) // Are asps possible spawns on planet at the moment?
+							{
+								spawn_asps = true;
+							}
+							if ( n === 30 ) // Are biters possible spawns on planet at the moment?
+							{
+								spawn_biters = true;
+							}
+						}
+						if ( spawn_asps && spawn_biters ) // If both can be spawned, spawn either of those
+						{
+							if ( Math.random() < 0.5 )
+							sdWeather.only_instance.ExecuteEvent( 4 );
+							else
+							sdWeather.only_instance.ExecuteEvent( 30 );
+						}
+						else
+						if ( spawn_asps ) // Otherwise spawn one of those
+						sdWeather.only_instance.ExecuteEvent( 4 );
+						else
+						if ( spawn_biters )
+						sdWeather.only_instance.ExecuteEvent( 30 );
+					}
+				
+			}
 		
 			if ( !this._spawned_ai ) // Spawn random SD soldier which will stand near the beam projector
 			{
@@ -261,157 +295,10 @@ class sdBeamProjector extends sdEntity
 					}
 				}
 			}
-
-			if ( ( this._spawn_timer <= 0 && this.no_obstacles && this.has_players_nearby ) || ( this.spawn_timer <= 0 && this.progress > 75 ) )
-			{
-				this._spawn_timer = 360 - ( ( this.progress / 100 ) * 3 * 30 );
-				let ais = 0;
-				//let percent = 0;
-				for ( var i = 0; i < sdCharacter.characters.length; i++ )
-				{
-					if ( sdCharacter.characters[ i ].hea > 0 )
-					if ( !sdCharacter.characters[ i ]._is_being_removed )
-					if ( sdCharacter.characters[ i ]._ai_team === 3 )
-					{
-						ais++;
-						//console.log(ais);
-					}
-				}
-				{
-
-					let councils = 0;
-					let councils_tot = Math.min( 6, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
-
-					let left_side = ( Math.random() < 0.5 );
-
-					while ( councils < councils_tot )
-					{
-
-						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-
-						sdEntity.entities.push( character_entity );
-						character_entity.s = 110;
-
-						{
-							let x,y;
-							let tr = 1000;
-							do
-							{
-								if ( left_side )
-								{
-									x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-								}
-								else
-								{
-									x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
-
-									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-								}
-
-								y = this.y + 192 - ( Math.random() * ( 384 ) );
-								if ( y < sdWorld.world_bounds.y1 + 32 )
-								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-								if ( y > sdWorld.world_bounds.y2 - 32 )
-								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
-								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-								{
-									character_entity.x = x;
-									character_entity.y = y;
-
-									sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_COUNCIL );
-									character_entity._ai_stay_near_entity = this;
-									character_entity._ai_stay_distance = 96;
-									
-									if ( Math.random() < 0.3 || !this.has_players_nearby )
-									character_entity._ai.target = this;
-
-									const logic = ()=>
-									{
-										if ( character_entity.hea <= 0 )
-										if ( !character_entity._is_being_removed )
-										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170 });
-											character_entity.remove();
-										}
-							
-									};
-						
-							
-									setInterval( logic, 1000 );
-									setTimeout(()=>
-									{
-										clearInterval( logic );
-							
-							
-										if ( !character_entity._is_being_removed )
-										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170 });
-											character_entity.remove();
-
-											character_entity._broken = false;
-										}
-									}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
-
-									break;
-							}
-
-
-							tr--;
-							if ( tr < 0 )
-							{
-								character_entity.remove();
-								character_entity._broken = false;
-								break;
-							}
-						} while( true );
-					}
-					councils++;
-					ais++;
-					}
-				}
-			}
 		}
 		if ( this._regen_timeout > 0 )
 		{
 			this._regen_timeout -= GSPEED;
-			{
-				if ( this._regen_timeout <= 30 && this.has_players_nearby )
-				if ( Math.round( this._regen_timeout % 10 ) === 0 )
-				{
-					//if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, this.x, sdWorld.world_bounds.y1, this, sdCom.com_visibility_ignored_classes, null ) || sdWorld.last_hit_entity === null )
-					if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y - 16 ) )
-					{
-						sdWorld.SendEffect({ x: this.x, y:this.y - 16, x2:this.x , y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
-						this.no_obstacles = true;
-						//this._update_version++;
-					}
-					else
-					{
-						if ( sdWorld.last_hit_entity )
-						sdWorld.SendEffect({ x: this.x, y:this.y - 16, x2:this.x , y2:sdWorld.last_hit_entity.y, type:sdEffect.TYPE_BEAM, color:'#333333' });
-					
-						this.no_obstacles = false;
-						//this._update_version++;
-					}
-				}
-			}
 		}
 		else
 		{
@@ -419,17 +306,17 @@ class sdBeamProjector extends sdEntity
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			if ( sdWorld.sockets[ i ].character && this.progress < 100 )
 			{
-				let desc = 'We placed a dark matter beam projector nearby. Rally around with other Star Defenders and start it up!';
+				let desc = 'We placed a long range frequency antenna nearby. Rally around with other Star Defenders and set it up so we can teleport to it!';
 				if ( this._ai_told_player )
-				desc = 'Protect the dark matter beam projector so it can try to shrink parts of the expanding black hole! If it stops working, restart it!';
+				desc = 'Protect the long range frequency antenna until the calibration is complete.';
 				sdTask.MakeSureCharacterHasTask({ 
 					similarity_hash:'PROTECT-'+this._net_id, 
 					executer: sdWorld.sockets[ i ].character,
 					target: this,
 					mission: sdTask.MISSION_PROTECT_ENTITY,				
-					title: 'Protect dark matter beam projector',
+					title: 'Protect long range frequency antenna',
 					description: desc,
-					difficulty: 0.125
+					difficulty: 0.075
 				});
 			}
 			this.has_players_nearby = false;
@@ -443,7 +330,6 @@ class sdBeamProjector extends sdEntity
 					if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
 					{
 						//if ( this.hea < this.hmax )
-						if ( this.no_obstacles ) // No progression if the beam can't go into the sky
 						{
 							//if ( sdWorld.is_server )
 							//this.hea = this.hmax; // Hack
@@ -457,19 +343,17 @@ class sdBeamProjector extends sdEntity
 				{
 					this._ai_told_player = true;
 					let potential_dialogue = sdWorld.AnyOf( [ 
-						'Hey, can you give this thing a bump? It\'s not starting and I can\'t tell why.',
-						'If we\'re really doing this, we need to make sure it has clear path to the sky.',
-						'Hey, can you help me out with this thing? Just start it when you\'re ready.',
-						'We have to be careful, the Council is onto us because of these devices.',
-						'If you have a Combat Instructor to call, now would be a good idea. We need to shrink the ever-expanding black hole!',
-						'I would advise placing some turrets to provide cover for this thing, but not directly above it so it can function when we start it.'
+						'Hey, are you our backup? Let\'s do this!',
+						'Good to see you again, soldier. Setting this up will let us teleport near this antenna.',
+						'Watch out, it is known that Asps and Biters dislike this device for some reason.',
+						'I can\'t wait to get back to the Mothership after this.'
 					] );
 					players[ i ].Say( potential_dialogue, false, false, false );
 					
 				}
 			}
 			if ( this.has_players_nearby )
-			this.progress = Math.min( this.progress + 0.35, 101 );
+			this.progress = Math.min( this.progress + 0.5, 100 );
 		}
 		
 	}
@@ -498,33 +382,17 @@ class sdBeamProjector extends sdEntity
 	}
 	get title()
 	{
-		return 'Dark matter beam projector';
+		return 'Long range frequency antenna';
 	}
 	Draw( ctx, attached )
 	{
 		let xx = 0;
 		
-		//if ( !this.has_anticrystal )
-		//xx = 0;
-		//ctx.drawImageFilterCache( sdBeamProjector.img_bp, -16, -16, 32, 32 );
-		//else
-		{
-			if ( this.no_obstacles === true && this.has_players_nearby === true )
-			xx = 1;
-			//ctx.drawImageFilterCache( sdBeamProjector.img_bp_working, -16, -16, 32, 32 );
-			else
-			xx = 2;
-			//ctx.drawImageFilterCache( sdBeamProjector.img_bp_blocked, -16, -16, 32, 32 );
-		}
-		ctx.drawImageFilterCache( sdBeamProjector.img_bp, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		ctx.globalAlpha = 1;
-		ctx.filter = sdWorld.GetCrystalHue( sdCrystal.anticrystal_value );
-		//ctx.filter += ' saturate(' + (Math.round(( 2 )*10)/10) + ') brightness(' + 1 + ')';
-
-		//if ( this.has_anticrystal )
-		ctx.drawImageFilterCache( sdBeamProjector.img_crystal, -16, -30, 32, 32 );
-
+		if ( this.has_players_nearby === true )
+		xx = 1;
+		else
+		xx = 0;
+		ctx.drawImageFilterCache( sdLongRangeAntenna.img_antenna, xx * 32, 0, 32,32, -16, -16, 32,32 );
 
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -534,10 +402,10 @@ class sdBeamProjector extends sdEntity
 		//if ( !this.has_anticrystal )
 		//sdEntity.Tooltip( ctx, "Dark matter beam projector (needs natural Anti-crystal) ", 0, -10 );
 		//else
-		if ( this.has_players_nearby && this.no_obstacles )
-		sdEntity.Tooltip( ctx, "Dark matter beam projector", 0, -10 );
+		if ( this.has_players_nearby )
+		sdEntity.Tooltip( ctx, "Long range frequency antenna", 0, -10 );
 		else
-		sdEntity.Tooltip( ctx, "Dark matter beam projector (disabled)", 0, -10 );
+		sdEntity.Tooltip( ctx, "Long range frequency antenna (disabled)", 0, -10 );
 
 		let w = 40;
 		//if ( this.has_anticrystal )
@@ -560,17 +428,22 @@ class sdBeamProjector extends sdEntity
 		}
 	}
 	
+	onRemoveAsFakeEntity()
+	{
+		let i = sdLongRangeAntenna.antennas.indexOf( this );
+		
+		if ( i !== -1 )
+		sdLongRangeAntenna.antennas.splice( i, 1 );
+	}
+	
 	onRemove() // Class-specific, if needed
 	{
-		sdBeamProjector.projector_counter--;
+		this.onRemoveAsFakeEntity();
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 	}
-	onRemoveAsFakeEntity()
-	{
-	}
 }
-//sdBeamProjector.init_class();
+//sdLongRangeAntenna.init_class();
 
-export default sdBeamProjector;
+export default sdLongRangeAntenna;

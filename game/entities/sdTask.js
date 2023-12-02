@@ -24,6 +24,7 @@ class sdTask extends sdEntity
 		sdTask.APPEARANCE_STARRED = 2; // Players can star their base perhaps? Not sure yet
 		sdTask.APPEARANCE_HINT_POINT = 3;
 		sdTask.APPEARANCE_GET_ITEM = 4;
+		sdTask.APPEARANCE_PROTECT_POINT = 5; // Protect something, like dark matter beam projector
 		
 		sdTask.COLOR_NOTIFICATION = '#aaffaa';
 		sdTask.COLOR_WARNING = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ffff77' : '#dddd33'; };
@@ -62,6 +63,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				// With LRTs, it is usually impossible to detect if something was removed or just teleported
 			},
@@ -98,6 +100,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
@@ -230,6 +233,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
@@ -379,6 +383,52 @@ class sdTask extends sdEntity
 			GetDefaultTimeLeft: ( task )=>
 			{
 				return 30 * 5;
+			}
+		};
+		sdTask.missions[ sdTask.MISSION_PROTECT_ENTITY = id++ ] = 
+		{
+			appearance: sdTask.APPEARANCE_PROTECT_POINT,
+	
+			task_title_color: sdTask.COLOR_WARNING,
+	
+			GetDefaultTitle: ( task )=>{
+				return 'Protect';
+			},
+			GetDefaultDescription: ( task )=>{
+				return 'There is an unspecified urgency to protect ' + ( task._target ? sdWorld.ClassNameToProperName( task._target.GetClass(), task._target ) : 'something' );
+			},
+			GetDefaultTimeLeft: ( task )=>
+			{
+				return -1;
+			},
+			onCompletion: ( task )=>
+			{
+				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
+				sdTask.completed_tasks_count++;
+				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+			},
+			failure_condition: ( task )=>
+			{
+				if ( !task._target || task._target._is_being_removed )
+				return true;
+			
+				if ( task._target._is_being_removed && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
+				return true;
+			
+				return false;
+			},
+			completion_condition: ( task )=>
+			{
+				if ( task._target.progress )
+				if ( task._target.progress >= 100 ) // Progress must be defined as a variable inside entity which should be protected.
+				return true;
+			
+				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				if ( sdWorld.is_server )
+				task.remove();
 			}
 		};
 		
@@ -832,6 +882,7 @@ class sdTask extends sdEntity
 			ctx.translate( ( sdWorld.time % 1000 < 500 ) ? 1 : 0, 0 );
 
 			let img = sdTask.img_red_arrow;
+			
 
 			let mission = sdTask.missions[ this.mission ];
 
@@ -839,6 +890,12 @@ class sdTask extends sdEntity
 			if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
 			{
 				ctx.filter = 'hue-rotate(71deg) saturate(20)';
+			}
+			
+			if ( mission )
+			if ( mission.appearance === sdTask.APPEARANCE_PROTECT_POINT )
+			{
+				ctx.filter = 'hue-rotate(201deg)';
 			}
 			
 

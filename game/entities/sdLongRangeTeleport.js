@@ -23,6 +23,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdJunk from './sdJunk.js';
 import sdLandScanner from './sdLandScanner.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -1273,6 +1274,67 @@ class sdLongRangeTeleport extends sdEntity
 					}
 				}
 				else
+				if ( command_name === 'TELEPORT_ANTENNA' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								this.Activation();
+
+								this._charge_complete_method = ()=>
+								{
+									if ( this.matter < this._matter_max )
+									{
+										executer_socket.SDServiceMessage( 'Teleport was rejected - not enough matter' );
+										return;
+									}
+
+									this.Deactivation();
+									let nearest_antenna = null;
+									for ( let i = 0; i < sdLongRangeAntenna.antennas.length; i++ )
+									{
+										//let nearest_antenna = null;
+										let nearest_di = Infinity;
+										let antenna = sdLongRangeAntenna.antennas[ i ];
+										if ( antenna.progress >= 100 ) // At least one calibrated antenna
+										{
+											if ( !nearest_antenna )
+											{
+												nearest_antenna = antenna;
+												nearest_di = sdWorld.Dist2D( this.x, this.y, antenna.x, antenna.y ); 
+											}
+											else // We already have an antenna? But what if one is closer?
+											{
+												let di = sdWorld.Dist2D( this.x, this.y, antenna.x, antenna.y ); 
+												if ( di < nearest_di )
+												{
+													nearest_antenna = antenna;
+													nearest_di = di;
+												}
+											}
+										}
+									}
+									if ( nearest_antenna )
+									{
+										if ( !nearest_antenna.AttemptTeleportToTarget( exectuter_character ) )
+										executer_socket.SDServiceMessage( 'Teleport path is blocked.' );
+									}
+									else
+									executer_socket.SDServiceMessage( 'No antenna is available for teleport.' );
+								};
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
+				}
+				else
 				if ( command_name === 'TELEPORT_STUFF' || 
 					 command_name === 'SAVE_STUFF' || 
 					 command_name === 'GET_PRIVATE_STORAGE' )
@@ -1658,7 +1720,8 @@ class sdLongRangeTeleport extends sdEntity
 			this.AddContextOption( 'Lose ownership', 'UNRESCUE_HERE', [] );
 			else
 			this.AddContextOption( 'Set as personal rescue teleport', 'RESCUE_HERE', [] );*/
-			
+		
+			//
 			if ( this.is_server_teleport )
 			if ( exectuter_character._god )
 			{
@@ -1671,6 +1734,9 @@ class sdLongRangeTeleport extends sdEntity
 			if ( !this.is_server_teleport )
 			{
 				this.AddContextOption( 'Send items for task completion ( 300 matter )', 'TELEPORT_STUFF', [] );
+				
+				//Allow regular LRTP to teleport near antennas
+				this.AddContextOption( 'Teleport to nearest long range frequency antenna', 'TELEPORT_ANTENNA', [] );
 				
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
@@ -1717,7 +1783,9 @@ class sdLongRangeTeleport extends sdEntity
 				this.AddContextOption( 'Ask Mothership for crystals ( watch ad )', 'AD_REWARD_START', [] );
 			}
 			else
-			this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
+			{
+				this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
+			}
 		}
 	}
 }
