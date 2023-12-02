@@ -50,7 +50,7 @@ class sdBeamProjector extends sdEntity
 		return;
 	
 		dmg = Math.abs( dmg );
-		dmg = dmg / 2; // Damage shouldn't be too impactful so it doesn't deny progress that much during gunfire
+		dmg = dmg / 4; // Damage shouldn't be too impactful so it doesn't deny progress that much during gunfire
 
 		if ( this.hea > 0 )
 		{
@@ -175,7 +175,7 @@ class sdBeamProjector extends sdEntity
 		this._armor_protection_level = 0; // Never has protection
 		if ( !this.has_players_nearby ) // Lose HP if players aren't near
 		{
-			this._regen_timeout = 150;
+			//this._regen_timeout = 150;
 			if ( this.hea > 100 )
 			this.hea -= GSPEED; // Lose health when unattended
 		}
@@ -435,6 +435,21 @@ class sdBeamProjector extends sdEntity
 		else
 		{
 			this._regen_timeout = 150; // So it doesn't spam GetAnythingNear when _regen_timeout is 0
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				let desc = 'We place a dark matter beam projector nearby. Rally around with other Star Defenders and start it up!';
+				if ( this._ai_told_player )
+				desc = 'Protect the dark matter beam projector so it can try to shrink parts of the expanding black hole! If it stops working, restart it!';
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'TRACK-'+this._net_id, 
+					executer: sdWorld.sockets[ i ].character,
+					target: this,
+					mission: sdTask.MISSION_TRACK_ENTITY,				
+					title: 'Protect dark matter beam projector',
+					description: desc
+				});
+			}
 			this.has_players_nearby = false;
 			//this._update_version++;
 			let players = sdWorld.GetAnythingNear( this.x, this.y, 192, null, [ 'sdCharacter', 'sdPlayerDrone' ] );
@@ -443,16 +458,6 @@ class sdBeamProjector extends sdEntity
 				if ( players[ i ].IsPlayerClass() && !players[ i ]._ai && players[ i ]._ai_team === 0  && players[ i ].hea > 0 )
 				if ( players[ i ]._socket !== null )
 				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'TRACK-'+this._net_id, 
-						executer: players[ i ],
-						target: this,
-						mission: sdTask.MISSION_TRACK_ENTITY,
-										
-						title: 'Protect dark matter beam projector',
-						description: 'Protect the dark matter beam projector so it can try to shrink parts of the expanding black hole! If it stops working, restart it!'
-					});
-
 					if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
 					{
 						if ( this.hea < this.hmax )

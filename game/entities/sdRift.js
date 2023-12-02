@@ -152,7 +152,9 @@ class sdRift extends sdEntity
 
 				//Set task for players to remove the dimensional tear
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
+				if ( sdWorld.sockets[ i ].character )
 				{
+					
 					let potential_description;
 					switch( 2 ) // switch ( ~~( Math.random() * 2 ) )
 					{
@@ -161,6 +163,7 @@ class sdRift extends sdEntity
 						case 2: potential_description = 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it by putting crystals inside it.'; break;
 					}
 					// Tried multiple descriptions here - they just override each other in interface of the player - flicker so to speak, so I've just set it to old description - Booraz149
+				
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'DESTROY-'+this._net_id, 
 						executer: sdWorld.sockets[ i ].character,
