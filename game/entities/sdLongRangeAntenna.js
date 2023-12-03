@@ -81,6 +81,8 @@ class sdLongRangeAntenna extends sdEntity
 		
 		this._spawned_ai = false; // Spawn SD AI
 		
+		this._event_to_spawn = sdWeather.only_instance._potential_invasion_events[ Math.floor( Math.random() * sdWeather.only_instance._potential_invasion_events.length ) ] || -1; // Random event which are usually invasions is selected.
+		
 		//this.matter_max = 5500;
 		//this.matter = 100;
 		
@@ -165,38 +167,7 @@ class sdLongRangeAntenna extends sdEntity
 			{
 				this._spawn_timer = 150 + Math.random() * 150;
 
-				if ( sdWeather.only_instance._daily_events.length > 0 )
-					{
-						let n = 0;
-						let spawn_asps = false;
-						let spawn_biters = false;
-						for( let i = 0; i < sdWeather.only_instance._daily_events.length; i++)
-						{
-							n = sdWeather.only_instance._daily_events[ i ];
-							if ( n === 4 ) // Are asps possible spawns on planet at the moment?
-							{
-								spawn_asps = true;
-							}
-							if ( n === 30 ) // Are biters possible spawns on planet at the moment?
-							{
-								spawn_biters = true;
-							}
-						}
-						if ( spawn_asps && spawn_biters ) // If both can be spawned, spawn either of those
-						{
-							if ( Math.random() < 0.5 )
-							sdWeather.only_instance.ExecuteEvent( 4 );
-							else
-							sdWeather.only_instance.ExecuteEvent( 30 );
-						}
-						else
-						if ( spawn_asps ) // Otherwise spawn one of those
-						sdWeather.only_instance.ExecuteEvent( 4 );
-						else
-						if ( spawn_biters )
-						sdWeather.only_instance.ExecuteEvent( 30 );
-					}
-				
+				sdWeather.only_instance.ExecuteEvent( this._event_to_spawn );
 			}
 		
 			if ( !this._spawned_ai ) // Spawn random SD soldier which will stand near the beam projector

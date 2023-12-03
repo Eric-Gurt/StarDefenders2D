@@ -236,8 +236,8 @@ class sdWeather extends sdEntity
 		this.day_time = 30 * 60 * 24 / 3;
 		
 		this._event_rotation_time = ( 30 * 60 * 14 ) + ( 30 * 45 ); // Time until potential events rotate, set to 14 minutes and 45 seconds so it can roll new events when fresh game starts instead of having earthquakes only for 15 minutes
-		this._weather_rotation_time = ( 30 * 60 * 17 ); // Same as above but for weather, set to 17 minutes so 3 minutes after it selects new weather events
-		this._sd_task_rotation_time = ( 30 * 60 * 25 ); // 25 minutes, selects new at 30
+		this._weather_rotation_time = ( 30 * 60 * 19 ) + ( 30 * 45 ); // Same as above but for weather, set to 19 minutes and 45 seconds so 15 seconds after it selects new weather events
+		this._sd_task_rotation_time = ( 30 * 60 * 29 ) + ( 30 * 45 );; // 29 minutes, 45 seconds, selects new at 30
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -393,13 +393,13 @@ class sdWeather extends sdEntity
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
 			let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
-			let sd_event_count = Math.min( allowed_event_ids.length,  (1 + ~~(Math.random() * 1 ) ) ); // Up to 2 events, min 1 so the tasks can keep coming
+			let sd_event_count = Math.min( allowed_event_ids.length, 2 ); // 2 events if possible
 			let time = 1000;
 			while ( sd_event_count > 0 && time > 0 )
 			{
 				old_n = n;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsSDEvent( n ) ) // Make sure only weather events are allowed here
+				if ( old_n !== n && this.IsSDEvent( n ) ) // Make sure only SD events are allowed here
 				{
 					this._daily_sd_task_events.push( n );
 					sd_event_count--;
