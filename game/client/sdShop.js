@@ -785,6 +785,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:16, _category:'Admin tools' });
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
 			sdShop.options.push({ _class: 'sdPresetEditor', w:1, h:1, _category:'Admin tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, _category:'Admin tools', material:sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'Admin tools', material:sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, _category:'Admin tools', material:sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'Admin tools', material:sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND });
 			//sdShop.options.push({ _class: 'sdDeepSleep', w:64, h:64, type:0, _category:'Admin tools' });
 			//sdShop.options.push({ _class: 'sdDeepSleep', w:64, h:64, type:1, _category:'Admin tools' });
 			

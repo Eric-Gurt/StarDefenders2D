@@ -161,7 +161,7 @@ globalThis.fs = {
 			globalThis.temporary_file_system[ url ] = data;
 		}
 		globalThis.fs.save_blocks--;
-		globalThis.fs.SDScheduleSave();
+		//globalThis.fs.SDScheduleSave();
 		
 		if ( callback )
 		{
@@ -191,7 +191,7 @@ globalThis.fs = {
 		if ( globalThis.fs.existsSync( url ) )
 		{
 			globalThis.temporary_file_system[ url2 ] = globalThis.temporary_file_system[ url ];
-			globalThis.fs.SDScheduleSave();
+			//globalThis.fs.SDScheduleSave();
 		}
 		else
 		err = 'Temprary file system: File does not exist';
@@ -216,7 +216,7 @@ globalThis.fs = {
 			delete globalThis.temporary_file_system[ url ];
 			globalThis.temporary_file_system[ url2 ] = v;
 			
-			globalThis.fs.SDScheduleSave();
+			//globalThis.fs.SDScheduleSave();
 		}
 		else
 		err = 'Temprary file system: File does not exist';
@@ -237,7 +237,7 @@ globalThis.fs = {
 		{
 			delete globalThis.temporary_file_system[ url ];
 			
-			globalThis.fs.SDScheduleSave();
+			//globalThis.fs.SDScheduleSave();
 		}
 		else
 		throw new Error( 'Temprary file system: File not found' );
@@ -285,7 +285,7 @@ globalThis.fs = {
 			}
 		}
 		globalThis.fs.save_blocks--;
-		globalThis.fs.SDScheduleSave();
+		//globalThis.fs.SDScheduleSave();
 	},
 	rmdirSync: (...args)=>{globalThis.fs.rmSync(...args);},
 	
@@ -319,7 +319,7 @@ globalThis.process = {
 				if ( sdWorld.is_singleplayer )
 				{
 					e.preventDefault();
-					return ( e.returnValue = "Quit without saving?" );
+					return ( e.returnValue = "Quit without saving? You can save your progress by pressing Escape key and selecting \"Save & quit to main menu\" option while in-game" );
 				}
 			}, { capture: true } );
 		}

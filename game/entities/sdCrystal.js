@@ -719,6 +719,8 @@ class sdCrystal extends sdEntity
 			}
 			else
 			{
+				this.MatterGlow( 0.01, 30, GSPEED_scaled ); // This order should make it regen more efficiently when crystals are nearly full
+				
 				let matter_before_regen = this.matter;
 
 				if ( this.held_by && this.held_by.is( sdMatterAmplifier ) )
@@ -729,7 +731,7 @@ class sdCrystal extends sdEntity
 				if ( sdWorld.server_config.crystal_matter_regen_decrease )
 				this.matter_regen = Math.max( sdCrystal.lowest_matter_regen, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
 
-				this.MatterGlow( 0.01, 30, GSPEED_scaled );
+				//this.MatterGlow( 0.01, 30, GSPEED_scaled );
 			}
 		}
 		

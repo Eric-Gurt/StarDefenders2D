@@ -312,7 +312,7 @@ class sdTurret extends sdEntity
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 							//if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
-							if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, null, this.ShootPossibilityFilter ) )
+							if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, null, this.ShootPossibilityFilter ) || sdWorld.last_hit_entity === e ) // sdOctopus and larger entities will block vision like this
 							return true;
 						}
 					}
@@ -477,7 +477,10 @@ class sdTurret extends sdEntity
 					
 				}
 				else
-				this._seek_timer -= GSPEED;
+				{
+					this._seek_timer -= GSPEED;
+					can_hibernate = false;
+				}
 
 				if ( ( this._target !== null || this.auto_attack >= 0 ) && this.disabled === false )
 				{

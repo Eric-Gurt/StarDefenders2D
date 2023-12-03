@@ -2675,8 +2675,13 @@ class sdEntity
 		//this._stack_trace = globalThis.getStackTrace();
 		
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		this._flag2 = 0; // Used solely by client-side rendering since ._flag will often be overriden during render logic and thus cause rare flickering
 
 		this._class = this.constructor.name;
+		
+		this._net_id = undefined;
 		
 		this._class_id = this.__proto__.constructor.class_id;
 		
@@ -3595,6 +3600,7 @@ class sdEntity
 									typeof this[ prop ] === 'string' || 
 									this[ prop ] === null || 
 									typeof this[ prop ] === 'boolean' || 
+									prop === '_shielded' || // It became way too common and means only one thing anyway. LRTPs and CCs don't check for it and it causes them to lose protection on server reboot
 									this.ExtraSerialzableFieldTest( prop ) 
 								  ) 
 								) 

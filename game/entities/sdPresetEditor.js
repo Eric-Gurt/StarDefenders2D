@@ -4,13 +4,35 @@
 
 	TODO: This is unfinished. Could be used to make presets which later could be used with more meaning. It works but simply does not do anything as of yet
 
+	TODO: SpawnPresetInWorld requires preset file content caching.
+
+
+	Spawning presets in random places in world (poorly tested but might just work well already):
+
+		sdWorld.entity_classes.sdPresetEditor.SpawnPresetInWorld( 'test_tower' );
+
+			OR (for debug info and callback case):
+
+		sdWorld.entity_classes.sdPresetEditor.SpawnPresetInWorld( 'test_tower', { debug:1 }, ( editor )=>
+			{
+				if ( editor )
+				if ( sdWorld.sockets[ 0 ] )
+				if ( sdWorld.sockets[ 0 ].character )
+				{
+					sdWorld.sockets[ 0 ].character.x = editor.x;
+					sdWorld.sockets[ 0 ].character.y = editor.y;
+				}
+			});
+
 */
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdBG from './sdBG.js';
 import sdCharacter from './sdCharacter.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdRescueTeleport from './sdRescueTeleport.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -24,7 +46,15 @@ class sdPresetEditor extends sdEntity
 		
 		sdPresetEditor.regions = [];
 		
+		sdPresetEditor.active_async_preset_spawn_tasks = 0;
+		
 		fs = globalThis.fs;
+		
+		sdPresetEditor.BIT_EMPTY = 0; // Leave existing entities as is
+		sdPresetEditor.BIT_FILLED = 1; // Erase existing entities
+		sdPresetEditor.BIT_AIR = 2; // Prioritize preset spawn locations where air is under these bits, erase entities if there is no air
+		sdPresetEditor.BIT_GROUND = 3; // Prioritize preset spawn locations where air is under these bits, replace existing entities with natural dirt
+		// Higher number has priority over low numbers
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -360,6 +390,7 @@ class sdPresetEditor extends sdEntity
 				//Check if preset corners are outside BSU ranges )
 				let outside_bsus = true;
 				{
+					// EG: It does look like preset that is larger than a BSU-protected base would override it anyway since all preset corners would be outside of BSU range
 					if ( !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x, this.y ) ||
 					!sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x + this.w, this.y ) ||
 					!sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges(this.x, this.y + this.h ) ||
@@ -382,37 +413,494 @@ class sdPresetEditor extends sdEntity
 			}
 	}
 	
-	LoadPreset( initiator = null, preset_name = '', delete_preset = false, force_load = true )
+	static GetPresetData( preset_name )
+	{
+		try
+		{
+			let preset_str = fs.readFileSync( globalThis.presets_folder + '/' + preset_name + '.json', 'utf8' ); // Try to load file for parsing
+			return JSON.parse( preset_str );
+		}	
+		catch ( e )
+		{
+			console.warn( 'Preset file not found' + e );
+			return null;
+		}
+	}
+	static SpawnPresetInWorld( preset_name='test_tower', options={}, then_callback=null ) // This operation might not work instantly but instead perform multiple iterations over longer period of time
+	{
+		/* Test:	
+		
+			sdWorld.entity_classes.sdPresetEditor.SpawnPresetInWorld( 'test_tower', { debug:1 }, ( editor )=>
+			{
+				if ( editor )
+				if ( sdWorld.sockets[ 0 ] )
+				if ( sdWorld.sockets[ 0 ].character )
+				{
+					sdWorld.sockets[ 0 ].character.x = editor.x;
+					sdWorld.sockets[ 0 ].character.y = editor.y;
+				}
+			});
+		
+		*/
+		
+		sdPresetEditor.active_async_preset_spawn_tasks++;
+		
+		if ( sdPresetEditor.active_async_preset_spawn_tasks > 10 )
+		throw new Error( 'Too many async preset spawn tasks - it may damage performacne' );
+		
+		const preset_data = sdPresetEditor.GetPresetData( preset_name );
+		
+		let snapshots = preset_data.snapshots;
+		
+		let bit_width = Math.ceil( preset_data.width/16 );
+		let bit_height = Math.ceil( preset_data.height/16 );
+		
+		let bitmask = [];
+		let bitmask_existing_overlaps = []; // Collects existing overlapped entities here for later
+		bitmask.length = preset_data.width/16 * preset_data.height/16;
+		bitmask_existing_overlaps.length = preset_data.width/16 * preset_data.height/16;
+		for ( let i = 0; i < bitmask.length; i++ )
+		{
+			bitmask[ i ] = sdPresetEditor.BIT_EMPTY;
+			bitmask_existing_overlaps[ i ] = null;
+		}
+	
+	
+		// Equalize priorities of both of these groups
+		let requires_air = 0;
+		let requires_ground = 0;
+		
+		for ( let i = 0; i < snapshots.length; i++ )
+		{
+			let s = snapshots[ i ];
+			
+			let bit = sdPresetEditor.BIT_FILLED;
+			
+			if ( s._class === 'sdBlock' )
+			{
+				if ( s.material === sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND )
+				{
+					bit = sdPresetEditor.BIT_GROUND;
+					requires_ground++;
+				}
+				else
+				if ( s.material === sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR )
+				{
+					bit = sdPresetEditor.BIT_AIR;
+					requires_air++;
+				}
+			}
+			
+			let class_proto = sdWorld.entity_classes[ s._class ].prototype;
+			
+			let hitbox_x1 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_x1' ).get.call( s );
+			let hitbox_x2 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_x2' ).get.call( s );
+			let hitbox_y1 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_y1' ).get.call( s );
+			let hitbox_y2 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_y2' ).get.call( s );
+			
+			let x = Math.floor( ( s.x - preset_data.relative_x + hitbox_x1 ) / 16 );
+			let x2 = Math.floor( ( s.x - preset_data.relative_x + hitbox_x2 ) / 16 );
+			let y = Math.floor( ( s.y - preset_data.relative_y + hitbox_y1 ) / 16 );
+			let y2 = Math.floor( ( s.y - preset_data.relative_y + hitbox_y2 ) / 16 );
+			
+			if ( y === y2 )
+			y2++;
+			
+			if ( x === x2 )
+			x2++;
+			
+			for ( let yy = y; yy < y2; yy++ )
+			for ( let xx = x; xx < x2; xx++ )
+			{
+				if ( xx >= bit_width )
+				throw new Error();
+			
+				if ( yy >= bit_height )
+				throw new Error();
+				
+				let hash = yy * bit_width + xx;
+				bitmask[ hash ] = Math.max( bitmask[ hash ], bit );
+			}
+		}
+		
+		requires_air = Math.max( 1, requires_air );
+		requires_ground = Math.max( 1, requires_ground );
+		
+		let best_new_relative_x = 0;
+		let best_new_relative_y = 0;
+		let best_score = -Infinity;
+		//let best_overlapped_entities = null;
+		let best_new_bitmask_existing_overlaps = null;
+			
+		let safe_bound = 0.0001;
+		
+		//let overlapped_entities = null;
+		let latest_overlap_block = null;
+		let latest_overlap_bg = null;
+		let current_overlap_set = null;
+		let unsuitable_entity_found = false;
+		
+		const custom_filtering_method = ( e )=>
+		{
+			let is_bg_entity = e.IsBGEntity();
+			if ( is_bg_entity === 0 || is_bg_entity === 1 )
+			{
+				// Fail if disconnected player ended up under preset area, same for rescue teleports and BSU protected entities
+				if ( e.IsPlayerClass() || 
+					 ( e._shielded && !e._shielded._is_being_removed ) || 
+					 ( e.is( sdRescueTeleport ) && e.owner_biometry !== -1 ) ||
+					 !e.IsDamageAllowedByAdmins() )
+				{
+					unsuitable_entity_found = true;
+					return true;
+				}
+				
+				//overlapped_entities.add( e );
+				current_overlap_set.add( e );
+				
+				/*if ( is_bg_entity === 0 )
+				if ( !latest_overlap )
+				if ( e.hard_collision )
+				latest_overlap = e;*/
+	
+				if ( is_bg_entity === 0 )
+				if ( e.is( sdBlock ) )
+				latest_overlap_block = e;
+	
+				if ( is_bg_entity === 1 )
+				if ( e.is( sdBG ) )
+				latest_overlap_bg = e;
+			}
+			
+			return false;
+		};
+		
+		let assumed_player_view_range = 800;
+		
+		const Try = ( new_relative_x, new_relative_y )=>
+		{
+			let score = 0;
+			
+			if ( new_relative_x < sdWorld.world_bounds.x1 )
+			return;
+			
+			if ( new_relative_y < sdWorld.world_bounds.y1 )
+			return;
+			
+			if ( new_relative_x > sdWorld.world_bounds.x2 - preset_data.width )
+			return;
+			
+			if ( new_relative_y > sdWorld.world_bounds.y2 - preset_data.height )
+			return;
+		
+			// Keep away from BSUs
+			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+			{
+				let bsu = sdBaseShieldingUnit.all_shield_units[ i ];
+				
+				if ( bsu.enabled )
+				{
+					if ( new_relative_x + preset_data.width < bsu.x - sdBaseShieldingUnit.protect_distance_stretch ||
+						 new_relative_x > bsu.x + sdBaseShieldingUnit.protect_distance_stretch ||
+						 new_relative_y + preset_data.height < bsu.y - sdBaseShieldingUnit.protect_distance_stretch ||
+						 new_relative_y > bsu.y + sdBaseShieldingUnit.protect_distance_stretch )
+					{
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+			
+			// Keep away from online players
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				let c = sdWorld.sockets[ i ].character;
+				
+				if ( c )
+				{
+					if ( new_relative_x + preset_data.width < c.x - assumed_player_view_range ||
+						 new_relative_x > c.x + assumed_player_view_range ||
+						 new_relative_y + preset_data.height < c.y - assumed_player_view_range ||
+						 new_relative_y > c.y + assumed_player_view_range )
+					{
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+			
+			// Keep away from deep sleep areas
+			if ( sdWorld.CheckSolidDeepSleepExistsAtBox( new_relative_x, new_relative_y, new_relative_x + preset_data.width, new_relative_y + preset_data.height ) )
+			{
+				return;
+			}
+				
+			
+			//overlapped_entities = new Set();
+			
+			// TODO: Test BSU, RTP, LRTP, nearby players first
+			
+			let new_bitmask_existing_overlaps = bitmask_existing_overlaps.slice();
+			
+			//let cells = sdWorld.GetCellsInRect( new_relative_x, new_relative_y, new_relative_x+preset_data.width, new_relative_y+preset_data.height );
+			
+			both:
+			for ( let yy = 0; yy < bit_height; yy++ )
+			for ( let xx = 0; xx < bit_width; xx++ )
+			{
+				let hash = yy * bit_width + xx;
+				
+				let bit = bitmask[ hash ];
+				
+				//latest_overlap = null;
+				latest_overlap_block = null;
+				latest_overlap_bg = null;
+				unsuitable_entity_found = false;
+				new_bitmask_existing_overlaps[ hash ] = current_overlap_set = new Set();
+				// Scan all existing entities there
+				sdWorld.CheckWallExistsBox( 
+						new_relative_x + xx * 16 + safe_bound, 
+						new_relative_y + yy * 16 + safe_bound, 
+						new_relative_x + xx * 16 + 16 - safe_bound, 
+						new_relative_y + yy * 16 + 16 - safe_bound, null, null, null, custom_filtering_method );
+						
+				if ( unsuitable_entity_found )
+				{
+					return;
+				}
+				
+				if ( bit === sdPresetEditor.BIT_EMPTY )
+				{
+					if ( latest_overlap_block === null && latest_overlap_bg === null )
+					score++;
+					else
+					score--;
+				}
+				else
+				if ( bit === sdPresetEditor.BIT_FILLED )
+				{
+					if ( latest_overlap_block !== null )
+					score--;
+					else
+					score++;
+				}
+				else
+				if ( bit === sdPresetEditor.BIT_AIR )
+				{
+					if ( latest_overlap_block === null && latest_overlap_bg === null )
+					score += bit_height * bit_width / requires_air;
+					else
+					score -= bit_height * bit_width / requires_air;
+				}
+				else
+				if ( bit === sdPresetEditor.BIT_GROUND )
+				{
+					if ( latest_overlap_block !== null && latest_overlap_block.is( sdBlock ) && latest_overlap_block.DoesRegenerate() && latest_overlap_block.width === 16 && latest_overlap_block.height === 16 )
+					score += bit_height * bit_width / requires_ground;
+					else
+					score -= bit_height * bit_width / requires_ground;
+				}
+			}
+			
+			if ( score > best_score )
+			{
+				if ( options.debug )
+				trace( 'New preset spawn attempt score: ' + score );
+				
+				best_score = score;
+				best_new_relative_x = new_relative_x;
+				best_new_relative_y = new_relative_y;
+				//best_overlapped_entities = overlapped_entities;
+				best_new_bitmask_existing_overlaps = new_bitmask_existing_overlaps;
+			}
+		};
+		
+		let tr = 10000;
+		
+		const Iteration = ()=>
+		{
+			let t = Date.now();
+			let t2 = t;
+		
+			//for ( let c = 0; c < 50 && tr > 0 && t2 - t < 5; c++, tr-- )
+			for ( ; tr > 0 && t2 - t < 4; tr-- )
+			{
+				let e = sdEntity.GetRandomEntity();
+
+				let morph_x = Math.random();
+				let morph_y = Math.random();
+
+				let new_relative_x = Math.floor( (
+													( e.x + e._hitbox_x1 - preset_data.width ) * ( 1 - morph_x ) + ( e.x + e._hitbox_x2 ) * morph_x
+										) / 16 ) * 16;
+
+				let new_relative_y = Math.floor( (
+													( e.y + e._hitbox_y1 - preset_data.height ) * ( 1 - morph_y ) + ( e.y + e._hitbox_y2 ) * morph_y
+										) / 16 ) * 16;
+
+				Try( new_relative_x, new_relative_y );		
+				
+				t2 = Date.now();
+			}
+
+			if ( options.debug )
+			trace( 'SpawnPresetInWorld\'s Iteration ('+tr+' left) took', t2-t );
+
+			if ( tr <= 0 ) // Done, just validate score of best option
+			{
+				sdPresetEditor.active_async_preset_spawn_tasks--;
+				
+				let editor = null;
+				
+				if ( best_score > Number.MIN_SAFE_INTEGER ) // Prevent completely failed placements as these will often destroy protected bases or even players
+				{
+					let old_best_score = best_score;
+					
+					best_score = -Infinity;
+					
+					Try( best_new_relative_x, best_new_relative_y );
+					
+					if ( best_score >= old_best_score )
+					{
+						editor = new sdPresetEditor({ w:preset_data.width, h:preset_data.height, x:best_new_relative_x, y:best_new_relative_y });
+						sdEntity.entities.push( editor );
+						editor.LoadPreset( null, preset_name, false, true, false );
+
+						let last_inserted_entities_array = editor._last_inserted_entities_array;
+						editor.remove();
+
+						for ( let i = 0; i < last_inserted_entities_array.length; i++ )
+						{
+							let e = last_inserted_entities_array[ i ];
+							if ( e.is( sdBlock ) )
+							if ( e.material === sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND || e.material === sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR )
+							{
+								e.remove();
+								e._broken = false;
+							}
+						}
+
+						for ( let yy = 0; yy < bit_height; yy++ )
+						for ( let xx = 0; xx < bit_width; xx++ )
+						{
+							let hash = yy * bit_width + xx;
+
+							/*if ( true ) // Debugging, the false part is the correct one
+							{
+								for ( let e of best_new_bitmask_existing_overlaps[ hash ] )
+								if ( !e._is_being_removed )
+								{
+									trace( '/del '+e.GetClass() );
+									//e.remove();
+									//e._broken = false;
+
+									if ( e.is( sdBlock ) )
+									{
+										e.material = sdBlock.MATERIAL_TRAPSHIELD;
+										e._update_version++;
+
+
+										if ( sdWorld.sockets[ 0 ] )
+										if ( sdWorld.sockets[ 0 ].character )
+										{
+											sdWorld.sockets[ 0 ].character.x = e.x;
+											sdWorld.sockets[ 0 ].character.y = e.y;
+										}
+									}
+								}
+							}
+							else*/
+							{
+								let bit = bitmask[ hash ];
+
+								if ( bit === sdPresetEditor.BIT_AIR || bit === sdPresetEditor.BIT_GROUND || bit === sdPresetEditor.BIT_FILLED )
+								for ( let e of best_new_bitmask_existing_overlaps[ hash ] )
+								if ( !e._is_being_removed )
+								{
+									e.remove();
+									e._broken = false;
+								}
+
+								if ( bit === sdPresetEditor.BIT_GROUND )
+								{
+									sdWorld.AttemptWorldBlockSpawn(
+										best_new_relative_x + xx * 16, 
+										best_new_relative_y + yy * 16 
+									);
+								}
+							}
+						}
+						
+						/*if ( sdWorld.sockets[ 0 ] )
+						if ( sdWorld.sockets[ 0 ].character )
+						{
+							sdWorld.sockets[ 0 ].character.x = editor.x;
+							sdWorld.sockets[ 0 ].character.y = editor.y;
+						}*/
+					}
+					else
+					{
+						// Failure - best position is no longer relevant...
+						console.warn( 'SpawnPresetInWorld Failure - best position is no longer relevant' );
+					}
+				}
+				else
+				{
+					// Failure - nowhere to place at all
+					console.warn( 'SpawnPresetInWorld Failure - nowhere to place at all' );
+				}
+
+				if ( then_callback )
+				then_callback( editor );
+			}
+			else
+			{
+				setTimeout( Iteration, 8 );
+			}
+		};
+		
+		Iteration();
+	}
+	
+	LoadPreset( initiator = null, preset_name = '', delete_preset_editor = false, force_load = true, deal_with_entities_inside=true )
 	{
 		if ( preset_name === '' )
-		return;
+		return false;
 	
-			try
-			{
-				//console.log( preset_name );
-				let preset_str = fs.readFileSync( globalThis.presets_folder + '/' + preset_name + '.json', 'utf8' ); // Try to load file for parsing
-				const loaded_arr = JSON.parse( preset_str );
-				//console.log( loaded_arr.name );
-				
-				this.preset_name = loaded_arr.name;
-				this.tags = loaded_arr.tags;
-				this.authors = loaded_arr.authors;
-				this.w = loaded_arr.width;
-				this.h = loaded_arr.height;
-				this._update_version++;
-				
-				let snapshots = loaded_arr.snapshots;
-				
-				if ( this.CanLoadPreset( force_load ) )
-				this.InsertEntities( snapshots, loaded_arr.relative_x, loaded_arr.relative_y );
-				
-				if ( delete_preset ) 
-				this.remove();
-			}
-			catch ( e )
-			{
-				trace( 'File not found' + e );
-			}
+		//console.log( preset_name );
+		//let preset_str = fs.readFileSync( globalThis.presets_folder + '/' + preset_name + '.json', 'utf8' ); // Try to load file for parsing
+		//const preset_data = JSON.parse( preset_str );
+
+		const preset_data = sdPresetEditor.GetPresetData( preset_name );
+		//console.log( preset_data.name );
+
+		if ( preset_data === null )
+		{
+		}
+		else
+		{
+			this.preset_name = preset_data.name;
+			this.tags = preset_data.tags;
+			this.authors = preset_data.authors;
+			this.w = preset_data.width;
+			this.h = preset_data.height;
+			this._update_version++;
+
+			let snapshots = preset_data.snapshots;
+
+			if ( !deal_with_entities_inside || this.CanLoadPreset( force_load ) )
+			this.InsertEntities( snapshots, preset_data.relative_x, preset_data.relative_y );
+		}
+
+		// Delete anyway if needed
+		if ( delete_preset_editor ) 
+		this.remove();
+	
+		return ( preset_data ) ? true : false;
 	}
 	
 	InsertEntities( snapshots, relative_x, relative_y )
@@ -515,7 +1003,7 @@ class sdPresetEditor extends sdEntity
 		sdWorld.SolveUnresolvedEntityPointers();
 		sdWorld.unresolved_entity_pointers = null;
 		
-		// Grass compability
+		// Grass compatibility
 		for ( let i = 0; i < new_entities.length; i++ )
 		{
 			if ( new_entities[ i ].GetClass() === 'sdBlock' )

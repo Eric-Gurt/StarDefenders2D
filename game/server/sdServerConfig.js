@@ -1656,6 +1656,8 @@ class sdServerConfigFull extends sdServerConfigShort
 							{
 								console.log('Snapshot saved to final file (skipped TEMP file due to singleplayer mode).');
 								
+								globalThis.fs.SDScheduleSave();
+								
 								Report( false );
 								snapshot_save_busy = false;
 							}
@@ -1761,8 +1763,8 @@ class sdServerConfigFull extends sdServerConfigShort
 			const proceed = ( err )=>{
 				
 				// Make singleplayer save instantly
-				if ( fs.SDFlush )
-				fs.SDFlush();
+				//if ( fs.SDFlush )
+				//fs.SDFlush();
 
 				console.warn('SaveSnapshot called callback (error='+err+'), saying goodbye to everyone and quiting process.');
 

@@ -475,7 +475,7 @@ class sdDrone extends sdEntity
 				});
 			}
 			else
-			if ( this.type === sdDrone.DRONE_ZEKTARON || sdDrone.DRONE_ZEKTARON_CORVETTE )
+			if ( this.type === sdDrone.DRONE_ZEKTARON || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
