@@ -793,8 +793,8 @@ class sdZektaronDreadnought extends sdEntity
 								drone2._broken = false; // Remove drones if they can't spawn without getting stuck
 							}
 
-							this._current_minions_count++;
-							this._current_minions_count++;
+							//this._current_minions_count++;
+							//this._current_minions_count++; // No need for this - minion count is increased when drones are made with "minion_of: this" parameter
 							this._deploy_minions_timer = 450;
 						}
 						else
@@ -831,8 +831,8 @@ class sdZektaronDreadnought extends sdEntity
 			
 							sdEntity.entities.push( drone2 );
 							
-							this._current_minions_count++;
-							this._current_minions_count++;
+							//this._current_minions_count++;
+							//this._current_minions_count++;
 							this._deploy_minions_timer = 450
 
 						}

@@ -159,6 +159,12 @@ class sdDrone extends sdEntity
 
 		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
 		this._is_minion_of = params.minion_of || null; // Is this a minion of a boss?
+		
+		if ( this._is_minion_of ) // If this is a minion of a boss
+		{
+			this._is_minion_of._current_minions_count++; // Increase the count of minions here
+			//console.log( this._is_minion_of._current_minions_count );
+		}
 
 		this.side = 1;
 		
@@ -613,6 +619,12 @@ class sdDrone extends sdEntity
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
 		let pathfinding_result = null;
+		
+		if ( sdWorld.is_server )
+		{
+			if ( !this._is_minion_of || this._is_minion_of._is_being_removed )
+			this._is_minion_of = null;
+		}
 		
 
 		if ( this.type === sdDrone.DRONE_CUT_DROID )
@@ -1997,6 +2009,12 @@ class sdDrone extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		this.onRemoveAsFakeEntity();
+		
+		if ( this._is_minion_of )
+		{
+			this._is_minion_of._current_minions_count--;
+			//console.log( this._is_minion_of._current_minions_count );
+		}
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );

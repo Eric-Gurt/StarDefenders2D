@@ -902,7 +902,7 @@ class sdJunk extends sdEntity
 
 										sdWorld.UpdateHashPosition( drone, false );
 										//console.log('Drone spawned!');
-										this._current_minions_count++;
+										//this._current_minions_count++;
 										break;
 									}
 

@@ -101,6 +101,7 @@ class sdCouncilIncinerator extends sdEntity
 		
 		
 		this._last_seen_player = 0;
+		
 
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -486,7 +487,7 @@ class sdCouncilIncinerator extends sdEntity
 						sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(170deg)' });
 
 						sdWorld.UpdateHashPosition( drone, false );
-						this._current_minions_count++;
+						//this._current_minions_count++; // Bad - increase minion count from sdDrone instead
 						drone.SetTarget( this ); // Make sure drones stay near the immolator
 					}
 					else
