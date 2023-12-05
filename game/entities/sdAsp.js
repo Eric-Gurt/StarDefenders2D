@@ -10,6 +10,7 @@ import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCube from './sdCube.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 
 
 class sdAsp extends sdEntity
@@ -269,29 +270,57 @@ class sdAsp extends sdEntity
 		{
 			// No target
 			if ( sdWorld.is_server )
-			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
-				if ( sdWorld.sockets[ i ].character )
-				if ( sdWorld.sockets[ i ].character.hea > 0 )
-				if ( !sdWorld.sockets[ i ].character._is_being_removed )
-				if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
+				//Prioritize moving towards antennas
+				for ( let i = 0; i < sdLongRangeAntenna.antennas; i++ )
 				{
-					
-					let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
-					let dy = ( sdWorld.sockets[ i ].character.y + Math.random() * 1000 - 500 - this.y );
-					
-					let di = sdWorld.Dist2D_Vector( dx, dy );
-
-					if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
-					if ( di > 1 )
+					if ( sdLongRangeAntenna.antennas[ i ] )
 					{
-						this.sx += dx / di * 0.2;
-						this.sy += dy / di * 0.2;
+					
+						let dx = ( sdLongRangeAntenna.antennas[ i ].x + Math.random() * 1000 - 500 - this.x );
+						let dy = ( sdLongRangeAntenna.antennas[ i ].y + Math.random() * 1000 - 500 - this.y );
+					
+						let di = sdWorld.Dist2D_Vector( dx, dy );
 
-						//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
-						//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
+						if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
+						if ( di > 1 )
+						{
+							this.sx += dx / di * 0.2;
+							this.sy += dy / di * 0.2;
+							this._current_target = sdLongRangeAntenna.antennas[ i ]; //Attack the antenna
+							//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
+							//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 						
-						break;
+							break;
+						}
+					}
+				}
+				
+				if ( !this._current_target )
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				{
+					if ( sdWorld.sockets[ i ].character )
+					if ( sdWorld.sockets[ i ].character.hea > 0 )
+					if ( !sdWorld.sockets[ i ].character._is_being_removed )
+					if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
+					{
+					
+						let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
+						let dy = ( sdWorld.sockets[ i ].character.y + Math.random() * 1000 - 500 - this.y );
+					
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+
+						if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
+						if ( di > 1 )
+						{
+							this.sx += dx / di * 0.2;
+							this.sy += dy / di * 0.2;
+
+							//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
+							//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
+						
+							break;
+						}
 					}
 				}
 			}
@@ -326,7 +355,7 @@ class sdAsp extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( ( from_entity.IsPlayerClass() || from_entity.GetClass() === 'sdBot' || from_entity.GetClass() === 'sdGuanako' || this._current_target === from_entity ) && from_entity.IsVisible( this ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
+					if ( ( ( from_entity.IsPlayerClass() || from_entity.GetClass() === 'sdBot' || from_entity.GetClass() === 'sdGuanako' || from_entity.GetClass() === 'sdLongRangeAntenna' || this._current_target === from_entity ) && from_entity.IsVisible( this ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
 					{
 						let rank = Math.random() * 0.1;
 						
