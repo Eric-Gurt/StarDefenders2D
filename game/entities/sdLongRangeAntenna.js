@@ -164,6 +164,7 @@ class sdLongRangeAntenna extends sdEntity
 			if ( this._spawn_timer > 0 && this.progress < 100 && this.has_players_nearby )
 			this._spawn_timer -= GSPEED;
 			else
+			if ( this.has_players_nearby && this.progress < 100 )
 			{
 				this._spawn_timer = 150 + Math.random() * 150;
 
