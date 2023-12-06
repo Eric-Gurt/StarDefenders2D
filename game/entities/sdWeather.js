@@ -149,6 +149,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_COUNCIL_INCINERATOR =	event_counter++; // 45
 		sdWeather.EVENT_STEALER =				event_counter++; // 46
 		sdWeather.EVENT_LONG_RANGE_ANTENNA =	event_counter++; // 47
+		sdWeather.EVENT_PROTECT_SDBG_DRONE =	event_counter++; // 48
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -275,7 +276,7 @@ class sdWeather extends sdEntity
 	}
 	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
 	{
-		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA )
+		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE )
 		return true;
 		
 		return false;
@@ -319,18 +320,27 @@ class sdWeather extends sdEntity
 		if ( allowed_event_ids.length > 0 )
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-			let old_n = n;
+			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
+			let is_already_enabled = false;
 			let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount() ); // It probably would work as is -- Eric Gurt
 			let time = 1000;
 			while ( daily_event_count > 0 && time > 0 )
 			{
-				old_n = n;
+				is_already_enabled = false;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsGeneralEvent( n ) ) // Make sure only general events are allowed here
+				if ( this.IsGeneralEvent( n ) ) // Make sure only general events are allowed here
 				{
-					this._daily_events.push( n );
-					daily_event_count--;
+					for ( let i = 0; i < this._daily_events.length; i++ ) // Make sure event isn't already in the array
+					{
+						if ( this._daily_events[ i ] === n )
+						is_already_enabled = true;
+					}
+					if ( !is_already_enabled ) // Not in array?
+					{
+						this._daily_events.push( n ); // Add it
+						daily_event_count--;
+					}
 				}
 				time--;
 			}
@@ -361,25 +371,34 @@ class sdWeather extends sdEntity
 		if ( allowed_event_ids.length > 0 )
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-			let old_n = n;
+			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
+			let is_already_enabled = false;
 			let weather_event_count = Math.min( allowed_event_ids.length, ~~(Math.random() * 2 ) ); // Up to 2 events, can also be 0
 			let time = 1000;
 			while ( weather_event_count > 0 && time > 0 )
 			{
-				old_n = n;
+				is_already_enabled = false;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsWeatherEvent( n ) ) // Make sure only weather events are allowed here
+				if ( this.IsWeatherEvent( n ) ) // Make sure only weather events are allowed here
 				{
-					this._daily_weather_events.push( n );
-					weather_event_count--;
+					for ( let i = 0; i < this._daily_weather_events.length; i++ ) // Make sure event isn't already in the array
+					{
+						if ( this._daily_weather_events[ i ] === n )
+						is_already_enabled = true;
+					}
+					if ( !is_already_enabled ) // Not in array?
+					{
+						this._daily_weather_events.push( n ); // Add it
+						weather_event_count--;
+					}
 				}
 				time--;
 			}
 		}
 		//console.log( "Weather events: " + this._daily_weather_events );
 	}
-	GetDailySDEvents() // Select up to 2 SD related task events
+	GetDailySDEvents() // Select up to 4 SD related task events
 	{
 		this._daily_sd_task_events = [];
 		
@@ -400,21 +419,31 @@ class sdWeather extends sdEntity
 		if ( allowed_event_ids.length > 0 )
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-			let old_n = n;
+			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
-			let sd_event_count = Math.min( allowed_event_ids.length, 2 ); // 2 events if possible
+			let is_already_enabled = false;
+			let sd_event_count = Math.min( allowed_event_ids.length, 4 ); // 4 events if possible
 			let time = 1000;
 			while ( sd_event_count > 0 && time > 0 )
 			{
-				old_n = n;
+				is_already_enabled = false;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsSDEvent( n ) ) // Make sure only SD events are allowed here
+				if ( this.IsSDEvent( n ) ) // Make sure only SD related events are allowed here
 				{
-					this._daily_sd_task_events.push( n );
-					sd_event_count--;
+					for ( let i = 0; i < this._daily_sd_task_events.length; i++ ) // Make sure event isn't already in the array
+					{
+						if ( this._daily_sd_task_events[ i ] === n )
+						is_already_enabled = true;
+					}
+					if ( !is_already_enabled ) // Not in array?
+					{
+						this._daily_sd_task_events.push( n ); // Add it
+						sd_event_count--;
+					}
 				}
 				time--;
 			}
+			//Essentially we allow 4 events for every 30 minutes, when one happens it cannot happen again until next SD event selection happens.
 		}
 		//console.log( "SD Task events: " + this._daily_sd_task_events );
 	}
@@ -644,11 +673,11 @@ class sdWeather extends sdEntity
 					let ground_entity = sdWorld.last_hit_entity;
 					
 					if ( ground_entity )
-					if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Ignore caves after first 500 iterations
+					if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Include caves after first 1000 iterations
 					if ( ground_entity.is( sdBlock ) && ground_entity.DoesRegenerate() && ground_entity._natural )
 					if ( !sdWorld.CheckWallExistsBox( 
 							x + ent._hitbox_x1 - 16, 
-							y + ent._hitbox_y1 - 116, 
+							y + ent._hitbox_y1 - 64, 
 							x + ent._hitbox_x2 + 16, 
 							y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 					{
@@ -3343,7 +3372,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_LONG_RANGE_ANTENNA ) // Long range frequency antenna is placed by SD's and needs to be calibrated
 		{
-			if ( sdLongRangeAntenna.antennas.length < 4 )
+			if ( sdLongRangeAntenna.antennas.length < 8 )
 			sdWeather.SimpleSpawner({
 				
 				count: [ 1, 1 ],
@@ -3353,6 +3382,54 @@ class sdWeather extends sdEntity
 			});
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_PROTECT_SDBG_DRONE ) // Mothership is trying to see if old drone stockpile is effective on planet ( players need to protect the drone for 5 minutes )
+		{
+			let instances = 0;
+			let instances_tot = 1;
+			while ( instances < instances_tot ) // Only 1 should spawn
+			{
+				let ent = new sdDrone({ x:0, y:0, type: 17, _ai_team: 0 });
+
+				sdEntity.entities.push( ent );
+
+				{
+					//let x,y;
+					let tr = 2;
+					do
+					{
+						if ( sdWeather.SetRandomSpawnLocation( ent ) )
+						{
+							break;
+						}
+
+						tr--;
+						if ( tr < 0 )
+						{
+							ent.remove();
+							ent._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be protected
+				if ( sdWorld.sockets[ i ].character )
+				{
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'PROTECT-'+ent._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						target: ent,
+						mission: sdTask.MISSION_PROTECT_ENTITY,
+						protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
+						time_left: 30 * 60 * 5, // 5 minutes
+						difficulty: 0.075,
+						title: 'Protect a drone',
+						description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
+					});
+				}
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -4166,13 +4243,17 @@ class sdWeather extends sdEntity
 			this._time_until_sd_task_event -= GSPEED;
 			if ( this._time_until_sd_task_event < 0 )
 			{
-				this._time_until_sd_task_event = 30 * 60 * 5 + Math.random() * 30 * 60 * 25; // Need to add a server config option later - Booraz149
+				this._time_until_sd_task_event = 30 * 60 * 5 + Math.random() * 30 * 2.5; // Need to add a server config option later - Booraz149
 
 				let allowed_event_ids = this._daily_sd_task_events;
 				if ( allowed_event_ids.length > 0 )
 				{
-					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+					let event = ~~( Math.random() * allowed_event_ids.length );
+					let r = allowed_event_ids[ event ];
 					this.ExecuteEvent( r );
+					
+					allowed_event_ids.splice( event, 1 );
+					//console.log( 'Executed event ' + r +', current available events:' + this._daily_sd_task_events );
 				}
 			}
 		}

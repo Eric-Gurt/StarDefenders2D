@@ -70,7 +70,7 @@ class sdLongRangeAntenna extends sdEntity
 		
 		this.hmax = 2000;
 		this.hea = this.hmax;
-		this._regen_timeout = 0;
+		this._regen_timeout = 30;
 		this._cooldown = 0;
 		//this.has_anticrystal = false;
 		this.has_players_nearby = false; // Once a second it checks if any players are close to it so it can progress. Incentivizes defending by standing near it. Also works as "activation"

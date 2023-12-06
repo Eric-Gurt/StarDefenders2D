@@ -401,6 +401,11 @@ class sdTask extends sdEntity
 			{
 				return -1;
 			},
+			onTaskMade: ( task, params )=>
+			{
+				// Create extra properties here
+				task._protect_type = params.protect_type || 0; // 0 = progress bar ( Dark matter beam projector, Long range frequency antenna ), 1 = Entity must survive for a time limit ( SD-BG drone )
+			},
 			onCompletion: ( task )=>
 			{
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
@@ -419,16 +424,27 @@ class sdTask extends sdEntity
 			},
 			completion_condition: ( task )=>
 			{
-				if ( task._target.progress )
-				if ( task._target.progress >= 100 ) // Progress must be defined as a variable inside entity which should be protected.
-				return true;
+				if ( task._protect_type === 0 ) // Protected entity completed it's objective/purpose?
+				{
+					if ( task._target.progress )
+					if ( task._target.progress >= 100 ) // Progress must be defined as a variable inside entity which should be protected.
+					return true;
+				}
+				if ( task._protect_type === 1 ) // Protect entity for a certain amount of time task
+				{
+					if ( task.time_left <= 0 ) // Was it protected long enough?
+					return true;
+				}
 			
 				return false;
 			},
 			onTimeOut: ( task )=>
 			{
 				if ( sdWorld.is_server )
-				task.remove();
+				{
+					if ( task._protect_type === 0 ) // Not a time based protection task?
+					task.remove();
+				}
 			}
 		};
 		
