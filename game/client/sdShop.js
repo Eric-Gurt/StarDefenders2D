@@ -728,7 +728,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDrone', type: 15, _ai_team: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 16, _ai_team: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 11, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 11, _ai_team: -1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
@@ -773,6 +773,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
