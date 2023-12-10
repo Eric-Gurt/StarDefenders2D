@@ -1913,7 +1913,12 @@ class sdDrone extends sdEntity
 		image = sdDrone.img_sarronian_drone3;
 
 		if ( this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE )
-		image = sdDrone.img_sarronian_drone4;
+		{
+			image = sdDrone.img_sarronian_drone4;
+
+			width = 32;
+			height = 32;
+		}
 
 		if ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS )
 		{
