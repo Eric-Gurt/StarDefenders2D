@@ -104,10 +104,12 @@ class sdBubbleShield extends sdEntity
 		this.for_ent = params.for_ent || null;
 		this.sx = 0;
 		this.sy = 0;
-		this.xscale = 32; // For hitbox and sprites
-		this.yscale = 32;
+		this.xscale = params.xscale || 32; // For hitbox and sprites
+		this.yscale = params.yscale || 32;
 		
-		if ( this.for_ent )
+		this._manual_hitbox_override = params.manual_hitbox_override || false;
+		
+		if ( this.for_ent && !this._manual_hitbox_override )
 		{
 			this.xscale = Math.max( 32, 16 * Math.ceil( ( ( Math.abs( this.for_ent._hitbox_x1 ) + Math.abs( this.for_ent._hitbox_x2 ) ) / 12 ) ) );
 			this.yscale = Math.max( 32, 16 * Math.ceil( ( ( Math.abs( this.for_ent._hitbox_y1 ) + Math.abs( this.for_ent._hitbox_y2 ) ) / 12 ) ) );
@@ -136,7 +138,7 @@ class sdBubbleShield extends sdEntity
 		if ( this.type === sdBubbleShield.TYPE_SD )
 		return 'hue-rotate(' + 75 + 'deg)';
 	}*/
-	static ApplyShield( for_entity = null, shield_type = 0 )
+	static ApplyShield( for_entity = null, shield_type = 0, manual_override = false, xsize = 32, ysize = 32 )
 	{
 		if ( !for_entity )
 		return;
@@ -156,7 +158,7 @@ class sdBubbleShield extends sdEntity
 		
 		if ( !has_shield )
 		{
-			let new_shield = new sdBubbleShield({ x:for_entity.x, y:for_entity.y, for_ent: for_entity, type: shield_type });
+			let new_shield = new sdBubbleShield({ x:for_entity.x, y:for_entity.y, for_ent: for_entity, type: shield_type, manual_hitbox_override: manual_override, xscale: xsize, yscale: ysize });
 			sdEntity.entities.push( new_shield );
 		}
 		
@@ -205,7 +207,7 @@ class sdBubbleShield extends sdEntity
 		//let size_x = 32;
 		//let size_y = 32;
 	
-		ctx.drawImageFilterCache( sdBubbleShield.img_shield, cur_img * 32, 0, 32, 32, - this.xscale / 2, - this.yscale / 2, this.xscale, this.yscale );
+		ctx.drawImageFilterCache( sdBubbleShield.img_shield, cur_img * 32, 0, 32, 32, - this.xscale * 1.1 / 2, - this.yscale * 1.1 / 2, this.xscale * 1.1, this.yscale * 1.1 );
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}

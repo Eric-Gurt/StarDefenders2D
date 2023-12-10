@@ -127,7 +127,7 @@ class sdVeloxFortifier extends sdEntity
 					if ( character._ai_team === 5 && character.hea > 0 ) // Is this humanoid a part of Velox faction?
 					{
 						//character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
-						sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD ); // Apply shield
+						sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD, true, 32, 32 ); // Apply shield
 					}
 				}
 				// Also for Velox mechs
@@ -136,7 +136,7 @@ class sdVeloxFortifier extends sdEntity
 					let mech = sdEnemyMech.mechs[ i ];
 					if ( mech._ai_team === 5 && mech.hea > 0 ) // Is this mech
 					{
-						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD ); // Apply shield
+						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD, true, 60, 96 ); // Apply shield
 					}
 				}
 				
