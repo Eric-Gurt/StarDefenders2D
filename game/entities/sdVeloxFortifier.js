@@ -17,6 +17,7 @@ import sdBlock from './sdBlock.js';
 import sdFactions from './sdFactions.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdBubbleShield from './sdBubbleShield.js';
+import sdEnemyMech from './sdEnemyMech.js';
 
 class sdVeloxFortifier extends sdEntity
 {
@@ -119,7 +120,7 @@ class sdVeloxFortifier extends sdEntity
 			else
 			{
 				this._next_fortify_in = 150;
-				// Fortify / give armor AND shield to all Velox humanoids. Make them difficult to kill.
+				// Fortify / give shield to all Velox humanoids. Make them difficult to kill.
 				for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
 					let character = sdCharacter.characters[ i ];
@@ -127,6 +128,15 @@ class sdVeloxFortifier extends sdEntity
 					{
 						//character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
 						sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD ); // Apply shield
+					}
+				}
+				// Also for Velox mechs
+				for ( let i = 0; i < sdEnemyMech.mechs.length; i++ )
+				{
+					let mech = sdEnemyMech.mechs[ i ];
+					if ( mech._ai_team === 5 && mech.hea > 0 ) // Is this mech
+					{
+						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD ); // Apply shield
 					}
 				}
 				

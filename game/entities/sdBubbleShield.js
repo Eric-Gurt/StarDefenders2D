@@ -36,10 +36,6 @@ class sdBubbleShield extends sdEntity
 		
 		sdBubbleShield.TYPE_VELOX_SHIELD = 0; // Velox shields
 	}
-	get hitbox_x1() { return -14; }
-	get hitbox_x2() { return 14; }
-	get hitbox_y1() { return -14; }
-	get hitbox_y2() { return 14; }
 
 	get hard_collision()
 	{ return false; }
@@ -108,11 +104,24 @@ class sdBubbleShield extends sdEntity
 		this.for_ent = params.for_ent || null;
 		this.sx = 0;
 		this.sy = 0;
+		this.xscale = 32; // For hitbox and sprites
+		this.yscale = 32;
+		
+		if ( this.for_ent )
+		{
+			this.xscale = Math.max( 32, 16 * Math.ceil( ( ( Math.abs( this.for_ent._hitbox_x1 ) + Math.abs( this.for_ent._hitbox_x2 ) ) / 12 ) ) );
+			this.yscale = Math.max( 32, 16 * Math.ceil( ( ( Math.abs( this.for_ent._hitbox_y1 ) + Math.abs( this.for_ent._hitbox_y2 ) ) / 12 ) ) );
+			//Hitboxes of shield should be slightly larger than entities due to how shield sprite is a circle
+		}
 		
 		this._time_left = this.GetShieldDuration( this.type );
 		
 		sdBubbleShield.shields.push( this );
 	}
+	get hitbox_x1() { return -this.xscale / 2; }
+	get hitbox_x2() { return this.xscale / 2; }
+	get hitbox_y1() { return -this.yscale / 2; }
+	get hitbox_y2() { return this.yscale / 2; }
 	/*ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === 'for_ent' ) return true;
@@ -160,8 +169,8 @@ class sdBubbleShield extends sdEntity
 	{
 		if ( this.for_ent )
 		{
-			this.x = this.for_ent.x;
-			this.y = this.for_ent.y;
+			this.x = this.for_ent.x + ( this.for_ent._hitbox_x1 + this.for_ent._hitbox_x2 )/ 2;
+			this.y = this.for_ent.y + ( this.for_ent._hitbox_y1 + this.for_ent._hitbox_y2 )/ 2;
 			this.sx = this.for_ent.sx;
 			this.sy = this.for_ent.sy;
 		}
@@ -169,8 +178,8 @@ class sdBubbleShield extends sdEntity
 		{
 			if ( this.for_ent )
 			{
-				this.x = this.for_ent.x;
-				this.y = this.for_ent.y;
+				this.x = this.for_ent.x + ( this.for_ent._hitbox_x1 + this.for_ent._hitbox_x2 )/ 2;
+				this.y = this.for_ent.y + ( this.for_ent._hitbox_y1 + this.for_ent._hitbox_y2 )/ 2;
 				this.sx = this.for_ent.sx;
 				this.sy = this.for_ent.sy;
 			}
@@ -193,15 +202,10 @@ class sdBubbleShield extends sdEntity
 		
 		let cur_img = sdWorld.time % 3200;
 		cur_img = Math.round( 15 * cur_img / 3200 );
-		let size_x = 32;
-		let size_y = 32;
+		//let size_x = 32;
+		//let size_y = 32;
 	
-		if ( this.for_ent )
-		{
-			size_x = Math.max( 32, Math.ceil( 16 * ( Math.abs( this.for_ent._hitbox_x1 ) + Math.abs( this.for_ent._hitbox_x2 ) ) / 16 ) );
-			size_y = Math.max( 32, Math.ceil( 16 * ( Math.abs( this.for_ent._hitbox_y1 ) + Math.abs( this.for_ent._hitbox_y2 ) ) / 16 ) );
-		}
-		ctx.drawImageFilterCache( sdBubbleShield.img_shield, cur_img * 32, 0, 32, 32, - size_x / 2, - size_y / 2, size_x, size_y );
+		ctx.drawImageFilterCache( sdBubbleShield.img_shield, cur_img * 32, 0, 32, 32, - this.xscale / 2, - this.yscale / 2, this.xscale, this.yscale );
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}

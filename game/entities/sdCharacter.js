@@ -2308,7 +2308,8 @@ THING is cosmic mic drop!`;
 		if ( dmg > 0 )
 		return;
 	
-	
+		// Shield logic, add to other entities if they will use shields
+		// Also import sdBubbleShield if it's not imported
 		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
 		if ( shielded_by && dmg > 0 )
 		{
