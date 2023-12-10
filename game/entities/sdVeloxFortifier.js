@@ -16,6 +16,7 @@ import sdWeather from './sdWeather.js';
 import sdBlock from './sdBlock.js';
 import sdFactions from './sdFactions.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdBubbleShield from './sdBubbleShield.js';
 
 class sdVeloxFortifier extends sdEntity
 {
@@ -118,14 +119,14 @@ class sdVeloxFortifier extends sdEntity
 			else
 			{
 				this._next_fortify_in = 150;
-				// Fortify / give armor to all Velox humanoids.
+				// Fortify / give armor AND shield to all Velox humanoids. Make them difficult to kill.
 				for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
 					let character = sdCharacter.characters[ i ];
 					if ( character._ai_team === 5 && character.hea > 0 ) // Is this humanoid a part of Velox faction?
 					{
-						character.ApplyArmor({ armor: 300, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
-						character.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BLUE_SHIELD_EFFECT, shield_type: 0 }); // Apply shield effect after armor, otherwise it disappears
+						character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
+						sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD ); // Apply shield
 					}
 				}
 				

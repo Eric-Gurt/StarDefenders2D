@@ -21,6 +21,7 @@ import sdCrystal from './sdCrystal.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdBubbleShield from './sdBubbleShield.js';
 
 class sdBullet extends sdEntity
 {
@@ -429,6 +430,9 @@ class sdBullet extends sdEntity
 		return from_entity.IsHittableWithAdminTools();
 
 		if ( from_entity.is( sdRift ) ) // Ignore portals
+		return false;
+		
+		if ( from_entity.is( sdBubbleShield ) && this._owner === from_entity.for_ent ) // Ignore shields from owner
 		return false;
 
 		if ( from_entity.is( sdWater ) ) // Ignore water

@@ -1098,12 +1098,7 @@ class sdStatusEffect extends sdEntity
 
 		sdStatusEffect.types[ sdStatusEffect.TYPE_BLUE_SHIELD_EFFECT = 11 ] = 
 		{
-			/* For Velox faction, applied by sdVeloxFortifier when it gives them armor
-			For now just a visual indicator that Velox has armor.
-			Though personally I'd probably like if players could have this shield effect,
-			and the shield effect itself having a damage reduction when players are hit.
-			It should probably be based off of time like stimpack.
-			*/
+			// Now obsolete because sdBubbleShield exists, please do not use.
 			remove_if_for_removed: true,
 	
 			is_emote: false,
@@ -1132,7 +1127,8 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
-				return ( status_entity.for.armor <= 0 ); // return true = delete
+				return true; // Delete
+				//return ( status_entity.for.armor <= 0 ); // return true = delete
 			},
 			onBeforeRemove: ( status_entity )=>
 			{
