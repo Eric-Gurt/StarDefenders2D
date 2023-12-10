@@ -13,6 +13,7 @@ import sdCharacter from './sdCharacter.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
 import sdRift from './sdRift.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 class sdSandWorm extends sdEntity
 {
@@ -33,6 +34,10 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_council_head_idle = sdWorld.CreateImageFromFile( 'worm_council_head_idle' ); // Council mecha worm or something.
 		sdSandWorm.img_worm_council_head_attack = sdWorld.CreateImageFromFile( 'worm_council_head_attack' );
 		sdSandWorm.img_worm_council_body = sdWorld.CreateImageFromFile( 'worm_council_body' );
+		
+		sdSandWorm.img_crystal_hunting_worm_head_idle = sdWorld.CreateImageFromFile( 'worm_chunter_head_idle' );
+		sdSandWorm.img_crystal_hunting_worm_head_attack = sdWorld.CreateImageFromFile( 'worm_chunter_head_attack' );
+		sdSandWorm.img_crystal_hunting_worm_body = sdWorld.CreateImageFromFile( 'worm_chunter_body' );
 		
 		sdSandWorm.post_death_ttl = 30 * 6;
 		
@@ -56,6 +61,7 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.KIND_SPIKY_WORM = 1;
 		sdSandWorm.KIND_CORRUPTED_WORM = 2;
 		sdSandWorm.KIND_COUNCIL_WORM = 3;
+		sdSandWorm.KIND_CRYSTAL_HUNTING_WORM = 4;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -97,6 +103,17 @@ class sdSandWorm extends sdEntity
 		this.kind = sdSandWorm.KIND_CORRUPTED_WORM;
 
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
+		
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		{
+			this._regen_timeout = 0; // For HP regen
+			this.scale = 1;
+		}
+		
+		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+		{
+			this.scale = 0.6;
+		}
 
 		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 12 : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
@@ -129,20 +146,23 @@ class sdSandWorm extends sdEntity
 		
 		this._last_attack = sdWorld.time;
 		
+		this._last_found_target = 0; // When has it last time found a target? Used for Crystal Hunting Worm.
+		
 		sdSandWorm.worms_tot++;
 		
 		this.hue = ~~( Math.random() * 360 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 		this.filter = 'saturate(0.5)';
 		
-		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
-		{
-			this._regen_timeout = 0; // For HP regen
-			this.scale = 1;
-		}
 		
 		this._can_spawn_more = true;
 	}
+	
+	isWaterDamageResistant()
+	{
+		return ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM );
+	}
+	
 	onBeforeRemove()
 	{
 		// Forget all pointers
@@ -189,6 +209,7 @@ class sdSandWorm extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( !this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
 		if ( this._hea > 0 )
 		if ( character.IsVisible() )
 		if ( character.hea > 0 )
@@ -326,7 +347,7 @@ class sdSandWorm extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
-			if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM ) // Spawn wyrmhide on ground if it's set to true
+			if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM && this.kind !== sdSandWorm.KIND_CRYSTAL_HUNTING_WORM ) // Spawn wyrmhide on ground if it's set to true
 			{
 				let x = this.x;
 				let y = this.y;
@@ -360,7 +381,7 @@ class sdSandWorm extends sdEntity
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 				let gun;
-				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_WORM_GUN });
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
 				//gun.sx = sx;
 				//gun.sy = sy;
@@ -388,6 +409,32 @@ class sdSandWorm extends sdEntity
 			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
+	IsEntFarEnough( ent ) // Check if entity is outside BSU and far away from player's views
+	{
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character )
+		{
+			let player = sdWorld.sockets[ i ].character;
+			if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+			return false;
+		}
+		
+		return true;
+	}
+	
+	GetRandomCrystal()
+	{
+		let ent = sdEntity.GetRandomActiveEntity();
+		if ( ent.is( sdCrystal ) ) // Is it a crystal?
+			{
+				if ( this.IsEntFarEnough( ent ) && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < 2000 ) // Crystal far enough from BSUs and players, but not too far from the worm?
+				{
+					this._last_found_target = 0;
+					return ent; // Target it
+				}
+			}
+		return null;
+	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -411,7 +458,7 @@ class sdSandWorm extends sdEntity
 				//this.sy = 0;
 				//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 				
-				if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM ) // Spawn wyrmhide on ground if it's set to true
+				if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM && this.kind !== sdSandWorm.KIND_CRYSTAL_HUNTING_WORM ) // Spawn wyrmhide on ground if it's set to true
 				{
 					let x = this.x;
 					let y = this.y;
@@ -624,6 +671,7 @@ class sdSandWorm extends sdEntity
 					
 					let G = Math.min( 1, GSPEED );
 
+
 					this.sx -= dx * G;
 					this.sy -= dy * G;
 
@@ -688,6 +736,12 @@ class sdSandWorm extends sdEntity
 			
 				if ( this._current_target )
 				{
+					if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM && !this.IsEntFarEnough( this._current_target ) )
+					{
+						this._current_target = null;
+						return;
+					}
+					
 					if ( this._current_target._is_being_removed || !this._current_target.IsVisible() /*|| sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSandWorm.max_seek_range + 32*/ )
 					this._current_target = null;
 					else
@@ -716,6 +770,9 @@ class sdSandWorm extends sdEntity
 							for ( let i = 0; i < arr.length; i++ )
 							{
 								let vel_scale = arr[ i ]._in_water ? 0.05 : 1;
+								
+								if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+								vel_scale *= 1.5; // Faster so it eats crystals faster
 								
 								let dx2 = 0;
 								let dy2 = 0;
@@ -816,6 +873,10 @@ class sdSandWorm extends sdEntity
 					// No target
 					if ( sdWorld.is_server )
 					{
+						
+						
+						
+						
 						/*let closest = null;
 						let closest_di = Infinity;
 						for ( let i = 0; i < sdWorld.sockets.length; i++ )
@@ -841,7 +902,30 @@ class sdSandWorm extends sdEntity
 							
 							if ( this._current_target.is( sdSandWorm ) || ( this._current_target.is( sdCharacter ) && !this.HasEnoughMatter( this._current_target ) ) )
 							this._current_target = null;
+						
+							if ( this._last_found_target > 250 ) // Over 250 attempts without finding a crystal to eat
+							{
+								if ( this.IsEntFarEnough( this ) ) // No players nearby?
+								this.Damage( 1000000 ); // Die in peace
+							}
+						
+							if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+							{
+								if ( this._current_target ) // Prevents crash
+								{
+									if ( !this._current_target.is( sdCrystal ) ) // Make sure it goes for crystals only
+									{
+										this._current_target = this.GetRandomCrystal();
+										this._last_found_target++;
+									}
+								}
+								else
+								{
+									this._current_target = this.GetRandomCrystal(); // Focus on finding crystals anyway
+									this._last_found_target++;
+								}
 						}
+							}
 					}
 				}
 			}
@@ -899,6 +983,9 @@ class sdSandWorm extends sdEntity
 
 			if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
 			sdEntity.Tooltip( ctx, "Council Mecha Worm" );
+		
+			if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+			sdEntity.Tooltip( ctx, "Crystal Hunting Worm" );
 		}
 	}
 	Draw( ctx, attached )
@@ -921,7 +1008,7 @@ class sdSandWorm extends sdEntity
 		if ( !sdShop.isDrawing )
 		ctx.scale( this.scale, this.scale );
 		
-		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM  )
+		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM )
 		{
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_head_attack, - 16, - 16, 32,32 );
@@ -931,7 +1018,7 @@ class sdSandWorm extends sdEntity
 			else
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_body, - 16, - 16, 32,32 );
 		}
-		if ( this.kind === sdSandWorm.KIND_SPIKY_WORM  )
+		if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
 		{
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_head_attack, - 16, - 16, 32,32 );
@@ -964,6 +1051,16 @@ class sdSandWorm extends sdEntity
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_body, - 16, - 16, 32,32 );
+		}
+		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+		{
+			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
+			ctx.drawImageFilterCache( sdSandWorm.img_crystal_hunting_worm_head_attack, - 16, - 16, 32,32 );
+			else
+			if ( this.model === 0 )
+			ctx.drawImageFilterCache( sdSandWorm.img_crystal_hunting_worm_head_idle, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdSandWorm.img_crystal_hunting_worm_body, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;

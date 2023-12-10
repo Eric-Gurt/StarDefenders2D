@@ -51,13 +51,15 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2_sprite' ); // By floor/flora/Gravel
 		
 		sdDrone.img_cut_droid = sdWorld.CreateImageFromFile( 'sdCutDroid' );
+
+		sdDrone.img_drone_sd_bg = sdWorld.CreateImageFromFile( 'drone_sd_bg' ); // SD-Bulky Gunner drone, for tasks
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
 		
 		sdDrone.max_seek_range = 1000;
 		
-		sdDrone.drones_tot = 0;
+		sdDrone.drones = []; // This way we can limit it to a count per faction rather than just "total" count
 
 		sdDrone.DRONE_FALKOK = 1;
 		sdDrone.DRONE_ERTHAL = 2;
@@ -75,21 +77,22 @@ class sdDrone extends sdEntity
 		sdDrone.DRONE_ZEKTARON = 14;
 		sdDrone.DRONE_ZEKTARON_CORVETTE = 15;
 		sdDrone.DRONE_ZEKTARON_HUNTER = 16;
+		sdDrone.DRONE_SD_BG = 17;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? -18 :
+	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SD_BG ) ? -16 : ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? -18 :
 		( this.type === sdDrone.DRONE_SARRONIAN_GAUSS ||this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? -11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? -10 : -6; 
 	}
-	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? 18 :
+	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SD_BG ) ? 16 : ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? 18 :
 		( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? 11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? 10 : 6; 
 	}
-	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? -11 :
+	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SD_BG ) ? -16 : ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? -11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? -10 : -6; 
 	}
-	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? 11 :
+	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SD_BG ) ? 16 : ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? 11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? 10 : 6; 
 	}
 	
@@ -128,12 +131,16 @@ class sdDrone extends sdEntity
 			this.type === sdDrone.DRONE_ZEKTARON_HUNTER ? 800 :
 			this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : 
 			this.type === sdDrone.DRONE_FALKOK ? 130 : 
-			this.type === sdDrone.DRONE_FALKOK_RAIL ? 175 : 
+			this.type === sdDrone.DRONE_FALKOK_RAIL ? 350 : 
 			this.type === sdDrone.DRONE_CUT_DROID ? 2000 : 
+			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 	
 		this._hea = this._hmax;
-		this._ai_team = params._ai_team || 1;
+		this._ai_team = params._ai_team || 0;
+		
+		if ( this.type === sdDrone.DRONE_CUT_DROID )
+		this._ai_team = -1; // Not affiliated with any faction
 
 		this.attack_an = 0;
 		this.death_anim = 0;
@@ -146,9 +153,9 @@ class sdDrone extends sdEntity
 		this._attack_timer = 0;
 		this._alt_attack_timer = 0; // secondary attack timer
 		this._charged = false;
-		this._burst_ammo_start = this.type === sdDrone.DRONE_ERTHAL ? 6 : this.type === sdDrone.DRONE_ZEKTARON ? 3 : 0;
+		this._burst_ammo_start = this.type === sdDrone.DRONE_SD_BG ? 50 : this.type === sdDrone.DRONE_ERTHAL ? 6 : this.type === sdDrone.DRONE_ZEKTARON ? 3 : 0;
 		this._burst_ammo = this._burst_ammo_start;
-		this._burst_reload = this.type === sdDrone.DRONE_ERTHAL ? 2 : this.type === sdDrone.DRONE_ZEKTARON ? 4 : 0; // Reload time when it's burst firing
+		this._burst_reload = this.type === sdDrone.DRONE_SD_BG ? 1.5 : this.type === sdDrone.DRONE_ERTHAL ? 2 : this.type === sdDrone.DRONE_ZEKTARON ? 4 : 0; // Reload time when it's burst firing
 
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
@@ -158,7 +165,13 @@ class sdDrone extends sdEntity
 		this._player_damage = 0;
 
 		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
-		this._is_minion_of = null; // Is this a minion of a boss?
+		this._is_minion_of = params.minion_of || null; // Is this a minion of a boss?
+		
+		if ( this._is_minion_of ) // If this is a minion of a boss
+		{
+			this._is_minion_of._current_minions_count++; // Increase the count of minions here
+			//console.log( this._is_minion_of._current_minions_count );
+		}
 
 		this.side = 1;
 		
@@ -176,8 +189,8 @@ class sdDrone extends sdEntity
 		
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
-		if ( this.type !== sdDrone.DRONE_SARRONIAN_DETONATOR ) // Detonators don't count towards drone count
-		sdDrone.drones_tot++;
+		sdDrone.drones.push( this );
+		
 		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
@@ -188,6 +201,13 @@ class sdDrone extends sdEntity
 		return false;
 		
 		return ( this._ignore_collisions_with !== from_entity );
+	}
+	
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_is_minion_of' ) return true;
+
+		return false;
 	}
 	
 	SetTarget( ent )
@@ -347,8 +367,14 @@ class sdDrone extends sdEntity
 			{
 				//this._current_target = initiator;
 				this.SetTarget( initiator );
+			if ( 
 			}*/
-			if ( ( initiator._ai_team || -1 ) !== this._ai_team )
+			if ( typeof initiator._ai_team !== 'undefined' ) // Is initiator a faction mob?
+			{
+				if ( initiator._ai_team !== this._ai_team ) // Is this not a friendly faction?
+				this.SetTarget( initiator ); // Target it
+			}
+			else
 			this.SetTarget( initiator );
 		}
 
@@ -370,6 +396,7 @@ class sdDrone extends sdEntity
 		if ( this._hea <= 0 && was_alive )
 		{
 			//if ( initiator )
+			if ( this._ai_team !== 0 ) // Not friendly?
 			{
 				if ( this._hmax > 550 )
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
@@ -377,7 +404,7 @@ class sdDrone extends sdEntity
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			}
 	
-			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL )
+			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL || this.type === sdDrone.DRONE_SD_BG )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -462,7 +489,7 @@ class sdDrone extends sdEntity
 				});
 			}
 			else
-			if ( this.type === sdDrone.DRONE_ZEKTARON || sdDrone.DRONE_ZEKTARON_CORVETTE )
+			if ( this.type === sdDrone.DRONE_ZEKTARON || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -506,10 +533,6 @@ class sdDrone extends sdEntity
 				sdSound.PlaySound({ name:'cut_droid_death', x:this.x, y:this.y, volume:1, pitch:1, channel:this._voice_channel });
 			}
 			
-			if ( this._is_minion_of !== null ) // If spawned by boss
-			{
-				this._is_minion_of._current_minions_count--;
-			}
 
 			if ( Math.random() < 0.2 ) // 20% chance to drop a faction-specific drop on destruction
 			{
@@ -610,6 +633,12 @@ class sdDrone extends sdEntity
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
 		let pathfinding_result = null;
+		
+		if ( sdWorld.is_server )
+		{
+			if ( !this._is_minion_of || this._is_minion_of._is_being_removed )
+			this._is_minion_of = null;
+		}
 		
 
 		if ( this.type === sdDrone.DRONE_CUT_DROID )
@@ -823,6 +852,13 @@ class sdDrone extends sdEntity
 						this.SetTarget( potential_target );
 						this.PlayAIAlertedSound();
 					}
+					if ( Math.random() < 0.01 && !this._current_target ) // Still no target?
+					potential_target = this.GetRandomTarget(); // Use this method so it doesn't go idle
+					if ( potential_target )
+					{
+						this.SetTarget( potential_target );
+						this.PlayAIAlertedSound();
+					}
 					
 				}
 				/*if ( sdWorld.is_server )
@@ -1001,6 +1037,7 @@ class sdDrone extends sdEntity
 						{
 							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
+						
 					}
 
 					nears.sort((a,b)=>{
@@ -1288,7 +1325,7 @@ class sdDrone extends sdEntity
 												att_anim = true;
 												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#00c600' });
 												sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1, pitch:3.2 });
-												this._attack_timer = 75
+												this._attack_timer = 75;
 											}
 										}
 									}
@@ -1512,7 +1549,7 @@ class sdDrone extends sdEntity
 							if ( this.type === sdDrone.DRONE_COUNCIL ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
 								this._attack_timer = 60;
-								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine' ] );
+								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine', 'sdCouncilIncinerator' ] );
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
 								{
@@ -1547,11 +1584,20 @@ class sdDrone extends sdEntity
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
 									}
-									if ( entities[ i ].GetClass() === 'sdCouncilMachine' ) // Council portal machine?
+									if ( entities[ i ].GetClass() === 'sdCouncilMachine' ) // Council portal machine
 									{
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{
 											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ].hmax ); // In that case, repair the machine
+											att_anim = true;
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
+										}
+									}
+									if ( entities[ i ].GetClass() === 'sdCouncilIncinerator' ) // Council incinerator
+									{
+										if ( entities[ i ].hea < entities[ i ]._hmax && entities[ i ].hea > 0 ) // Does it need repairing? (And is it alive?)
+										{
+											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ]._hmax ); // In that case, repair it
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
@@ -1702,6 +1748,39 @@ class sdDrone extends sdEntity
 								sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y, volume:0.5, pitch:4 });
 							}
 							else
+							if ( this.type === sdDrone.DRONE_SD_BG ) // SD-BG drones
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+								bullet_obj._owner = this;
+
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								bullet_obj.x += bullet_obj.sx * 3;
+								bullet_obj.y += bullet_obj.sy * 3;
+
+								bullet_obj.sx *= 14 + Math.random() * 2;
+								bullet_obj.sy *= 14 + Math.random() * 2;
+
+								bullet_obj._damage = 13.5 * 2;
+								bullet_obj.color = '#ffaa00';
+
+
+								sdEntity.entities.push( bullet_obj );
+
+								this.attack_frame = 2;
+								this._burst_ammo--;
+								if ( this._burst_ammo > 0 )
+								this._attack_timer = this._burst_reload;
+								else
+								{
+									this._attack_timer = 60;
+									this._burst_ammo = this._burst_ammo_start;
+								}
+
+								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
+							}
+							else
 							if ( this.type === sdDrone.DRONE_CUT_DROID &&
 								 ( nears[ i ].ignore_line_of_sight || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 64 ) || ( this._current_target.is( sdCharacter ) && this._current_target.hook_relative_to === this ) )
 							{
@@ -1781,6 +1860,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Falkok Rail Drone" );
 			if ( this.type === sdDrone.DRONE_CUT_DROID )
 			sdEntity.Tooltip( ctx, "Cut droid" );
+			if ( this.type === sdDrone.DRONE_SD_BG )
+			sdEntity.Tooltip( ctx, "SD-BG Drone" );
 		}
 	}
 	Draw( ctx, attached )
@@ -1933,6 +2014,14 @@ class sdDrone extends sdEntity
 			}
 		}
 		
+		if ( this.type === sdDrone.DRONE_SD_BG )
+		{
+			image = sdDrone.img_drone_sd_bg;
+
+			width = 64;
+			height = 64;
+		}
+		
 		if ( this.death_anim === 0 )
 		{
 			if ( !sdShop.isDrawing )
@@ -1974,10 +2063,22 @@ class sdDrone extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
+	onRemoveAsFakeEntity()
+	{
+		let i = sdDrone.drones.indexOf( this );
+		if ( i !== -1 )
+		sdDrone.drones.splice( i, 1 );
+		
+	}
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.type !== sdDrone.DRONE_SARRONIAN_DETONATOR )
-		sdDrone.drones_tot--;
+		this.onRemoveAsFakeEntity();
+		
+		if ( this._is_minion_of )
+		{
+			this._is_minion_of._current_minions_count--;
+			//console.log( this._is_minion_of._current_minions_count );
+		}
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );

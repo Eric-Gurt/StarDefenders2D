@@ -781,9 +781,9 @@ class sdRenderer
 				for ( let i = 0; i < arr.length; i++ )
 				{
 					let e = arr[ i ];
-					if ( e._flag !== mark_flag_reference )
+					if ( e._flag2 !== mark_flag_reference )
 					{
-						e._flag = mark_flag_reference;
+						e._flag2 = mark_flag_reference;
 						visible_entities[ tot++ ] = e;
 					}
 				}
@@ -1175,7 +1175,7 @@ class sdRenderer
 						trace( e );
 					}*/
 
-					//e._flag = 0; // Visibility detection
+					//e._flag2 = 0; // Visibility detection
 					
 					/*if ( e.is( sdStatusEffect ) )
 					{
@@ -1201,7 +1201,7 @@ class sdRenderer
 							) 
 						)
 					{
-						e._flag = frame_flag_reference;
+						e._flag2 = frame_flag_reference;
 					}
 					else
 					if ( sdWorld.my_entity )
@@ -1230,7 +1230,7 @@ class sdRenderer
 
 							//if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
 							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, furthest_an + sdRenderer.visibility_falloff + max_dimension + 32 ) )
-							e._flag = frame_flag_reference;
+							e._flag2 = frame_flag_reference;
 						}
 						else
 						if (	e.is( sdEffect ) &&
@@ -1251,7 +1251,7 @@ class sdRenderer
 								let max_dimension = 0;
 
 								if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
-								e._flag = frame_flag_reference;
+								e._flag2 = frame_flag_reference;
 							}
 						}
 					}
@@ -1264,7 +1264,7 @@ class sdRenderer
 			{
 				const e = visible_entities[ i ];
 				
-				if ( e._flag === frame_flag_reference )
+				if ( e._flag2 === frame_flag_reference )
 				if ( e.DrawBG !== void_draw )
 				//if ( e.x + e._hitbox_x2 > min_x )
 				//if ( e.x + e._hitbox_x1 < max_x )
@@ -1317,7 +1317,7 @@ class sdRenderer
 			{
 				const e = visible_entities[ i ];
 				
-				if ( e._flag === frame_flag_reference )
+				if ( e._flag2 === frame_flag_reference )
 				if ( ( e.x + e._hitbox_x2 > min_x &&
 					   e.x + e._hitbox_x1 < max_x &&
 					   e.y + e._hitbox_y2 > min_y &&
@@ -1383,7 +1383,7 @@ class sdRenderer
 			{
 				const e = visible_entities[ i ];
 				
-				if ( e._flag === frame_flag_reference )
+				if ( e._flag2 === frame_flag_reference )
 				if ( e.DrawFG !== void_draw_fg )
 				{
 					ctx.camera_relative_world_scale = e.CameraDistanceScale3D( 1 );
@@ -1539,7 +1539,7 @@ class sdRenderer
 					{
 						if ( show_hud )
 						for ( var i = 0; i < visible_entities.length; i++ )
-						if ( visible_entities[ i ]._flag === frame_flag_reference )
+						if ( visible_entities[ i ]._flag2 === frame_flag_reference )
 						if ( visible_entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 						{
 							//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( visible_entities[ i ] );

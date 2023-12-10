@@ -712,8 +712,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 1000;
 			character_entity.matter_max = 1000;
 
-			character_entity.hea = 2500;
-			character_entity.hmax = 2500;
+			character_entity.hea = 3000;
+			character_entity.hmax = 3000;
 
 			character_entity._ai = { direction: ( Math.random() < 0.5 ) ? -1 : 1 };
 			character_entity._ai_level =  4; // AI Level
@@ -723,7 +723,7 @@ class sdFactionskin extends sdEntity
 			character_entity._ai_team = 10; // AI team 10 is for the time shifter
 			character_entity._matter_regeneration_multiplier = 50; // Their matter regenerates 50 times faster than normal, unupgraded players
 
-			character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES, charges_left: 2 }); // Give him the Time Shifter properties / status effect
+			character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES, charges_left: 3 }); // Give him the Time Shifter properties / status effect
 			// This is a bossfight.
 		}
 

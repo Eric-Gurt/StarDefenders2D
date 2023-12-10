@@ -10,6 +10,7 @@ import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCharacter from './sdCharacter.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 
 
 class sdBiter extends sdEntity
@@ -253,29 +254,31 @@ class sdBiter extends sdEntity
 		{
 			// No target
 			if ( sdWorld.is_server )
-			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
-				if ( sdWorld.sockets[ i ].character )
-				if ( sdWorld.sockets[ i ].character.hea > 0 )
-				if ( !sdWorld.sockets[ i ].character._is_being_removed )
-				if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
 				{
-					
-					let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
-					let dy = ( sdWorld.sockets[ i ].character.y + Math.random() * -500 - this.y );
-					
-					let di = sdWorld.Dist2D_Vector( dx, dy );
-
-					if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
-					if ( di > 1 )
+					if ( sdWorld.sockets[ i ].character )
+					if ( sdWorld.sockets[ i ].character.hea > 0 )
+					if ( !sdWorld.sockets[ i ].character._is_being_removed )
+					if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
 					{
-						this.sx += dx / di * 0.2;
-						this.sy += dy / di * 0.2;
+					
+						let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
+						let dy = ( sdWorld.sockets[ i ].character.y + Math.random() * 1000 - 500 - this.y );
+					
+						let di = sdWorld.Dist2D_Vector( dx, dy );
 
-						//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
-						//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
+						if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
+						if ( di > 1 )
+						{
+							this.sx += dx / di * 0.2;
+							this.sy += dy / di * 0.2;
+
+							//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
+							//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 						
-						break;
+							break;
+						}
 					}
 				}
 			}

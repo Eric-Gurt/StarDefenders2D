@@ -217,11 +217,18 @@ class sdSpider extends sdEntity
 
 			let random_value = Math.random();
 
-			if ( random_value < 0.1 * luck_scale )
+			if ( random_value < 0.15 * luck_scale )
 			{
 				let gun;
+				
+				let gun_class = sdGun.CLASS_ERTHAL_PLASMA_PISTOL;
+				if ( random_value < ( 0.15 * luck_scale * 0.25 ) )
+				gun_class = sdGun.CLASS_ERTHAL_ENERGY_CELL;
+				else
+				if ( random_value < ( 0.15 * luck_scale * 0.6 ) )
+				gun_class = sdGun.CLASS_ERTHAL_BURST_RIFLE;
 
-				gun = new sdGun({ x:x, y:y, class: ( random_value < 0.1 * luck_scale * 0.25 ) ? sdGun.CLASS_ERTHAL_BURST_RIFLE : sdGun.CLASS_ERTHAL_PLASMA_PISTOL });
+				gun = new sdGun({ x:x, y:y, class: gun_class });
 
 				gun.sx = sx;
 				gun.sy = sy;

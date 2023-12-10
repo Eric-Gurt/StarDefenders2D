@@ -19,6 +19,7 @@ import sdArea from './sdArea.js';
 import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
 import sdWeaponBench from './sdWeaponBench.js';
+import sdWeaponMerger from './sdWeaponMerger.js';
 import sdStatusEffect from './sdStatusEffect.js';
 
 import sdGunClass from './sdGunClass.js';
@@ -423,6 +424,11 @@ class sdGun extends sdEntity
 		this._sound_pitch = 1;
 		this._hea = 50;
 		
+		this._max_dps = 1; // Should be decided when class parameters are given. Usually it should be 30 / reload time * gun.extra[ ID_DAMAGE_MULT ].
+		// However in some cases like charge up weapons it can't be decided like that so manual override works too.
+		// Will be used for weapon merger, which will equalize one gun's DPS with other. Only same slot guns though. Probably no slots 8 because I think slot 8 guns are a mess - Booraz149
+		
+		
 		this._unblocked_for_drones = false; // Only to prevent bug that is making server restart drop all guns of all players
 		
 		this.title_censored = 0;
@@ -458,8 +464,30 @@ class sdGun extends sdEntity
 			has_class.onMade( this, params ); // Should not make new entities, assume gun might be instantly removed once made
 		
 			this.fire_mode = has_class.fire_type || 1; // Adjust fire mode for the weapon
+			
+			if ( this._max_dps === 1 && this.extra[ 17 ] ) // If not overridden by has_class.onMade and it has a damage value
+			{
+				if ( !sdGun.classes[ this.class ].burst )
+				this._max_dps = ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
+				else // Burst fire gun scenario
+				this._max_dps = ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
+				
+				if ( this._max_dps === Infinity )
+				{
+					console.warn( 'Error! ' + sdGun.classes[ this.class ].title + ' does not have max DPS defined properly!' );
+					debugger;
+					
+					this._max_dps = 1; // Prevent future bugged infinity damage guns
+				}
+			
+				// Should be the correct formulas.
+				
+				// WARNING - for special cases like charge weapons and explosive weapons, we should probably test how much damage does a single shot of the weapon deal then probably divide with minimum time between shots.
+				// You have to override _max_dps inside that class inside onMade:(gun, params)
+			}
+			//console.log( sdGun.classes[ this.class ].title + ": " + this._max_dps );
 		}
-		
+
 		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	
@@ -484,7 +512,7 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
-			if ( this._held_by.is( sdWeaponBench ) )
+			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) )
 			return true;
 			else
 			if ( this._held_by.is( sdStorage ) )
@@ -531,7 +559,10 @@ class sdGun extends sdEntity
 	ReloadStart() // Can happen multiple times
 	{
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
+		if ( this._max_dps < 300 )
 		this._held_by.reload_anim = 15;
+		else
+		this._held_by.reload_anim = 30; // Slow down reload on high DPS weapons
 	}
 	ChangeFireModeStart() // Can happen multiple times
 	{
@@ -1219,8 +1250,8 @@ class sdGun extends sdEntity
 					let is_stimmed = false;
 					if ( ( sdGun.classes[ this.class ].is_sword || ( this.class === sdGun.CLASS_SHOVEL || this.class === sdGun.CLASS_SHOVEL_MK2 ) )  && this._held_by ) // Swords and shovels get the benefit of the stimpack
 						{
-						if ( this.class !== sdGun.CLASS_TELEPORT_SWORD && this.class !== sdGun.CLASS_CUBE_SPEAR ) // These two would be overpowered with stim effect.
-						{
+							if ( this.class !== sdGun.CLASS_TELEPORT_SWORD && this.class !== sdGun.CLASS_CUBE_SPEAR && this.class !== sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR ) // These two would be overpowered with stim effect.
+							{
 							let effects = sdStatusEffect.entity_to_status_effects.get( this._held_by );
 							if ( effects !== undefined )
 							for ( let i = 0; i < effects.length; i++ )
@@ -1341,14 +1372,14 @@ class sdGun extends sdEntity
 	}
 	UpdateHeldPosition()
 	{
-		if ( !this.extra ) // Is the gun missing damage upgrade properties for weapon bench?
+		/*if ( !this.extra ) // Is the gun missing damage upgrade properties for weapon bench?
 		{
 			if ( sdGun.classes[ this.class].onMade )
 			if ( sdGun.classes[ this.class].upgrades )
 			{
-				/*let upgradeString = sdGun.classes[ this.class ].upgrades.toString(); // Convert to string so we can see if gun has new damage upgrade stuff
-				let has_upgrades = ( upgradeString.indexOf( 'AddGunDefaultUpgrades' ) !== -1 )
-				if ( has_upgrades )*/
+				//let upgradeString = sdGun.classes[ this.class ].upgrades.toString(); // Convert to string so we can see if gun has new damage upgrade stuff
+				//let has_upgrades = ( upgradeString.indexOf( 'AddGunDefaultUpgrades' ) !== -1 )
+				//if ( has_upgrades )
 				// I tried checking if it has the new upgrade function but I don't know what I am doing wrong. Can someone help / tell me? - Booraz149
 				// Current iteration below seems to work without issues, however I think it would be ideal if it could check if "upgrades" section of gun class has explicitly "AddGunDefaultUpgrades"
 				{
@@ -1358,7 +1389,7 @@ class sdGun extends sdEntity
 					return;
 				}
 			}
-		}
+		}*/
 		if ( this._held_by ) // Should not happen but just in case
 		{
 			let old_x = this.x;
@@ -1729,6 +1760,14 @@ class sdGun extends sdEntity
 				{
 					if ( xx === 0 )
 					{
+						if ( this.extra[ 16 ] ) // Custom projectile color
+						{
+							ctx.sd_tint_filter = sdWorld.hexToRgb( this.extra[ 16 ] ); // Override projectile color if defined as custom
+							ctx.sd_tint_filter[ 0 ] /= 255;
+							ctx.sd_tint_filter[ 1 ] /= 255;
+							ctx.sd_tint_filter[ 2 ] /= 255;
+						}
+						else
 						if ( sdGun.classes[ this.class ].projectile_properties &&
 							 sdGun.classes[ this.class ].projectile_properties.color )
 						{

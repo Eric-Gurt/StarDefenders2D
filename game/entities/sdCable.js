@@ -71,7 +71,9 @@ class sdCable extends sdEntity
 			'sdStorageTank',
 			'sdEssenceExtractor',
 			'sdSteeringWheel',
-			'sdManualTurret'
+			'sdManualTurret',
+			'sdWeaponMerger',
+			'sdLiquidAbsorber'
 		];
 		
 		sdCable.empty_array = [];

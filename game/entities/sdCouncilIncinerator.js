@@ -13,33 +13,33 @@ import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
 import sdDrone from './sdDrone.js';
-import sdGib from './sdGib.js';
+import sdJunk from './sdJunk.js';
 import sdEnemyMech from './sdEnemyMech.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
-class sdSetrDestroyer extends sdEntity
+class sdCouncilIncinerator extends sdEntity
 {
 	static init_class()
 	{
-		sdSetrDestroyer.img_destroyer = sdWorld.CreateImageFromFile( 'sdSetrDestroyer' );
+		sdCouncilIncinerator.img_incinerator = sdWorld.CreateImageFromFile( 'sdCouncilIncinerator' );
 
-		sdSetrDestroyer.img_destroyer_drone = sdWorld.CreateImageFromFile( 'setr_drone' );
-		sdSetrDestroyer.img_destroyer_drone_broken = sdWorld.CreateImageFromFile( 'setr_drone_destroyed' );
 		
-		sdSetrDestroyer.destroyer_counter = 0;
+		sdCouncilIncinerator.incinerator_counter = 0;
 		
-		sdSetrDestroyer.death_duration = 30;
-		sdSetrDestroyer.post_death_ttl = 120;
+		sdCouncilIncinerator.death_duration = 30;
+		sdCouncilIncinerator.post_death_ttl = 120;
 		
-		sdSetrDestroyer.attack_range = 425;
+		sdCouncilIncinerator.attack_range = 425;
 		
-		sdSetrDestroyer.reusable_vision_blocking_entities_array = [ this.name ];
+		sdCouncilIncinerator.reusable_vision_blocking_entities_array = [ this.name ];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.hea > 0 ? -44 : -22; }
-	get hitbox_x2() { return this.hea > 0 ? 44 : 22; }
-	get hitbox_y1() { return -24; }
-	get hitbox_y2() { return 24; }
+	get hitbox_x1() { return -23; }
+	get hitbox_x2() { return 23; }
+	get hitbox_y1() { return -23; }
+	get hitbox_y2() { return 23; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -53,11 +53,16 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 15000;
+		this._hmax = 18000;
 		this.hea = this._hmax;
 
-		this._ai_team = 7;
+		this._ai_team = 3;
 		this.tilt = 0;
+		
+		
+		this.left_attack_anim = 0; // Left "turret" attack visual
+		this.right_attack_anim = 0; // Right "turret" attack visual
+		this.incinerator_attack_anim = 0; // Incinerate attack visual
 		
 		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
 		
@@ -71,17 +76,19 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._move_dir_timer = 0;
 		
-		this._attack_timer = 0;
-		this._rocket_attack_timer = 0;
-		this._projectile_attack_timer = 0; // 2nd phase attack timer
+		this._attack_timer = 0; // For target scan
+		
+		this._left_attack_timer = 0;
+		this._right_attack_timer = 0;
+		this._incinerate_attack_timer = 30 * 30;
+		this._next_drone_spawn = 90; // Drones will stay near the incinerator and repair it
+		this._current_minions_count = 0; // Minion counter
+		
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
 		//this._bullets = 150;
-		this._rockets = 6;
 		// For homing
-		this.look_x = 0;
-		this.look_y = 0;
-		this.side = 1;
+
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
@@ -90,10 +97,11 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._last_damage = 0; // Sound flood prevention
 		
-		sdSetrDestroyer.destroyer_counter++;
+		sdCouncilIncinerator.incinerator_counter++;
 		
 		
 		this._last_seen_player = 0;
+		
 
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -103,7 +111,7 @@ class sdSetrDestroyer extends sdEntity
 		if ( character.hea > 0 )
 		{
 			if ( this._last_seen_player < sdWorld.time - 1000 * 60 * 5 ) // Once per 5 minutes
-			sdSound.PlaySound({ name:'enemy_mech_alert', x:this.x, y:this.y, volume:1.5, pitch:2 });
+			sdSound.PlaySound({ name:'enemy_mech_alert', x:this.x, y:this.y, volume:1.5, pitch:4 });
 		
 			this._last_seen_player = sdWorld.time;
 		}
@@ -116,81 +124,6 @@ class sdSetrDestroyer extends sdEntity
 	{
 		return this.filter;
 	}*/
-	FireDirectionalProjectiles( diagonal = ( this.hea % 2000 < 1000 ) ? true: false ) // Fire 4 projectiles, up, left, down and right or diagonally, depends on parameter
-	{
-		if ( !sdWorld.is_server )
-		return;
-
-		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj1._owner = this;
-					bullet_obj1.sx = -1;
-					bullet_obj1.sy = diagonal ? -1 : 0;
-					//bullet_obj1.x += bullet_obj1.sx * 5;
-					//bullet_obj1.y += bullet_obj1.sy * 5;
-
-					bullet_obj1.sx *= 11;
-					bullet_obj1.sy *= 11;
-
-					bullet_obj1.explosion_radius = 10; 
-					bullet_obj1.model = 'ball';
-					bullet_obj1._damage= 5;
-					bullet_obj1.color ='#0000c8';
-					bullet_obj1._dirt_mult = 1;
-
-					sdEntity.entities.push( bullet_obj1 );
-
-		let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj2._owner = this;
-					bullet_obj2.sx = diagonal ? -1 : 0;
-					bullet_obj2.sy = 1;
-					//bullet_obj2.x += bullet_obj2.sx * 5;
-					//bullet_obj2.y += bullet_obj2.sy * 5;
-
-					bullet_obj2.sx *= 11;
-					bullet_obj2.sy *= 11;
-
-					bullet_obj2.explosion_radius = 10; 
-					bullet_obj2.model = 'ball';
-					bullet_obj2._damage= 5;
-					bullet_obj2.color ='#0000c8';
-					bullet_obj2._dirt_mult = 1;
-					sdEntity.entities.push( bullet_obj2 );
-
-		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj3._owner = this;
-					bullet_obj3.sx = 1;
-					bullet_obj3.sy = diagonal ? -1 : 0;
-					//bullet_obj3.x += bullet_obj3.sx * 5;
-					//bullet_obj3.y += bullet_obj3.sy * 5;
-
-					bullet_obj3.sx *= 11;
-					bullet_obj3.sy *= 11;
-
-					bullet_obj3.explosion_radius = 10; 
-					bullet_obj3.model = 'ball';
-					bullet_obj3._damage= 5;
-					bullet_obj3.color ='#0000c8';
-					bullet_obj3._dirt_mult = 1;
-
-					sdEntity.entities.push( bullet_obj3 );
-
-		let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj4._owner = this;
-					bullet_obj4.sx = diagonal ? 1 : 0;
-					bullet_obj4.sy = -1;
-					//bullet_obj4.x += bullet_obj4.sx * 5;
-					//bullet_obj4.y += bullet_obj4.sy * 5;
-
-					bullet_obj4.sx *= 11;
-					bullet_obj4.sy *= 11;
-
-					bullet_obj4.explosion_radius = 10; 
-					bullet_obj4.model = 'ball';
-					bullet_obj4._damage= 5;
-					bullet_obj4.color ='#0000c8';
-					bullet_obj4._dirt_mult = 1;
-					sdEntity.entities.push( bullet_obj4 );
-	}
 	CanAttackEnt( ent )
 	{
 		if ( ent.GetClass() !== 'sdCharacter' )
@@ -205,14 +138,14 @@ class sdSetrDestroyer extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level >= 10  )
+			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level >= 15  )
 			return true;
 			else
 			{
-				if ( ( ( ent.build_tool_level >= 10 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
+				if ( ( ( ent.build_tool_level >= 15 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
 				{
-					this._current_target = ent; // Don't stop targetting if the player has below 800 matter mid fight
-					return true; // Only players have mercy from mechs
+					this._current_target = ent;
+					return true; // Only players have mercy from incinerators
 				}
 			}
 		}
@@ -227,7 +160,7 @@ class sdSetrDestroyer extends sdEntity
 		/*let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 		let y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 		
-		let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
+		let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdCouncilIncinerator', 'sdOverlord', 'sdSpider' ] );
 		for ( let i = 0; i < targets_raw.length; i++ )
 		{
 			i = Math.round( Math.random() * targets_raw.length ); // Randomize it
@@ -237,7 +170,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
-		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 )
+		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 || e.is( sdBaseShieldingUnit ) ) // It should also attack bases
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )
 		{
@@ -245,6 +178,77 @@ class sdSetrDestroyer extends sdEntity
 		}
 		
 		return null;
+	}
+	IsEnemy( target )
+	{
+		if ( target.GetClass() !== 'sdCharacter' && target.GetClass() !== 'sdDrone' &&
+		target.GetClass() !== 'sdJunk' && target.GetClass() !== 'sdSandWorm' &&
+		target.GetClass() !== 'sdCouncilMachine' && target.GetClass() !== 'sdCouncilIncinerator' )
+		return true;
+		else
+		{
+			if ( target.GetClass() === 'sdCharacter' || target.GetClass() === 'sdDrone' )
+			if ( target._ai_team !== this._ai_team )
+			return true;
+			if ( target.GetClass() === 'sdSandWorm' ) // TODO : add AI team to council worm without breaking regular worms
+			return true;
+		
+			if ( target.GetClass() === 'sdJunk' )
+			if ( target.type !== sdJunk.TYPE_COUNCIL_BOMB )
+			return true;
+		}
+		
+		return false;
+	}
+	IncinerationAttack(){
+		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 192 );
+	
+		if ( attack_entities.length > 0 )
+		for ( let i = 0; i < attack_entities.length; i++ )
+		{
+			let e = attack_entities[ i ];
+			if ( !e._is_being_removed )
+			{
+				if ( e.IsTargetable( this ) && this.IsEnemy( e ) ) // Don't set other council stuff on fire
+				{
+					{
+						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this ) )
+						{
+							if ( sdWorld.last_hit_entity )
+							{
+								if ( e === sdWorld.last_hit_entity ) 
+								{
+									let temp = 300;
+									
+									if ( typeof e.hea !== 'undefined' )
+									temp = e.hea * 25; // Scale temperature with health
+									if ( typeof e._hea !== 'undefined' )
+									temp = e._hea * 25; // Scale temperature with health
+								
+									e.DamageWithEffect( 10, this );
+									e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:temp, initiator: this }); // Set enemy on fire
+									sdWorld.SendEffect({ x:this.x, y:this.y, x2:e.x, y2:e.y , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
+									//this.incinerator_attack_anim = 30;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		sdWorld.SendEffect({ 
+			x:this.x, 
+			y:this.y, 
+			radius: 16, 
+			damage_scale: 0,
+			type:sdEffect.TYPE_EXPLOSION,
+			armor_penetration_level: 0,
+			owner:this,
+			color:'#ff0000'
+		});
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -259,7 +263,7 @@ class sdSetrDestroyer extends sdEntity
 			if ( initiator._ai_team === 0 ) // Only target players
 			this._current_target = initiator;
 
-			if ( initiator.GetClass() !== 'sdSetrDestroyer' )
+			if ( initiator.GetClass() !== 'sdCouncilIncinerator' )
 			this._follow_target = initiator;
 		}
 
@@ -273,7 +277,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
+			/*if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
 
@@ -293,13 +297,13 @@ class sdSetrDestroyer extends sdEntity
 				sdEntity.entities.push( drone );
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
-			}
+			}*/
 			
 			
 			if ( sdWorld.time > this._last_damage + 50 )
 			{
 				this._last_damage = sdWorld.time;
-				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:Math.min( 1, dmg / 200 ) });
 			}
 			
 			//if ( this.hea <= 400 )
@@ -310,24 +314,19 @@ class sdSetrDestroyer extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{	
-			sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 , pitch:2 });
+			//sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 , pitch:2 });
 			
 			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 			//this.death_anim = 1;
 			
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
-
-			sdWorld.SpawnGib( this.x - 30, this.y + 11, this.sx  - Math.random() * 1, this.sy + Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 0 );
-			sdWorld.SpawnGib( this.x - 30, this.y - 11, this.sx  - Math.random() * 1, this.sy - Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 1 );
-			sdWorld.SpawnGib( this.x + 30, this.y + 11, this.sx  + Math.random() * 1, this.sy + Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 2 );
-			sdWorld.SpawnGib( this.x + 30, this.y - 11, this.sx  + Math.random() * 1, this.sy - Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 3 );
 		
 			let that = this;
-			for ( var i = 0; i < 20; i++ )
+			for ( var i = 0; i < 3; i++ )
 			{
 				let an = Math.random() * Math.PI * 2;
-				let d = ( i === 0 ) ? 0 : Math.random() * 20;
-				let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
+				let d = ( i === 0 ) ? 0 : Math.random() * 3;
+				let r = ( i === 0 ) ? 30 : ( 5 + Math.random() * 3 );
 
 				setTimeout( ()=>
 				{
@@ -364,7 +363,7 @@ class sdSetrDestroyer extends sdEntity
 		//this.remove();
 	}
 	
-	get mass() { return 400; }
+	get mass() { return 200; }
 	Impulse( x, y )
 	{
 		this.sx += x / ( this.mass );
@@ -383,7 +382,7 @@ class sdSetrDestroyer extends sdEntity
 		if ( this.hea <= 0 )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
-			this.tilt = sdWorld.MorphWithTimeScale( this.tilt, 0, 0.93, GSPEED );
+			this.tilt += ( this.sx / 3 );
 			if ( sdWorld.is_server )
 			{
 				if ( this.hea <= 0 )
@@ -392,9 +391,9 @@ class sdSetrDestroyer extends sdEntity
 				if ( this._time_until_full_remove <= 0 )
 				{
 					let r = Math.random();
-					let shards = 2 + Math.round( Math.random() * 3);
+					let shards = 2 + Math.round( Math.random() * 3 );
 			
-					if ( r < 0.35 )
+					if ( r < 0.075 ) // 7.5% chance
 					{
 						let x = this.x;
 						let y = this.y;
@@ -411,10 +410,7 @@ class sdSetrDestroyer extends sdEntity
 							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							//else
 							{
-								if ( random_value > 0.80 )
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_SETR_ROCKET });
-								else
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN });
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 							}
 
 							gun.sx = sx;
@@ -465,6 +461,43 @@ class sdSetrDestroyer extends sdEntity
 				
 					//this._follow_target = this.GetRandomEntityNearby();
 				}
+				
+				if ( this._next_drone_spawn > 0 )
+				this._next_drone_spawn -= GSPEED;
+				else
+				if ( this._current_minions_count < 3 )
+				{	
+					this._next_drone_spawn = 300 + ( Math.random() * 150 ); // 10 - 15 seconds
+					
+					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: sdDrone.DRONE_COUNCIL, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+					sdEntity.entities.push( drone );
+
+					// Make sure drone has any speed when deployed so drones don't get stuck into each other
+					if ( Math.abs( drone.sx ) < 0.5 )
+					drone.sx *= -0.1;
+					if ( Math.abs( drone.sy ) < 0.5 )
+					drone.sy *= 0.1;
+
+					//drone._ignore_collisions_with = this; // Make sure it can pass through the immolator
+
+
+					if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, sdCom.com_visibility_ignored_classes, null ) )
+					{
+						sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
+						sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(170deg)' });
+
+						sdWorld.UpdateHashPosition( drone, false );
+						//this._current_minions_count++; // Bad - increase minion count from sdDrone instead
+						drone.SetTarget( this ); // Make sure drones stay near the immolator
+					}
+					else
+					{
+						drone.remove(); // Otherwise they get stuck in walls or spawn through walls
+						drone._broken = false;
+					}
+				}
+				
+				
 
 				if ( this._regen_timeout <= 0 )
 				if ( this.hea < this._hmax ) 
@@ -519,16 +552,12 @@ class sdSetrDestroyer extends sdEntity
 						// Get closer
 						let an_desired = Math.atan2( closest.y - this.y, closest.x - this.x ) - 0.5 + Math.random();
 
-						if ( this.x > closest.x )
-						this.side = 1;
-						else
-						this.side = -1;
 
 						this._move_dir_x = Math.cos( an_desired );
 						this._move_dir_y = Math.sin( an_desired );
 						this._move_dir_speed_scale = 10;
 						
-						if ( closest_di_real < sdSetrDestroyer.attack_range ) // close enough to dodge obstacles
+						if ( closest_di_real < sdCouncilIncinerator.attack_range ) // close enough to dodge obstacles
 						{
 							let an = Math.random() * Math.PI * 2;
 
@@ -538,7 +567,7 @@ class sdSetrDestroyer extends sdEntity
 
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
-								for ( let ideas = Math.max( 5, 40 / sdSetrDestroyer.destroyer_counter ); ideas > 0; ideas-- )
+								for ( let ideas = Math.max( 5, 40 / sdCouncilIncinerator.incinerator_counter ); ideas > 0; ideas-- )
 								{
 									var a1 = Math.random() * Math.PI * 2;
 									var r1 = Math.random() * 200;
@@ -623,7 +652,6 @@ class sdSetrDestroyer extends sdEntity
 				
 				this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 				this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
-				this.tilt = sdWorld.MorphWithTimeScale( this.tilt, this._move_dir_x * this._move_dir_speed_scale * 2, 0.93, GSPEED );
 			}
 			else
 			{
@@ -633,104 +661,155 @@ class sdSetrDestroyer extends sdEntity
 			
 			if ( sdWorld.is_server )
 			{
+				
+				this.tilt += GSPEED;
+				
+				if ( this._incinerate_attack_timer <= 0 )
+				{
+					this.incinerator_attack_anim = 90; //
+					this._incinerate_attack_timer = 30 * 30; // 30 seconds
+					sdSound.PlaySound({ name:'crystal_combiner_start', x:this.x, y:this.y, volume:2, pitch:2 });
+				}
+				else
+				this._incinerate_attack_timer -= GSPEED;
+			
+				if ( this.incinerator_attack_anim > 0 )
+				{
+					this.incinerator_attack_anim = Math.max( 0, this.incinerator_attack_anim - GSPEED );
+					if ( this.incinerator_attack_anim <= 30 && ( ( Math.round( this.incinerator_attack_anim % 10 ) === 1 ) ) ) // Should happen 3 times, at 21, 11 and 1
+					this.IncinerationAttack();
+				}
+				else
+				if ( this.incinerator_attack_anim > 0 )
+				this.incinerator_attack_anim -= GSPEED;
+			
+				// Move around
+				{
+					let an_desired;
+					if ( this._move_dir_timer <= 0 )
+					//if ( !this._follow_target )
+					{
+						an_desired = Math.random() * Math.PI * 2;
+						this._move_dir_x = Math.cos( an_desired );
+						this._move_dir_y = Math.sin( an_desired );
+						this._move_dir_speed_scale = 4;
+						
+						this._move_dir_timer = 10 + ( Math.random() * 20 );
+					}
+
+					let v = 0.1;
+				
+					this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
+					this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
+				}
+			
+				
+				if ( this.tilt > 3600 )
+				this.tilt -= 3600;
 				if ( this._attack_timer <= 0 )
 				{
 					this._attack_timer = 3;
-					if ( this._projectile_attack_timer <= 0 )
-					{
-						if ( this.hea < ( this._hmax / 2 ) )
-						{
-							this.FireDirectionalProjectiles();
-							this._projectile_attack_timer = 4.5;
-						}
-					}
-					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
-					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					/*let array_of_enemies = sdCom.com_faction_attack_classes;
-					array_of_enemies.push( 'sdCube' ); No
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdSetrDestroyer.attack_range, null, array_of_enemies );
 
-					let targets = [];
+				
 
-					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( array_of_enemies.indexOf( targets_raw[ i ].GetClass() ) !== -1 )
-					{
-						if ( this.CanAttackEnt( targets_raw[ i ] ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdSetrDestroyer' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
-							targets.push( targets_raw[ i ] );
-						else
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdSetrDestroyer' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) ) // Target shield blocks and trap blocks aswell
-						targets.push( sdWorld.last_hit_entity );
-						else
-						{
-							if ( this.hea < ( this._hmax / 3 ) )
-							if ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== this._ai_team && this.CanAttackEnt( targets_raw[ i ] ) ) // Highly wanted by sdSetrDestroyers in this case
-							{
-								targets.push( targets_raw[ i ] );
-							}
-						}
-					}
-
-					sdWorld.shuffleArray( targets );*/
+					//sdWorld.shuffleArray( targets );
 					
-					let targets = sdEnemyMech.BossLikeTargetScan( this, sdSetrDestroyer.attack_range, sdSetrDestroyer.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array );
+					let targets = sdEnemyMech.BossLikeTargetScan( this, sdCouncilIncinerator.attack_range, sdCouncilIncinerator.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array );
 
-					if ( this._rocket_attack_timer <= 0 )
-					//if ( this.hea < ( this._hmax / 2 ) ) // Second phase of the mech, rocket launcher can fire now
+					sdWorld.shuffleArray( targets );
+					
+					if ( this._left_attack_timer <= 0 )
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						this._follow_target = targets[ i ];
 
 
-						if ( this._alert_intensity < 45 )// Delay attack
+						if ( this._alert_intensity < 25 )// Delay attack
 						break;
 
-						this._rocket_attack_timer = 6;
-
-						
-						
-						let dx = ( targets[ i ].sx || 0 );
-						let dy = ( targets[ i ].sy || 0 );
-
-						let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
-
-						this.look_x = targets[ i ].x + ( dx * 3 );
-						this.look_y = targets[ i ].y + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-						bullet_obj._owner = this;
-						bullet_obj.sx = Math.cos( an );
-						bullet_obj.sy = Math.sin( an );
-						//bullet_obj.x += bullet_obj.sx * 5;
-						//bullet_obj.y += bullet_obj.sy * 5;
-
-						bullet_obj.sx *= 15;
-						bullet_obj.sy *= 15;
-					
-						bullet_obj.model = 'rocket_proj';
-
-						bullet_obj._damage = 10 * 2;
-						bullet_obj.explosion_radius = 10 * 1.5;
-						bullet_obj.color = '#7acaff';
-						bullet_obj._homing = true;
-						bullet_obj._homing_mult = 0.04;
-						bullet_obj.ac = 0.12;
-
-						sdEntity.entities.push( bullet_obj );
-
-						this._rockets--;
-
-						if ( this._rockets <= 0 )
+						if ( sdWorld.CheckLineOfSight( this.x - 20, this.y, targets[ i ].x, targets[ i ].y, sdCouncilIncinerator.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array ) ) // Can attack from left side?
 						{
-							this._rockets = 6;
-							this._rocket_attack_timer = 30;
+
+							this._left_attack_timer = 10;
+						
+							this.left_attack_anim = 6;
+
+						
+						
+							let dx = ( targets[ i ].sx || 0 );
+							let dy = ( targets[ i ].sy || 0 );
+
+							let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - ( this.x - 20 )  - dx * 3 );
+
+							let bullet_obj = new sdBullet({ x: this.x - 20, y: this.y });
+							bullet_obj._owner = this;
+							bullet_obj.sx = Math.cos( an );
+							bullet_obj.sy = Math.sin( an );
+							//bullet_obj.x += bullet_obj.sx * 5;
+							//bullet_obj.y += bullet_obj.sy * 5;
+
+							bullet_obj.sx *= 24;
+							bullet_obj.sy *= 24;
+					
+
+							bullet_obj._damage = 30;
+							bullet_obj.color = 'ffff00';
+
+							sdEntity.entities.push( bullet_obj );
+
+
+							//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:2, pitch: 1.5 });
+
+							break;
 						}
+					}
+					
+					if ( this._right_attack_timer <= 0 )
+					for ( let i = 0; i < targets.length; i++ )
+					{
+						this._follow_target = targets[ i ];
 
-						//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
-						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
+						if ( this._alert_intensity < 25 )// Delay attack
 						break;
+						
+						if ( sdWorld.CheckLineOfSight( this.x + 20, this.y, targets[ i ].x, targets[ i ].y, sdCouncilIncinerator.reusable_vision_blocking_entities_array, sdEnemyMech.reusable_vision_block_ignored_entities_array ) ) // Can attack from right side?
+						{
+
+							this._right_attack_timer = 10;
+						
+							this.right_attack_anim = 6;
+
+						
+						
+							let dx = ( targets[ i ].sx || 0 );
+							let dy = ( targets[ i ].sy || 0 );
+
+							let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - ( this.x + 20 )  - dx * 3 );
+
+							let bullet_obj = new sdBullet({ x: this.x + 20, y: this.y });
+							bullet_obj._owner = this;
+							bullet_obj.sx = Math.cos( an );
+							bullet_obj.sy = Math.sin( an );
+							//bullet_obj.x += bullet_obj.sx * 5;
+							//bullet_obj.y += bullet_obj.sy * 5;
+
+							bullet_obj.sx *= 24;
+							bullet_obj.sy *= 24;
+					
+
+							bullet_obj._damage = 30;
+							bullet_obj.color = 'ffff00';
+
+							sdEntity.entities.push( bullet_obj );
+
+
+							//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:2, pitch: 1.5 });
+
+							break;
+						}
 					}
 
 					if ( targets.length === 0 ) // lower seek rate when no targets around
@@ -747,28 +826,12 @@ class sdSetrDestroyer extends sdEntity
 				else
 				{
 					this._attack_timer -= GSPEED;
-					if ( this._rocket_attack_timer > 0)
-					this._rocket_attack_timer -= GSPEED;
-					if ( this._projectile_attack_timer > 0)
-					this._projectile_attack_timer -= GSPEED;
-
+					this._left_attack_timer -= GSPEED;
+					this.left_attack_anim -= GSPEED;
+					
+					this._right_attack_timer -= GSPEED;
+					this.right_attack_anim -= GSPEED;
 					//if ( this.hea < this._hmax / 2 )
-					{
-						let an_desired;
-						if ( this._move_dir_timer <= 0 )
-						if ( !this._follow_target )
-						{
-							an_desired = Math.random() * Math.PI * 2;
-							this._move_dir_x = Math.cos( an_desired );
-							this._move_dir_y = Math.sin( an_desired );
-							this._move_dir_speed_scale = 10;
-						}
-
-						let v = 0.035;
-				
-						this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
-						this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
-					}
 				}
 			}
 		
@@ -794,17 +857,44 @@ class sdSetrDestroyer extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Setr Destroyer", 0, -30 );
+		sdEntity.Tooltip( ctx, "Council Incinerator", 0, -30 );
 		
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )
 	{
 	
+		let xx = this.hea > 0 ? 4 : 6;
 		ctx.rotate( this.tilt / 100 );
-		let xx = this.hea <= 0;
-		ctx.drawImageFilterCache( sdSetrDestroyer.img_destroyer, xx * 96, 0, 96, 64, - 48, - 32, 96, 64);
+		ctx.drawImageFilterCache( sdCouncilIncinerator.img_incinerator, xx * 48, 0, 48, 48, - 24, - 24, 48, 48);
+		
+		ctx.rotate( - this.tilt / 100 );
+		xx = this.hea > 0 ? 0 : 5;
+		ctx.drawImageFilterCache( sdCouncilIncinerator.img_incinerator, xx * 48, 0, 48, 48, - 24, - 24, 48, 48 );
+		
+		if ( this.hea > 0 )
+		{
+			if ( this.left_attack_anim > 0 )
+			{
+				xx = 1;
+				ctx.drawImageFilterCache( sdCouncilIncinerator.img_incinerator, xx * 48, 0, 48, 48, - 24, - 24, 48, 48 );
+			}
+	
+			if ( this.right_attack_anim > 0 )
+			{
+				xx = 2;
+				ctx.drawImageFilterCache( sdCouncilIncinerator.img_incinerator, xx * 48, 0, 48, 48, - 24, - 24, 48, 48 );
+			}
+		
+			if ( this.incinerator_attack_anim > 0 )
+			{
+				xx = 3;
+				ctx.drawImageFilterCache( sdCouncilIncinerator.img_incinerator, xx * 48, 0, 48, 48, - 24, - 24, 48, 48 );
+			}
+		}
 
+		
+		
 		ctx.filter = 'none';
 		ctx.globalAlpha = 1;
 		ctx.sd_filter = null;
@@ -815,7 +905,7 @@ class sdSetrDestroyer extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		sdSetrDestroyer.destroyer_counter--;
+		sdCouncilIncinerator.incinerator_counter--;
 		
 		if ( this._broken )
 		{
@@ -832,6 +922,6 @@ class sdSetrDestroyer extends sdEntity
 		return 0; // Hack
 	}
 }
-//sdSetrDestroyer.init_class();
+//sdCouncilIncinerator.init_class();
 
-export default sdSetrDestroyer;
+export default sdCouncilIncinerator;

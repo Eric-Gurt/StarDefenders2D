@@ -106,7 +106,8 @@ class sdServerConfigFull extends sdServerConfigShort
 		return false;
 	}
 	
-	static base_degradation = true; // False will disable roach attacks, BSU value decrease, crystal matter regeneration rate decrease, flesh corruption removing protection off blocks
+	static base_degradation = true; // False will disable roach attacks, BSU value decrease, flesh corruption removing protection off blocks
+	static crystal_matter_regen_decrease = true; // False will disable crystal matter regeneration rate decrease
 	
 	static base_shielding_units_passive_drain_per_week_green = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	static base_shielding_units_passive_drain_per_week_blue = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
@@ -1655,6 +1656,8 @@ class sdServerConfigFull extends sdServerConfigShort
 							{
 								console.log('Snapshot saved to final file (skipped TEMP file due to singleplayer mode).');
 								
+								globalThis.fs.SDScheduleSave();
+								
 								Report( false );
 								snapshot_save_busy = false;
 							}
@@ -1760,8 +1763,8 @@ class sdServerConfigFull extends sdServerConfigShort
 			const proceed = ( err )=>{
 				
 				// Make singleplayer save instantly
-				if ( fs.SDFlush )
-				fs.SDFlush();
+				//if ( fs.SDFlush )
+				//fs.SDFlush();
 
 				console.warn('SaveSnapshot called callback (error='+err+'), saying goodbye to everyone and quiting process.');
 

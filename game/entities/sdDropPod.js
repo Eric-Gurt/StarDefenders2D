@@ -7,6 +7,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
+import sdTask from './sdTask.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -70,7 +71,7 @@ class sdDropPod extends sdEntity
 		
 		this.type = params.type || sdDropPod.TYPE_KVT; // Default to KVT Pod if no parameters gave it other properties
 		
-		this.hmax = 6000;
+		this.hmax = 4000; // was 6000
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this.matter_max = 5500;
@@ -84,7 +85,23 @@ class sdDropPod extends sdEntity
 		this.uses = 0;
 		this.open = false;
 		this.empty = false;
-
+		
+		// SD pod stuff
+		this._greet_player = false; // Did it welcome player?
+		this._greet_timer = 5; // Timer which checks for nearby players to greet, once every 2 seconds
+		
+		this._speak_id = -1; // Required by speak effects // last voice message
+		this._say_allowed_in = 0;
+		
+		/*this._voice = {
+			wordgap: 0,
+			pitch: 50,
+			speed: 150,
+			variant: 'klatt',
+			voice: 'en'
+		};
+		*/
+		
 		sdDropPod.pod_counter++;
 	}
 	get mass()
@@ -95,10 +112,45 @@ class sdDropPod extends sdEntity
 	{
 		return sdDropPod.ignored_classes_arr;
 	}
+	
+	Say( t, force_say=true )
+	{
+		//if ( ( this.state_hp === 0 && this.sentence_to_speak.length === 0 ) || force_say )
+		{
+			
+			let params = { 
+				x:this.x, 
+				y:this.y - 20, 
+				type:sdEffect.TYPE_CHAT, 
+				attachment:this, 
+				attachment_x: 0,
+				attachment_y: -20,
+				text:t,
+				text_censored: ( typeof sdModeration === 'undefined' ) ? 0 : sdModeration.IsPhraseBad( t, this._socket ),
+				voice: { 
+				 wordgap: 0,
+				 pitch: 10,
+				 speed: 150,
+				 variant: 'klatt3',
+				 voice: 'en'
+				}
+			};
+			
+			if ( sdWorld.is_server )
+			{
+				if ( sdWorld.time > this._say_allowed_in )
+				{
+					this._say_allowed_in = sdWorld.time + t.length * 50;
+					
+					sdWorld.SendEffect( params );
+				}
+			}
+		}
+	}
 
 	onBuilt()
 	{
-		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:0.8 });
+		//sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:0.8 });
 	}
 	MeasureMatterCost()
 	{
@@ -117,45 +169,281 @@ class sdDropPod extends sdEntity
 	}
 	Open()
 	{
-		this.uses = Math.random() > 0.8 ? 4 : 3 // 20% chance to get 1 additional item
+		let potential_uses = 3; // Just in case value isn't specified
+		if ( this.type === sdDropPod.TYPE_KVT )
+		potential_uses = Math.random() > 0.8 ? 4 : 3; // 20% chance to get 1 additional item
+	
+		if ( this.type === sdDropPod.TYPE_SD )
+		{
+			if ( Math.random() < 0.9 )
+			potential_uses = 3 +  ~~( Math.random() * 3 ); // Between 3 and 6 items, 90% chance it has items
+			else // 10% chance a green SD soldier will hide in it and ask for extraction
+			{
+				let ais = 0;
+				let hostile = 0;
+
+				let instances = 0;
+				let instances_tot = 1;
+			
+				for ( var i = 0; i < sdCharacter.characters.length; i++ )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
+				{
+					if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+					ais++;
+				}
+
+				//let left_side = ( Math.random() < 0.5 );
+
+				while ( instances < instances_tot && ais < 4 ) // Only 4 of these task types are available at once
+				{
+					let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
+
+					sdEntity.entities.push( character_entity );
+					sdWorld.UpdateHashPosition( character_entity, false );
+					if ( Math.random() < 0.5 ) // Random gun given to Star Defender
+					{
+						if ( Math.random() < 0.2 )
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+							character_entity._ai_gun_slot = 4;
+						}
+						else
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+							character_entity._ai_gun_slot = 3;
+						}
+					}
+					else
+					{ 
+						if ( Math.random() < 0.1 )
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+							character_entity._ai_gun_slot = 2;
+						}
+						else
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+							character_entity._ai_gun_slot = 2;
+						}
+					}
+					let sd_settings;
+					sd_settings = {"hero_name":"Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#008000","color_suit2":"#008000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
+					character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
+					character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
+					character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
+					character_entity.title = sd_settings.hero_name;
+					character_entity.matter = 185;
+					character_entity.matter_max = 185;
+
+					character_entity.hea = 250; // It is a star defender after all
+					character_entity.hmax = 250;
+
+					character_entity.armor = 500;
+					character_entity.armor_max = 500;
+					character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
+					character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+	
+					character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+										
+					character_entity._ai_level = 5;
+										
+					character_entity._matter_regeneration = 5; // At least some ammo regen
+					character_entity._jetpack_allowed = true; // Jetpack
+					//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+					character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+					character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
+					character_entity._allow_despawn = false;
+					character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
+					character_entity._ai.next_action = 90; // Make him stand so he can talk a little
+					
+					
+					let potential_dialogue = sdWorld.AnyOf( [ 
+						'Finally, someone familiar! Please get me out of here, this planet sucks.',
+						'My legs are clenched from crouching, you have to get me back to the Mothership. Please!',
+						'Hey, can you help me? I need to get back to the Mothership, I value my life more than exploration.',
+						'You gotta help me! Those weird aliens are trying to kill me. I never asked for this.',
+						'Finally someone came! I kept sending the distress signal but nobody responded for the past hour.',
+						'What a coincidence, I was about to go insane inside this pod. Can you escort me to the nearest LRTP?',
+						'Alright, I admit! Instructor was right, I am not built to survive this planet. Just help me get to safety!'
+					] );
+					setTimeout(()=>{ // Slight delay when the SD leaves the pod
+						if ( character_entity && !character_entity._is_being_removed )
+						character_entity.Say( potential_dialogue, false, false, false );
+					}, 500 );
+
+					instances++;
+					ais++;
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be rescued, although they can be teleported when dead, but not destroyed body.
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+character_entity._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: character_entity,
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Rescue Star Defender',
+							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
+						});
+					}
+				}
+				if ( instances === 0 ) // If SD can't spawn because there's already enough of them on the map
+				potential_uses = 3 +  ~~( Math.random() * 3 ); // Put items back instead
+				else
+				potential_uses = 0; // The SD removed (or took?) items inside pod so he can hide
+			}
+		}
+	
+		this.uses = potential_uses;
 		this.open = true;
+		
+		if ( this.uses <= 0 )
+		{
+			this.empty = true;
+		}
 	}
 	Loot()
 	{
-
-		if ( Math.random() < 0.4 ) // Random power weapon given to Star Defenders
-		{ // 40%
-			if ( Math.random() <= 0.125 ) // 12.5%
+		if ( this.type === sdDropPod.TYPE_KVT ) // KVT pod Loot pool
+		{
+			if ( Math.random() < 0.4 ) // Random power weapon given to Star Defenders, 40% chance
 			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_AVRS }) );
+				let rng = Math.random(); // Value between 0 and 1 at the moment.
+				if ( rng < 0.375 ) // 37.5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_AVRS }) );
+				}
+				else
+				if ( rng < 0.75 ) // 37.5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RAILCANNON }) );
+				}
+				else // 30%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MMG }) );
+				}
 			}
-			else
-			if ( Math.random() <= 0.25 ) // 12.5%
+			else // Random regular weapon given to Star Defenders, 60% chance
 			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RAILCANNON }) );
-			}
-			else // 15%
-			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MMG }) );
+				let rng = Math.random(); // Value between 0 and 1 at the moment.
+				if ( rng < 0.20 ) // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_HANDCANNON }) );
+				}
+				else if ( rng < 0.40 ) // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MISSILE_LAUNCHER }) );
+				}
+				else if ( rng < 0.70 ) // 30%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RIFLE }) );
+				}
+				else // 30%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_SMG }) );
+				}
 			}
 		}
-		else // Random regular weapon given to Star Defenders
-		{ // 60%
-			if ( Math.random() <= 0.525 ) // 12.5%
+		
+		if ( this.type === sdDropPod.TYPE_SD ) // SD pod Loot pool
+		{
+			if ( Math.random() < 0.01 ) // 1% chance for some task reward loot
 			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_HANDCANNON }) );
+				let rng = Math.random(); // Value between 0 and 1 at the moment.
+				if ( rng < 0.2 ) // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MERGER_CORE }) );
+				}
+				else
+				if ( rng < 0.4 ) // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL4_ARMOR_REGEN }) );
+				}
+				else
+				if ( rng < 0.6 ) // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ZAPPER }) );
+				}
+				else
+				if ( rng < 0.8 ) // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_COMBAT_INSTRUCTOR }) );
+				}
+				else // 20%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ILLUSION_MAKER }) );
+				}
 			}
-			else if ( Math.random() <= 0.625 ) // 12.5%
+			else // Random other loot, like workbench and build tool items
 			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MISSILE_LAUNCHER }) );
-			}
-			else if ( Math.random() <= 0.75 ) // 20%
-			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RIFLE }) );
-			}
-			else // 20%
-			{
-				sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_SMG }) );
+				// Maybe due to item count, switch case could be better here. - Booraz149
+				let rng = Math.random(); // Value between 0 and 1 at the moment.
+				if ( rng < 0.05 ) // 5% chance for level 3 heavy armor
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_HEAVY_ARMOR }) );
+				}
+				else
+				if ( rng < 0.15 ) // 10%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ROCKET_MK2 }) );
+				}
+				else
+				if ( rng < 0.25 ) // 10% chance for laser drill
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LASER_DRILL }) );
+				}
+				else
+				if ( rng < 0.35 ) // 10%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SNIPER }) );
+				}
+				else
+				if ( rng < 0.45 ) // 10%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LASER_PISTOL }) );
+				}
+				else
+				if ( rng < 0.55 ) // 10%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LMG }) );
+				}
+				else
+				if ( rng < 0.60 ) // 5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL2_ARMOR_REGEN }) );
+				}
+				else
+				if ( rng < 0.625 ) // 2.5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MINING_FOCUS_CUTTER }) );
+				}
+				else
+				if ( rng < 0.65 ) // 2.5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_DRAIN_RIFLE }) );
+				}
+				else
+				if ( rng < 0.75 ) // 10%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_GRENADE_LAUNCHER_MK2 }) );
+				}
+				else
+				if ( rng < 0.80 ) // 5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_CUSTOM_RIFLE }) );
+				}
+				else
+				if ( rng < 0.90 ) // 10%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SHOTGUN_MK2 }) );
+				}
+				else
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL2_MEDIUM_ARMOR }) );
+				}
 			}
 		}
 		
@@ -172,26 +460,71 @@ class sdDropPod extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		//this._armor_protection_level = 0; // Never has protection unless full health reached
-
-		if ( this._regen_timeout > 0 )
-		this._regen_timeout -= GSPEED;
-		else
+		if ( sdWorld.is_server )
 		{
-			if ( this.hea < this.hmax )
+			if ( this._regen_timeout > 0 )
+			this._regen_timeout -= GSPEED;
+			else
 			{
-				this.hea = Math.min( this.hea + GSPEED, this.hmax );
+				if ( this.hea < this.hmax )
+				{
+					this.hea = Math.min( this.hea + GSPEED, this.hmax );
 				
-				//if ( sdWorld.is_server )
-				//this.hea = this.hmax; // Hack
+					//if ( sdWorld.is_server )
+					//this.hea = this.hmax; // Hack
 				
-				//this._update_version++;
+					//this._update_version++;
+				}
+				/*else
+				{
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false );
+				}*/
 			}
-			/*else
+			if ( this.type === sdDropPod.TYPE_SD )
 			{
-				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false );
-			}*/
+				if ( this._greet_timer > 0 )
+				this._greet_timer -= GSPEED;
+				else
+				if ( !this._greet_player ) // If no player was greeted
+				{
+					this._greet_timer = 60;
+					let player_to_greet = null;
+					let potential_dialogue;
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					{
+						if ( sdWorld.sockets[ i ].character )
+						if ( sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x , sdWorld.sockets[ i ].character.y ) < 300 ) // If close enough
+						{
+							player_to_greet = sdWorld.sockets[ i ].character;
+						}
+					}
+					if ( player_to_greet ) // greet the player
+					{
+						potential_dialogue = sdWorld.AnyOf( [ 
+							'Hello, ' + player_to_greet.title +'! You can get some useful armaments from this pod. It is unlocked for Star Defenders!',
+							'Hello, ' + player_to_greet.title +'. This is one of the storage excesses from the Mothership. We figured you might need it.',
+							'Hi, ' + player_to_greet.title +'. This pod is open for Star Defenders. Enjoy!',
+							'Greetings, ' + player_to_greet.title +'. The pod is now unlocked, take what is inside.'
+							] );
+						//console.log( potential_dialogue );
+						this.Say( potential_dialogue );
+						this._greet_player = true;
+					}
+					else
+					if ( Math.random() < 0.01 ) // 1% chance
+					{	
+						potential_dialogue = sdWorld.AnyOf( [ 
+							'Hello, any Star Defenders around here?', 
+							'Nobody seems interested in loot.', 
+							'Fresh loot here, come and get it!', 
+							'They really had to name the pod after a joke...',
+							'LRTP is more efficient than pods...'
+							] );
+						this.Say( potential_dialogue );
+					}
+				}
+			}
 		}
-
 		this.sy += sdWorld.gravity * GSPEED;
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
@@ -218,11 +551,16 @@ class sdDropPod extends sdEntity
 	}
 	get title()
 	{
-		return 'KIVORTEC Weapons Pod';
+		let title = 'Drop pod';
+		if ( this.type === sdDropPod.TYPE_KVT )
+		title = 'KVT weapons pod';
+		if ( this.type === sdDropPod.TYPE_SD )
+		title = 'SD-ZNTS item pod';
+		return title;
 	}
 	get description()
 	{
-		return `Contains KIVORTEC weaponry. Has to be unlocked first before being able to get weapons.`;
+		return `An item pod.`;
 	}
 	Draw( ctx, attached )
 	{
@@ -245,15 +583,32 @@ class sdDropPod extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{	
-		if (this.level < 2 )
-		{
-			sdEntity.TooltipUntranslated( ctx, T("KIVORTEC Weapons Pod") + " ( " + ~~(this.metal_shards) + " / " + ~~(this.metal_shards_max) + " )", 0, -10 );
-			sdEntity.Tooltip( ctx, T("Lock progress") + " " + this.level + " / 2", 0, -2, '#66ff66' );
+		if ( this.type === sdDropPod.TYPE_KVT )
+		{		
+			if (this.level < 2 )
+			{
+				sdEntity.TooltipUntranslated( ctx, T("KIVORTEC Weapons Pod") + " ( " + ~~(this.metal_shards) + " / " + ~~(this.metal_shards_max) + " )", 0, -10 );
+				sdEntity.Tooltip( ctx, T("Lock progress") + " " + this.level + " / 2", 0, -2, '#66ff66' );
+			}
+			else
+			{
+				sdEntity.TooltipUntranslated( ctx, T("KIVORTEC Weapons Pod"), 0, -10 );
+				sdEntity.Tooltip( ctx, T("UNLOCKED"), 0, -2, '#66ff66' );
+			}
 		}
-		else
-		{
-			sdEntity.TooltipUntranslated( ctx, T("KIVORTEC Weapons Pod"), 0, -10 );
-			sdEntity.Tooltip( ctx, T("UNLOCKED"), 0, -2, '#66ff66' );
+		
+		if ( this.type === sdDropPod.TYPE_SD )
+		{		
+			if (this.level < 2 )
+			{
+				sdEntity.TooltipUntranslated( ctx, T("SD-ZNTS Item Pod") + " ( " + ~~(this.metal_shards) + " / " + ~~(this.metal_shards_max) + " )", 0, -10 );
+				sdEntity.Tooltip( ctx, T("Lock progress") + " " + this.level + " / 2", 0, -2, '#66ff66' );
+			}
+			else
+			{
+				sdEntity.TooltipUntranslated( ctx, T("SD-ZNTS Item Pod"), 0, -10 );
+				sdEntity.Tooltip( ctx, T("UNLOCKED"), 0, -2, '#66ff66' );
+			}
 		}
 
 		let w = 40;

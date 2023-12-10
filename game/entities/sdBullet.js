@@ -787,7 +787,9 @@ class sdBullet extends sdEntity
 							
 							if ( damaged )
 							{
-
+								// Limit knock_scale so high damage, high recoil weapons don't toss around high mass objects
+								if ( this._knock_scale * dmg > 60 ) // If I remember correctly setr drones have max knockback which is 20 damage x 3 scale
+								this._knock_scale = 60 / dmg;
 								// Some entities need to inherit impact velocity on damage so it is higher now
 								if ( from_entity._god && from_entity._socket )
 								{
@@ -926,7 +928,9 @@ class sdBullet extends sdEntity
 								{
 									dmg *= from_entity.GetRocketDamageScale();
 								}*/
-
+								// Limit knock_scale so high damage, high recoil weapons don't toss around high mass objects
+								if ( this._knock_scale * dmg > 60 ) // If I remember correctly setr drones have max knockback which is 20 damage x 3 scale
+								this._knock_scale = 60 / dmg;
 								// Some entities need to inherit impact velocity on damage so it is higher now
 								from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
 													 this.sy * Math.abs( dmg ) * this._knock_scale );

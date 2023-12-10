@@ -1118,9 +1118,11 @@ class sdWorld
 					let e = sdEntity.entities_by_net_id_cache_map.get( ent._plants[ i ] );
 					if ( e )
 					{
+						e.snowed = true;
+						/*
 						e.br *= 4;
 						e.filter = 'saturate(0.3)';
-						e.hue = 180;
+						e.hue = 180;*/
 					}
 				}
 			}

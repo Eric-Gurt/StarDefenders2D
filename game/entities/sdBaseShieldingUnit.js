@@ -57,8 +57,8 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.protect_distance = 275; // Used for breathing when there is no air and if BSU is enabled
 		sdBaseShieldingUnit.protect_distance_stretch = sdBaseShieldingUnit.protect_distance + 100; // If BSU moves...
 				
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.075; // 0.15 / 1.32 * 0.66; // Was 0.15 but ( / 1.32 * 0.66 ) makes it equal to average matter cost of a weapon. It is slightly less effective for non-sword weapons such as bullets or rails
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.001; // Much less than player's automatic regeneration
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.0375; // 0.15 / 1.32 * 0.66; // Was 0.15 but ( / 1.32 * 0.66 ) makes it equal to average matter cost of a weapon. It is slightly less effective for non-sword weapons such as bullets or rails
 		
 		sdBaseShieldingUnit.score_timed_max_capacity = 1000; // 1000 = 2 days // 3500 = 7 days
 		

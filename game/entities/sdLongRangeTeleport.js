@@ -23,6 +23,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdJunk from './sdJunk.js';
 import sdLandScanner from './sdLandScanner.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -152,6 +153,7 @@ class sdLongRangeTeleport extends sdEntity
 		
 		this._local_supported_entity_classes = null;
 		this._remote_supported_entity_classes = null;
+		
 		
 		this._last_collected_entities_array = [];
 		this._last_inserted_entities_array = [];
@@ -688,7 +690,7 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 2; i++ ) // Task rewards now drop 2 items. Kind of painful to recieve only one item when you can get 15K worth of crystals - Booraz149
 			{
 				let gun, rng;
-				rng = Math.random() * 0.9; // With more gun rewards, these values will change
+				rng = Math.random() * 1; // With more gun rewards, these values will change
 				//With each new gun, add 0.1 to rng multiplier
 				if ( rng < 0.1 )
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
@@ -714,7 +716,10 @@ class sdLongRangeTeleport extends sdEntity
 				if ( rng < 0.8 )
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CRYOGUN });
 				else
+				if ( rng < 0.9 )
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
+				else
+				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_PLASMA_RIFLE });
 		
 				sdEntity.entities.push( gun );
 			}
@@ -780,6 +785,12 @@ class sdLongRangeTeleport extends sdEntity
 				let crystal = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: r, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 				sdEntity.entities.push( crystal );
 			}
+		}
+		if ( rewards === 'CLAIM_MERGER_CORE' )
+		{
+			let core;
+			core = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MERGER_CORE });
+			sdEntity.entities.push( core );
 		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
@@ -1149,7 +1160,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_WEAPON' ||
 						command_name === 'CLAIM_REWARD_CRYSTALS' ||
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
-						command_name === 'CLAIM_REWARD_AD'
+						command_name === 'CLAIM_REWARD_AD' ||
+						command_name === 'CLAIM_MERGER_CORE'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1252,6 +1264,67 @@ class sdLongRangeTeleport extends sdEntity
 									
 									if ( this.matter !== 0 )
 									executer_socket.SDServiceMessage( 'Claim was rejected - something is blocking the path' );
+								};
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
+				}
+				else
+				if ( command_name === 'TELEPORT_ANTENNA' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								this.Activation();
+
+								this._charge_complete_method = ()=>
+								{
+									if ( this.matter < this._matter_max )
+									{
+										executer_socket.SDServiceMessage( 'Teleport was rejected - not enough matter' );
+										return;
+									}
+
+									this.Deactivation();
+									let nearest_antenna = null;
+									for ( let i = 0; i < sdLongRangeAntenna.antennas.length; i++ )
+									{
+										//let nearest_antenna = null;
+										let nearest_di = Infinity;
+										let antenna = sdLongRangeAntenna.antennas[ i ];
+										if ( antenna.progress >= 100 ) // At least one calibrated antenna
+										{
+											if ( !nearest_antenna )
+											{
+												nearest_antenna = antenna;
+												nearest_di = sdWorld.Dist2D( this.x, this.y, antenna.x, antenna.y ); 
+											}
+											else // We already have an antenna? But what if one is closer?
+											{
+												let di = sdWorld.Dist2D( this.x, this.y, antenna.x, antenna.y ); 
+												if ( di < nearest_di )
+												{
+													nearest_antenna = antenna;
+													nearest_di = di;
+												}
+											}
+										}
+									}
+									if ( nearest_antenna )
+									{
+										if ( !nearest_antenna.AttemptTeleportToTarget( exectuter_character ) )
+										executer_socket.SDServiceMessage( 'Teleport path is blocked.' );
+									}
+									else
+									executer_socket.SDServiceMessage( 'No antenna is available for teleport.' );
 								};
 							}
 							else
@@ -1647,7 +1720,8 @@ class sdLongRangeTeleport extends sdEntity
 			this.AddContextOption( 'Lose ownership', 'UNRESCUE_HERE', [] );
 			else
 			this.AddContextOption( 'Set as personal rescue teleport', 'RESCUE_HERE', [] );*/
-			
+		
+			//
 			if ( this.is_server_teleport )
 			if ( exectuter_character._god )
 			{
@@ -1661,6 +1735,9 @@ class sdLongRangeTeleport extends sdEntity
 			{
 				this.AddContextOption( 'Send items for task completion ( 300 matter )', 'TELEPORT_STUFF', [] );
 				
+				//Allow regular LRTP to teleport near antennas
+				this.AddContextOption( 'Teleport to nearest long range frequency antenna', 'TELEPORT_ANTENNA', [] );
+				
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					if ( sdTask.tasks[ i ].mission )
@@ -1668,9 +1745,10 @@ class sdLongRangeTeleport extends sdEntity
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
 						{
 							this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
-							this.AddContextOption( 'Claim rewards ( weapon )', 'CLAIM_REWARD_WEAPON', [] );
+							this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
 							this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
 							this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
+							this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
 						}
 
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
@@ -1705,7 +1783,9 @@ class sdLongRangeTeleport extends sdEntity
 				this.AddContextOption( 'Ask Mothership for crystals ( watch ad )', 'AD_REWARD_START', [] );
 			}
 			else
-			this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
+			{
+				this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
+			}
 		}
 	}
 }

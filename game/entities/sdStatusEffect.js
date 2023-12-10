@@ -21,6 +21,7 @@ class sdStatusEffect extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
 		sdStatusEffect.img_level_up = sdWorld.CreateImageFromFile( 'level_up' );
+		sdStatusEffect.img_bubble_shield = sdWorld.CreateImageFromFile( 'bubble_shield' );
 		
 		sdStatusEffect.types = [];
 		
@@ -901,7 +902,7 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
-				status_entity.charges_left = params.charges_left || 2;
+				status_entity.charges_left = params.charges_left || 3;
 				status_entity.low_hp = false; // Has Time Shifter reached low HP after losing all "charges"?
 				status_entity.time_to_defeat = 30 * 60 * 10; // 10 minutes per "charge"
 				
@@ -920,7 +921,7 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
-				if ( status_entity.charges < 2 )
+				if ( status_entity.charges < 3 )
 				status_entity.time_to_defeat -= GSPEED;
 				if ( status_entity.for.hea < 500 && status_entity.charges_left > 0 )
 				{
@@ -956,17 +957,26 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity.for.hea < 1250 && sdWorld.is_server )
 					{
 						status_entity.low_hp = true;
-						status_entity.for.Say( [ 
+						if ( Math.random() < 0.125 ) // 12.5% chance for blade to drop
+						{
+							status_entity.for.Say( [ 
 							'Well, well. You disarmed me. See you soon.',
 							'No! I lost my blade! I will get you next time!',
 							'I lost my sword, but I do not die today!',
 							'Agh, my blade! You will pay for this in time!'
-						][ ~~( Math.random() * 4 ) ], false, false, false );
-						status_entity.for._ai_gun_slot = -1;
-						status_entity.for.gun_slot = -1; // Hide the equipped weapon
-						sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
+							][ ~~( Math.random() * 4 ) ], false, false, false );
+							status_entity.for._ai_gun_slot = -1;
+							status_entity.for.gun_slot = -1; // Hide the equipped weapon
+							sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
+						}
 						// Spawn the weapon for players to pick up if they "beat" the Time Shifter
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
+						status_entity.for.Say( [ 
+							'I have to go, my planet needs me.',
+							'I will deal with you later.',
+							'I do not plan on dying today.',
+							'Until next time!'
+						][ ~~( Math.random() * 4 ) ], false, false, false );
 					}
 				}
 				else
@@ -1083,6 +1093,72 @@ class sdStatusEffect extends sdEntity
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
+			}
+		};
+
+		sdStatusEffect.types[ sdStatusEffect.TYPE_BLUE_SHIELD_EFFECT = 11 ] = 
+		{
+			/* For Velox faction, applied by sdVeloxFortifier when it gives them armor
+			For now just a visual indicator that Velox has armor.
+			Though personally I'd probably like if players could have this shield effect,
+			and the shield effect itself having a damage reduction when players are hit.
+			It should probably be based off of time like stimpack.
+			*/
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				//status_entity.t = params.t;
+				//status_entity.shield_type = params.shield_type || 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				//status_entity.t = params.t;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				return ( status_entity.for.armor <= 0 ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//if ( !status_entity.for )
+				//return;
+				//ctx.sd_status_effect_tint_filter = [ sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return; // Needed? Not sure.
+			
+				let cur_img = sdWorld.time % 3200;
+				cur_img = Math.round( 15 * cur_img / 3200 );
+				let size_x = Math.max( 32, Math.ceil( 16 * ( Math.abs( status_entity.for._hitbox_x1 ) + Math.abs( status_entity.for._hitbox_x2 ) ) / 16 ) );
+				let size_y = Math.max( 32, Math.ceil( 16 * ( Math.abs( status_entity.for._hitbox_y1 ) + Math.abs( status_entity.for._hitbox_y2 ) ) / 16 ) );
+				ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - size_x / 2, - size_y / 2, size_x, size_y );
+				
+				// Maybe different shields could have different colors in future? Probably just use ctx.filter.
+				//ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 		};
 		

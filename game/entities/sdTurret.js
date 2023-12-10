@@ -49,6 +49,8 @@ import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdVeloxMiner from './sdVeloxMiner.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+import sdStealer from './sdStealer.js';
 
 class sdTurret extends sdEntity
 {
@@ -101,7 +103,10 @@ class sdTurret extends sdEntity
 			sdMimic,
 			sdTzyrgAbsorber,
 			sdVeloxMiner,
-			sdWorld.entity_classes.sdShurgTurret
+			sdWorld.entity_classes.sdShurgTurret,
+			sdZektaronDreadnought,
+			sdStealer
+			
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
@@ -110,7 +115,7 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_SNIPER = 3;
 		sdTurret.KIND_FREEZER = 4;
 		
-		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
+		sdTurret.matter_capacity = 200; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -285,10 +290,16 @@ class sdTurret extends sdEntity
 				if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
 				{
 					var is_char = e.IsPlayerClass();
+					
+					if ( is_char )
+					{
+						if ( !e.IsHostileAI() && e._ai_enabled > 0  ) // Is this AI friendly?
+						return false;
+					}
 
 					if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 					{
-						if ( is_char && is_char._god && !e.IsVisible() )
+						if ( is_char && ( is_char._god && !e.IsVisible() ) )
 						{
 						}
 						else
@@ -301,7 +312,7 @@ class sdTurret extends sdEntity
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 							//if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
-							if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, null, this.ShootPossibilityFilter ) )
+							if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, null, this.ShootPossibilityFilter ) || sdWorld.last_hit_entity === e ) // sdOctopus and larger entities will block vision like this
 							return true;
 						}
 					}
@@ -366,7 +377,7 @@ class sdTurret extends sdEntity
 			explosion_radius: explosion_radius
 		};
 	
-		return sdGun.GetProjectileCost( projectile_properties, 1, _temperature_addition );
+		return 10 * sdGun.GetProjectileCost( projectile_properties, 1, _temperature_addition );
 		/*
 		return ( Math.abs( dmg * dmg_mult ) * count + 
 				( is_rail ? 30 : 0 ) + 
@@ -466,7 +477,10 @@ class sdTurret extends sdEntity
 					
 				}
 				else
-				this._seek_timer -= GSPEED;
+				{
+					this._seek_timer -= GSPEED;
+					can_hibernate = false;
+				}
 
 				if ( ( this._target !== null || this.auto_attack >= 0 ) && this.disabled === false )
 				{

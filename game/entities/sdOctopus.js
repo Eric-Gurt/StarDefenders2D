@@ -96,12 +96,19 @@ class sdOctopus extends sdEntity
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdOctopus.max_seek_range )
 			if ( this._current_target === null || 
-				 this._current_target.hea <= 0 || 
+				 ( this._current_target.hea || this._current_target._hea || 0 ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
-				this._current_target = character;
+				let from_entity = character;
+				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+				
+				if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+				{
+					this._current_target = character;
 
-				sdSound.PlaySound({ name:'octopus_alert', x:this.x, y:this.y, volume: 0.5 });
+					sdSound.PlaySound({ name:'octopus_alert', x:this.x, y:this.y, volume: 0.5 });
+				}
 			}
 		}
 	}
@@ -183,6 +190,9 @@ class sdOctopus extends sdEntity
 			{
 				sdSound.PlaySound({ name:'octopus_hurt2', x:this.x, y:this.y, volume: 0.5 });
 				this.hurt_timer = 1;
+				
+				if ( initiator )
+				this.SyncedToPlayer( initiator );
 			}
 		}
 		
@@ -392,7 +402,7 @@ class sdOctopus extends sdEntity
 						if ( from_entity._held_by )
 						rank += 2;
 						
-						if ( from_entity.GetClass() === 'sdCharacter' && from_entity.hea > 0 )
+						if ( ( from_entity === this._current_target || from_entity.IsPlayerClass() ) /*from_entity.GetClass() === 'sdCharacter'*/ && ( from_entity.hea || from_entity._hea || 0 ) > 0 )
 						rank += 1;
 						
 						if ( from_entity._held_by && from_entity._held_by._ai_team === 10 )
