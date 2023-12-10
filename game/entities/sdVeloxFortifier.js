@@ -76,14 +76,14 @@ class sdVeloxFortifier extends sdEntity
 			let sy = this.sy;
 			
 			// Remove armor from all Velox humanoids
-			for ( let i = 0; i < sdCharacter.characters.length; i++ )
+			/*for ( let i = 0; i < sdCharacter.characters.length; i++ )
 			{
 				let character = sdCharacter.characters[ i ];
 				if ( character._ai_team === 5 ) // Is this humanoid a part of Velox faction?
 				{
 					character.RemoveArmor();
 				}
-			}
+			}*/
 
 			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
@@ -125,7 +125,7 @@ class sdVeloxFortifier extends sdEntity
 					let character = sdCharacter.characters[ i ];
 					if ( character._ai_team === 5 && character.hea > 0 ) // Is this humanoid a part of Velox faction?
 					{
-						character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
+						//character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
 						sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD ); // Apply shield
 					}
 				}

@@ -59,6 +59,7 @@ class sdBubbleShield extends sdEntity
 		
 		this._hea -= dmg;
 		
+		if ( dmg > 5 )
 		sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 		
 		if ( this._hea <= 0 )
@@ -84,6 +85,18 @@ class sdBubbleShield extends sdEntity
 		return 30 * 20;
 		
 		 // Shield duration. -1 = infinite shield, has to be depleted
+	}
+	static CheckIfEntityHasShield( ent = null ) // Return entity which shields ent, used by sdCharacter for now
+	{
+		if ( !ent )
+		return null;
+		for( let i = 0; i < sdBubbleShield.shields.length; i++ )
+		{
+			let shield = sdBubbleShield.shields[ i ];
+			if ( shield.for_ent === ent ) // Has shield?
+			return shield;
+		}
+		return null;
 	}
 	constructor( params )
 	{
@@ -125,8 +138,9 @@ class sdBubbleShield extends sdEntity
 			let shield = sdBubbleShield.shields[ i ];
 			if ( shield.for_ent === for_entity ) // Already has shield?
 			{
-				shield._hea = shield.GetShieldHealth( shield.type ); // Refresh shield value
-				shield._time_left = shield.GetShieldDuration( shield.type ); // Refresh duration
+				shield.type = shield_type;
+				shield._hea = shield.GetShieldHealth( shield_type ); // Override shield value
+				shield._time_left = shield.GetShieldDuration( shield_type ); // Override duration
 				has_shield = true;
 			}
 		}

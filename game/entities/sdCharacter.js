@@ -31,6 +31,7 @@ import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
 import sdShurgConverter from './sdShurgConverter.js';
+import sdBubbleShield from './sdBubbleShield.js';
 //import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdShop from '../client/sdShop.js';
@@ -2306,6 +2307,14 @@ THING is cosmic mic drop!`;
 		if ( this._socket ) // No disconnected gods
 		if ( dmg > 0 )
 		return;
+	
+	
+		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
+		if ( shielded_by && dmg > 0 )
+		{
+			shielded_by.Damage( dmg, initiator );
+			return;
+		}
 		
 		// No healing for frozen players - prevent cube & freezing turret traps
 		if ( this._frozen > 0 )
