@@ -68,7 +68,7 @@ class sdRift extends sdEntity
 		
 		this.type = params.type || portal_type; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
 		// this.type needs to be placed before hmax and hea so council portals can actually last long enough. Otherwise it disappears in a minute or so
-		this.hmax = this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 36000; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
+		this.hmax = this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 1800 * 30; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this._cooldown = 0;
@@ -281,7 +281,7 @@ class sdRift extends sdEntity
 			else
 			{
 				let max_size = Math.min( 1, this._tear_range / 64 ); // If it grows to max power, it will need 15k matter to shut down
-				if ( this.hea < ( this.hmax * max_size )  && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for 4 minutes
+				if ( this.hea < ( this.hmax * max_size )  && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for a while
 				{
 					this.hea = Math.min( this.hea + GSPEED, this.hmax * max_size );
 				}
@@ -546,29 +546,31 @@ class sdRift extends sdEntity
 			from_entity.sy -= ( from_entity.y - this.y ) / 40;
 		}*/
 		if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only black portals can be fed crystals now, others disappear over time
-		if ( from_entity.is( sdCrystal ) )
-		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 		{
-			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+			if ( from_entity.is( sdCrystal ) )
+			if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 			{
-				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
-				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
-				//this._update_version++;
-				from_entity.remove();
+				if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+				{
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
+					this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+					this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
+					//this._update_version++;
+					from_entity.remove();
+				}
 			}
-		}
 
-		if ( from_entity.is( sdLost ) )
-		{
-			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+			if ( from_entity.is( sdLost ) )
 			{
-				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
+				if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+				{
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
-				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
-				//this._update_version++;
-				from_entity.remove();
+					this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
+					this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
+					//this._update_version++;
+					from_entity.remove();
+				}
 			}
 		}
 

@@ -78,6 +78,7 @@ import sdBeamProjector from './sdBeamProjector.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdStealer from './sdStealer.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
+import sdVeloxFortifier from './sdVeloxFortifier.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -150,6 +151,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_STEALER =				event_counter++; // 46
 		sdWeather.EVENT_LONG_RANGE_ANTENNA =	event_counter++; // 47
 		sdWeather.EVENT_PROTECT_SDBG_DRONE =	event_counter++; // 48
+		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2000,7 +2002,7 @@ class sdWeather extends sdEntity
 				instances++;
 			}
 		}
-		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal anywhere on the map outside player views which summons Erthals until destroyed
+		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal beacon anywhere on the map outside player views which summons Erthals until destroyed
 		{
 			let chance = 0;
 			let req_char = 0;
@@ -3430,6 +3432,38 @@ class sdWeather extends sdEntity
 					});
 				}
 			}
+		}
+		if ( r === sdWeather.EVENT_VELOX_FORTIFIER ) // Spawn a Velox device which shields velox units until it is destroyed
+		{
+			let chance = 0;
+			let req_char = 0;
+			let char = 0;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character !== null )
+				if ( sdWorld.sockets[ i ].character.hea > 0 )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					char++;
+					if ( sdWorld.sockets[ i ].character.build_tool_level >= 5 )
+					req_char++;
+				}
+			}
+			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
+
+			if ( Math.random() < chance )
+			{
+				if ( sdVeloxFortifier.ents < 1 )
+				sdWeather.SimpleSpawner({
+
+					count: [ 1, 1 ],
+					class: sdVeloxFortifier 
+
+				});
+
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

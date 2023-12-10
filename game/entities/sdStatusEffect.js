@@ -21,6 +21,7 @@ class sdStatusEffect extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
 		sdStatusEffect.img_level_up = sdWorld.CreateImageFromFile( 'level_up' );
+		sdStatusEffect.img_bubble_shield = sdWorld.CreateImageFromFile( 'bubble_shield' );
 		
 		sdStatusEffect.types = [];
 		
@@ -1092,6 +1093,72 @@ class sdStatusEffect extends sdEntity
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
+			}
+		};
+
+		sdStatusEffect.types[ sdStatusEffect.TYPE_BLUE_SHIELD_EFFECT = 11 ] = 
+		{
+			/* For Velox faction, applied by sdVeloxFortifier when it gives them armor
+			For now just a visual indicator that Velox has armor.
+			Though personally I'd probably like if players could have this shield effect,
+			and the shield effect itself having a damage reduction when players are hit.
+			It should probably be based off of time like stimpack.
+			*/
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				//status_entity.t = params.t;
+				//status_entity.shield_type = params.shield_type || 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				//status_entity.t = params.t;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				return ( status_entity.for.armor <= 0 ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//if ( !status_entity.for )
+				//return;
+				//ctx.sd_status_effect_tint_filter = [ sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return; // Needed? Not sure.
+			
+				let cur_img = sdWorld.time % 3200;
+				cur_img = Math.round( 15 * cur_img / 3200 );
+				let size_x = Math.max( 32, Math.ceil( 16 * ( Math.abs( status_entity.for._hitbox_x1 ) + Math.abs( status_entity.for._hitbox_x2 ) ) / 16 ) );
+				let size_y = Math.max( 32, Math.ceil( 16 * ( Math.abs( status_entity.for._hitbox_y1 ) + Math.abs( status_entity.for._hitbox_y2 ) ) / 16 ) );
+				ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - size_x / 2, - size_y / 2, size_x, size_y );
+				
+				// Maybe different shields could have different colors in future? Probably just use ctx.filter.
+				//ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 		};
 		
