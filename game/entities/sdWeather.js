@@ -1374,22 +1374,16 @@ class sdWeather extends sdEntity
 
 			//let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && sdEnemyMech.mechs_counter < this._max_velox_mech_count )
+			while ( instances < instances_tot && sdEnemyMech.mechs.length < this._max_velox_mech_count )
 			{
 
-				let mech_entity = new sdEnemyMech({ x:0, y:0 });
-
-				sdEntity.entities.push( mech_entity );
-
-				{
-					let x,y;
-					if ( !sdWeather.SetRandomSpawnLocation( mech_entity ) )
-					{
-						mech_entity.remove();
-						mech_entity._broken = false;
-						break;
-					}
-				}
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdEnemyMech,
+					aerial: true
+				
+				});
 
 				instances++;
 			}
