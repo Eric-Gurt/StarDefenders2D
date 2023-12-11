@@ -139,6 +139,9 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_SAND = 11;
 		sdBlock.MATERIAL_BUGGED_CHUNK = 12;
 		sdBlock.MATERIAL_ANCIENT_WALL = 13;
+		sdBlock.MATERIAL_SNOW = 14; // Same as sand just does not regenerate plants on itself
+		sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND = 15; // Marks area within preset that won't be touched by preset logic, could be used to mark certain location as more or less suitable for preset spawn
+		sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR = 16; // Forcefully removed air blocks for loaded presets
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -152,6 +155,9 @@ class sdBlock extends sdEntity
 		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
 		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
 		sdBlock.img_trapshield50 = sdWorld.CreateImageFromFile( 'trapshield_half2' );
+		
+		sdBlock.img_preset_ground = sdWorld.CreateImageFromFile( 'preset_ground' );
+		sdBlock.img_preset_air = sdWorld.CreateImageFromFile( 'preset_air' );
 		
 		sdBlock.cracks = [ 
 			null,
@@ -197,6 +203,7 @@ class sdBlock extends sdEntity
 				this.material === sdBlock.MATERIAL_GROUND || 
 				this.material === sdBlock.MATERIAL_ROCK || 
 				this.material === sdBlock.MATERIAL_SAND ||
+				this.material === sdBlock.MATERIAL_SNOW ||
 				this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS );
 	}
 	
@@ -314,7 +321,7 @@ class sdBlock extends sdEntity
 	//get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : this._reinforced_level > 0 ? 4000 : 400; }
 	get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : 400; } // Better to override Impact method for sdBlock to not take damage in case of being reinforced. Or in else case too high mass occasional hits would just damage vehicles too heavily (in case of unintended impacts, like spawning sdHover on top of reinforced walls). Also there might end up being other entities that could damage walls with impact eventually
 	
-	Impact( vel ) // fall damage basically
+	Impact( vel, initiator=null ) // fall damage basically
 	{
 		/*if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
@@ -322,7 +329,7 @@ class sdBlock extends sdEntity
 		else*/
 		if ( vel > 6 ) // For new mass-based model
 		{
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15, initiator );
 		}
 	}
 	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
@@ -1278,7 +1285,7 @@ class sdBlock extends sdEntity
 					else
 					{
 						if ( from_entity.GetClass() === 'sdSandWorm' )
-						if ( from_entity.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
+						if ( from_entity.kind !== sdSandWorm.KIND_CORRUPTED_WORM && from_entity.kind !== sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
 						this.CorruptAttack( from_entity );
 
 						if ( from_entity.GetClass() === 'sdCrystal' )
@@ -1389,6 +1396,7 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_GROUND ||
 			 this.material === sdBlock.MATERIAL_ROCK ||
 			 this.material === sdBlock.MATERIAL_SAND ||
+			 this.material === sdBlock.MATERIAL_SNOW ||
 			 this.material === sdBlock.MATERIAL_CORRUPTION || 
 			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
 			 this.material === sdBlock.MATERIAL_ANCIENT_WALL )
@@ -1402,7 +1410,7 @@ class sdBlock extends sdEntity
 				texture_size = 32;
 			}
 
-			if ( this.material === sdBlock.MATERIAL_SAND )
+			if ( this.material === sdBlock.MATERIAL_SAND || this.material === sdBlock.MATERIAL_SNOW )
 			{
 				texture = sdBlock.img_sand;
 				texture_size = 128;
@@ -1541,6 +1549,16 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp3_inactive : sdBlock.img_sharp3, 0, 0, w,h, 0,0, w,h );
 		}
 		else
+		if ( this.material === sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND )
+		{
+			ctx.drawImageFilterCache( sdBlock.img_preset_ground, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR )
+		{
+			ctx.drawImageFilterCache( sdBlock.img_preset_air, 0, 0, w,h, 0,0, w,h );
+		}
+		else
 		if ( this.material === sdBlock.MATERIAL_BUGGED_CHUNK )
 		{
 			ctx.apply_shading = false;
@@ -1667,6 +1685,10 @@ class sdBlock extends sdEntity
 					a = Math.random() * 2 * Math.PI;
 					s = Math.random() * 4;
 					
+					
+					if ( this.material === sdBlock.MATERIAL_SNOW )
+					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, filter:'brightness(0) invert(1)', sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+					else
 					if ( this.material === sdBlock.MATERIAL_FLESH )
 					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
 					else

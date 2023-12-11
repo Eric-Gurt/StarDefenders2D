@@ -45,6 +45,7 @@ class sdJunk extends sdEntity
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
 
 		sdJunk.img_alien_artifact = sdWorld.CreateImageFromFile( 'artifact1' );
+		sdJunk.img_stealer_artifact = sdWorld.CreateImageFromFile( 'artifact2' );
 
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
@@ -59,6 +60,7 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6;
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
+		sdJunk.TYPE_STEALER_ARTIFACT = 9;
 
 		sdJunk.bounds_by_type = [];
 		sdJunk.bounds_by_type[ sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ] = { x1: -5, x2: 5, y1: -5, y2: 5 };
@@ -70,6 +72,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 17 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_STEALER_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -123,7 +126,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel )
 		this.hmax = 150;
 		else
-		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		this.hmax = 500;
 
 		// Variables for large anti-crystal
@@ -140,9 +143,10 @@ class sdJunk extends sdEntity
 		this._rate = 120;
 		this._max_damage = 4000; // Max damage the council bomb can take under a timer
 		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
+		this._current_minions_count = 0; // Minion counter
 		//
 		this.hea = this.hmax;
-		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 ) : 320;
+		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 * 10 ) : 320; // Why take 40k container when 3 5K's generate over 1 million matter overall? Make them 400k and they're sort of a short-term reward / good matter storage.
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
@@ -403,12 +407,24 @@ class sdJunk extends sdEntity
 				sdEntity.entities.push( gun );
 
 				}, 500 );
-
-				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.05 ) // 5% chance for Council Worm gun
+				
+				if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && Math.random() < 0.25 ) // 25% chance for energy cell drop
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 				let gun2;
-				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_WORM_GUN });
+				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ERTHAL_ENERGY_CELL });
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun2 );
+
+				}, 500 );
+
+				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.05 ) // 5% chance for Council Immolator
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun2;
+				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
 				//gun.sx = sx;
 				//gun.sy = sy;
@@ -830,12 +846,12 @@ class sdJunk extends sdEntity
 					}
 					{
 						// Spawn a council support drone
-						if ( this.hea < ( this.hmax * 0.75 ) )
+						if ( this._current_minions_count < 3 )
 						{
 
 							let left_side = ( Math.random() < 0.5 );
 
-							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
 
 							sdEntity.entities.push( drone );
 
@@ -886,6 +902,7 @@ class sdJunk extends sdEntity
 
 										sdWorld.UpdateHashPosition( drone, false );
 										//console.log('Drone spawned!');
+										//this._current_minions_count++;
 										break;
 									}
 
@@ -929,7 +946,7 @@ class sdJunk extends sdEntity
 				else
 				{
 					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
-					this._spawn_ent_in_delay *= 1.25;
+					this._spawn_ent_in_delay *= 1.1; // 1.25 seemed way too weak
 					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
 					
 					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )
@@ -952,7 +969,7 @@ class sdJunk extends sdEntity
 					}
 				}
 			}
-			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 			{
 				this._time_to_drain -= GSPEED; // Just so it doesn't spam sdTask.MakeSureCharacterHasTask
 
@@ -1023,7 +1040,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
 		sdEntity.Tooltip( ctx, "Cryo-substance barrel" );
 
-		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		sdEntity.Tooltip( ctx, "Strange artifact" );
 	}
 	Draw( ctx, attached )
@@ -1113,7 +1130,11 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
 			{
-				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 18, 32,32 );
+				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 16, 32,32 );
+			}
+			if ( this.type === sdJunk.TYPE_STEALER_ARTIFACT ) // Alien / strange artifact from stealer
+			{
+				ctx.drawImageFilterCache( sdJunk.img_stealer_artifact, - 16, - 16, 32,32 );
 			}
 
 		}

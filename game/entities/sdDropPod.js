@@ -299,6 +299,11 @@ class sdDropPod extends sdEntity
 	
 		this.uses = potential_uses;
 		this.open = true;
+		
+		if ( this.uses <= 0 )
+		{
+			this.empty = true;
+		}
 	}
 	Loot()
 	{

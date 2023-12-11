@@ -40,7 +40,7 @@ class sdCharacterRagdoll
 		this.last_char_hea = this.character.hea;
 		
 		this._morph_act_x = 0;
-		this._body_offset_y = 0;
+		this._body_offset_y = this.character.y;
 		this._body_offset_sy = 0;
 	
 		this.bones = [];

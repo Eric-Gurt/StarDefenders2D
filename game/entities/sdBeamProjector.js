@@ -50,7 +50,6 @@ class sdBeamProjector extends sdEntity
 		return;
 	
 		dmg = Math.abs( dmg );
-		dmg = dmg / 2; // Damage shouldn't be too impactful so it doesn't deny progress that much during gunfire
 
 		if ( this.hea > 0 )
 		{
@@ -75,15 +74,20 @@ class sdBeamProjector extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 30 * 60 * 3; // 30 * 60 * 3 = 3 minutes to protect the beam projector so it can do it's thing
-		this.hea = 100;
-		this._regen_timeout = 0;
+		this.hmax = 10000;
+		this.hea = this.hmax;
+		this._regen_timeout = 30;
 		this._cooldown = 0;
 		//this.has_anticrystal = false;
 		this.has_players_nearby = false; // Once a second it checks if any players are close to it so it can progress. Incentivizes defending by standing near it.
 		this.no_obstacles = false; // Does it have any obstacles above it which prevents beam going to sky?
 		this._spawn_timer = 600;
 		this._enemies_spawned = 0; 
+		
+		this.progress = 0; // Task progress - needed for "Protect" task types
+		
+		this._spawned_ai = false; // Spawn SD AI
+		
 		//this.matter_max = 5500;
 		//this.matter = 100;
 		
@@ -125,7 +129,7 @@ class sdBeamProjector extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this.hea === this.hmax )
+		if ( this.progress >= 101 ) // Remove it after players recieved their rewards
 		{
 			sdWorld.SendEffect({ 
 				x:this.x, 
@@ -154,29 +158,9 @@ class sdBeamProjector extends sdEntity
 
 			}, 500 );
 
-
-			for( let i = 0; i < sdTask.tasks.length; i++ )
-			{
-				if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TRACK_ENTITY )
-				if ( sdTask.tasks[ i ]._target === this )
-				{
-					sdTask.tasks[ i ]._executer._task_reward_counter += 0.125; // Reward players for completing the objective
-					
-					sdTask.completed_tasks_count++; // Like other task events (Erthal beacon, Council bomb), counter increases for each player.
-				}
-			}
-
 			this.remove();
 		}
 
-		this._armor_protection_level = 0; // Never has protection
-		if ( !this.has_players_nearby ) // Lose HP if players aren't near
-		{
-			this._regen_timeout = 150;
-			if ( this.hea > 100 )
-			this.hea -= GSPEED; // Lose health when unattended
-		}
-		//else
 		{
 			if ( this._spawn_timer > 0 )
 			this._spawn_timer -= GSPEED;
@@ -278,9 +262,9 @@ class sdBeamProjector extends sdEntity
 				}
 			}
 
-			if ( ( this._spawn_timer <= 0 && this.no_obstacles && this.has_players_nearby ) || ( this.spawn_timer <= 0 && this.hea > ( this.hmax * 0.75 ) ) )
+			if ( ( this._spawn_timer <= 0 && this.no_obstacles && this.has_players_nearby ) || ( this.spawn_timer <= 0 && this.progress > 75 ) )
 			{
-				this._spawn_timer = 360 - ( ( this.hea / this.hmax ) * 3 * 30 );
+				this._spawn_timer = 360 - ( ( this.progress / 100 ) * 3 * 30 );
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -432,6 +416,22 @@ class sdBeamProjector extends sdEntity
 		else
 		{
 			this._regen_timeout = 150; // So it doesn't spam GetAnythingNear when _regen_timeout is 0
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character && this.progress < 100 )
+			{
+				let desc = 'We placed a dark matter beam projector nearby. Rally around with other Star Defenders and start it up!';
+				if ( this._ai_told_player )
+				desc = 'Protect the dark matter beam projector so it can try to shrink parts of the expanding black hole! If it stops working, restart it!';
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'PROTECT-'+this._net_id, 
+					executer: sdWorld.sockets[ i ].character,
+					target: this,
+					mission: sdTask.MISSION_PROTECT_ENTITY,				
+					title: 'Protect dark matter beam projector',
+					description: desc,
+					difficulty: 0.125
+				});
+			}
 			this.has_players_nearby = false;
 			//this._update_version++;
 			let players = sdWorld.GetAnythingNear( this.x, this.y, 192, null, [ 'sdCharacter', 'sdPlayerDrone' ] );
@@ -440,19 +440,9 @@ class sdBeamProjector extends sdEntity
 				if ( players[ i ].IsPlayerClass() && !players[ i ]._ai && players[ i ]._ai_team === 0  && players[ i ].hea > 0 )
 				if ( players[ i ]._socket !== null )
 				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'TRACK-'+this._net_id, 
-						executer: players[ i ],
-						target: this,
-						mission: sdTask.MISSION_TRACK_ENTITY,
-										
-						title: 'Protect dark matter beam projector',
-						description: 'Protect the dark matter beam projector so it can try to shrink parts of the expanding black hole! If it stops working, restart it!'
-					});
-
 					if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
 					{
-						if ( this.hea < this.hmax )
+						//if ( this.hea < this.hmax )
 						if ( this.no_obstacles ) // No progression if the beam can't go into the sky
 						{
 							//if ( sdWorld.is_server )
@@ -470,7 +460,7 @@ class sdBeamProjector extends sdEntity
 						'Hey, can you give this thing a bump? It\'s not starting and I can\'t tell why.',
 						'If we\'re really doing this, we need to make sure it has clear path to the sky.',
 						'Hey, can you help me out with this thing? Just start it when you\'re ready.',
-						'We have to be careful, Council is onto us because of these devices.',
+						'We have to be careful, the Council is onto us because of these devices.',
 						'If you have a Combat Instructor to call, now would be a good idea. We need to shrink the ever-expanding black hole!',
 						'I would advise placing some turrets to provide cover for this thing, but not directly above it so it can function when we start it.'
 					] );
@@ -479,7 +469,7 @@ class sdBeamProjector extends sdEntity
 				}
 			}
 			if ( this.has_players_nearby )
-			this.hea = Math.min( this.hea + 30, this.hmax );
+			this.progress = Math.min( this.progress + 0.35, 101 );
 		}
 		
 	}
@@ -547,28 +537,41 @@ class sdBeamProjector extends sdEntity
 		if ( this.has_players_nearby && this.no_obstacles )
 		sdEntity.Tooltip( ctx, "Dark matter beam projector", 0, -10 );
 		else
-		sdEntity.Tooltip( ctx, "Dark matter beam projector ( disabled )", 0, -10 );
+		sdEntity.Tooltip( ctx, "Dark matter beam projector (disabled)", 0, -10 );
 
 		let w = 40;
 		//if ( this.has_anticrystal )
 		{
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 0 - w / 2, 0 - 23, w, 3 );
+			ctx.fillRect( 0 - w / 2, 0 - 32, w, 3 );
 
 			ctx.fillStyle = '#FF0000';
-			ctx.fillRect( 1 - w / 2, 1 - 23, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+			ctx.fillRect( 1 - w / 2, 1 - 32, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+		}
+		
+		if ( this.progress < 100 )
+		{
+			
+			ctx.fillStyle = '#000000';
+			ctx.fillRect( 0 - w / 2, 0 - 28, w, 3 );
+			
+			ctx.fillStyle = '#aabbff';
+			ctx.fillRect( 1 - w / 2, 1 - 28, ( w - 2 ) * Math.max( 0, this.progress / 100 ), 1 );
 		}
 	}
 	
+	
 	onRemove() // Class-specific, if needed
 	{
-		sdBeamProjector.projector_counter--;
+		this.onRemoveAsFakeEntity();
+		//sdBeamProjector.projector_counter--; // Put in onRemoveAsFakeEntity() otherwise spawning it as admin will prevent it from spawning as event
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 	}
 	onRemoveAsFakeEntity()
 	{
+		sdBeamProjector.projector_counter--;
 	}
 }
 //sdBeamProjector.init_class();

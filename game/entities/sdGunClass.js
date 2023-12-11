@@ -1381,7 +1381,9 @@ class sdGunClass
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_TRIPLE_RAIL2;
-										gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2 }
+										gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
+										gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
+										}
 					}
 				]
 			) )
@@ -1541,7 +1543,9 @@ class sdGunClass
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_PISTOL2;
-										gun.extra[ ID_DAMAGE_VALUE ] = 22 * 1.2 }
+										gun.extra[ ID_DAMAGE_VALUE ] = 22 * 1.2;
+										gun._max_dps = ( 30 / ( gun._reload_time * sdGun.classes[ gun.class ].burst + sdGun.classes[ gun.class ].burst_reload ) ) * gun.extra[ 17 ] * gun._count * sdGun.classes[ gun.class ].burst;
+										}
 					}
 				]
 			) )
@@ -1693,7 +1697,9 @@ class sdGunClass
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_SHOTGUN2;
-										gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2 }
+										gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
+										gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
+										}
 					}
 				] ) )
 		};		
@@ -5279,7 +5285,7 @@ class sdGunClass
 			reload_time: 6,
 			muzzle_x: 8,
 			ammo_capacity: -1,
-			burst: 3,
+			burst: 6,
 			burst_reload: 45,
 			spread: 0.05,
 			projectile_velocity: 14,
@@ -7050,11 +7056,11 @@ class sdGunClass
 			},
 		};
 
-		sdGun.classes[ sdGun.CLASS_COUNCIL_WORM_GUN = 114 ] = // Sprite by Flora/Gravel
+		sdGun.classes[ sdGun.CLASS_COUNCIL_IMMOLATOR = 114 ] = // Sprite by Flora/Gravel
 		{
 			image: sdWorld.CreateImageFromFile( 'council_chargerail' ),
 			//sound: 'supercharge_combined2',
-			title: 'Council Worm Annihilator',
+			title: 'Council Immolator',
 			//sound_pitch: 0.5,
 			slot: 4,
 			reload_time: 0.3,
@@ -7103,10 +7109,10 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 200 }, // Combined with fire rate
+			projectile_properties: { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 200 };
+				let obj = { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }; // High fire damage. Custom guns go to 500 temperature, so why not.
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -8428,6 +8434,9 @@ class sdGunClass
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 					obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 					obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+					
+					if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+					obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 
 					return obj;
 				}
@@ -8443,8 +8452,6 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
-				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 
 				return obj; }
 					
@@ -8599,6 +8606,91 @@ class sdGunClass
 			{ 
 				return false; 
 			}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_TOPS_PLASMA_RIFLE = 133 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tops_plasma_rifle' ),
+			sound: 'gun_spark',
+			title: 'Task Ops Plasma Rifle',
+			slot: 8,
+			reload_time: 3.5,
+			muzzle_x: 10,
+			ammo_capacity: 40,
+			count: 1,
+			spawnable: false,
+			projectile_velocity: 16,
+			projectile_properties: { _damage: 1 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 15; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_PROJECTILE_COLOR ] = '#00ffff'; // Muzzle flash
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
+		};
+		
+		sdGun.classes[ sdGun.CLASS_ERTHAL_ENERGY_CELL = 134 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'erthal_energy_cell' ),
+			title: 'Erthal energy cell',
+			no_tilt: true,
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			apply_shading: false,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				// 20 more levels, 20 * 45 more matter, 4 * 45 matter per shard
+				
+				//if ( character._upgrade_counters[ 'upgrade_energy' ] )
+				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
+				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
+				{
+					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
+					character.onScoreChange();
+					
+					//character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
+					//character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					
+					
+					if ( Math.random() > 0.5 )
+					character.Say( "These Erthal energy cells are efficient at storing matter" );
+					else
+					character.Say( "One of these! Should help my matter capacity last longer" );
+					gun.remove(); 
+				}
+
+				return false; 
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
 		// Add new gun classes above this line //

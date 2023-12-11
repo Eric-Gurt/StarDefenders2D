@@ -389,6 +389,7 @@ class sdGun extends sdEntity
 		
 		this._reload_time = 0;
 		this.reload_time_left = 0;
+		this._is_manual_reload = false;
 		this.muzzle = 0;
 		this._last_muzzle = 0; // Used for client-side shells
 		
@@ -448,6 +449,7 @@ class sdGun extends sdEntity
 			this._spread = sdGun.classes[ this.class ].spread || 0;
 			this._temperature_addition = sdGun.classes[ this.class ].temperature_addition || 0;
 			this._reload_time = sdGun.classes[ this.class ].reload_time || 0;
+			this._is_manual_reload = sdGun.classes[ this.class ]._is_manual_reload || false;
 			
 			this._sound = sdGun.classes[ this.class ].sound || null;
 			this._sound_pitch = sdGun.classes[ this.class ].sound_pitch || 1;
@@ -706,20 +708,30 @@ class sdGun extends sdEntity
 		// Upgrade for guns that used to work on magazine basis but no longer do:
 		if ( this.GetAmmoCapacity() === -1 )
 		this.ammo_left = -1;
-	
+		
 		let ammo_to_spawn = this.GetAmmoCapacity() - this.ammo_left;
 		let ammo_cost = this.GetBulletCost( true );
 		
 		//trace( 'Matter cost for gun: ', ammo_cost );
 		
-		while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
+		if ( this._is_manual_reload	!== true )
 		{
+			while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
+			{
+				this.ammo_left++;
+				ammo_to_spawn--;
+				this._held_by.matter -= ammo_cost;
+			}
+		}
+		else // Reload one round per reload.
+		{
+			if ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
 			this.ammo_left++;
 			ammo_to_spawn--;
 			this._held_by.matter -= ammo_cost;
 		}
 		
-		if ( ammo_to_spawn > 0 )
+		if ( ammo_to_spawn > 0 && this._held_by.matter < ammo_cost )
 		{
 			this._held_by.Say( sdWorld.GetAny([
 				'I\'m out of matter...',

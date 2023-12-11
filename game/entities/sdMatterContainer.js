@@ -105,7 +105,7 @@ class sdMatterContainer extends sdEntity
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 2 );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
 		
@@ -121,8 +121,8 @@ class sdMatterContainer extends sdEntity
 			sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 
 			sdWorld.DropShards( this.x, this.y, 0, 0, 
-				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40,
+				Math.floor( Math.max( 0, this.matter / this.matter_max * 80 / sdWorld.crystal_shard_value * 0.5 ) ),
+				this.matter_max / 80,
 				10
 			);
 
@@ -135,10 +135,10 @@ class sdMatterContainer extends sdEntity
 	//	return 0; // Hack
 		
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.matter_max == 2560 )
-		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.75;
-		if ( this.matter_max == 5120 )
-		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.5;
+		if ( this.matter_max == 2560 * 2 || this.matter_max == 5120 * 2 || this.matter_max == 10240 * 2 || this.matter_max == 20480 * 2 )
+		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.05;
+		if ( this.matter_max == 40960 * 2 )
+		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.0275;
 	}
 }
 //sdMatterContainer.init_class();

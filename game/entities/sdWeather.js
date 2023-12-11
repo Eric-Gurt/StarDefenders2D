@@ -5,11 +5,15 @@
 
  
  
-	Test specific event on server (will break any other event):
+	Test specific event on server:
 
 			sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 18 );
 
 		OR
+
+			sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( sdWorld.entity_classes.sdWeather.EVENT_WATER_RAIN );
+
+		OR (will break any other event)
 
 		sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 17 ];
@@ -71,6 +75,10 @@ import sdVeloxMiner from './sdVeloxMiner.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdDropPod from './sdDropPod.js';
 import sdBeamProjector from './sdBeamProjector.js';
+import sdCouncilIncinerator from './sdCouncilIncinerator.js';
+import sdStealer from './sdStealer.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
+import sdVeloxFortifier from './sdVeloxFortifier.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -139,6 +147,11 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =	event_counter++; // 42
 		sdWeather.EVENT_KIVORTEC_WEAPONS_POD =	event_counter++; // 43
 		sdWeather.EVENT_BEAM_PROJECTOR =		event_counter++; // 44
+		sdWeather.EVENT_COUNCIL_INCINERATOR =	event_counter++; // 45
+		sdWeather.EVENT_STEALER =				event_counter++; // 46
+		sdWeather.EVENT_LONG_RANGE_ANTENNA =	event_counter++; // 47
+		sdWeather.EVENT_PROTECT_SDBG_DRONE =	event_counter++; // 48
+		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -149,6 +162,11 @@ class sdWeather extends sdEntity
 		sdWeather.pattern = [];
 		for ( var i = 0; i < 300; i++ )
 		sdWeather.pattern.push({ x:Math.random(), y:Math.random(), last_vis:false, last_y:0, last_x:0 });
+		
+		sdWeather.debug_rain = false;
+		
+		if ( sdWeather.debug_rain )
+		console.warn( 'WARNING: sdWeather.debug_rain is enabled! Rain will spawn under first socket character, where it stands only' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -204,7 +222,8 @@ class sdWeather extends sdEntity
 		this._max_velox_mech_count = 3;
 		this._max_setr_destroyer_count = 3;
 		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
-		this._max_drone_count = 40;
+		this._max_council_incinerator_count = 2;
+		this._max_drone_count = 15; // How much drones are allowed per faction?
 		this._max_portal_count = 4;
 		this._max_pod_count = 3;
 
@@ -229,8 +248,8 @@ class sdWeather extends sdEntity
 		this.day_time = 30 * 60 * 24 / 3;
 		
 		this._event_rotation_time = ( 30 * 60 * 14 ) + ( 30 * 45 ); // Time until potential events rotate, set to 14 minutes and 45 seconds so it can roll new events when fresh game starts instead of having earthquakes only for 15 minutes
-		this._weather_rotation_time = ( 30 * 60 * 17 ); // Same as above but for weather, set to 17 minutes so 3 minutes after it selects new weather events
-		this._sd_task_rotation_time = ( 30 * 60 * 25 ); // 25 minutes, selects new at 30
+		this._weather_rotation_time = ( 30 * 60 * 19 ) + ( 30 * 45 ); // Same as above but for weather, set to 19 minutes and 45 seconds so 15 seconds after it selects new weather events
+		this._sd_task_rotation_time = ( 30 * 60 * 29 ) + ( 30 * 45 );; // 29 minutes, 45 seconds, selects new at 30
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -259,7 +278,7 @@ class sdWeather extends sdEntity
 	}
 	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
 	{
-		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR )
+		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE )
 		return true;
 		
 		return false;
@@ -278,16 +297,6 @@ class sdWeather extends sdEntity
 		
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
-		// Potential invasion events
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_FALKOKS ) !== -1 )
-		this._potential_invasion_events.push( sdWeather.EVENT_FALKOKS );
-	
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_ASPS ) !== -1 )
-		this._potential_invasion_events.push( sdWeather.EVENT_ASPS );
-	
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_BITERS ) !== -1 )
-		this._potential_invasion_events.push( sdWeather.EVENT_BITERS );
-		//		
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
 		// allowed_event_ids = [ 8 ]; // Hack
@@ -299,22 +308,41 @@ class sdWeather extends sdEntity
 			d--;
 			continue;
 		}
+		
+		// Potential invasion events
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_FALKOKS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_FALKOKS );
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_ASPS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_ASPS );
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_BITERS ) !== -1 )
+		this._potential_invasion_events.push( sdWeather.EVENT_BITERS );
 				
 		if ( allowed_event_ids.length > 0 )
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-			let old_n = n;
+			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
+			let is_already_enabled = false;
 			let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount() ); // It probably would work as is -- Eric Gurt
 			let time = 1000;
 			while ( daily_event_count > 0 && time > 0 )
 			{
-				old_n = n;
+				is_already_enabled = false;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsGeneralEvent( n ) ) // Make sure only general events are allowed here
+				if ( this.IsGeneralEvent( n ) ) // Make sure only general events are allowed here
 				{
-					this._daily_events.push( n );
-					daily_event_count--;
+					for ( let i = 0; i < this._daily_events.length; i++ ) // Make sure event isn't already in the array
+					{
+						if ( this._daily_events[ i ] === n )
+						is_already_enabled = true;
+					}
+					if ( !is_already_enabled ) // Not in array?
+					{
+						this._daily_events.push( n ); // Add it
+						daily_event_count--;
+					}
 				}
 				time--;
 			}
@@ -345,25 +373,34 @@ class sdWeather extends sdEntity
 		if ( allowed_event_ids.length > 0 )
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-			let old_n = n;
+			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
+			let is_already_enabled = false;
 			let weather_event_count = Math.min( allowed_event_ids.length, ~~(Math.random() * 2 ) ); // Up to 2 events, can also be 0
 			let time = 1000;
 			while ( weather_event_count > 0 && time > 0 )
 			{
-				old_n = n;
+				is_already_enabled = false;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsWeatherEvent( n ) ) // Make sure only weather events are allowed here
+				if ( this.IsWeatherEvent( n ) ) // Make sure only weather events are allowed here
 				{
-					this._daily_weather_events.push( n );
-					weather_event_count--;
+					for ( let i = 0; i < this._daily_weather_events.length; i++ ) // Make sure event isn't already in the array
+					{
+						if ( this._daily_weather_events[ i ] === n )
+						is_already_enabled = true;
+					}
+					if ( !is_already_enabled ) // Not in array?
+					{
+						this._daily_weather_events.push( n ); // Add it
+						weather_event_count--;
+					}
 				}
 				time--;
 			}
 		}
 		//console.log( "Weather events: " + this._daily_weather_events );
 	}
-	GetDailySDEvents() // Select up to 2 SD related task events
+	GetDailySDEvents() // Select up to 4 SD related task events
 	{
 		this._daily_sd_task_events = [];
 		
@@ -384,21 +421,31 @@ class sdWeather extends sdEntity
 		if ( allowed_event_ids.length > 0 )
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-			let old_n = n;
+			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
-			let sd_event_count = Math.min( allowed_event_ids.length,  (1 + ~~(Math.random() * 1 ) ) ); // Up to 2 events, min 1 so the tasks can keep coming
+			let is_already_enabled = false;
+			let sd_event_count = Math.min( allowed_event_ids.length, 4 ); // 4 events if possible
 			let time = 1000;
 			while ( sd_event_count > 0 && time > 0 )
 			{
-				old_n = n;
+				is_already_enabled = false;
 				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-				if ( old_n !== n && this.IsSDEvent( n ) ) // Make sure only weather events are allowed here
+				if ( this.IsSDEvent( n ) ) // Make sure only SD related events are allowed here
 				{
-					this._daily_sd_task_events.push( n );
-					sd_event_count--;
+					for ( let i = 0; i < this._daily_sd_task_events.length; i++ ) // Make sure event isn't already in the array
+					{
+						if ( this._daily_sd_task_events[ i ] === n )
+						is_already_enabled = true;
+					}
+					if ( !is_already_enabled ) // Not in array?
+					{
+						this._daily_sd_task_events.push( n ); // Add it
+						sd_event_count--;
+					}
 				}
 				time--;
 			}
+			//Essentially we allow 4 events for every 30 minutes, when one happens it cannot happen again until next SD event selection happens.
 		}
 		//console.log( "SD Task events: " + this._daily_sd_task_events );
 	}
@@ -628,11 +675,11 @@ class sdWeather extends sdEntity
 					let ground_entity = sdWorld.last_hit_entity;
 					
 					if ( ground_entity )
-					if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Ignore caves after first 500 iterations
+					if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Include caves after first 1000 iterations
 					if ( ground_entity.is( sdBlock ) && ground_entity.DoesRegenerate() && ground_entity._natural )
 					if ( !sdWorld.CheckWallExistsBox( 
 							x + ent._hitbox_x1 - 16, 
-							y + ent._hitbox_y1 - 116, 
+							y + ent._hitbox_y1 - 64, 
 							x + ent._hitbox_x2 + 16, 
 							y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 					{
@@ -1110,7 +1157,7 @@ class sdWeather extends sdEntity
 		//console.log( r );
 		if ( r === sdWeather.EVENT_ACID_RAIN || r === sdWeather.EVENT_WATER_RAIN || r === sdWeather.EVENT_SNOW || r === sdWeather.EVENT_MATTER_RAIN )
 		{
-			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
+			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 3 ); // start rain for ~15 seconds
 		}
 
 		if ( r === sdWeather.EVENT_ASTEROIDS )
@@ -1194,24 +1241,33 @@ class sdWeather extends sdEntity
 				ais++;
 			}
 			{ // Spawn some drones aswell
-				instances = 0;
-				instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-				while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
+				let drones = 0;
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
 				{
-					let drone_type = Math.random() < 0.2 ? 10 : 1;
-					let drone = new sdDrone({ x:0, y:0, type: drone_type, _ai_team: 1});
-					//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 1 ) // Falkok drone?
+					drones++;
+				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
+				{
+					sdWeather.SimpleSpawner({
 
-					sdEntity.entities.push( drone );
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
+						aerial: true
 
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					instances++;
+					});
+				
+					if ( Math.random() < 0.5 )
+					sdWeather.SimpleSpawner({
+
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
+						aerial: true
+
+					});
 				}
 			}
 		}
@@ -1441,11 +1497,21 @@ class sdWeather extends sdEntity
 				params: { _ai_team: 2, type: spider_type }
 
 			});
+			
+			let drones = 0;
+			for ( let i = 0; i < sdDrone.drones.length; i++ )
+			{
+				let drone = sdDrone.drones[ i ];
+				if ( drone._ai_team === 2 ) // Erthal drone?
+				drones++;
+			}
+			if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
 			sdWeather.SimpleSpawner({
 
-				count: [ 1, 2 ],
+				count: [ 2, 3 ],
 				class: sdDrone,
-				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL }
+				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL },
+				aerial: true
 
 			});
 			
@@ -1610,28 +1676,28 @@ class sdWeather extends sdEntity
 			 r === 19 )
 		if ( this.raining_intensity <= 0 )
 		{
-			if ( r === 0 )
+			if ( r === sdWeather.EVENT_ACID_RAIN )
 			{
 				this.acid_rain = 1;
 				this.snow = 0;
 				this.matter_rain = 0;
 			}
 		
-			if ( r === 14 )
+			if ( r === sdWeather.EVENT_WATER_RAIN )
 			{
 				this.acid_rain = 0;
 				this.snow = 0;
 				this.matter_rain = 0;
 			}
 
-			if ( r === 15 )
+			if ( r === sdWeather.EVENT_SNOW )
 			{
 				this.snow = 1;
 				this.acid_rain = 0;
 				this.matter_rain = 0;
 			}
 
-			if ( r === 19 )
+			if ( r === sdWeather.EVENT_MATTER_RAIN )
 			{
 				if ( Math.random() < 0.8 )
 				{
@@ -1786,27 +1852,30 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
-				let drones = 0;
-				let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-
-				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
+				//let drones = 0;
+				//let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+				
+				let drone_type = ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
 						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
-						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/});
-
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
+						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/;
+						
+				let drones = 0;
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
+				{
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 4 ) // Sarronian/Zektaron drone?
 					drones++;
 				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
+				sdWeather.SimpleSpawner({
+
+					count: [ 2, 4 ],
+					class: sdDrone,
+					params: { _ai_team: 4, type: drone_type },
+					aerial: true
+
+				});
+				
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -1933,7 +2002,7 @@ class sdWeather extends sdEntity
 				instances++;
 			}
 		}
-		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal anywhere on the map outside player views which summons Erthals until destroyed
+		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal beacon anywhere on the map outside player views which summons Erthals until destroyed
 		{
 			let chance = 0;
 			let req_char = 0;
@@ -2330,25 +2399,26 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
+				//let drones = 0;
+				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
 				let drones = 0;
-				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-
-				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
 				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 7, type: 7});
-
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 7 ) // Setr drone?
 					drones++;
 				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
+				sdWeather.SimpleSpawner({
+
+					count: [ 3, 6 ],
+					class: sdDrone,
+					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
+					aerial: true
+
+				});
+				
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -2800,25 +2870,34 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
-
+				
 				let drones = 0;
-				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-
-				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
+				for ( let i = 0; i < sdDrone.drones.length; i++ )
 				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
-
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
+					let drone = sdDrone.drones[ i ];
+					if ( drone._ai_team === 7 ) // Setr drone?
 					drones++;
+				}
+				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
+				{
+					sdWeather.SimpleSpawner({
+
+						count: [ 3, 5 ],
+						class: sdDrone,
+						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
+						aerial: true
+
+					});
+				
+					if ( Math.random() < 0.25 )
+					sdWeather.SimpleSpawner({
+
+						count: [ 1, 2 ],
+						class: sdDrone,
+						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
+						aerial: true
+
+					});
 				}
 			}
 		}
@@ -3006,7 +3085,7 @@ class sdWeather extends sdEntity
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
 				if ( sdCharacter.characters[ i ]._ai )
-				if ( sdCharacter.characters[ i ]._ai_team === 8 )
+				if ( sdCharacter.characters[ i ]._ai_team === 9 )
 				{
 					ais++;
 				}
@@ -3053,7 +3132,7 @@ class sdWeather extends sdEntity
 
 			}
 		}
-		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
+		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter converter anywhere on the map outside player views.
 		{
 			{
 				let instances = 0;
@@ -3175,8 +3254,8 @@ class sdWeather extends sdEntity
 									character_entity.matter = 1000;
 									character_entity.matter_max = 1000;
 
-									character_entity.hea = 2500;
-									character_entity.hmax = 2500;
+									character_entity.hea = 3000;
+									character_entity.hmax = 3000;
 								}
 
 								character_entity._ai = { direction: ( Math.random() < 0.5 ) ? -1 : 1 };
@@ -3194,7 +3273,7 @@ class sdWeather extends sdEntity
 								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( character_settings );
 								character_entity.title = character_settings.hero_name;	
 
-								character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES, charges_left: 2 }); // Give him the Time Shifter properties / status effect
+								character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES, charges_left: 3 }); // Give him the Time Shifter properties / status effect
 
 								// This is a bossfight.
 								break;
@@ -3259,6 +3338,130 @@ class sdWeather extends sdEntity
 				aerial: false
 				
 			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_COUNCIL_INCINERATOR ) // Council's Incinerator, mini boss from Council faction
+		{
+			let possible_spawn = false;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character )
+				if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 ) // If atleast one player is level 15 or above
+				possible_spawn = true;
+			}
+			if ( sdCouncilIncinerator.incinerator_counter < this._max_council_incinerator_count && possible_spawn )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdCouncilIncinerator,
+				aerial: true
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_STEALER ) // Spawn a Stealer which steals unattended crystals.
+		{
+			// No need for a cap, they disappear on their own when they can't find any unattended crystals
+			sdWeather.SimpleSpawner({
+				
+				count: [ 2, 3 ],
+				class: sdStealer,
+				aerial: true
+				
+			});
+		}
+		if ( r === sdWeather.EVENT_LONG_RANGE_ANTENNA ) // Long range frequency antenna is placed by SD's and needs to be calibrated
+		{
+			if ( sdLongRangeAntenna.antennas.length < 8 )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdLongRangeAntenna,
+				aerial: false
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_PROTECT_SDBG_DRONE ) // Mothership is trying to see if old drone stockpile is effective on planet ( players need to protect the drone for 5 minutes )
+		{
+			let instances = 0;
+			let instances_tot = 1;
+			while ( instances < instances_tot ) // Only 1 should spawn
+			{
+				let ent = new sdDrone({ x:0, y:0, type: 17, _ai_team: 0 });
+
+				sdEntity.entities.push( ent );
+
+				{
+					//let x,y;
+					let tr = 2;
+					do
+					{
+						if ( sdWeather.SetRandomSpawnLocation( ent ) )
+						{
+							break;
+						}
+
+						tr--;
+						if ( tr < 0 )
+						{
+							ent.remove();
+							ent._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be protected
+				if ( sdWorld.sockets[ i ].character )
+				{
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'PROTECT-'+ent._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						target: ent,
+						mission: sdTask.MISSION_PROTECT_ENTITY,
+						protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
+						time_left: 30 * 60 * 5, // 5 minutes
+						difficulty: 0.075,
+						title: 'Protect a drone',
+						description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
+					});
+				}
+			}
+		}
+		if ( r === sdWeather.EVENT_VELOX_FORTIFIER ) // Spawn a Velox device which shields velox units until it is destroyed
+		{
+			let chance = 0;
+			let req_char = 0;
+			let char = 0;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character !== null )
+				if ( sdWorld.sockets[ i ].character.hea > 0 )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					char++;
+					if ( sdWorld.sockets[ i ].character.build_tool_level >= 5 )
+					req_char++;
+				}
+			}
+			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
+
+			if ( Math.random() < chance )
+			{
+				if ( sdVeloxFortifier.ents < 1 )
+				sdWeather.SimpleSpawner({
+
+					count: [ 1, 1 ],
+					class: sdVeloxFortifier 
+
+				});
+
+			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
@@ -3380,116 +3583,172 @@ class sdWeather extends sdEntity
 				this.raining_intensity = Math.max( 0, this.raining_intensity - GSPEED * 0.1 );
 			}
 			
-			if ( this.raining_intensity > 50 )
+			if ( this.raining_intensity > 50 || sdWeather.debug_rain )
 			//if ( sdWorld.is_server ) Done before
 			{
 				sdWorld.last_hit_entity = null;
 				
 				//for ( var i = 0; i < 40; i++ )
 				//if ( Math.random() < 100 / ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) )
-				if ( !this.matter_rain )
-				if ( sdWorld.time > this._next_grass_seed )
+				if ( !this.matter_rain || sdWeather.debug_rain )
+				if ( sdWorld.time > this._next_grass_seed || sdWeather.debug_rain )
 				{
 					this._next_grass_seed = sdWorld.time + 100;
 					
 					
-					for ( let i = sdBlock.natural_blocks_total / 1000 * 1.5; i > 0; i-- )
+					for ( let i = sdWeather.debug_rain ? 1 : ( sdBlock.natural_blocks_total / 1000 * 1.5 ); i > 0; i-- )
 					{
 						let e = sdEntity.GetRandomEntity();
+						
+						if ( sdWeather.debug_rain )
+						if ( sdWorld.sockets[ 0 ] )
+						if ( sdWorld.sockets[ 0 ].character )
+						if ( sdWorld.sockets[ 0 ].character._stands_on )
+						{
+							e = sdWorld.sockets[ 0 ].character._stands_on;
+							this.snow = 1;
+						}
 
 						if ( e.is( sdBlock ) )
 						if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
 						{
-							if ( e.DoesRegenerate() )
+							let xx = Math.floor( ( e.x + Math.random() * e.width ) / 16 ) * 16;
 							//if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
-							if ( this.TraceDamagePossibleHere( e.x + e.width / 2, e.y - 8, Infinity, false, true ) )
+							if ( this.TraceDamagePossibleHere( xx + 8, e.y - 8, Infinity, false, true ) )
 							{
-								if ( e._plants === null )
+								if ( e.DoesRegenerate() )
 								{
-									let tree_variation = sdGrass.VARIATION_LOW_GRASS; // Initial grass
-									let x_off = 0; // X and Y offsets for proper aligment of bushes/trees
-									let y_off = 0; //
-									if ( Math.random() < 0.4 ) // 40% chance for it to check if a tree or bush spawn is possible
+									if ( e._plants === null )
 									{
-										let proper_distance = true;
-
-										for ( i = 0; i < sdWorld.sockets.length; i++ )
-										if ( sdWorld.sockets[ i ].character )
+										let tree_variation = sdGrass.VARIATION_LOW_GRASS; // Initial grass
+										let x_off = 0; // X and Y offsets for proper aligment of bushes/trees
+										let y_off = 0; //
+										if ( Math.random() < 0.4 ) // 40% chance for it to check if a tree or bush spawn is possible
 										{
-											if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, e.x, e.y, sdWeather.min_distance_from_online_players_for_entity_events ) ) // If players are too close, don't spawn a tree so they don't see it pop in
+											let proper_distance = true;
+
+											for ( i = 0; i < sdWorld.sockets.length; i++ )
+											if ( sdWorld.sockets[ i ].character )
 											{
-												proper_distance = false;
-												break;
-											}
-										}
-										if ( proper_distance ) // Can spawn a tree?
-										{
-											let chance = Math.random();
-											if ( chance < 0.175 ) // 35% of trees have a chance to be large, just like in fresh world generation
-											tree_variation = sdGrass.VARIATION_TREE_LARGE;
-											else
-											if ( chance < 0.5 )
-											tree_variation = sdGrass.VARIATION_TREE;
-											else
-											tree_variation = sdGrass.VARIATION_BUSH;
-
-											x_off = 8;
-											y_off = 16;
-											// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
-										}
-									}
-									let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
-
-									//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
-									sdEntity.entities.push( grass );
-
-									//grass.snowed = this.snow;
-									grass.SetSnowed( this.snow );
-
-									e._plants = [ grass._net_id ];
-								}
-								else
-								{
-									for ( let i = 0; i < e._plants.length; i++ )
-									{
-										//let ent = sdEntity.entities_by_net_id_cache[ e._plants[ i ] ];
-										let ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
-
-										if ( ent )
-										{
-											if ( ent.is( sdGrass ) )
-											{
-												// Old version problem fix:
-												if ( ent._block !== e )
-												ent._block = e;
-
-												ent.SetSnowed( this.snow );
-												//ent.snowed = this.snow;
-
-												if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+												if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, e.x, e.y, sdWeather.min_distance_from_online_players_for_entity_events ) ) // If players are too close, don't spawn a tree so they don't see it pop in
 												{
-													ent.Grow();
-													break; // Skip rest plants on this block
+													proper_distance = false;
+													break;
 												}
 											}
+											if ( proper_distance ) // Can spawn a tree?
+											{
+												let chance = Math.random();
+												if ( chance < 0.175 ) // 35% of trees have a chance to be large, just like in fresh world generation
+												tree_variation = sdGrass.VARIATION_TREE_LARGE;
+												else
+												if ( chance < 0.5 )
+												tree_variation = sdGrass.VARIATION_TREE;
+												else
+												tree_variation = sdGrass.VARIATION_BUSH;
+
+												x_off = 8;
+												y_off = 16;
+												// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
+											}
 										}
-										else
+										let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
+
+										//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
+										sdEntity.entities.push( grass );
+
+										//grass.snowed = this.snow;
+										grass.SetSnowed( this.snow );
+
+										e._plants = [ grass._net_id ];
+									}
+									else
+									{
+										for ( let i = 0; i < e._plants.length; i++ )
 										{
-											// Old version problem fix:
-											e._plants.splice( i, 1 );
-											i--;
-											continue;
+											//let ent = sdEntity.entities_by_net_id_cache[ e._plants[ i ] ];
+											let ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+
+											if ( ent )
+											{
+												if ( ent.is( sdGrass ) )
+												{
+													// Old version problem fix:
+													if ( ent._block !== e )
+													ent._block = e;
+
+													ent.SetSnowed( this.snow );
+													//ent.snowed = this.snow;
+
+													if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+													{
+														ent.Grow();
+														break; // Skip rest plants on this block
+													}
+												}
+											}
+											else
+											{
+												// Old version problem fix:
+												e._plants.splice( i, 1 );
+												i--;
+												continue;
+											}
 										}
 									}
 								}
-							}
 
-							if ( !this.snow && !this.matter_rain )
-							if ( Math.random() < 0.01 )
-							{
-								let water = new sdWater({ x:Math.floor(e.x/16)*16, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
-								sdEntity.entities.push( water );
-								sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+								if ( this.snow )
+								{
+									// Try to find higher block since they are too tiny sky tracer might skip them
+									
+									let tr = 0;
+									while ( true )
+									{
+										if ( tr++ > 100 )
+										throw new Error( 'Unable to find highest snow block' ); // Replace with break; if it happens
+										
+										if ( sdWorld.CheckWallExistsBox( xx+1, e.y-3, xx+15, e.y-1, null, null, [ 'sdBlock' ] ) )
+										{
+											if ( sdWorld.last_hit_entity )
+											e = sdWorld.last_hit_entity;
+											else
+											break;
+										}
+										else
+										break;
+									}
+									
+									if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
+									{
+										// Add snow amount
+										e.y -= 4;
+										e.height += 4;
+										e._hea += 10;
+										e._hmax += 10;
+										e._update_version++;
+										sdWorld.UpdateHashPosition( e, false );
+									}
+									else
+									{
+										// Spawn snow?
+										let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
+										snow_block._hea = snow_block._hmax = 10;
+
+										sdEntity.entities.push( snow_block );
+										sdWorld.UpdateHashPosition( snow_block, false );
+									}
+								}
+								else
+								if ( Math.random() < 0.01 )
+								{
+									if ( !this.matter_rain )
+									{
+										let water = new sdWater({ x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
+										sdEntity.entities.push( water );
+										sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+									}
+								}
 							}
 						}
 					}
@@ -3824,10 +4083,12 @@ class sdWeather extends sdEntity
 											{
 												if ( Math.random() < 0.1 ) // Chance to damage player-made backgrounds, will only work if they aren't protected
 												{
-													sdWorld.last_hit_entity.DamageWithEffect( 20, null );
-													
-													if ( sdWorld.last_hit_entity._is_being_removed )
-													bg_nature_ent = sdWorld.last_hit_entity;
+													let e = sdWorld.last_hit_entity;
+
+													e.DamageWithEffect( 20, null );
+
+													if ( e._is_being_removed )
+													bg_nature_ent = e;
 												}
 												else
 												bg_nature = false;
@@ -4016,13 +4277,17 @@ class sdWeather extends sdEntity
 			this._time_until_sd_task_event -= GSPEED;
 			if ( this._time_until_sd_task_event < 0 )
 			{
-				this._time_until_sd_task_event = 30 * 60 * 5 + Math.random() * 30 * 60 * 25; // Need to add a server config option later - Booraz149
+				this._time_until_sd_task_event = 30 * 60 * 5 + Math.random() * 30 * 2.5; // Need to add a server config option later - Booraz149
 
 				let allowed_event_ids = this._daily_sd_task_events;
 				if ( allowed_event_ids.length > 0 )
 				{
-					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+					let event = ~~( Math.random() * allowed_event_ids.length );
+					let r = allowed_event_ids[ event ];
 					this.ExecuteEvent( r );
+					
+					allowed_event_ids.splice( event, 1 );
+					//console.log( 'Executed event ' + r +', current available events:' + this._daily_sd_task_events );
 				}
 			}
 		}

@@ -295,7 +295,6 @@ class sdCouncilIncinerator extends sdEntity
 				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
 
 				sdEntity.entities.push( drone );
-				drone._ai_team = this._ai_team;
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}*/

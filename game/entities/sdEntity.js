@@ -609,7 +609,7 @@ class sdEntity
 		return false;
 	}
 	
-	ImpactWithDamageEffect( vel )
+	ImpactWithDamageEffect( vel, initiator=null )
 	{
 		if ( sdWorld.is_server || sdWorld.is_singleplayer )
 		{
@@ -618,7 +618,7 @@ class sdEntity
 		
 			let hp_old = Math.max( 0, this.hea || this._hea || 0 );
 
-			this.Impact( vel );
+			this.Impact( vel, initiator );
 
 			let dmg = hp_old - Math.max( 0, this.hea || this._hea || 0 );
 			if ( dmg !== 0 )
@@ -626,17 +626,17 @@ class sdEntity
 		}
 		else
 		{
-			this.Impact( vel );
+			this.Impact( vel, initiator );
 		}
 	}
 	
-	Impact( vel ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
+	Impact( vel, initiator=null ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
 	{
 		//if ( vel > 7 )
 		if ( vel > 6 ) // For new mass-based model
 		{
 			//this.DamageWithEffect( ( vel - 4 ) * 15 );
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15, initiator );
 		}
 	}
 	TriggerMovementInRange() // Should cause onMovementInRange to be called even if no movement happens for entity. Can be used in cases when sdCharacter drops guns (so other guns can be picked up) or upgrades matter capacity (so shards can be picken up)
@@ -1737,10 +1737,10 @@ class sdEntity
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
 										//if ( best_ent._hard_collision )
-										this.ImpactWithDamageEffect( impact * self_effect_scale );
+										this.ImpactWithDamageEffect( impact * self_effect_scale, best_ent );
 
 										//if ( hard_collision )
-										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ) );
+										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), this );
 									}
 								}
 							}
@@ -1761,10 +1761,10 @@ class sdEntity
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
 										//if ( best_ent._hard_collision )
-										this.ImpactWithDamageEffect( impact * self_effect_scale );
+										this.ImpactWithDamageEffect( impact * self_effect_scale, best_ent );
 
 										//if ( hard_collision )
-										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ) );
+										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), this );
 									}
 								}
 							}
@@ -2675,8 +2675,13 @@ class sdEntity
 		//this._stack_trace = globalThis.getStackTrace();
 		
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		this._flag2 = 0; // Used solely by client-side rendering since ._flag will often be overriden during render logic and thus cause rare flickering
 
 		this._class = this.constructor.name;
+		
+		this._net_id = undefined;
 		
 		this._class_id = this.__proto__.constructor.class_id;
 		
@@ -3595,6 +3600,7 @@ class sdEntity
 									typeof this[ prop ] === 'string' || 
 									this[ prop ] === null || 
 									typeof this[ prop ] === 'boolean' || 
+									prop === '_shielded' || // It became way too common and means only one thing anyway. LRTPs and CCs don't check for it and it causes them to lose protection on server reboot
 									this.ExtraSerialzableFieldTest( prop ) 
 								  ) 
 								) 

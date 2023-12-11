@@ -322,68 +322,13 @@ class sdRenderer
 							let data = image_data.data; // Uint8ClampedArray
 
 
-							let roundBGRA8 = ( number = 127, is_gun = false ) => {
-								switch( number )
-								{
-									case 127:
-									case 191:
-									case 254:
-									if ( data.length !== 81920 || number === 191 || number === 254 )
-									number++;
-									break;
-
-									case 126:
-									case 190:
-									number += 2;
-									break;
-
-									case 124:
-									number += 4;
-									break;
-
-									case 132:
-									number -= 4;
-									break;
-
-									case 193:
-									case 129:
-									number--;
-									break;
-
-									case 130:
-									number -= 2;
-									break;
-
-									case 189:
-									case 125:
-									number += 3;
-									break;
-
-									case 195:
-									case 131:
-									number -= 3;
-									break;
-
-									case 54:
-									case 52:
-									case 27:
-									case 18:
-									case 15:
-									case 11:
-									case 2:
-									case 1:
-									if ( !is_gun )
-									number = 0;
-									break;
-								}
-
-								return number;
-							};
-
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
-							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
+							// Recolor. Firefox supports color correction in the PNG format and isn't supported in most softwares (exc: Microsoft Paint or MSPaint)
+							// See https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#png_portable_network_graphics
+							for ( let i = 1; i < data.length; i++ )
 							if ( data[ i ] !== 0 )
-							data[ i ] = roundBGRA8( data[ i ], sd_filter.is_gun );
+							// sdRenderer.roundBGRA8( data, data[ i ], sd_filter.is_gun )
+							data[ i ] = sdRenderer.applyColorCorrection( data, data[ i ], sd_filter.is_gun );
 
 							/*
 							let array_buffer = data.buffer;
@@ -651,6 +596,68 @@ class sdRenderer
 			}
 		}
 	}
+
+	static applyColorCorrection( data, number = 127, is_gun = false ) // roundBGRA8( data, number = 127, is_gun = false )
+	{
+		switch( number )
+		{
+			case 127:
+			case 191:
+			case 254:
+			if ( data.length !== 81920 || number === 191 || number === 254 )
+			number++;
+			break;
+
+			case 126:
+			case 190:
+			number += 2;
+			break;
+
+			case 124:
+			number += 4;
+			break;
+
+			case 132:
+			number -= 4;
+			break;
+
+			case 193:
+			case 129:
+			number--;
+			break;
+
+			case 130:
+			number -= 2;
+			break;
+
+			case 189:
+			case 125:
+			number += 3;
+			break;
+
+			case 195:
+			case 131:
+			number -= 3;
+			break;
+
+			case 54:
+			case 53:
+			case 52:
+			case 27:
+			case 18:
+			case 17:
+			case 15:
+			case 11:
+			case 3:
+			case 2:
+			case 1:
+			if ( !is_gun )
+			number = 0;
+			break;
+		}
+
+		return number;
+	}
 	
 	static SaveLightSource( ent )
 	{
@@ -781,9 +788,9 @@ class sdRenderer
 				for ( let i = 0; i < arr.length; i++ )
 				{
 					let e = arr[ i ];
-					if ( e._flag !== mark_flag_reference )
+					if ( e._flag2 !== mark_flag_reference )
 					{
-						e._flag = mark_flag_reference;
+						e._flag2 = mark_flag_reference;
 						visible_entities[ tot++ ] = e;
 					}
 				}
@@ -1175,7 +1182,7 @@ class sdRenderer
 						trace( e );
 					}*/
 
-					//e._flag = 0; // Visibility detection
+					//e._flag2 = 0; // Visibility detection
 					
 					/*if ( e.is( sdStatusEffect ) )
 					{
@@ -1201,7 +1208,7 @@ class sdRenderer
 							) 
 						)
 					{
-						e._flag = frame_flag_reference;
+						e._flag2 = frame_flag_reference;
 					}
 					else
 					if ( sdWorld.my_entity )
@@ -1230,7 +1237,7 @@ class sdRenderer
 
 							//if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
 							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, furthest_an + sdRenderer.visibility_falloff + max_dimension + 32 ) )
-							e._flag = frame_flag_reference;
+							e._flag2 = frame_flag_reference;
 						}
 						else
 						if (	e.is( sdEffect ) &&
@@ -1251,7 +1258,7 @@ class sdRenderer
 								let max_dimension = 0;
 
 								if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
-								e._flag = frame_flag_reference;
+								e._flag2 = frame_flag_reference;
 							}
 						}
 					}
@@ -1264,7 +1271,7 @@ class sdRenderer
 			{
 				const e = visible_entities[ i ];
 				
-				if ( e._flag === frame_flag_reference )
+				if ( e._flag2 === frame_flag_reference )
 				if ( e.DrawBG !== void_draw )
 				//if ( e.x + e._hitbox_x2 > min_x )
 				//if ( e.x + e._hitbox_x1 < max_x )
@@ -1317,7 +1324,7 @@ class sdRenderer
 			{
 				const e = visible_entities[ i ];
 				
-				if ( e._flag === frame_flag_reference )
+				if ( e._flag2 === frame_flag_reference )
 				if ( ( e.x + e._hitbox_x2 > min_x &&
 					   e.x + e._hitbox_x1 < max_x &&
 					   e.y + e._hitbox_y2 > min_y &&
@@ -1383,7 +1390,7 @@ class sdRenderer
 			{
 				const e = visible_entities[ i ];
 				
-				if ( e._flag === frame_flag_reference )
+				if ( e._flag2 === frame_flag_reference )
 				if ( e.DrawFG !== void_draw_fg )
 				{
 					ctx.camera_relative_world_scale = e.CameraDistanceScale3D( 1 );
@@ -1539,7 +1546,7 @@ class sdRenderer
 					{
 						if ( show_hud )
 						for ( var i = 0; i < visible_entities.length; i++ )
-						if ( visible_entities[ i ]._flag === frame_flag_reference )
+						if ( visible_entities[ i ]._flag2 === frame_flag_reference )
 						if ( visible_entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 						{
 							//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( visible_entities[ i ] );

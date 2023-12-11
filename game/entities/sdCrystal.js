@@ -297,7 +297,7 @@ class sdCrystal extends sdEntity
 		this._current_target = null; // For big crystal crabs
 	}
 	
-	onSnapshotApplied() // To override
+	/*onSnapshotApplied() // To override
 	{
 		if ( sdWorld.is_server )
 		if ( !sdWorld.is_singleplayer )
@@ -306,11 +306,13 @@ class sdCrystal extends sdEntity
 			// Issue still kind of exists on one of servers... 1000 active balloon crystals just lying around
 			if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON && ( this.held_by === null || this.held_by.crystal !== this ) )
 			{
+				Wrong as it happens after crystals are extracted from crates
+	
 				this.remove();
 				this._broken = false;
 			}
 		}
-	}
+	}*/
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -719,6 +721,8 @@ class sdCrystal extends sdEntity
 			}
 			else
 			{
+				this.MatterGlow( 0.01, 30, GSPEED_scaled ); // This order should make it regen more efficiently when crystals are nearly full
+				
 				let matter_before_regen = this.matter;
 
 				if ( this.held_by && this.held_by.is( sdMatterAmplifier ) )
@@ -726,10 +730,10 @@ class sdCrystal extends sdEntity
 				else
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
 
-				if ( sdWorld.server_config.base_degradation )
+				if ( sdWorld.server_config.crystal_matter_regen_decrease )
 				this.matter_regen = Math.max( sdCrystal.lowest_matter_regen, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
 
-				this.MatterGlow( 0.01, 30, GSPEED_scaled );
+				//this.MatterGlow( 0.01, 30, GSPEED_scaled );
 			}
 		}
 		

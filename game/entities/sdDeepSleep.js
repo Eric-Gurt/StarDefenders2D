@@ -195,7 +195,7 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.inception_catcher_give_up_level = 512;
 		sdDeepSleep.inception_catcher_next_warning_allowed_in = 0;
 		
-		sdDeepSleep.dependence_distance_max = 1000; // Anti-dependence hell measure
+		sdDeepSleep.dependence_distance_max = 500; // Anti-dependence hell measure
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -543,6 +543,12 @@ class sdDeepSleep extends sdEntity
 		else
 		if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		{
+			if ( this._is_being_removed )
+			{
+				console.warn( 'Waking up a removed area?' );
+				debugger;
+			}
+			
 			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 			trace( 'sdDeepSleep[ '+this._net_id+' ] woken up: TYPE_HIBERNATED_WORLD wakes up due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity ,')', this.x, this.y, this.x+this.w, this.y+this.h );
 			
@@ -955,8 +961,21 @@ class sdDeepSleep extends sdEntity
 	}
 	onBuilt()
 	{
+		//trace( 'onBuilt called for', this );
+		
 		if ( sdWorld.is_server )
 		{
+			/*let test_case = false;
+			
+			// Why is this one made but empty?
+			if ( this.x === -1536 )
+			if ( this.y === -256 )
+			{
+				test_case = true;
+				debugger;
+			}*/
+		
+		
 			if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 			{
 				let t = sdDeepSleep.debug_times ? Date.now() : 0;
@@ -1007,17 +1026,37 @@ class sdDeepSleep extends sdEntity
 
 				//let scheduled_sleep_areas_to_cancel = [];
 
-				const HandleEntity = ( e )=>
+				const HandleEntity = ( e, as_dependence=false )=>
 				{
+					/*if ( e.is( sdBaseShieldingUnit ) )
+					{
+						let a = 1;
+					}
+					if ( e.is( sdLongRangeTeleport ) )
+					{
+						let a = 1;
+					}
+					if ( e.is( sdWorld.entity_classes.sdCommandCentre ) )
+					{
+						let a = 1;
+					}
+					if ( e.is( sdBlock ) && e.width === 32 && e.height === 16 )
+					{
+						let a = 1;
+					}*/
+					
 					//if ( entity_once.has( e ) )
 					if ( e._flag === visited_ent_flag )
 					{
+						if ( e !== this )
+						if ( all_entities.indexOf( e ) === -1 )
+						{
+							throw new Error( 'What is this sorcery? ' + e._net_id );
+						}
 					}
 					else
-					if ( this.DoesOverlapWith( e ) )
+					if ( as_dependence || this.DoesOverlapWith( e ) )
 					{
-						e._flag = visited_ent_flag;
-
 						if ( e.is( sdWeather ) )
 						return false;
 
@@ -1074,7 +1113,11 @@ class sdDeepSleep extends sdEntity
 								return false;
 							}
 						}
+						
+						// No returns allowed past this point -------------------------
 
+						e._flag = visited_ent_flag;
+						//trace( 'flag set for '+ e._net_id );
 
 						all_entities.push( e );
 
@@ -1126,10 +1169,14 @@ class sdDeepSleep extends sdEntity
 
 						if ( r !== 0 )
 						{
-							ext_x1 = e.x - r;
+							/*ext_x1 = e.x - r;
 							ext_x2 = e.x + r;
 							ext_y1 = e.y - r;
-							ext_y2 = e.y + r;
+							ext_y2 = e.y + r;*/
+							ext_x1 = -r;
+							ext_x2 = r;
+							ext_y1 = -r;
+							ext_y2 = r;
 						}
 
 						_x = Math.floor( Math.min( _x, e.x + ext_x1 ) / 16 ) * 16;
@@ -1197,6 +1244,9 @@ class sdDeepSleep extends sdEntity
 						else
 						if ( e.is( sdBG ) )
 						{
+							if ( e._shielded )
+							if ( !e._shielded._is_being_removed )
+							dependences.push( e._shielded );
 						}
 						else
 						{
@@ -1210,6 +1260,11 @@ class sdDeepSleep extends sdEntity
 							{
 								if ( sdWorld.inDist2D_Boolean( e.x, e.y, e[ prop ].x, e[ prop ].y, sdDeepSleep.dependence_distance_max ) )
 								{
+									/*if ( e[ prop ].is( sdCharacter ) && e[ prop ]._socket )
+									{
+										let a = 1;
+									}*/
+									
 									dependences.push( e[ prop ] );
 
 									if ( all_dependences )
@@ -1271,9 +1326,10 @@ class sdDeepSleep extends sdEntity
 
 						for ( let i2 = 0; i2 < arr.length; i2++ )
 						{
-							if ( HandleEntity( arr[ i2 ] ) )
+							if ( HandleEntity( arr[ i2 ], false ) )
 							{
 								ProvidePerformanceReport( true );
+								this.remove();
 								return;
 							}
 						}
@@ -1284,9 +1340,15 @@ class sdDeepSleep extends sdEntity
 						let e = dependences.pop();
 
 						if ( !e._is_being_removed )
-						if ( HandleEntity( e ) )
+						if ( HandleEntity( e, true ) )
 						{
+							/*if ( test_case )
+							{
+								debugger;
+							}*/
+							
 							ProvidePerformanceReport( true );
+							this.remove();
 							return;
 						}
 					}
@@ -1298,8 +1360,8 @@ class sdDeepSleep extends sdEntity
 					if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 					trace( 'sdDeepSleep hibernation refused: Too few entities ('+all_entities.length+')', _x, _y, _x2, _y2 );
 
-					this.remove();
 					ProvidePerformanceReport( true );
+					this.remove();
 					return;
 				}
 
@@ -1413,6 +1475,14 @@ class sdDeepSleep extends sdEntity
 				//scheduled_sleep_areas_to_cancel[ i ].remove();
 
 				this._to_remove_temp_set = null;
+
+				//trace( 'Hibernation is being done on following entities:', all_entities, snapshots, this );
+				
+				if ( snapshots.length === 0 )
+				{
+					console.warn( 'What is happening here?' );
+					debugger;
+				}
 
 				this._snapshots_objects = snapshots;
 				this._snapshots_str = ''; // JSON.stringify( snapshots ); Delay serialization - maybe chunk will be woken up right away. Or we can always serialize during save

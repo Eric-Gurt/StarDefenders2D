@@ -76,7 +76,7 @@ class sdLandScanner extends sdEntity
 		this.scanned_ents = 0; // How many unique dirt has this scanner scanned?
 		this._removed_in = params.removed_in || 30 * 60 * 15; // 15 minutes until it destroys since it's a task only entity, or less depending on when player claims the entity
 		
-		this._last_sheild_sound_played = 0;
+		//this._last_shield_sound_played = 0;
 		// 1 slot
 		
 		sdLandScanner.all_scan_units.push( this );

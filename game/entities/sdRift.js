@@ -68,7 +68,7 @@ class sdRift extends sdEntity
 		
 		this.type = params.type || portal_type; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
 		// this.type needs to be placed before hmax and hea so council portals can actually last long enough. Otherwise it disappears in a minute or so
-		this.hmax = this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 36000; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
+		this.hmax = this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 1800 * 30; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this._cooldown = 0;
@@ -152,7 +152,9 @@ class sdRift extends sdEntity
 
 				//Set task for players to remove the dimensional tear
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
+				if ( sdWorld.sockets[ i ].character )
 				{
+					
 					let potential_description;
 					switch( 2 ) // switch ( ~~( Math.random() * 2 ) )
 					{
@@ -161,6 +163,7 @@ class sdRift extends sdEntity
 						case 2: potential_description = 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it by putting crystals inside it.'; break;
 					}
 					// Tried multiple descriptions here - they just override each other in interface of the player - flicker so to speak, so I've just set it to old description - Booraz149
+				
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'DESTROY-'+this._net_id, 
 						executer: sdWorld.sockets[ i ].character,
@@ -273,12 +276,12 @@ class sdRift extends sdEntity
 			if ( this._spawn_timer_cd > 0 ) // Spawn entity timer
 			this._spawn_timer_cd -= GSPEED;
 		
-			if ( this._regen_timeout > 0 )
+			if ( this._regen_timeout > 0 && this.matter_crystal < this.hea ) // If overcharged - lose ability to regen back up
 			this._regen_timeout -= GSPEED;
 			else
 			{
 				let max_size = Math.min( 1, this._tear_range / 64 ); // If it grows to max power, it will need 15k matter to shut down
-				if ( this.hea < ( this.hmax * max_size )  && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for 4 minutes
+				if ( this.hea < ( this.hmax * max_size )  && this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only dimensional tear regenerates health when crystals are not put in it for a while
 				{
 					this.hea = Math.min( this.hea + GSPEED, this.hmax * max_size );
 				}
@@ -444,8 +447,8 @@ class sdRift extends sdEntity
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
 			{
-				this.hea = Math.max( this.hea - GSPEED, 0 );
-				this.matter_crystal -= GSPEED;
+				this.hea = Math.max( this.hea - ( GSPEED * 3 ), 0 ); // Shrink
+				this.matter_crystal -= GSPEED * 3;
 			}
 			
 			if ( this.type !== 4 ) // All but dimensional tears disappear over time
@@ -543,29 +546,31 @@ class sdRift extends sdEntity
 			from_entity.sy -= ( from_entity.y - this.y ) / 40;
 		}*/
 		if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only black portals can be fed crystals now, others disappear over time
-		if ( from_entity.is( sdCrystal ) )
-		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 		{
-			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+			if ( from_entity.is( sdCrystal ) )
+			if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 			{
-				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
-				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
-				//this._update_version++;
-				from_entity.remove();
+				if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+				{
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
+					this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max * ( from_entity.matter_regen / 100 ) ); // Drain the crystal for it's max value and destroy it
+					this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * ( from_entity.matter_regen / 100 ) * 10 ) ); // Regen depends on how much matter did it get fed with
+					//this._update_version++;
+					from_entity.remove();
+				}
 			}
-		}
 
-		if ( from_entity.is( sdLost ) )
-		{
-			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+			if ( from_entity.is( sdLost ) )
 			{
-				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
+				if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+				{
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
-				this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
-				//this._update_version++;
-				from_entity.remove();
+					this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
+					this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
+					//this._update_version++;
+					from_entity.remove();
+				}
 			}
 		}
 
