@@ -8434,6 +8434,9 @@ class sdGunClass
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 					obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 					obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+					
+					if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+					obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 
 					return obj;
 				}
@@ -8449,8 +8452,6 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
-				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 
 				return obj; }
 					

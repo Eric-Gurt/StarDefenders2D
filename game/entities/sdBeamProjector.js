@@ -560,15 +560,18 @@ class sdBeamProjector extends sdEntity
 		}
 	}
 	
+	
 	onRemove() // Class-specific, if needed
 	{
-		sdBeamProjector.projector_counter--;
+		this.onRemoveAsFakeEntity();
+		//sdBeamProjector.projector_counter--; // Put in onRemoveAsFakeEntity() otherwise spawning it as admin will prevent it from spawning as event
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 	}
 	onRemoveAsFakeEntity()
 	{
+		sdBeamProjector.projector_counter--;
 	}
 }
 //sdBeamProjector.init_class();
