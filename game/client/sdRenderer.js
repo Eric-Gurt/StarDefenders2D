@@ -322,68 +322,13 @@ class sdRenderer
 							let data = image_data.data; // Uint8ClampedArray
 
 
-							let roundBGRA8 = ( number = 127, is_gun = false ) => {
-								switch( number )
-								{
-									case 127:
-									case 191:
-									case 254:
-									if ( data.length !== 81920 || number === 191 || number === 254 )
-									number++;
-									break;
-
-									case 126:
-									case 190:
-									number += 2;
-									break;
-
-									case 124:
-									number += 4;
-									break;
-
-									case 132:
-									number -= 4;
-									break;
-
-									case 193:
-									case 129:
-									number--;
-									break;
-
-									case 130:
-									number -= 2;
-									break;
-
-									case 189:
-									case 125:
-									number += 3;
-									break;
-
-									case 195:
-									case 131:
-									number -= 3;
-									break;
-
-									case 54:
-									case 52:
-									case 27:
-									case 18:
-									case 15:
-									case 11:
-									case 2:
-									case 1:
-									if ( !is_gun )
-									number = 0;
-									break;
-								}
-
-								return number;
-							};
-
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
-							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
+							// Recolor. Firefox supports color correction in the PNG format and isn't supported in most softwares (exc: Microsoft Paint or MSPaint)
+							// See https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#png_portable_network_graphics
+							for ( let i = 1; i < data.length; i++ )
 							if ( data[ i ] !== 0 )
-							data[ i ] = roundBGRA8( data[ i ], sd_filter.is_gun );
+							// sdRenderer.roundBGRA8( data, data[ i ], sd_filter.is_gun )
+							data[ i ] = sdRenderer.applyColorCorrection( data, data[ i ], sd_filter.is_gun );
 
 							/*
 							let array_buffer = data.buffer;
@@ -650,6 +595,68 @@ class sdRenderer
 				GenerateDarkLands();
 			}
 		}
+	}
+
+	static applyColorCorrection( data, number = 127, is_gun = false ) // roundBGRA8( data, number = 127, is_gun = false )
+	{
+		switch( number )
+		{
+			case 127:
+			case 191:
+			case 254:
+			if ( data.length !== 81920 || number === 191 || number === 254 )
+			number++;
+			break;
+
+			case 126:
+			case 190:
+			number += 2;
+			break;
+
+			case 124:
+			number += 4;
+			break;
+
+			case 132:
+			number -= 4;
+			break;
+
+			case 193:
+			case 129:
+			number--;
+			break;
+
+			case 130:
+			number -= 2;
+			break;
+
+			case 189:
+			case 125:
+			number += 3;
+			break;
+
+			case 195:
+			case 131:
+			number -= 3;
+			break;
+
+			case 54:
+			case 53:
+			case 52:
+			case 27:
+			case 18:
+			case 17:
+			case 15:
+			case 11:
+			case 3:
+			case 2:
+			case 1:
+			if ( !is_gun )
+			number = 0;
+			break;
+		}
+
+		return number;
 	}
 	
 	static SaveLightSource( ent )
