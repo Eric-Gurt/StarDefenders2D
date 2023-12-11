@@ -205,7 +205,7 @@ class sdSetrDestroyer extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target || ent.build_tool_level >= 10 ) && ent._ai_team !== this._ai_team ) // Allow to play as teammate when _ai_team = 0. --- Alone Guitar
+			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ( ent.build_tool_level >= 10 && ent._ai_team !== this._ai_team ) )
 			return true;
 			else
 			{

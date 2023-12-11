@@ -101,6 +101,7 @@ class sdCouncilIncinerator extends sdEntity
 		
 		
 		this._last_seen_player = 0;
+		
 
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -137,7 +138,7 @@ class sdCouncilIncinerator extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target || ent.build_tool_level >= 15 ) && ent._ai_team !== this._ai_team ) // Allow to play as teammate when _ai_team = 0. --- Alone Guitar
+			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ( ent.build_tool_level >= 15 && ent._ai_team !== this._ai_team ) )
 			return true;
 			else
 			{
@@ -200,7 +201,7 @@ class sdCouncilIncinerator extends sdEntity
 		return false;
 	}
 	IncinerationAttack(){
-		let attack_entities = this.GetAnythingNearCache( this.x, this.y, 192 );
+		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 192 );
 	
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )
@@ -294,6 +295,7 @@ class sdCouncilIncinerator extends sdEntity
 				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
 
 				sdEntity.entities.push( drone );
+				drone._ai_team = this._ai_team;
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}*/
@@ -487,7 +489,7 @@ class sdCouncilIncinerator extends sdEntity
 						sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(170deg)' });
 
 						sdWorld.UpdateHashPosition( drone, false );
-						this._current_minions_count++;
+						//this._current_minions_count++; // Bad - increase minion count from sdDrone instead
 						drone.SetTarget( this ); // Make sure drones stay near the immolator
 					}
 					else

@@ -31,6 +31,7 @@ import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
 import sdShurgConverter from './sdShurgConverter.js';
+import sdBubbleShield from './sdBubbleShield.js';
 //import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdShop from '../client/sdShop.js';
@@ -166,8 +167,8 @@ class sdCharacter extends sdEntity
 			{ file:'helmets/helmet_fixer', name:'Fixer' }, //  by LordBored, index = 115
 			{ file:'helmets/helmet_fixer2', name:'Fixer Alt' }, //  by LordBored, index = 116
 			{ file:'helmets/helmet_renegade', name:'Renegade' }, //  by LordBored, index = 117
-            { file:'helmets/helmet_velox_heavy', name:'Velox Heavy' }, //  by LordBored, index = 118
-            { file:'helmets/helmet_voxel', name:'Voxel' }, //  by LordBored, index = 119
+			{ file:'helmets/helmet_velox_heavy', name:'Velox Heavy' }, //  by LordBored, index = 118
+			{ file:'helmets/helmet_voxel', name:'Voxel' }, //  by LordBored, index = 119
 			{ file:'helmets/helmet_stickman', name:'Stickman' }, //  by Thj, index = 120
 			{ file:'helmets/helmet_stickman2', name:'Stickman Alt' }, //  by Thj, index = 121
 			{ file:'helmets/helmet_animus', name:'Animus' }, //  by LordBored, index = 122
@@ -292,7 +293,7 @@ class sdCharacter extends sdEntity
 			{ file:'skins/warlord', name:'Warlord' }, // by LordBored, index = 86
 			{ file:'skins/fixer', name:'Fixer' }, // by LordBored, index = 87
 			{ file:'skins/renegade', name:'Renegade' }, // by LordBored, index = 88
-            { file:'skins/velox_lite', name:'Velox Lite' }, // by LordBored, index = 89
+			{ file:'skins/velox_lite', name:'Velox Lite' }, // by LordBored, index = 89
 			{ file:'skins/velox_heavy', name:'Velox Heavy' }, // by LordBored, index = 90
 			{ file:'skins/stickman', name:'Stickman' }, // by LordBored, index = 91
 			{ file:'skins/animus', name:'Animus' }, // by LordBored, index = 92
@@ -1827,92 +1828,93 @@ THING is cosmic mic drop!`;
 		if ( !sdWorld.CheckLineOfSight( from_entity.x, from_entity.y, from_entity.x + Math.sin( an ) * 900, from_entity.y + Math.cos( an ) * 900, from_entity ) )
 		if ( sdWorld.last_hit_entity )
 		{
+			if ( sdWorld.last_hit_entity._is_being_removed )
+			return null;
+			// Not sure why but last hit entity somehow became null mid this function, inside this block
+		
+			let potential_target = sdWorld.last_hit_entity;
+
+		
 			let found_enemy = false;
-			let array_of_enemies = sdCom.com_faction_attack_classes;
-			if ( array_of_enemies.indexOf( sdWorld.last_hit_entity.GetClass() ) !== -1 ) // If line of sight check found a potential target class inside that array
+			//let array_of_enemies = sdCom.com_faction_attack_classes;
+			if ( sdCom.com_faction_attack_classes.indexOf( potential_target.GetClass() ) !== -1 ) // If line of sight check found a potential target class inside that array
 			{
-				if ( typeof sdWorld.last_hit_entity._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+				if ( typeof potential_target._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 				{
-					if ( sdWorld.last_hit_entity._ai_team !== from_entity._ai_team ) // Is this not a friendly faction?
+					if ( potential_target._ai_team !== from_entity._ai_team ) // Is this not a friendly faction?
 					found_enemy = true; // Target it
 				}
 				else
 				found_enemy = true; // Target it
 			}
 		
-			if ( sdWorld.last_hit_entity.IsVehicle() )
+			if ( potential_target.IsVehicle() )
 			{
-				if ( typeof sdWorld.last_hit_entity.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
+				if ( typeof potential_target.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
 				{
-					if ( sdWorld.last_hit_entity.driver0 )
-					if ( sdWorld.last_hit_entity.driver0._ai_team !== from_entity._ai_team )
+					if ( potential_target.driver0 )
+					if ( potential_target.driver0._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 
-				if ( typeof sdWorld.last_hit_entity.driver1 !== 'undefined' )
+				if ( typeof potential_target.driver1 !== 'undefined' )
 				{
-					if ( sdWorld.last_hit_entity.driver1 )
-					if ( sdWorld.last_hit_entity.driver1._ai_team !== from_entity._ai_team )
+					if ( potential_target.driver1 )
+					if ( potential_target.driver1._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
-				if ( typeof sdWorld.last_hit_entity.driver2 !== 'undefined' )
+				if ( typeof potential_target.driver2 !== 'undefined' )
 				{
-					if ( sdWorld.last_hit_entity.driver2 )
-					if ( sdWorld.last_hit_entity.driver2._ai_team !== from_entity._ai_team )
+					if ( potential_target.driver2 )
+					if ( potential_target.driver2._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
-				if ( typeof sdWorld.last_hit_entity.driver3 !== 'undefined' )
+				if ( typeof potential_target.driver3 !== 'undefined' )
 				{
-					if ( sdWorld.last_hit_entity.driver3 )
-					if ( sdWorld.last_hit_entity.driver3._ai_team !== from_entity._ai_team )
+					if ( potential_target.driver3 )
+					if ( potential_target.driver3._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
-				if ( typeof sdWorld.last_hit_entity.driver3 !== 'undefined' )
+				if ( typeof potential_target.driver4 !== 'undefined' )
 				{
-					if ( sdWorld.last_hit_entity.driver3 )
-					if ( sdWorld.last_hit_entity.driver3._ai_team !== from_entity._ai_team )
+					if ( potential_target.driver4 )
+					if ( potential_target.driver4._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
-				if ( typeof sdWorld.last_hit_entity.driver4 !== 'undefined' )
+				if ( typeof potential_target.driver5 !== 'undefined' )
 				{
-					if ( sdWorld.last_hit_entity.driver4 )
-					if ( sdWorld.last_hit_entity.driver4._ai_team !== from_entity._ai_team )
-					found_enemy = true;
-				}
-				
-				if ( typeof sdWorld.last_hit_entity.driver5 !== 'undefined' )
-				{
-					if ( sdWorld.last_hit_entity.driver5 )
-					if ( sdWorld.last_hit_entity.driver5._ai_team !== from_entity._ai_team )
+					if ( potential_target.driver5 )
+					if ( potential_target.driver5._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 			}
 			// Entities outside sdCom.faction_attack_classes
-			if (	( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) ) ||
-					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
+			if (	( potential_target.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( potential_target.x, potential_target.y, from_entity.x, from_entity.y, 150 ) ) ||
+					( potential_target.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( potential_target.x, potential_target.y, from_entity.x, from_entity.y, 150 ) && potential_target.armed < 100 ) // Attack not yet armed barrels (for Councils?)
 			) 
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && from_entity._ai_team !== 0 )
-			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
-			if ( sdWorld.last_hit_entity._ai_team === 0 ) // Don't attack if it's own faction outpost walls
+			if ( potential_target.GetClass() === 'sdBlock' && from_entity._ai_team !== 0 )
+			if ( potential_target.material === sdBlock.MATERIAL_WALL || 
+					potential_target.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
+					potential_target.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
+					potential_target.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
+			if ( potential_target._ai_team === 0 ) // Don't attack if it's own faction outpost walls
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
+			if ( potential_target.is( sdCube ) ) // Only confront cubes when they want to attack AI
 			if ( from_entity._nature_damage >= from_entity._player_damage + 60 )
 			found_enemy = true;
 
 			if ( found_enemy === true )
 			{
-				if ( sdWorld.last_hit_entity.IsTargetable( from_entity ) && sdWorld.last_hit_entity.IsVisible( from_entity ) )
-				return sdWorld.last_hit_entity;
+				// I have no clue how game found sdWorld.last_hit_entity to be null here since to even reach this part - sdWorld.last_hit_entity needs to exist ( Line 1825 ). Hopefully swapping to let potential_target could prevent this crash. - Booraz149
+				if ( potential_target.IsTargetable( from_entity ) && potential_target.IsVisible( from_entity ) )
+				return potential_target;
 			}
 		}
 		return null;
@@ -2011,13 +2013,13 @@ THING is cosmic mic drop!`;
 		
 		return ( v + 1 * 6 ) / 7;
 	}
-	Impact( vel ) // fall damage basically
+	Impact( vel, initiator=null ) // fall damage basically
 	{
 		//if ( vel > 7 )
 		if ( vel > 6.5 ) // For new mass-based model
 		{
 			//this.DamageWithEffect( ( vel - 4 ) * 15 );
-			this.DamageWithEffect( ( vel - 3 ) * 17, null, false, false );
+			this.DamageWithEffect( ( vel - 3 ) * 17, initiator, false, false );
 			
 			this.DamageStability( vel * sdCharacter.stability_damage_from_velocity_changes_scale );
 		}
@@ -2150,6 +2152,11 @@ THING is cosmic mic drop!`;
 
 			this._sickness = 0;
 			this._frozen = 0; // For some reason does not always happen...
+			
+			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+			if ( sdBaseShieldingUnit.all_shield_units[ i ]._revenge_target === this )
+			sdBaseShieldingUnit.all_shield_units[ i ]._revenge_target = null;
+	
 			
 			this.stability = 100;
 			
@@ -2308,6 +2315,15 @@ THING is cosmic mic drop!`;
 		if ( this._socket ) // No disconnected gods
 		if ( dmg > 0 )
 		return;
+	
+		// Shield logic, add to other entities if they will use shields
+		// Also import sdBubbleShield if it's not imported
+		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
+		if ( shielded_by && dmg > 0 )
+		{
+			shielded_by.Damage( dmg, initiator );
+			return;
+		}
 		
 		// No healing for frozen players - prevent cube & freezing turret traps
 		if ( this._frozen > 0 )
@@ -5338,7 +5354,7 @@ THING is cosmic mic drop!`;
 		
 		return false;
 	}
-	CreateBuildObject( check_placement_and_range=true, demo_mode=false ) // Can be removed later on and used as fake signle-frame object in general
+	CreateBuildObject( check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
 		if ( this._build_params === null )
 		{
@@ -5373,11 +5389,19 @@ THING is cosmic mic drop!`;
 		
 		fake_ent.UpdateHitbox();
 		
-		this._build_params.x = this.look_x;
-		this._build_params.y = this.look_y;
-		
-		fake_ent.x = ( this.look_x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
-		fake_ent.y = ( this.look_y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
+		if ( preview_for_shop )
+		{
+			fake_ent.x = 0;
+			fake_ent.y = 0;
+		}
+		else
+		{
+			this._build_params.x = this.look_x;
+			this._build_params.y = this.look_y;
+
+			fake_ent.x = ( this.look_x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
+			fake_ent.y = ( this.look_y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
+		}
 		
 		if ( !demo_mode )
 		{

@@ -13,7 +13,7 @@ import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
-
+import sdBubbleShield from './sdBubbleShield.js';
 class sdEnemyMech extends sdEntity
 {
 	static init_class()
@@ -29,7 +29,7 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.img_mech_mg = sdWorld.CreateImageFromFile( 'fmech_lmg2' );
 		sdEnemyMech.img_mech_rc = sdWorld.CreateImageFromFile( 'rail_cannon' );
 		
-		sdEnemyMech.mechs_counter = 0;
+		sdEnemyMech.mechs = [];
 		
 		sdEnemyMech.death_duration = 30;
 		sdEnemyMech.post_death_ttl = 120;
@@ -103,13 +103,13 @@ class sdEnemyMech extends sdEntity
 		
 		this._last_damage = 0; // Sound flood prevention
 		
-		sdEnemyMech.mechs_counter++;
-		
 		this.lmg_an = 0; // Rotate angle for LMG firing
 		
 		this._last_seen_player = 0;
 
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		
+		sdEnemyMech.mechs.push( this );
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -206,7 +206,7 @@ class sdEnemyMech extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target || ent.build_tool_level >= 10 ) && ent._ai_team !== this._ai_team ) // Allow to play as teammate when _ai_team = 0. --- Alone Guitar
+			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ( ent.build_tool_level >= 10 && ent._ai_team !== this._ai_team ) )
 			return true;
 			else
 			{
@@ -268,6 +268,15 @@ class sdEnemyMech extends sdEntity
 		if ( initiator._is_being_removed )
 		initiator = null;
 	
+		// Shield logic, add to other entities if they will use shields
+		// Also import sdBubbleShield if it's not imported
+		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
+		if ( shielded_by && dmg > 0 )
+		{
+			shielded_by.Damage( dmg, initiator );
+			return;
+		}
+	
 		if ( initiator )
 		{
 			if ( initiator.GetClass() === 'sdCharacter' )
@@ -281,7 +290,7 @@ class sdEnemyMech extends sdEntity
 
 
 		if ( headshot )
-		this.Impulse( -dmg * 3 * this.side, 0 );
+		this.Impulse( -dmg * this.side, 0 ); // Too large impulse caused mech to move too much into a direction
 
 		dmg = Math.abs( dmg );
 		
@@ -410,7 +419,7 @@ class sdEnemyMech extends sdEntity
 							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							//else
 							{
-								if ( random_value > 0.92 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
+								if ( random_value > 0.88 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
@@ -902,7 +911,8 @@ class sdEnemyMech extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		sdEnemyMech.mechs_counter--;
+		//sdEnemyMech.mechs_counter--;
+		this.onRemoveAsFakeEntity();
 		
 		if ( this._broken )
 		{
@@ -913,6 +923,16 @@ class sdEnemyMech extends sdEntity
 				5120 / 40
 			);
 		}
+	}
+	onRemoveAsFakeEntity()
+	{
+		//sdOverlord.overlord_tot--;
+		
+		let i = sdEnemyMech.mechs.indexOf( this );
+		
+		if ( i !== -1 )
+		sdEnemyMech.mechs.splice( i, 1 );
+
 	}
 	MeasureMatterCost()
 	{

@@ -250,7 +250,7 @@ class sdZektaronDreadnought extends sdEntity
 		}
 		else
 		{
-			if ( ( ent === this._current_target || ent.build_tool_level >= 25 ) && ent._ai_team !== this._ai_team ) // Allow to play as teammate when _ai_team = 0. --- Alone Guitar
+			if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ( ent.build_tool_level >= 25 && ent._ai_team !== this._ai_team ) )
 			return true;
 			else
 			{
@@ -368,7 +368,6 @@ class sdZektaronDreadnought extends sdEntity
 
 				let drone2 = new sdDrone({ x: this.x + 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 				sdEntity.entities.push( drone2 );
-				drone2._ai_team = this._ai_team;
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone2.sx ) < 0.5 )
@@ -784,7 +783,6 @@ class sdZektaronDreadnought extends sdEntity
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 							
 							sdEntity.entities.push( drone2 );
-							drone2._ai_team = this._ai_team;
 							
 							potential_target = drone2.GetRandomTarget();
 							
@@ -797,8 +795,8 @@ class sdZektaronDreadnought extends sdEntity
 								drone2._broken = false; // Remove drones if they can't spawn without getting stuck
 							}
 
-							this._current_minions_count++;
-							this._current_minions_count++;
+							//this._current_minions_count++;
+							//this._current_minions_count++; // No need for this - minion count is increased when drones are made with "minion_of: this" parameter
 							this._deploy_minions_timer = 450;
 						}
 						else
@@ -835,10 +833,9 @@ class sdZektaronDreadnought extends sdEntity
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 			
 							sdEntity.entities.push( drone2 );
-							drone2._ai_team = this._ai_team;
 							
-							this._current_minions_count++;
-							this._current_minions_count++;
+							//this._current_minions_count++;
+							//this._current_minions_count++;
 							this._deploy_minions_timer = 450
 
 						}
