@@ -946,7 +946,7 @@ class sdJunk extends sdEntity
 				else
 				{
 					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
-					this._spawn_ent_in_delay *= 1.25;
+					this._spawn_ent_in_delay *= 1.1; // 1.25 seemed way too weak
 					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
 					
 					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )

@@ -307,7 +307,7 @@ class sdTask extends sdEntity
 				if ( matches_expectations )
 				{
 					if ( task._lrtp_matter_capacity_needed !== -1 )
-					task._lrtp_matter_capacity_current += entity.matter_max || entity._matter_max || 0;
+					task._lrtp_matter_capacity_current += ( entity.matter_max || entity._matter_max || 0 ) * ( entity.matter_regen / 100 || 1 );
 					
 					task._lrtp_ents_count++;
 					

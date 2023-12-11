@@ -1155,7 +1155,7 @@ class sdShop
 				}
 				else
 				{
-					ent = sdWorld.my_entity.CreateBuildObject( false );
+					ent = sdWorld.my_entity.CreateBuildObject( false, false, true );
 					
 					if ( ent )
 					{

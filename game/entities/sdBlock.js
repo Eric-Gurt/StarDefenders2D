@@ -321,7 +321,7 @@ class sdBlock extends sdEntity
 	//get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : this._reinforced_level > 0 ? 4000 : 400; }
 	get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : 400; } // Better to override Impact method for sdBlock to not take damage in case of being reinforced. Or in else case too high mass occasional hits would just damage vehicles too heavily (in case of unintended impacts, like spawning sdHover on top of reinforced walls). Also there might end up being other entities that could damage walls with impact eventually
 	
-	Impact( vel ) // fall damage basically
+	Impact( vel, initiator=null ) // fall damage basically
 	{
 		/*if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
@@ -329,7 +329,7 @@ class sdBlock extends sdEntity
 		else*/
 		if ( vel > 6 ) // For new mass-based model
 		{
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15, initiator );
 		}
 	}
 	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate

@@ -65,6 +65,9 @@ class sdBG extends sdEntity
 		
 		if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 		{
+			this._hea -= dmg;
+			
+			if ( this._hea <= 0 )
 			this.remove();
 		}
 	}
@@ -92,6 +95,8 @@ class sdBG extends sdEntity
 		this.texture_id = params.texture_id || sdBG.TEXTURE_PLATFORMS;
 		
 		this._natural = ( params.natural === true );
+		
+		this._hea = 200 * ( this.width / 32 * this.height / 32 );
 		
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;

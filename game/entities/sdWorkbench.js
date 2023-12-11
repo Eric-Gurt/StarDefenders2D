@@ -93,9 +93,10 @@ class sdWorkbench extends sdEntity
 		
 		return 2000;
 	}
-	UpgradeWorkbench()
+	UpgradeWorkbench( force=false )
 	{
-		if ( this.metal_shards === this.metal_shards_max )
+		if ( this.level < 7 )
+		if ( this.metal_shards === this.metal_shards_max || force )
 		{
 			this.metal_shards = 0;
 			this.metal_shards_max += 5;
@@ -103,8 +104,12 @@ class sdWorkbench extends sdEntity
 			
 			//this._update_version++;
 		
+			if ( !force )
 			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+		
+			return true;
 		}
+		return false;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -200,6 +205,16 @@ class sdWorkbench extends sdEntity
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 				{
+					if ( this.UpgradeWorkbench() )
+					{
+					}
+					else
+					{
+						if ( this.metal_shards === this.metal_shards_max )
+						executer_socket.SDServiceMessage( 'Not enough metal shards are stored inside' );
+						else
+						executer_socket.SDServiceMessage( 'Maximum level has been reached' );
+					}
 				}
 				else
 				{
@@ -207,15 +222,13 @@ class sdWorkbench extends sdEntity
 					return;
 				}
 			}
-			
-			if ( command_name === 'UPG_WB' )
+		
+			if ( command_name === 'UPG_ADMIN' )
+			if ( exectuter_character._god )
 			{
-				if ( this.metal_shards === this.metal_shards_max )
+				while ( this.UpgradeWorkbench( true ) )
 				{
-					this.UpgradeWorkbench();
 				}
-				else
-				executer_socket.SDServiceMessage( 'Not enough metal shards are stored inside' );
 			}
 		}
 	}
@@ -227,8 +240,10 @@ class sdWorkbench extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			if ( this.level < 7 )
 			this.AddContextOption( 'Upgrade workbench (Max Metal shards)', 'UPG_WB', [] );
+		
+			if ( exectuter_character._god )
+			this.AddContextOption( 'Upgrade workbench to max (admins only)', 'UPG_ADMIN', [] );
 		}
 	}
 }

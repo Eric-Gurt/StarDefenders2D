@@ -49,11 +49,11 @@ class sdConveyor extends sdEntity
 	
 	get mass() { return 200; } // Better to override Impact method for sdConveyor to not take damage in case of being reinforced. Or in else case too high mass occasional hits would just damage vehicles too heavily (in case of unintended impacts, like spawning sdHover on top of reinforced walls). Also there might end up being other entities that could damage walls with impact eventually
 	
-	Impact( vel ) // fall damage basically
+	Impact( vel, initiator=null ) // fall damage basically
 	{
 		if ( vel > 6 ) // For new mass-based model
 		{
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15, initiator );
 		}
 	}
 	

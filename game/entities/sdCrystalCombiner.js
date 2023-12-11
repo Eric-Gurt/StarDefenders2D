@@ -80,9 +80,11 @@ class sdCrystalCombiner extends sdEntity
 	   
 		this.crystal0 = null;
 		this.crystal1 = null;
+		
+		this.drain_direction = 0;
 	   
 		this._hmax = 600 * 4;
-		this._hea = this._hmax;
+		this.hea = this._hmax;
 		
 		this._ignore_pickup_tim = 0;
 		
@@ -102,9 +104,9 @@ class sdCrystalCombiner extends sdEntity
 		dmg = Math.abs( dmg );
 		
 		
-		this._hea -= dmg;
+		this.hea -= dmg;
 		
-		if ( this._hea <= 0 )
+		if ( this.hea <= 0 )
 		this.remove();
 	
 		this._regen_timeout = 60;
@@ -198,9 +200,9 @@ class sdCrystalCombiner extends sdEntity
 		}
 		else
 		{
-			if ( this._hea < this._hmax )
+			if ( this.hea < this._hmax )
 			{
-				this._hea = Math.min( this._hea + GSPEED, this._hmax );
+				this.hea = Math.min( this.hea + GSPEED, this._hmax );
 				can_hibernate = false;
 			}
 		}
@@ -284,6 +286,40 @@ class sdCrystalCombiner extends sdEntity
 			this.crystal1.sy = 0;
 		}
 		
+		if ( this.drain_direction !== 0 )
+		{
+			if ( this.crystal0 && this.crystal1 )
+			{
+				let drain_from = ( this.drain_direction > 0 ) ? this.crystal0 : this.crystal1;
+				let drain_to = ( this.drain_direction > 0 ) ? this.crystal1 : this.crystal0;
+				
+				let drain = Math.min( drain_from.matter_regen, GSPEED * 0.1 / Math.sqrt( drain_from.matter_max / 40 ) );
+				
+				if ( drain_to.matter_regen + drain > 400 )
+				drain = 400 - drain_to.matter_regen;
+			
+				drain_to.matter_regen += drain;
+				drain_from.matter_regen -= drain;
+				
+				if ( drain > 0 )
+				{
+					if ( sdWorld.is_server )
+					this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
+				}
+				else
+				{
+					this.drain_direction = 0;
+					this._update_version++;
+					sdSound.PlaySound({ name:'crystal_combiner_endB', x:this.x, y:this.y, volume:1 });
+				}
+			}
+			else
+			{
+				this.drain_direction = 0;
+				this._update_version++;
+			}
+		}
+		
 		/*if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this.prog > 0 || this._last_x !== this.x || this._last_y !== this.y )
 		{
 			this._last_sync_matter = this.matter;
@@ -306,6 +342,8 @@ class sdCrystalCombiner extends sdEntity
 		sdEntity.Tooltip( ctx, t );
 		else
 		sdEntity.TooltipUntranslated( ctx, T( t ) + " ( " + T("combining") + " "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
+	
+		this.DrawHealthBar( ctx, '#FF0000', 30 );
 	}
 	Draw( ctx, attached )
 	{
@@ -336,6 +374,11 @@ class sdCrystalCombiner extends sdEntity
 			{
 				merge_prog = 1 - ( this.prog - this.GetBaseAnimDuration() ) / 30;
 				show_new_crystal = true;
+			}
+			
+			if ( this.drain_direction !== 0 )
+			{
+				merge_prog = 0.05 + Math.sin( sdWorld.time / 500 ) * 0.025;
 			}
 
 			/*if ( this.crystal0 )
@@ -453,6 +496,8 @@ class sdCrystalCombiner extends sdEntity
 		if ( !this.crystal0 || !this.crystal1 )
 		return;
 	
+		this.drain_direction = 0;
+	
 		if ( this.prog === 0 )
 		{
 			sdSound.PlaySound({ name:'crystal_combiner_start', x:this.x, y:this.y, volume:1 });
@@ -490,6 +535,9 @@ class sdCrystalCombiner extends sdEntity
 			ent.matter_max = this.crystal0.matter_max + this.crystal1.matter_max;
 			ent.matter = this.crystal0.matter + this.crystal1.matter;
 			ent.matter_regen = ( this.crystal0.matter_regen + this.crystal1.matter_regen ) / 2;
+			
+			if ( ent.is_anticrystal )
+			ent.matter_regen = 100; // Reset regen in this case as it does not matter for these for them to be properly rated by Rifts, LRTPs and BSUs
 			
 			if ( this.crystal0.type === sdCrystal.TYPE_CRYSTAL_CRAB || 
 				 this.crystal1.type === sdCrystal.TYPE_CRYSTAL_CRAB )
@@ -768,7 +816,7 @@ class sdCrystalCombiner extends sdEntity
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( parameters_array instanceof Array )
@@ -782,18 +830,57 @@ class sdCrystalCombiner extends sdEntity
 					else
 					executer_socket.SDServiceMessage( 'Crystal combiner needs 2 crystals to combine them' );
 				}
+				if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+				{
+					if ( this.drain_direction === 0 )
+					{
+						if ( command_name === 'DRAIN1' )
+						{
+							this._update_version++;
+							this.drain_direction = 1;
+							this.prog = 0;
+							sdSound.PlaySound({ name:'crystal_combiner_startB', x:this.x, y:this.y, volume:1 });
+						}
+						if ( command_name === 'DRAIN2' )
+						{
+							this._update_version++;
+							this.drain_direction = -1;
+							this.prog = 0;
+							sdSound.PlaySound({ name:'crystal_combiner_startB', x:this.x, y:this.y, volume:1 });
+						}
+					}
+					else
+					if ( command_name === 'DRAIN_STOP' )
+					{
+						this._update_version++;
+						this.drain_direction = 0;
+						this.prog = 0;
+						sdSound.PlaySound({ name:'crystal_combiner_endB', x:this.x, y:this.y, volume:1 });
+					}
+				}
 			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 		{
 			this.AddContextOption( 'Combine crystals', 'COMBINE', [] );
+			
+			if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+			{
+				if ( this.drain_direction === 0 )
+				{
+					this.AddContextOption( 'Drain regeneration rate of left crystal', 'DRAIN1', [] );
+					this.AddContextOption( 'Drain regeneration rate of right crystal', 'DRAIN2', [] );
+				}
+				else
+				this.AddContextOption( 'Stop draining', 'DRAIN_STOP', [] );
+			}
 		}
 	}
 	

@@ -297,7 +297,7 @@ class sdCrystal extends sdEntity
 		this._current_target = null; // For big crystal crabs
 	}
 	
-	onSnapshotApplied() // To override
+	/*onSnapshotApplied() // To override
 	{
 		if ( sdWorld.is_server )
 		if ( !sdWorld.is_singleplayer )
@@ -306,11 +306,13 @@ class sdCrystal extends sdEntity
 			// Issue still kind of exists on one of servers... 1000 active balloon crystals just lying around
 			if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON && ( this.held_by === null || this.held_by.crystal !== this ) )
 			{
+				Wrong as it happens after crystals are extracted from crates
+	
 				this.remove();
 				this._broken = false;
 			}
 		}
-	}
+	}*/
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{

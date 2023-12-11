@@ -11,6 +11,7 @@ import sdEffect from './sdEffect.js';
 import sdBullet from './sdBullet.js';
 import sdGun from './sdGun.js';
 import sdWeather from './sdWeather.js';
+import sdCrystal from './sdCrystal.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -287,7 +288,7 @@ class sdStatusEffect extends sdEntity
 			
 			onNotMergedAndAboutToBeMade: ( params )=>
 			{
-				if ( params.target_value === temperature_normal || params.t === 0 )
+				if ( params.target_value === temperature_normal || params.target_value_rise < temperature_normal || params.t === 0 )
 				return false; // Do not make
 			
 				return true; // Make this effect
@@ -308,9 +309,11 @@ class sdStatusEffect extends sdEntity
 				
 				// For water cooling
 				if ( params.remain_part !== undefined )
-				if ( params.target_value !== undefined )
+				if ( params.target_value !== undefined || ( params.target_value_rise !== undefined && status_entity.t < params.target_value_rise ) )
 				if ( params.GSPEED !== undefined )
-				status_entity.t = sdWorld.MorphWithTimeScale( status_entity.t, params.target_value, params.remain_part, params.GSPEED );
+				{
+					status_entity.t = sdWorld.MorphWithTimeScale( status_entity.t, ( params.target_value !== undefined ) ? params.target_value : params.target_value_rise, params.remain_part, params.GSPEED );
+				}
 				
 				return true; // Do not create new status effect
 			},
@@ -324,7 +327,7 @@ class sdStatusEffect extends sdEntity
 			
 			onThink: ( status_entity, GSPEED )=>
 			{
-				if ( status_entity.for._god )
+				if ( status_entity.for._god || ( status_entity.for._shielded && !status_entity.for._shielded._is_being_removed && status_entity.for._shielded.enabled ) )
 				return true; // Cancel for gods
 				
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
@@ -404,6 +407,43 @@ class sdStatusEffect extends sdEntity
 							let burn_intensity = 1 + ( status_entity.t - temperature_fire ) / 500;
 							
 							status_entity.for.DamageWithEffect( 4 * burn_intensity, status_entity._initiator );
+							
+							let nearby = sdWorld.GetAnythingNear( status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2, status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2, sdWorld.Dist2D( status_entity.for._hitbox_x1, status_entity.for._hitbox_y1, status_entity.for._hitbox_x2, status_entity.for._hitbox_y2 ) / 2 + 4, null, null, null );
+							
+							//if ( nearby.length > 0 )
+							for ( let i = 0; i < nearby.length; i++ )
+							{
+								let e = nearby[ i ];
+								
+								if ( e )
+								if ( e !== status_entity.for )
+								if ( e.IsBGEntity() === status_entity.for.IsBGEntity() )//|| e.IsBGEntity() === 1 )
+								if ( e.IsTargetable( status_entity.for ) )
+								{
+									let strength = 1;
+									
+									if ( e.is( sdCrystal ) && e.held_by )
+									strength = 0;//0.005;
+								
+									/*if ( e.is( sdStorage ) )
+									strength = 0;
+								
+									if ( e.is( sdBaseShieldingUnit ) )
+									strength = 0;
+								
+									if ( e.is( sdRescueTeleport ) )
+									strength = 0;*/
+									
+									//if ( e.IsBGEntity() === 1 )
+									//strength = 0.1;
+									
+									if ( strength > 0 )
+									{
+										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value_rise:status_entity.t * ( 0.7 + Math.random() * 0.1 ), remain_part: 0.9, GSPEED:1 * strength });
+										//e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: ( 0.025 + Math.random() * 0.05 ) * strength * status_entity.t, initiator: null }); // Overheat
+									}
+								}
+							}
 						}
 						else
 						if ( status_entity.t <= temperature_frozen )

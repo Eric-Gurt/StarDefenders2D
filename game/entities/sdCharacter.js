@@ -2009,13 +2009,13 @@ THING is cosmic mic drop!`;
 		
 		return ( v + 1 * 6 ) / 7;
 	}
-	Impact( vel ) // fall damage basically
+	Impact( vel, initiator=null ) // fall damage basically
 	{
 		//if ( vel > 7 )
 		if ( vel > 6.5 ) // For new mass-based model
 		{
 			//this.DamageWithEffect( ( vel - 4 ) * 15 );
-			this.DamageWithEffect( ( vel - 3 ) * 17, null, false, false );
+			this.DamageWithEffect( ( vel - 3 ) * 17, initiator, false, false );
 			
 			this.DamageStability( vel * sdCharacter.stability_damage_from_velocity_changes_scale );
 		}
@@ -2148,6 +2148,11 @@ THING is cosmic mic drop!`;
 
 			this._sickness = 0;
 			this._frozen = 0; // For some reason does not always happen...
+			
+			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+			if ( sdBaseShieldingUnit.all_shield_units[ i ]._revenge_target === this )
+			sdBaseShieldingUnit.all_shield_units[ i ]._revenge_target = null;
+	
 			
 			this.stability = 100;
 			
@@ -5336,7 +5341,7 @@ THING is cosmic mic drop!`;
 		
 		return false;
 	}
-	CreateBuildObject( check_placement_and_range=true, demo_mode=false ) // Can be removed later on and used as fake signle-frame object in general
+	CreateBuildObject( check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
 		if ( this._build_params === null )
 		{
@@ -5371,11 +5376,19 @@ THING is cosmic mic drop!`;
 		
 		fake_ent.UpdateHitbox();
 		
-		this._build_params.x = this.look_x;
-		this._build_params.y = this.look_y;
-		
-		fake_ent.x = ( this.look_x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
-		fake_ent.y = ( this.look_y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
+		if ( preview_for_shop )
+		{
+			fake_ent.x = 0;
+			fake_ent.y = 0;
+		}
+		else
+		{
+			this._build_params.x = this.look_x;
+			this._build_params.y = this.look_y;
+
+			fake_ent.x = ( this.look_x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
+			fake_ent.y = ( this.look_y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
+		}
 		
 		if ( !demo_mode )
 		{

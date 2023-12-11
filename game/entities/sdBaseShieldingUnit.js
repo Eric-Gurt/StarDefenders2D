@@ -8,6 +8,8 @@
 	TODO: Green BSU just broke offscreen - conveyors were sending crystals at -5 speed. Could do something with offscreen GSPEED optimizations, maybe it was even "falling"
 
 */
+/* global Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -25,6 +27,7 @@ import sdCamera from './sdCamera.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBG from './sdBG.js';
+import sdBSUTurret from './sdBSUTurret.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -42,6 +45,7 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.TYPE_MATTER = 1;
 		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
 		sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE = 3; // Only portion of damage can pass through and damage entities
+		sdBaseShieldingUnit.TYPE_FACTION_SHIELD = 4;
 		
 		sdBaseShieldingUnit.damage_reduction_shield_max_level = 50;
 		
@@ -109,13 +113,22 @@ class sdBaseShieldingUnit extends sdEntity
 		this._connected_cameras_cache = [];
 		this._connected_cameras_cache_last_rethink = 0;
 		
+		this._revenge_damage_bonus = 0; // Goes up if shield is being repeatedly damaged
+		this._revenge_target = null;
+		this._revenge_turret = null;
+		this._revenge_animation_progress = 0;
+		this._revenge_reload = 0;
+		this._revenge_turret_parent = null;
+		this._revenge_turret_x = 0; // Local coordinates relative to parent
+		this._revenge_turret_y = 0;
+		
 		this._dmg_to_report = 0;
 		
 		this._speed_boost = 1;
 		
 		this._last_damage = 0; // Sound flood prevention
 		
-		this.hmax = 500 * 4; // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
+		this.hmax = ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD ) ? 300 : ( 500 * 4 ); // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
 		this.hea = this.hmax;
 		//this._hmax_old = this.hmax;
 		this.regen_timeout = 0;
@@ -163,7 +176,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		this._target = null;
 		
-		this._last_sheild_sound_played = 0;
+		this._last_shield_sound_played = 0;
 		// 1 slot
 		
 		this._last_value_share = 0;
@@ -320,7 +333,7 @@ class sdBaseShieldingUnit extends sdEntity
 				
 	ProtectedEntityAttacked( ent, dmg, initiator )
 	{
-		let fx = ( sdWorld.time > this._last_sheild_sound_played + 100 );
+		let fx = ( sdWorld.time > this._last_shield_sound_played + 100 );
 		
 		if ( initiator )
 		if ( initiator._socket )
@@ -348,29 +361,145 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 		
-		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED || this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD )
 		{
 			// These ignore any damage
 		}
 		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		{
-			this.matter_crystal = Math.max( 0, this.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp * sdWorld.server_config.GetBSUDamageMultiplier() );
+			let crystal_damage = dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp * sdWorld.server_config.GetBSUDamageMultiplier();
+			
+			this.matter_crystal = Math.max( 0, this.matter_crystal - crystal_damage );
 
 			if ( this.matter_crystal >= 50000 )
 			{
 				if ( initiator )
 				if ( !initiator._is_being_removed )
 				{
-					if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this.x, this.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
+					if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this.x, this.y, sdBaseShieldingUnit.protect_distance * ( initiator.IsPlayerClass() ? 1 : 0.5 ) - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
 					{
-						initiator.DamageWithEffect( 5 );
+						this._revenge_damage_bonus += dmg;
+			
+						this._revenge_target = initiator;
+						
+						//if ( this._revenge_turret_parent === null )
+						if ( this._revenge_turret === null )
+						{
+							let best_ent = null;
+							let best_x = 0;
+							let best_y = 0;
+							let best_dx = 0;
+							let best_dy = 0;
+							
+							let best_di_pow2 = Infinity;
+							
+							let xx = ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2;
+							let yy = ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2;
+							
+							let extrude = 5;
+
+							for ( let i = 0; i < this._protected_entities.length; i++ )
+							{
+								let e = sdEntity.entities_by_net_id_cache_map.get( this._protected_entities[ i ] );
+								
+								if ( e !== ent )
+								if ( e )
+								if ( !e._is_being_removed )
+								if ( e.is( sdBlock ) )
+								{
+									let cx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+									let cy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+									let di_pow2 = sdWorld.Dist2D_Vector_pow2( cx-initiator.x, cy-initiator.y );
+
+									let turret_x = cx;
+									let turret_y = cy;
+									
+									let dx = 0;
+									let dy = 0;
+
+									if ( initiator.y < yy )
+									{
+										turret_x = cx;
+										turret_y = e.y + e._hitbox_y1;
+										
+										dx = 0;
+										dy = -extrude;
+									}
+									else
+									if ( initiator.y > yy )
+									{
+										turret_x = cx;
+										turret_y = e.y + e._hitbox_y2;
+										
+										dx = 0;
+										dy = extrude;
+									}
+									else
+									if ( initiator.x < xx )
+									{
+										turret_x = e.x + e._hitbox_x1;
+										turret_y = cy;
+										
+										dx = -extrude;
+										dy = 0;
+									}
+									else
+									if ( initiator.x > xx )
+									{
+										turret_x = e.x + e._hitbox_x2;
+										turret_y = cy;
+										
+										dx = extrude;
+										dy = 0;
+									}
+									
+									if ( di_pow2 < 1000 * 1000 && sdWorld.CheckLineOfSight( turret_x, turret_y, initiator.x, initiator.y, null, null, sdCom.com_visibility_unignored_classes ) )
+									di_pow2 *= 0.01;
+									
+									di_pow2 *= 0.25 + Math.random() * 0.75;
+
+									if ( di_pow2 < best_di_pow2 )
+									{
+										best_ent = e;
+										best_di_pow2 = di_pow2;
+										best_x = turret_x - e.x;
+										best_y = turret_y - e.y;
+										best_dx = dx;
+										best_dy = dy;
+									}
+								}
+							}
+							
+							if ( best_ent )
+							{
+								this._revenge_turret_parent = best_ent;
+								this._revenge_turret_x = best_x;
+								this._revenge_turret_y = best_y;
+								this._revenge_turret = new sdBSUTurret({ x:best_ent.x + best_x, y:best_ent.y + best_y, bsu:this });
+								this._revenge_turret.dx = best_dx;
+								this._revenge_turret.dy = best_dy;
+								sdEntity.entities.push( this._revenge_turret );
+								
+								this._revenge_animation_progress = 0;
+							}
+						}
+						
+						/*
+						//initiator.DamageWithEffect( 5 );
+						initiator.DamageWithEffect( 1 + this._revenge_damage_bonus * 0.1 );
+						
+						
 						
 						if ( fx )
 						{
-							sdWorld.SendEffect({ x:this.x, y:this.y, x2:this.x + ( this._hitbox_x2 / 2 ), y2:ent.y + ( ent._hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-							sdWorld.SendEffect({ x:ent.x + ( ent._hitbox_x2 / 2 ), y:ent.y + ( ent._hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-						}
+							sdWorld.SendEffect({ x:this.x, y:this.y, x2:ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, y2:ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							sdWorld.SendEffect({ x:initiator.x, y:initiator.y, x2:ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, y2:ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							
+							//sdWorld.SendEffect({ x:this.x, y:this.y, x2:this.x + ( this._hitbox_x2 / 2 ), y2:ent.y + ( ent._hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							//sdWorld.SendEffect({ x:ent.x + ( ent._hitbox_x2 / 2 ), y:ent.y + ( ent._hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+						}*/
 					}
 				}
 			}
@@ -405,7 +534,7 @@ class sdBaseShieldingUnit extends sdEntity
 		{
 			sdSound.PlaySound({ name:'shield', x:ent.x, y:ent.y, volume:0.2 });
 			
-			this._last_sheild_sound_played = sdWorld.time;
+			this._last_shield_sound_played = sdWorld.time;
 		}
 	}
 
@@ -862,7 +991,7 @@ class sdBaseShieldingUnit extends sdEntity
 			y: y,
 			allowed_for: bsu,
 			allowed_is_allowed_until: sdWorld.time + 1000*60*60*8,
-			anything_is_disallowed_until: sdWorld.time + 1000*60*60*24*4,
+			anything_is_disallowed_until: sdWorld.time + 1000*60*60*24*4
 		});
 	
 		return allowed;
@@ -872,6 +1001,111 @@ class sdBaseShieldingUnit extends sdEntity
 		let time_scale = sdGun.HandleTimeAmplification( this, 1 );
 		
 		GSPEED *= time_scale;
+		
+		if ( this._revenge_reload > 0 )
+		this._revenge_reload = Math.max( 0, this._revenge_reload - GSPEED );
+	
+		// Turret somehow disappeared
+		{	
+			let xx = 0;
+			let yy = 0;
+			
+			if ( this._revenge_target )
+			if ( this._revenge_target._is_being_removed || ( this._revenge_target.IsPlayerClass() && ( this._revenge_target.hea || this._revenge_target._hea || 0 ) <= 0 ) ) // Broken tanks still can damage shields walls with conveyors indefinitely
+			this._revenge_target = null;
+			
+			if ( this._revenge_turret_parent && this._revenge_turret )
+			{
+				xx = this._revenge_turret_parent.x + this._revenge_turret_x;
+				yy = this._revenge_turret_parent.y + this._revenge_turret_y;
+
+				/*let cx = this._revenge_turret_parent.x + ( this._revenge_turret_parent._hitbox_x1 + this._revenge_turret_parent._hitbox_x2 ) / 2;
+				let cy = this._revenge_turret_parent.y + ( this._revenge_turret_parent._hitbox_y1 + this._revenge_turret_parent._hitbox_y2 ) / 2;
+				
+				let morph = Math.min( 1, this._revenge_animation_progress / 100 * 2 );
+				
+				//morph = 1 - ( 1 - morph ) * 0.75; // Do not reach center actually
+
+				xx = xx * morph + cx * ( 1 - morph );
+				yy = yy * morph + cy * ( 1 - morph );*/
+				
+				let morph = Math.min( 1, this._revenge_animation_progress / 100 * 2 );
+				
+				xx += this._revenge_turret.dx * ( morph - 0.75 ) * 4;
+				yy += this._revenge_turret.dy * ( morph - 0.75 ) * 4;
+			}
+
+			if ( this._revenge_damage_bonus >= 5 && this.enabled && this._revenge_target && this._revenge_turret_parent && this._revenge_turret && !sdWorld.inDist2D_Boolean( this._revenge_target.x, this._revenge_target.y, this.x, this.y, sdBaseShieldingUnit.protect_distance * ( this._revenge_target.IsPlayerClass() ? 1 : 0.5 ) - 64 ) )
+			{
+				if ( this._revenge_animation_progress < 100 )
+				{
+					if ( this._revenge_animation_progress === 0 )
+					sdSound.PlaySound({ name:'shield_turret_door', x:xx, y:yy, volume:1 });
+
+					this._revenge_animation_progress = Math.min( 100, this._revenge_animation_progress + GSPEED * 5 );
+				}
+				else
+				{
+					if ( this._revenge_reload <= 0 )
+					{
+						sdSound.PlaySound({ name:'shield_turret', x:xx, y:yy, volume:1 });
+
+						sdWorld.SendEffect({ x:xx, y:yy, x2:this._revenge_target.x + ( this._revenge_target._hitbox_x1 + this._revenge_target._hitbox_x2 ) / 2, y2:this._revenge_target.y + ( this._revenge_target._hitbox_y1 + this._revenge_target._hitbox_y2 ) / 2, type:sdEffect.TYPE_BEAM_CIRCLED, color:'#f9e853' });
+
+						this._revenge_reload = 15;
+
+						let dmg = Math.min( Math.max( 50, this._revenge_damage_bonus * 0.1 ), this._revenge_damage_bonus );
+
+						this._revenge_damage_bonus -= dmg;
+						this._revenge_target.DamageWithEffect( dmg, this._revenge_turret );
+					}
+				}
+			}
+			else
+			{
+				if ( this._revenge_animation_progress > 0 )
+				this._revenge_animation_progress = Math.max( 0, this._revenge_animation_progress - GSPEED * 2.5 );
+
+				if ( this._revenge_animation_progress <= 0 )
+				{
+					this._revenge_turret_parent = null;
+
+					if ( this._revenge_turret )
+					{
+						this._revenge_turret.remove();
+						this._revenge_turret._broken = false;
+
+						this._revenge_turret = null;
+					}
+				}
+			}
+
+			if ( this._revenge_turret )
+			{
+				if ( !this._revenge_turret_parent )
+				{
+					this._revenge_turret.remove();
+					this._revenge_turret = null;
+				}
+				else
+				{
+					let f = ( this._revenge_reload > 7 ) ? 1 : 0;
+
+					this._revenge_turret.x = xx;
+					this._revenge_turret.y = yy;
+					this._revenge_turret.frame = f;
+					
+					if ( this._revenge_target )
+					this._revenge_turret.ang = ( -Math.PI/2 - Math.atan2( xx-this._revenge_target.x, yy-this._revenge_target.y ) ) * 100;
+					
+					this._revenge_turret.x0 = this._revenge_turret_parent.x + this._revenge_turret_x;
+					this._revenge_turret.y0 = this._revenge_turret_parent.y + this._revenge_turret_y;
+					
+					this._revenge_turret.open = Math.min( 100, this._revenge_animation_progress * 8 );
+				}
+			}
+		}
+
 		
 		if ( this.enabled )
 		{
@@ -1371,7 +1605,7 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2, pitch:2 });
 				
-				let matter_to_feed = from_entity.matter_max;
+				let matter_to_feed = from_entity.matter_max * ( from_entity.matter_regen / 100 );
 				/* Likely won't work properly with value sharing green BSUs have now
 				let matter_to_feed = ( this.matter_crystal < 50000 ? 1.2 : this.matter_crystal < 100000 ? 1.1 : 1 ) * from_entity.matter_max;
 				let old_matter = this.matter_crystal;
@@ -1551,6 +1785,14 @@ class sdBaseShieldingUnit extends sdEntity
 	{
 		this.SetShieldState( false );
 		
+		if ( this._revenge_turret )
+		{
+			if ( !this._revenge_turret._is_being_removed )
+			this._revenge_turret.remove();
+		
+			this._revenge_turret = null;
+		}
+		
 		let id = sdBaseShieldingUnit.all_shield_units.indexOf( this );
 		if ( id !== -1 )
 		sdBaseShieldingUnit.all_shield_units.splice( id, 1 );
@@ -1585,6 +1827,9 @@ class sdBaseShieldingUnit extends sdEntity
 			//if ( sdWorld.inDist2D_Boolean( this.x, this.y * 2, exectuter_character.x, exectuter_character.y * 2, 32 ) )
 			if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 15 ) )
 			{
+				if ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD && !exectuter_character._god )
+				return;
+			
 				if ( command_name === 'SHIELD_ON' )
 				{	
 					this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
@@ -1782,6 +2027,9 @@ class sdBaseShieldingUnit extends sdEntity
 		//if ( sdWorld.inDist2D_Boolean( this.x, this.y * 2, exectuter_character.x, exectuter_character.y * 2, 32 ) )
 		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 15 ) )
 		{
+			if ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD && !exectuter_character._god )
+			return;
+			
 			if ( sdWorld.my_entity )
 			{
 				if ( this.enabled === false )

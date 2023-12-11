@@ -561,7 +561,7 @@ class sdSteeringWheel extends sdEntity
 				yy = 1;
 
 				if ( xx !== 0 || yy !== 0 )
-				sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, true, GSPEED );
+				sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, true, GSPEED, false, this );
 				else
 				this._schedule_rounding_task = false;
 				
@@ -622,7 +622,7 @@ class sdSteeringWheel extends sdEntity
 						this.VerifyMissingParts();
 
 						if ( this.driver0.CanMoveWithoutOverlap( this.driver0.x, this.driver0.y ) &&
-							 sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
+							 sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED, false, this ) )
 						{
 							if ( this.driver0.CanMoveWithoutOverlap( this.driver0.x + xx, this.driver0.y + yy ) )
 							{
@@ -767,7 +767,7 @@ class sdSteeringWheel extends sdEntity
 		}
 	}
 	
-	static ComplexElevatorLikeMove( scan, _scan_net_ids, xx, yy, forceful, GSPEED, force_push_bsus=false ) // GSPEED only used for damage scaling
+	static ComplexElevatorLikeMove( scan, _scan_net_ids, xx, yy, forceful, GSPEED, force_push_bsus=false, initiator=null ) // GSPEED only used for damage scaling
 	{
 		let stuff_to_push = [];
 		let stopping_entities = [];
@@ -968,12 +968,12 @@ class sdSteeringWheel extends sdEntity
 			for ( let i = 0; i < stopping_entities.length; i++ )
 			{
 				if ( !stopping_entities[ i ].is( sdBG ) || stopping_entities[ i ].material === sdBG.MATERIAL_GROUND )
-				stopping_entities[ i ].Damage( 5 * GSPEED );
+				stopping_entities[ i ].DamageWithEffect( 5 * GSPEED, initiator );
 			}
 			for ( let i = 0; i < stopped_entities.length; i++ )
 			{
 				if ( !stopped_entities[ i ].is( sdBG ) || stopped_entities[ i ].material === sdBG.MATERIAL_GROUND )
-				stopped_entities[ i ].Damage( 5 * GSPEED );
+				stopped_entities[ i ].DamageWithEffect( 5 * GSPEED, initiator );
 			}
 			
 			return false;
