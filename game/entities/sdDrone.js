@@ -212,6 +212,9 @@ class sdDrone extends sdEntity
 	
 	SetTarget( ent )
 	{
+		//if ( !ent )
+		//return;
+
 		if ( ent !== this._current_target )
 		{
 			this._current_target = ent;
@@ -846,17 +849,13 @@ class sdDrone extends sdEntity
 				// No target
 				if ( sdWorld.is_server )
 				{
-					let potential_target = sdCharacter.GetRandomEntityNearby( this );
-					if ( potential_target )
 					{
-						this.SetTarget( potential_target );
+						this.SetTarget( sdCharacter.GetRandomEntityNearby( this ) );
 						this.PlayAIAlertedSound();
 					}
-					if ( Math.random() < 0.01 && !this._current_target ) // Still no target?
-					potential_target = this.GetRandomTarget(); // Use this method so it doesn't go idle
-					if ( potential_target )
+					if ( Math.random() < 0.02 && !this._current_target ) // Still no target?
 					{
-						this.SetTarget( potential_target );
+						this.SetTarget( this.GetRandomTarget() );
 						this.PlayAIAlertedSound();
 					}
 					

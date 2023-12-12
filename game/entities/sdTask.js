@@ -29,6 +29,7 @@ class sdTask extends sdEntity
 		sdTask.COLOR_NOTIFICATION = '#aaffaa';
 		sdTask.COLOR_WARNING = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ffff77' : '#dddd33'; };
 		sdTask.COLOR_ALERT = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ff7777' : '#ff3333'; };
+		sdTask.COLOR_PROTECT = ()=>{ return sdWorld.time % 2000 < 1000 ? '#7777ff' : '#3333ff'; };
 		
 		sdTask.completed_tasks_count = 0; // Whenever someone completes a task, this increases value by 1. Used to spawn SD Item pods
 		
@@ -389,7 +390,7 @@ class sdTask extends sdEntity
 		{
 			appearance: sdTask.APPEARANCE_PROTECT_POINT,
 	
-			task_title_color: sdTask.COLOR_WARNING,
+			task_title_color: sdTask.COLOR_PROTECT,
 	
 			GetDefaultTitle: ( task )=>{
 				return 'Protect';
