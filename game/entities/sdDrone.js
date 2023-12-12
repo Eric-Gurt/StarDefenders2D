@@ -851,13 +851,14 @@ class sdDrone extends sdEntity
 				{
 					{
 						this.SetTarget( sdCharacter.GetRandomEntityNearby( this ) );
-						this.PlayAIAlertedSound();
 					}
 					if ( Math.random() < 0.02 && !this._current_target ) // Still no target?
 					{
 						this.SetTarget( this.GetRandomTarget() );
-						this.PlayAIAlertedSound();
 					}
+					
+					if ( this._current_target )
+					this.PlayAIAlertedSound();
 					
 				}
 				/*if ( sdWorld.is_server )
