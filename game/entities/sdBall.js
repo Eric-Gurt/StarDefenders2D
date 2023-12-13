@@ -42,7 +42,7 @@ class sdBall extends sdEntity
 	}
 	Impact( vel ) // fall damage basically
 	{
-		if ( vel > 30 )
+		if ( vel > 60 )
 		{
 			this.DamageWithEffect( ( vel - 4 ) * 5 );
 		}

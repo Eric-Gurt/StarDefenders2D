@@ -1643,7 +1643,7 @@ class sdDrone extends sdEntity
 							else
 							if ( this.type === sdDrone.DRONE_TZYRG ) // Tzyrg drones
 							{
-								let bullet_obj = new sdBullet({ x: this.x - ( Math.sin( this.attack_an / 1000 ) * 3 ) , y: this.y + ( Math.cos( this.attack_an / 1000 ) * 3 ) });
+								let bullet_obj = new sdBullet({ x: this.x - ( Math.sin( -this.attack_an / 1000 ) * 3 ) , y: this.y + ( Math.cos( -this.attack_an / 1000 ) * 3 ) });
 
 								bullet_obj._owner = this;
 
@@ -1660,7 +1660,7 @@ class sdDrone extends sdEntity
 
 								sdEntity.entities.push( bullet_obj );
 
-								let bullet_obj2 = new sdBullet({ x: this.x + ( Math.sin( this.attack_an / 1000 ) * 3 ) , y: this.y - ( Math.cos( this.attack_an / 1000 ) * 3 ) });
+								let bullet_obj2 = new sdBullet({ x: this.x + ( Math.sin( -this.attack_an / 1000 ) * 3 ) , y: this.y - ( Math.cos( -this.attack_an / 1000 ) * 3 ) });
 
 								bullet_obj2._owner = this;
 

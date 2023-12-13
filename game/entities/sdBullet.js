@@ -22,6 +22,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBubbleShield from './sdBubbleShield.js';
+import sdBadDog from './sdBadDog.js';
 
 class sdBullet extends sdEntity
 {
@@ -399,7 +400,7 @@ class sdBullet extends sdEntity
 		}
 		else
 		{
-			if ( from_entity === this._owner || from_entity === this._owner2 )
+			if ( from_entity === this._owner || from_entity === this._owner2 || ( !this._hook && this._damage >= 0 && from_entity.is( sdBadDog ) && from_entity.master && ( this._owner === from_entity.master || this._owner2 === from_entity.master ) ) )
 			return false;
 
 			if ( from_entity.is( sdBullet ) )

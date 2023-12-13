@@ -784,7 +784,7 @@ class sdEntity
 			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
 		}
 	}*/
-	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic
+	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic (not neede anymore if that entity has step-up logic)
 	{
 		return false;
 	}
@@ -1628,14 +1628,15 @@ class sdEntity
 								case on_top:
 								{
 									//this.sy = ( this.mass - best_ent.mass ) * old_sy;
-									this.sy = - old_sy * bounce_intensity;
+									this.sy = - Math.abs( old_sy * bounce_intensity );
 
 									if ( typeof best_ent.sy !== 'undefined' )
 									best_ent.sy = Math.max( best_ent.sy, best_ent.sy + old_sy * ( 1 - self_effect_scale ) );
 									//best_ent.sy += old_sy * ( 1 - self_effect_scale );
 
-									if ( step_size > 0 )
-									if ( do_stuck_check && best_ent._hard_collision )
+									//if ( step_size > 0 )
+									//if ( do_stuck_check && best_ent._hard_collision )
+									if ( step_size > 0 || do_stuck_check )
 									{
 										//const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
 										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.00001; // There was a case where standing on a turret would instantly stuck player to it
@@ -1737,10 +1738,10 @@ class sdEntity
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
 										//if ( best_ent._hard_collision )
-										this.ImpactWithDamageEffect( impact * self_effect_scale, best_ent );
+										this.ImpactWithDamageEffect( impact * self_effect_scale, ( !best_ent.is_static ) ? best_ent : null ); // Extra source logic to prevent creatures from attacking ground when falling
 
 										//if ( hard_collision )
-										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), this );
+										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), ( !this.is_static ) ? this : null ); // Extra source logic to prevent creatures from attacking ground when falling
 									}
 								}
 							}
@@ -1761,10 +1762,10 @@ class sdEntity
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
 										//if ( best_ent._hard_collision )
-										this.ImpactWithDamageEffect( impact * self_effect_scale, best_ent );
+										this.ImpactWithDamageEffect( impact * self_effect_scale, ( !best_ent.is_static ) ? best_ent : null ); // Extra source logic to prevent creatures from attacking ground when falling
 
 										//if ( hard_collision )
-										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), this );
+										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), ( !this.is_static ) ? this : null ); // Extra source logic to prevent creatures from attacking ground when falling
 									}
 								}
 							}
@@ -3388,10 +3389,10 @@ class sdEntity
 	{
 		return true;
 	}
-	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null ) // Some classes like sdDeepSleep do override it(!)
 	{
 		let returned_object;
-			
+		
 		if ( current_frame !== this._snapshot_cache_frame || save_as_much_as_possible )
 		{
 			/*returned_object = {
@@ -3567,7 +3568,7 @@ class sdEntity
 								  prop !== '_last_y' && 
 								  prop !== '_has_matter_props' && 
 								  prop !== '_has_liquid_props' && 
-								  prop !== '_is_static' && 
+								 // prop !== '_is_static' && 
 								  prop !== '_update_version' && 
 								  prop !== '_remove_stack_trace' && 
 								  prop !== '_vis_block_top' && 
@@ -5353,12 +5354,93 @@ class sdEntity
 	}
 	static BulkRemoveEntitiesFromEntitiesArray( arr ) // Entities should be already _is_being_removed
 	{
-		for ( let i = 0; i < arr.length; i++ )
+		if ( arr.length <= 0 )
+		return;
+	
+		// Partial removal approach
+		let t = Date.now();
+		let t2 = t;
+		
+		let pos = 0;
+		
+		let at_least = Math.ceil( arr.length * 0.01 );
+		
+		while ( pos < arr.length && ( t2 - t < 1 || pos < at_least ) )
+		{
+			let id = sdEntity.entities.lastIndexOf( arr[ pos ] );
+			if ( id !== -1 )
+			sdEntity.entities.splice( id, 1 );
+
+			pos++;
+
+			t2 = Date.now();
+		}
+		
+		if ( pos === arr.length )
+		arr.length = 0;
+		else
+		arr.splice( 0, pos );
+	
+		/*if ( arr.length <= 5 )
+		{
+			for ( let i = 0; i < arr.length; i++ )
+			{
+				let id = sdEntity.entities.lastIndexOf( arr[ i ] );
+				if ( id !== -1 )
+				sdEntity.entities.splice( id, 1 );
+			}
+		}
+		else
+		{
+			let arr_set = new Set();
+			for ( let i = 0; i < arr.length; i++ )
+			arr_set.add( arr[ i ] );
+
+			for ( let i = 0; i < arr.length; i++ )
+			{
+				let id = sdEntity.entities.lastIndexOf( arr[ i ] );
+				if ( id !== -1 )
+				{
+					let delete_from = id;
+					let delete_count = 1;
+
+					while ( delete_from - 1 >= 0 && arr_set.has( sdEntity.entities[ delete_from - 1 ] ) )
+					{
+						delete_from--;
+						delete_count++;
+					}
+
+					while ( delete_from + delete_count < sdEntity.entities.length && arr_set.has( sdEntity.entities[ delete_from + delete_count ] ) )
+					{
+						delete_count++;
+					}
+
+					if ( delete_count === 1 )
+					{
+					}
+					else
+					{
+						// Delete arr entities that are within extended range for deletion
+						for ( let i2 = 0; i2 < delete_count; i2++ )
+						{
+							let e = sdEntity.entities[ delete_from + i2 ];
+
+							let pos = arr.indexOf( e, i + 1 ); // Skin previous as they will be skipped anyway
+							if ( pos !== -1 )
+							arr.splice( pos, 1 );
+						}
+					}
+					sdEntity.entities.splice( delete_from, delete_count );
+				}
+			}
+		}*/
+	
+		/*for ( let i = 0; i < arr.length; i++ )
 		{
 			let id = sdEntity.entities.lastIndexOf( arr[ i ] );
 			if ( id !== -1 )
 			sdEntity.entities.splice( id, 1 );
-		}
+		}*/
 	}
 	
 	

@@ -3696,13 +3696,21 @@ class sdWeather extends sdEntity
 								{
 									// Try to find higher block since they are too tiny sky tracer might skip them
 									
+									let arr = [ 'sdBlock' ];
+									
 									let tr = 0;
 									while ( true )
 									{
 										if ( tr++ > 100 )
 										throw new Error( 'Unable to find highest snow block' ); // Replace with break; if it happens
+									
+										if ( sdWorld.CheckSolidDeepSleepExistsAtBox( xx+1, e.y-3, xx+15, e.y-1 ) ) // Not tested but it makes sense
+										{
+											e = null;
+											break;
+										}
 										
-										if ( sdWorld.CheckWallExistsBox( xx+1, e.y-3, xx+15, e.y-1, null, null, [ 'sdBlock' ] ) )
+										if ( sdWorld.CheckWallExistsBox( xx+1, e.y-3, xx+15, e.y-1, null, null, arr ) )
 										{
 											if ( sdWorld.last_hit_entity )
 											e = sdWorld.last_hit_entity;
@@ -3713,24 +3721,27 @@ class sdWeather extends sdEntity
 										break;
 									}
 									
-									if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
+									if ( e )
 									{
-										// Add snow amount
-										e.y -= 4;
-										e.height += 4;
-										e._hea += 10;
-										e._hmax += 10;
-										e._update_version++;
-										sdWorld.UpdateHashPosition( e, false );
-									}
-									else
-									{
-										// Spawn snow?
-										let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
-										snow_block._hea = snow_block._hmax = 10;
+										if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
+										{
+											// Add snow amount
+											e.y -= 4;
+											e.height += 4;
+											e._hea += 10;
+											e._hmax += 10;
+											e._update_version++;
+											sdWorld.UpdateHashPosition( e, false );
+										}
+										else
+										{
+											// Spawn snow?
+											let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
+											snow_block._hea = snow_block._hmax = 10;
 
-										sdEntity.entities.push( snow_block );
-										sdWorld.UpdateHashPosition( snow_block, false );
+											sdEntity.entities.push( snow_block );
+											sdWorld.UpdateHashPosition( snow_block, false );
+										}
 									}
 								}
 								else
@@ -3972,6 +3983,12 @@ class sdWeather extends sdEntity
 							x = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.x1 : sdWorld.world_bounds.x2 - 16;
 							else
 							y = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.y1 : sdWorld.world_bounds.y2 - 16;
+						}
+						
+						if ( !should_skip )
+						if ( sdWorld.CheckSolidDeepSleepExistsAtBox( x+1, y+1, x+15, y+15 ) ) // Prevent spawning blocks in deep sleep areas? Not tested but it should prevent double ground bug
+						{
+							should_skip = true;
 						}
 						
 						if ( !should_skip )

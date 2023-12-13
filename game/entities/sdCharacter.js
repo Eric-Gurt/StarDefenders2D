@@ -3393,22 +3393,6 @@ THING is cosmic mic drop!`;
 	}
 	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
-		// 14 is a full width, so revived players don't stuck in each other
-		/*if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
-		{
-			if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
-			this.y -= 0.5;
-
-			if ( this.CanMoveWithoutOverlap( this.x, this.y + 14 ) )
-			this.y += 0.5;
-
-			if ( this.CanMoveWithoutOverlap( this.x - 14, this.y ) )
-			this.x -= 0.5;
-
-			if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
-			this.x += 0.5;
-		}*/
-		
 		return true;
 	}
 

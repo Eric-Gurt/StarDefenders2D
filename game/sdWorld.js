@@ -209,6 +209,8 @@ class sdWorld
 		
 		sdWorld.el_hit_cache = [];
 		
+		sdWorld.bulk_exclude = [];
+		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
 		
 		sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY = 0;
@@ -2576,6 +2578,27 @@ class sdWorld
 		if ( a.length !== b.length )
 		return false;
 	
+		let a_set = new Set();
+		for ( var i = 0; i < a.length; i++ )
+		a_set.add( a[ i ] );
+	
+		for ( var i = 0; i < b.length; i++ )
+		if ( !a_set.has( b[ i ] ) )
+		return false;
+	
+		/*for ( var i = 0; i < a.length; i++ )
+		{
+			if ( b.indexOf( a[ i ] ) === -1 )
+			return false;
+		}*/
+	
+		return true; // Try false here if method fails for some reason
+	}
+	/*static ArraysEqualIgnoringOrder( a, b )
+	{
+		if ( a.length !== b.length )
+		return false;
+	
 		for ( var i = 0; i < a.length; i++ )
 		{
 			if ( b.indexOf( a[ i ] ) === -1 )
@@ -2583,7 +2606,7 @@ class sdWorld
 		}
 	
 		return true; // Try false here if method fails for some reason
-	}
+	}*/
 	static limit( min, v, max )
 	{
 		if ( v <= min )
@@ -2985,7 +3008,7 @@ class sdWorld
 
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 
-			const bulk_exclude = [];
+			const bulk_exclude = sdWorld.bulk_exclude;
 
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
@@ -3617,7 +3640,10 @@ class sdWorld
 			for ( i = 0; i < arr.length; i++ )
 			{
 				arr_i = arr[ i ];
-						
+					
+				const arr_i_is_bg_entity = arr_i._is_bg_entity;
+
+				if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep	
 				{
 					arr_i_x = arr_i.x;
 					
@@ -3629,12 +3655,6 @@ class sdWorld
 						if ( y2 > arr_i_y + arr_i._hitbox_y1 )
 						if ( y1 < arr_i_y + arr_i._hitbox_y2 )
 						{
-							const arr_i_is_bg_entity = arr_i._is_bg_entity;
-							
-							//if ( arr_i.GetClass() === 'sdButton' )
-							//debugger;
-							
-							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							if ( arr_i !== ignore_cell )
 							if ( include_non_solid || arr_i.ThreatAsSolid() )
 							return true;
