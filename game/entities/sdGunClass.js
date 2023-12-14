@@ -3649,8 +3649,8 @@ class sdGunClass
 			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
 			slot: 1,
-			reload_time: 2.7,
-			muzzle_x: 9,
+			reload_time: 5.4,
+			muzzle_x: 8,
 			ammo_capacity: 8,
 			count: 1,
 			spawnable:false,
@@ -8549,7 +8549,7 @@ class sdGunClass
 					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 1; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 					
-					gun._max_dps = ( 30 / (20 + 15 ) * 601 ); // Max damage was calculated by shooting an Erthal beacon. Don't know how else I'd do it since explosions lol - Booraz149
+					gun._max_dps = ( 30 / ( 20 + 15 ) * 601 ); // Max damage was calculated by shooting an Erthal beacon. Don't know how else I'd do it since explosions lol - Booraz149
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
@@ -8691,6 +8691,54 @@ class sdGunClass
 				return false; 
 			},
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_ERTHAL_DMR = 135 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'erthal_dmr' ), // Sprite by Flora / Gravel
+			sound: 'spider_deathC3',
+			sound_pitch: 0.35,
+			sound_volume: 1.5,
+			title: 'Erthal Marksman Rifle',
+			slot: 4,
+			reload_time: 1,
+			muzzle_x: 7,
+			ammo_capacity: 10,
+			count: 1,
+			spawnable: false,
+			burst: 2, // Burst fire count
+			burst_reload: 24, // Burst fire reload, needed when giving burst fire
+			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
+			projectile_properties: { _damage: 60,  color: '#00aaff', _dirt_mult: -0.5, model:'bullet2' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { color: '#00aaff', model:'bullet2', _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 60; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
 		};
 
 		// Add new gun classes above this line //
