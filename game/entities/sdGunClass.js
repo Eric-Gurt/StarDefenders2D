@@ -7943,7 +7943,7 @@ class sdGunClass
 
 								bullet_obj5.explosion_radius = 16;
 								bullet_obj5.model = 'sarronian_bio_gas';
-								bullet_obj5.model_is_big = true; // the bio gas is a 96 by 96 sprite, use this for 96 by 96 projectile sprites
+								bullet_obj5.model_size = 3; // the bio gas is a 96 by 96 sprite, use this for 96 by 96 projectile sprites
 								bullet_obj5._damage = 8;
 								bullet_obj5.color ='#00ff00';
 								bullet_obj5._dirt_mult = 1;
@@ -8042,7 +8042,7 @@ class sdGunClass
 				if ( gun.fire_mode !== 2 )
 				{ let obj = { explosion_radius: 28, model:'sarronian_energy_wave', color: '#00ff00', _dirt_mult: 1,
 					projectile_velocity: 2, time_left: 75, _hittable_by_bullets: false, gravity_scale: 0,
-					model_is_large: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites}
+					model_size: 2 } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
 					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
