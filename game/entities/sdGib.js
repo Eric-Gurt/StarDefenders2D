@@ -79,6 +79,10 @@ class sdGib extends sdEntity
 			}
 		}
 	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	{
+		return [ 'sdGib' ];
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )

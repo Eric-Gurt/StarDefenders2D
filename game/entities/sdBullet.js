@@ -638,6 +638,9 @@ class sdBullet extends sdEntity
 	{
 		if ( this._bouncy )
 		return true;
+	
+		if ( this.model === 'bullet2' )
+		return false;
 
 		if ( this.explosion_radius > 0 )
 		return false;
