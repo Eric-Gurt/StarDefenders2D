@@ -61,34 +61,34 @@ class sdBullet extends sdEntity
 	}
 
 	get hitbox_x1()
-	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
 		return -3
 		else
-		if ( this.is_grenade || this.ac > 0 || this.model_is_medium )
+		if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
 		return -2
 		else
 		return -0.1 }
 	get hitbox_x2()
-	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
 	return 3
 	else
-	if ( this.is_grenade || this.ac > 0 || this.model_is_medium )
+	if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
 	return 2
 	else
 	return 0.1 }
 	get hitbox_y1()
-	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
 	return -18
 	else
-	if ( this.is_grenade || this.ac > 0 || this.model_is_medium )
+	if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
 	return -2
 	else
 	return -0.1 }
 	get hitbox_y2()
-	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
 	return 18
 	else
-	if ( this.is_grenade || this.ac > 0 || this.model_is_medium )
+	if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
 	return 2
 	else
 	return 0.1 }
