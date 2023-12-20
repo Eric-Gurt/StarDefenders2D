@@ -1950,6 +1950,7 @@ THING is cosmic mic drop!`;
 		return; // Does not target blocks if a threat is in line of sight.
 
 		let targets = sdWorld.GetAnythingNear( this.x, this.y + 12, 32, null, [ 'sdBlock' ] );
+		sdWorld.shuffleArray( targets );
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
@@ -3161,9 +3162,18 @@ THING is cosmic mic drop!`;
 					should_fire = false;
 					if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
 					should_fire = false;
-					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
-					if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
-					should_fire = false;
+					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this ) )
+					if ( sdWorld.last_hit_entity )
+					{
+						if ( typeof sdWorld.last_hit_entity._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+						{
+							if ( sdWorld.last_hit_entity._ai_team === this._ai_team ) // Is this part of a friendly faction?
+							should_fire = false; // Don't target
+						}
+						
+						if ( this._ai.target === sdWorld.last_hit_entity )
+						should_fire = true;
+					}
 					if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
 					{
 						if ( Math.random() < 0.3 )
@@ -3217,16 +3227,17 @@ THING is cosmic mic drop!`;
 					if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
 					{
 
-						if ( !this._ai.target.is( sdBlock ) ) // Check line of sight if not targeting blocks
+						//if ( !this._ai.target.is( sdBlock ) ) // Check line of sight if not targeting blocks
 						{
-							if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
-							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
+							//if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							//if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
+							// I think it already checks in "let should_fire" part.
 							this._key_states.SetKey( 'Mouse1', 1 );
 						
 							if ( this._ai.target.IsVehicle() )
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
-						else
+						/*else
 						{
 							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
 							this._key_states.SetKey( 'Mouse1', 1 );
@@ -3251,6 +3262,7 @@ THING is cosmic mic drop!`;
 								//this.PlayAIAlertedSound( this._ai.target );
 							}
 						}
+						*/
 					}
 				}
 				else
@@ -3288,7 +3300,7 @@ THING is cosmic mic drop!`;
 
 			if ( this._ai.target && this._ai.target.IsVisible( this ) )
 			{
-				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
+				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x + ( ( this._ai.target._hitbox_x1 + this._ai.target._hitbox_x2 ) / 2 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
 				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
 			}
 			else

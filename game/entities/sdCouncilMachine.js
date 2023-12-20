@@ -55,6 +55,8 @@ class sdCouncilMachine extends sdEntity
 		this._rate = 120;
 		this._spawn_timer = 60; // Spawn Council timer
 		this._regen_timeout = 0; // Regen timeout;
+		
+		this._ai_team = 3;
 
 
 		sdCouncilMachine.ents++;
