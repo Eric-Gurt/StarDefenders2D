@@ -66,7 +66,7 @@ class sdShurgTurret extends sdEntity
 		this.side = 1;
 		this._last_seen = 0;
 
-		this._starting_y = this.y - 64; // for flying Shurg turrets to keep their altitude
+		this._starting_y = this.y - 32; // for flying Shurg turrets to keep their altitude
 
 		this._next_scan = 5; // Target scanning so the device doesn't spam GetRandomEntityNearby()
 
@@ -334,16 +334,16 @@ class sdShurgTurret extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
-		if ( !from_entity.GetClass() === 'sdBullet' )
+		if ( from_entity.GetClass() !== 'sdBullet' && this.type === sdShurgTurret.TURRET_FLYING )
 		{
 			if ( from_entity.y > this.y && this.y < this._starting_y )
 			{
-				this._starting_y = this.y - 96;
+				this._starting_y = this.y - 64;
 			}
 
 			if ( from_entity.y < this.y && this.y > this._starting_y )
 			{
-				this._starting_y = this.y + 32;
+				this._starting_y = this.y + 96;
 			}
 		}
 	}

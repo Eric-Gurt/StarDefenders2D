@@ -77,6 +77,8 @@ class sdLongRangeAntenna extends sdEntity
 		this._spawn_timer = 30;
 		this._enemies_spawned = 0; 
 		
+		this._ai_team = 0;
+		
 		this.progress = 0; // Task progress - needed for "Protect" task types
 		
 		this._spawned_ai = false; // Spawn SD AI

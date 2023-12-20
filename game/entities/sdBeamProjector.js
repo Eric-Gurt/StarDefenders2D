@@ -33,8 +33,8 @@ class sdBeamProjector extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
+	get hitbox_x1() { return -14; }
+	get hitbox_x2() { return 14; }
 	get hitbox_y1() { return -12; }
 	get hitbox_y2() { return 16; }
 	
@@ -83,6 +83,8 @@ class sdBeamProjector extends sdEntity
 		this.no_obstacles = false; // Does it have any obstacles above it which prevents beam going to sky?
 		this._spawn_timer = 600;
 		this._enemies_spawned = 0; 
+		
+		this._ai_team = 0;
 		
 		this.progress = 0; // Task progress - needed for "Protect" task types
 		
