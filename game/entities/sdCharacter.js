@@ -1235,6 +1235,8 @@ THING is cosmic mic drop!`;
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this._stability_recovery_multiplier = 1; // How fast does the character recover after stability damage?
+		this._shield_allowed = false; // Through upgrade
+		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
 
@@ -1251,8 +1253,11 @@ THING is cosmic mic drop!`;
 		
 		this.ghosting = false;
 		this._ghost_breath = 0; // Time until next breath as ghost
-		this._last_e_state = 0; // For E key taps to activate ghosting
+		this._last_e_state = 0; // For E key taps to activate ability
 		this._last_fire_state = 0; // For semi auto weaponry
+		this._shielding = false; // Shielding, same as ghosting
+		
+		this._shield_allowed = false; // Through upgrade
 		
 		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting // Also prevents player from shooting
 		
@@ -1985,6 +1990,29 @@ THING is cosmic mic drop!`;
 		if ( this._socket )
 		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
 	}
+
+	UninstallUpgrade( upgrade_name ) // Ignores lower limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
+	{
+		if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) - 1 < 0 )
+		{
+			return;
+		}
+		
+		
+		
+		
+		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
+		
+		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
+		this._upgrade_counters[ upgrade_name ] = 0;
+		else
+		this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+	
+		upgrade_obj.reverse_action( this, this._upgrade_counters[ upgrade_name ] );
+		
+		if ( this._socket )
+		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
+	}
 	/*get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
 	get hitbox_x2() { return this.s / 100 * ( this.death_anim < 10 ? 5 : 5 ); }
 	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? -12 : 10 ); }
@@ -2318,6 +2346,7 @@ THING is cosmic mic drop!`;
 		// Also import sdBubbleShield if it's not imported
 		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
 		if ( shielded_by && dmg > 0 )
+		if ( shielded_by.hea > 0 )
 		{
 			shielded_by.Damage( dmg, initiator );
 			return;
@@ -3409,8 +3438,11 @@ THING is cosmic mic drop!`;
 	}
 
 
-	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
+	TogglePlayerAbility() // part of ManagePlayerVehicleEntrance()
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
 		if ( this._ghost_allowed || this.ghosting )
 		{
 			this.ghosting = !this.ghosting;
@@ -3420,6 +3452,28 @@ THING is cosmic mic drop!`;
 			sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
 			else
 			sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
+		}
+		if ( this._shield_allowed || this._shielding )
+		{
+			this._shielding = !this._shielding;
+			
+			if ( this.matter < 20 ) // The shields cost matter to activate
+			this._shielding = false;
+
+			if ( this._shielding ) // Activate shield
+			{
+				sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1, pitch:2 });
+				sdBubbleShield.ApplyShield( this, sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD, true, 32, 32 ); // Apply shield
+				this.matter -= 20;
+			}
+			else // Remove shield
+			{
+				sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1, pitch:2 });
+				let shield = sdBubbleShield.CheckIfEntityHasShield( this );
+				if ( shield )
+				if ( !shield._is_being_removed )
+				shield.remove();
+			}
 		}
 	}
 	ManagePlayerFlashLight()
@@ -3473,10 +3527,10 @@ THING is cosmic mic drop!`;
 					}
 					else
 					if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
-					this.TogglePlayerGhosting();
+					this.TogglePlayerAbility();
 				}
 				else
-				this.TogglePlayerGhosting();
+				this.TogglePlayerAbility();
 				/*if ( this._ghost_allowed )
 				{
 					this.ghosting = !this.ghosting;
@@ -3696,7 +3750,7 @@ THING is cosmic mic drop!`;
 			this.ReloadAndCombatLogic( GSPEED );
 
 			if ( this.matter < this._matter_regeneration * 20 )
-			if ( !this.ghosting )
+			if ( !this.ghosting && !this._shielding )
 			{
 				if ( sdWorld.is_server )
 				if ( this.matter < this.matter_max ) // Character cannot store or regenerate more matter than what it can contain
@@ -4271,7 +4325,7 @@ THING is cosmic mic drop!`;
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			{
 				//this.ghosting = false;
-				this.TogglePlayerGhosting();
+				this.TogglePlayerAbility();
 			}
 			else
 			this.matter -= fuel_cost;
@@ -4282,6 +4336,18 @@ THING is cosmic mic drop!`;
 				this._ghost_breath = sdCharacter.ghost_breath_delay;
 				sdSound.PlaySound({ name:'ghost_breath', x:this.x, y:this.y, volume:1 });
 			}
+		}
+		if ( this._shielding && sdWorld.is_server )
+		{
+			let fuel_cost = 0.6 * GSPEED; // 0.4 Previously
+			
+			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
+			{
+				//this.ghosting = false;
+				this.TogglePlayerAbility();
+			}
+			else
+			this.matter -= fuel_cost;
 		}
 		
 		//this.flying = true; // Hack
