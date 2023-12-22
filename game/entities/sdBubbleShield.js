@@ -66,7 +66,7 @@ class sdBubbleShield extends sdEntity
 			if ( this.type !== sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
 			this.remove();
 			else
-			this.hea = Math.max( -50, this.hea );
+			this.hea = Math.max( -150, this.hea );
 		}
 	}
 	GetShieldHealth( shield_type = 0 )
@@ -120,7 +120,7 @@ class sdBubbleShield extends sdEntity
 		if ( this.type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
 		this.hea = this.hea * 0.1; // It must regenerate first, otherwise players can spam E button to get full shields
 		
-		this._regen_timeout = 0; // Some shields should regenerate, like SD shield for example.
+		this._regen_timeout = 30; // Some shields should regenerate, like SD shield for example.
 		
 		this._manual_hitbox_override = params.manual_hitbox_override || false;
 		
@@ -219,7 +219,10 @@ class sdBubbleShield extends sdEntity
 			if ( this.type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
 			{
 				if ( this._regen_timeout <= 0 )
-				this.hea = Math.min( this.hea + GSPEED, this._hmax );
+				{
+					let mult = ( this.hea ) <= 0 ? 6 : 2; // Faster regen when shield is destroyed
+					this.hea = Math.min( this.hea + ( GSPEED * mult ), this._hmax );
+				}
 				else
 				this._regen_timeout -= GSPEED;
 				
