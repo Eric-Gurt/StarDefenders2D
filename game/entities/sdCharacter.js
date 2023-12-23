@@ -1826,8 +1826,15 @@ THING is cosmic mic drop!`;
 	static GetRandomEntityNearby( from_entity ) // From sdOverlord but checks for classes for enemies instead of considering anything as a target ( from entity = from which entity you want to check potential target )
 	{
 		let an = Math.random() * Math.PI * 2;
+		
+		let ent_to_check_from = from_entity;
+		
+		if ( typeof from_entity.driver_of !== 'undefined' )
+		if ( from_entity.driver_of )
+		ent_to_check_from = from_entity.driver_of; // Allow AI to target if they are inside vehicles
+		
 
-		if ( !sdWorld.CheckLineOfSight( from_entity.x, from_entity.y, from_entity.x + Math.sin( an ) * 900, from_entity.y + Math.cos( an ) * 900, from_entity ) )
+		if ( !sdWorld.CheckLineOfSight( ent_to_check_from.x, ent_to_check_from.y, ent_to_check_from.x + Math.sin( an ) * 900, ent_to_check_from.y + Math.cos( an ) * 900, ent_to_check_from ) )
 		if ( sdWorld.last_hit_entity )
 		{
 			if ( sdWorld.last_hit_entity._is_being_removed )
@@ -2979,7 +2986,27 @@ THING is cosmic mic drop!`;
 					this.gun_slot = this._ai_gun_slot;
 					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 				}
+				
+				
+				// AI should now be able to accompany players when players pilot a vehicle
+				this._key_states.SetKey( 'KeyE', 0 );
 
+				if ( this._potential_vehicle && this.driver_of === null )
+				{
+					if ( typeof this._potential_vehicle.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
+					{
+						if ( this._potential_vehicle.driver0 )
+						if ( this._potential_vehicle.driver0._ai_team === this._ai_team && this.driver_of === null )
+						this._key_states.SetKey( 'KeyE', 1 );
+					}
+				}
+				if ( this.driver_of )
+				{
+					if ( typeof this.driver_of.driver0 !== 'undefined' )
+					if ( this.driver_of.driver0 === null )
+					this._key_states.SetKey( 'KeyE', 1 );	
+				}
+				//
 				let closest = null;
 				let closest_di = Infinity;
 				//let closest_di_real = Infinity;
@@ -3185,22 +3212,27 @@ THING is cosmic mic drop!`;
 
 					this._ai.target = closest;
 					this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
+					
+					let check_from = ( this.driver_of ) ? this.driver_of : this;
 
 					let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
 					if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
 					should_fire = false;
 					if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
 					should_fire = false;
-					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this ) )
+					if ( !sdWorld.CheckLineOfSight( check_from.x, check_from.y, this.look_x, this.look_y, check_from ) )
 					if ( sdWorld.last_hit_entity )
 					{
-						if ( typeof sdWorld.last_hit_entity._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+						let cur_target = sdWorld.last_hit_entity;
+						if ( typeof cur_target._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 						{
-							if ( sdWorld.last_hit_entity._ai_team === this._ai_team ) // Is this part of a friendly faction?
+							if ( cur_target._ai_team === this._ai_team ) // Is this part of a friendly faction?
 							should_fire = false; // Don't target
 						}
+						if ( !sdWorld.CheckLineOfSight( check_from.x, check_from.y, this.look_x, this.look_y, check_from, sdCom.com_visibility_ignored_classes ) )
+						should_fire = false; // Don't attack through walls
 						
-						if ( this._ai.target === sdWorld.last_hit_entity )
+						if ( this._ai.target === cur_target ) // But attack if the target is directly looked at ( even walls in digging scenario )
 						should_fire = true;
 					}
 					if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )

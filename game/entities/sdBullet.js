@@ -431,7 +431,7 @@ class sdBullet extends sdEntity
 		if ( from_entity.is( sdRift ) ) // Ignore portals
 		return false;
 
-		if ( from_entity.is( sdBubbleShield ) && this._owner === from_entity.for_ent ) // Ignore shields from owner
+		if ( from_entity.is( sdBubbleShield ) && ( this._owner === from_entity.for_ent || from_entity.hea <= 0 ) ) // Ignore shields from owner, or if they are depleted
 		return false;
 
 		if ( from_entity.is( sdWater ) ) // Ignore water
