@@ -357,6 +357,7 @@ class sdTheatre extends sdEntity
 			
 			c.driver_of = this;
 
+			if ( c._socket )
 			c._socket.SDServiceMessage( 'Picking gamepad up' );
 
 			if ( this.type === 3 && best_slot === 0 )
