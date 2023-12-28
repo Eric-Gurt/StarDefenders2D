@@ -1823,7 +1823,10 @@ class sdDrone extends sdEntity
 		
 		return false;
 	}
-	
+	get title()
+	{
+		return 'Drone';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )

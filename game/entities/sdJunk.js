@@ -153,15 +153,23 @@ class sdJunk extends sdEntity
 		this._spawn_ent_in_delay = 30 * 30; // 30 seconds but grows evert time spawn happens to avoid too much flood
 		this._regen_timeout = 0; // Regen timeout for task reward matter container, although could be used in other things in future
 		this._notify_players_in = 30; // Notify players about tasks ( Erthal beacon )
+		
+		this._ai_team = -1; // For Council bomb and Erthal beacon
 
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals++;
 
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
-		sdJunk.council_bombs++;
+		{
+			sdJunk.council_bombs++;
+			this._ai_team = 3;
+		}
 
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
-		sdJunk.erthal_beacons++;
+		{
+			sdJunk.erthal_beacons++;
+			this._ai_team = 2;
+		}
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 		
 		this._storage_trap_mode_for = null; // Trap activating sdCharacter

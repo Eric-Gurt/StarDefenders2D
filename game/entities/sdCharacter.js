@@ -1235,6 +1235,8 @@ THING is cosmic mic drop!`;
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this._stability_recovery_multiplier = 1; // How fast does the character recover after stability damage?
+		this._shield_allowed = false; // Through upgrade
+		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
 
@@ -1251,8 +1253,11 @@ THING is cosmic mic drop!`;
 		
 		this.ghosting = false;
 		this._ghost_breath = 0; // Time until next breath as ghost
-		this._last_e_state = 0; // For E key taps to activate ghosting
+		this._last_e_state = 0; // For E key taps to activate ability
 		this._last_fire_state = 0; // For semi auto weaponry
+		this._shielding = false; // Shielding, same as ghosting
+		
+		this._shield_allowed = false; // Through upgrade
 		
 		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting // Also prevents player from shooting
 		
@@ -1821,8 +1826,15 @@ THING is cosmic mic drop!`;
 	static GetRandomEntityNearby( from_entity ) // From sdOverlord but checks for classes for enemies instead of considering anything as a target ( from entity = from which entity you want to check potential target )
 	{
 		let an = Math.random() * Math.PI * 2;
+		
+		let ent_to_check_from = from_entity;
+		
+		if ( typeof from_entity.driver_of !== 'undefined' )
+		if ( from_entity.driver_of )
+		ent_to_check_from = from_entity.driver_of; // Allow AI to target if they are inside vehicles
+		
 
-		if ( !sdWorld.CheckLineOfSight( from_entity.x, from_entity.y, from_entity.x + Math.sin( an ) * 900, from_entity.y + Math.cos( an ) * 900, from_entity ) )
+		if ( !sdWorld.CheckLineOfSight( ent_to_check_from.x, ent_to_check_from.y, ent_to_check_from.x + Math.sin( an ) * 900, ent_to_check_from.y + Math.cos( an ) * 900, ent_to_check_from ) )
 		if ( sdWorld.last_hit_entity )
 		{
 			if ( sdWorld.last_hit_entity._is_being_removed )
@@ -1950,6 +1962,7 @@ THING is cosmic mic drop!`;
 		return; // Does not target blocks if a threat is in line of sight.
 
 		let targets = sdWorld.GetAnythingNear( this.x, this.y + 12, 32, null, [ 'sdBlock' ] );
+		sdWorld.shuffleArray( targets );
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
@@ -1980,6 +1993,29 @@ THING is cosmic mic drop!`;
 		this._upgrade_counters[ upgrade_name ]++;
 	
 		upgrade_obj.action( this, this._upgrade_counters[ upgrade_name ] );
+		
+		if ( this._socket )
+		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
+	}
+
+	UninstallUpgrade( upgrade_name ) // Ignores lower limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
+	{
+		if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) - 1 < 0 )
+		{
+			return;
+		}
+		
+		
+		
+		
+		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
+		
+		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
+		this._upgrade_counters[ upgrade_name ] = 0;
+		else
+		this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+	
+		upgrade_obj.reverse_action( this, this._upgrade_counters[ upgrade_name ] );
 		
 		if ( this._socket )
 		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
@@ -2317,6 +2353,7 @@ THING is cosmic mic drop!`;
 		// Also import sdBubbleShield if it's not imported
 		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
 		if ( shielded_by && dmg > 0 )
+		if ( shielded_by.hea > 0 )
 		{
 			shielded_by.Damage( dmg, initiator );
 			return;
@@ -2949,7 +2986,27 @@ THING is cosmic mic drop!`;
 					this.gun_slot = this._ai_gun_slot;
 					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 				}
+				
+				
+				// AI should now be able to accompany players when players pilot a vehicle
+				this._key_states.SetKey( 'KeyE', 0 );
 
+				if ( this._potential_vehicle && this.driver_of === null )
+				{
+					if ( typeof this._potential_vehicle.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
+					{
+						if ( this._potential_vehicle.driver0 )
+						if ( this._potential_vehicle.driver0._ai_team === this._ai_team && this.driver_of === null )
+						this._key_states.SetKey( 'KeyE', 1 );
+					}
+				}
+				if ( this.driver_of )
+				{
+					if ( typeof this.driver_of.driver0 !== 'undefined' )
+					if ( this.driver_of.driver0 === null )
+					this._key_states.SetKey( 'KeyE', 1 );	
+				}
+				//
 				let closest = null;
 				let closest_di = Infinity;
 				//let closest_di_real = Infinity;
@@ -3155,15 +3212,29 @@ THING is cosmic mic drop!`;
 
 					this._ai.target = closest;
 					this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
+					
+					let check_from = ( this.driver_of ) ? this.driver_of : this;
 
 					let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
 					if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
 					should_fire = false;
 					if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
 					should_fire = false;
-					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
-					if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
-					should_fire = false;
+					if ( !sdWorld.CheckLineOfSight( check_from.x, check_from.y, this.look_x, this.look_y, check_from ) )
+					if ( sdWorld.last_hit_entity )
+					{
+						let cur_target = sdWorld.last_hit_entity;
+						if ( typeof cur_target._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+						{
+							if ( cur_target._ai_team === this._ai_team ) // Is this part of a friendly faction?
+							should_fire = false; // Don't target
+						}
+						if ( !sdWorld.CheckLineOfSight( check_from.x, check_from.y, this.look_x, this.look_y, check_from, sdCom.com_visibility_ignored_classes ) )
+						should_fire = false; // Don't attack through walls
+						
+						if ( this._ai.target === cur_target ) // But attack if the target is directly looked at ( even walls in digging scenario )
+						should_fire = true;
+					}
 					if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
 					{
 						if ( Math.random() < 0.3 )
@@ -3217,16 +3288,17 @@ THING is cosmic mic drop!`;
 					if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
 					{
 
-						if ( !this._ai.target.is( sdBlock ) ) // Check line of sight if not targeting blocks
+						//if ( !this._ai.target.is( sdBlock ) ) // Check line of sight if not targeting blocks
 						{
-							if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
-							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
+							//if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							//if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
+							// I think it already checks in "let should_fire" part.
 							this._key_states.SetKey( 'Mouse1', 1 );
 						
 							if ( this._ai.target.IsVehicle() )
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
-						else
+						/*else
 						{
 							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
 							this._key_states.SetKey( 'Mouse1', 1 );
@@ -3251,6 +3323,7 @@ THING is cosmic mic drop!`;
 								//this.PlayAIAlertedSound( this._ai.target );
 							}
 						}
+						*/
 					}
 				}
 				else
@@ -3288,7 +3361,7 @@ THING is cosmic mic drop!`;
 
 			if ( this._ai.target && this._ai.target.IsVisible( this ) )
 			{
-				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
+				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x + ( ( this._ai.target._hitbox_x1 + this._ai.target._hitbox_x2 ) / 2 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
 				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
 			}
 			else
@@ -3397,8 +3470,11 @@ THING is cosmic mic drop!`;
 	}
 
 
-	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
+	TogglePlayerAbility() // part of ManagePlayerVehicleEntrance()
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
 		if ( this._ghost_allowed || this.ghosting )
 		{
 			this.ghosting = !this.ghosting;
@@ -3408,6 +3484,28 @@ THING is cosmic mic drop!`;
 			sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
 			else
 			sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
+		}
+		if ( this._shield_allowed || this._shielding )
+		{
+			this._shielding = !this._shielding;
+			
+			if ( this.matter < 20 ) // The shields cost matter to activate
+			this._shielding = false;
+
+			if ( this._shielding ) // Activate shield
+			{
+				sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1, pitch:2 });
+				sdBubbleShield.ApplyShield( this, sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD, true, 32, 32 ); // Apply shield
+				this.matter -= 20;
+			}
+			else // Remove shield
+			{
+				sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1, pitch:2 });
+				let shield = sdBubbleShield.CheckIfEntityHasShield( this );
+				if ( shield )
+				if ( !shield._is_being_removed )
+				shield.remove();
+			}
 		}
 	}
 	ManagePlayerFlashLight()
@@ -3461,10 +3559,10 @@ THING is cosmic mic drop!`;
 					}
 					else
 					if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
-					this.TogglePlayerGhosting();
+					this.TogglePlayerAbility();
 				}
 				else
-				this.TogglePlayerGhosting();
+				this.TogglePlayerAbility();
 				/*if ( this._ghost_allowed )
 				{
 					this.ghosting = !this.ghosting;
@@ -3684,7 +3782,7 @@ THING is cosmic mic drop!`;
 			this.ReloadAndCombatLogic( GSPEED );
 
 			if ( this.matter < this._matter_regeneration * 20 )
-			if ( !this.ghosting )
+			if ( !this.ghosting && !this._shielding )
 			{
 				if ( sdWorld.is_server )
 				if ( this.matter < this.matter_max ) // Character cannot store or regenerate more matter than what it can contain
@@ -4259,7 +4357,7 @@ THING is cosmic mic drop!`;
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			{
 				//this.ghosting = false;
-				this.TogglePlayerGhosting();
+				this.TogglePlayerAbility();
 			}
 			else
 			this.matter -= fuel_cost;
@@ -4270,6 +4368,18 @@ THING is cosmic mic drop!`;
 				this._ghost_breath = sdCharacter.ghost_breath_delay;
 				sdSound.PlaySound({ name:'ghost_breath', x:this.x, y:this.y, volume:1 });
 			}
+		}
+		if ( this._shielding && sdWorld.is_server )
+		{
+			let fuel_cost = 0.6 * GSPEED; // 0.4 Previously
+			
+			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
+			{
+				//this.ghosting = false;
+				this.TogglePlayerAbility();
+			}
+			else
+			this.matter -= fuel_cost;
 		}
 		
 		//this.flying = true; // Hack

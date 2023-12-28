@@ -82,8 +82,8 @@ class sdZektaronDreadnought extends sdEntity
 		//this._bullets = 150;
 		this._lasers = 7;
 		// For homing
-		this.look_x = 0;
-		this.look_y = 0;
+		//this.look_x = 0;
+		//this.look_y = 0;
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
@@ -889,8 +889,8 @@ class sdZektaronDreadnought extends sdEntity
 
 						let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
 
-						this.look_x = targets[ i ].x + ( dx * 3 );
-						this.look_y = targets[ i ].y + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
+						//this.look_x = targets[ i ].x + ( dx * 3 );
+						//this.look_y = targets[ i ].y + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );

@@ -774,6 +774,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
@@ -900,7 +901,13 @@ class sdShop
 				description: 'Allows you to activate invisibility by pressing E button.',
 				action: ( character, level_purchased )=>
 				{
+					character.UninstallUpgrade( 'upgrade_shield' ); // Uninstall upgrades which use this button
 					character._ghost_allowed = true;
+				},
+				reverse_action: ( character, level_purchased )=>
+				{
+					character._ghost_allowed = false;
+					character.TogglePlayerAbility();
 				}
 			},
 			upgrade_flashlight:
@@ -1007,7 +1014,23 @@ class sdShop
 				action: ( character, level_purchased )=>
 				{
 				}
-			}
+			},
+			upgrade_shield:
+			{
+				max_level: 1,
+				matter_cost: 150,
+				description: 'Allows you to activate shielding capabilities by pressing E button.',
+				action: ( character, level_purchased )=>
+				{
+					character.UninstallUpgrade( 'upgrade_invisibility' ); // Uninstall upgrades which use this button
+					character._shield_allowed = true;
+				},
+				reverse_action: ( character, level_purchased )=>
+				{
+					character._shield_allowed = false;
+					character.TogglePlayerAbility();
+				}
+			},
 		};
 		for ( var i in sdShop.upgrades )
 		{

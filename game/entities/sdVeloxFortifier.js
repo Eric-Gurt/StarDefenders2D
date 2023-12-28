@@ -47,6 +47,8 @@ class sdVeloxFortifier extends sdEntity
 		this.hmax = 15000;
 		this.hea = this.hmax;
 		
+		this._ai_team = 5;
+		
 		this._next_fortify_in = 60; // When does it give armor/shield to Velox units?
 		this._spawn_velox = true; // Spawn Velox humanoids to protect this entity?
 
@@ -136,7 +138,7 @@ class sdVeloxFortifier extends sdEntity
 					let mech = sdEnemyMech.mechs[ i ];
 					if ( mech._ai_team === 5 && mech.hea > 0 ) // Is this mech
 					{
-						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD, true, 60, 96 ); // Apply shield
+						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD, true, 60, 112 ); // Apply shield
 					}
 				}
 				

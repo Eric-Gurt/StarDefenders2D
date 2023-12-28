@@ -148,7 +148,7 @@ class sdRift extends sdEntity
 				
 				//let range = this._tear_range;
 
-				let pull_entities = this.GetAnythingNearCache( this.x, this.y, this._tear_range );
+				let pull_entities = this.GetAnythingNearCache( this.x, this.y, 192 );
 
 				//Set task for players to remove the dimensional tear
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
@@ -180,6 +180,7 @@ class sdRift extends sdEntity
 				{
 					let e = pull_entities[ i ];
 					if ( !e._is_being_removed )
+					if ( sdWorld.Dist2D( e.x, e.y, this.x, this.y ) <= this._tear_range )
 					{
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;

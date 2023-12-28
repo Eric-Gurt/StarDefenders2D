@@ -1324,7 +1324,7 @@ class sdLongRangeTeleport extends sdEntity
 										executer_socket.SDServiceMessage( 'Teleport path is blocked.' );
 									}
 									else
-									executer_socket.SDServiceMessage( 'No antenna is available for teleport.' );
+									executer_socket.SDServiceMessage( 'No calibrated antenna is available for teleport.' );
 								};
 							}
 							else
