@@ -1058,19 +1058,19 @@ class sdHover extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
+		/*if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
 		{
 			this.ExcludeAllDrivers();
-		}
+		}*/
 		
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		}
-		else
+		/*else
 		{
 			this.RemoveAllDrivers();
-		}
+		}*/
 	}
 	MeasureMatterCost()
 	{

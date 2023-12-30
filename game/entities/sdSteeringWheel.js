@@ -1010,17 +1010,14 @@ class sdSteeringWheel extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.driver0 )
+		/*if ( this.driver0 )
 		this.ExcludeDriver( this.driver0, true );
-	
+		*/
 		this.RemovePointersToThisSteeringWheel();
 			
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 5 );
-		}
-		else
-		{
 		}
 	}
 	MeasureMatterCost()

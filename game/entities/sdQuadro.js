@@ -874,26 +874,26 @@ class sdQuadro extends sdEntity
 			this.w2.p = null;
 		}
 		
-		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
+		/*if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
 		{
 			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
 			if ( this[ 'driver' + i ] )
 			this.ExcludeDriver( this[ 'driver' + i ], true );
-		}
+		}*/
 		
 		if ( this._broken )
 		{
 			if ( this.part === 0 )
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		}
-		else
+		/*else
 		{
 			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
 			if ( this[ 'driver' + i ] )
 			{
 				this[ 'driver' + i ].remove();
 			}
-		}
+		}*/
 	}
 	MeasureMatterCost()
 	{
