@@ -160,7 +160,7 @@ class sdDrone extends sdEntity
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time;
-
+		
 		this._nature_damage = 0; // For cubes to attack drones
 		this._player_damage = 0;
 
@@ -383,6 +383,7 @@ class sdDrone extends sdEntity
 
 		dmg = Math.abs( dmg );
 		
+		let old_hea = this._hea;
 		let was_alive = this._hea > 0;
 
 
@@ -396,6 +397,26 @@ class sdDrone extends sdEntity
 		
 		this._hea -= dmg;
 		
+		if ( this.type === sdDrone.DRONE_SARRONIAN ||
+			 this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ||
+			 this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE ||
+			 this.type === sdDrone.DRONE_SARRONIAN_GAUSS )
+		{
+			let base_pitch = ( 600 / this._hmax + 1 ) / 2;
+			
+			if ( base_pitch > 1 )
+			base_pitch = ( base_pitch + 1 * 3 ) / 4;
+			
+			if ( this._hea <= 0 && was_alive )
+			sdSound.PlaySound({ name:'drone_death', x:this.x, y:this.y, volume:2, pitch:0.5 * base_pitch });
+			else
+			if ( this._hea > 0 )
+			if ( Math.ceil( old_hea / this._hmax * 8 ) !== Math.ceil( this._hea / this._hmax * 8) )
+			{
+				sdSound.PlaySound({ name:'drone_death', x:this.x, y:this.y, volume:1, pitch:1 * base_pitch });
+			}
+		}
+		
 		if ( this._hea <= 0 && was_alive )
 		{
 			//if ( initiator )
@@ -407,19 +428,29 @@ class sdDrone extends sdEntity
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			}
 	
-			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL || this.type === sdDrone.DRONE_SD_BG )
+			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || 
+				 this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL || this.type === sdDrone.DRONE_SD_BG )
 			{
+				let explosion_color = sdEffect.default_explosion_color;
+				
+				if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL )
+				{
+					sdSound.PlaySound({ name:'drone_explosion', x:this.x, y:this.y, volume:2, pitch:1 });
+					explosion_color = '#95c9ff';
+				}
+				
 				sdWorld.SendEffect({ 
 					x:this.x, 
 					y:this.y, 
 					radius: 25, 
-					damage_scale: 2 , 
+					damage_scale: 2, 
 					type:sdEffect.TYPE_EXPLOSION,
 					armor_penetration_level: 0,
 					owner:this,
-					color:sdEffect.default_explosion_color
+					can_hit_owner: false, // Make gibbing less likely
+					color:explosion_color
 				});
-
+				/* Unreliable. Each of explosion projectiles deals very little damage on their own. Also more damage might come after drone's death
 				if ( dmg >= this._hmax * 0.5 && this.type === sdDrone.DRONE_FALKOK ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
 				{
 					sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
@@ -432,7 +463,7 @@ class sdDrone extends sdEntity
 					sdWorld.SpawnGib( this.x, this.y + 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS , '', '', 100, this );
 					sdWorld.SpawnGib( this.x, this.y - 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS , '', '', 100, this, 1 );
 					this.remove();
-				}
+				}*/
 				
 				if ( this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
 				{
@@ -611,7 +642,28 @@ class sdDrone extends sdEntity
 			}
 		}
 		
-		if ( this._hea < -600 || ( this._hea < 0 && this.type === sdDrone.DRONE_SARRONIAN_DETONATOR ) || ( this._hea < 0 && this.type === sdDrone.DRONE_ZEKTARON ) )
+		if ( this._hea < -65 ) // -this._hmax * 0.5 ) DRONE_FALKOK_RAIL looks cooler when it also gets gibbed on fall once it was defeated
+		{
+			if ( this.type === sdDrone.DRONE_FALKOK ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
+			{
+				sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
+				sdWorld.SpawnGib( this.x, this.y - 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this, 1 );
+				this.remove();
+			}
+
+			if ( this.type === sdDrone.DRONE_FALKOK_RAIL ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
+			{
+				sdWorld.SpawnGib( this.x, this.y + 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS , '', '', 100, this );
+				sdWorld.SpawnGib( this.x, this.y - 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS , '', '', 100, this, 1 );
+				this.remove();
+			}
+		}
+		
+		if ( 
+				this._hea < -this._hmax * 0.5 || 
+				( this._hea < 0 && this.type === sdDrone.DRONE_SARRONIAN_DETONATOR ) || 
+				( this._hea < 0 && this.type === sdDrone.DRONE_ZEKTARON ) 
+		)
 		this.remove();
 	}
 	get mass() { return 500; }
@@ -1825,46 +1877,48 @@ class sdDrone extends sdEntity
 	}
 	get title()
 	{
+		if ( this.type === sdDrone.DRONE_FALKOK )
+		return "Falkok Drone";
+		if ( this.type === sdDrone.DRONE_ERTHAL )
+		return "Erthal Drone";
+		if ( this.type === sdDrone.DRONE_SARRONIAN )
+		return "Sarronian Fighter E3";
+		if ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER )
+		return "Sarronian Carrier D7";
+		if ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR )
+		return "Sarronian Detonator D7";
+		if ( this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE )
+		return "Sarronian Mender B6";
+		if ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS )
+		return "Sarronian Stalker E8";
+		if ( this.type === sdDrone.DRONE_ZEKTARON )
+		return "Zektaron Observer Unit";
+		if ( this.type === sdDrone.DRONE_ZEKTARON_CORVETTE )
+		return "Zektaron Corvette Unit";
+		if ( this.type === sdDrone.DRONE_ZEKTARON_HUNTER )
+		return "Zektaron Hunter Unit";
+		if ( this.type === sdDrone.DRONE_COUNCIL )
+		return "Council Support Drone";
+		if ( this.type === sdDrone.DRONE_SETR )
+		return "Setr Drone";
+		if ( this.type === sdDrone.DRONE_TZYRG )
+		return "Tzyrg Drone";
+		if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+		return "Tzyrg Watcher";
+		if ( this.type === sdDrone.DRONE_FALKOK_RAIL )
+		return "Falkok Rail Drone";
+		if ( this.type === sdDrone.DRONE_CUT_DROID )
+		return "Cut droid";
+		if ( this.type === sdDrone.DRONE_SD_BG )
+		return "SD-BG Drone";
+	
 		return 'Drone';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
 		{
-			if ( this.type === sdDrone.DRONE_FALKOK )
-			sdEntity.Tooltip( ctx, "Falkok Drone" );
-			if ( this.type === sdDrone.DRONE_ERTHAL )
-			sdEntity.Tooltip( ctx, "Erthal Drone" );
-			if ( this.type === sdDrone.DRONE_SARRONIAN )
-			sdEntity.Tooltip( ctx, "Sarronian Fighter E3" );
-			if ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER )
-			sdEntity.Tooltip( ctx, "Sarronian Carrier D7" );
-			if ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR )
-			sdEntity.Tooltip( ctx, "Sarronian Detonator D7" );
-			if ( this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE )
-			sdEntity.Tooltip( ctx, "Sarronian Mender B6" );
-			if ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS )
-			sdEntity.Tooltip( ctx, "Sarronian Stalker E8" );
-			if ( this.type === sdDrone.DRONE_ZEKTARON )
-			sdEntity.Tooltip( ctx, "Zektaron Observer Unit" );
-			if ( this.type === sdDrone.DRONE_ZEKTARON_CORVETTE )
-			sdEntity.Tooltip( ctx, "Zektaron Corvette Unit" );
-			if ( this.type === sdDrone.DRONE_ZEKTARON_HUNTER )
-			sdEntity.Tooltip( ctx, "Zektaron Hunter Unit" );
-			if ( this.type === sdDrone.DRONE_COUNCIL )
-			sdEntity.Tooltip( ctx, "Council Support Drone" );
-			if ( this.type === sdDrone.DRONE_SETR )
-			sdEntity.Tooltip( ctx, "Setr Drone" );
-			if ( this.type === sdDrone.DRONE_TZYRG )
-			sdEntity.Tooltip( ctx, "Tzyrg Drone" );
-			if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-			sdEntity.Tooltip( ctx, "Tzyrg Watcher" );
-			if ( this.type === sdDrone.DRONE_FALKOK_RAIL )
-			sdEntity.Tooltip( ctx, "Falkok Rail Drone" );
-			if ( this.type === sdDrone.DRONE_CUT_DROID )
-			sdEntity.Tooltip( ctx, "Cut droid" );
-			if ( this.type === sdDrone.DRONE_SD_BG )
-			sdEntity.Tooltip( ctx, "SD-BG Drone" );
+			sdEntity.Tooltip( ctx, this.title );
 		}
 	}
 	Draw( ctx, attached )
@@ -2089,7 +2143,8 @@ class sdDrone extends sdEntity
 		}
 		
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
+		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.5, 0.75 );
+		//sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 
 	}

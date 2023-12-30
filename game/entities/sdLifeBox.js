@@ -377,6 +377,9 @@ class sdLifeBox extends sdEntity
 		if ( this.cube_shards < this.cube_shards_max )
 		{
 			this.cube_shards++;
+			
+			sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+			
 			from_entity.remove();
 		}
 	}

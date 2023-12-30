@@ -508,6 +508,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
 		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
 
+		sdCharacter.max_level = 60;
+
 		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -1242,7 +1244,7 @@ THING is cosmic mic drop!`;
 
 		this._score_to_level = 50;// How much score is needed to level up character?
 		this._score_to_level_additive = 50; // How much score it increases to level up next level
-		this._max_level = 30; // Current maximum level for players to reach
+		//this._max_level = 30; // Current maximum level for players to reach
 
 		//this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 		//this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
@@ -2333,6 +2335,20 @@ THING is cosmic mic drop!`;
 			
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
+		
+			return true;
+		}
+		return false;
+	}
+	ApplyArmorRegen( regen_strength )
+	{
+		if ( this.armor > 0 )
+		if ( this._armor_repair_amount < regen_strength )
+		{
+			this._armor_repair_amount = regen_strength;
+
+			if ( this._socket ) 
+			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:0.5, pitch:1.75 }, [ this._socket ] );
 		
 			return true;
 		}
@@ -5259,16 +5275,19 @@ THING is cosmic mic drop!`;
 	}
 	CheckBuildObjectPossibilityNow( fake_ent, allow_erase=true )
 	{
+		return sdCharacter.GeneralCheckBuildObjectPossibilityNow( this._build_params, this, fake_ent, allow_erase );
+	}
+	static GeneralCheckBuildObjectPossibilityNow( build_params, initiator=null, fake_ent, allow_erase=true )
+	{
 		fake_ent.GetIgnoredEntityClasses = sdEntity.prototype.GetIgnoredEntityClasses; // Discard effect of this method because doors will have problems in else case
 		
 		if ( fake_ent.GetClass() === 'sdGun' )
 		{
-			fake_ent.GetIgnoredEntityClasses = ()=>[ 'sdCharacter', 'sdGun' ];
+			fake_ent.GetIgnoredEntityClasses = ()=>[ 'sdCharacter', 'sdGun', 'sdSampleBuilder', 'sdTeleport', 'sdButton' ];
 		}
 		
-		if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 || this._god )
+		if ( !initiator || sdWorld.Dist2D( initiator.x, initiator.y, build_params.x, build_params.y ) < 64 || initiator._god )
 		{
-			//if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
 			{
 				// This is used to make it include sdButton-s when putting new sdButtons on top
 				const custom_filtering_method = ( e )=>
@@ -5288,11 +5307,14 @@ THING is cosmic mic drop!`;
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
 					{
+						let off;
 						
-						let off = this.GetBulletSpawnOffset();
+						if ( initiator )
+						if ( initiator.GetBulletSpawnOffset )
+						off = initiator.GetBulletSpawnOffset();
 
-						//if ( sdWorld.CheckLineOfSight( this.x, this.y, this._build_params.x, this._build_params.y, null, null, sdCom.com_visibility_unignored_classes ) || this._god )
-						if ( sdWorld.CheckLineOfSight( this.x + off.x, this.y + off.y, this._build_params.x, this._build_params.y, fake_ent, null, sdCom.com_visibility_unignored_classes ) || this._god )
+						//if ( sdWorld.CheckLineOfSight( this.x, this.y, build_params.x, build_params.y, null, null, sdCom.com_visibility_unignored_classes ) || this._god )
+						if ( !initiator || sdWorld.CheckLineOfSight( initiator.x + off.x, initiator.y + off.y, build_params.x, build_params.y, fake_ent, null, sdCom.com_visibility_unignored_classes ) || initiator._god )
 						{
 						}
 						else
@@ -5313,22 +5335,15 @@ THING is cosmic mic drop!`;
 						}
 					}
 					
-					if ( !this._god )
-					if ( !sdArea.CheckPointDamageAllowed( this._build_params.x, this._build_params.y ) )
+					if ( initiator )
+					if ( !initiator._god )
+					if ( !sdArea.CheckPointDamageAllowed( build_params.x, build_params.y ) )
 					{
 						sdCharacter.last_build_deny_reason = 'This area is currently restricted from combat and building';
 						return false;
 					}
 					
-					//if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
-					//{
-						//if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) )
-						return true;
-						//else
-						//sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack';
-					//}
-					//else
-					//sdCharacter.last_build_deny_reason = 'Can\'t build that far';
+					return true;
 				}
 				else
 				{
@@ -5378,7 +5393,8 @@ THING is cosmic mic drop!`;
 								{
 									sdCharacter.last_build_deny_reason = null;
 									obstacle.remove();
-									return this.CheckBuildObjectPossibilityNow( fake_ent, allow_erase );
+									//return initiator.CheckBuildObjectPossibilityNow( fake_ent, allow_erase );
+									return sdCharacter.GeneralCheckBuildObjectPossibilityNow( build_params, initiator, fake_ent, allow_erase );
 								}
 								else
 								{
@@ -5447,36 +5463,40 @@ THING is cosmic mic drop!`;
 	}
 	CreateBuildObject( check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
-		if ( this._build_params === null )
+		return sdCharacter.GeneralCreateBuildObject( this.look_x, this.look_y, this._build_params, this, this.build_tool_level, this.GetWorkBenchLevel(), check_placement_and_range, demo_mode, preview_for_shop );
+	}
+	static GeneralCreateBuildObject( x, y, build_params, initiator, build_tool_level, workbench_level, check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Used by sdSampleBuilder now
+	{
+		if ( build_params === null )
 		{
 			sdCharacter.last_build_deny_reason = 'Nothing selected for build? Does this error even happen?';
 			return null;
 		}
 	
-		if ( this._build_params._class === null ) // Upgrades
+		if ( build_params._class === null ) // Upgrades
 		{
 			//sdCharacter.last_build_deny_reason
 			return null;
 		}
 	
-		if ( ( this._build_params._min_build_tool_level || 0 ) > this.build_tool_level )
+		if ( ( build_params._min_build_tool_level || 0 ) > build_tool_level )
 		{
 			sdCharacter.last_build_deny_reason = 'Nice hacks bro';
 			return null;
 		}
 
-		//if ( ( this._build_params._min_workbench_level || 0 ) > this.workbench_level )
-		if ( ( this._build_params._min_workbench_level || 0 ) > this.GetWorkBenchLevel() )
+		//if ( ( build_params._min_workbench_level || 0 ) > initiator.workbench_level )
+		if ( ( build_params._min_workbench_level || 0 ) > workbench_level )
 		{
 			sdCharacter.last_build_deny_reason = 'I need a workbench to build this';
 			return null;
 		}
 			
-		//this._build_params._spawner = this;
+		//build_params._spawner = initiator;
 		
 		
 		// Note: X and Y are weird here. This can cause hash array being incorrect - hash update is important to do after entity was placed properly! It can not be done earlier due to entity sizes being unknown too
-		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( Object.assign( { initiator: this }, this._build_params ) );
+		let fake_ent = new sdWorld.entity_classes[ build_params._class ]( Object.assign( { initiator: initiator }, build_params ) );
 		
 		fake_ent.UpdateHitbox();
 		
@@ -5487,49 +5507,27 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
-			this._build_params.x = this.look_x;
-			this._build_params.y = this.look_y;
+			build_params.x = x;
+			build_params.y = y;
 
-			fake_ent.x = ( this.look_x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
-			fake_ent.y = ( this.look_y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
+			fake_ent.x = ( x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
+			fake_ent.y = ( y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
 		}
 		
-		if ( !demo_mode )
+		/*if ( !demo_mode )
 		{
 			if ( fake_ent._owner !== undefined )
-			fake_ent._owner = this; // Source of price to go up
+			fake_ent._owner = initiator; // Source of price to go up
 
 			if ( fake_ent.owner !== undefined )
-			fake_ent.owner = this;
+			fake_ent.owner = initiator;
 
 			if ( fake_ent.owner_biometry !== undefined )
-			fake_ent.owner_biometry = this.biometry;
+			fake_ent.owner_biometry = initiator.biometry;
 
 			if ( fake_ent._owner_biometry !== undefined )
-			fake_ent._owner_biometry = this.biometry;
-
-			/*if ( fake_ent._hmax !== undefined )
-			fake_ent._hmax *= this._build_hp_mult; // Source of price to go up
-
-			if ( fake_ent.hmax !== undefined )
-			fake_ent.hmax *= this._build_hp_mult; // Source of price to go up
-
-			if ( fake_ent._hea !== undefined )
-			fake_ent._hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
-
-			if ( fake_ent.hea !== undefined )
-			fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
-			*/
-			if ( fake_ent._armor_protection_level !== undefined )
-			if ( this._upgrade_counters[ 'upgrade_build_hp' ] )
-			{
-				fake_ent._armor_protection_level = this._upgrade_counters[ 'upgrade_build_hp' ]; // Because starts at 1
-
-				if ( fake_ent.is( sdBlock ) )
-				if ( fake_ent.material !== sdBlock.MATERIAL_WALL )
-				fake_ent._armor_protection_level = 0;
-			}
-		}
+			fake_ent._owner_biometry = initiator.biometry;
+		}*/
 		
 		if ( fake_ent.RequireSpawnAlign() )
 		{
@@ -5539,7 +5537,8 @@ THING is cosmic mic drop!`;
 		
 		if ( check_placement_and_range )
 		{
-			if ( !this.CheckBuildObjectPossibilityNow( fake_ent ) )
+			if ( !sdCharacter.GeneralCheckBuildObjectPossibilityNow( build_params, initiator, fake_ent, true ) )
+			//if ( !initiator.CheckBuildObjectPossibilityNow( build_params, initiator, fake_ent ) )
 			{
 				// So many bugs with this one
 				//fake_ent.SetMethod( 'onRemove', fake_ent.onRemoveAsFakeEntity ); // Disable any removal logic
@@ -5553,6 +5552,37 @@ THING is cosmic mic drop!`;
 		
 		return fake_ent;
 	}
+	
+	static ApplyPostBuiltProperties( ent, build_params, initiator, demo_mode=false )
+	{
+		if ( !demo_mode )
+		if ( initiator )
+		{
+			if ( ent._owner !== undefined )
+			ent._owner = initiator; // Source of price to go up
+
+			if ( ent.owner !== undefined )
+			ent.owner = initiator;
+
+			if ( ent.owner_biometry !== undefined )
+			ent.owner_biometry = initiator.biometry;
+
+			if ( ent._owner_biometry !== undefined )
+			ent._owner_biometry = initiator.biometry;
+		}
+
+		if ( build_params._category !== 'Development tests' && !build_params._spawn_with_full_hp )
+		{
+			if ( typeof ent.hmax !== 'undefined' )
+			ent.Damage( ent.hmax * 0.9, null, false, false ); // Start with low hp
+			else
+			if ( typeof ent._hmax !== 'undefined' )
+			ent.Damage( ent._hmax * 0.9, null, false, false ); // Start with low hp
+		}
+
+		ent.onBuilt();
+	}
+	
 	AnnounceTooManyEffectsIfNeeded()
 	{
 		if ( this.power_ef > 30 * 3 || this.time_ef > 30 * 3 )

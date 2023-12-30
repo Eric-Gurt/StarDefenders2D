@@ -316,6 +316,15 @@ class sdPresetEditor extends sdEntity
 	{
 		if ( this.preset_name === '' ) // Just in case
 		return false;
+		
+		if ( this.preset_name.indexOf( '.' ) !== -1 )
+		return false;
+		
+		if ( this.preset_name.indexOf( '/' ) !== -1 )
+		return false;
+		
+		if ( this.preset_name.indexOf( ':' ) !== -1 )
+		return false;
 	
 		let ents_array = this.GetEntitiesInside( initiator );
 		let snapshots = [];

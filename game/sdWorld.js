@@ -1457,6 +1457,8 @@ class sdWorld
 
 			sdEntity.entities.push( gib );
 			//gib.s = scale;
+			
+			sdWorld.UpdateHashPosition( gib, false ); // Make it appear instantly for clients
 		}
 	}
 	
@@ -1494,7 +1496,7 @@ class sdWorld
 		let once = true;
 		
 		if ( player_entity )
-		while ( player_entity._score >= player_entity._score_to_level && player_entity.build_tool_level < player_entity._max_level )
+		while ( player_entity._score >= player_entity._score_to_level && player_entity.build_tool_level < sdCharacter.max_level )
 		{
 			player_entity.build_tool_level++;
 			player_entity._score_to_level_additive = player_entity._score_to_level_additive * 1.04;
@@ -1530,8 +1532,11 @@ class sdWorld
 				let ent = new sdGun({ class:shard_class_id, x: xx, y: yy });
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
+				
 				//ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
+				if ( shard_class_id === sdGun.CLASS_CRYSTAL_SHARD )
 				ent.extra = value_mult * sdWorld.crystal_shard_value;
+			
 				ent._ignore_collisions_with = ignore_collisions_with;
 				ent.follow = follow;
 				sdEntity.entities.push( ent );
@@ -4073,12 +4078,12 @@ class sdWorld
 	static ReplaceColorInSDFilter_v2( sd_filter, from, to, replace_existing_color_if_there_is_one=true )
 	{
 		if ( to === undefined ) // Usually means there is no replacement
-		return;
+		return sd_filter;
 	
 		if ( typeof to !== 'string' ) // Malfunctioned replacement from client?
 		{
 			debugger;
-			return;
+			return sd_filter;
 		}
 		
 		if ( from.length === 7 )
@@ -4093,7 +4098,7 @@ class sdWorld
 		if ( to.length !== 6 ) // Malfunctioned replacement from client?
 		{
 			debugger;
-			return;
+			return sd_filter;
 		}
 	
 		if ( typeof sd_filter.s !== 'string' )
@@ -4108,12 +4113,13 @@ class sdWorld
 				if ( color_hex === from )
 				{
 					sd_filter.s = sd_filter.s.substring( 0, i + 6 ) + to + sd_filter.s.substring( i + 12 );
-					return;
+					return sd_filter;
 				}
 			}
 		}
 		sd_filter.s += from;
 		sd_filter.s += to;
+		return sd_filter;
 	}
 	static ConvertPlayerDescriptionToSDFilter( player_description )
 	{

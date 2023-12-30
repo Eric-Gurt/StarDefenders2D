@@ -20,6 +20,7 @@ class sdNode extends sdEntity
 		sdNode.TYPE_SIGNAL_ONCE = 2; // Stops working after any signal was transmitted once
 		sdNode.TYPE_SIGNAL_ONCE_OFF = 3; // Stops working after any signal was transmitted once
 		sdNode.TYPE_SIGNAL_TURRET_ENABLER = 4; // Makes turret shoot in specified direction
+		sdNode.TYPE_SIGNAL_DELAYER = 5;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -47,6 +48,9 @@ class sdNode extends sdEntity
 	
 		if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
 		return 'Turret-enabling cable connection node';
+	
+		if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
+		return 'Signal-delaying cable connection node';
 	
 		return 'Cable connection node';
 	}
@@ -150,6 +154,9 @@ class sdNode extends sdEntity
 		let xx = 0;
 		
 		if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+		xx = this.variation * 16;
+		
+		if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
 		xx = this.variation * 16;
 		
 		ctx.drawImageFilterCache( sdNode.img_node, xx,this.type * 16,16,16, -8, -8, 16,16 );

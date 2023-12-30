@@ -3256,11 +3256,8 @@ class sdGunClass
 			min_workbench_level: 3,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 250;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 250 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -3281,11 +3278,8 @@ class sdGunClass
 			min_workbench_level: 4,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 500;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 500 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -3306,11 +3300,8 @@ class sdGunClass
 			min_workbench_level: 7,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 750;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 750 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -5863,6 +5854,13 @@ class sdGunClass
 			image_frames: 4,
 			image_duration: 250,
 			title: 'Score shard',
+			title_dynamic: ( gun )=>
+			{
+				if ( gun.extra > 1 )
+				return 'Score shard x'+gun.extra;
+			
+				return 'Score shard';
+			},
 			hea: 400,
 			no_tilt: true,
 			unhookable: true,
@@ -5883,7 +5881,10 @@ class sdGunClass
 					character.GiveScore( sdEntity.SCORE_REWARD_SCORE_SHARD * gun.extra, gun, false );
 
 					if ( character._socket )
-					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4, pitch:0.5 }, [ character._socket ] );
+					{
+						let power = Math.sqrt( gun.extra );
+						sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4 * ( ( power + 1 ) / 2 ), pitch:0.5 / ( ( power + 1 ) / 2 ) }, [ character._socket ] );
+					}
 				
 					gun.remove();
 				}
@@ -5938,11 +5939,8 @@ class sdGunClass
 			spawnable: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 1000;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 1000 ) )
+				gun.remove(); 
 
 				return false; 
 			} 

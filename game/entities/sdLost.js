@@ -22,6 +22,7 @@ import sdMatterAmplifier from './sdMatterAmplifier.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdFaceCrab from './sdFaceCrab.js';
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
+import sdStorage from './sdStorage.js';
 
 class sdLost extends sdEntity
 {
@@ -226,7 +227,12 @@ class sdLost extends sdEntity
 			matter_max: ent.matter || ent._matter || 1,
 			s: ent.is_static,
 			t: title,
-			f: f
+			f: f,
+			
+			copy_of_class: ent.GetClass(),
+			title_as_storage_item: ent.is( sdCrystal ) ? sdStorage.GetTitleForCrystal( ent ) : '?'
+			//regen_rate: ent.is( sdCrystal ) ? ent.matter_regen : 0
+			
 		});
 		sdEntity.entities.push( ent2 );
 		sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
@@ -300,6 +306,9 @@ class sdLost extends sdEntity
 		this.d = params.d || [ 1, 'death1' ];
 		
 		this.t = params.t || null;
+		this._title_as_storage_item = params.title_as_storage_item || '';
+		this._copy_of_class = params.copy_of_class || '';
+		//this._regen_rate = params.regen_rate || 0;
 		
 		this.f = params.f || 0; // Filter ID
 		
@@ -315,7 +324,7 @@ class sdLost extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{		
-		if ( prop === 'd' ) return true;
+		if ( prop === 'd' || prop === '_title_as_storage_item' || prop === '_copy_of_class' ) return true;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -332,7 +341,10 @@ class sdLost extends sdEntity
 		{
 			if ( was_alive )
 			{
-				if ( this.f === 0 )
+				if ( this.f === sdLost.FILTER_GOLDEN || this.f === sdLost.FILTER_GLASSED )
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5 });
+					
+				if ( this.f === sdLost.FILTER_GOLDEN )
 				{
 					sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5 });
 
@@ -357,7 +369,7 @@ class sdLost extends sdEntity
 			{
 				this._last_damage = sdWorld.time;
 				
-				if ( this.f === 0 )
+				if ( this.f === sdLost.FILTER_GOLDEN || this.f === sdLost.FILTER_GLASSED )
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 			}
 		}

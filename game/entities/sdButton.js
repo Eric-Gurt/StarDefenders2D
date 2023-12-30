@@ -16,6 +16,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdAntigravity from './sdAntigravity.js';
 import sdNode from './sdNode.js';
 import sdTurret from './sdTurret.js';
+import sdSampleBuilder from './sdSampleBuilder.js';
 
 import sdSound from '../sdSound.js';
 
@@ -356,7 +357,7 @@ class sdButton extends sdEntity
 			};
 			
 			let doors = this.FindObjectsInACableNetwork( null, sdDoor, true ); // { entity: sdEntity, path: [] }
-			let antigravities = this.FindObjectsInACableNetwork( null, sdAntigravity, true ); // { entity: sdEntity, path: [] }
+			let entities_with_toggle_enabled = [ ...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), ...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ) ]; // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
 			let turrets = this.FindObjectsInACableNetwork( null, sdTurret, true );
 			
@@ -368,6 +369,73 @@ class sdButton extends sdEntity
 				return false;
 				
 				return true;
+			};
+			
+			const MeasureDelayAndDo = ( path, ent, then )=>
+			{
+				let delay = 0;
+				
+				for ( let i2 = 0; i2 < path.length; i2++ ) // 0 is button/sensor
+				{
+					let node = path[ i2 ];
+					
+					let i2_copy = i2;
+					//
+					if ( node.is( sdNode ) )
+					if ( node.type === sdNode.TYPE_SIGNAL_DELAYER )
+					{
+						setTimeout( ()=>{
+							
+							let fail = false;
+							for ( let i2 = 0; i2 <= i2_copy; i2++ )
+							if ( path[ i2 ]._is_being_removed )
+							{
+								fail = true;
+								break;
+							}
+							
+							//if ( !node._is_being_removed )
+							if ( !fail )
+							{
+								node.variation = 1;
+								node._update_version++;
+								
+								sdSound.PlaySound({ name:'sd_beacon_disarm', x:node.x, y:node.y, volume:0.5, pitch:8 });
+							}
+						}, delay );
+						setTimeout( ()=>{
+							if ( !node._is_being_removed )
+							{
+								node.variation = 0;
+								node._update_version++;
+							}
+						}, delay + 500 );
+
+
+						delay += 500;
+					}
+				}
+				
+				if ( delay === 0 )
+				then();
+				else
+				{
+					setTimeout( ()=>{
+						if ( !ent._is_being_removed )
+						{
+							let fail = false;
+							for ( let i2 = 0; i2 < path.length; i2++ )
+							if ( path[ i2 ]._is_being_removed )
+							{
+								fail = true;
+								break;
+							}
+
+							if ( !fail )
+							then();
+						}
+					}, delay );
+				}
 			};
 			
 			for ( let i = 0; i < nodes.length; i++ )
@@ -433,34 +501,37 @@ class sdButton extends sdEntity
 				
 				if ( !IsPathTraversable( path ) )
 				continue;
-				
-				door.open_type = sdDoor.OPEN_TYPE_BUTTON;
-				
-				let id = door._entities_within_sensor_area.indexOf( door._net_id ); // Add itself so multiple sensors/buttons could be used
-				
-				if ( vv )
+			
+				MeasureDelayAndDo( path, door, ()=>
 				{
-					if ( id === -1 )
+					door.open_type = sdDoor.OPEN_TYPE_BUTTON;
+
+					let id = door._entities_within_sensor_area.indexOf( door._net_id ); // Add itself so multiple sensors/buttons could be used
+
+					if ( vv )
 					{
-						door._entities_within_sensor_area.push( door._net_id );
-						door.Open();
+						if ( id === -1 )
+						{
+							door._entities_within_sensor_area.push( door._net_id );
+							door.Open();
+						}
 					}
-				}
-				else
-				if ( id !== -1 )
-				{
-					door._entities_within_sensor_area.splice( id, 1 );
-					door.opening_tim = 0.000001; // Micro value so sound can play
-				}
+					else
+					if ( id !== -1 )
+					{
+						door._entities_within_sensor_area.splice( id, 1 );
+						door.opening_tim = 0.000001; // Micro value so sound can play
+					}
+				});
 			}
-			for ( let i = 0; i < antigravities.length; i++ )
+			for ( let i = 0; i < entities_with_toggle_enabled.length; i++ )
 			{
-				let antigravity = antigravities[ i ].entity;
+				let antigravity = entities_with_toggle_enabled[ i ].entity;
 				
 				if ( antigravity._is_being_removed )
 				continue;
 			
-				let path = antigravities[ i ].path;
+				let path = entities_with_toggle_enabled[ i ].path;
 				
 				let vv = GetFlipLogic( path );
 				
@@ -470,10 +541,16 @@ class sdButton extends sdEntity
 				if ( !IsPathTraversable( path ) )
 				continue;
 				
-				antigravity._update_version++;
-				antigravity.toggle_enabled = vv;
-				if ( vv )
-				antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				MeasureDelayAndDo( path, antigravity, ()=>
+				{
+					if ( typeof antigravity._update_version !== 'undefined' )
+					antigravity._update_version++;
+
+					antigravity.toggle_enabled = vv;
+
+					if ( vv )
+					antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				});
 			}
 			for ( let i = 0; i < turrets.length; i++ )
 			{
@@ -492,33 +569,34 @@ class sdButton extends sdEntity
 				if ( !IsPathTraversable( path ) )
 				continue;
 				
-				turret._update_version++;
-				//turret.toggle_enabled = vv;
 				
-				//turret
-				
-				if ( vv )
+				MeasureDelayAndDo( path, turret, ()=>
 				{
-					// Find last node and use its' direction
-					for ( let i = path.length - 1; i >= 0; i-- )
+					turret._update_version++;
+
+					if ( vv )
 					{
-						let node = path[ i ];
-						if ( node.is( sdNode ) )
-						if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+						// Find last node and use its' direction
+						for ( let i = path.length - 1; i >= 0; i-- )
 						{
-							turret.auto_attack = node.variation;
-							turret._auto_attack_reference = node;
-							break;
+							let node = path[ i ];
+							if ( node.is( sdNode ) )
+							if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+							{
+								turret.auto_attack = node.variation;
+								turret._auto_attack_reference = node;
+								break;
+							}
 						}
+
+						turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
-					
-					turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-				}
-				else
-				{
-					turret.auto_attack = -1;
-					turret._auto_attack_reference = null;
-				}
+					else
+					{
+						turret.auto_attack = -1;
+						turret._auto_attack_reference = null;
+					}
+				});
 			}
 			
 			

@@ -13,6 +13,7 @@ import sdCrystal from './sdCrystal.js';
 import sdJunk from './sdJunk.js';
 import sdBarrel from './sdBarrel.js';
 import sdFaceCrab from './sdFaceCrab.js';
+import sdLost from './sdLost.js';
 
 
 class sdStorage extends sdEntity
@@ -22,19 +23,30 @@ class sdStorage extends sdEntity
 		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' );
 
 		sdStorage.access_range = 64;
-		sdStorage.slots_tot = 6;
+		//sdStorage.slots_tot = 6;
 		
 		sdStorage.TYPE_GUNS = 0;
 		sdStorage.TYPE_PORTAL = 1;
 		sdStorage.TYPE_CRYSTALS = 2;
 		sdStorage.TYPE_CARGO = 3;
+		sdStorage.TYPE_CRYSTALS_PORTAL = 4;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === sdStorage.TYPE_CARGO ? -13 : this.type === sdStorage.TYPE_CRYSTALS ? -13 : this.type === sdStorage.TYPE_PORTAL ? -4 : -7; }
-	get hitbox_x2() { return this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 13 :  this.type === sdStorage.TYPE_PORTAL ? 4 : 7; }
-	get hitbox_y1() { return this.type === sdStorage.TYPE_CARGO ? -11 : this.type === sdStorage.TYPE_CRYSTALS ? -9 :  this.type === sdStorage.TYPE_PORTAL ? -4 : -5; }
-	get hitbox_y2() { return this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 6 :   this.type === sdStorage.TYPE_PORTAL ? 4 : 6; }
+	get hitbox_x1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -15 : this.type === sdStorage.TYPE_CARGO ? -13 : this.type === sdStorage.TYPE_CRYSTALS ? -13 : this.type === sdStorage.TYPE_PORTAL ? -4 : -7; }
+	get hitbox_x2() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 15 :  this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 13 :  this.type === sdStorage.TYPE_PORTAL ? 4 : 7; }
+	get hitbox_y1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -11 :  this.type === sdStorage.TYPE_CARGO ? -11 : this.type === sdStorage.TYPE_CRYSTALS ? -9 :  this.type === sdStorage.TYPE_PORTAL ? -4 : -5; }
+	get hitbox_y2() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 6 :   this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 6 :   this.type === sdStorage.TYPE_PORTAL ? 4 : 6; }
+	
+	GetSlotsTotal()
+	{
+		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : 6;
+	}
+	
+	IsPortal()
+	{
+		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL );
+	}
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.held_by !== null ? false : true; }
@@ -47,6 +59,7 @@ class sdStorage extends sdEntity
 		return ( this.held_by === null );
 	}
 	
+	
 	constructor( params )
 	{
 		super( params );
@@ -56,7 +69,7 @@ class sdStorage extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hmax = ( this.type === sdStorage.TYPE_CARGO ? 800 : this.type === sdStorage.TYPE_CRYSTALS ? 500 : 300 );
+		this._hmax = ( this.type === sdStorage.TYPE_CARGO ? 800 : ( this.type === sdStorage.TYPE_CRYSTALS || this.type === sdStorage.TYPE_CRYSTALS_PORTAL ) ? 500 : 300 );
 		this._hea = this._hmax;
 
 		this.held_by = null; // Might still remain for cargo ships?
@@ -67,9 +80,11 @@ class sdStorage extends sdEntity
 		this.is_armable = [];
 		this._stored_items = [];
 		
-		for ( var i = 0; i < sdStorage.slots_tot; i++ )
+		/*let slots_total = this.GetSlotsTotal();
+		
+		for ( var i = 0; i < slots_total; i++ )
 		this[ 'item' + i ] = null; // This should be removed later since it is not needed beside storage crates rework storing pre-rework items - Booraz149
-	
+		*/
 		this._allow_pickup = false;
 		
 		this.awake = 1;
@@ -204,9 +219,11 @@ class sdStorage extends sdEntity
 		}
 		
 		// Patch: Old to new storage method (TODO: Remove this code after June 2022)
-		if ( sdWorld.is_server )
+		/*if ( sdWorld.is_server )
 		{
-			for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			let slots_total = this.GetSlotsTotal();
+			
+			for ( var i = 0; i < slots_total; i++ )
 			if ( this[ 'item' + i ] )
 			{
 				if ( typeof this[ 'item' + i ]._held_by !== 'undefined' )
@@ -219,10 +236,11 @@ class sdStorage extends sdEntity
 				
 				this[ 'item' + i ] = null;
 			}
-		}
+		}*/
 		// End of patch
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		if ( !this.IsPortal() )
 		{
 			let old_open = this._open_anim;
 			
@@ -268,20 +286,27 @@ class sdStorage extends sdEntity
 
 		if ( this.type === sdStorage.TYPE_CARGO )
 		return 'Cargo storage crate';
+
+		if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
+		return 'Crystal storage portal crate';
 	}
 	get description()
 	{
 		if ( this.type === sdStorage.TYPE_GUNS )
-		return `${ this.title } can be used to store weapons and other held items.`;
+		return `${ this.title } can be used to store weapons and other held items. Can store 6 items.`;
 
 		if ( this.type === sdStorage.TYPE_PORTAL )
-		return `${ this.title } can be used to store weapons and other held items, but in more compact way.`;
+		return `${ this.title } can be used to store weapons and other held items, but in more compact way. Can store 24 items.`;
 
 		if ( this.type === sdStorage.TYPE_CRYSTALS )
-		return `${ this.title } can be used to store and safely transport crystals as well as various types of barrels. These can be made trapped using items put into them.`;
+		return `${ this.title } can be used to store and safely transport crystals as well as various types of barrels. These can be made trapped using items put into them. Can store 6 items.`;
 
 		if ( this.type === sdStorage.TYPE_CARGO )
-		return `${ this.title } can be used to store storage crates that hold guns & items.`;
+		return `${ this.title } can be used to store storage crates that hold guns & items. Can store 6 items.`;
+	
+		if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
+		return `${ this.title } can be used to store and safely transport crystals as well as various types of barrels. These can be made trapped using items put into them. Can store 24 items.`;
+
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -295,6 +320,11 @@ class sdStorage extends sdEntity
 		let xx = 0;
 		
 		let yy = Math.round( ( 1 - ( Math.cos( this._open_anim * Math.PI ) * 0.5 + 0.5 ) ) * 2 );
+		
+		if ( this.type === sdStorage.TYPE_PORTAL || this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
+		{
+			yy = Math.floor( sdWorld.time / 1000 + ( this._net_id || 0 ) ) % 3;
+		}
 
 		if ( this.held_by === null )
 		{
@@ -310,6 +340,10 @@ class sdStorage extends sdEntity
 
 			if ( this.type === sdStorage.TYPE_CARGO )
 			xx = 2;
+
+			if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
+			xx = 4;
+		
 			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, yy * 32, 32, 32, - 16, - 16, 32,32 );
 		}
 		
@@ -379,9 +413,6 @@ class sdStorage extends sdEntity
 		}
 		else
 		{
-			//for ( var i = 0; i < sdStorage.slots_tot; i++ )
-			//if ( this[ 'item' + i ] )
-			//this[ 'item' + i ].remove();
 		}
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -394,14 +425,23 @@ class sdStorage extends sdEntity
 		return this._hmax * sdWorld.damage_to_matter;
 	
 		if ( this.type === sdStorage.TYPE_PORTAL )
-		return 50 + this._hmax * sdWorld.damage_to_matter;
+		return 900 + this._hmax * sdWorld.damage_to_matter;
 	
 		if ( this.type === sdStorage.TYPE_CRYSTALS )
 		return 80 + this._hmax * sdWorld.damage_to_matter;
 	
 		if ( this.type === sdStorage.TYPE_CARGO )
 		return 160 + this._hmax * sdWorld.damage_to_matter;
+	
+		if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
+		return 980 + this._hmax * sdWorld.damage_to_matter;
 	}
+						
+	static GetTitleForCrystal( from_entity )
+	{
+		return ( from_entity.title+' ( ' + sdWorld.RoundedThousandsSpaces(from_entity.matter_max) + ' max matter, ' + (~~from_entity.matter_regen) + '% regen rate )' );
+	}
+
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
@@ -414,9 +454,13 @@ class sdStorage extends sdEntity
 			return;
 			//throw new Error('Should not happen');
 		}
+		
+		let is_for_guns = ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL );
+		let is_for_crystals = ( this.type === sdStorage.TYPE_CRYSTALS || this.type === sdStorage.TYPE_CRYSTALS_PORTAL );
+		
 		if ( 
 				( 
-					( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) 
+					is_for_guns
 					&& 
 					from_entity.is( sdGun ) 
 					&& 
@@ -428,7 +472,7 @@ class sdStorage extends sdEntity
 				|| 
 				
 				( 
-					this.type === sdStorage.TYPE_CRYSTALS && 
+					is_for_crystals && 
 					from_entity.is( sdCrystal ) && !from_entity.held_by // sdCrystals would be held by amplifiers and other things
 					&& 
 					from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG 
@@ -439,7 +483,7 @@ class sdStorage extends sdEntity
 				||
 
 				( 
-					this.type === sdStorage.TYPE_CRYSTALS 
+					is_for_crystals 
 					&& 
 					from_entity.is( sdJunk )
 					&& 
@@ -453,10 +497,22 @@ class sdStorage extends sdEntity
 				||
 
 				( 
+					is_for_crystals 
+					&& 
+					from_entity.is( sdLost )
+					&& 
 					( 
-						this.type === sdStorage.TYPE_CRYSTALS 
+						from_entity._copy_of_class === 'sdCrystal'
+					)
+				) 
+
+				||
+
+				( 
+					( 
+						is_for_crystals 
 						||
-						this.type === sdStorage.TYPE_GUNS 
+						is_for_guns 
 					) 
 					&& 
 					from_entity.is( sdFaceCrab )
@@ -467,7 +523,8 @@ class sdStorage extends sdEntity
 				||
 
 				( 
-					this.type === sdStorage.TYPE_CRYSTALS && 
+					is_for_crystals
+					&& 
 					from_entity.is( sdBarrel )
 				) 
 		
@@ -486,7 +543,9 @@ class sdStorage extends sdEntity
 			{
 				let free_slot = -1;
 				
-				for ( var i = 0; i < sdStorage.slots_tot; i++ )
+				let slots_total = this.GetSlotsTotal();
+				
+				for ( var i = 0; i < slots_total; i++ )
 				{
 					//if ( i + 1 > this._stored_items.length )
 					if ( i >= this._stored_items.length )
@@ -498,11 +557,14 @@ class sdStorage extends sdEntity
 						
 						let is_armable = 0;
 						
+						if ( from_entity.is( sdLost ) )
+						name = from_entity._title_as_storage_item;
+						else
 						if ( from_entity.is( sdGun ) )
 						name = ( sdEntity.GuessEntityName( from_entity._net_id ) );
 						else
 						if ( from_entity.is( sdCrystal ) )
-						name = ( from_entity.title+' ( ' + sdWorld.RoundedThousandsSpaces(from_entity.matter_max) + ' max matter, ' + (~~from_entity.matter_regen) + '% regen rate )' );
+						name = sdStorage.GetTitleForCrystal( from_entity );
 						else
 						if ( from_entity.is( sdJunk ) )
 						{
@@ -545,15 +607,15 @@ class sdStorage extends sdEntity
 						from_entity.remove();
 						from_entity._broken = false;
 						
+						if ( this.IsPortal() )
+						sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
+						else
 						if ( this.type === sdStorage.TYPE_GUNS )
 						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
-
-						if ( this.type === sdStorage.TYPE_PORTAL )
-						sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
-
+						else
 						if ( this.type === sdStorage.TYPE_CRYSTALS )
 						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
-
+						else
 						if ( this.type === sdStorage.TYPE_CARGO )
 						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:3 });
 
@@ -570,16 +632,18 @@ class sdStorage extends sdEntity
 	{
 		let arr = [];
 		
-		for ( var i = 0; i < sdStorage.slots_tot; i++ )
+		let slots_total = this.GetSlotsTotal();
+		
+		for ( var i = 0; i < slots_total; i++ )
 		if ( i < this.stored_names.length )
 		arr.push( this.stored_names[ i ] );
 		
 		return arr;
 	}
-	DropSpecificWeapon( ent ) // Outdated method for guns
+	DropSpecificWeapon( ent ) // Outdated method for guns. Method is still used by some other entities that can hold items
 	{
 	}
-	ExtractItem( slot, initiator_character=null )
+	ExtractItem( slot, initiator_character=null, use_place_coordinates=false, place_x=0, place_y=0 ) // x and y are used if use_place_coordinates is true
 	{
 		let ent = null;
 
@@ -633,9 +697,9 @@ class sdStorage extends sdEntity
 		}
 
 		//let item = this.ExtractEntityFromSnapshotAtSlot( slot, initiator_character );
-		let item = ent;
+		let returned_ent = ent;
 
-		if ( item )
+		if ( ent )
 		{
 		}
 		else
@@ -651,8 +715,8 @@ class sdStorage extends sdEntity
 		{
 			if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // For this one I don't know if it's needed but it is for the other two
 			{
-				item.x = initiator_character.x;
-				item.y = initiator_character.y;
+				ent.x = initiator_character.x;
+				ent.y = initiator_character.y;
 			}
 			else
 			{
@@ -672,14 +736,14 @@ class sdStorage extends sdEntity
 					let xx = x0 + Math.sin( an ) * di;
 					let yy = y0 + Math.cos( an ) * di;// * 0.75; // Less priority for height just so it would rather drop on the other side of a player
 
-					if ( xx + item._hitbox_x2 < this.x + this._hitbox_x1 || xx + item._hitbox_x1 > this.x + this._hitbox_x2 || yy + item._hitbox_y1 > this.y + this._hitbox_y2 || yy + item._hitbox_y2 < this.y + this._hitbox_y1 - ( this._hitbox_y2 - this._hitbox_y1 ) ) // Place on left, on right, right under and on top but with gap equal to the height of this storage
-					if ( item.CanMoveWithoutOverlap( xx, yy, 0 ) )
+					if ( xx + ent._hitbox_x2 < this.x + this._hitbox_x1 || xx + ent._hitbox_x1 > this.x + this._hitbox_x2 || yy + ent._hitbox_y1 > this.y + this._hitbox_y2 || yy + ent._hitbox_y2 < this.y + this._hitbox_y1 - ( this._hitbox_y2 - this._hitbox_y1 ) ) // Place on left, on right, right under and on top but with gap equal to the height of this storage
+					if ( ent.CanMoveWithoutOverlap( xx, yy, 0 ) )
 					if ( sdWorld.CheckLineOfSight( initiator_character.x + off.x, initiator_character.y + off.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // Make sure item can be seen by player
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // And by storage
 					{
 						placed = true;
-						item.x = xx;
-						item.y = yy;
+						ent.x = xx;
+						ent.y = yy;
 						break both;
 					}
 
@@ -690,15 +754,33 @@ class sdStorage extends sdEntity
 				if ( !placed )
 				{
 					initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
-					item.x = this.x; // Put it back in crate to prevent glitching
-					item.y = this.y;
+					ent.x = this.x; // Put it back in crate to prevent glitching
+					ent.y = this.y;
+					returned_ent = null;
+				}
+			}
+		}
+		else
+		{
+			if ( use_place_coordinates )
+			{
+				if ( ent.CanMoveWithoutOverlap( place_x, place_y, 0 ) )
+				{
+					ent.x = place_x;
+					ent.y = place_y;
+				}
+				else
+				{
+					ent.x = this.x; // Put it back in crate to prevent glitching
+					ent.y = this.y;
+					returned_ent = null;
 				}
 			}
 		}
 
-		item.PhysWakeUp();
+		ent.PhysWakeUp();
 
-		return item;
+		return returned_ent;
 
 	}
 	
@@ -757,10 +839,12 @@ class sdStorage extends sdEntity
 					{
 						if ( command_name === 'DISARM' )
 						{
+							let slots_total = this.GetSlotsTotal();
+							
 							// Extract last entity if full
-							if ( this._stored_items.length === sdStorage.slots_tot )
+							if ( this._stored_items.length === slots_total )
 							{
-								let ent = this.ExtractItem( sdStorage.slots_tot - 1, exectuter_character );
+								let ent = this.ExtractItem( slots_total - 1, exectuter_character );
 								
 								if ( !ent )
 								{
