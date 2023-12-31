@@ -2,7 +2,10 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
+import sdSound from '../sdSound.js';
 import sdMimic from './sdMimic.js';
+import sdBlock from './sdBlock.js';
+import sdWeather from './sdWeather.js';
 
 class sdAsteroid extends sdEntity
 {
@@ -13,40 +16,102 @@ class sdAsteroid extends sdEntity
 		sdAsteroid.img_asteroid = sdWorld.CreateImageFromFile( 'asteroid' );
 		sdAsteroid.img_asteroid_landed = sdWorld.CreateImageFromFile( 'asteroid_landed' );
 		*/
+	   
+		sdAsteroid.TYPE_DEFAULT = 0;
+		sdAsteroid.TYPE_SHARDS = 1;
+		sdAsteroid.TYPE_FLESH = 2;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -5 * this.scale; }
-	get hitbox_x2() { return 5 * this.scale; }
-	get hitbox_y1() { return -5 * this.scale; }
-	get hitbox_y2() { return 5 * this.scale; }
+	get hitbox_x1() { return -5 * this.scale / 100; }
+	get hitbox_x2() { return 5 * this.scale / 100; }
+	get hitbox_y1() { return -5 * this.scale / 100; }
+	get hitbox_y2() { return 5 * this.scale / 100; }
 	
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 	}
-	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	
+	GetBleedEffect()
+	{
+		return ( this.type === sdAsteroid.TYPE_FLESH ) ? sdEffect.TYPE_BLOOD : sdEffect.TYPE_WALL_HIT;
+	}
+	
+	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( character.build_tool_level > this._max_build_tool_level_near )
 		this._max_build_tool_level_near = character.build_tool_level;
+	}*/
+	onMovementInRange( from_entity )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.type === sdAsteroid.TYPE_FLESH )
+		{
+			if ( from_entity )
+			if ( from_entity.Fleshify )
+			if ( !from_entity.is( sdBlock ) || from_entity.material !== sdBlock.MATERIAL_FLESH )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, this._land_x, this._land_y, 800 ) && ( sdWorld.server_config.base_degradation || !from_entity._shielded || !from_entity._shielded._is_being_removed ) )
+				{
+					from_entity.Fleshify();
+				}
+				else
+				{
+					let e = new sdMimic({ x: this.x, y: this.y });
+					sdEntity.entities.push( e );
+				}
+				
+				this.remove();
+				//this._broken = false;
+			}
+		}
 	}
 	constructor( params )
 	{
 		super( params );
 		
-		this._max_build_tool_level_near = 0;
+		//this._max_build_tool_level_near = 0;
 
-		this.scale = Math.max( 0.8, Math.random() * 2 ); // Scale / size of the asteroid
-		this._type = params._type || Math.random() < 0.2 ? 1 : 0;
+		this.scale = Math.max( 0.8, Math.random() * 2 ) * 100; // Scale / size of the asteroid
+		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
 		
-		this._hmax = 60 * this.scale; // Asteroids that land need more HP to survive the "explosion" when they land
+		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.05 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
+		
+		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;
 		this.sy = 10;
+		
+		// Check for flesh asteroids to only fleshify near this area
+		this._land_x = 0;
+		this._land_y = 0;
 
+		this.matter_max = 0;
+		
+		this._witnessers = new WeakSet();
+		
+		if ( this.type === sdAsteroid.TYPE_SHARDS )
+		{
+			this.matter_max = 40;
+			let r = 1 - Math.pow( Math.random(), 1.45 );
+			if ( r < 0.0625 )
+			this.matter_max *= 16;
+			else
+			if ( r < 0.125 )
+			this.matter_max *= 8;
+			else
+			if ( r < 0.25 )
+			this.matter_max *= 4;
+			else
+			if ( r < 0.5 )
+			this.matter_max *= 2;
+		}
 
 		//this._time_to_despawn = 30 * 60 * 5; // 5 minutes to despawn landed asteroids
 		this._time_to_despawn = 30 * 60 * 2; // 2 minutes to despawn landed asteroids
@@ -63,34 +128,19 @@ class sdAsteroid extends sdEntity
 			this._hea -= dmg;
 			if ( this._hea <= 0 )
 			{
-				if ( this._max_build_tool_level_near >= 10 && Math.random() < this._max_build_tool_level_near / 30 * 0.05 )
+				/*if ( this.type === sdAsteroid.TYPE_FLESH )
 				{
 					let ent = new sdMimic({ x: this.x, y: this.y });
 					sdEntity.entities.push( ent );
 					sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+					
 				}
-				else
-				if ( Math.random() < 0.25 || this._type === 1 )
+				else*/
+				if ( this.type === sdAsteroid.TYPE_SHARDS )
 				{
-					let matter_max = 40;
-
-					let r = 1 - Math.pow( Math.random(), 1.45 );
-
-					if ( r < 0.0625 )
-					matter_max *= 16;
-					else
-					if ( r < 0.125 )
-					matter_max *= 8;
-					else
-					if ( r < 0.25 )
-					matter_max *= 4;
-					else
-					if ( r < 0.5 )
-					matter_max *= 2;
-
 					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 						Math.ceil( Math.max( 5, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-							matter_max / 40,
+							this.matter_max / 40,
 							5
 					);
 				}
@@ -107,7 +157,7 @@ class sdAsteroid extends sdEntity
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 			this._time_to_despawn -= GSPEED;
 			
-			this._an += this.sx * GSPEED * 20 / 100 / this.scale;
+			this._an += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
 			
 			if ( this._time_to_despawn < 0 )
 			{
@@ -123,6 +173,25 @@ class sdAsteroid extends sdEntity
 			if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
 			{
 				this.sy += sdWorld.gravity * GSPEED;
+			}
+			
+			if ( sdWorld.is_server )
+			if ( !this.landed )
+			if ( this.type !== sdAsteroid.TYPE_FLESH )
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				let c = sdWorld.sockets[ i ].character;
+				if ( c )
+				if ( !c._is_being_removed )
+				if ( !this._witnessers.has( c ) )
+				if ( sdWorld.inDist2D_Boolean( c.x, c.y, this.x + this.sx * 60, this.y + this.sy * 60, 500 ) )
+				{
+					this._witnessers.add( c );
+					
+					let v = sdWeather.only_instance.TraceDamagePossibleHere( c.x, c.y, Infinity, false, true ) ? 1 : 0.2;
+					
+					sdSound.PlaySound({ name:'asteroid', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v, pitch:1 / ( ( this.scale + 100 ) / 200 ) }, [ c._socket ] );
+				}
 			}
 
 			if ( !sdWorld.is_server )
@@ -143,14 +212,36 @@ class sdAsteroid extends sdEntity
 			else
 			if ( !this.CanMoveWithoutOverlap( new_x, new_y, 0 ) )
 			{
-				if ( this._type === 0 )
-				this.DamageWithEffect( 1000 );
+				//if ( this._type === 0 )
+				//this.DamageWithEffect( 1000 );
 			
-				if ( this._type === 1 && this.landed === false )
+				//if ( this._type === 1 && this.landed === false )
+				if ( !this.landed )
 				{
-					sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
 					this.landed = true;
 					
+					this._an = Math.random() * Math.PI;
+					
+					if ( this.type === sdAsteroid.TYPE_FLESH )
+					{
+						sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.5 });
+						
+						/*if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.Fleshify )
+						{
+							sdWorld.last_hit_entity.Fleshify();
+						}
+						
+						this.remove();
+						this._broken = false;
+						return;*/
+						
+						this._land_x = this.x;
+						this._land_y = this.y;
+					}
+					else
+					sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
+			
 					//this.x -= this.sx * GSPEED;
 					//this.y -= this.sy * GSPEED; // Revert overlapping position
 					
@@ -166,37 +257,82 @@ class sdAsteroid extends sdEntity
 			}
 		}
 	}
-	get mass() { return 80 * this.scale; }
+	get mass() { return 80 * this.scale/100; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.landed; }
 	
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.landed )
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
-	
-		if ( this._type === 0 )
-		if ( this._broken )
-		sdWorld.SendEffect({ x:this.x, y:this.y, radius:19, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
+		{
+			if ( this.type === sdAsteroid.TYPE_FLESH )
+			{
+				//sdWorld.SendEffect({ x:this.x, y:this.y, radius:19, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
+
+				let a,s,x,y,k;
+
+				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+
+				for ( let i = 0; i < 6; i++ )
+				{
+					a = Math.random() * 2 * Math.PI;
+					s = Math.random() * 4;
+
+					k = Math.random();
+
+					x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+					y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GI, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+
+				}
+			}
+			else
+			sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
+		}
 	}
+	get title()
+	{
+		if ( this.type === sdAsteroid.TYPE_FLESH )
+		return T('Space flesh asteroid');
+	
+		if ( this.type === sdAsteroid.TYPE_SHARDS )
+		return T('Asteroid with crystal shards');
+	
+		return T('Asteroid');
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.landed )
-		sdEntity.Tooltip( ctx, "Asteroid" );
+		sdEntity.TooltipUntranslated( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{
-		var xx = this.landed ? 1 : 0;
+		var xx = ( this.landed ? 1 : 0 ) + this.type * 2;
 		//var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
+		
+		let yy = 0;
 		
 		if ( !sdShop.isDrawing )
 		ctx.rotate( this._an );
 
-		ctx.scale( this.scale, this.scale );
-		ctx.drawImageFilterCache( sdAsteroid.img_asteroid, xx * 32, 0, 32,32, -16, -16, 32,32 );
+		ctx.scale( this.scale/100, this.scale/100 );
+		
+		if ( this.landed )
+		yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 3000 < 1500 ) ? 1 : 0;
+		else
+		yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 200 < 100 ) ? 1 : 0;
+		
+		if ( this.matter_max > 0 )
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+		
+		ctx.drawImageFilterCache( sdAsteroid.img_asteroid, xx * 32, yy * 64, 32,64, -16, -32, 32,64 );
 		//ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+		
+		ctx.filter = 'none';
 	}
 	MeasureMatterCost()
 	{

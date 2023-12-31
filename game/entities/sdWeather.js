@@ -3554,7 +3554,7 @@ class sdWeather extends sdEntity
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
 				{
-					if ( Math.abs( sdWorld.sockets[ i ].character.x, xx ) < sdWeather.min_distance_from_online_players_for_entity_events )
+					if ( Math.abs( sdWorld.sockets[ i ].character.x - xx ) < sdWeather.min_distance_from_online_players_for_entity_events )
 					{
 						proper_distnace = true;
 						break;

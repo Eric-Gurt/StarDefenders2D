@@ -21,6 +21,7 @@ import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
 import sdCharacter from '../entities/sdCharacter.js';
 import sdPlayerSpectator from '../entities/sdPlayerSpectator.js';
+import sdOctopus from '../entities/sdOctopus.js';
 
 import sdAtlasMaterial from './sdAtlasMaterial.js';
 
@@ -2070,11 +2071,17 @@ class sdRenderer
 		let close_to_no_vision = false;
 
 		if ( sdWorld.my_entity )
-		for ( let i2 = 0; i2 < sdFaceCrab.all_face_crabs.length; i2++ )
-		if ( sdFaceCrab.all_face_crabs[ i2 ].attached_to === sdWorld.my_entity )
 		{
+			if ( sdWorld.my_entity.driver_of )
+			if ( sdWorld.my_entity.driver_of.is( sdOctopus ) )
 			close_to_no_vision = true;
-			break;
+			
+			for ( let i2 = 0; i2 < sdFaceCrab.all_face_crabs.length; i2++ )
+			if ( sdFaceCrab.all_face_crabs[ i2 ].attached_to === sdWorld.my_entity )
+			{
+				close_to_no_vision = true;
+				break;
+			}
 		}
 
 

@@ -504,6 +504,9 @@ class sdEntity
 		if ( !force )// && !c._god )
 		if ( ( this._doors_locked || this.doors_locked || false ) )
 		{
+			// Make sure it is ot a living thing
+			if ( this.GetBleedEffect() !== sdWorld.entity_classes.sdEffect.TYPE_BLOOD_GREEN )
+			if ( this.GetBleedEffect() !== sdWorld.entity_classes.sdEffect.TYPE_BLOOD )
 			if ( c._socket )
 			c._socket.SDServiceMessage( 'Doors are locked' );
 		
@@ -540,11 +543,16 @@ class sdEntity
 			else
 			if ( best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });*/
+				
+			return true;
 		}
 		else
 		{
+			if ( !force )
 			if ( c._socket )
 			c._socket.SDServiceMessage( 'All slots are occupied' );
+	
+			return false;
 		}
 	}
 	ExcludeDriver( c, force=false )
@@ -556,6 +564,9 @@ class sdEntity
 		if ( !force )//&& !c._god )
 		if ( ( this._doors_locked || this.doors_locked || false ) )
 		{
+			// Make sure it is ot a living thing
+			if ( this.GetBleedEffect() !== sdWorld.entity_classes.sdEffect.TYPE_BLOOD_GREEN )
+			if ( this.GetBleedEffect() !== sdWorld.entity_classes.sdEffect.TYPE_BLOOD )
 			if ( c._socket )
 			c._socket.SDServiceMessage( 'Doors are locked' );
 		

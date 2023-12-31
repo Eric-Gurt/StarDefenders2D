@@ -574,7 +574,8 @@ class sdShop
 
 			//if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
 			{
-				sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdOctopus', type:0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdOctopus', type:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuickie', tier:2, filter:'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
@@ -593,7 +594,9 @@ class sdShop
 
 
 				sdShop.options.push({ _class: 'sdCharacter', title: 'Idling AI from the shop', sd_filter:sd_filter2, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
