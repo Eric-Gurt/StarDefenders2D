@@ -95,6 +95,10 @@ class sdLongRangeAntenna extends sdEntity
 		sdLongRangeAntenna.antennas.push( this );
 		//this._regen_mult = 1;
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_shielded' );
+	}
 	
 	AttemptTeleportToTarget( ent ){
 		if ( !ent )

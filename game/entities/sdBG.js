@@ -116,7 +116,7 @@ class sdBG extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_decals' );
+		return ( prop === '_decals' || prop === '_shielded' );
 	}
 	MeasureMatterCost()
 	{

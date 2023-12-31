@@ -105,6 +105,10 @@ class sdTeleport extends sdEntity
 		this.delay = 0;
 		//this._update_version++
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_shielded' );
+	}
 	MeasureMatterCost()
 	{
 		return this._hmax * sdWorld.damage_to_matter + 50;

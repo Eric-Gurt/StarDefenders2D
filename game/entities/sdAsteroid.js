@@ -80,7 +80,7 @@ class sdAsteroid extends sdEntity
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
 		
-		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.05 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
+		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
 		
 		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;

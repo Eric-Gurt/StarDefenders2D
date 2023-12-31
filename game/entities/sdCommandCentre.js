@@ -115,6 +115,10 @@ class sdCommandCentre extends sdEntity
 		
 		sdCommandCentre.centres.push( this );
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_shielded' );
+	}
 	IsVehicle()
 	{
 		return true;
