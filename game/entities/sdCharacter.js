@@ -5389,7 +5389,7 @@ THING is cosmic mic drop!`;
 								}
 							}
 							else
-							if ( fake_ent._is_bg_entity === 1 && obstacle.is( sdBG ) )
+							if ( fake_ent._is_bg_entity === 1 && obstacle.is( sdBG ) && ( !obstacle._shielded || obstacle._shielded._is_being_removed ) )
 							{
 								if ( allow_erase )
 								{
