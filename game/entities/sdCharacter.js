@@ -1326,17 +1326,19 @@ THING is cosmic mic drop!`;
 		// Client-side blinking
 		this._anim_blink_next = sdWorld.time + 5000; // Better like this for main screen since it is recreated all the time
 		
-		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-		if ( this.is( sdCharacter ) ) // Prevent ragdoll spawn for drones and overlords
+		if ( ( !sdWorld.is_server || sdWorld.is_singleplayer ) && this.is( sdCharacter ) )
 		{
+			if ( !this._ragdoll )
 			this._ragdoll = new sdCharacterRagdoll( this );
-			/*
-			if ( sdWorld.is_singleplayer )
+		}
+		else
+		{
+			// Prevent ragdoll spawn for drones and overlords
+			if ( this._ragdoll )
 			{
-				trace( this._is_being_removed );
-				EnforceChangeLog( this, '_is_being_removed' );
-				EnforceChangeLog( this, '_ragdoll' );
-			}*/
+				this._ragdoll.remove();
+				this._ragdoll = null;
+			}
 		}
 		
 		this._allow_self_talk = true;
