@@ -1621,7 +1621,7 @@ class sdDrone extends sdEntity
 										{
 												entities[ i ].DamageWithEffect( 30, this ); // Damage it
 												if ( entities[ i ].ghosting )
-												entities[ i ].TogglePlayerGhosting(); // And remove it's invisibility
+												entities[ i ].TogglePlayerAbility(); // And remove it's invisibility
 												att_anim = true;
 												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
 										}

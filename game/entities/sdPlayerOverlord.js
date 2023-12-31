@@ -248,7 +248,7 @@ class sdPlayerOverlord extends sdCharacter
 		//this.sx += x * 0.01;
 		//this.sy += y * 0.01;
 	}
-	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
+	TogglePlayerAbility() // part of ManagePlayerVehicleEntrance()
 	{
 		// Disabled
 	}

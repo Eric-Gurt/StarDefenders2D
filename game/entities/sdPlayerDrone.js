@@ -209,7 +209,7 @@ class sdPlayerDrone extends sdCharacter
 		this.sy += y / this.mass;
 	}
 	
-	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
+	TogglePlayerAbility() // part of ManagePlayerVehicleEntrance()
 	{
 		// Disabled
 	}
