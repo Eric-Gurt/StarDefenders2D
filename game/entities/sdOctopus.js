@@ -284,6 +284,12 @@ class sdOctopus extends sdEntity
 				
 				if ( digest )
 				{
+					if ( driver._is_being_removed )
+					{
+						this[ 'driver' + i ] = null;
+						continue;
+					}
+					
 					let old_hea = driver.hea;
 
 					driver.DamageWithEffect( dmg_speed, this );
