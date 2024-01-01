@@ -217,7 +217,7 @@ class sdTask extends sdEntity
 				//task._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
 				
 				if ( task._lrtp_matter_capacity_needed !== -1 )
-				task.SetBasicProgress( task._lrtp_matter_capacity_current, task._lrtp_matter_capacity_needed );
+				task.SetBasicProgress( Math.floor( task._lrtp_matter_capacity_current ), task._lrtp_matter_capacity_needed );
 				else
 				task.SetBasicProgress( task._lrtp_ents_count, task._lrtp_ents_needed );
 			},

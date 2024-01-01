@@ -204,6 +204,8 @@ class sdSteeringWheel extends sdEntity
 			for ( let i = 0; i < this._scan_net_ids.length; i++ )
 			{
 				let e = sdEntity.entities_by_net_id_cache_map.get( this._scan_net_ids[ i ] );
+				
+				if ( e ) // Happens on world bounds move somehow
 				if ( e._steering_wheel_net_id === this._net_id )
 				e._steering_wheel_net_id = -1;
 			}
