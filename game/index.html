@@ -1391,6 +1391,30 @@
 		};
 	    }
 	    
+	    /*function Reporter() // Simple DevTools detector, disabled for now
+	    {
+		let report = [];
+		setInterval(()=>
+		{
+		    let ticks = 0;
+		    
+		    let t = performance.now();
+		    
+		    while ( performance.now() < t + 1 )
+		    {
+			console.log( '________________________________________________________________________________________________________________________________________________________' );
+			ticks++;
+		    }
+		    
+		    report.push( ticks );
+		    
+		    console.clear();
+		    trace( report );
+		    
+		}, 500 );
+	    }
+	    Reporter();*/
+	    
 	    if ( document.location.hash === '#stream_logger' )
 	    {
 		
