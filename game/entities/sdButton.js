@@ -90,6 +90,9 @@ class sdButton extends sdEntity
 	}
 	get description()
 	{
+		if ( this.type === sdButton.TYPE_WALL_SWITCH && this.kind >= sdButton.BUTTON_KIND_TAP_UP && this.kind <= sdButton.BUTTON_KIND_TAP_RIGHT )
+		return `Directional buttons to be used along with elevator motors. Make sure your elevator motor has elevator path built with background walls.`;
+	
 		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields etc.`;
 	}
 		

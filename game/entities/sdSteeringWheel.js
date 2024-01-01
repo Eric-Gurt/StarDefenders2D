@@ -1158,7 +1158,7 @@ class sdSteeringWheel extends sdEntity
 		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		return 'Lets you move your whole base assuming it isn\'t insanely big. Base should have thrusters. Make sure to connect your base shielding units to this steering wheel via cable management tool.';
 	
-		return 'Lets you move small elevators. Use cable management tool to weld walls together, starting with this elevator motor. Use connected directional buttons to control elevator motor.';
+		return 'Lets you move small elevators along elevator path background walls. Use weld tool to pick this elevator motor and then start welding walls and backgrounds you want to add. Use cable-connected directional buttons to control elevator motor.';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
