@@ -1310,6 +1310,19 @@ io.on( 'connection', ( socket )=>
 	socket.sync_busy = false; // Will be busy if separate threads will be still preparing snapshot
 	
 	socket.camera = { x:0,y:0,scale:2 };
+	socket._FixCameraPosition = ()=>
+	{
+		// Copy Camera Bounds [ 1 / 2 ]
+		if ( socket.camera.x < socket.character.x - 800/2 / socket.camera.scale )
+		socket.camera.x = socket.character.x - 800/2 / socket.camera.scale;
+		if ( socket.camera.x > socket.character.x + 800/2 / socket.camera.scale )
+		socket.camera.x = socket.character.x + 800/2 / socket.camera.scale;
+
+		if ( socket.camera.y < socket.character.y - 400/2 / socket.camera.scale )
+		socket.camera.y = socket.character.y - 400/2 / socket.camera.scale;
+		if ( socket.camera.y > socket.character.y + 400/2 / socket.camera.scale )
+		socket.camera.y = socket.character.y + 400/2 / socket.camera.scale;
+	};
 	
 	socket._SetCameraZoom = ( v )=> // Call .SetCameraZoom on character instead so it will be saved
 	{
@@ -2466,7 +2479,7 @@ io.on( 'connection', ( socket )=>
 					}
 				}
 
-				if ( socket.camera.x < socket.character.x - 400 )
+				/*if ( socket.camera.x < socket.character.x - 400 )
 				socket.camera.x = socket.character.x - 400;
 				if ( socket.camera.x > socket.character.x + 400 )
 				socket.camera.x = socket.character.x + 400;
@@ -2474,7 +2487,9 @@ io.on( 'connection', ( socket )=>
 				if ( socket.camera.y < socket.character.y - 200 )
 				socket.camera.y = socket.character.y - 200;
 				if ( socket.camera.y > socket.character.y + 200 )
-				socket.camera.y = socket.character.y + 200;
+				socket.camera.y = socket.character.y + 200;*/
+			
+				socket._FixCameraPosition();
 			}
 		}
 	});
@@ -3149,16 +3164,15 @@ const ServerMainMethod = ()=>
 							var snapshot_only_statics = [];
 
 							var observed_entities = [];
-							//var observed_statics = [];
 
 							var observed_entities_map = new Set();
 
-							//var observed_statics_map = new WeakSet();
 							var observed_statics_map2 = new Set();
 
+							socket._FixCameraPosition();
 
-							//socket.camera.scale = 2;
 
+							// Copy Camera Bounds [ 2 / 2 ]
 							let min_x = socket.camera.x - 800/2 / socket.camera.scale;
 							let max_x = socket.camera.x + 800/2 / socket.camera.scale;
 
@@ -3432,6 +3446,12 @@ const ServerMainMethod = ()=>
 									
 									let x = sdWorld.limit( min_x, socket.character.x, max_x );
 									let y = sdWorld.limit( min_y, socket.character.y, max_y );
+									
+									/*if ( Math.random() < 0.05 )
+									{
+										sdWorld.SendEffect({ x:x, y:y, x2:min_x, y2:min_y, type:sdEffect.TYPE_BEAM, color:'#00ff00' });
+										sdWorld.SendEffect({ x:x, y:y, x2:max_x, y2:min_y, type:sdEffect.TYPE_BEAM, color:'#00ff00' });
+									}*/
 
 									const dx = Math.sin( b / 32 * Math.PI * 2 ) * 16;
 									const dy = Math.cos( b / 32 * Math.PI * 2 ) * 16;
