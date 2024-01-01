@@ -24,6 +24,7 @@ import sdStorageTank from './sdStorageTank.js';
 import sdEssenceExtractor from './sdEssenceExtractor.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+//import sdSteeringWheel from './sdSteeringWheel.js';
 
 
 /*
@@ -2670,6 +2671,10 @@ class sdGunClass
 		
 		const cable_reaction_method = ( bullet, target_entity )=>
 		{
+			if ( bullet._owner._current_built_entity )
+			if ( !bullet._owner._current_built_entity.is( sdCable ) )
+			bullet._owner._current_built_entity = null;
+			
 			if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
 			{
 				if ( target_entity._shielded && !target_entity._shielded._is_being_removed && target_entity._shielded.protect_cables )
@@ -2746,6 +2751,11 @@ class sdGunClass
 				if ( target_entity.is( sdJunk ) )
 				if ( target_entity.hea > target_entity.hmax - 5 )
 				target_entity.hea = target_entity.hmax;
+			}
+			else
+			if ( bullet._owner._current_built_entity && bullet._owner._current_built_entity.p && bullet._owner._current_built_entity.p.is( sdWorld.entity_classes.sdSteeringWheel ) && bullet._owner._current_built_entity.p.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				bullet._owner._current_built_entity.p.ToggleSingleScanItem( target_entity, bullet._owner );
 			}
 			else
 			{
@@ -8737,6 +8747,51 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
+		};
+		
+		const weld_reaction_method = ( bullet, target_entity )=>
+		{
+			if ( bullet._owner._current_built_entity )
+			if ( !bullet._owner._current_built_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
+			bullet._owner._current_built_entity = null;
+			
+			if ( target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) && target_entity.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				bullet._owner.Say( 'Elevator motor set. Let\'s pick parts to weld to it' );
+				bullet._owner._current_built_entity = target_entity;
+				return;
+			}
+			
+			if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
+			{
+				bullet._owner._current_built_entity.ToggleSingleScanItem( target_entity, bullet._owner );
+			}
+			else
+			bullet._owner.Say( 'Elevator motor is not yet set' );
+		};
+		sdGun.classes[ sdGun.CLASS_WELD_TOOL = 136 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'weld_gun' ),
+			image_firing: sdWorld.CreateImageFromFile( 'weld_gun_fire' ),
+			sound: 'gun_spark',
+			title: 'Elevator weld tool',
+			sound_pitch: 1.5,
+			sound_volume: 0.333,
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 300,
+			min_build_tool_level: 2,
+			projectile_velocity: 16,
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
+				_custom_target_reaction_protected: weld_reaction_method,
+				_custom_target_reaction: weld_reaction_method
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+			}
 		};
 
 		// Add new gun classes above this line //

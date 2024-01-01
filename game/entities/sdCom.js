@@ -118,7 +118,7 @@ class sdCom extends sdEntity
 		super( params );
 		
 		this.variation = params.variation || 0;
-		this._hmax = ( 100 + ( 50 * this.variation ) ) * 4; // Stronger variations have more health
+		this._hmax = ( 400 + ( 50 * this.variation ) ); // Stronger variations have more health
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 

@@ -17,6 +17,7 @@ import sdAntigravity from './sdAntigravity.js';
 import sdNode from './sdNode.js';
 import sdTurret from './sdTurret.js';
 import sdSampleBuilder from './sdSampleBuilder.js';
+import sdSteeringWheel from './sdSteeringWheel.js';
 
 import sdSound from '../sdSound.js';
 
@@ -33,6 +34,13 @@ class sdButton extends sdEntity
 		sdButton.TYPE_WALL_SENSOR = 2;
 		sdButton.TYPE_WALL_MATTER_SENSOR = 3;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
+		
+		sdButton.BUTTON_KIND_TOGGLE = 0;
+		sdButton.BUTTON_KIND_KEYCARD = 1;
+		sdButton.BUTTON_KIND_TAP_UP = 2;
+		sdButton.BUTTON_KIND_TAP_DOWN = 3;
+		sdButton.BUTTON_KIND_TAP_LEFT = 4;
+		sdButton.BUTTON_KIND_TAP_RIGHT = 5;
 		
 		// These are indices in array
 		sdButton.FILTER_OPTION_CURRENT = 0; // Can be mass or matter
@@ -102,7 +110,8 @@ class sdButton extends sdEntity
 				return ( 
 					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].is_sword ||
 					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].slot === 0 || // Some sword-like guns (fists, deconstruction hammers yet can't be thrown to deal damage) have slot 0
-					bullet._gun.class === sdGun.CLASS_CABLE_TOOL );
+					bullet._gun.class === sdGun.CLASS_CABLE_TOOL ||
+					bullet._gun.class === sdGun.CLASS_WELD_TOOL );
 			}
 			return false;
 		}
@@ -141,6 +150,7 @@ class sdButton extends sdEntity
 		super( params );
 		
 		this.type = params.type || sdButton.TYPE_WALL_BUTTON;
+		this.kind = params.kind || 0;
 
 		this._hmax = 100;
 		this._hea = this._hmax;
@@ -357,7 +367,11 @@ class sdButton extends sdEntity
 			};
 			
 			let doors = this.FindObjectsInACableNetwork( null, sdDoor, true ); // { entity: sdEntity, path: [] }
-			let entities_with_toggle_enabled = [ ...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), ...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ) ]; // { entity: sdEntity, path: [] }
+			let entities_with_toggle_enabled = [ 
+				...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), 
+				...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ), 
+				...this.FindObjectsInACableNetwork( null, sdSteeringWheel, true ) 
+			]; // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
 			let turrets = this.FindObjectsInACableNetwork( null, sdTurret, true );
 			
@@ -546,8 +560,16 @@ class sdButton extends sdEntity
 					if ( typeof antigravity._update_version !== 'undefined' )
 					antigravity._update_version++;
 
-					antigravity.toggle_enabled = vv;
+					if ( typeof antigravity._toggle_source_current !== 'undefined' )
+					{
+						if ( antigravity._toggle_source_current && !antigravity._toggle_source_current._is_being_removed )
+						antigravity._toggle_source_current.SetActivated( false );
+						
+						antigravity._toggle_source_current = vv ? this : null;
+					}
 
+					antigravity.toggle_enabled = vv;
+					
 					if ( vv )
 					antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				});
@@ -750,15 +772,28 @@ class sdButton extends sdEntity
 	
 	DrawOnALayer( ctx, attached )
 	{
-		var activated = ( this.activated || ( sdShop.isDrawing && this.type !== sdButton.TYPE_FLOOR_SENSOR ) ) ? 3 : 2;
-		
 		let yy = this.type * 32;
 
-		ctx.apply_shading = true;
-		ctx.drawImageFilterCache( sdButton.img_button, 0,yy, 32,32,-16,-16,32,32 ); // TODO: Make the sprite look like a button
-		
-		ctx.apply_shading = false;
-		ctx.drawImageFilterCache( sdButton.img_button, activated * 32,yy, 32,32,-16,-16,32,32 );
+		if ( this.type === sdButton.TYPE_WALL_BUTTON )
+		{
+			let xx = this.kind * 64;
+			
+			ctx.apply_shading = true;
+			ctx.drawImageFilterCache( sdButton.img_button, xx,yy,32,16, -16,-8,32,16 );
+
+			ctx.apply_shading = false;
+			ctx.drawImageFilterCache( sdButton.img_button, xx+(this.activated?32:0),yy+16,32,16, -16,-8,32,16 );
+		}
+		else
+		{
+			var activated = ( this.activated || ( sdShop.isDrawing && this.type !== sdButton.TYPE_FLOOR_SENSOR ) ) ? 3 : 2;
+
+			ctx.apply_shading = true;
+			ctx.drawImageFilterCache( sdButton.img_button, 0,yy, 32,32,-16,-16,32,32 );
+
+			ctx.apply_shading = false;
+			ctx.drawImageFilterCache( sdButton.img_button, activated * 32,yy, 32,32,-16,-16,32,32 );
+		}
 	}
 	AddDriver( c )
 	{

@@ -34,6 +34,8 @@ class sdSampleBuilder extends sdEntity
 		
 		sdSampleBuilder.TYPE_SAMPLER = 0;
 		sdSampleBuilder.TYPE_BUILDER = 1;
+		
+		//sdSampleBuilder.debug = 1;
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -194,6 +196,9 @@ class sdSampleBuilder extends sdEntity
 			
 			if ( s )
 			{
+				let delta_x = 0;
+				let delta_y = 0;
+				
 				if ( s.is( sdStorage ) )
 				{
 					s.ActivateTrap();
@@ -227,10 +232,15 @@ class sdSampleBuilder extends sdEntity
 					
 					if ( s._sample_entity )
 					if ( !s._sample_entity._is_being_removed )
-					if ( s._sample_entity.is( sdGun ) )
-					s._sample_entity.ttl = Math.max( s._sample_entity.ttl, sdGun.disowned_guns_ttl );
-		
-					let ent = sdCharacter.GeneralCreateBuildObject( this.x, this.y, s._sample_shop_item, null, this._build_tool_level, this._workbench_level, true, false, false );
+					{
+						if ( s._sample_entity.is( sdGun ) )
+						s._sample_entity.ttl = Math.max( s._sample_entity.ttl, sdGun.disowned_guns_ttl );
+
+						delta_x = s._sample_entity.x + ( s._sample_entity._hitbox_x1 + s._sample_entity._hitbox_x2 ) / 2 - s.x;
+						delta_y = s._sample_entity.y + ( s._sample_entity._hitbox_y1 + s._sample_entity._hitbox_y2 ) / 2 - s.y;
+					}
+					
+					let ent = sdCharacter.GeneralCreateBuildObject( this.x + delta_x, this.y + delta_y, s._sample_shop_item, null, this._build_tool_level, this._workbench_level, true, false, false );
 
 					if ( ent )
 					{								
@@ -414,14 +424,32 @@ class sdSampleBuilder extends sdEntity
 									//value += 1;
 
 									if ( option[ prop ] === ent_value )
-									value += 1;
+									{
+										value += 1;
+									}
 								}
+							}
+							
+							if ( _class === 'sdBlock' || _class === 'sdDoor' )
+							if ( option.filter )
+							if ( option.filter.indexOf( 'hue-rotate' ) !== -1 || option.filter.indexOf( 'brightness' ) !== -1 )
+							{
+								let [ hue, br, filter ] = sdWorld.ExtractHueRotate( option.hue||0, option.br||100, option.filter );
+								
+								if ( from_entity.hue === hue )
+								value += 1;
+								
+								if ( from_entity.br === br )
+								value += 1;
 							}
 
 							if ( value > best_value )
 							{
 								best_shop_item = option;
 								best_value = value;
+								
+								//if ( sdSampleBuilder.debug )
+								//trace( 'New best shop option:',option,'with value',value );
 							}
 						}
 					}

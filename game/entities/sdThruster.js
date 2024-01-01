@@ -67,7 +67,7 @@ class sdThruster extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 1000 * 4;
+		this._hmax = 1000;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
