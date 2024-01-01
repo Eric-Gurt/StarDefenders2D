@@ -32,6 +32,8 @@ class sdSteeringWheel extends sdEntity
 		sdSteeringWheel.img_steering_wheel = sdWorld.CreateImageFromFile( 'steering_wheel' );
 		sdSteeringWheel.img_elevator_motor = sdWorld.CreateImageFromFile( 'elevator_motor' );
 		
+		sdSteeringWheel.entities_limit_per_scan = 650;
+		
 		sdSteeringWheel.access_range = 46;
 		
 		sdSteeringWheel.lost_control_range = 80;
@@ -237,7 +239,7 @@ class sdSteeringWheel extends sdEntity
 		
 		this._last_scan = sdWorld.time;
 		
-		const LIMIT = ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? 650 : 100;
+		const LIMIT = sdSteeringWheel.entities_limit_per_scan;
 		
 		let speed = 0;
 		
@@ -406,7 +408,7 @@ class sdSteeringWheel extends sdEntity
 		//let socket_to_tell_result_to = character_to_tell_result_to ? character_to_tell_result_to._socket : null;
 		if ( i === -1 )
 		{
-			if ( this._scan.length < 100 )
+			if ( this._scan.length < sdSteeringWheel.entities_limit_per_scan )
 			{
 				let any_near = false;
 				for ( let i = 0; i < this._scan.length; i++ )
@@ -963,6 +965,11 @@ class sdSteeringWheel extends sdEntity
 						if ( current.is( sdSampleBuilder ) )
 						if ( typeof ent2._shielded !== 'undefined' )
 						if ( ent2._shielded === null )
+						{
+							return false;
+						}
+						
+						if ( ent2.is( sdButton ) )
 						{
 							return false;
 						}

@@ -282,12 +282,23 @@ class sdSampleBuilder extends sdEntity
 					else
 					{
 						if ( s._sample_shop_item === null )
-						this.error_text = 'Star Defenders can not build this item';
+						{
+							if ( this.error_text !== 'Star Defenders can not build this item' )
+							{
+								this.error_text = 'Star Defenders can not build this item';
+								this._update_version++;
+							}
+							this.SetDelay( 90 );
+						}
 						else
-						this.error_text = sdCharacter.last_build_deny_reason;
-					
-						this.SetDelay( 90 );
-						this._update_version++;
+						{
+							if ( this.error_text !== sdCharacter.last_build_deny_reason )
+							{
+								this.error_text = sdCharacter.last_build_deny_reason;
+								this._update_version++;
+							}
+							this.SetDelay( 5 );
+						}
 					}
 				}
 			}
