@@ -3768,7 +3768,8 @@ class sdEntity
 		}*/
 	
 		//let my_entity_protected_vars = null;
-			
+		
+		if ( this.isSnapshotDecodingAllowed === sdEntity.prototype.isSnapshotDecodingAllowed || this.isSnapshotDecodingAllowed( snapshot ) )
 		for ( var prop in snapshot )
 		{
 			/*
@@ -5459,6 +5460,10 @@ class sdEntity
 	isWaterDamageResistant()
 	{
 		return false;
+	}
+	isSnapshotDecodingAllowed( snapshot ) // Used by characters on client-side to prevent freezing due to new method of GSPEED catching up
+	{
+		return true;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

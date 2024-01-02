@@ -509,6 +509,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
 
 		sdCharacter.max_level = 60;
+		
+		sdCharacter.allow_alive_players_think = false; // Will be switching on/off depending on where from onThink was called (multiplayer players will have onThink logic delayed)
 
 		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
@@ -1065,7 +1067,7 @@ THING is cosmic mic drop!`;
 	{
 		super( params );
 		
-		//this._is_cable_priority = true;		
+		//this._is_cable_priority = true;
 
 		this._debug_last_removed_stack = null;
 		
@@ -1084,6 +1086,8 @@ THING is cosmic mic drop!`;
 		/*this._pos_corr_x = this.x;
 		this._pos_corr_y = this.y;
 		this._pos_corr_until = 0;*/
+		this._GSPEED_buffer_length_allowed = 0; // For players
+		this.sync = 0; // Will let other players know if gspeed catch-up logic was alreadt applied to player, thus allowing updating it without freezing in time and place
 			
 		this._global_user_uid = null; // Multiple sdCharacter-s can have same _global_user_uid because it points to user, not a character - user can have multiple characters. This can be null is sandbox modes that chose not to use global accounts yet might use presets and translations
 		
@@ -1387,6 +1391,9 @@ THING is cosmic mic drop!`;
 		
 		let offset = this.GetBulletSpawnOffset();
 
+		if ( for_visuals && this._ragdoll )
+		return -Math.PI / 2 - Math.atan2( this.y + offset.y - this._ragdoll._smooth_look_y, this.x + offset.x - this._ragdoll._smooth_look_x );
+	
 		return -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
 	}
 	
@@ -2055,6 +2062,12 @@ THING is cosmic mic drop!`;
 		//if ( vel > 7 )
 		if ( vel > 6.5 ) // For new mass-based model
 		{
+			/*if ( sdWorld.is_server )
+			if ( this._socket )
+			{
+				debugger;
+			}*/
+			
 			//this.DamageWithEffect( ( vel - 4 ) * 15 );
 			this.DamageWithEffect( ( vel - 3 ) * 17, initiator, false, false );
 			
@@ -3606,7 +3619,7 @@ THING is cosmic mic drop!`;
 			this.y + this._hitbox_y2 - 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() );
 	}
 	
-	ConnecgtedGodLogic( GSPEED )
+	ConnectedGodLogic( GSPEED )
 	{
 		if ( this._socket )	
 		if ( this._god )
@@ -3635,15 +3648,45 @@ THING is cosmic mic drop!`;
 		return false;
 	}
 
+	isSnapshotDecodingAllowed( snapshot ) // Same for guns
+	{
+		if ( !sdWorld.is_server )
+		{
+			if ( this.sync === -1 )
+			return true;
+		
+			if ( this.sync !== snapshot.sync )
+			return true;
+	
+			return false;
+		}
+		return true;
+	}
+	PlayerClassThinkPausedLogic( GSPEED )
+	{
+		if ( !sdWorld.is_singleplayer )
+		if ( sdWorld.is_server )
+		if ( this._socket && this._socket.last_gsco_time > sdWorld.time - 1000 && this.hea > 0 && !sdCharacter.allow_alive_players_think )
+		{
+			this._GSPEED_buffer_length_allowed += GSPEED;
+			return true;
+		}
+		this.sync = ( this.sync + 1 ) % 100; // Additionally done at index.js
+		
+		return false;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this.PlayerClassThinkPausedLogic( GSPEED ) )
+		return;
+		
 		if ( sdWorld.is_server )
 		this.lst = sdLost.entities_and_affection.get( this ) || 0;
 	
 		if ( this._respawn_protection > 0 )
 		this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
 		
-		this.ConnecgtedGodLogic( GSPEED );
+		this.ConnectedGodLogic( GSPEED );
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
@@ -4779,6 +4822,7 @@ THING is cosmic mic drop!`;
 									
 		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{
+			this.sync = -1;
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
 	}
@@ -5647,7 +5691,7 @@ THING is cosmic mic drop!`;
 		{
 			if ( this.death_anim > sdCharacter.disowned_body_ttl - 30 )
 			ctx.globalAlpha = 0.5;
-
+		
 			this._ragdoll.DrawRagdoll( ctx, attached );
 			//ctx.globalAlpha = 0.2;
 		}

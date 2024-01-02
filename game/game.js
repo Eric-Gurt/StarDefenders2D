@@ -1298,6 +1298,8 @@ let enf_once = true;
 			{
 				socket.last_sync = sdWorld.time;
 
+				let new_snapshot = null;
+
 				if ( sdWorld.my_entity )
 				if ( !sdWorld.my_entity._is_being_removed )
 				{
@@ -1352,7 +1354,7 @@ let enf_once = true;
 						}
 					}
 					
-					let new_snapshot = [ 
+					new_snapshot = [ 
 						Math.round( sdWorld.my_entity.look_x ), // 0
 						Math.round( sdWorld.my_entity.look_y ), // 1
 						Math.round( sdWorld.camera.x ), // 2
@@ -1366,25 +1368,24 @@ let enf_once = true;
 						look_at_relative_to_direct_angle // 10
 					];
 					
-					//let will_send = ( messages_to_report_arrival.length > 0 ); // Hopefully it will help to prevent high message rate when server can't handle them in time?
-					
-					//if ( will_send ) Rare look_at data send can cause player to shoot at previous look_at targets
-					//{
-						socket.volatile.emit( 'M', new_snapshot );
-						
-						/*setTimeout(()=>{ // Hack
-							socket.volatile.emit( 'M', new_snapshot );
-						},200);*/
+					//socket.volatile.emit( 'M', new_snapshot );
 
-						//last_sent_snapshot = new_snapshot;
-
-						if ( messages_to_report_arrival.length > 0 )
-						messages_to_report_arrival = [];
-					//}
+					if ( messages_to_report_arrival.length > 0 )
+					messages_to_report_arrival = [];
 				}
-			
+				
+				if ( sdWorld.my_inputs_and_gspeeds.length > 0 )
+				{
+					//trace( [ 'GSCO', sdWorld.my_inputs_and_gspeeds.slice() ] );
+					
+					sd_events.push( [ 'GSCO', sdWorld.my_inputs_and_gspeeds.slice(), new_snapshot ] );
+					sdWorld.my_inputs_and_gspeeds.length = 0;
+				}
+
 				if ( sd_events.length > 0 )
 				{
+					
+					
 					if ( sd_events.length > 32 )
 					{
 						socket.emit( 'Kv2', sd_events.slice( 0, 32 ) );
@@ -1504,8 +1505,8 @@ let enf_once = true;
 		{
 			key_states.SetKey( code, 1 );
 			
-			//socket.emit( 'K1', code );
-			sd_events.push( [ 'K1', code ] );
+			//sd_events.push( [ 'K1', code ] );
+			sdWorld.my_inputs_and_gspeeds.push( [ 1, code ] );
 		}
 	
 		if ( code === 'Tab' )
@@ -1531,8 +1532,10 @@ let enf_once = true;
 				key_states.SetKey( 'Digit9', 1 );
 				key_states.SetKey( 'Digit9', 0 );
 				
-				sd_events.push( [ 'K1', 'Digit9' ] );
-				sd_events.push( [ 'K0', 'Digit9' ] );
+				//sd_events.push( [ 'K1', 'Digit9' ] );
+				//sd_events.push( [ 'K0', 'Digit9' ] );
+				sdWorld.my_inputs_and_gspeeds.push( [ 1, 'Digit9' ] );
+				sdWorld.my_inputs_and_gspeeds.push( [ 0, 'Digit9' ] );
 				
 				sdShop.open = true;
 				//sdRenderer.UpdateCursor();
@@ -1589,8 +1592,8 @@ let enf_once = true;
 		{
 			key_states.SetKey( code, 0 );
 			
-			//socket.emit( 'K0', code );
-			sd_events.push( [ 'K0', code ] );
+			//sd_events.push( [ 'K0', code ] );
+			sdWorld.my_inputs_and_gspeeds.push( [ 0, code ] );
 			
 		}
 	};
@@ -1666,8 +1669,8 @@ let enf_once = true;
 		let code = 'Mouse' + e.which;
 		key_states.SetKey( code, 1 );
 		
-		//socket.emit( 'K1', code );
-		sd_events.push( [ 'K1', code ] );
+		//sd_events.push( [ 'K1', code ] );
+		sdWorld.my_inputs_and_gspeeds.push( [ 1, code ] );
 		
 		held_mouse_buttons[ e.which ] = true;
 		
@@ -1700,8 +1703,8 @@ let enf_once = true;
 		let code = 'Mouse' + e.which;
 		key_states.SetKey( code, 0 );
 		
-		//socket.emit( 'K0', code );
-		sd_events.push( [ 'K0', code ] );
+		//sd_events.push( [ 'K0', code ] );
+		sdWorld.my_inputs_and_gspeeds.push( [ 0, code ] );
 		
 		e.preventDefault();
 	};
@@ -1750,8 +1753,10 @@ let enf_once = true;
 					key_states.SetKey( 'Digit' + i, 1 );
 					key_states.SetKey( 'Digit' + i, 0 );
 
-					sd_events.push( [ 'K1', 'Digit' + i ] );
-					sd_events.push( [ 'K0', 'Digit' + i ] );
+					//sd_events.push( [ 'K1', 'Digit' + i ] );
+					//sd_events.push( [ 'K0', 'Digit' + i ] );
+					sdWorld.my_inputs_and_gspeeds.push( [ 1, 'Digit' + i ] );
+					sdWorld.my_inputs_and_gspeeds.push( [ 0, 'Digit' + i ] );
 
 					break;
 				}

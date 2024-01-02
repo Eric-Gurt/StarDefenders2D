@@ -417,6 +417,8 @@ class sdGun extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this.sync = 0;
+		
 		this._time_amplification = 0;
 		
 		//this._remove_stack_trace = null;
@@ -1208,8 +1210,41 @@ class sdGun extends sdEntity
 		}
 	}
 	
+	isSnapshotDecodingAllowed( snapshot ) // Same for characters
+	{
+		if ( !sdWorld.is_server )
+		{
+			if ( this.sync === -1 )
+			return true;
+		
+			if ( this.sync !== snapshot.sync )
+			return true;
+	
+			return false;
+		}
+		return true;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( !sdWorld.is_singleplayer )
+		if ( sdWorld.is_server )
+		{
+			let owner = this._held_by;
+			
+			if ( owner )
+			if ( owner._is_being_removed )
+			owner = null;
+			
+			let socket = owner ? owner._socket : null;
+			
+			if ( socket && socket.last_gsco_time > sdWorld.time - 1000 && owner.hea > 0 && !sdCharacter.allow_alive_players_think )
+			{
+				return;
+			}
+		}
+		this.sync = ( this.sync + 1 ) % 100; // Additionally done at index.js
+		
+		
 		let GSPEED_unscaled = GSPEED;
 		
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );

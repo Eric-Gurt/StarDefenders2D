@@ -64,6 +64,8 @@ class sdWorld
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
 		
+		sdWorld.SERVER_EXPECTED_GSPEED = 1;
+		
 		sdWorld.CHUNK_SIZE = CHUNK_SIZE;
 		
 		sdWorld.startup_hash = Math.floor( Math.random() * 9007199254740991 ); // Used to detect server restarts by notifier
@@ -128,6 +130,7 @@ class sdWorld
 		sdWorld.my_entity_protected_vars_untils = { gun_slot: 0 }; // Whenever player presses some gun slot - it will also save there sdWord.time + ping * 2 for property to prevent it from being accepted by server. Will improve some client-side looks even if allow doing stuff player should not be able to do, locally only.
 		sdWorld.my_score = 0;
 		sdWorld.my_entity_upgrades_later_set_obj = null;
+		sdWorld.my_inputs_and_gspeeds = []; // [ GSPEED, key_states ]
 		
 		sdWorld.client_side_censorship = false;
 		
@@ -2897,6 +2900,8 @@ class sdWorld
 		}
 
 		let GSPEED = ( sdWorld.time - old_time ) / 1000 * 30; // / substeps;
+		
+		sdWorld.SERVER_EXPECTED_GSPEED = GSPEED;
 
 		if ( GSPEED < 0 ) // Overflow? Probably would never happen normally
 		GSPEED = 0;
@@ -3024,6 +3029,54 @@ class sdWorld
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 
 			const bulk_exclude = sdWorld.bulk_exclude;
+			
+			const GetTimeWarpSpeedForEntity = ( e )=>
+			{
+				let best_warp = 1;
+				for ( i2 = 0; i2 < timewarps.length; i2++ )
+				{
+					if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
+					{
+						if ( !sdWorld.server_config.base_degradation )
+						if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
+						continue;
+
+						if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
+						{
+							best_warp = 0.5;
+							break;
+						}
+						else
+						{
+							if ( best_warp === 1 )
+							best_warp = 0.15;
+						}
+					}
+				}
+				return best_warp;
+			};
+			
+			if ( sdWorld.my_entity )
+			if ( !sdWorld.is_singleplayer )
+			{
+				let gs = ( timewarps ? ( GetTimeWarpSpeedForEntity( sdWorld.my_entity ) ) : 1 ) * GSPEED;
+				
+				const max_merging_gspeed = 0; // Less data but less accurate too
+				
+				if ( sdWorld.my_inputs_and_gspeeds.length < 100 )
+				{
+					if (	sdWorld.my_inputs_and_gspeeds.length > 1 && 
+							typeof sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] === 'number' && 
+							sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] + gs < max_merging_gspeed 
+					)
+					sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] += gs;
+					else
+					sdWorld.my_inputs_and_gspeeds.push( gs );
+				}
+				else
+				debugger;
+			}
+			//sdWorld.my_inputs_and_gspeeds.push([ GetTimeWarpSpeedForEntity( sdWorld.my_entity ) * GSPEED, Object.assign( {}, sdWorld.my_entity._key_states.key_states ) ]);
 
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
@@ -3121,27 +3174,7 @@ class sdWorld
 
 						if ( timewarps )
 						{
-							best_warp = 1;
-							for ( i2 = 0; i2 < timewarps.length; i2++ )
-							{
-								if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
-								{
-									if ( !sdWorld.server_config.base_degradation )
-									if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
-									continue;
-
-									if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
-									{
-										best_warp = 0.5;
-										break;
-									}
-									else
-									{
-										if ( best_warp === 1 )
-										best_warp = 0.15;
-									}
-								}
-							}
+							best_warp = GetTimeWarpSpeedForEntity( e );
 
 							gspeed_mult *= best_warp;
 						}

@@ -92,7 +92,10 @@ class sdPlayerSpectator extends sdCharacter
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.ConnecgtedGodLogic( GSPEED );
+		if ( this.PlayerClassThinkPausedLogic( GSPEED ) )
+		return;
+	
+		this.ConnectedGodLogic( GSPEED );
 		
 		if ( sdWorld.is_server )
 		{
