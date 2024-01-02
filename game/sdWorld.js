@@ -525,10 +525,20 @@ class sdWorld
 		globalThis.presets_folder = presets_folder; // Old format
 		sdWorld.presets_folder = presets_folder;
 
-		if ( !globalThis.fs.existsSync( globalThis.presets_folder ) )
+		const presets_folder_users = dirname + '/presets_users';
+		globalThis.presets_folder_users = presets_folder_users; // Old format
+		sdWorld.presets_folder_users = presets_folder_users;
+
+		if ( !globalThis.fs.existsSync( presets_folder ) )
 		{
-			trace( 'Making directory: ' + globalThis.presets_folder );
-			globalThis.fs.mkdirSync( globalThis.presets_folder );
+			trace( 'Making directory: ' + presets_folder );
+			globalThis.fs.mkdirSync( presets_folder );
+		}
+		// Non-superadmins would have thier presets saved there instead, just to not mess with singleplayer and event presets if same names are used
+		if ( !globalThis.fs.existsSync( presets_folder_users ) )
+		{
+			trace( 'Making directory: ' + presets_folder_users );
+			globalThis.fs.mkdirSync( presets_folder_users );
 		}
 
 		const server_config_path_const = dirname + '/server_config' + ( world_slot || '' ) + '.js';
