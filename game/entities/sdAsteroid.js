@@ -6,6 +6,7 @@ import sdSound from '../sdSound.js';
 import sdMimic from './sdMimic.js';
 import sdBlock from './sdBlock.js';
 import sdWeather from './sdWeather.js';
+import sdBullet from './sdBullet.js';
 
 class sdAsteroid extends sdEntity
 {
@@ -52,21 +53,31 @@ class sdAsteroid extends sdEntity
 		if ( this.type === sdAsteroid.TYPE_FLESH )
 		{
 			if ( from_entity )
-			if ( from_entity.Fleshify )
-			if ( !from_entity.is( sdBlock ) || from_entity.material !== sdBlock.MATERIAL_FLESH )
 			{
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, this._land_x, this._land_y, 800 ) && ( sdWorld.server_config.base_degradation || !from_entity._shielded || !from_entity._shielded._is_being_removed ) )
+				if ( from_entity.is( sdBullet ) )
 				{
-					from_entity.Fleshify();
+					if ( from_entity._hook )
+					{
+						this.AsteroidLanded();
+					}
 				}
 				else
+				if ( from_entity.Fleshify )
+				if ( !from_entity.is( sdBlock ) || from_entity.material !== sdBlock.MATERIAL_FLESH )
 				{
-					let e = new sdMimic({ x: this.x, y: this.y });
-					sdEntity.entities.push( e );
+					if ( sdWorld.inDist2D_Boolean( this.x, this.y, this._land_x, this._land_y, 800 ) && ( sdWorld.server_config.base_degradation || !from_entity._shielded || !from_entity._shielded._is_being_removed ) )
+					{
+						from_entity.Fleshify();
+					}
+					else
+					{
+						let e = new sdMimic({ x: this.x, y: this.y });
+						sdEntity.entities.push( e );
+					}
+
+					this.remove();
+					//this._broken = false;
 				}
-				
-				this.remove();
-				//this._broken = false;
 			}
 		}
 	}
@@ -149,6 +160,30 @@ class sdAsteroid extends sdEntity
 			}
 		}
 	}
+	
+	AsteroidLanded()
+	{
+		if ( !this.landed )
+		{
+			this.landed = true;
+
+			this._an = Math.random() * Math.PI;
+
+			if ( this.type === sdAsteroid.TYPE_FLESH )
+			{
+				sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.5 });
+
+				this._land_x = this.x;
+				this._land_y = this.y;
+			}
+			else
+			sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
+
+			this.sx *= 0.02;
+			this.sy *= 0.02;
+		}
+	}
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.landed )
@@ -212,43 +247,7 @@ class sdAsteroid extends sdEntity
 			else
 			if ( !this.CanMoveWithoutOverlap( new_x, new_y, 0 ) )
 			{
-				//if ( this._type === 0 )
-				//this.DamageWithEffect( 1000 );
-			
-				//if ( this._type === 1 && this.landed === false )
-				if ( !this.landed )
-				{
-					this.landed = true;
-					
-					this._an = Math.random() * Math.PI;
-					
-					if ( this.type === sdAsteroid.TYPE_FLESH )
-					{
-						sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.5 });
-						
-						/*if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.Fleshify )
-						{
-							sdWorld.last_hit_entity.Fleshify();
-						}
-						
-						this.remove();
-						this._broken = false;
-						return;*/
-						
-						this._land_x = this.x;
-						this._land_y = this.y;
-					}
-					else
-					sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
-			
-					//this.x -= this.sx * GSPEED;
-					//this.y -= this.sy * GSPEED; // Revert overlapping position
-					
-					this.sx *= 0.02;
-					this.sy *= 0.02;
-				}
-				//this.remove();
+				this.AsteroidLanded();
 			}
 			else
 			{
