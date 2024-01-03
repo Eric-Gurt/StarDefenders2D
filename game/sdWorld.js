@@ -64,7 +64,8 @@ class sdWorld
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
 		
-		sdWorld.SERVER_EXPECTED_GSPEED = 1;
+		//sdWorld.SERVER_EXPECTED_GSPEED = 1;
+		sdWorld.SERVER_AVERAGE_GSPEED_VALUES = []; // arr of { time, GSPEED, EXPECTED_GSPEED }, last second only
 		
 		sdWorld.CHUNK_SIZE = CHUNK_SIZE;
 		
@@ -2901,8 +2902,13 @@ class sdWorld
 
 		let GSPEED = ( sdWorld.time - old_time ) / 1000 * 30; // / substeps;
 		
-		sdWorld.SERVER_EXPECTED_GSPEED = GSPEED;
-
+		let AVERAGE_GSPEED_VALUE = { time:sdWorld.time, GSPEED:0, EXPECTED_GSPEED:GSPEED };
+		
+		while ( sdWorld.SERVER_AVERAGE_GSPEED_VALUES.length > 0 && sdWorld.SERVER_AVERAGE_GSPEED_VALUES[ 0 ].time < sdWorld.time - 3000 )
+		sdWorld.SERVER_AVERAGE_GSPEED_VALUES.shift();
+	
+		sdWorld.SERVER_AVERAGE_GSPEED_VALUES.push( AVERAGE_GSPEED_VALUE );
+		
 		if ( GSPEED < 0 ) // Overflow? Probably would never happen normally
 		GSPEED = 0;
 		else
@@ -2916,6 +2922,8 @@ class sdWorld
 			if ( GSPEED > 10 ) // Should be best for weaker devices, just so at least server would not initiate player teleportation back to where he thinks player is
 			GSPEED = 10;
 		}
+		
+		AVERAGE_GSPEED_VALUE.GSPEED = GSPEED;
 		
 		//if ( sdWorld.paused )
 		//GSPEED = 0;

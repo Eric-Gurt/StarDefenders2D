@@ -2063,11 +2063,30 @@ io.on( 'connection', ( socket )=>
 				{
 					let gspeed_and_key_events = key;
 					
+					let panic_mode = false; // In panic mode server allows relative factors of GSPEED instead
+					
+					let average_GSPEED = 0;
+					let average_EXPECTED_GSPEED = 0;
+					for ( let i = 0; i < sdWorld.SERVER_AVERAGE_GSPEED_VALUES.length; i++ )
+					{
+						average_GSPEED += sdWorld.SERVER_AVERAGE_GSPEED_VALUES[ i ].GSPEED;
+						average_EXPECTED_GSPEED += sdWorld.SERVER_AVERAGE_GSPEED_VALUES[ i ].EXPECTED_GSPEED;
+					}
+					
+					//if ( average_GSPEED !== average_EXPECTED_GSPEED )
+					if ( average_GSPEED < average_EXPECTED_GSPEED * 0.5 )
+					{
+						//trace( 'Panic', average_GSPEED, average_EXPECTED_GSPEED );
+						panic_mode = true;
+					}
+					
 					//let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed, 30 ); // Sensitive to server lags, but would keep player in sync with the world. Best if servers would not lag
 					
-					let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed * sdWorld.SERVER_EXPECTED_GSPEED / sdWorld.GSPEED, 30 ); // Sensitive to server stutter but not overall lags. Maybe will be alright
+					//let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed * sdWorld.SERVER_EXPECTED_GSPEED / sdWorld.GSPEED, 30 ); // Sensitive to server stutter but not overall lags. Maybe will be alright
 					
 					//let gspeed_allowed = Math.min( ( sdWorld.time - socket.last_gsco_time ) / 1000 * 30, 30 ); // Will make players always run at normal speed no matter how laggy server is. It ignores time warp though, which is bad
+					
+					let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed * average_EXPECTED_GSPEED / average_GSPEED, 30 );
 					
 					let gspeed_received = 0;
 					for ( let i = 0; i < gspeed_and_key_events.length; i++ )
@@ -2075,11 +2094,23 @@ io.on( 'connection', ( socket )=>
 						let state = gspeed_and_key_events[ i ];
 						
 						if ( typeof state === 'number' )
+						if ( state > 0 && state < 30 && !isNaN( state ) )
 						gspeed_received += state;
 					}
 					
 					// Make sure total GSPEED is scaled down/up to fit real GSPEED happened for character
 					let gspeed_mult = gspeed_allowed / gspeed_received;
+					
+					if ( panic_mode )
+					{
+						if ( gspeed_received < gspeed_allowed * 2 || gspeed_received < 30 )
+						{
+							//trace( 'panic within x8');
+							gspeed_mult = 1;
+						}
+						//else
+						//trace( 'panic outside x8', gspeed_received, gspeed_allowed );
+					}
 					
 					if ( gspeed_received > 0.0001 && isFinite( gspeed_mult ) && !isNaN( gspeed_mult ) )
 					{
@@ -2101,6 +2132,7 @@ io.on( 'connection', ( socket )=>
 									// Throw in more substeps if needed to prevent impacts
 									let substeps = Math.max( 1, Math.floor( state * gspeed_mult / 3 ) );
 
+									if ( state > 0 && state < 30 && !isNaN( state ) )
 									for ( let i = 0; i < substeps; i++ )
 									{
 										e.onThink( state * gspeed_mult / substeps );
@@ -2111,11 +2143,11 @@ io.on( 'connection', ( socket )=>
 										}
 										else
 										{
-											// Should be useful
+											// Without it bullets can pass through such players on lags
 
 											e.UpdateHitbox();
 
-											/*if ( e._last_x !== e.x ||
+											if ( e._last_x !== e.x ||
 												 e._last_y !== e.y )
 											{
 												if ( !e._is_being_removed )
@@ -2127,7 +2159,7 @@ io.on( 'connection', ( socket )=>
 													if ( e._listeners ) // Should be faster than passing string
 													e.callEventListener( 'MOVES' );
 												}
-											}*/
+											}
 										}
 
 										for ( let i = 0; i < e._inventory.length; i++ )
