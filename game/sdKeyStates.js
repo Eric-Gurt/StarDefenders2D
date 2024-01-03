@@ -78,6 +78,8 @@ class sdKeyStates
 		else
 		{
 			this.key_states[ key ] = 0;
+			if ( this.one_taps[ key ] === sdWorld.frame )
+			this.one_taps[ key ]--;
 		}
 	}
 }
