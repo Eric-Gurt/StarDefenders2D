@@ -1380,10 +1380,10 @@ io.on( 'connection', ( socket )=>
 	const stacked_service_messages = [];
 	let service_message_interval_exists = null;
 	let service_message_allow_next_in = sdWorld.time + 500;
-	socket.SDServiceMessage = ( m=null, untranslateables_array=null )=> // Example usage: character_entity._socket.SDServiceMessage( 'You have been excluded from {1}\'s team (Command Centre has been destroyed)', [ this.owner.title ] ); OR character_entity._socket.SDServiceMessage( 'Text' );
+	socket.SDServiceMessage = ( m=null, untranslateables_array=null, color=null )=> // Example usage: character_entity._socket.SDServiceMessage( 'You have been excluded from {1}\'s team (Command Centre has been destroyed)', [ this.owner.title ] ); OR character_entity._socket.SDServiceMessage( 'Text' );
 	{
 		if ( typeof m === 'string' )
-		stacked_service_messages.push( [ m, untranslateables_array ] );
+		stacked_service_messages.push( [ m, untranslateables_array, color ] );
 	
 		if ( stacked_service_messages.length > 0 )
 		{
@@ -2512,7 +2512,7 @@ io.on( 'connection', ( socket )=>
 							}
 						}*/
 
-						if ( !allowed || Math.abs( dx ) > 16 || Math.abs( dy ) > 16 )
+						if ( !allowed || Math.abs( dx ) > 32 || Math.abs( dy ) > 32 )
 						{
 							if ( allowed )
 							if ( debug_correction )
@@ -2525,10 +2525,10 @@ io.on( 'connection', ( socket )=>
 						{
 							let di = sdWorld.Dist2D_Vector( dx, dy );
 
-							if ( di > 16 )
+							if ( di > 32 )
 							{
-								dx = dx / di * 16;
-								dy = dy / di * 16;
+								dx = dx / di * 32;
+								dy = dy / di * 32;
 							}
 						
 							let jump_di = sdWorld.Dist2D_Vector( dx, dy );

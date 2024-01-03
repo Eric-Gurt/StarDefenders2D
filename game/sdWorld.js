@@ -3083,7 +3083,9 @@ class sdWorld
 					sdWorld.my_inputs_and_gspeeds.push( gs );
 				}
 				else
-				debugger;
+				{
+					trace( 'Too much input data is about to be sent. Or connection has been lost?' );
+				}
 			}
 			//sdWorld.my_inputs_and_gspeeds.push([ GetTimeWarpSpeedForEntity( sdWorld.my_entity ) * GSPEED, Object.assign( {}, sdWorld.my_entity._key_states.key_states ) ]);
 

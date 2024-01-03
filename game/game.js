@@ -1119,6 +1119,7 @@ let enf_once = true;
 			sdRenderer.service_mesage_until = sdWorld.time + 6500;
 			sdRenderer.service_mesage = arr[ 0 ];
 			sdRenderer.service_mesage_untranslateables = arr[ 1 ];
+			sdRenderer.service_mesage_color = arr[ 2 ];
 		});
 		
 		socket.on( 'CLASS_CMD', ( class_object_name, command_name, parameters_array )=>

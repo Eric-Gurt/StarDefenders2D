@@ -801,6 +801,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		// World exists and players are ready to connect
 		
+		let sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
+		
 		// In case of new server these will be 0. This will define initial world bounds:
 		if ( sdWorld.world_bounds.x1 === 0 )
 		if ( sdWorld.world_bounds.x2 === 0 )
@@ -856,6 +858,8 @@ class sdServerConfigFull extends sdServerConfigShort
 				let down = 0;
 				
 				const distance_near_edge_to_trigger = 256;
+				
+				let sockets = sdWorld.sockets;
 				
 				for ( let i = 0; i < sockets.length; i++ )
 				{

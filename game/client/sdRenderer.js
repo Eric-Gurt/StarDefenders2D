@@ -76,6 +76,7 @@ class sdRenderer
 		sdRenderer.service_mesage_until = 0;
 		sdRenderer.service_mesage = '';
 		sdRenderer.service_mesage_untranslateables = null;
+		sdRenderer.service_mesage_color = null;
 		
 		sdRenderer.last_source_change = sdWorld.time;
 		sdRenderer.last_source_entity = null;
@@ -2039,6 +2040,11 @@ class sdRenderer
 			ctx.font = "14px Verdana";
 			ctx.textAlign = 'center';
 			ctx.fillStyle = '#ffff00';
+			
+			if ( sdRenderer.service_mesage_color )
+			{
+				ctx.fillStyle = sdRenderer.service_mesage_color;
+			}
 			
 			if ( sdRenderer.service_mesage_untranslateables )
 			{
