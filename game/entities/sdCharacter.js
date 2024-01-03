@@ -1686,7 +1686,7 @@ THING is cosmic mic drop!`;
 		{
 			if ( this._key_states.GetKey( 'KeyV' ) && !this.driver_of )
 			{
-				this._key_states.SetKey( 'KeyV', 0 ); // So sword is not dropped all the time
+				this._key_states.SetKey( 'KeyV', 0, true ); // So sword is not dropped all the time
 
 				if ( this._inventory[ this.gun_slot ] )
 				{

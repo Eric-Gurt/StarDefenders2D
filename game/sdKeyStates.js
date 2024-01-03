@@ -63,7 +63,7 @@ class sdKeyStates
 	
 		return this.key_states[ key ];
 	}
-	SetKey( key, value )
+	SetKey( key, value, reset_one_tap=false )
 	{	
 		if ( typeof this.key_states[ key ] === 'undefined' )
 		return;
@@ -78,6 +78,8 @@ class sdKeyStates
 		else
 		{
 			this.key_states[ key ] = 0;
+			
+			if ( reset_one_tap )
 			if ( this.one_taps[ key ] === sdWorld.frame )
 			this.one_taps[ key ]--;
 		}
