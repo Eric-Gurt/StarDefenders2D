@@ -1242,6 +1242,8 @@ class sdGun extends sdEntity
 				return;
 			}
 		}
+		
+		if ( sdWorld.is_server )
 		this.sync = ( this.sync + 1 ) % 100; // Additionally done at index.js
 		
 		

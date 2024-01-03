@@ -3671,6 +3671,8 @@ THING is cosmic mic drop!`;
 			this._GSPEED_buffer_length_allowed += GSPEED;
 			return true;
 		}
+		
+		if ( sdWorld.is_server )
 		this.sync = ( this.sync + 1 ) % 100; // Additionally done at index.js
 		
 		return false;
