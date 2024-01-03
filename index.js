@@ -2089,6 +2089,8 @@ io.on( 'connection', ( socket )=>
 					let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed * average_EXPECTED_GSPEED / average_GSPEED, 30 );
 					
 					let gspeed_received = 0;
+					
+					if ( gspeed_and_key_events.length < sdWorld.my_inputs_and_gspeeds_max ) // It has been enough so far
 					for ( let i = 0; i < gspeed_and_key_events.length; i++ )
 					{
 						let state = gspeed_and_key_events[ i ];

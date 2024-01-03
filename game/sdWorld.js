@@ -132,6 +132,7 @@ class sdWorld
 		sdWorld.my_score = 0;
 		sdWorld.my_entity_upgrades_later_set_obj = null;
 		sdWorld.my_inputs_and_gspeeds = []; // [ GSPEED, key_states ]
+		sdWorld.my_inputs_and_gspeeds_max = 100;
 		
 		sdWorld.client_side_censorship = false;
 		
@@ -3071,7 +3072,7 @@ class sdWorld
 				
 				const max_merging_gspeed = 0; // Less data but less accurate too
 				
-				if ( sdWorld.my_inputs_and_gspeeds.length < 100 )
+				if ( sdWorld.my_inputs_and_gspeeds.length < sdWorld.my_inputs_and_gspeeds_max )
 				{
 					if (	sdWorld.my_inputs_and_gspeeds.length > 1 && 
 							typeof sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] === 'number' && 
