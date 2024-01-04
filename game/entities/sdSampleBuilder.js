@@ -117,6 +117,8 @@ class sdSampleBuilder extends sdEntity
 		
 		this.toggle_enabled = false;
 		
+		this.admin_mode = 0;
+		
 		this._sample_entity = null;
 		this._sample_shop_item = null;
 		
@@ -245,6 +247,10 @@ class sdSampleBuilder extends sdEntity
 					if ( ent )
 					{								
 						let cost = ( typeof s._sample_shop_item.matter_cost !== 'undefined' ) ? s._sample_shop_item.matter_cost : ent.MeasureMatterCost();
+						
+						if ( this.admin_mode )
+						cost = 0;
+						
 						this.last_cost = cost;
 						this._update_version++;
 						
@@ -320,10 +326,10 @@ class sdSampleBuilder extends sdEntity
 	get title()
 	{
 		if ( this.type === sdSampleBuilder.TYPE_SAMPLER )
-		return 'Sample area for sample builder';
+		return 'Sample area for sample builder' + ( this.admin_mode ? ' ( admin mode )' : '' );
 		
 		if ( this.type === sdSampleBuilder.TYPE_BUILDER )
-		return 'Sample builder';
+		return 'Sample builder' + ( this.admin_mode ? ' ( admin mode )' : '' );
 	}
 	get description()
 	{
@@ -415,12 +421,24 @@ class sdSampleBuilder extends sdEntity
 
 					let props_to_compare = [ 'type', 'kind', 'variation', 'multiplier', 'width', 'height', 'matter_max', 'anti_base_mode', 'filter', 'texture_id', 'w', 'h', 'class', 'extra' ];
 
+					let godmode_categories = new Set();
+
+					for ( let i = 0; i < sdShop.options.length; i++ )
+					{
+						let option = sdShop.options[ i ];
+						
+						if ( option._godmode_only )
+						if ( option._opens_category )
+						godmode_categories.add( option._opens_category );
+					}
 					for ( let i = 0; i < sdShop.options.length; i++ )
 					{
 						let option = sdShop.options[ i ];
 
 						if ( option._class === _class )
-						if ( option._category !== 'Development tests' )
+						//if ( option._category !== 'Development tests' )
+						if ( this.admin_mode || !godmode_categories.has( option._category ) )
+						if ( option._opens_category === undefined )
 						{
 							let value = 0;
 							for ( let i2 = 0; i2 < props_to_compare.length; i2++ )
@@ -506,6 +524,52 @@ class sdSampleBuilder extends sdEntity
 				s = Math.random() * 4;
 				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
 				sdEntity.entities.push( ent );
+			}
+		}
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if (
+				(
+					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 )
+					&&
+					executer_socket.character.canSeeForUse( this )
+				)
+			)
+		{
+			if ( exectuter_character._god )
+			{
+				if ( command_name === 'TOGGLE_ADMIN_MODE' )
+				{
+					this.admin_mode = 1 - this.admin_mode;
+					this._update_version++;
+				}
+				if ( command_name === 'TOGGLE_ENABLED' )
+				{
+					this.toggle_enabled = !this.toggle_enabled;
+					this._update_version++;
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
+		if ( exectuter_character.canSeeForUse( this ) )
+		{
+			if ( exectuter_character._god )
+			{
+				this.AddContextOption( 'Toggle admin item build/scan permissions (admin-only)', 'TOGGLE_ADMIN_MODE', [] );
+				this.AddContextOption( 'Toggle enabled (admin-only)', 'TOGGLE_ENABLED', [] );
 			}
 		}
 	}
