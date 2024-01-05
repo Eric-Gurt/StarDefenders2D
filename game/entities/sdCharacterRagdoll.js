@@ -34,6 +34,11 @@ class sdCharacterRagdoll
 		this._ledge_holding_y = 0;
 		this._ledge_holding_defined = false;
 		
+		this._smooth_x = character.x;
+		this._smooth_y = character.y;
+		this._smooth_look_x = character.look_x;
+		this._smooth_look_y = character.look_y;
+		
 		this.character = character;
 		character._ragdoll = this;
 		
@@ -171,8 +176,11 @@ class sdCharacterRagdoll
 		x *= this.character._side * this.character.s / 100;
 		y *= this.character.s / 100;
 
-		x += this.character.x;
-		y += this.character.y;
+		//x += this.character.x;
+		//y += this.character.y;
+
+		x += this._smooth_x;
+		y += this._smooth_y;
 		
 		y += this.character._crouch_intens * 6;
 		
@@ -263,6 +271,7 @@ class sdCharacterRagdoll
 		// Side update might not happen in else case if entity appears as dead
 		this.character._side = ( this.character.x < this.character.look_x ) ? 1 : -1;
 		
+		
 		/*for ( let i = 0; i < this.bones.length; i++ )
 		if ( this.bones[ i ] !== this.knee1 )
 		if ( this.bones[ i ] !== this.knee2 )
@@ -325,8 +334,8 @@ class sdCharacterRagdoll
 
 		// Body & head
 		this.MoveBone( this.torso, 13, 22 + breathe_rise );
-		let dx = -( this.chest._ty - this.character.look_y ) * this.character._side;
-		let dy = ( this.chest._tx - this.character.look_x ) * this.character._side;
+		let dx = -( this.chest._ty - this._smooth_look_y ) * this.character._side;
+		let dy = ( this.chest._tx - this._smooth_look_x ) * this.character._side;
 		let di = sdWorld.Dist2D_Vector( dx, dy );
 		if ( di > 0.01 )
 		{
@@ -355,8 +364,8 @@ class sdCharacterRagdoll
 		
 		if ( reload <= 0 )
 		{
-			dx = ( this.chest._tx - this.character.look_x );
-			dy = ( this.chest._ty - this.character.look_y );
+			dx = ( this.chest._tx - this._smooth_look_x );
+			dy = ( this.chest._ty - this._smooth_look_y );
 			di = sdWorld.Dist2D_Vector( dx, dy );
 			if ( di > 0.01 )
 			{
@@ -503,8 +512,8 @@ class sdCharacterRagdoll
 		
 		
 		// Arms
-		dx = -( this.chest._tx - this.character.look_x );
-		dy = -( this.chest._ty - this.character.look_y );
+		dx = -( this.chest._tx - this._smooth_look_x );
+		dy = -( this.chest._ty - this._smooth_look_y );
 		di = sdWorld.Dist2D_Vector( dx, dy );
 		if ( di > 0.01 )
 		{
@@ -1087,8 +1096,8 @@ class sdCharacterRagdoll
 					this.bones[ i ].sx = this.bones[ i ].x;
 					this.bones[ i ].sy = this.bones[ i ].y;
 					
-					this.bones[ i ].x = this.character.look_x + this.bones[ i ]._initial_x - 16;
-					this.bones[ i ].y = this.character.look_y + this.bones[ i ]._initial_y - 16;
+					this.bones[ i ].x = this._smooth_look_x + this.bones[ i ]._initial_x - 16;
+					this.bones[ i ].y = this._smooth_look_y + this.bones[ i ]._initial_y - 16;
 					
 					this.bones[ i ].sx = this.bones[ i ].x - this.bones[ i ].sx;
 					this.bones[ i ].sy = this.bones[ i ].y - this.bones[ i ].sy;
@@ -1181,6 +1190,41 @@ class sdCharacterRagdoll
 	
 	DrawRagdoll( ctx, attached )
 	{
+		// Some smoothness
+		{
+			let dx = this.character.x - this._smooth_x;
+			let dy = this.character.y - this._smooth_y;
+
+			if ( sdWorld.inDist2D_Boolean( dx,dy, 0,0, 32 ) )
+			{
+				let GSPEED = sdWorld.GSPEED;
+
+				this._smooth_x = sdWorld.MorphWithTimeScale( this._smooth_x, this.character.x, 0.2, GSPEED );
+				this._smooth_y = sdWorld.MorphWithTimeScale( this._smooth_y, this.character.y, 0.2, GSPEED );
+			}
+			else
+			{
+				this._smooth_x = this.character.x;
+				this._smooth_y = this.character.y;
+			}
+			
+			dx = this.character.look_x - this._smooth_look_x;
+			dy = this.character.look_y - this._smooth_look_y;
+
+			if ( sdWorld.inDist2D_Boolean( dx,dy, 0,0, 200 ) )
+			{
+				let GSPEED = sdWorld.GSPEED;
+
+				this._smooth_look_x = sdWorld.MorphWithTimeScale( this._smooth_look_x, this.character.look_x, 0.2, GSPEED );
+				this._smooth_look_y = sdWorld.MorphWithTimeScale( this._smooth_look_y, this.character.look_y, 0.2, GSPEED );
+			}
+			else
+			{
+				this._smooth_look_x = this.character.look_x;
+				this._smooth_look_y = this.character.look_y;
+			}
+		}
+		
 		if ( this.character.hea > 0 || !this.ever_updated )
 		{
 			this.AliveUpdate();

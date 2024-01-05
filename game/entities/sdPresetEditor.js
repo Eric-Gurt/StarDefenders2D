@@ -25,6 +25,8 @@
 			});
 
 */
+/* global globalThis, Infinity, sdShop */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
@@ -106,6 +108,18 @@ class sdPresetEditor extends sdEntity
 	}
 	dragWhenBuiltComplete()
 	{
+		// No sure if these even happen
+		if ( this.w < 0 )
+		{
+			this.x += this.w;
+			this.w *= -1;
+		}
+		if ( this.h < 0 )
+		{
+			this.y += this.h;
+			this.h *= -1;
+		}
+		
 		if ( this.w === 0 || this.h === 0 )
 		this.remove();
 	}
@@ -312,11 +326,28 @@ class sdPresetEditor extends sdEntity
 		}
 	}
 	
+	IsFileNameInvalid( preset_name ) // Does security checks
+	{
+		if ( preset_name === '' ) // Just in case
+		return true;
+		
+		if ( preset_name.indexOf( '.' ) !== -1 )
+		return true;
+		
+		if ( preset_name.indexOf( '/' ) !== -1 )
+		return true;
+		
+		if ( preset_name.indexOf( ':' ) !== -1 )
+		return true;
+	
+		return false;
+	}
+	
 	SaveEntitiesInsidePreset( initiator = null )
 	{
-		if ( this.preset_name === '' ) // Just in case
+		if ( this.IsFileNameInvalid( this.preset_name ) )
 		return false;
-	
+		
 		let ents_array = this.GetEntitiesInside( initiator );
 		let snapshots = [];
 		let current_frame = globalThis.GetFrame();
@@ -339,34 +370,59 @@ class sdPresetEditor extends sdEntity
 			name: this.preset_name,
 			tags: this.tags,
 			authors: this.authors,
-			last_edit_time: current_frame,
+			last_edit_time: sdWorld.time,
 			relative_x: this.x,
 			relative_y: this.y,
 			width: this.w,
 			height: this.h,
 			snapshots: snapshots
-		} // Create JSON object
+		}; // Create JSON object
 		
 		const data = JSON.stringify( pres ); // Convert JSON object to string
 		
-		fs.writeFile( globalThis.presets_folder + '/' + this.preset_name + '.json', data, err => {
-				if ( err )
-				trace( 'Unable to save preset data to file: ' + err );
-			return false;
-		})
+		let save_to_main_preset_folder = false;
+		
+		if ( initiator )
+		{
+			let admin_row = sdModeration.GetAdminRow( initiator._socket );
+
+			if ( admin_row && admin_row.access_level === 0 )
+			save_to_main_preset_folder = true;
+		}
+		else
+		save_to_main_preset_folder = true;
+		
+		if ( save_to_main_preset_folder )
+		fs.writeFile( globalThis.presets_folder +		'/' + this.preset_name + '.json', data, ( err )=>{ if ( err ) trace( 'Unable to save preset data to file: ' + err ); return false; });
+	
+	
+		if ( sdWorld.server_config.let_non_full_access_level_admins_save_presets )
+		fs.writeFile( globalThis.presets_folder_users + '/' + this.preset_name + '.json', data, ( err )=>{ if ( err ) trace( 'Unable to save preset data to file: ' + err ); return false; });
+		else
+		if ( !save_to_main_preset_folder ) // Don't show error if top-level admin is saving it
+		return false;
+
 		
 		return true;
-		//Maybe I should use sdWorld.time for last_edit_time? - Booraz149
+		// Maybe I should use sdWorld.time for last_edit_time? - Booraz149
+		// Yes, that or Date.now(), because frame time resets with server reboots - EG
 		
 		//return snapshots;
 	}
-	IsOutsideWorldBounds(){
-			let outside_bounds = false;
-			if ( this.x < sdWorld.world_bounds.x1 || this.x > sdWorld.world_bounds.x2 || this.x + this.w < sdWorld.world_bounds.x1 || this.x + this.w > sdWorld.world_bounds.x2 )
-			outside_bounds = true;
-			if ( this.y < sdWorld.world_bounds.y1 || this.y > sdWorld.world_bounds.y2 || this.y + this.h < sdWorld.world_bounds.y1 || this.y + this.h > sdWorld.world_bounds.y2 ) // Checking all corners just in case
-			outside_bounds = true;
-			return outside_bounds;
+	IsOutsideWorldBounds()
+	{
+		let outside_bounds = false;
+
+		if ( this.x < sdWorld.world_bounds.x1 || this.x + this.w > sdWorld.world_bounds.x2 || this.y < sdWorld.world_bounds.y1 || this.y + this.h > sdWorld.world_bounds.y2 )
+		outside_bounds = true;
+
+		/*if ( this.x < sdWorld.world_bounds.x1 || this.x > sdWorld.world_bounds.x2 || this.x + this.w < sdWorld.world_bounds.x1 || this.x + this.w > sdWorld.world_bounds.x2 )
+		outside_bounds = true;
+
+		if ( this.y < sdWorld.world_bounds.y1 || this.y > sdWorld.world_bounds.y2 || this.y + this.h < sdWorld.world_bounds.y1 || this.y + this.h > sdWorld.world_bounds.y2 ) // Checking all corners just in case
+		outside_bounds = true;*/
+
+		return outside_bounds;
 	}
 	CanLoadPreset( force_load = false ){ // Force load means if it should override BSU protected entities, since loading a preset deletes everything inside the region of loaded preset before the preset spawns objects.
 		let ents_to_delete = this.GetEntitiesInside();
@@ -422,8 +478,16 @@ class sdPresetEditor extends sdEntity
 		}	
 		catch ( e )
 		{
-			console.warn( 'Preset file not found' + e );
-			return null;
+			try
+			{
+				let preset_str = fs.readFileSync( globalThis.presets_folder_users + '/' + preset_name + '.json', 'utf8' ); // Try to load file for parsing
+				return JSON.parse( preset_str );
+			}	
+			catch ( e )
+			{
+				console.warn( 'Preset file not found' + e );
+				return null;
+			}
 		}
 	}
 	static SpawnPresetInWorld( preset_name='test_tower', options={}, then_callback=null ) // This operation might not work instantly but instead perform multiple iterations over longer period of time
@@ -868,13 +932,12 @@ class sdPresetEditor extends sdEntity
 	
 	LoadPreset( initiator = null, preset_name = '', delete_preset_editor = false, force_load = true, deal_with_entities_inside=true )
 	{
-		if ( preset_name === '' )
-		return false;
+		//if ( preset_name === '' )
+		//return false;
 	
-		//console.log( preset_name );
-		//let preset_str = fs.readFileSync( globalThis.presets_folder + '/' + preset_name + '.json', 'utf8' ); // Try to load file for parsing
-		//const preset_data = JSON.parse( preset_str );
-
+		if ( this.IsFileNameInvalid( preset_name ) )
+		return false;
+		
 		const preset_data = sdPresetEditor.GetPresetData( preset_name );
 		//console.log( preset_data.name );
 
@@ -917,7 +980,7 @@ class sdPresetEditor extends sdEntity
 		let new_entities = [];
 		this._last_inserted_entities_array = new_entities;
 		
-		const custom_filtering_method = ( e )=>
+		/*const custom_filtering_method = ( e )=>
 		{
 			if ( e === this )
 			return false;
@@ -926,7 +989,7 @@ class sdPresetEditor extends sdEntity
 			return true;
 		
 			return false;
-		};
+		};*/
 		
 		//this._last_overlap_issue_entities = [];
 		
@@ -943,8 +1006,8 @@ class sdPresetEditor extends sdEntity
 			
 			if ( snapshot._class ==='sdDoor' )
 			{
-			snapshot.x0 = snapshot.x0 - relative_x + this.x;
-			snapshot.y0 = snapshot.y0 - relative_y + this.y;
+				snapshot.x0 = snapshot.x0 - relative_x + this.x;
+				snapshot.y0 = snapshot.y0 - relative_y + this.y;
 			}
 				
 			
@@ -1007,18 +1070,17 @@ class sdPresetEditor extends sdEntity
 		for ( let i = 0; i < new_entities.length; i++ )
 		{
 			if ( new_entities[ i ].GetClass() === 'sdBlock' )
-				for ( let j = 0; j < new_entities.length; j++ )
+			for ( let j = 0; j < new_entities.length; j++ )
+			{
+				if ( new_entities[ j ].GetClass() === 'sdGrass' )
+				if ( new_entities[ j ]._block._net_id === new_entities[ i ]._net_id )
 				{
-					if ( new_entities[ j ].GetClass() === 'sdGrass' )
-					if ( new_entities[ j ]._block._net_id === new_entities[ i ]._net_id )
-					{
-						if ( !new_entities[ i ]._plants )
-						new_entities[ i ]._plants = [ new_entities[ j ]._net_id ];
-						else
-						new_entities[ i ]._plants.push( new_entities[ j ]._net_id );
-					}
+					if ( !new_entities[ i ]._plants )
+					new_entities[ i ]._plants = [ new_entities[ j ]._net_id ];
+					else
+					new_entities[ i ]._plants.push( new_entities[ j ]._net_id );
 				}
-					
+			}
 		}
 		
 		return one_time_keys;
@@ -1218,7 +1280,7 @@ class sdPresetEditor extends sdEntity
 						if ( this.SaveEntitiesInsidePreset( exectuter_character ) )
 						executer_socket.SDServiceMessage( 'Preset saved successfully!' );
 						else
-						executer_socket.SDServiceMessage( 'Error! Cannot save preset.' );
+						executer_socket.SDServiceMessage( 'Error! Cannot save preset. Maybe you don\'t have permissions to do so?' );
 						//executer_socket.SDServiceMessage( 'Not implemented yet' );
 					
 						this._update_version++;

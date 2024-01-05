@@ -336,6 +336,9 @@ class sdBlock extends sdEntity
 	{
 		if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
 		{
+			x = sdWorld.limit( 0, x - this.x, this.width ) + this.x;
+			y = sdWorld.limit( 0, y - this.y, this.height ) + this.y;
+			
 			let xx = ( x - this.x ) % 8;
 			let yy = ( y - this.y ) % 8;
 			return ( ( xx <= 1 + bullet._hitbox_x2 || xx >= 7 + bullet._hitbox_x1 ) && ( yy <= 1 + bullet._hitbox_y2 || yy >= 7 + bullet._hitbox_y1 ) );

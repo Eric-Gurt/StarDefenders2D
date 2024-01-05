@@ -144,7 +144,7 @@ class sdFleshGrabber extends sdEntity
 
 			if ( this.tenta_tim > 0 && this._tenta_target )
 			{
-				if ( this._tenta_target._is_being_removed )
+				if ( this._tenta_target._is_being_removed || !this._tenta_target.IsTargetable() )
 				{
 					this._tenta_target = null;
 				}
@@ -203,7 +203,7 @@ class sdFleshGrabber extends sdEntity
 			
 			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed )
+				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() )
 				this._current_target = null;
 				else
 				if ( this._pull_timer <= 0 )

@@ -21,6 +21,8 @@ import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdManualTurret from './sdManualTurret.js';
 import sdTimer from './sdTimer.js';
+import sdSampleBuilder from './sdSampleBuilder.js';
+import sdButton from './sdButton.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -28,6 +30,9 @@ class sdSteeringWheel extends sdEntity
 	static init_class()
 	{
 		sdSteeringWheel.img_steering_wheel = sdWorld.CreateImageFromFile( 'steering_wheel' );
+		sdSteeringWheel.img_elevator_motor = sdWorld.CreateImageFromFile( 'elevator_motor' );
+		
+		sdSteeringWheel.entities_limit_per_scan = 650;
 		
 		sdSteeringWheel.access_range = 46;
 		
@@ -36,6 +41,9 @@ class sdSteeringWheel extends sdEntity
 		sdSteeringWheel.overlap = 8;
 		
 		sdSteeringWheel.steering_wheels = [];
+		
+		sdSteeringWheel.TYPE_STEERING_WHEEL = 0;
+		sdSteeringWheel.TYPE_ELEVATOR_MOTOR = 1;
 		
 		/*
 		const drop_rate = 100; // 30000
@@ -146,10 +154,10 @@ class sdSteeringWheel extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return -5; }
-	get hitbox_x2()  { return 5; }
-	get hitbox_y1()  { return -7; }
-	get hitbox_y2()  { return 8; }
+	get hitbox_x1()  { return ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? -5 : -8; }
+	get hitbox_x2()  { return ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? 5 : 8; }
+	get hitbox_y1()  { return ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? -7 : -8; }
+	get hitbox_y2()  { return ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? 8 : 8; }
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
@@ -164,21 +172,23 @@ class sdSteeringWheel extends sdEntity
 	{
 		super( params );
 		
-		//this.sx = 0;
-		//this.sy = 0;
+		this.type = params.type || 0;
 
-		this._hea = 800 * 4;
-		this._hmax = 800 * 4;
+		this._hea = 800 * 2;
+		this._hmax = 800 * 2;
 		
-		this.matter = 500;
-		this.matter_max = 500;
+		this.matter = ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? 500 : 0;
+		this.matter_max = this.matter;
 		
 		this._regen_timeout = 0;
 		
 		this.driver0 = null;
 		
-		this._scan = [];
-		this._scan_net_ids = [];
+		this.toggle_enabled = false;
+		this._toggle_source_current = null;
+		
+		this._scan = [ this ];
+		this._scan_net_ids = [ this._net_id ];
 		
 		this.vx = 0;
 		this.vy = 0;
@@ -204,6 +214,8 @@ class sdSteeringWheel extends sdEntity
 			for ( let i = 0; i < this._scan_net_ids.length; i++ )
 			{
 				let e = sdEntity.entities_by_net_id_cache_map.get( this._scan_net_ids[ i ] );
+				
+				if ( e ) // Happens on world bounds move somehow
 				if ( e._steering_wheel_net_id === this._net_id )
 				e._steering_wheel_net_id = -1;
 			}
@@ -227,7 +239,7 @@ class sdSteeringWheel extends sdEntity
 		
 		this._last_scan = sdWorld.time;
 		
-		const LIMIT = 650; // Was 100, then 400
+		const LIMIT = sdSteeringWheel.entities_limit_per_scan;
 		
 		let speed = 0;
 		
@@ -240,7 +252,7 @@ class sdSteeringWheel extends sdEntity
 		
 		let collected = [ this ];
 		
-		const overlap = sdSteeringWheel.overlap;
+		const overlap = ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? sdSteeringWheel.overlap : -1;
 		
 		let reason = null;
 		
@@ -339,6 +351,7 @@ class sdSteeringWheel extends sdEntity
 			}
 		}
 		
+		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		if ( reason === null )
 		if ( speed === 0 )
 		{
@@ -377,6 +390,69 @@ class sdSteeringWheel extends sdEntity
 			}
 		}
 	}
+	ToggleSingleScanItem( entity, character_to_tell_result_to=null )
+	{
+		if ( entity === this )
+		return;
+	
+		if ( entity._shielded && !entity._shielded._is_being_removed )
+		{
+			if ( character_to_tell_result_to )
+			character_to_tell_result_to.Say( 'This entity is protected with base shielding unit' );
+		
+			return;
+		}
+		
+		let i = this._scan.indexOf( entity );
+		
+		//let socket_to_tell_result_to = character_to_tell_result_to ? character_to_tell_result_to._socket : null;
+		if ( i === -1 )
+		{
+			if ( this._scan.length < sdSteeringWheel.entities_limit_per_scan )
+			{
+				let any_near = false;
+				for ( let i = 0; i < this._scan.length; i++ )
+				if ( this._scan[ i ].DoesOverlapWith( entity, 17 ) )
+				{
+					any_near = true;
+					break;
+				}
+				
+				if ( any_near )
+				{
+					this._scan.push( entity );
+					this._scan_net_ids.push( entity._net_id );
+
+
+					entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 0.5, 2, 0.5 ], observer: character_to_tell_result_to });
+					entity._steering_wheel_net_id = this._net_id;
+
+					sdSound.PlaySound({ name:'gun_buildtool2', x:entity.x, y:entity.y, volume:1, pitch:0.75 });
+				}
+				else
+				{
+					if ( character_to_tell_result_to )
+					character_to_tell_result_to.Say( 'This entity is not near anything that is already connected to elevator motor' );
+				}
+			}
+			else
+			{
+				if ( character_to_tell_result_to )
+				character_to_tell_result_to.Say( 'Limit of attached entities has been reached' );
+			}
+		}
+		else
+		{
+			this._scan.splice( i, 1 );
+			this._scan_net_ids.splice( i, 1 );
+			
+			entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 2, 0.5, 0.5 ], observer: character_to_tell_result_to });
+			
+			sdSound.PlaySound({ name:'gun_buildtool2', x:entity.x, y:entity.y, volume:1, pitch:0.5 });
+		}
+		
+		this._speed = ( this._scan.length > 0 ) ? 4 : 0;
+	}
 	
 	IsVehicle()
 	{
@@ -392,11 +468,14 @@ class sdSteeringWheel extends sdEntity
 	}
 	GetDriverSlotsCount()
 	{
-		return 1;
+		return ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? 1 : 0;
 	}
 	AddDriver( c )
 	{
 		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.GetDriverSlotsCount() === 0 )
 		return;
 	
 		if ( this.driver0 )
@@ -569,6 +648,73 @@ class sdSteeringWheel extends sdEntity
 				this.vy = 0;
 			}
 			else
+			if ( this.toggle_enabled && this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				if ( GSPEED > 1 )
+				GSPEED = 1;
+			
+				let speed = 4;
+				
+				let dx = 0;
+				let dy = 0;
+				
+				if ( this._toggle_source_current )
+				{
+					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_UP )
+					dy = -1;
+					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_DOWN )
+					dy = 1;
+					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_LEFT )
+					dx = -1;
+					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_RIGHT )
+					dx = 1;
+				}
+				
+				this.vx = dx * GSPEED * speed;
+				this.vy = dy * GSPEED * speed;
+				
+				let xx = Math.round( this.vx * GSPEED );
+				let yy = Math.round( this.vy * GSPEED );
+
+				if ( xx !== 0 || yy !== 0 )
+				{
+					this.VerifyMissingParts();
+					
+					const filter_candidates_function = ( e )=>
+					{
+						if ( e.is( sdBG ) )
+						if ( e.material === sdBG.MATERIAL_PLATFORMS )
+						if ( e.texture_id === sdBG.TEXTURE_ELEVATOR_PATH )
+						return true;
+			
+						return false;
+					};
+					
+					//let path_bgs = sdWorld.GetAnythingNear( this.x + xx + Math.sign( xx ) * 8, this.y + yy + Math.sign( yy ) * 8, 16, null, null, filter_candidates_function );
+					
+					
+
+					if ( sdWorld.CheckWallExists( this.x + xx + Math.sign( xx ) * 8, this.y + yy + Math.sign( yy ) * 8, null, null, null, filter_candidates_function ) && 
+						 sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED, false, this ) )
+					{
+					}
+					else
+					{					
+						if ( !sdWorld.inDist2D_Boolean( 0,0, this.vx,this.vy, 1 ) )
+						sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.25, volume:1 });
+
+						this.vx = 0;
+						this.vy = 0;
+						
+						this._schedule_rounding_task = true;
+						
+						this.toggle_enabled = false;
+						if ( this._toggle_source_current && !this._toggle_source_current._is_being_removed )
+						this._toggle_source_current.SetActivated( false );
+					}
+				}
+			}
+			else
 			if ( this.driver0 )
 			{
 				if ( this.driver0.hea <= 0 || !sdWorld.inDist2D_Boolean( this.x, this.y, this.driver0.x, this.driver0.y, sdSteeringWheel.lost_control_range ) )
@@ -659,6 +805,7 @@ class sdSteeringWheel extends sdEntity
 		
 			if ( current.is( sdThruster ) )
 			{
+				if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 				this._speed--;
 
 				current.enabled = false;
@@ -800,7 +947,7 @@ class sdSteeringWheel extends sdEntity
 				{
 					return false;
 				}*/
-
+						
 				if ( ent2.onThink.has_ApplyVelocityAndCollisions )
 				{
 					if ( stuff_to_push.indexOf( ent2 ) === -1 )
@@ -814,6 +961,19 @@ class sdSteeringWheel extends sdEntity
 				{
 					if ( scan.indexOf( ent2 ) === -1 )
 					{
+						// Let sample builders go through unprotected walls since it might be the one building them
+						if ( current.is( sdSampleBuilder ) )
+						if ( typeof ent2._shielded !== 'undefined' )
+						if ( ent2._shielded === null )
+						{
+							return false;
+						}
+						
+						if ( ent2.is( sdButton ) )
+						{
+							return false;
+						}
+
 						if ( stopping_entities.indexOf( ent2 ) === -1 )
 						{
 							stopping_entities.push( ent2 );
@@ -839,6 +999,18 @@ class sdSteeringWheel extends sdEntity
 			};
 
 			current.CanMoveWithoutOverlap( current.x + xx, current.y + yy, 0, ( ent2 )=>{ return Filter( ent2, current ); }, GetIgnoredEntityClassesFor( current ) );
+			
+			if ( current._phys_entities_on_top )
+			for ( let i = 0; i < current._phys_entities_on_top.length; i++ )
+			{
+				let ent2 = current._phys_entities_on_top[ i ];
+				
+				if ( !ent2._is_being_removed )
+				if ( stuff_to_push.indexOf( ent2 ) === -1 )
+				{
+					stuff_to_push.push( ent2 );
+				}
+			}
 			
 			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 )
 			{
@@ -983,21 +1155,40 @@ class sdSteeringWheel extends sdEntity
 	
 	get title()
 	{
+		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		return 'Skybase steering wheel';
+		
+		return 'Elevator motor';
 	}
 	get description()
 	{
+		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		return 'Lets you move your whole base assuming it isn\'t insanely big. Base should have thrusters. Make sure to connect your base shielding units to this steering wheel via cable management tool.';
+	
+		return 'Lets you move small elevators along elevator path background walls. Use weld tool to pick this elevator motor and then start welding walls and backgrounds you want to add. Use cable-connected directional buttons to control elevator motor.';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.matter_max > 0 )
 		sdEntity.Tooltip( ctx, this.title + ' ( '+this.matter+' / '+this.matter_max+' )' );
+		else
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		ctx.drawImageFilterCache( sdSteeringWheel.img_steering_wheel, - 16, - 16, 32,32 );
+		else
+		ctx.drawImageFilterCache( sdSteeringWheel.img_elevator_motor, 8,8,16,16, - 8, - 8, 16,16 );
 	}
 	
+	DrawIn3D()
+	{
+		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
+		return super.DrawIn3D();
+		else
+		return FakeCanvasContext.DRAW_IN_3D_BOX; 
+	}
 	onBeforeRemove()
 	{
 		let id = sdSteeringWheel.steering_wheels.indexOf( this );
@@ -1010,17 +1201,14 @@ class sdSteeringWheel extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.driver0 )
+		/*if ( this.driver0 )
 		this.ExcludeDriver( this.driver0, true );
-	
+		*/
 		this.RemovePointersToThisSteeringWheel();
 			
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 5 );
-		}
-		else
-		{
 		}
 	}
 	MeasureMatterCost()
@@ -1039,6 +1227,7 @@ class sdSteeringWheel extends sdEntity
 			{
 				if ( command_name === 'SCAN' )
 				{
+					if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 					this.Scan( exectuter_character );
 				}
 			}
@@ -1056,7 +1245,10 @@ class sdSteeringWheel extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdSteeringWheel.access_range ) )
 		{
+			if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 			this.AddContextOption( 'Rescan base entities', 'SCAN', [] );
+			else
+			this.AddContextOption( 'Use cable management tool to weld objects to this elevator motor', 'DO_NOTHING', [] );
 		}
 	}
 }

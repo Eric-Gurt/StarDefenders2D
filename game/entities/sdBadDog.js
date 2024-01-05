@@ -18,7 +18,7 @@ class sdBadDog extends sdEntity
 	static init_class()
 	{
 		sdBadDog.img_bad_dog_anim = sdWorld.CreateImageFromFile( 'sdBadDog' );
-		sdBadDog.img_bad_dog_armored_anim = sdWorld.CreateImageFromFile( 'sdBadDog_armored' );
+		//sdBadDog.img_bad_dog_armored_anim = sdWorld.CreateImageFromFile( 'sdBadDog_armored' );
 		sdBadDog.img_portable_turret = sdWorld.CreateImageFromFile( 'sdPortableTurret' );
 		
 		sdBadDog.frame_idle = 0;
@@ -26,6 +26,7 @@ class sdBadDog extends sdEntity
 		sdBadDog.frame_attack = 2;
 		sdBadDog.frame_death = 3;
 		sdBadDog.frame_death_frames = 5;
+		sdBadDog.frame_idle2 = 8;
 		/*
 		sdBadDog.img_quickie_idle1 = sdWorld.CreateImageFromFile( 'quickie_idle1' );
 		sdBadDog.img_quickie_idle2 = sdWorld.CreateImageFromFile( 'quickie_idle2' );
@@ -55,7 +56,7 @@ class sdBadDog extends sdEntity
 	get hitbox_y2() { return 5; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this.death_anim === 0; }
+	{ return !this.owned && this.death_anim === 0; }
 	
 	constructor( params )
 	{
@@ -71,6 +72,9 @@ class sdBadDog extends sdEntity
 
 		this.type = 0;
 		
+		this._pitch = 3 + Math.random() * 2;
+		this._random_bark_in = 0;
+		
 		this._retreat_hp_mult = 0.5; // Goes closer to 1 each time and at some point makes creature friendly?
 		
 		this.master = null;
@@ -80,6 +84,8 @@ class sdBadDog extends sdEntity
 		this.death_anim = 0;
 		
 		this.hurt_anim = 0;
+		
+		this._confusion_timer = 0;
 		
 		//this.frame = sdBadDog.frame_idle;
 		//this._frame_time = 0;
@@ -104,6 +110,9 @@ class sdBadDog extends sdEntity
 		this._last_turret_attack_attempt = 0; // Failed one
 		
 		this.follow = 1;
+		
+		this._can_see_master = true;
+		this._can_see_master_next_rethink = 0;
 		
 		this._pathfinding = null;
 
@@ -255,6 +264,15 @@ class sdBadDog extends sdEntity
 	{
 		return true;
 	}
+	Impact( vel, initiator=null ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
+	{
+		//if ( vel > 7 )
+		if ( vel > 14 ) // For new mass-based model
+		{
+			//this.DamageWithEffect( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15, initiator );
+		}
+	}
 	/* Default fall damage
 	Impact( vel ) // fall damage basically
 	{
@@ -296,7 +314,15 @@ class sdBadDog extends sdEntity
 			this.master = null;
 		}
 	}
-
+	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic (not neede anymore if that entity has step-up logic)
+	{
+		return true;
+	}
+	onPhysicallyStuck() // Requires _hard_collision OR DoStuckCheck() to return true. Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
+	{
+		return true;
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
@@ -353,16 +379,61 @@ class sdBadDog extends sdEntity
 						this.master.addEventListener( 'REMOVAL', this.MasterRemoved );
 					}
 				}
+				
+				let di_to_master = sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y );
+				if ( sdWorld.time > this._can_see_master_next_rethink )
+				if ( this.master._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Ignore offline players
+				{
+					this._can_see_master = di_to_master < 300 && sdWorld.CheckLineOfSight( this.x, this.y, this.master.x, this.master.y, null, null, sdCom.com_visibility_unignored_classes )
+					this._can_see_master_next_rethink = sdWorld.time + 500 + Math.random() * 500;
+					
+					if ( sdWorld.time > this._random_bark_in )
+					{
+						if ( !this._current_target && this._can_see_master )
+						if ( this._random_bark_in !== 0 )
+						{
+							sdSound.PlaySound({ name:'bad_dog_retreat', x:this.x, y:this.y, volume:0.2, pitch:this._pitch });
+							this.sy -= 1;
+							
+							this.side *= -1;
+							this.sx += this.side;
+						}
+						
+						this._random_bark_in = sdWorld.time + 5000 + Math.random() * 30000;
+					}
+				}
 
 				if ( this._current_target === this.master )
 				{
-					if ( sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y ) < 100 )
+					if ( di_to_master < 100 && this._can_see_master )
 					this.SetTarget( null );
+					else
+					if ( this.master.stands )
+					if ( di_to_master > 150 )
+					{
+						this._confusion_timer += GSPEED;
+
+						if ( this._confusion_timer > 60 )
+						if ( this.master.IsPlayerClass() )
+						{
+							this._confusion_timer = 0;
+							
+							sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.05, pitch:1.1 });
+							sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+							
+							this.x = this.master.x;
+							this.y = this.master.y + this.master._hitbox_y2 - this._hitbox_y2;
+							this.side = -this.master.side;
+							
+							sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.05, pitch:1.1 });
+							sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+						}
+					}
 				}
 				else
 				{
 					if ( this.follow )
-					if ( sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y ) > ( this._current_target ? 300 : 100 ) )
+					if ( di_to_master > ( this._current_target ? 300 : 100 ) || !this._can_see_master )
 					{
 						//this._current_target = this.master;
 						this.SetTarget( this.master );
@@ -428,6 +499,8 @@ class sdBadDog extends sdEntity
 							pathfinding_result.act_y *= -1;
 						}
 					}
+					
+					jump_delay_scale *= ( 0.9 + Math.random() * 0.2 ); // Randomize so multiple dogs won't merge into one on teleportation
 
                     if ( in_water && pathfinding_result )
                     {
@@ -530,6 +603,7 @@ class sdBadDog extends sdEntity
 									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
 									bullet_obj._owner = this;
+									bullet_obj._owner2 = this.master;
 
 									bullet_obj.sx = Math.cos( an );
 									bullet_obj.sy = Math.sin( an );
@@ -672,7 +746,9 @@ class sdBadDog extends sdEntity
 		
 		ctx.scale( -this.side, 1 );
 		
-		var frame = sdBadDog.frame_idle;
+		let turret_y = 0;
+		
+		var frame = ( ( sdWorld.time + this._net_id ) % 2000 < 1000 ) ? sdBadDog.frame_idle : sdBadDog.frame_idle2;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -694,19 +770,24 @@ class sdBadDog extends sdEntity
 			else
 			//if ( Math.abs( this.sx ) < 1.5 )
 			if ( !this.jumps )
-			frame = sdBadDog.frame_idle;
+			{
+				//frame = sdBadDog.frame_idle;
+			}
 			else
 			frame = sdBadDog.frame_jump;
 		}
-		if ( this.type === 0 )
-		ctx.drawImageFilterCache( sdBadDog.img_bad_dog_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
-		if ( this.type === 1 )
-		ctx.drawImageFilterCache( sdBadDog.img_bad_dog_armored_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
+		
+		let yy = this.type * 32;
+		
+		ctx.drawImageFilterCache( sdBadDog.img_bad_dog_anim, frame*32,yy,32,32, - 16, - 16, 32,32 );
+		
+		if ( frame === sdBadDog.frame_idle2 || this.hurt_anim > 0 )
+		turret_y += 1;
 		
 		if ( this.death_anim <= 0 )
 		if ( this.turret_timer >= 0 )
 		{
-			ctx.translate( 4, -8 );
+			ctx.translate( 4, -8 + turret_y );
 				
 			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, 0,0,32,32, - 16, - 16, 32,32 );
 			

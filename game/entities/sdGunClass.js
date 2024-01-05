@@ -24,6 +24,7 @@ import sdStorageTank from './sdStorageTank.js';
 import sdEssenceExtractor from './sdEssenceExtractor.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+//import sdSteeringWheel from './sdSteeringWheel.js';
 
 
 /*
@@ -2670,6 +2671,10 @@ class sdGunClass
 		
 		const cable_reaction_method = ( bullet, target_entity )=>
 		{
+			if ( bullet._owner._current_built_entity )
+			if ( !bullet._owner._current_built_entity.is( sdCable ) )
+			bullet._owner._current_built_entity = null;
+			
 			if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
 			{
 				if ( target_entity._shielded && !target_entity._shielded._is_being_removed && target_entity._shielded.protect_cables )
@@ -2746,6 +2751,11 @@ class sdGunClass
 				if ( target_entity.is( sdJunk ) )
 				if ( target_entity.hea > target_entity.hmax - 5 )
 				target_entity.hea = target_entity.hmax;
+			}
+			else
+			if ( bullet._owner._current_built_entity && bullet._owner._current_built_entity.p && bullet._owner._current_built_entity.p.is( sdWorld.entity_classes.sdSteeringWheel ) && bullet._owner._current_built_entity.p.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				bullet._owner._current_built_entity.p.ToggleSingleScanItem( target_entity, bullet._owner );
 			}
 			else
 			{
@@ -3256,11 +3266,8 @@ class sdGunClass
 			min_workbench_level: 3,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 250;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 250 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -3281,11 +3288,8 @@ class sdGunClass
 			min_workbench_level: 4,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 500;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 500 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -3306,11 +3310,8 @@ class sdGunClass
 			min_workbench_level: 7,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 750;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 750 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -3649,8 +3650,8 @@ class sdGunClass
 			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
 			slot: 1,
-			reload_time: 2.7,
-			muzzle_x: 9,
+			reload_time: 5.4,
+			muzzle_x: 8,
 			ammo_capacity: 8,
 			count: 1,
 			spawnable:false,
@@ -5863,6 +5864,13 @@ class sdGunClass
 			image_frames: 4,
 			image_duration: 250,
 			title: 'Score shard',
+			title_dynamic: ( gun )=>
+			{
+				if ( gun.extra > 1 )
+				return 'Score shard x'+gun.extra;
+			
+				return 'Score shard';
+			},
 			hea: 400,
 			no_tilt: true,
 			unhookable: true,
@@ -5883,7 +5891,10 @@ class sdGunClass
 					character.GiveScore( sdEntity.SCORE_REWARD_SCORE_SHARD * gun.extra, gun, false );
 
 					if ( character._socket )
-					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4, pitch:0.5 }, [ character._socket ] );
+					{
+						let power = Math.sqrt( gun.extra );
+						sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4 * ( ( power + 1 ) / 2 ), pitch:0.5 / ( ( power + 1 ) / 2 ) }, [ character._socket ] );
+					}
 				
 					gun.remove();
 				}
@@ -5938,11 +5949,8 @@ class sdGunClass
 			spawnable: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character.armor > 0 )
-				{
-					character._armor_repair_amount = 1000;
-					gun.remove(); 
-				}
+				if ( character.ApplyArmorRegen( 1000 ) )
+				gun.remove(); 
 
 				return false; 
 			} 
@@ -7943,7 +7951,7 @@ class sdGunClass
 
 								bullet_obj5.explosion_radius = 16;
 								bullet_obj5.model = 'sarronian_bio_gas';
-								bullet_obj5.model_is_big = true; // the bio gas is a 96 by 96 sprite, use this for 96 by 96 projectile sprites
+								bullet_obj5.model_size = 3; // the bio gas is a 96 by 96 sprite, use this for 96 by 96 projectile sprites
 								bullet_obj5._damage = 8;
 								bullet_obj5.color ='#00ff00';
 								bullet_obj5._dirt_mult = 1;
@@ -8042,7 +8050,7 @@ class sdGunClass
 				if ( gun.fire_mode !== 2 )
 				{ let obj = { explosion_radius: 28, model:'sarronian_energy_wave', color: '#00ff00', _dirt_mult: 1,
 					projectile_velocity: 2, time_left: 75, _hittable_by_bullets: false, gravity_scale: 0,
-					model_is_large: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites}
+					model_size: 2 } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
 					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -8549,7 +8557,7 @@ class sdGunClass
 					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 1; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 					
-					gun._max_dps = ( 30 / (20 + 15 ) * 601 ); // Max damage was calculated by shooting an Erthal beacon. Don't know how else I'd do it since explosions lol - Booraz149
+					gun._max_dps = ( 30 / ( 20 + 15 ) * 601 ); // Max damage was calculated by shooting an Erthal beacon. Don't know how else I'd do it since explosions lol - Booraz149
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
@@ -8691,6 +8699,99 @@ class sdGunClass
 				return false; 
 			},
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_ERTHAL_DMR = 135 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'erthal_dmr' ), // Sprite by Flora / Gravel
+			sound: 'spider_deathC3',
+			sound_pitch: 0.35,
+			sound_volume: 1.5,
+			title: 'Erthal Marksman Rifle',
+			slot: 4,
+			reload_time: 1,
+			muzzle_x: 7,
+			ammo_capacity: 10,
+			count: 1,
+			spawnable: false,
+			burst: 2, // Burst fire count
+			burst_reload: 24, // Burst fire reload, needed when giving burst fire
+			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
+			projectile_properties: { _damage: 60,  color: '#00aaff', _dirt_mult: -0.5, model:'bullet2' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { color: '#00aaff', model:'bullet2', _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 60; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
+		};
+		
+		const weld_reaction_method = ( bullet, target_entity )=>
+		{
+			if ( bullet._owner._current_built_entity )
+			if ( !bullet._owner._current_built_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
+			bullet._owner._current_built_entity = null;
+			
+			if ( target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) && target_entity.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				bullet._owner.Say( 'Elevator motor set. Let\'s pick parts to weld to it' );
+				bullet._owner._current_built_entity = target_entity;
+				return;
+			}
+			
+			if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
+			{
+				bullet._owner._current_built_entity.ToggleSingleScanItem( target_entity, bullet._owner );
+			}
+			else
+			bullet._owner.Say( 'Elevator motor is not yet set' );
+		};
+		sdGun.classes[ sdGun.CLASS_WELD_TOOL = 136 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'weld_gun' ),
+			image_firing: sdWorld.CreateImageFromFile( 'weld_gun_fire' ),
+			sound: 'gun_spark',
+			title: 'Elevator weld tool',
+			sound_pitch: 1.5,
+			sound_volume: 0.333,
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 300,
+			min_build_tool_level: 2,
+			projectile_velocity: 16,
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
+				_custom_target_reaction_protected: weld_reaction_method,
+				_custom_target_reaction: weld_reaction_method
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+			}
 		};
 
 		// Add new gun classes above this line //

@@ -73,7 +73,10 @@ class sdCable extends sdEntity
 			'sdSteeringWheel',
 			'sdManualTurret',
 			'sdWeaponMerger',
-			'sdLiquidAbsorber'
+			'sdLiquidAbsorber',
+			'sdStorage',
+			'sdSampleBuilder',
+			'sdWorkbench'
 		];
 		
 		sdCable.empty_array = [];
@@ -84,7 +87,8 @@ class sdCable extends sdEntity
 			'sdDoor',
 			'sdTurret',
 			'sdTeleport',
-			'sdManualTurret'
+			'sdManualTurret',
+			'sdSampleBuilder'
 		];
 		// Flow ranks
 		/*sdCable.hungry_entities = new Set([

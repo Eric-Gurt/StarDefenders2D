@@ -50,6 +50,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_RAIL_HIT = 18;
 		sdEffect.TYPE_BEAM_CIRCLED = 19;
 		sdEffect.TYPE_SPEED = 20;
+		sdEffect.TYPE_ALT_RAIL = 21;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -292,6 +293,13 @@ class sdEffect extends sdEntity
 			speed: 10 / 30,
 			spritesheet: true,
 			apply_shading: false
+		};
+		sdEffect.types[ sdEffect.TYPE_ALT_RAIL ] = {
+			images: [ sdWorld.CreateImageFromFile( 'bullet2' ) ],
+			duration: 30,
+			speed: 0.8,
+			apply_shading: false,
+			random_speed_percentage: 0.25
 		};
 	
 		sdEffect.translit_result_assumed_language = null;
@@ -878,6 +886,7 @@ class sdEffect extends sdEntity
 			
 		}
 		
+		
 		if ( this._type === sdEffect.TYPE_LAG )
 		{
 			if ( !globalThis.enable_debug_info )
@@ -948,6 +957,37 @@ class sdEffect extends sdEntity
 					//ctx.sd_color_mult_b = 1;
 				}
 			}
+		}
+		else
+		if ( this._type === sdEffect.TYPE_ALT_RAIL )
+		{
+			//ctx.rotate( Math.atan2( this.y - this._y2, this.x - this._x2 ) );
+				
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				if ( this._sd_tint_filter )
+				{
+					this._sd_tint_filter[ 0 ] /= 255;
+					this._sd_tint_filter[ 1 ] /= 255;
+					this._sd_tint_filter[ 2 ] /= 255;
+				}
+			}
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				// Projectile coloring
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.globalAlpha = ( 1 - this._ani / this._duration );
+				ctx.rotate( Math.atan2( this._y2 - this.y, this._x2 - this.x ) );
+				let vel = sdWorld.Dist2D( this.x, this.y, this._x2, this._y2 );
+				ctx.scale( 1 * vel / 32, 0.5 );
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 0, - 16, 32, 32 );
+				ctx.globalAlpha = 1;
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+			
 		}
 		else
 		{

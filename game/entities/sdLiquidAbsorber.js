@@ -179,8 +179,6 @@ class sdLiquidAbsorber extends sdEntity
 			this._allow_liquid_removal = true;
 			this._update_version++;
 		}
-
-		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );	
 	}
 
 	DrawHUD( ctx, attached ) // foreground layer

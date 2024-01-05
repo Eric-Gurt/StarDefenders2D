@@ -294,6 +294,7 @@ class sdSound
 					{
 						count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 
+						if ( e._swimmers )
 						for ( let sw of e._swimmers )
 						if ( !sw.isWaterDamageResistant() )
 						{

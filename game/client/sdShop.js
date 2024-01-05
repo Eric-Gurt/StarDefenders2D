@@ -336,6 +336,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:12 });
 			sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:14 });
 			sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, _category:'Base equipment', _min_build_tool_level: 35 });
+			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'saturate(0)', _category:'Base equipment' });
@@ -343,11 +345,11 @@ class sdShop
 			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'none', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 1 });
-			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 1 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'none', _category:'Base equipment', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 15 });
 			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'saturate(0)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'none', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
@@ -358,10 +360,16 @@ class sdShop
 			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdStorage', type: 4, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 32 });
+			sdShop.options.push({ _class: 'sdStorage', type: 4, filter: 'none', _category:'Base equipment', _min_build_tool_level: 32 });
+			sdShop.options.push({ _class: 'sdStorage', type: 4, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 32 });
+			sdShop.options.push({ _class: 'sdStorage', type: 4, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 32 });
+			sdShop.options.push({ _class: 'sdStorage', type: 4, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 32 });
 			sdShop.options.push({ _class: 'sdNode', type:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:4, _category:'Base equipment', _min_build_tool_level:15 });
+			sdShop.options.push({ _class: 'sdNode', type:5, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 2, _min_build_tool_level: 3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 4, _min_build_tool_level: 9, _category:'Base equipment' });
@@ -448,14 +456,19 @@ class sdShop
 			sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(220deg) brightness(0.7)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.7) hue-rotate(300deg) brightness(0.7)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdBeacon', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdSteeringWheel', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdSteeringWheel', type:0, _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdSteeringWheel', type:1, _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 3 });
 			sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 
-			sdShop.options.push({ _class: 'sdButton', type:0, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:0, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:2, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:3, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:4, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:5, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
@@ -501,6 +514,11 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
 
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
+			
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, texture_id: sdBG.TEXTURE_ELEVATOR_PATH, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, texture_id: sdBG.TEXTURE_ELEVATOR_PATH, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, texture_id: sdBG.TEXTURE_ELEVATOR_PATH, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, texture_id: sdBG.TEXTURE_ELEVATOR_PATH, _category:'Background walls' });
 			//sdShop.options.push({ _class: 'sdWater' });
 
 			for ( var i = 0; i < sdGun.classes.length; i++ )
@@ -566,7 +584,8 @@ class sdShop
 
 			//if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
 			{
-				sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdOctopus', type:0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdOctopus', type:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuickie', tier:2, filter:'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
@@ -585,7 +604,9 @@ class sdShop
 
 
 				sdShop.options.push({ _class: 'sdCharacter', title: 'Idling AI from the shop', sd_filter:sd_filter2, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
@@ -774,6 +795,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
@@ -900,7 +922,13 @@ class sdShop
 				description: 'Allows you to activate invisibility by pressing E button.',
 				action: ( character, level_purchased )=>
 				{
+					character.UninstallUpgrade( 'upgrade_shield' ); // Uninstall upgrades which use this button
 					character._ghost_allowed = true;
+				},
+				reverse_action: ( character, level_purchased )=>
+				{
+					character._ghost_allowed = false;
+					character.TogglePlayerAbility();
 				}
 			},
 			upgrade_flashlight:
@@ -1007,7 +1035,23 @@ class sdShop
 				action: ( character, level_purchased )=>
 				{
 				}
-			}
+			},
+			upgrade_shield:
+			{
+				max_level: 1,
+				matter_cost: 150,
+				description: 'Allows you to activate shielding capabilities by pressing E button.',
+				action: ( character, level_purchased )=>
+				{
+					character.UninstallUpgrade( 'upgrade_invisibility' ); // Uninstall upgrades which use this button
+					character._shield_allowed = true;
+				},
+				reverse_action: ( character, level_purchased )=>
+				{
+					character._shield_allowed = false;
+					character.TogglePlayerAbility();
+				}
+			},
 		};
 		for ( var i in sdShop.upgrades )
 		{

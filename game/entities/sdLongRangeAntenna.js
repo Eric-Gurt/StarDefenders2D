@@ -77,6 +77,8 @@ class sdLongRangeAntenna extends sdEntity
 		this._spawn_timer = 30;
 		this._enemies_spawned = 0; 
 		
+		this._ai_team = 0;
+		
 		this.progress = 0; // Task progress - needed for "Protect" task types
 		
 		this._spawned_ai = false; // Spawn SD AI
@@ -92,6 +94,10 @@ class sdLongRangeAntenna extends sdEntity
 		
 		sdLongRangeAntenna.antennas.push( this );
 		//this._regen_mult = 1;
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_shielded' );
 	}
 	
 	AttemptTeleportToTarget( ent ){
@@ -140,7 +146,7 @@ class sdLongRangeAntenna extends sdEntity
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });
 	}*/
 
-	get mass() { return 115; } // Recommended to move with vehicles if blocked by something
+	get mass() { return 120; } // Recommended to move with vehicles if blocked by something
 	/*MeasureMatterCost()
 	{
 		//return 0; // Hack

@@ -209,13 +209,16 @@ class sdPlayerDrone extends sdCharacter
 		this.sy += y / this.mass;
 	}
 	
-	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
+	TogglePlayerAbility() // part of ManagePlayerVehicleEntrance()
 	{
 		// Disabled
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.ConnecgtedGodLogic( GSPEED );
+		if ( this.PlayerClassThinkPausedLogic( GSPEED ) )
+		return;
+	
+		this.ConnectedGodLogic( GSPEED );
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );

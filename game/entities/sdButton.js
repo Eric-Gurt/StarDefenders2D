@@ -16,6 +16,8 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdAntigravity from './sdAntigravity.js';
 import sdNode from './sdNode.js';
 import sdTurret from './sdTurret.js';
+import sdSampleBuilder from './sdSampleBuilder.js';
+import sdSteeringWheel from './sdSteeringWheel.js';
 
 import sdSound from '../sdSound.js';
 
@@ -32,6 +34,13 @@ class sdButton extends sdEntity
 		sdButton.TYPE_WALL_SENSOR = 2;
 		sdButton.TYPE_WALL_MATTER_SENSOR = 3;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
+		
+		sdButton.BUTTON_KIND_TOGGLE = 0;
+		sdButton.BUTTON_KIND_KEYCARD = 1;
+		sdButton.BUTTON_KIND_TAP_UP = 2;
+		sdButton.BUTTON_KIND_TAP_DOWN = 3;
+		sdButton.BUTTON_KIND_TAP_LEFT = 4;
+		sdButton.BUTTON_KIND_TAP_RIGHT = 5;
 		
 		// These are indices in array
 		sdButton.FILTER_OPTION_CURRENT = 0; // Can be mass or matter
@@ -81,6 +90,9 @@ class sdButton extends sdEntity
 	}
 	get description()
 	{
+		if ( this.type === sdButton.TYPE_WALL_SWITCH && this.kind >= sdButton.BUTTON_KIND_TAP_UP && this.kind <= sdButton.BUTTON_KIND_TAP_RIGHT )
+		return `Directional buttons to be used along with elevator motors. Make sure your elevator motor has elevator path built with background walls.`;
+	
 		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields etc.`;
 	}
 		
@@ -101,7 +113,8 @@ class sdButton extends sdEntity
 				return ( 
 					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].is_sword ||
 					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].slot === 0 || // Some sword-like guns (fists, deconstruction hammers yet can't be thrown to deal damage) have slot 0
-					bullet._gun.class === sdGun.CLASS_CABLE_TOOL );
+					bullet._gun.class === sdGun.CLASS_CABLE_TOOL ||
+					bullet._gun.class === sdGun.CLASS_WELD_TOOL );
 			}
 			return false;
 		}
@@ -140,6 +153,7 @@ class sdButton extends sdEntity
 		super( params );
 		
 		this.type = params.type || sdButton.TYPE_WALL_BUTTON;
+		this.kind = params.kind || 0;
 
 		this._hmax = 100;
 		this._hea = this._hmax;
@@ -356,7 +370,11 @@ class sdButton extends sdEntity
 			};
 			
 			let doors = this.FindObjectsInACableNetwork( null, sdDoor, true ); // { entity: sdEntity, path: [] }
-			let antigravities = this.FindObjectsInACableNetwork( null, sdAntigravity, true ); // { entity: sdEntity, path: [] }
+			let entities_with_toggle_enabled = [ 
+				...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), 
+				...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ), 
+				...this.FindObjectsInACableNetwork( null, sdSteeringWheel, true ) 
+			]; // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
 			let turrets = this.FindObjectsInACableNetwork( null, sdTurret, true );
 			
@@ -368,6 +386,73 @@ class sdButton extends sdEntity
 				return false;
 				
 				return true;
+			};
+			
+			const MeasureDelayAndDo = ( path, ent, then )=>
+			{
+				let delay = 0;
+				
+				for ( let i2 = 0; i2 < path.length; i2++ ) // 0 is button/sensor
+				{
+					let node = path[ i2 ];
+					
+					let i2_copy = i2;
+					//
+					if ( node.is( sdNode ) )
+					if ( node.type === sdNode.TYPE_SIGNAL_DELAYER )
+					{
+						setTimeout( ()=>{
+							
+							let fail = false;
+							for ( let i2 = 0; i2 <= i2_copy; i2++ )
+							if ( path[ i2 ]._is_being_removed )
+							{
+								fail = true;
+								break;
+							}
+							
+							//if ( !node._is_being_removed )
+							if ( !fail )
+							{
+								node.variation = 1;
+								node._update_version++;
+								
+								sdSound.PlaySound({ name:'sd_beacon_disarm', x:node.x, y:node.y, volume:0.5, pitch:8 });
+							}
+						}, delay );
+						setTimeout( ()=>{
+							if ( !node._is_being_removed )
+							{
+								node.variation = 0;
+								node._update_version++;
+							}
+						}, delay + 500 );
+
+
+						delay += 500;
+					}
+				}
+				
+				if ( delay === 0 )
+				then();
+				else
+				{
+					setTimeout( ()=>{
+						if ( !ent._is_being_removed )
+						{
+							let fail = false;
+							for ( let i2 = 0; i2 < path.length; i2++ )
+							if ( path[ i2 ]._is_being_removed )
+							{
+								fail = true;
+								break;
+							}
+
+							if ( !fail )
+							then();
+						}
+					}, delay );
+				}
 			};
 			
 			for ( let i = 0; i < nodes.length; i++ )
@@ -433,34 +518,37 @@ class sdButton extends sdEntity
 				
 				if ( !IsPathTraversable( path ) )
 				continue;
-				
-				door.open_type = sdDoor.OPEN_TYPE_BUTTON;
-				
-				let id = door._entities_within_sensor_area.indexOf( door._net_id ); // Add itself so multiple sensors/buttons could be used
-				
-				if ( vv )
+			
+				MeasureDelayAndDo( path, door, ()=>
 				{
-					if ( id === -1 )
+					door.open_type = sdDoor.OPEN_TYPE_BUTTON;
+
+					let id = door._entities_within_sensor_area.indexOf( door._net_id ); // Add itself so multiple sensors/buttons could be used
+
+					if ( vv )
 					{
-						door._entities_within_sensor_area.push( door._net_id );
-						door.Open();
+						if ( id === -1 )
+						{
+							door._entities_within_sensor_area.push( door._net_id );
+							door.Open();
+						}
 					}
-				}
-				else
-				if ( id !== -1 )
-				{
-					door._entities_within_sensor_area.splice( id, 1 );
-					door.opening_tim = 0.000001; // Micro value so sound can play
-				}
+					else
+					if ( id !== -1 )
+					{
+						door._entities_within_sensor_area.splice( id, 1 );
+						door.opening_tim = 0.000001; // Micro value so sound can play
+					}
+				});
 			}
-			for ( let i = 0; i < antigravities.length; i++ )
+			for ( let i = 0; i < entities_with_toggle_enabled.length; i++ )
 			{
-				let antigravity = antigravities[ i ].entity;
+				let antigravity = entities_with_toggle_enabled[ i ].entity;
 				
 				if ( antigravity._is_being_removed )
 				continue;
 			
-				let path = antigravities[ i ].path;
+				let path = entities_with_toggle_enabled[ i ].path;
 				
 				let vv = GetFlipLogic( path );
 				
@@ -470,10 +558,24 @@ class sdButton extends sdEntity
 				if ( !IsPathTraversable( path ) )
 				continue;
 				
-				antigravity._update_version++;
-				antigravity.toggle_enabled = vv;
-				if ( vv )
-				antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				MeasureDelayAndDo( path, antigravity, ()=>
+				{
+					if ( typeof antigravity._update_version !== 'undefined' )
+					antigravity._update_version++;
+
+					if ( typeof antigravity._toggle_source_current !== 'undefined' )
+					{
+						if ( antigravity._toggle_source_current && !antigravity._toggle_source_current._is_being_removed )
+						antigravity._toggle_source_current.SetActivated( false );
+						
+						antigravity._toggle_source_current = vv ? this : null;
+					}
+
+					antigravity.toggle_enabled = vv;
+					
+					if ( vv )
+					antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				});
 			}
 			for ( let i = 0; i < turrets.length; i++ )
 			{
@@ -492,33 +594,34 @@ class sdButton extends sdEntity
 				if ( !IsPathTraversable( path ) )
 				continue;
 				
-				turret._update_version++;
-				//turret.toggle_enabled = vv;
 				
-				//turret
-				
-				if ( vv )
+				MeasureDelayAndDo( path, turret, ()=>
 				{
-					// Find last node and use its' direction
-					for ( let i = path.length - 1; i >= 0; i-- )
+					turret._update_version++;
+
+					if ( vv )
 					{
-						let node = path[ i ];
-						if ( node.is( sdNode ) )
-						if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+						// Find last node and use its' direction
+						for ( let i = path.length - 1; i >= 0; i-- )
 						{
-							turret.auto_attack = node.variation;
-							turret._auto_attack_reference = node;
-							break;
+							let node = path[ i ];
+							if ( node.is( sdNode ) )
+							if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+							{
+								turret.auto_attack = node.variation;
+								turret._auto_attack_reference = node;
+								break;
+							}
 						}
+
+						turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
-					
-					turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-				}
-				else
-				{
-					turret.auto_attack = -1;
-					turret._auto_attack_reference = null;
-				}
+					else
+					{
+						turret.auto_attack = -1;
+						turret._auto_attack_reference = null;
+					}
+				});
 			}
 			
 			
@@ -672,15 +775,28 @@ class sdButton extends sdEntity
 	
 	DrawOnALayer( ctx, attached )
 	{
-		var activated = ( this.activated || ( sdShop.isDrawing && this.type !== sdButton.TYPE_FLOOR_SENSOR ) ) ? 3 : 2;
-		
 		let yy = this.type * 32;
 
-		ctx.apply_shading = true;
-		ctx.drawImageFilterCache( sdButton.img_button, 0,yy, 32,32,-16,-16,32,32 ); // TODO: Make the sprite look like a button
-		
-		ctx.apply_shading = false;
-		ctx.drawImageFilterCache( sdButton.img_button, activated * 32,yy, 32,32,-16,-16,32,32 );
+		if ( this.type === sdButton.TYPE_WALL_BUTTON )
+		{
+			let xx = this.kind * 64;
+			
+			ctx.apply_shading = true;
+			ctx.drawImageFilterCache( sdButton.img_button, xx,yy,32,16, -16,-8,32,16 );
+
+			ctx.apply_shading = false;
+			ctx.drawImageFilterCache( sdButton.img_button, xx+(this.activated?32:0),yy+16,32,16, -16,-8,32,16 );
+		}
+		else
+		{
+			var activated = ( this.activated || ( sdShop.isDrawing && this.type !== sdButton.TYPE_FLOOR_SENSOR ) ) ? 3 : 2;
+
+			ctx.apply_shading = true;
+			ctx.drawImageFilterCache( sdButton.img_button, 0,yy, 32,32,-16,-16,32,32 );
+
+			ctx.apply_shading = false;
+			ctx.drawImageFilterCache( sdButton.img_button, activated * 32,yy, 32,32,-16,-16,32,32 );
+		}
 	}
 	AddDriver( c )
 	{

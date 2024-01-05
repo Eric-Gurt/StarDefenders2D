@@ -1574,7 +1574,7 @@ class sdStatusEffect extends sdEntity
 			}
 		}
 		else
-		if ( this.for )
+		if ( this.for && !this.for._is_being_removed )
 		{
 			let arr = sdStatusEffect.entity_to_status_effects.get( this.for );
 

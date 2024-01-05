@@ -64,6 +64,42 @@ class sdGun extends sdEntity
 		
 		sdGun.classes = [];
 		
+		sdGun.score_shard_recolor_tiers = [
+			null, // 0
+			sdWorld.CreateSDFilter(), // 1
+			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#00bcff' ), // 2
+			null, // 3
+			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#00ffda' ), // 4
+			null, // 5
+			null, // 6
+			null, // 7
+			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#8effc2' ), // 8
+			null, // 9
+			null, // 10
+			null, // 11
+			null, // 12
+			null, // 13
+			null, // 14
+			null, // 15
+			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#d8ffea' ), // 16
+			null, // 17
+			null, // 18
+			null, // 19
+			null, // 20
+			null, // 21
+			null, // 22
+			null, // 23
+			null, // 24
+			null, // 25
+			null, // 26
+			null, // 27
+			null, // 28
+			null, // 29
+			null, // 30
+			null, // 31
+			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#ffffff' ) // 32
+		];
+		
 		sdGunClass.init_class(); // Will populate sdGun.classes array
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -96,6 +132,9 @@ class sdGun extends sdEntity
 			{
 				if ( sdWorld.time > this._last_hit_sound )
 				{
+					if ( this.class === sdGun.CLASS_SCORE_SHARD )
+					sdSound.PlaySound({ name:'score_impact', x:this.x, y:this.y, pitch:2, volume: 0.15, _server_allowed:true });
+					else
 					if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 					sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch:2, volume: 0.15, _server_allowed:true });
 					else
@@ -144,24 +183,26 @@ class sdGun extends sdEntity
 
 		if ( sdWorld.is_server )
 		{
-			/*if ( this.class === sdGun.CLASS_SCORE_SHARD )
-			if ( Math.random() < 0.1 )
+			if ( this.class === sdGun.CLASS_SCORE_SHARD )
+			if ( Math.random() < 0.01 )
 			if ( !this._is_being_removed )
 			if ( !from_entity._is_being_removed )
 			if ( from_entity.is( sdGun ) )
 			if ( from_entity.class === sdGun.CLASS_SCORE_SHARD )
 			if ( this.extra === from_entity.extra )
 			{
-				let new_extra = ~~Math.sqrt( this.extra + from_entity.extra );
+				//let new_extra = ~~Math.sqrt( this.extra + from_entity.extra );
+				let new_extra = this.extra + from_entity.extra;
 				
 				if ( new_extra < sdGun.score_shard_recolor_tiers.length )
 				{
 					from_entity.extra = new_extra;
 					from_entity.sd_filter = sdGun.score_shard_recolor_tiers[ new_extra ];
+					from_entity.ttl = from_entity.ttl + this.ttl;
 					this.remove();
 					return;
 				}
-			}*/
+			}
 			
 			if ( this.dangerous )
 			{
@@ -375,6 +416,8 @@ class sdGun extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		this.sync = 0;
 		
 		this._time_amplification = 0;
 		
@@ -634,7 +677,7 @@ class sdGun extends sdEntity
 			cost = 0;
 
 			
-			//ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
+			// Done at sdSampleBuilder too
 			ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); // Disable any removal logic
 			ent.remove();
 			ent._remove();
@@ -836,7 +879,7 @@ class sdGun extends sdEntity
 						else
 						if ( ammo_cost > this._held_by.matter_max )
 						{
-							if ( this._held_by.build_tool_level >= this._held_by._max_level )
+							if ( this._held_by.build_tool_level >= sdCharacter.max_level )
 							{
 								if ( this._held_by._matter_capacity_boosters >= this._held_by._matter_capacity_boosters_max )
 								this._held_by.Say( 'I should try building lower tier version of this entity, then update gradually by right clicking it' );
@@ -928,7 +971,7 @@ class sdGun extends sdEntity
 
 							let ent = this._held_by.CreateBuildObject( false, ( this._held_by._build_params._category === 'Development tests' ) );
 							
-							if ( this._held_by._build_params._category !== 'Development tests' && !this._held_by._build_params._spawn_with_full_hp )
+							/*if ( this._held_by._build_params._category !== 'Development tests' && !this._held_by._build_params._spawn_with_full_hp )
 							{
 
 								if ( typeof ent.hmax !== 'undefined' )
@@ -938,7 +981,8 @@ class sdGun extends sdEntity
 								ent.Damage( ent._hmax * 0.9, null, false, false ); // Start with low hp
 							}
 						
-							ent.onBuilt();
+							ent.onBuilt();*/
+							sdCharacter.ApplyPostBuiltProperties( ent, this._held_by._build_params, this._held_by, false );
 							
 							//sdEntity.recently_build.set( ent, { by: this._held_by } );
 
@@ -1166,8 +1210,43 @@ class sdGun extends sdEntity
 		}
 	}
 	
+	isSnapshotDecodingAllowed( snapshot ) // Same for characters
+	{
+		if ( !sdWorld.is_server )
+		{
+			if ( this.sync === -1 )
+			return true;
+		
+			if ( this.sync !== snapshot.sync )
+			return true;
+	
+			return false;
+		}
+		return true;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( !sdWorld.is_singleplayer )
+		if ( sdWorld.is_server )
+		{
+			let owner = this._held_by;
+			
+			if ( owner )
+			if ( owner._is_being_removed )
+			owner = null;
+			
+			let socket = owner ? owner._socket : null;
+			
+			if ( socket && socket.last_gsco_time > sdWorld.time - 1000 && owner.hea > 0 && !sdCharacter.allow_alive_players_think )
+			{
+				return;
+			}
+		}
+		
+		if ( sdWorld.is_server )
+		this.sync = ( this.sync + 1 ) % 100; // Additionally done at index.js
+		
+		
 		let GSPEED_unscaled = GSPEED;
 		
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );

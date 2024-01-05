@@ -107,7 +107,7 @@ class sdMatterContainer extends sdEntity
 	
 		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 2 );
 	
-		ctx.globalAlpha = this.matter / this.matter_max;
+		ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
 		
 		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 32, - 32, 64, 64 );
 		

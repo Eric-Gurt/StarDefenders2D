@@ -17,6 +17,7 @@ import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdGrass from './sdGrass.js';
 import sdCom from './sdCom.js';
+import sdAsteroid from './sdAsteroid.js';
 
 class sdMimic extends sdEntity
 {
@@ -384,6 +385,7 @@ class sdMimic extends sdEntity
 							if ( !ent.is( sdFleshGrabber ) )
 							if ( !ent.is( sdEffect ) )
 							if ( !ent.is( sdBullet ) )
+							if ( !ent.is( sdAsteroid ) || ent.landed )
 							if ( !ent.is( sdCharacter ) || !ent.flying )
 							if ( !ent.is( sdGun ) || ent.class !== sdGun.CLASS_SCORE_SHARD )
 							if ( ent.GetClass() !== 'sdBone' )

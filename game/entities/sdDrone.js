@@ -136,7 +136,7 @@ class sdDrone extends sdEntity
 			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 	
-		this._hea = this._hmax;
+		this._hea = this._hmax; // I don't know what to do again, just don't remove it.
 		this.hea = this._hea;
 		this._ai_team = params._ai_team || 0;
 		
@@ -398,6 +398,26 @@ class sdDrone extends sdEntity
 		}
 		
 		this.hea -= dmg;
+		
+		if ( this.type === sdDrone.DRONE_SARRONIAN ||
+			 this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ||
+			 this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE ||
+			 this.type === sdDrone.DRONE_SARRONIAN_GAUSS )
+		{
+			let base_pitch = ( 600 / this._hmax + 1 ) / 2;
+			
+			if ( base_pitch > 1 )
+			base_pitch = ( base_pitch + 1 * 3 ) / 4;
+			
+			if ( this.hea <= 0 && was_alive )
+			sdSound.PlaySound({ name:'drone_death', x:this.x, y:this.y, volume:2, pitch:0.5 * base_pitch });
+			else
+			if ( this.hea > 0 )
+			if ( Math.ceil( old_hea / this._hmax * 8 ) !== Math.ceil( this.hea / this._hmax * 8) )
+			{
+				sdSound.PlaySound({ name:'drone_death', x:this.x, y:this.y, volume:1, pitch:1 * base_pitch });
+			}
+		}
 		
 		if ( this.type === sdDrone.DRONE_SARRONIAN ||
 			 this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ||

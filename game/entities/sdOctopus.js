@@ -125,7 +125,7 @@ class sdOctopus extends sdEntity
 		{
 			if ( character.driver_of.is( sdOctopus ) )
 			return;
-		
+
 			character = character.driver_of;
 		}
 		

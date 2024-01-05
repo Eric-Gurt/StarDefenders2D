@@ -18,6 +18,7 @@ class sdBG extends sdEntity
 		sdBG.img_hex2 = sdWorld.CreateImageFromFile( 'bg_hex2' );
 		sdBG.img_glowing = sdWorld.CreateImageFromFile( 'bg_glowing' );
 		sdBG.img_window = sdWorld.CreateImageFromFile( 'bg_window' );
+		sdBG.img_elevator_path = sdWorld.CreateImageFromFile( 'bg_elevator' );
 		
 		// Better to keep these same as in sdBlock, so 3D effects will work as intended
 		sdBG.MATERIAL_PLATFORMS = 0;
@@ -33,8 +34,16 @@ class sdBG extends sdEntity
 		sdBG.TEXTURE_HEX = t++;
 		sdBG.TEXTURE_GLOWING = t++;
 		sdBG.TEXTURE_WINDOW = t++;
+		sdBG.TEXTURE_ELEVATOR_PATH = t++;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	get description()
+	{
+		if ( this.texture_id === sdBG.TEXTURE_ELEVATOR_PATH )
+		return 'Path for elevator motors to travel through.';
+	
+		return 'Background wall. Can be damaged while holding Shift key.';
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.width; }
@@ -116,7 +125,7 @@ class sdBG extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_decals' );
+		return ( prop === '_decals' || prop === '_shielded' );
 	}
 	MeasureMatterCost()
 	{
@@ -232,6 +241,9 @@ class sdBG extends sdEntity
 
 			if ( this.texture_id === sdBG.TEXTURE_WINDOW )
 			img = sdBG.img_window;
+		
+			if ( this.texture_id === sdBG.TEXTURE_ELEVATOR_PATH )
+			img = sdBG.img_elevator_path;
 		
 			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
 		}

@@ -35,6 +35,7 @@ class sdBubbleShield extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
 		sdBubbleShield.TYPE_VELOX_SHIELD = 0; // Velox shields
+		sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD = 1; // SD shields
 	}
 
 	get hard_collision()
@@ -53,14 +54,19 @@ class sdBubbleShield extends sdEntity
 	
 		dmg = Math.abs( dmg );
 		
-		this._hea -= dmg;
+		this.hea -= dmg;
+		
+		this._regen_timeout = 30;
 		
 		if ( dmg > 5 )
 		sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 		
-		if ( this._hea <= 0 )
+		if ( this.hea <= 0 )
 		{
+			if ( this.type !== sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
 			this.remove();
+			else
+			this.hea = Math.max( -150, this.hea );
 		}
 	}
 	GetShieldHealth( shield_type = 0 )
@@ -76,6 +82,9 @@ class sdBubbleShield extends sdEntity
 	{
 		if ( shield_type === sdBubbleShield.TYPE_VELOX_SHIELD )
 		return 300;
+	
+		if ( shield_type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
+		return -1; // Must be activated / deactivated manually
 		
 		
 		return 30 * 20;
@@ -100,12 +109,18 @@ class sdBubbleShield extends sdEntity
 		
 		this.type = params.type || 0; // Shield type
 		this._hmax = this.GetShieldHealth( this.type );
-		this._hea = this._hmax;
+		this.hea = this._hmax;
 		this.for_ent = params.for_ent || null;
 		this.sx = 0;
 		this.sy = 0;
 		this.xscale = params.xscale || 32; // For hitbox and sprites
 		this.yscale = params.yscale || 32;
+		
+		
+		if ( this.type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
+		this.hea = this.hea * 0.1; // It must regenerate first, otherwise players can spam E button to get full shields
+		
+		this._regen_timeout = 30; // Some shields should regenerate, like SD shield for example.
 		
 		this._manual_hitbox_override = params.manual_hitbox_override || false;
 		
@@ -118,12 +133,17 @@ class sdBubbleShield extends sdEntity
 		
 		this._time_left = this.GetShieldDuration( this.type );
 		
+		//this.filter = null;
+		
 		sdBubbleShield.shields.push( this );
 	}
-	get hitbox_x1() { return -this.xscale / 2; }
-	get hitbox_x2() { return this.xscale / 2; }
-	get hitbox_y1() { return -this.yscale / 2; }
-	get hitbox_y2() { return this.yscale / 2; }
+	get hitbox_x1() { return ( this.hea <= 0 ) ? 0 : ( -this.xscale / 2 ); }
+	get hitbox_x2() { return ( this.hea <= 0 ) ? 0 : ( this.xscale / 2 ); }
+	get hitbox_y1() { return ( this.hea <= 0 ) ? 0 : ( -this.yscale / 2 ); }
+	get hitbox_y2() { return ( this.hea <= 0 ) ? 0 : ( this.yscale / 2 ); }
+	//Shields should be unhittable if below 0 HP, as this case can happen for Star Defender shields which regenerate over time when their health reaches 0
+	
+	
 	/*ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === 'for_ent' ) return true;
@@ -132,12 +152,15 @@ class sdBubbleShield extends sdEntity
 		return false;
 	}
 	*/
-	/*GetFilterColor()
+	GetFilterColor()
 	{
+		if ( this.type === sdBubbleShield.TYPE_VELOX_SHIELD )
+		return 'none';
 	
-		if ( this.type === sdBubbleShield.TYPE_SD )
-		return 'hue-rotate(' + 75 + 'deg)';
-	}*/
+		if ( this.type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
+		return 'hue-rotate(' + 300 + 'deg) brightness( 2 )';
+		//return 'hue-rotate(' + 270 + 'deg) brightness( 1 ) contrast( 4 )';
+	}
 	static ApplyShield( for_entity = null, shield_type = 0, manual_override = false, xsize = 32, ysize = 32 )
 	{
 		if ( !for_entity )
@@ -150,9 +173,14 @@ class sdBubbleShield extends sdEntity
 			if ( shield.for_ent === for_entity ) // Already has shield?
 			{
 				shield.type = shield_type;
-				shield._hea = shield.GetShieldHealth( shield_type ); // Override shield value
+				shield.hea = shield.GetShieldHealth( shield_type ); // Override shield value
 				shield._time_left = shield.GetShieldDuration( shield_type ); // Override duration
 				has_shield = true;
+				if ( manual_override )
+				{
+					shield.xscale = xsize;
+					shield.yscale = ysize;
+				}
 			}
 		}
 		
@@ -188,6 +216,18 @@ class sdBubbleShield extends sdEntity
 			else
 			this.remove(); // Nothing to protect? Why exist?
 		
+			if ( this.type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
+			{
+				if ( this._regen_timeout <= 0 )
+				{
+					let mult = ( this.hea ) <= 0 ? 6 : 2; // Faster regen when shield is destroyed
+					this.hea = Math.min( this.hea + ( GSPEED * mult ), this._hmax );
+				}
+				else
+				this._regen_timeout -= GSPEED;
+				
+			}
+		
 			if ( this._time_left > 0 )
 			this._time_left = Math.max( 0, this._time_left - GSPEED );
 			if ( this._time_left === 0 )
@@ -201,6 +241,10 @@ class sdBubbleShield extends sdEntity
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
+		
+		ctx.filter = this.GetFilterColor();
+		
+		ctx.globalAlpha = Math.max( 0, this.hea / this.GetShieldHealth( this.type ) );
 		
 		let cur_img = sdWorld.time % 3200;
 		cur_img = Math.round( 15 * cur_img / 3200 );

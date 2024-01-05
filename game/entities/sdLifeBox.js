@@ -377,6 +377,9 @@ class sdLifeBox extends sdEntity
 		if ( this.cube_shards < this.cube_shards_max )
 		{
 			this.cube_shards++;
+			
+			sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+			
 			from_entity.remove();
 		}
 	}
@@ -433,25 +436,25 @@ class sdLifeBox extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
+		/*if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
 		{
 			for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
 			if ( this[ 'driver' + i ] )
 			this.ExcludeDriver( this[ 'driver' + i ], true );
-		}
+		}*/
 		
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		}
-		else
+		/*else
 		{
 			for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
 			if ( this[ 'driver' + i ] )
 			{
 				this[ 'driver' + i ].remove();
 			}
-		}
+		}*/
 	}
 	MeasureMatterCost()
 	{

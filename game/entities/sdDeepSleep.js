@@ -180,6 +180,7 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.TYPE_UNSPAWNED_WORLD = 0; // Whenever something touches it or some player sees it - spawns fresh world at the area
 		sdDeepSleep.TYPE_HIBERNATED_WORLD = 1; // Whenever something touches it or some player sees it - spawns previously hibernated entities
 		sdDeepSleep.TYPE_SCHEDULED_SLEEP = 2; // These will be created at areas that will be scheduled to sleep soon unless nobody interacts with them
+		sdDeepSleep.TYPE_DO_NOT_HIBERNATE = 3; // Hibernation attempted but there was an entity that wasn't allowing hibernation - should prevent GlobalThink from scheduling hibernation there and waste a lot of performance
 		
 		sdDeepSleep.cells = [];
 		sdDeepSleep.loopie = 0;
@@ -197,12 +198,14 @@ class sdDeepSleep extends sdEntity
 		
 		sdDeepSleep.dependence_distance_max = 500; // Anti-dependence hell measure
 		
+		sdDeepSleep.time_budget = 0; // If there was a lag spike - some of later sdDeepSleep updates will be ignored for some amount of time
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
 	ThreatAsSolid() // Test done by some entities, solid possibility might prevent water from flowing through hibernated/not/spawned sdSleepAreas
 	{
-		return ( this.type !== sdDeepSleep.TYPE_SCHEDULED_SLEEP );
+		return ( this.type !== sdDeepSleep.TYPE_SCHEDULED_SLEEP && this.type !== sdDeepSleep.TYPE_DO_NOT_HIBERNATE );
 	}
 	
 	static init()
@@ -246,11 +249,14 @@ class sdDeepSleep extends sdEntity
 		
 		//return; // Hack
 		let iters = sdDeepSleep.debug ? sdDeepSleep.cells.length * 0.01 : 1;
+		sdDeepSleep.time_budget = Math.min( 3, sdDeepSleep.time_budget + 3 );
 		
 		if ( sdWorld.is_server )
-		while ( iters-- > 0 )
+		while ( iters-- > 0 && sdDeepSleep.time_budget > 0 )
 		{
 			sdDeepSleep.inception_catcher = 0;
+			
+			let t = Date.now();
 		
 			if ( sdWorld.server_config.aggressive_hibernation )
 			{
@@ -336,6 +342,14 @@ class sdDeepSleep extends sdEntity
 							}
 						}
 						else
+						if ( cell.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
+						{
+							if ( sdWorld.time > cell._will_hibernate_on )
+							{
+								cell.remove();
+							}
+						}
+						else
 						{
 						}
 					}
@@ -361,6 +375,9 @@ class sdDeepSleep extends sdEntity
 					debugger;
 				}
 			}
+			let t2 = Date.now();
+			
+			sdDeepSleep.time_budget -= t2 - t;
 		}
 	}
 	/*HasSnapshotsOfValue()
@@ -858,7 +875,7 @@ class sdDeepSleep extends sdEntity
 			if ( save_as_much_as_possible )
 			{
 				if ( !this._snapshot_cache )
-				this._snapshot_cache = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h };
+				this._snapshot_cache = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, r:this.r };
 			
 				cache = this._snapshot_cache;
 			
@@ -880,7 +897,7 @@ class sdDeepSleep extends sdEntity
 			else
 			{
 				if ( !this._snapshot_cache_public )
-				this._snapshot_cache_public = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h };
+				this._snapshot_cache_public = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, r:this.r };
 			
 				cache = this._snapshot_cache_public;
 			}
@@ -915,6 +932,8 @@ class sdDeepSleep extends sdEntity
 		
 		if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
 		trace( 'constructor()', { _net_id:this._net_id, w:this.w, h:this.h, type:this.type } );
+	
+		this.r = '';
 
 		if ( sdDeepSleep.debug )
 		{
@@ -980,6 +999,8 @@ class sdDeepSleep extends sdEntity
 			{
 				let t = sdDeepSleep.debug_times ? Date.now() : 0;
 				let serialization_per_class_times = sdDeepSleep.debug_times ? {} : 0;
+				
+				let merge_into_existing_cell = null;
 
 				const ProvidePerformanceReport = sdDeepSleep.debug_times ? ( aborted )=>
 				{
@@ -993,6 +1014,57 @@ class sdDeepSleep extends sdEntity
 					}
 
 				} : ()=>{};
+				
+				const HibernationAborted = ( reason_object=null, nothing_to_hibernate=false )=>
+				{
+					ProvidePerformanceReport( true );
+					
+					//this.remove();
+					
+					if ( merge_into_existing_cell )
+					{
+						let x1 = Math.min( this.x, merge_into_existing_cell.x );
+						let y1 = Math.min( this.y, merge_into_existing_cell.y );
+						let x2 = Math.max( this.x + this.w, merge_into_existing_cell.x + merge_into_existing_cell.w );
+						let y2 = Math.max( this.y + this.h, merge_into_existing_cell.y + merge_into_existing_cell.h );
+						
+						merge_into_existing_cell.x = x1;
+						merge_into_existing_cell.y = y1;
+						merge_into_existing_cell.w = x2 - x1;
+						merge_into_existing_cell.h = y2 - y1;
+						sdWorld.UpdateHashPosition( merge_into_existing_cell, false, false );
+						merge_into_existing_cell._update_version++;
+						
+						merge_into_existing_cell._snapshot_cache_public = null; // Reset cached snapshot
+						
+						this.remove();
+					}
+					else
+					{
+						if ( nothing_to_hibernate )
+						{
+							// We should not disallow hibernation of just empty cells. Also it wasn't costly - can try again later.
+							this.remove();
+						}
+						else
+						{
+							this.r = nothing_to_hibernate ? 
+								( reason_object ? 'Because nothing to hibernate here except for '+reason_object.GetClass() : 'Because nothing to hibernate here at all' ) : 
+								'Because of ' + reason_object.GetClass();
+
+							this._snapshot_cache_public = null; // Reset cached snapshot
+
+							if ( sdDeepSleep.debug )
+							this._will_hibernate_on = sdWorld.time + 5000 + Math.random() * 1000; // 5-6 sec
+							else
+							this._will_hibernate_on = sdWorld.time + 60000 * ( 1 + Math.random() ); // 1-2 minutes?
+
+							this.type = sdDeepSleep.TYPE_DO_NOT_HIBERNATE;
+							sdWorld.UpdateHashPosition( this, false, false );
+							this._update_version++;
+						}
+					}
+				};
 
 				if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
 				trace( 'onBuilt()', { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length } );
@@ -1048,11 +1120,11 @@ class sdDeepSleep extends sdEntity
 					//if ( entity_once.has( e ) )
 					if ( e._flag === visited_ent_flag )
 					{
-						if ( e !== this )
+						/*if ( e !== this )
 						if ( all_entities.indexOf( e ) === -1 )
 						{
 							throw new Error( 'What is this sorcery? ' + e._net_id );
-						}
+						}*/
 					}
 					else
 					if ( as_dependence || this.DoesOverlapWith( e ) )
@@ -1091,7 +1163,7 @@ class sdDeepSleep extends sdEntity
 								trace( 'sdDeepSleep hibernation refused: - Unspecified -', _x, _y, _x2, _y2 );
 							}
 
-							this.remove();
+							//this.remove();
 							return true;
 						}
 
@@ -1101,6 +1173,12 @@ class sdDeepSleep extends sdEntity
 							if ( e.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
 							{
 								return false;
+							}
+							else
+							if ( e.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
+							{
+								merge_into_existing_cell = e;
+								return true;
 							}
 							else
 							if ( e._snapshots_str === '' && e._snapshots_objects === null )
@@ -1328,8 +1406,8 @@ class sdDeepSleep extends sdEntity
 						{
 							if ( HandleEntity( arr[ i2 ], false ) )
 							{
-								ProvidePerformanceReport( true );
-								this.remove();
+								HibernationAborted( arr[ i2 ] );
+								//this.remove();
 								return;
 							}
 						}
@@ -1347,8 +1425,8 @@ class sdDeepSleep extends sdEntity
 								debugger;
 							}*/
 							
-							ProvidePerformanceReport( true );
-							this.remove();
+							HibernationAborted( e );
+							//this.remove();
 							return;
 						}
 					}
@@ -1360,8 +1438,8 @@ class sdDeepSleep extends sdEntity
 					if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 					trace( 'sdDeepSleep hibernation refused: Too few entities ('+all_entities.length+')', _x, _y, _x2, _y2 );
 
-					ProvidePerformanceReport( true );
-					this.remove();
+					HibernationAborted( all_entities[ 0 ], true );
+					//this.remove();
 					return;
 				}
 
@@ -1490,6 +1568,8 @@ class sdDeepSleep extends sdEntity
 				sdWorld.UpdateHashPosition( this, false, false ); // Prevent inersection with other ones // Won't call onMovementInRange
 
 				this._update_version++;
+				
+				this._snapshot_cache_public = null; // Reset cached snapshot
 
 
 				if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
@@ -1583,6 +1663,11 @@ class sdDeepSleep extends sdEntity
 			ctx.fillRect( 1, 1, this._hitbox_x2-2, this._hitbox_y2-2 );
 
 			ctx.fillStyle = '#aaaaff';
+			
+			if ( this.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
+			{
+				ctx.fillStyle = '#ffaaaa';
+			}
 
 			ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
 
@@ -1596,10 +1681,17 @@ class sdDeepSleep extends sdEntity
 				( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ) ? 'Unspawned' :
 				( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD ) ? 'Hibernated' :
 				( this.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP ) ? 'Scheduled sleep' :
+				( this.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE ) ? 'Hibernation rejected and is no longer allowed' :
 				'type ' + this.type;
 
 			ctx.fillStyle = '#ffffff';
 			ctx.fillText( t, 2, 8 );
+			
+			if ( this.r )
+			{
+				ctx.fillStyle = '#ffaaaa';
+				ctx.fillText( this.r, 2, 8 + 8 );
+			}
 		}
 	}
 	DrawFG( ctx, attached )

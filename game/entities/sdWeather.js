@@ -79,6 +79,7 @@ import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdStealer from './sdStealer.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdVeloxFortifier from './sdVeloxFortifier.js';
+import sdSolarMatterDistributor from './sdSolarMatterDistributor.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -152,6 +153,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_LONG_RANGE_ANTENNA =	event_counter++; // 47
 		sdWeather.EVENT_PROTECT_SDBG_DRONE =	event_counter++; // 48
 		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
+		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -278,7 +280,9 @@ class sdWeather extends sdEntity
 	}
 	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
 	{
-		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER || n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE )
+		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
+			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
+			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR )
 		return true;
 		
 		return false;
@@ -1374,22 +1378,16 @@ class sdWeather extends sdEntity
 
 			//let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && sdEnemyMech.mechs_counter < this._max_velox_mech_count )
+			while ( instances < instances_tot && sdEnemyMech.mechs.length < this._max_velox_mech_count )
 			{
 
-				let mech_entity = new sdEnemyMech({ x:0, y:0 });
-
-				sdEntity.entities.push( mech_entity );
-
-				{
-					let x,y;
-					if ( !sdWeather.SetRandomSpawnLocation( mech_entity ) )
-					{
-						mech_entity.remove();
-						mech_entity._broken = false;
-						break;
-					}
-				}
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdEnemyMech,
+					aerial: true
+				
+				});
 
 				instances++;
 			}
@@ -3465,6 +3463,16 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
+		if ( r === sdWeather.EVENT_SOLAR_DISTRIBUTOR ) // Solar matter distributor is placed by SD's and needs to be activated
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdSolarMatterDistributor,
+				aerial: false
+				
+			});
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -3546,7 +3554,7 @@ class sdWeather extends sdEntity
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
 				{
-					if ( Math.abs( sdWorld.sockets[ i ].character.x, xx ) < sdWeather.min_distance_from_online_players_for_entity_events )
+					if ( Math.abs( sdWorld.sockets[ i ].character.x - xx ) < sdWeather.min_distance_from_online_players_for_entity_events )
 					{
 						proper_distnace = true;
 						break;
@@ -3702,13 +3710,21 @@ class sdWeather extends sdEntity
 								{
 									// Try to find higher block since they are too tiny sky tracer might skip them
 									
+									let arr = [ 'sdBlock' ];
+									
 									let tr = 0;
 									while ( true )
 									{
 										if ( tr++ > 100 )
 										throw new Error( 'Unable to find highest snow block' ); // Replace with break; if it happens
+									
+										if ( sdWorld.CheckSolidDeepSleepExistsAtBox( xx+1, e.y-3, xx+15, e.y-1 ) ) // Not tested but it makes sense
+										{
+											e = null;
+											break;
+										}
 										
-										if ( sdWorld.CheckWallExistsBox( xx+1, e.y-3, xx+15, e.y-1, null, null, [ 'sdBlock' ] ) )
+										if ( sdWorld.CheckWallExistsBox( xx+1, e.y-3, xx+15, e.y-1, null, null, arr ) )
 										{
 											if ( sdWorld.last_hit_entity )
 											e = sdWorld.last_hit_entity;
@@ -3719,24 +3735,27 @@ class sdWeather extends sdEntity
 										break;
 									}
 									
-									if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
+									if ( e )
 									{
-										// Add snow amount
-										e.y -= 4;
-										e.height += 4;
-										e._hea += 10;
-										e._hmax += 10;
-										e._update_version++;
-										sdWorld.UpdateHashPosition( e, false );
-									}
-									else
-									{
-										// Spawn snow?
-										let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
-										snow_block._hea = snow_block._hmax = 10;
+										if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
+										{
+											// Add snow amount
+											e.y -= 4;
+											e.height += 4;
+											e._hea += 10;
+											e._hmax += 10;
+											e._update_version++;
+											sdWorld.UpdateHashPosition( e, false );
+										}
+										else
+										{
+											// Spawn snow?
+											let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
+											snow_block._hea = snow_block._hmax = 10;
 
-										sdEntity.entities.push( snow_block );
-										sdWorld.UpdateHashPosition( snow_block, false );
+											sdEntity.entities.push( snow_block );
+											sdWorld.UpdateHashPosition( snow_block, false );
+										}
 									}
 								}
 								else
@@ -3978,6 +3997,12 @@ class sdWeather extends sdEntity
 							x = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.x1 : sdWorld.world_bounds.x2 - 16;
 							else
 							y = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.y1 : sdWorld.world_bounds.y2 - 16;
+						}
+						
+						if ( !should_skip )
+						if ( sdWorld.CheckSolidDeepSleepExistsAtBox( x+1, y+1, x+15, y+15 ) ) // Prevent spawning blocks in deep sleep areas? Not tested but it should prevent double ground bug
+						{
+							should_skip = true;
 						}
 						
 						if ( !should_skip )

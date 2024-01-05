@@ -61,9 +61,10 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
-	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive' ];
+	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive', 'scale' ];
 	static let_non_full_access_level_admin_setup_long_range_teleports = false; // Can potentially cause connecting server to some local LRTPs with admin shop-made items. Also can leak server IP if you are using Cloudflare.
 	static let_server_owner_run_eval_command = false; // Unsafe feature for server security in cases if admin account can end up being stolen. Lets first admin to run JavaScript commands on a server via /eval ...
+	static let_non_full_access_level_admins_save_presets = true; // These are saved into presets_users and can't override same files named same way but made by top level admin
 	
 	static offscreen_behavior = 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'; // Or 'OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'. We cheat a little bit offscreen as huge/dense worlds would have perforamnce issues otherwise
 	static offscreen_behavior_x_value = 30; // By how much slower or how many steps to do at once. Usually 30 can give 2x performance improvement in case of OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE. You can test if anything goes wrong offscreen by enabling debug_offscreen_behavior
@@ -800,6 +801,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		// World exists and players are ready to connect
 		
+		let sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
+		
 		// In case of new server these will be 0. This will define initial world bounds:
 		if ( sdWorld.world_bounds.x1 === 0 )
 		if ( sdWorld.world_bounds.x2 === 0 )
@@ -855,6 +858,8 @@ class sdServerConfigFull extends sdServerConfigShort
 				let down = 0;
 				
 				const distance_near_edge_to_trigger = 256;
+				
+				let sockets = sdWorld.sockets;
 				
 				for ( let i = 0; i < sockets.length; i++ )
 				{

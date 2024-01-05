@@ -32,7 +32,7 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.max_matter_short = 500;
 		sdRescueTeleport.max_matter_cloner = 40000 * 3; // 40k can be charged rather quickly. It is a last resort escape thing after all.
 		
-		sdRescueTeleport.clonning_time = 30 * 60 * 20; // 20 minutes
+		sdRescueTeleport.clonning_time = 30 * 60 * 3;// 3 minutes
 
 		sdRescueTeleport.max_short_range_distance = 1200;
 		sdRescueTeleport.max_default_range_distance = 10000;

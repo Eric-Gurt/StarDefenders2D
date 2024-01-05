@@ -1310,6 +1310,19 @@ io.on( 'connection', ( socket )=>
 	socket.sync_busy = false; // Will be busy if separate threads will be still preparing snapshot
 	
 	socket.camera = { x:0,y:0,scale:2 };
+	socket._FixCameraPosition = ()=>
+	{
+		// Copy Camera Bounds [ 1 / 2 ]
+		if ( socket.camera.x < socket.character.x - 800/2 / socket.camera.scale )
+		socket.camera.x = socket.character.x - 800/2 / socket.camera.scale;
+		if ( socket.camera.x > socket.character.x + 800/2 / socket.camera.scale )
+		socket.camera.x = socket.character.x + 800/2 / socket.camera.scale;
+
+		if ( socket.camera.y < socket.character.y - 400/2 / socket.camera.scale )
+		socket.camera.y = socket.character.y - 400/2 / socket.camera.scale;
+		if ( socket.camera.y > socket.character.y + 400/2 / socket.camera.scale )
+		socket.camera.y = socket.character.y + 400/2 / socket.camera.scale;
+	};
 	
 	socket._SetCameraZoom = ( v )=> // Call .SetCameraZoom on character instead so it will be saved
 	{
@@ -1367,10 +1380,10 @@ io.on( 'connection', ( socket )=>
 	const stacked_service_messages = [];
 	let service_message_interval_exists = null;
 	let service_message_allow_next_in = sdWorld.time + 500;
-	socket.SDServiceMessage = ( m=null, untranslateables_array=null )=> // Example usage: character_entity._socket.SDServiceMessage( 'You have been excluded from {1}\'s team (Command Centre has been destroyed)', [ this.owner.title ] ); OR character_entity._socket.SDServiceMessage( 'Text' );
+	socket.SDServiceMessage = ( m=null, untranslateables_array=null, color=null )=> // Example usage: character_entity._socket.SDServiceMessage( 'You have been excluded from {1}\'s team (Command Centre has been destroyed)', [ this.owner.title ] ); OR character_entity._socket.SDServiceMessage( 'Text' );
 	{
 		if ( typeof m === 'string' )
-		stacked_service_messages.push( [ m, untranslateables_array ] );
+		stacked_service_messages.push( [ m, untranslateables_array, color ] );
 	
 		if ( stacked_service_messages.length > 0 )
 		{
@@ -2025,6 +2038,9 @@ io.on( 'connection', ( socket )=>
 	//socket.on('K1', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 1 ); }); Mobile users send these too quickly as for TCP connection
 	//socket.on('K0', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 0 ); });
 	
+	
+	socket.last_gsco_time = sdWorld.time;
+	
 	socket.on('Kv2', ( sd_events )=>
 	{
 		if ( sd_events instanceof Array )
@@ -2043,11 +2059,160 @@ io.on( 'connection', ( socket )=>
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
+				if ( type === 'GSCO' )
+				{
+					let gspeed_and_key_events = key;
+					
+					let panic_mode = false; // In panic mode server allows relative factors of GSPEED instead
+					
+					let average_GSPEED = 0;
+					let average_EXPECTED_GSPEED = 0;
+					for ( let i = 0; i < sdWorld.SERVER_AVERAGE_GSPEED_VALUES.length; i++ )
+					{
+						average_GSPEED += sdWorld.SERVER_AVERAGE_GSPEED_VALUES[ i ].GSPEED;
+						average_EXPECTED_GSPEED += sdWorld.SERVER_AVERAGE_GSPEED_VALUES[ i ].EXPECTED_GSPEED;
+					}
+					
+					//if ( average_GSPEED !== average_EXPECTED_GSPEED )
+					if ( average_GSPEED < average_EXPECTED_GSPEED * 0.5 )
+					{
+						//trace( 'Panic', average_GSPEED, average_EXPECTED_GSPEED );
+						panic_mode = true;
+					}
+					
+					//let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed, 30 ); // Sensitive to server lags, but would keep player in sync with the world. Best if servers would not lag
+					
+					//let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed * sdWorld.SERVER_EXPECTED_GSPEED / sdWorld.GSPEED, 30 ); // Sensitive to server stutter but not overall lags. Maybe will be alright
+					
+					//let gspeed_allowed = Math.min( ( sdWorld.time - socket.last_gsco_time ) / 1000 * 30, 30 ); // Will make players always run at normal speed no matter how laggy server is. It ignores time warp though, which is bad
+					
+					let gspeed_allowed = Math.min( socket.character._GSPEED_buffer_length_allowed * average_EXPECTED_GSPEED / average_GSPEED, 30 );
+					
+					let gspeed_received = 0;
+					
+					if ( gspeed_and_key_events.length < sdWorld.my_inputs_and_gspeeds_max ) // It has been enough so far
+					for ( let i = 0; i < gspeed_and_key_events.length; i++ )
+					{
+						let state = gspeed_and_key_events[ i ];
+						
+						if ( typeof state === 'number' )
+						if ( state > 0 && state < 30 && !isNaN( state ) )
+						gspeed_received += state;
+					}
+					
+					// Make sure total GSPEED is scaled down/up to fit real GSPEED happened for character
+					let gspeed_mult = gspeed_allowed / gspeed_received;
+					
+					if ( panic_mode )
+					{
+						if ( gspeed_received < gspeed_allowed * 2 || gspeed_received < 30 )
+						{
+							//trace( 'panic within x8');
+							gspeed_mult = 1;
+						}
+						//else
+						//trace( 'panic outside x8', gspeed_received, gspeed_allowed );
+					}
+					
+					if ( gspeed_received > 0.0001 && isFinite( gspeed_mult ) && !isNaN( gspeed_mult ) )
+					{
+						let e = socket.character;
+						
+						let old_sync = e.sync;
+						let old_sync_guns = [];
+						for ( let i = 0; i < e._inventory.length; i++ )
+						old_sync_guns[ i ] = ( e._inventory[ i ] ) ? e._inventory[ i ].sync : -1;
+						
+						sdCharacter.allow_alive_players_think = true;
+						{
+							for ( let i = 0; i < gspeed_and_key_events.length; i++ )
+							{
+								let state = gspeed_and_key_events[ i ];
+								
+								if ( typeof state === 'number' )
+								{
+									// Throw in more substeps if needed to prevent impacts
+									let substeps = Math.max( 1, Math.floor( state * gspeed_mult / 3 ) );
+
+									if ( state > 0 && state < 30 && !isNaN( state ) )
+									for ( let i = 0; i < substeps; i++ )
+									{
+										e.onThink( state * gspeed_mult / substeps );
+
+										if ( e._is_being_removed )
+										{
+											break;
+										}
+										else
+										{
+											// Without it bullets can pass through such players on lags
+
+											e.UpdateHitbox();
+
+											if ( e._last_x !== e.x ||
+												 e._last_y !== e.y )
+											{
+												if ( !e._is_being_removed )
+												{
+													sdWorld.UpdateHashPosition( e, false );
+
+													e.ManageTrackedPhysWakeup();
+
+													if ( e._listeners ) // Should be faster than passing string
+													e.callEventListener( 'MOVES' );
+												}
+											}
+										}
+
+										for ( let i = 0; i < e._inventory.length; i++ )
+										if ( e._inventory[ i ] )
+										if ( !e._inventory[ i ]._is_being_removed )
+										e._inventory[ i ].onThink( state * gspeed_mult / substeps );
+									}
+								}
+								else
+								if ( state instanceof Array )
+								{
+									if ( state[ 0 ] === 1 )
+									e._key_states.SetKey( state[ 1 ], 1 );
+									else
+									if ( state[ 0 ] === 0 )
+									e._key_states.SetKey( state[ 1 ], 0 );
+									else
+									debugger;
+								}
+								else
+								debugger;
+							}
+						}
+						sdCharacter.allow_alive_players_think = false;
+						
+						e.sync = ( old_sync + 1 ) % 100; // Somehow it helps with decreased update on viewer's side
+						
+						for ( let i = 0; i < e._inventory.length; i++ )
+						if ( e._inventory[ i ] )
+						if ( old_sync_guns[ i ] !== -1 )
+						e._inventory[ i ].sync = ( e._inventory[ i ] + 1 ) % 100; // Somehow it helps with decreased update on viewer's side
+					}
+					
+					socket.character._GSPEED_buffer_length_allowed = 0;
+					
+					socket.OnMouseMovementAndCorrectionsSnapshot( sd_events[ i ][ 2 ] );
+					
+					socket.last_gsco_time = sdWorld.time;
+				}
+				else
 				if ( type === 'K1' )
-				socket.character._key_states.SetKey( key, 1 );
+				{
+					//socket.character._key_states.SetKey( key, 1 );
+					debugger; // Obsolete
+				}
 				else
 				if ( type === 'K0' )
-				socket.character._key_states.SetKey( key, 0 );
+				{
+					//socket.character._key_states.SetKey( key, 0 );
+					debugger; // Obsolete
+				}
 			}
 			
 			if ( type === 'UI' )
@@ -2170,7 +2335,8 @@ io.on( 'connection', ( socket )=>
 	socket.waiting_on_M_event_until = 0; // Will cause server to wait for 1 second before trying to send data again. During this 1 second server will wait for any kind of response from client. If response arrives within 1 second then server is allowed to send snapshot to client and will wait for another 1 second for any reply to arrive to server
 	socket.last_ping = sdWorld.time; // Used to disconnect dead connections
 	socket.next_position_correction_allowed = 0;
-	socket.on('M', ( arr ) => { // Position corrections. Cheating can happen here. Better solution could be UDP instead of TCP connections.
+	socket.OnMouseMovementAndCorrectionsSnapshot = ( arr )=>{
+	//socket.on('M', ( arr ) => { // Position corrections. Cheating can happen here. Better solution could be UDP instead of TCP connections.
 		
 		if ( arr instanceof Array )
 		if ( typeof arr[ 0 ] === 'number' )
@@ -2280,10 +2446,9 @@ io.on( 'connection', ( socket )=>
 				{
 					let corrected = false;
 
-					const correction_scale = 3; // 1 should be most cheat-proof, but can be not enough for laggy servers
+					const correction_scale = 3; // Was 3 before input and GSPEED sequences being sent by players // 1 should be most cheat-proof, but can be not enough for laggy servers
 					const debug_correction = false;
 					
-					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
 					{
 						let dx = arr[ 5 ] - socket.character.x;
@@ -2291,7 +2456,7 @@ io.on( 'connection', ( socket )=>
 
 						let allowed = true;
 
-						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 * correction_scale ) // Allow late jump
+						/*if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 * correction_scale ) // Allow late jump
 						{
 							if ( dy < -27 )
 							{
@@ -2345,9 +2510,9 @@ io.on( 'connection', ( socket )=>
 									allowed = false;
 								}
 							}
-						}
+						}*/
 
-						if ( !allowed || Math.abs( dx ) > 128 || Math.abs( dy ) > 128 )
+						if ( !allowed || Math.abs( dx ) > 32 || Math.abs( dy ) > 32 )
 						{
 							if ( allowed )
 							if ( debug_correction )
@@ -2360,19 +2525,12 @@ io.on( 'connection', ( socket )=>
 						{
 							let di = sdWorld.Dist2D_Vector( dx, dy );
 
-							//let di = sdWorld.Dist2D_Vector( arr[ 5 ] - ( socket.character.x + socket.character.sx / 30 * 100 ), 
-							//								arr[ 6 ] - ( socket.character.y + socket.character.sy / 30 * 100 ) );
-
-							//if ( di > 128 )
-							if ( di > 64 )
+							if ( di > 32 )
 							{
-								dx = dx / di * 64;
-								dy = dy / di * 64;
+								dx = dx / di * 32;
+								dy = dy / di * 32;
 							}
-						//}
-						//else
-						//if ( sdWorld.Dist2D( socket.character.x, socket.character.y, arr[ 5 ], arr[ 6 ] ) < 128 )
-						//{
+						
 							let jump_di = sdWorld.Dist2D_Vector( dx, dy );
 
 							let steps = Math.ceil( jump_di / 8 );
@@ -2433,25 +2591,11 @@ io.on( 'connection', ( socket )=>
 								}
 							}
 
-							//if ( socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy, overlap ) )
 							if ( corrected )
 							{
 								socket.next_position_correction_allowed = sdWorld.time + 100;
 								socket.character.x += dx;
 								socket.character.y += dy;
-
-								/*dx -= socket.character.sx * 2;
-								dy -= socket.character.sy * 2;
-
-								socket.character._key_states.SetKey( 'KeyD', ( dx > 13 ) ? 1 : 0 );
-								socket.character._key_states.SetKey( 'KeyA', ( dx < -13 ) ? 1 : 0 );
-
-								socket.character._key_states.SetKey( 'KeyS', ( dy > 13 ) ? 1 : 0 );
-								socket.character._key_states.SetKey( 'KeyW', ( dy < -13 ) ? 1 : 0 );*/
-
-								/*socket.character._pos_corr_x = socket.character.x + dx;
-								socket.character._pos_corr_y = socket.character.y + dy;
-								socket.character._pos_corr_until = sdWorld.time + 50;*/
 
 								corrected = true;
 							}
@@ -2460,24 +2604,16 @@ io.on( 'connection', ( socket )=>
 						if ( !corrected )
 						{
 							socket.next_position_correction_allowed = sdWorld.time + 50;
-							//socket.emit( 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] );
+							
 							socket.sd_events.push( [ 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] ] );
 						}
 					}
 				}
 
-				if ( socket.camera.x < socket.character.x - 400 )
-				socket.camera.x = socket.character.x - 400;
-				if ( socket.camera.x > socket.character.x + 400 )
-				socket.camera.x = socket.character.x + 400;
-
-				if ( socket.camera.y < socket.character.y - 200 )
-				socket.camera.y = socket.character.y - 200;
-				if ( socket.camera.y > socket.character.y + 200 )
-				socket.camera.y = socket.character.y + 200;
+				socket._FixCameraPosition();
 			}
 		}
-	});
+	};
 	
 	socket.on('SELF_EXTRACT', ( net_id ) => { 
 		
@@ -3149,16 +3285,15 @@ const ServerMainMethod = ()=>
 							var snapshot_only_statics = [];
 
 							var observed_entities = [];
-							//var observed_statics = [];
 
 							var observed_entities_map = new Set();
 
-							//var observed_statics_map = new WeakSet();
 							var observed_statics_map2 = new Set();
 
+							socket._FixCameraPosition();
 
-							//socket.camera.scale = 2;
 
+							// Copy Camera Bounds [ 2 / 2 ]
 							let min_x = socket.camera.x - 800/2 / socket.camera.scale;
 							let max_x = socket.camera.x + 800/2 / socket.camera.scale;
 
@@ -3432,6 +3567,12 @@ const ServerMainMethod = ()=>
 									
 									let x = sdWorld.limit( min_x, socket.character.x, max_x );
 									let y = sdWorld.limit( min_y, socket.character.y, max_y );
+									
+									/*if ( Math.random() < 0.05 )
+									{
+										sdWorld.SendEffect({ x:x, y:y, x2:min_x, y2:min_y, type:sdEffect.TYPE_BEAM, color:'#00ff00' });
+										sdWorld.SendEffect({ x:x, y:y, x2:max_x, y2:min_y, type:sdEffect.TYPE_BEAM, color:'#00ff00' });
+									}*/
 
 									const dx = Math.sin( b / 32 * Math.PI * 2 ) * 16;
 									const dy = Math.cos( b / 32 * Math.PI * 2 ) * 16;

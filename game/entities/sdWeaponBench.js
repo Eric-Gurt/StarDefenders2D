@@ -207,6 +207,7 @@ class sdWeaponBench extends sdEntity
 		return;
 		
 		if ( from_entity.is( sdGun ) )
+		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
 		{
 			if ( from_entity._held_by === null )
 			{
@@ -232,6 +233,9 @@ class sdWeaponBench extends sdEntity
 					from_entity._held_by = this;
 					
 					from_entity.tilt = 0;
+					
+					from_entity.sx = 0;
+					from_entity.sy = 0;
 					
 					if ( from_entity._dangerous )
 					{

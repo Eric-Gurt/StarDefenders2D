@@ -545,6 +545,9 @@ class sdDropPod extends sdEntity
 		if ( this.metal_shards < this.metal_shards_max )
 		{
 			this.metal_shards++;
+			
+			sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+			
 			//this._update_version++;
 			from_entity.remove();
 		}
