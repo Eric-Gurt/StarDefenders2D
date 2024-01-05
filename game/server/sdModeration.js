@@ -867,7 +867,7 @@ class sdModeration
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
-				socket.character.GiveScore( 3000, null, false );
+				socket.character.GiveScore( 12000, null, false );
 				for ( var i = 0; i < sdShop.options.length; i++ )
 				{
 					if ( sdShop.options[ i ]._category === 'Upgrades' )
