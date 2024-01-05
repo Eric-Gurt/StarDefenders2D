@@ -281,7 +281,7 @@ class sdCouncilIncinerator extends sdEntity
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
 
-				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR, _ai_team: this._ai_team }); // We do a little trolling
+				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR }); // We do a little trolling
 
 				drone.sx = ( Math.random() - Math.random() ) * 10;
 				drone.sy = ( Math.random() - Math.random() ) * 10;
@@ -295,6 +295,7 @@ class sdCouncilIncinerator extends sdEntity
 				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
 
 				sdEntity.entities.push( drone );
+				drone._ai_team = this._ai_team;
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}*/
@@ -469,7 +470,7 @@ class sdCouncilIncinerator extends sdEntity
 				{	
 					this._next_drone_spawn = 300 + ( Math.random() * 150 ); // 10 - 15 seconds
 					
-					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: sdDrone.DRONE_COUNCIL, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: sdDrone.DRONE_COUNCIL, minion_of: this }); // We do a little trolling
 					sdEntity.entities.push( drone );
 					drone._ai_team = this._ai_team;
 
@@ -859,7 +860,7 @@ class sdCouncilIncinerator extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Council Incinerator", 0, -30 );
-		
+
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )

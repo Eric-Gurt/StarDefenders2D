@@ -59,6 +59,7 @@ class sdAbomination extends sdEntity
 		
 		this._hmax = 900; // 650 was too easy to die? Not scary because of that? -- Eric Gurt
 		this._hea = this._hmax;
+		this.hea = this._hea;
 		this._move_timer = 30;
 		this.idle = 0;
 		this.death_anim = 0;
@@ -87,7 +88,7 @@ class sdAbomination extends sdEntity
 		if ( character.driver_of )
 		character = character.driver_of;
 		
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( character.IsTargetable() && character.IsVisible() )
 		if ( ( character.hea || character._hea ) > 0 )
 		{
@@ -119,11 +120,11 @@ class sdAbomination extends sdEntity
 		if ( initiator !== null )
 		this._current_target = initiator;
 		
-		let was_alive = this._hea > 0;
+		let was_alive = this.hea > 0;
 		
-		this._hea = Math.min( this._hea - dmg, this._hmax ); // Allow healing
+		this.hea = Math.min( this.hea - dmg, this._hmax ); // Allow healing
 		
-		if ( this._hea <= 0 && was_alive )
+		if ( this.hea <= 0 && was_alive )
 		{
 			//sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 });
@@ -140,7 +141,7 @@ class sdAbomination extends sdEntity
 			
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this.hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
 	
@@ -165,7 +166,7 @@ class sdAbomination extends sdEntity
 
 		
 		
-		if ( this._hea <= 0 )
+		if ( this.hea <= 0 )
 		{
 			if ( this.death_anim < sdAbomination.death_duration + sdAbomination.post_death_ttl )
 			this.death_anim += GSPEED;
@@ -226,8 +227,8 @@ class sdAbomination extends sdEntity
 			if ( this.tenta_tim > 0 )
 			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
 
-			if ( this._hea < this._hmax )
-			this._hea = Math.min( this._hmax, this._hea + GSPEED / 10 );
+			if ( this.hea < this._hmax )
+			this.hea = Math.min( this._hmax, this.hea + GSPEED / 10 );
 
 			if ( this.attack_timer > 0 )
 			this.attack_timer = Math.max( 0, this.attack_timer - GSPEED );
@@ -307,7 +308,7 @@ class sdAbomination extends sdEntity
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
 						from_entity.DamageWithEffect( 10, this );
-						this._hea = Math.min( this._hmax, this._hea + 25 );
+						this.hea = Math.min( this._hmax, this.hea + 25 );
 
 
 						from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
@@ -345,7 +346,7 @@ class sdAbomination extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
 			
-			if ( this._hea > 0 )
+			if ( this.hea > 0 )
 			this.sy -= sdWorld.gravity * GSPEED * 2;
 		}
 		
@@ -479,7 +480,7 @@ class sdAbomination extends sdEntity
 						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 						{
 							//from_entity.DamageWithEffect( 10, this );
-							this._hea = Math.min( this._hmax, this._hea + 25 );
+							this.hea = Math.min( this._hmax, this.hea + 25 );
 
 
 							//from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
@@ -522,7 +523,12 @@ class sdAbomination extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Abomination" );
+		{
+			sdEntity.Tooltip( ctx, "Abomination" );
+
+			if ( globalThis.enable_debug_info_adv )
+			this.DrawHealthBar( ctx, undefined, 10 );
+		}
 	}
 	Draw( ctx, attached )
 	{

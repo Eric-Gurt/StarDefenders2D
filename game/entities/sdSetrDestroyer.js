@@ -277,7 +277,7 @@ class sdSetrDestroyer extends sdEntity
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
 
-				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR, _ai_team: this._ai_team }); // We do a little trolling
+				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR }); // We do a little trolling
 
 				drone.sx = ( Math.random() - Math.random() ) * 10;
 				drone.sy = ( Math.random() - Math.random() ) * 10;
@@ -796,7 +796,7 @@ class sdSetrDestroyer extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Setr Destroyer", 0, -30 );
-		
+
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )

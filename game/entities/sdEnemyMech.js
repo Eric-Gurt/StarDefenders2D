@@ -272,6 +272,7 @@ class sdEnemyMech extends sdEntity
 		// Also import sdBubbleShield if it's not imported
 		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
 		if ( shielded_by && dmg > 0 )
+		if ( shielded_by.hea > 0 )
 		{
 			shielded_by.Damage( dmg, initiator );
 			return;
@@ -865,7 +866,7 @@ class sdEnemyMech extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Velox Flying Mech", 0, -30 );
-		
+
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )

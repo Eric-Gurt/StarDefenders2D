@@ -47,6 +47,8 @@ class sdVeloxFortifier extends sdEntity
 		this.hmax = 15000;
 		this.hea = this.hmax;
 		
+		this._ai_team = 5;
+		
 		this._next_fortify_in = 60; // When does it give armor/shield to Velox units?
 		this._spawn_velox = true; // Spawn Velox humanoids to protect this entity?
 
@@ -86,17 +88,20 @@ class sdVeloxFortifier extends sdEntity
 				}
 			}*/
 
-			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+			if ( this._ai_team !== 0 )
+			{
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-			let gun;
-			gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-			gun.extra = 1;
+				let gun;
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+				gun.extra = 1;
 
-			//gun.sx = sx;
-			//gun.sy = sy;
-			sdEntity.entities.push( gun );
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun );
 
-			}, 500 );
+				}, 500 );
+			}
 			
 			this.remove();
 		}
@@ -124,33 +129,43 @@ class sdVeloxFortifier extends sdEntity
 				for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
 					let character = sdCharacter.characters[ i ];
-					if ( character._ai_team === 5 && character.hea > 0 ) // Is this humanoid a part of Velox faction?
+					if ( character._ai_team === this._ai_team && character.hea > 0 ) // Is this humanoid a part of the same faction?
 					{
-						//character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
-						sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD, true, 32, 32 ); // Apply shield
+						if ( character._ai_enabled === sdCharacter.AI_MODEL_NONE && character.armor <= 0 ) // Is this humanoid a part of the SD Player?
+						{
+							character.ApplyArmor({ armor: 200, _armor_absorb_perc: 0.95, armor_speed_reduction: 0 }); // Give armor
+						}
+						else
+						if ( character._ai_enabled !== sdCharacter.AI_MODEL_NONE )
+						{
+							sdBubbleShield.ApplyShield( character, sdBubbleShield.TYPE_VELOX_SHIELD, true, 32, 32 ); // Apply shield
+						}
 					}
 				}
-				// Also for Velox mechs
+				// Also for Velox mechs (Same faction)
 				for ( let i = 0; i < sdEnemyMech.mechs.length; i++ )
 				{
 					let mech = sdEnemyMech.mechs[ i ];
-					if ( mech._ai_team === 5 && mech.hea > 0 ) // Is this mech
+					if ( mech._ai_team === this._ai_team && mech.hea > 0 ) // Is this mech
 					{
-						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD, true, 60, 96 ); // Apply shield
+						sdBubbleShield.ApplyShield( mech, sdBubbleShield.TYPE_VELOX_SHIELD, true, 60, 112 ); // Apply shield
 					}
 				}
 				
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'DESTROY-'+this._net_id, 
-						executer: sdWorld.sockets[ i ].character,
-						target: this,
-						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.125,
-						title: 'Destroy Velox Fortifier',
-						description: 'Velox have placed a device which grants them shielding capabilities. It is imperative that you destroy it, they are already a nuisance without shields!'
-					});
+					if ( this._ai_team !== 0 )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'DESTROY-'+this._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: this,
+							mission: sdTask.MISSION_DESTROY_ENTITY,
+							difficulty: 0.125,
+							title: 'Destroy Velox Fortifier',
+							description: 'Velox have placed a device which grants them shielding capabilities. It is imperative that you destroy it, they are already a nuisance without shields!'
+						});
+					}
 				}
 			}
 			if ( this._spawn_velox ) // Spawn random Velox soldier which guards the Fortifier
@@ -164,7 +179,6 @@ class sdVeloxFortifier extends sdEntity
 
 					while ( velox_soldiers < velox_soldiers_tot )
 					{
-
 						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
 						sdEntity.entities.push( character_entity );
@@ -213,6 +227,7 @@ class sdVeloxFortifier extends sdEntity
 									sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_VELOX );
 									character_entity._ai_stay_near_entity = this;
 									character_entity._ai_stay_distance = 64;
+									character_entity._ai_team = this._ai_team;
 									
 									sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 									sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });

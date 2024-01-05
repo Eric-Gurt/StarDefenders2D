@@ -69,6 +69,7 @@ class sdSpider extends sdEntity
 		
 		this._hmax = this.type === 1 ? 700 : 300;
 		this._hea = this._hmax;
+		this.hea = this._hea;
 		this._ai_team = 2;
 
 		
@@ -113,7 +114,7 @@ class sdSpider extends sdEntity
 	}
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		//if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		if ( character._ai_team !== this._ai_team )
@@ -163,16 +164,18 @@ class sdSpider extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
+		/*
 		if ( initiator )
 		if ( initiator === this || initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
 		return;
-	
+		*/
+
 		//dmg = Math.abs( dmg );
 		
-		//let was_alive = this._hea > 0;
-		let old_hp = this._hea;
+		//let was_alive = this.hea > 0;
+		let old_hp = this.hea;
 		
-		this._hea -= Math.abs( dmg );
+		this.hea -= Math.abs( dmg );
 
 		this._regen_timeout = 30;
 
@@ -183,7 +186,7 @@ class sdSpider extends sdEntity
 		}
 
 		
-		if ( this._hea <= 0 && old_hp > 0 )
+		if ( this.hea <= 0 && old_hp > 0 )
 		{
 			sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume: 1 });
 			
@@ -192,7 +195,7 @@ class sdSpider extends sdEntity
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
 		}
 		else
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		{
 			if ( this.hurt_anim <= 0 )
 			{
@@ -202,7 +205,7 @@ class sdSpider extends sdEntity
 			this.hurt_anim = 5;
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this.hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
 	
@@ -249,7 +252,7 @@ class sdSpider extends sdEntity
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
-		if ( this._hea <= 0 )
+		if ( this.hea <= 0 )
 		{
 			if ( this.death_anim < sdSpider.death_duration + sdSpider.post_death_ttl )
 			{
@@ -260,12 +263,12 @@ class sdSpider extends sdEntity
 		}
 		else
 		{
-			if ( this._hea < this._hmax )
+			if ( this.hea < this._hmax )
 			{
 				this._regen_timeout -= GSPEED;
 				if ( this._regen_timeout < 0 )
 				{
-					this._hea = Math.min( this._hmax, this._hea + GSPEED * ( this.master ? 30 : 5 ) / 30 );
+					this.hea = Math.min( this._hmax, this.hea + GSPEED * ( this.master ? 30 : 5 ) / 30 );
 				}
 			}
 		
@@ -406,7 +409,7 @@ class sdSpider extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
 			
-			if ( this._hea > 0 )
+			if ( this.hea > 0 )
 			this.sy -= sdWorld.gravity * GSPEED * 2;
 		}
 		
@@ -516,7 +519,7 @@ class sdSpider extends sdEntity
 	}
 	HasMercyFor( from_entity )
 	{
-		return ( this._hea > this._hmax / 2 && from_entity.is( sdCharacter ) && from_entity._score < 100 && from_entity.matter < 300 && from_entity._ai_enabled === sdCharacter.AI_MODEL_NONE );
+		return ( this.hea > this._hmax / 2 && from_entity.is( sdCharacter ) && from_entity._score < 100 && from_entity.matter < 300 && from_entity._ai_enabled === sdCharacter.AI_MODEL_NONE );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -526,6 +529,9 @@ class sdSpider extends sdEntity
 			sdEntity.Tooltip( ctx, 'Erthal Spider Bot' );
 			if ( this.type === 1 )
 			sdEntity.Tooltip( ctx, 'Erthal Mini-tank Bot' );
+
+			if ( globalThis.enable_debug_info_adv )
+			this.DrawHealthBar( ctx, undefined, 10 );
 		}
 	}
 	Draw( ctx, attached )

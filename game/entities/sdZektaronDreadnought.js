@@ -82,8 +82,8 @@ class sdZektaronDreadnought extends sdEntity
 		//this._bullets = 150;
 		this._lasers = 7;
 		// For homing
-		this.look_x = 0;
-		this.look_y = 0;
+		//this.look_x = 0;
+		//this.look_y = 0;
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
@@ -335,7 +335,7 @@ class sdZektaronDreadnought extends sdEntity
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:1.7 });
 
-				let drone = new sdDrone({ x: this.x - ( 75 * 4 * Math.random() ), y: this.y - ( 30 * 4 * Math.random() ), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+				let drone = new sdDrone({ x: this.x - ( 75 * 4 * Math.random() ), y: this.y - ( 30 * 4 * Math.random() ), type: sdDrone.DRONE_ZEKTARON_HUNTER, minion_of: this }); // We do a little trolling
 				sdEntity.entities.push( drone );
 				drone._ai_team = this._ai_team;
 
@@ -746,7 +746,7 @@ class sdZektaronDreadnought extends sdEntity
 						if ( this.hea > ( this._hmax / 2 ) )
 						{
 
-							let drone = new sdDrone({ x: this.x - 45, y: this.y + 35, type: sdDrone.DRONE_ZEKTARON, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+							let drone = new sdDrone({ x: this.x - 45, y: this.y + 35, type: sdDrone.DRONE_ZEKTARON, minion_of: this }); // We do a little trolling
 			
 							// Make sure drone has any speed when deployed so drones don't get stuck into each other
 							if ( Math.abs( drone.sx ) < 0.5 )
@@ -803,7 +803,7 @@ class sdZektaronDreadnought extends sdEntity
 						{
 							sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:2.8, pitch:1.9 });
 
-							let drone = new sdDrone({ x: this.x - 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+							let drone = new sdDrone({ x: this.x - 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, minion_of: this }); // We do a little trolling
 			
 							drone.sx = 0;
 							drone.sy = 0;
@@ -892,8 +892,8 @@ class sdZektaronDreadnought extends sdEntity
 
 						let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
 
-						this.look_x = targets[ i ].x + ( dx * 3 );
-						this.look_y = targets[ i ].y + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
+						//this.look_x = targets[ i ].x + ( dx * 3 );
+						//this.look_y = targets[ i ].y + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
@@ -998,7 +998,7 @@ class sdZektaronDreadnought extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Zektaron Dreadnought", 0, -30 );
-		
+
 		this.DrawHealthBar( ctx, undefined, 20 );
 	}
 	Draw( ctx, attached )
