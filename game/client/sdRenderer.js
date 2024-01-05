@@ -21,6 +21,7 @@ import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
 import sdCharacter from '../entities/sdCharacter.js';
 import sdPlayerSpectator from '../entities/sdPlayerSpectator.js';
+import sdOctopus from '../entities/sdOctopus.js';
 
 import sdAtlasMaterial from './sdAtlasMaterial.js';
 
@@ -75,6 +76,7 @@ class sdRenderer
 		sdRenderer.service_mesage_until = 0;
 		sdRenderer.service_mesage = '';
 		sdRenderer.service_mesage_untranslateables = null;
+		sdRenderer.service_mesage_color = null;
 		
 		sdRenderer.last_source_change = sdWorld.time;
 		sdRenderer.last_source_entity = null;
@@ -1917,7 +1919,7 @@ class sdRenderer
 			ctx.fillStyle = '#ffffff';
 			ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ), 15 + 345 * scale, 40 ); // Hey, don't close to my debug mode!  --- Alone Guitar
 
-			if ( globalThis.enable_debug_info )
+			if ( globalThis.enable_debug_info || globalThis.enable_debug_info_adv )
 			{
 				ctx.fillStyle = '#AAAAff';
 				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 5 + 445 * scale, 17 );
@@ -2039,6 +2041,11 @@ class sdRenderer
 			ctx.textAlign = 'center';
 			ctx.fillStyle = '#ffff00';
 			
+			if ( sdRenderer.service_mesage_color )
+			{
+				ctx.fillStyle = sdRenderer.service_mesage_color;
+			}
+			
 			if ( sdRenderer.service_mesage_untranslateables )
 			{
 				let str = T( sdRenderer.service_mesage );
@@ -2070,11 +2077,17 @@ class sdRenderer
 		let close_to_no_vision = false;
 
 		if ( sdWorld.my_entity )
-		for ( let i2 = 0; i2 < sdFaceCrab.all_face_crabs.length; i2++ )
-		if ( sdFaceCrab.all_face_crabs[ i2 ].attached_to === sdWorld.my_entity )
 		{
+			if ( sdWorld.my_entity.driver_of )
+			if ( sdWorld.my_entity.driver_of.is( sdOctopus ) )
 			close_to_no_vision = true;
-			break;
+			
+			for ( let i2 = 0; i2 < sdFaceCrab.all_face_crabs.length; i2++ )
+			if ( sdFaceCrab.all_face_crabs[ i2 ].attached_to === sdWorld.my_entity )
+			{
+				close_to_no_vision = true;
+				break;
+			}
 		}
 
 
