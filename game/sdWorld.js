@@ -64,6 +64,9 @@ class sdWorld
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
 		
+		//sdWorld.SERVER_EXPECTED_GSPEED = 1;
+		sdWorld.SERVER_AVERAGE_GSPEED_VALUES = []; // arr of { time, GSPEED, EXPECTED_GSPEED }, last second only
+		
 		sdWorld.CHUNK_SIZE = CHUNK_SIZE;
 		
 		sdWorld.startup_hash = Math.floor( Math.random() * 9007199254740991 ); // Used to detect server restarts by notifier
@@ -128,6 +131,8 @@ class sdWorld
 		sdWorld.my_entity_protected_vars_untils = { gun_slot: 0 }; // Whenever player presses some gun slot - it will also save there sdWord.time + ping * 2 for property to prevent it from being accepted by server. Will improve some client-side looks even if allow doing stuff player should not be able to do, locally only.
 		sdWorld.my_score = 0;
 		sdWorld.my_entity_upgrades_later_set_obj = null;
+		sdWorld.my_inputs_and_gspeeds = []; // [ GSPEED, key_states ]
+		sdWorld.my_inputs_and_gspeeds_max = 100;
 		
 		sdWorld.client_side_censorship = false;
 		
@@ -208,6 +213,8 @@ class sdWorld
 		sdWorld.GSPEED = 0;
 		
 		sdWorld.el_hit_cache = [];
+		
+		sdWorld.bulk_exclude = [];
 		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
 		
@@ -523,10 +530,20 @@ class sdWorld
 		globalThis.presets_folder = presets_folder; // Old format
 		sdWorld.presets_folder = presets_folder;
 
-		if ( !globalThis.fs.existsSync( globalThis.presets_folder ) )
+		const presets_folder_users = dirname + '/presets_users';
+		globalThis.presets_folder_users = presets_folder_users; // Old format
+		sdWorld.presets_folder_users = presets_folder_users;
+
+		if ( !globalThis.fs.existsSync( presets_folder ) )
 		{
-			trace( 'Making directory: ' + globalThis.presets_folder );
-			globalThis.fs.mkdirSync( globalThis.presets_folder );
+			trace( 'Making directory: ' + presets_folder );
+			globalThis.fs.mkdirSync( presets_folder );
+		}
+		// Non-superadmins would have thier presets saved there instead, just to not mess with singleplayer and event presets if same names are used
+		if ( !globalThis.fs.existsSync( presets_folder_users ) )
+		{
+			trace( 'Making directory: ' + presets_folder_users );
+			globalThis.fs.mkdirSync( presets_folder_users );
 		}
 
 		const server_config_path_const = dirname + '/server_config' + ( world_slot || '' ) + '.js';
@@ -1455,6 +1472,8 @@ class sdWorld
 
 			sdEntity.entities.push( gib );
 			//gib.s = scale;
+			
+			sdWorld.UpdateHashPosition( gib, false ); // Make it appear instantly for clients
 		}
 	}
 	
@@ -1492,7 +1511,7 @@ class sdWorld
 		let once = true;
 		
 		if ( player_entity )
-		while ( player_entity._score >= player_entity._score_to_level && player_entity.build_tool_level < player_entity._max_level )
+		while ( player_entity._score >= player_entity._score_to_level && player_entity.build_tool_level < sdCharacter.max_level )
 		{
 			player_entity.build_tool_level++;
 			player_entity._score_to_level_additive = player_entity._score_to_level_additive * 1.04;
@@ -1528,8 +1547,11 @@ class sdWorld
 				let ent = new sdGun({ class:shard_class_id, x: xx, y: yy });
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
+				
 				//ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
+				if ( shard_class_id === sdGun.CLASS_CRYSTAL_SHARD )
 				ent.extra = value_mult * sdWorld.crystal_shard_value;
+			
 				ent._ignore_collisions_with = ignore_collisions_with;
 				ent.follow = follow;
 				sdEntity.entities.push( ent );
@@ -2576,6 +2598,27 @@ class sdWorld
 		if ( a.length !== b.length )
 		return false;
 	
+		let a_set = new Set();
+		for ( var i = 0; i < a.length; i++ )
+		a_set.add( a[ i ] );
+	
+		for ( var i = 0; i < b.length; i++ )
+		if ( !a_set.has( b[ i ] ) )
+		return false;
+	
+		/*for ( var i = 0; i < a.length; i++ )
+		{
+			if ( b.indexOf( a[ i ] ) === -1 )
+			return false;
+		}*/
+	
+		return true; // Try false here if method fails for some reason
+	}
+	/*static ArraysEqualIgnoringOrder( a, b )
+	{
+		if ( a.length !== b.length )
+		return false;
+	
 		for ( var i = 0; i < a.length; i++ )
 		{
 			if ( b.indexOf( a[ i ] ) === -1 )
@@ -2583,7 +2626,7 @@ class sdWorld
 		}
 	
 		return true; // Try false here if method fails for some reason
-	}
+	}*/
 	static limit( min, v, max )
 	{
 		if ( v <= min )
@@ -2859,7 +2902,14 @@ class sdWorld
 		}
 
 		let GSPEED = ( sdWorld.time - old_time ) / 1000 * 30; // / substeps;
-
+		
+		let AVERAGE_GSPEED_VALUE = { time:sdWorld.time, GSPEED:0, EXPECTED_GSPEED:GSPEED };
+		
+		while ( sdWorld.SERVER_AVERAGE_GSPEED_VALUES.length > 0 && sdWorld.SERVER_AVERAGE_GSPEED_VALUES[ 0 ].time < sdWorld.time - 3000 )
+		sdWorld.SERVER_AVERAGE_GSPEED_VALUES.shift();
+	
+		sdWorld.SERVER_AVERAGE_GSPEED_VALUES.push( AVERAGE_GSPEED_VALUE );
+		
 		if ( GSPEED < 0 ) // Overflow? Probably would never happen normally
 		GSPEED = 0;
 		else
@@ -2873,6 +2923,8 @@ class sdWorld
 			if ( GSPEED > 10 ) // Should be best for weaker devices, just so at least server would not initiate player teleportation back to where he thinks player is
 			GSPEED = 10;
 		}
+		
+		AVERAGE_GSPEED_VALUE.GSPEED = GSPEED;
 		
 		//if ( sdWorld.paused )
 		//GSPEED = 0;
@@ -2985,7 +3037,57 @@ class sdWorld
 
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 
-			const bulk_exclude = [];
+			const bulk_exclude = sdWorld.bulk_exclude;
+			
+			const GetTimeWarpSpeedForEntity = ( e )=>
+			{
+				let best_warp = 1;
+				for ( i2 = 0; i2 < timewarps.length; i2++ )
+				{
+					if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
+					{
+						if ( !sdWorld.server_config.base_degradation )
+						if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
+						continue;
+
+						if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
+						{
+							best_warp = 0.5;
+							break;
+						}
+						else
+						{
+							if ( best_warp === 1 )
+							best_warp = 0.15;
+						}
+					}
+				}
+				return best_warp;
+			};
+			
+			if ( sdWorld.my_entity )
+			if ( !sdWorld.is_singleplayer )
+			{
+				let gs = ( timewarps ? ( GetTimeWarpSpeedForEntity( sdWorld.my_entity ) ) : 1 ) * GSPEED;
+				
+				const max_merging_gspeed = 0; // Less data but less accurate too
+				
+				if ( sdWorld.my_inputs_and_gspeeds.length < sdWorld.my_inputs_and_gspeeds_max )
+				{
+					if (	sdWorld.my_inputs_and_gspeeds.length > 1 && 
+							typeof sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] === 'number' && 
+							sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] + gs < max_merging_gspeed 
+					)
+					sdWorld.my_inputs_and_gspeeds[ sdWorld.my_inputs_and_gspeeds.length - 1 ] += gs;
+					else
+					sdWorld.my_inputs_and_gspeeds.push( gs );
+				}
+				else
+				{
+					trace( 'Too much input data is about to be sent. Or connection has been lost?' );
+				}
+			}
+			//sdWorld.my_inputs_and_gspeeds.push([ GetTimeWarpSpeedForEntity( sdWorld.my_entity ) * GSPEED, Object.assign( {}, sdWorld.my_entity._key_states.key_states ) ]);
 
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
@@ -3083,27 +3185,7 @@ class sdWorld
 
 						if ( timewarps )
 						{
-							best_warp = 1;
-							for ( i2 = 0; i2 < timewarps.length; i2++ )
-							{
-								if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
-								{
-									if ( !sdWorld.server_config.base_degradation )
-									if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
-									continue;
-
-									if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
-									{
-										best_warp = 0.5;
-										break;
-									}
-									else
-									{
-										if ( best_warp === 1 )
-										best_warp = 0.15;
-									}
-								}
-							}
+							best_warp = GetTimeWarpSpeedForEntity( e );
 
 							gspeed_mult *= best_warp;
 						}
@@ -3617,7 +3699,10 @@ class sdWorld
 			for ( i = 0; i < arr.length; i++ )
 			{
 				arr_i = arr[ i ];
-						
+					
+				const arr_i_is_bg_entity = arr_i._is_bg_entity;
+
+				if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep	
 				{
 					arr_i_x = arr_i.x;
 					
@@ -3629,12 +3714,6 @@ class sdWorld
 						if ( y2 > arr_i_y + arr_i._hitbox_y1 )
 						if ( y1 < arr_i_y + arr_i._hitbox_y2 )
 						{
-							const arr_i_is_bg_entity = arr_i._is_bg_entity;
-							
-							//if ( arr_i.GetClass() === 'sdButton' )
-							//debugger;
-							
-							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							if ( arr_i !== ignore_cell )
 							if ( include_non_solid || arr_i.ThreatAsSolid() )
 							return true;
@@ -4053,12 +4132,12 @@ class sdWorld
 	static ReplaceColorInSDFilter_v2( sd_filter, from, to, replace_existing_color_if_there_is_one=true )
 	{
 		if ( to === undefined ) // Usually means there is no replacement
-		return;
+		return sd_filter;
 	
 		if ( typeof to !== 'string' ) // Malfunctioned replacement from client?
 		{
 			debugger;
-			return;
+			return sd_filter;
 		}
 		
 		if ( from.length === 7 )
@@ -4073,7 +4152,7 @@ class sdWorld
 		if ( to.length !== 6 ) // Malfunctioned replacement from client?
 		{
 			debugger;
-			return;
+			return sd_filter;
 		}
 	
 		if ( typeof sd_filter.s !== 'string' )
@@ -4088,12 +4167,13 @@ class sdWorld
 				if ( color_hex === from )
 				{
 					sd_filter.s = sd_filter.s.substring( 0, i + 6 ) + to + sd_filter.s.substring( i + 12 );
-					return;
+					return sd_filter;
 				}
 			}
 		}
 		sd_filter.s += from;
 		sd_filter.s += to;
+		return sd_filter;
 	}
 	static ConvertPlayerDescriptionToSDFilter( player_description )
 	{
@@ -4881,6 +4961,7 @@ class sdWorld
 				let socket = globalThis.socket;
 
 				globalThis.enable_debug_info = player_settings['bugs2'];
+				globalThis.enable_debug_info_adv = player_settings['bugs3'];
 
 				const BoolToInt = ( v )=>
 				{
