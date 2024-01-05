@@ -3674,7 +3674,7 @@ THING is cosmic mic drop!`;
 			this._GSPEED_buffer_length_allowed += GSPEED;
 			return true;
 		}
-		
+
 		if ( sdWorld.is_server )
 		this.sync = ( this.sync + 1 ) % 100; // Additionally done at index.js
 		
@@ -5650,7 +5650,7 @@ THING is cosmic mic drop!`;
 		ctx.globalAlpha = 0.3;
 	
 		if ( this.lag )
-		if ( globalThis.enable_debug_info )
+		if ( globalThis.enable_debug_info || globalThis.enable_debug_info_adv )
 		{
 			ctx.fillStyle = '#000000';
 			ctx.fillText( 'Connection problem', 0, -24.5 - 5, 50 ); 

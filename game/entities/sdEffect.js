@@ -889,7 +889,7 @@ class sdEffect extends sdEntity
 		
 		if ( this._type === sdEffect.TYPE_LAG )
 		{
-			if ( !globalThis.enable_debug_info )
+			if ( !globalThis.enable_debug_info || globalThis.enable_debug_info )
 			return;
 		
 			ctx.font = "6px Verdana";
