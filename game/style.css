@@ -8,7 +8,8 @@
 {
     font-family: ui_font, Verdana;
 
-    cursor: url(/assets/cursor_2x.png), auto;
+    /*cursor: url(/assets/cursor_2x.png), auto; Chromium browsers make a separate request for each element on a page... Which might flood the server with requests and cause Cloudflare to stop reponding */
+    cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAHJJREFUeNrslUEOgDAIBMH0W/h4eRg2amzaeBWq7CYcymk6IcBWQ32YHLNQcG4AVT2qxq5KZiDKxHwGvE2EGyhjYxXp3ttpgUTE3tgT8xkYI80I55iBh3HnX+8BTn8Ni/ePv3MLAAAAAAAAAABIA7ALMAAtOCJhJhCiWwAAAABJRU5ErkJggg=='), auto;
 }
 .ace_print-margin
 {
