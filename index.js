@@ -2192,7 +2192,7 @@ io.on( 'connection', ( socket )=>
 						for ( let i = 0; i < e._inventory.length; i++ )
 						if ( e._inventory[ i ] )
 						if ( old_sync_guns[ i ] !== -1 )
-						e._inventory[ i ].sync = ( e._inventory[ i ] + 1 ) % 100; // Somehow it helps with decreased update on viewer's side
+						e._inventory[ i ].sync = ( e._inventory[ i ].sync + 1 ) % 100; // Somehow it helps with decreased update on viewer's side
 					}
 					
 					socket.character._GSPEED_buffer_length_allowed = 0;
