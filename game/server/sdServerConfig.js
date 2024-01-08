@@ -381,6 +381,8 @@ class sdServerConfigFull extends sdServerConfigShort
 		{
 			fresh_hover = true;
 			
+			//trace( '_affected_hash_arrays at spawn', character_entity._affected_hash_arrays );
+			
 			hover = new sdHover({ x:character_entity.x, y:character_entity.y });
 			hover.guns = 0;
 			//hover._doors_locked = true;

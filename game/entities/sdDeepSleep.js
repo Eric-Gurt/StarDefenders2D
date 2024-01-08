@@ -205,7 +205,7 @@ class sdDeepSleep extends sdEntity
 	
 	ThreatAsSolid() // Test done by some entities, solid possibility might prevent water from flowing through hibernated/not/spawned sdSleepAreas
 	{
-		return ( this.type !== sdDeepSleep.TYPE_SCHEDULED_SLEEP && this.type !== sdDeepSleep.TYPE_DO_NOT_HIBERNATE );
+		return ( !this._is_being_removed && this.type !== sdDeepSleep.TYPE_SCHEDULED_SLEEP && this.type !== sdDeepSleep.TYPE_DO_NOT_HIBERNATE );
 	}
 	
 	static init()
