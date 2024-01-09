@@ -83,10 +83,10 @@ class sdFleshGrabber extends sdEntity
 				//sdSound.PlaySound({ name:'abomination_alert', x:this.x, y:this.y });
 			
 				this._current_target = character;
+				
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			}
 		}
-		
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	GetBleedEffect()
 	{
@@ -105,6 +105,8 @@ class sdFleshGrabber extends sdEntity
 		let was_alive = this._hea > 0;
 		
 		this._hea = Math.min( this._hea - dmg, this._hmax );
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
 		if ( this._hea <= 0 && was_alive )
 		{
@@ -203,7 +205,7 @@ class sdFleshGrabber extends sdEntity
 			
 			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() )
+				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || this._current_target.is( sdBlock ) )
 				this._current_target = null;
 				else
 				if ( this._pull_timer <= 0 )
@@ -257,8 +259,8 @@ class sdFleshGrabber extends sdEntity
 			}
 		}
 		
-		if ( !this._current_target && !this._tenta_target && this._hea >= this._hmax )
-		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		if ( !this._current_target && !( this._tenta_target && this.tenta_tim > 0 ) )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

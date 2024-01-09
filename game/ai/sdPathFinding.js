@@ -448,20 +448,20 @@ class RectSpaceMap
 	{
 		// TODO: Somehow prioritize rect Iterating for those that are closest to known travelers
 		
-		if ( sdWorld.server_config.enable_bounds_move )
-		{
+		//if ( sdWorld.server_config.enable_bounds_move )
+		//{
 			this.x1 = Math.floor( ( this.target.x - sdPathFinding.max_range_from_target ) / 16 ) * 16;
 			this.y1 = Math.floor( ( this.target.y - sdPathFinding.max_range_from_target ) / 16 ) * 16;
 			this.x2 = Math.floor( ( this.target.x + sdPathFinding.max_range_from_target ) / 16 ) * 16;
 			this.y2 = Math.floor( ( this.target.y + sdPathFinding.max_range_from_target ) / 16 ) * 16;
-		}
+		/*}
 		else
 		{
 			this.x1 = sdWorld.world_bounds.x1;
 			this.y1 = sdWorld.world_bounds.y1;
 			this.x2 = sdWorld.world_bounds.x2;
 			this.y2 = sdWorld.world_bounds.y2;
-		}
+		}*/
 		
 		this.w = Math.floor( ( this.x2 - this.x1 ) / 16 );
 		this.h = Math.floor( ( this.y2 - this.y1 ) / 16 );
@@ -553,15 +553,15 @@ class RectSpaceMap
 				y = 0;
 			}
 		
-			if ( sdWorld.server_config.enable_bounds_move )
-			{
+			//if ( sdWorld.server_config.enable_bounds_move )
+			//{
 				if ( Math.abs( this.target.x - ( this.x1 + this.x2 ) / 2 ) > sdPathFinding.max_range_from_target * 0.25 ||
 					 Math.abs( this.target.y - ( this.y1 + this.y2 ) / 2 ) > sdPathFinding.max_range_from_target * 0.25 )
 				{
 					this.Reinit();
 					return this.GetBitOffsetFromXY( _x, _y );
 				}
-			}
+			/*}
 			else
 			if ( _x >= sdWorld.world_bounds.x1 )
 			if ( _x < sdWorld.world_bounds.x2 )
@@ -573,7 +573,7 @@ class RectSpaceMap
 
 				this.Reinit();
 				return this.GetBitOffsetFromXY( _x, _y );
-			}
+			}*/
 			
 			//debugger;
 			return 0;

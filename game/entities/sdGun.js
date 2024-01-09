@@ -1395,6 +1395,9 @@ class sdGun extends sdEntity
 			
 			sdWorld.last_hit_entity = null;
 			
+			if ( this._ignore_collisions_with && this._ignore_collisions_with._is_being_removed )
+			this._ignore_collisions_with = null;
+			
 			if ( this._ignore_collisions_with === null )
 			this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1 );
 			else

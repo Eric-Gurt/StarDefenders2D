@@ -3363,6 +3363,7 @@ class sdEntity
 				{
 					if ( sdWorld.is_server )
 					if ( this.IsGlobalEntity() )
+					//if ( this.GetClass() === 'sdFleshGrabber' )
 					{
 						debugger;
 					}

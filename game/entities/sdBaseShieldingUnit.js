@@ -626,6 +626,8 @@ class sdBaseShieldingUnit extends sdEntity
 		{
 			this._protected_entities_when_disabled = null;
 			this._protected_entities_when_disabled_until = 1;
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 		else
 		{
@@ -815,6 +817,8 @@ class sdBaseShieldingUnit extends sdEntity
 		this.sy += y / this.mass;
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
+			
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	
 	GetConnectedCameras()
@@ -1590,6 +1594,9 @@ class sdBaseShieldingUnit extends sdEntity
 		//sdWorld.last_hit_entity = null;
 		
 		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		
+		if ( this.hea >= this.hmax && !this.enabled && this._phys_sleep <= 0 )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	onMovementInRange( from_entity )
 	{

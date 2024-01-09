@@ -3692,6 +3692,8 @@ class sdWorld
 		if ( yy_to === yy_from )
 		yy_to++;
 	
+		//let arr_i_is_bg_entity;
+	
 		let xx,yy;
 		for ( xx = xx_from; xx < xx_to; xx++ )
 		for ( yy = yy_from; yy < yy_to; yy++ )
@@ -3702,9 +3704,10 @@ class sdWorld
 			{
 				arr_i = arr[ i ];
 					
-				const arr_i_is_bg_entity = arr_i._is_bg_entity;
+				//arr_i_is_bg_entity = arr_i._is_bg_entity;
 
-				if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep	
+				//if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep	
+				if ( arr_i._is_bg_entity === 10 ) // sdDeepSleep	
 				{
 					arr_i_x = arr_i.x;
 					
