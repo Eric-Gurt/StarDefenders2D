@@ -205,6 +205,9 @@ class sdGrass extends sdEntity
 		
 		this._block = params.block || null;
 		
+		if ( this._block && this._block._is_being_removed )
+		throw new Error( 'Spawning grass on a removed block... This should not happen.' );
+		
 		this.snowed = false;
 		
 		this._hea = ( this.variation >= sdGrass.VARIATION_BUSH ) ? ( ( this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN ) ? 140 : 70 ) : 1;

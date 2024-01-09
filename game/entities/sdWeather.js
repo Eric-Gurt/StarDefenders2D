@@ -3618,6 +3618,7 @@ class sdWeather extends sdEntity
 						}
 
 						if ( e.is( sdBlock ) )
+						if ( !e._is_being_removed )
 						if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
 						{
 							let xx = Math.floor( ( e.x + Math.random() * e.width ) / 16 ) * 16;
@@ -3771,83 +3772,6 @@ class sdWeather extends sdEntity
 							}
 						}
 					}
-					
-					/*let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-
-
-					// CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
-					if ( !sdWorld.CheckLineOfSight( xx, sdWorld.world_bounds.y1 + 4, xx, sdWorld.world_bounds.y2, null, null, sdCom.com_creature_attack_unignored_classes, ( ent )=>
-							{
-								// Ignore cages
-								if ( ent.is( sdBlock ) )
-								if ( ent.texture_id === sdBlock.TEXTURE_ID_CAGE )
-								return false;
-						
-								return true;
-							}
-					) )
-					{
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.is( sdBlock ) )
-						if ( sdWorld.last_hit_entity.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
-						{
-							if ( sdWorld.last_hit_entity.DoesRegenerate() )
-							{
-								if ( sdWorld.last_hit_entity._plants === null )
-								{
-									let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, hue:sdWorld.last_hit_entity.hue, br:sdWorld.last_hit_entity.br, filter: sdWorld.last_hit_entity.filter, block:sdWorld.last_hit_entity  });
-									sdEntity.entities.push( grass );
-									
-									//grass.snowed = this.snow;
-									grass.SetSnowed( this.snow );
-
-									sdWorld.last_hit_entity._plants = [ grass._net_id ];
-								}
-								else
-								{
-									for ( let i = 0; i < sdWorld.last_hit_entity._plants.length; i++ )
-									{
-										//let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
-										let ent = sdEntity.entities_by_net_id_cache_map.get( sdWorld.last_hit_entity._plants[ i ] );
-
-										if ( ent )
-										{
-											if ( ent.is( sdGrass ) )
-											{
-												// Old version problem fix:
-												if ( ent._block !== sdWorld.last_hit_entity )
-												ent._block = sdWorld.last_hit_entity;
-
-												ent.SetSnowed( this.snow );
-												//ent.snowed = this.snow;
-													
-												if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
-												{
-													ent.Grow();
-													break; // Skip rest plants on this block
-												}
-											}
-										}
-										else
-										{
-											// Old version problem fix:
-											sdWorld.last_hit_entity._plants.splice( i, 1 );
-											i--;
-											continue;
-										}
-									}
-								}
-							}
-							
-							if ( !this.snow && !this.matter_rain )
-							if ( Math.random() < 0.01 )
-							{
-								let water = new sdWater({ x:Math.floor(sdWorld.last_hit_entity.x/16)*16, y:Math.floor(sdWorld.last_hit_entity.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
-								sdEntity.entities.push( water );
-								sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
-							}
-						}
-					}*/
 				}
 
 				if ( this.matter_rain || this.acid_rain )
