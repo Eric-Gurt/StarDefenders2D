@@ -121,7 +121,7 @@ class sdTimer
 	
 	static ThinkNow()
 	{
-		while ( sdTimer.sorted_timeouts.length > 0 )
+		/*while ( sdTimer.sorted_timeouts.length > 0 )
 		{
 			let timer = sdTimer.sorted_timeouts[ 0 ];
 			
@@ -136,7 +136,29 @@ class sdTimer
 			{
 				break;
 			}
+		}*/
+		
+		let i = 0;
+		let del = 0;
+		
+		while ( i < sdTimer.sorted_timeouts.length )
+		{
+			let timer = sdTimer.sorted_timeouts[ i++ ];
+			
+			if ( sdWorld.time >= timer.expire_on )
+			{
+				//sdTimer.sorted_timeouts.shift();
+				del++;
+				
+				if ( timer.function )
+				timer.function( timer );
+			}
+			else
+			break;
 		}
+		
+		if ( del > 0 )
+		sdTimer.sorted_timeouts.splice( 0, del );
 	}
 	
 	constructor( f, expire_on )

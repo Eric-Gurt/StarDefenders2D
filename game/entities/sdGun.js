@@ -1446,7 +1446,10 @@ class sdGun extends sdEntity
 		if ( this._combo_timer <= 0 )
 		if ( this.muzzle <= 0 )
 		{
+			// Always allow sync on weaponbenches automatically
+			if ( !this._held_by.IsPlayerClass() )
 			this.sync = -1;
+		
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED ); // Note: Such hibernation will casue weapon to logically appear behind carrier. It means that carrier now should handle position logic
 		}
 	}

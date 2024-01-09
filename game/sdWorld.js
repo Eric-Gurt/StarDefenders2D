@@ -3498,12 +3498,14 @@ class sdWorld
 
 			sdTimer.ThinkNow();
 
+			let t5b = Date.now();
+			IncludeTimeCost( 'sdTimer.ThinkNow', t5b - t5 );
 
 			if ( sdWorld.server_config.onExtraWorldLogic )
 			sdWorld.server_config.onExtraWorldLogic( GSPEED );
 
 			let t6 = Date.now();
-			IncludeTimeCost( 'onExtraWorldLogic', t6 - t5 );
+			IncludeTimeCost( 'onExtraWorldLogic', t6 - t5b );
 
 			if ( sdWorld.is_server )
 			{

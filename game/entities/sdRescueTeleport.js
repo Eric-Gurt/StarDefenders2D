@@ -39,6 +39,8 @@ class sdRescueTeleport extends sdEntity
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
+		sdRescueTeleport.global_think_next = 0;
+		
 		//sdRescueTeleport.delay_1st = 30 * 60 * 3; // 3 minutes
 		//sdRescueTeleport.delay_2nd = 30 * 60 * 5; // 5 minutes
 		
@@ -71,90 +73,95 @@ class sdRescueTeleport extends sdEntity
 			
 			if ( sdRescueTeleport.players_can_build_rtps )
 			{
-				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.time > sdRescueTeleport.global_think_next )
 				{
-					let character = sdWorld.sockets[ i ].character;
-
-					if ( character )
-					if ( character.hea > 0 )
-					if ( character.is( sdCharacter ) )
+					sdRescueTeleport.global_think_next = sdWorld.time + 1000;
+					
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
 					{
-						let available_rtps = [];
-						let is_suitable = [];
-						
-						let any_is_suitable = false;
-						
-						let is_deeply_within_range = false;
-						
-						for ( let i2 = 0; i2 < sdRescueTeleport.rescue_teleports.length; i2++ )
-						{
-							let rtp = sdRescueTeleport.rescue_teleports[ i2 ];
-							if ( rtp.owner_biometry === character.biometry )
-							{
-								available_rtps.push( rtp );
-								is_suitable.push( false );
-							}
-						}
-						
-						for ( let i2 = 0; i2 < available_rtps.length; i2++ )
-						{
-							let rtp = available_rtps[ i2 ];
-							
-							let range = rtp.GetRTPRange( character );
-							let cost = rtp.GetRTPMatterCost( character );
-							
-							//let suits = ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
-							let suits = !rtp.IsCloner() && ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
-							
-							// Warn about cloner-only RTPs being available
-							
-							if ( suits )
-							{
-								//let t = rtp;
-								if ( rtp.GetRTPPotentialPlayerPlacementTestResult( character ) )
-								//if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) )
-								{
-									is_suitable[ i2 ] = suits;
-									any_is_suitable = true;
+						let character = sdWorld.sockets[ i ].character;
 
-									if ( !is_deeply_within_range )
-									if ( sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
-									is_deeply_within_range = true;
+						if ( character )
+						if ( character.hea > 0 )
+						if ( character.is( sdCharacter ) )
+						{
+							let available_rtps = [];
+							let is_suitable = [];
+
+							let any_is_suitable = false;
+
+							let is_deeply_within_range = false;
+
+							for ( let i2 = 0; i2 < sdRescueTeleport.rescue_teleports.length; i2++ )
+							{
+								let rtp = sdRescueTeleport.rescue_teleports[ i2 ];
+								if ( rtp.owner_biometry === character.biometry )
+								{
+									available_rtps.push( rtp );
+									is_suitable.push( false );
 								}
 							}
-						}
-						
-						character._has_rtp_in_range = any_is_suitable;
-						
-						if ( any_is_suitable )
-						{
-							if ( !is_deeply_within_range )
-							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'RTP-HINT', 
-								executer: character,
-								mission: sdTask.MISSION_GAMEPLAY_HINT,
-								title: 'Rescue Teleport signal is weak',
-								description: 'You are likely leaving effective range of your Rescue Teleport.'
-							});
-						}
-						else
-						{
-							if ( available_rtps.length === 0 && character._score < 100 )
-							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'RTP-HINT', 
-								executer: character,
-								mission: sdTask.MISSION_GAMEPLAY_HINT,
-								title: 'Rescue Teleport required',
-								description: 'You\'ll need a Rescue Teleport to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (B key) to build.'
-							});
+
+							for ( let i2 = 0; i2 < available_rtps.length; i2++ )
+							{
+								let rtp = available_rtps[ i2 ];
+
+								let range = rtp.GetRTPRange( character );
+								let cost = rtp.GetRTPMatterCost( character );
+
+								//let suits = ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+								let suits = !rtp.IsCloner() && ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+
+								// Warn about cloner-only RTPs being available
+
+								if ( suits )
+								{
+									//let t = rtp;
+									if ( rtp.GetRTPPotentialPlayerPlacementTestResult( character ) )
+									//if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) )
+									{
+										is_suitable[ i2 ] = suits;
+										any_is_suitable = true;
+
+										if ( !is_deeply_within_range )
+										if ( sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
+										is_deeply_within_range = true;
+									}
+								}
+							}
+
+							character._has_rtp_in_range = any_is_suitable;
+
+							if ( any_is_suitable )
+							{
+								if ( !is_deeply_within_range )
+								sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'RTP-HINT', 
+									executer: character,
+									mission: sdTask.MISSION_GAMEPLAY_HINT,
+									title: 'Rescue Teleport signal is weak',
+									description: 'You are likely leaving effective range of your Rescue Teleport.'
+								});
+							}
 							else
-							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'RTP-HINT', 
-								executer: character,
-								mission: sdTask.MISSION_GAMEPLAY_HINT,
-								title: 'Rescue Teleport signal lost',
-								description: 'Signal with your Rescue Teleport has been lost.'
-							});
+							{
+								if ( available_rtps.length === 0 && character._score < 100 )
+								sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'RTP-HINT', 
+									executer: character,
+									mission: sdTask.MISSION_GAMEPLAY_HINT,
+									title: 'Rescue Teleport required',
+									description: 'You\'ll need a Rescue Teleport to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (B key) to build.'
+								});
+								else
+								sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'RTP-HINT', 
+									executer: character,
+									mission: sdTask.MISSION_GAMEPLAY_HINT,
+									title: 'Rescue Teleport signal lost',
+									description: 'Signal with your Rescue Teleport has been lost.'
+								});
+							}
 						}
 					}
 				}
