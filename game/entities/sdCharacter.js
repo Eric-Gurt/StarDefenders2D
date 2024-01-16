@@ -5051,13 +5051,16 @@ THING is cosmic mic drop!`;
 			if ( this.y + this._hitbox_y2 >= from_entity.y + from_entity._hitbox_y1 - this.GetStepHeight() )
 			if ( this.x + this._hitbox_x2 > from_entity.x + from_entity._hitbox_x1 )
 			if ( this.x + this._hitbox_x1 < from_entity.x + from_entity._hitbox_x2 )
-			if ( this.GetIgnoredEntityClasses().indexOf( from_entity.GetClass() ) === -1 )
 			{
-				let remote_ignored = from_entity.GetIgnoredEntityClasses();
-				if ( remote_ignored === null || remote_ignored.indexOf( this.GetClass() ) === -1 )
+				let ignored_arr_or_null = this.GetIgnoredEntityClasses();
+				if ( ignored_arr_or_null === null || ignored_arr_or_null.indexOf( from_entity.GetClass() ) === -1 )
 				{
-					this.stands = true;
-					this._stands_on = from_entity;
+					let remote_ignored = from_entity.GetIgnoredEntityClasses();
+					if ( remote_ignored === null || remote_ignored.indexOf( this.GetClass() ) === -1 )
+					{
+						this.stands = true;
+						this._stands_on = from_entity;
+					}
 				}
 			}
 		}

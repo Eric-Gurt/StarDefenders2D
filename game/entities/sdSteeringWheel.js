@@ -403,6 +403,23 @@ class sdSteeringWheel extends sdEntity
 			return;
 		}
 		
+		if ( !entity.IsDamageAllowedByAdmins() )
+		{
+			if ( character_to_tell_result_to )
+			character_to_tell_result_to.Say( 'This entity is in admin restricted area' );
+		
+			return;
+		}
+		
+		if ( entity.is( sdBlock ) || entity.is( sdBG ) )
+		if ( entity._natural )
+		{
+			if ( character_to_tell_result_to )
+			character_to_tell_result_to.Say( 'Non-player-made walls can not be moved' );
+		
+			return;
+		}
+		
 		let i = this._scan.indexOf( entity );
 		
 		//let socket_to_tell_result_to = character_to_tell_result_to ? character_to_tell_result_to._socket : null;
