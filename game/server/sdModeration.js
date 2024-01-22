@@ -29,15 +29,17 @@ class sdModeration
 			admins: [
 				// { my_hash, access_level, pseudonym, promoter_hash } // lower access_level - more rights // promoter_hash can be null for first admin
 			],
-			ban_ips: {}, // Obsolete? Use DB bans instead
-			ban_passwords: {}, // Obsolete? Use DB bans instead
+			//ban_ips: {}, // Obsolete? Use DB bans instead
+			//ban_passwords: {}, // Obsolete? Use DB bans instead
 			// xxx: { until, reason, pseudonym, time } // not working yet
+			
+			non_admin_password: '' // Extra password that can be set dynamically by admins. Only admins with access level no greater than extra_password_max_permission_level will be able to set it
 		};
 		sdModeration.ever_loaded = false;
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval', 'password' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -578,6 +580,28 @@ class sdModeration
 			socket.SDServiceMessage( 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 		}
 		else
+		if ( parts[ 0 ] === 'password' )
+		{
+			let new_password = '';
+			if ( parts[ 1 ] === '' || parts[ 1 ] === undefined )
+			{
+				
+			}
+			else
+			{
+				new_password = parts[ 1 ];
+			}
+			
+			sdModeration.data.non_admin_password = new_password;
+			
+			if ( new_password === '' )
+			socket.SDServiceMessage( 'Server: Password has been removed.' );
+			else
+			socket.SDServiceMessage( 'Server: Password has been updated. Newly connected players will need to use it. Admins won\'t need it to join.' );
+			
+			sdModeration.Save();
+		}
+		else
 		if ( parts[ 0 ] === 'god' )
 		{
 			if ( socket.character )
@@ -602,6 +626,7 @@ class sdModeration
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
+						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
 
 						socket.character.InstallUpgrade( 'upgrade_jetpack' );
 						socket.character.InstallUpgrade( 'upgrade_hook' );

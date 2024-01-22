@@ -1469,24 +1469,6 @@ io.on( 'connection', ( socket )=>
 			socket.SDServiceMessage( 'Client was unable to respond in time. Try refreshing page?' );
 			return;
 		}
-	
-		if ( sdWorld.server_config.password !== '' )
-		if ( typeof sdWorld.server_config.password === 'string' )
-		if ( sdWorld.server_config.password !== player_settings.password )
-		{
-			/*socket.SDServiceMessage( 'Wrong password' );
-			setTimeout(()=>
-			{
-				socket.emit( 'REQUIRE_PASSWORD' );
-			}, 3000 );*/
-			
-			if ( player_settings.password === '' )
-			socket.emit( 'REQUIRE_PASSWORD', [ 'Password is required', '' ] );
-			else
-			socket.emit( 'REQUIRE_PASSWORD', [ 'Password does not match', '#ff0000' ] );
-		
-			return;
-		}
 		
 		socket.last_ping = sdWorld.time;
 		socket.waiting_on_M_event_until = 0;
@@ -1523,6 +1505,50 @@ io.on( 'connection', ( socket )=>
 			socket.SDServiceMessage( 'Connection Error: Your "my_hash" is {1} characters long, but 300 is a maximum allowed length. Contact us if this happens to you for no reason.', [ player_settings.my_hash.length ] );
 			return;
 		}
+		
+		
+			
+		socket.my_hash = player_settings.my_hash;
+		
+		let bypass_bans_and_password_check = false;
+
+		if ( sdModeration.GetAdminRow( socket ) )
+		bypass_bans_and_password_check = true;
+	
+	
+	
+	
+		let any_passwords = [];
+		
+		if ( sdWorld.server_config.password !== '' && typeof sdWorld.server_config.password === 'string' )
+		any_passwords.push( sdWorld.server_config.password );
+	
+		if ( sdModeration.data.non_admin_password !== '' )
+		any_passwords.push( sdModeration.data.non_admin_password );
+		
+		if ( any_passwords.length > 0 && any_passwords.indexOf( player_settings.password ) === -1 )
+		{
+			if ( bypass_bans_and_password_check )
+			{
+				if ( player_settings.password === '' )
+				socket.SDServiceMessage( 'Password is required but you are an admin (password check was skipped)' );
+				else
+				socket.SDServiceMessage( 'Password does not match but you are an admin (password check was skipped)' );
+			}
+			else
+			{
+				if ( player_settings.password === '' )
+				socket.emit( 'REQUIRE_PASSWORD', [ 'Password is required', '' ] );
+				else
+				socket.emit( 'REQUIRE_PASSWORD', [ 'Password does not match', '#ff0000' ] );
+
+				return;
+			}
+		}
+		
+		
+	
+	
 		
 		let t = Date.now();
 		
@@ -1563,9 +1589,7 @@ io.on( 'connection', ( socket )=>
 				});
 			}
 		}
-			
-		socket.my_hash = player_settings.my_hash;
-		
+	
 		let my_hash = socket.my_hash; // To make sure it won't change
 		
 		let ban = cached_bans[ ip_accurate ] || cached_bans[ my_hash ];
@@ -1576,11 +1600,6 @@ io.on( 'connection', ( socket )=>
 			month: "long",
 			day: "numeric"
 		};
-
-		let bypass = false;
-
-		if ( sdModeration.GetAdminRow( socket ) )
-		bypass = true;
 	
 		let will_delete_ban_after_resolved = false;
 
@@ -1592,7 +1611,7 @@ io.on( 'connection', ( socket )=>
 			}
 			else
 			{
-				if ( bypass )
+				if ( bypass_bans_and_password_check )
 				{
 					socket.SDServiceMessage( 'Ignoring global ban (UID: {1}) due to admin permissions on a server (according to 15 seconds cache)', [ ban.uid ] );
 				}
@@ -1637,7 +1656,7 @@ io.on( 'connection', ( socket )=>
 							// Server with local database would execute it instantly otherwise
 							setTimeout( ()=>
 							{
-								if ( bypass )
+								if ( bypass_bans_and_password_check )
 								{
 									socket.SDServiceMessage( 'Ignoring global ban (UID: {1}) due to admin permissions on a server', [ ban.uid ] );
 								}
@@ -1862,33 +1881,8 @@ io.on( 'connection', ( socket )=>
 		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		character_entity._frozen = 0; // Preventing results of a bug where status effects were removed but _frozen property wasn't reset. Still not sure why this happens
 		
-		let pseudonym_list = [ character_entity.title ];
-		for ( let i = 0; i < sdWorld.recent_players.length; i++ )
-		{
-			if ( sdWorld.recent_players[ i ].my_hash === socket.my_hash )
-			{
-				if ( sdWorld.recent_players[ i ].pseudonym_list.indexOf( character_entity.title ) === -1 )
-				pseudonym_list = pseudonym_list.concat( sdWorld.recent_players[ i ].pseudonym_list );
-			
-				if ( pseudonym_list.length > 32 )
-				pseudonym_list = pseudonym_list.slice( 0, 32 );
-			
-				sdWorld.recent_players.splice( i, 1 );
-				i--;
-				continue;
-			}
-		}
-		sdWorld.recent_players.unshift({ 
-			pseudonym: pseudonym_list.join(' aka '),
-			pseudonym_list: pseudonym_list,
-			challenge_result: socket.challenge_result,
-			last_known_net_id: character_entity._net_id,
-			my_hash: socket.my_hash,
-			time: Date.now(),
-			ban: ''
-		});
-		if ( sdWorld.recent_players.length > 100 )
-		sdWorld.recent_players.pop();
+		
+		sdWorld.LogRecentPlayer( character_entity, socket );
 
 		sdTask.WakeUpTasksFor( character_entity );
 		

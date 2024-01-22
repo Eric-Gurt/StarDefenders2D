@@ -5601,6 +5601,46 @@ THING is cosmic mic drop!`;
 			}
 		}
 		
+		if ( sdWorld.is_server )
+		if ( fake_ent )
+		if ( initiator )
+		if ( initiator.IsPlayerClass() )
+		{
+			let arr = sdWorld.recent_built_item_net_ids_by_hash.get( initiator._my_hash );
+			
+			if ( !arr )
+			{
+				arr = [];
+				sdWorld.recent_built_item_net_ids_by_hash.set( initiator._my_hash, arr );
+			}
+			
+			arr.push({
+				_net_id: fake_ent._net_id,
+				time: sdWorld.time
+			});
+			
+			while ( true )
+			{
+				if ( arr.length === 0 )
+				break;
+			
+				if ( arr[ 0 ].time < sdWorld.time - sdWorld.recent_built_item_memory_length )
+				{
+					arr.shift();
+					continue;
+				}
+			
+				let e = sdEntity.entities_by_net_id_cache_map.get( arr[ 0 ]._net_id );
+				if ( !e || e._is_being_removed )
+				{
+					arr.shift();
+					continue;
+				}
+				
+				break;
+			}
+		}
+		
 		return fake_ent;
 	}
 	

@@ -328,7 +328,8 @@ class sdAdminPanel extends sdInterface
 				time: sdWorld.recent_players[ i ].time,
 				ban: sdWorld.recent_players[ i ].ban,
 				you: ( sdWorld.recent_players[ i ].my_hash === socket.my_hash ) ? 1 : 0,
-				challenge_result: ( admin_row.access_level === 0 ) ? sdWorld.recent_players[ i ].challenge_result : 0 // Only server owner can see these so far
+				challenge_result: ( admin_row.access_level === 0 ) ? sdWorld.recent_players[ i ].challenge_result : 0, // Only server owner can see these so far
+				mark: sdWorld.recent_players[ i ].mark
 			});
 		}
 		
@@ -495,6 +496,13 @@ class sdAdminPanel extends sdInterface
 					text: ' (' + new Date( player_row.time ).toLocaleDateString( "en-US", { year: 'numeric', month: 'long', day: 'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' } ) + ( player_row.challenge_result ? ', fingerprint: ' + player_row.challenge_result : '' ) + ')' + ( ( player_row.you ) ? ' <--- This is you' : '' )
 				});
 				
+				if ( player_row.mark !== '' )
+				line.createElement({ 
+					type: sdElement.TEXT, 
+					padding: 0,
+					color: '#33ff33',
+					text: player_row.mark
+				});
 
 				if ( !player_row.you )
 				{
@@ -510,7 +518,7 @@ class sdAdminPanel extends sdInterface
 						action_line.createElement({ type: sdElement.TEXT, text: player_row.ban, color:'#666666' });
 						action_line.createElement({ type: sdElement.TEXT, text: ' ] ' });
 					}
-					else
+					//else
 					{
 						if ( !this.banning_mode )
 						{

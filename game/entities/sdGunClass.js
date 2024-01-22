@@ -8793,6 +8793,136 @@ class sdGunClass
 			{
 			}
 		};
+		
+		
+		let deleter_previous_hits = [];
+		sdGun.classes[ sdGun.CLASS_ADMIN_MASS_DELETER = 137 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shark' ),
+			sound: 'gun_defibrillator',
+			title: 'Admin tool for mass removing',
+			sound_pitch: 2,
+			slot: 5,
+			reload_time: 20,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: Infinity,
+			projectile_velocity: 16,
+			spawnable: false,
+			projectile_properties: { _rail: true, time_left: 30, _damage: 1, color: '#ffffff', _reinforced_level:Infinity, _armor_penetration_level:Infinity, _admin_picker:true, _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( bullet._owner )
+					{
+						if ( bullet._owner._god )
+						{
+							if ( target_entity.GetClass() === 'sdDeepSleep' )
+							{
+								// Never remove these
+							}
+							else
+							{
+								// Delete
+								let search_net_id = target_entity._net_id;
+								
+								let deletion_mode = false;
+								
+								for ( let i = 0; i < deleter_previous_hits.length; i++ )
+								{
+									if ( deleter_previous_hits[ i ].time > sdWorld.time - 1000 * 5 ) // 5 seconds just like steering wheel effect ping
+									{
+										if ( deleter_previous_hits[ i ].target_entity_net_id === target_entity._net_id )
+										{
+											deletion_mode = true;
+											break;
+										}
+									}
+									else
+									{
+										deleter_previous_hits.splice( i, 1 );
+										i--;
+										continue;
+									}
+								}
+								
+								let found = false;
+								
+								for ( let [ key, arr ] of sdWorld.recent_built_item_net_ids_by_hash )
+								{
+									let id = -1;
+									
+									for ( let i = 0; i < arr.length; i++ )
+									if ( arr[ i ]._net_id === search_net_id )
+									{
+										id = i;
+										break;
+									}
+													
+									if ( id !== -1 )
+									{
+										if ( deletion_mode )
+										bullet._owner.Say( 'Mass deleting...' );
+										else
+										{
+											found = true;
+											
+											bullet._owner.Say( 'Those are made by player marked in /a command menu. Fire at the same object again to mass remove all build objects by them.' );
+											
+											for ( let i = 0; i < sdWorld.recent_players.length; i++ )
+											sdWorld.recent_players[ i ].mark = ( sdWorld.recent_players[ i ].my_hash === key ) ? 'This user has made recently marked objects' : '';
+										}
+										
+										deleter_previous_hits.push({
+											
+											time: sdWorld.time,
+											target_entity_net_id: target_entity._net_id
+											
+										});
+										
+										for ( let i = 0; i < arr.length; i++ )
+										{
+											let e = sdEntity.entities_by_net_id_cache_map.get( arr[ i ]._net_id );
+											if ( e && !e._is_being_removed )
+											{
+												if ( deletion_mode )
+												{
+													e.remove();
+													e._broken = false;
+												}
+												else
+												e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 4,0,0 ], observer: bullet._owner });
+											}
+										}
+										break;
+									}
+								}
+								
+								if ( !found )
+								{
+									for ( let i = 0; i < sdWorld.recent_players.length; i++ )
+									sdWorld.recent_players[ i ].mark = '';
+								}
+							}
+						}
+						else
+						if ( bullet._owner.IsPlayerClass() )
+						{
+							// Remove if used by non-admin
+							if ( bullet._owner._inventory[ bullet._owner.gun_slot ] )
+							if ( sdGun.classes[ bullet._owner._inventory[ bullet._owner.gun_slot ].class ].projectile_properties._admin_picker )
+							bullet._owner._inventory[ bullet._owner.gun_slot ].remove();
+						}
+					}
+				}
+			},
+			onMade: ( gun )=>
+			{
+				let remover_sd_filter = sdWorld.CreateSDFilter();
+				sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#222222' );
+				
+				gun.sd_filter = remover_sd_filter;
+			}
+		};
 
 		// Add new gun classes above this line //
 		

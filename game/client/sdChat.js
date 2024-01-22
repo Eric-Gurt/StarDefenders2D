@@ -212,6 +212,8 @@ class sdChat
 
 			ctx.textAlign = 'left';
 			ctx.fillText( 'Say:', 20, sdRenderer.screen_height - 21 );
+			
+			let text = sdChat.text;
 
 			if ( sdChat.text.length > 0 && sdChat.text.charAt( 0 ) === '/' )
 			{
@@ -219,7 +221,14 @@ class sdChat
 				ctx.fillStyle = '#00ffaa';
 			}
 			
-			ctx.fillText( sdChat.text + ( ( sdWorld.time - sdChat.blink_offset ) % 1000 < 500 ? '_' : '' ), 20 + 35, sdRenderer.screen_height - 21 );
+			if ( sdChat.text.indexOf( '/password ' ) === 0 )
+			{
+				text = '/password ';
+				for ( let i = '/password '.length; i < sdChat.text.length; i++ )
+				text += '*';
+			}
+			
+			ctx.fillText( text + ( ( sdWorld.time - sdChat.blink_offset ) % 1000 < 500 ? '_' : '' ), 20 + 35, sdRenderer.screen_height - 21 );
 		}
 		else
 		{

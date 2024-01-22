@@ -591,7 +591,7 @@ class sdDatabase
 		// Outdated users cleanup
 		{
 			let table = sdDatabase.data.players.table;
-			let time_to_live_empty = 1000 * 60 * 60; // 1 hour
+			let time_to_live_empty = 1000 * 60 * 60 * 24 * 7; // 7 weeks just so they could be banned too
 			let time_to_live_important = 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
 			
 			for ( let p in table )

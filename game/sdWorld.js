@@ -8,7 +8,7 @@
 	HandleWorldLogic
 
 */
-/* global sdShop */
+/* global sdShop, THREE, globalThis, sdServerToServerProtocol, sdMobileKeyboard, fs */
 
 // sdShop is global on client-side
 
@@ -103,7 +103,10 @@ class sdWorld
 		
 		sdWorld.sockets = null; // Becomes array
 		sdWorld.recent_players = []; // { pseudonym, last_known_net_id, my_hash, time, ban }, up to 100 connections or so
+		sdWorld.recent_built_item_net_ids_by_hash = new Map(); // my_hash => [ { _net_id, time }, ... ]
 		//sdWorld.hook_entities = []; // Entities that implement hook logic, basically for notification system. These must have HandleHookReply( hook_id, password ) and return either JSON-able object or null
+		
+		sdWorld.recent_built_item_memory_length = 1000 * 60 * 60 * 60 * 7;
 		
 		sdWorld.online_characters = []; // Used for active entities update rate optimizations
 		
@@ -263,225 +266,6 @@ class sdWorld
 		sdWorld.fake_empty_cell = new Cell( null );
 		//Object.freeze( sdWorld.fake_empty_cell ); Bad because fake cell will be returned during snapshot generation for client - server has to mark empty cell as visited
 		Object.freeze( sdWorld.fake_empty_cell.arr );
-		/*
-		if ( typeof document !== 'undefined' ) // If server
-		document.ontouchstart = ()=>{ ForMobile(); };
-
-		function ForMobile()
-		{
-			sdWorld.mobile = true;
-			
-			document.ontouchstart = start_handler;
-			document.ontouchmove = move_handler;
-
-			document.ontouchcancel = end_handler;
-			document.ontouchend = end_handler;
-			
-			window.addEventListener('selectstart', function(e){ e.preventDefault(); });
-			
-			document.body.style.userSelect = 'none';
-
-			var buttons = [];
-			function RegisterButton( element_id, radius_mult, action_hold, action_release=null ) // action_hold( dx, dy, button_radius ) is called on tap and during move
-			{
-				if ( document.getElementById( element_id ) === null )
-				alert('Button register error: ' + element_id );
-				else
-				buttons.push({ 
-								element: document.getElementById( element_id ),
-								radius_mult: radius_mult,
-								action_hold: action_hold,
-								action_release: action_release,
-								touch_id: -1
-							});
-			}
-			
-			var move_x = 0;
-			var move_y = 0;
-			
-			function HandleMoves()
-			{
-				if ( move_x > 0.5 )
-				{
-					window.onkeydown({ code:'KeyD' });
-					window.onkeyup({ code:'KeyA' });
-				}
-				else
-				if ( move_x < -0.5 )
-				{
-					window.onkeydown({ code:'KeyA' });
-					window.onkeyup({ code:'KeyD' });
-				}
-				else
-				{
-					window.onkeyup({ code:'KeyA' });
-					window.onkeyup({ code:'KeyD' });
-				}
-				
-				
-				if ( move_y > 0.5 )
-				{
-					window.onkeydown({ code:'KeyS' });
-					window.onkeyup({ code:'KeyW' });
-				}
-				else
-				if ( move_y < -0.5 )
-				{
-					window.onkeydown({ code:'KeyW' });
-					window.onkeyup({ code:'KeyS' });
-				}
-				else
-				{
-					window.onkeyup({ code:'KeyW' });
-					window.onkeyup({ code:'KeyS' });
-				}
-			}
-			//setInterval( HandleMoves, 16 );
-			
-			function Tap( key )
-			{
-				window.onkeydown({ code:key });
-				window.onkeyup({ code:key });
-				
-			}
-			
-			setTimeout( function()
-			{
-				document.getElementById('mobile_ui').style.display = 'block';
-				
-				let min_aim_radius = 32;
-				
-				sdWorld.mouse_screen_x = sdRenderer.screen_width / 2 + min_aim_radius;
-				sdWorld.mouse_screen_y = sdRenderer.screen_height / 2;
-			
-				RegisterButton( 'mobile_move_button', 1.2, function( dx, dy, button_radius ){
-					move_x = dx / button_radius * 1.5;
-					move_y = dy / button_radius * 1.5;
-					HandleMoves();
-				}, function() {
-					move_x = 0;
-					move_y = 0;
-					HandleMoves();
-				});
-
-				RegisterButton( 'mobile_shoot_button', 1.2, function( dx, dy, button_radius ){ 
-					
-					dx *= 2;
-					dy *= 2;
-					let di = sdWorld.Dist2D_Vector( dx,dy );
-					if ( di < min_aim_radius )
-					{
-						dx = dx / di * min_aim_radius;
-						dy = dy / di * min_aim_radius;
-					}
-					sdWorld.mouse_screen_x = sdRenderer.screen_width / 2 + dx;
-					sdWorld.mouse_screen_y = sdRenderer.screen_height / 2 + dy;
-					
-					window.onkeydown({ code:'Mouse1' }); 
-					
-				}, function() { 
-					
-					window.onkeyup({ code:'Mouse1' }); 
-				});
-
-				//RegisterButton( 'mobile_jump_button', 1, function(){ sdWorld.hold_space = 1; }, function() { sdWorld.hold_space = 0; });
-				//RegisterButton( 'mobile_zoom_button', 1, function(){ sdWorld.zoom_intensity_target = 0.5; }, function() { sdWorld.zoom_intensity_target = 1; });
-				//RegisterButton( 'mobile_crouch_button', 1, function(){ sdWorld.hold_ctrl = 1; }, function() { sdWorld.hold_ctrl = 0; });
-				RegisterButton( 'mobile_reload_button', 1, function(){ Tap('KeyR'); });
-				RegisterButton( 'mobile_1_button', 1, function(){ Tap('Digit1'); });
-				RegisterButton( 'mobile_2_button', 1, function(){ Tap('Digit2'); });
-				RegisterButton( 'mobile_3_button', 1, function(){ Tap('Digit3'); });
-				RegisterButton( 'mobile_4_button', 1, function(){ Tap('Digit4'); });
-				RegisterButton( 'mobile_5_button', 1, function(){ Tap('Digit5'); });
-				RegisterButton( 'mobile_x_button', 1, function(){ Tap('Digit9'); });
-				RegisterButton( 'mobile_s_button', 1, function(){ Tap('Digit0'); });
-				
-			}, 100 );
-			
-			function start_handler( e )
-			{
-				if ( document.getElementById( 'mobile_ui' ).style.display === 'none' )
-				return;
-			
-				//sdWorld.GoFullscreen();
-				
-				//screen.orientation.lock('landscape');
-			
-				for ( var i = 0; i < buttons.length; i++ )
-				{
-					var button_rect = buttons[ i ].element.getBoundingClientRect();
-					var button_x = ( button_rect.right + button_rect.left ) / 2;
-					var button_y = ( button_rect.top + button_rect.bottom ) / 2;
-					var button_radius = ( button_rect.right - button_rect.left ) / 2;
-					
-					if ( sdWorld.Dist2D( e.changedTouches[ 0 ].pageX, e.changedTouches[ 0 ].pageY, button_x, button_y ) <= button_radius * buttons[ i ].radius_mult )
-					{
-						buttons[ i ].touch_id = e.changedTouches[ 0 ].identifier;
-						buttons[ i ].action_hold( e.changedTouches[ 0 ].pageX - button_x, e.changedTouches[ 0 ].pageY - button_y, button_radius );
-						
-						buttons[ i ].element.style.backgroundColor = '#000000';
-						
-						//e.preventDefault();
-						break;
-					}
-				}
-				
-				
-				//globalThis.ModalTrace( e.target.tagName +'' );
-				
-				if ( e.target && e.target.tagName === 'CANVAS' )
-				e.preventDefault();
-			}
-
-			function end_handler( e )
-			{
-				for ( var i = 0; i < buttons.length; i++ )
-				{
-					if ( e.changedTouches[ 0 ].identifier === buttons[ i ].touch_id )
-					{
-						buttons[ i ].touch_id = -1;
-						if ( buttons[ i ].action_release !== null )
-						buttons[ i ].action_release();
-					
-						buttons[ i ].element.style.backgroundColor = '#ffffff0d';
-						
-						//e.preventDefault();
-						break;
-					}
-				}
-				
-				
-				if ( e.target && e.target.tagName === 'CANVAS' )
-				e.preventDefault();
-			}
-
-			function move_handler( e )
-			{
-				if ( document.getElementById( 'mobile_ui' ).style.display === 'none' )
-				return;
-			
-				for ( var i = 0; i < buttons.length; i++ )
-				{
-					if ( buttons[ i ].touch_id === e.changedTouches[ 0 ].identifier )
-					{
-						var button_rect = buttons[ i ].element.getBoundingClientRect();
-						var button_x = ( button_rect.right + button_rect.left ) / 2;
-						var button_y = ( button_rect.top + button_rect.bottom ) / 2;
-						var button_radius = ( button_rect.right - button_rect.left ) / 2;
-
-						buttons[ i ].action_hold( e.changedTouches[ 0 ].pageX - button_x, e.changedTouches[ 0 ].pageY - button_y, button_radius );
-						
-						
-						//e.preventDefault();
-						break;
-					}
-				}
-				
-				
-				if ( e.target && e.target.tagName === 'CANVAS' )
-				e.preventDefault();
-			}
-		};*/
 		
 		sdWorld.server_url = null; // Will be guessed when first connected player tells it
 		sdWorld.server_url_pending = null;
@@ -961,7 +745,7 @@ class sdWorld
 					];
 			let really_deep_mobs = [ // Really deep
 						'sdCube.KIND_ANCIENT', 0.4,
-						'sdBiter.TYPE_LARGE', 0.4,
+						'sdBiter.TYPE_LARGE', 0.4
 
 					];
 			
@@ -5337,6 +5121,43 @@ class sdWorld
 		ctx.sd_filter = null;
 	}
 	
+	static LogRecentPlayer( character_entity, socket )
+	{
+		let pseudonym_list = [ character_entity.title ];
+		for ( let i = 0; i < sdWorld.recent_players.length; i++ )
+		{
+			if ( sdWorld.recent_players[ i ].my_hash === socket.my_hash )
+			{
+				if ( sdWorld.recent_players[ i ].pseudonym_list.indexOf( character_entity.title ) === -1 )
+				pseudonym_list = pseudonym_list.concat( sdWorld.recent_players[ i ].pseudonym_list );
+			
+				if ( pseudonym_list.length > 32 )
+				pseudonym_list = pseudonym_list.slice( 0, 32 );
+			
+				sdWorld.recent_players.splice( i, 1 );
+				i--;
+				continue;
+			}
+		}
+		sdWorld.recent_players.unshift({ 
+			pseudonym: pseudonym_list.join(' aka '),
+			pseudonym_list: pseudonym_list,
+			challenge_result: socket.challenge_result,
+			last_known_net_id: character_entity._net_id,
+			my_hash: socket.my_hash,
+			time: Date.now(),
+			ban: '',
+			mark: '' // Mass object deleter marks these users using this field
+		});
+		if ( sdWorld.recent_players.length > 100 )
+		sdWorld.recent_players.pop();
+	
+		for ( let [ key, arr ] of sdWorld.recent_built_item_net_ids_by_hash )
+		{
+			if ( arr.length === 0 || arr[ arr.length - 1 ].time < sdWorld.time - sdWorld.recent_built_item_memory_length )
+			sdWorld.recent_built_item_net_ids_by_hash.delete( key );
+		}
+	}
 }
 //sdWorld.init_class();
 

@@ -913,6 +913,10 @@ class sdDeepSleep extends sdEntity
 
 		return cache;
 	}
+	
+	IsHittableWithAdminTools() // Admin tool for removal
+	{ return false; }
+	
 	constructor( params )
 	{
 		super( params );
