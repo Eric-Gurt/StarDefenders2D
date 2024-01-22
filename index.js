@@ -1523,7 +1523,7 @@ io.on( 'connection', ( socket )=>
 		if ( sdWorld.server_config.password !== '' && typeof sdWorld.server_config.password === 'string' )
 		any_passwords.push( sdWorld.server_config.password );
 	
-		if ( sdModeration.data.non_admin_password !== '' )
+		if ( sdModeration.data.non_admin_password !== '' && typeof sdModeration.data.non_admin_password === 'string' )
 		any_passwords.push( sdModeration.data.non_admin_password );
 		
 		if ( any_passwords.length > 0 && any_passwords.indexOf( player_settings.password ) === -1 )
