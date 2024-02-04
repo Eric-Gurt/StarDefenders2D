@@ -3716,11 +3716,11 @@ class sdWorld
 			{
 				return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
 			}
-			/*else
-			if ( v === 5120 * 8 ) // Task reward / Advanced matter container
+			else
+			if ( v === -1 ) // Task reward / Advanced matter container
 			{
 				return 'brightness(1) saturate(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFFF'+glow_opacity_hex+')';
-			}*/
+			}
 			else
 			if ( v === 5120 * 8 ) // new 2022
 			{
