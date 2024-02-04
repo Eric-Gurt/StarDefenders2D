@@ -737,6 +737,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 8, _category:'Development tests' }); // Glowing one
 				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * sdCrystal.anticrystal_value, _category:'Development tests' });
 				
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_EXCAVATOR_QUARTZ, _category:'Development tests' });
+				
 				sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', _ai_team: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 10, _ai_team: 1, _category:'Development tests' });
@@ -796,6 +798,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
