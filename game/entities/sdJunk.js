@@ -1122,7 +1122,7 @@ class sdJunk extends sdEntity
 
 				ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
 		
-				ctx.filter = sdWorld.GetCrystalHue( 40960 );
+				ctx.filter = sdWorld.GetCrystalHue( -1 );
 	
 				ctx.globalAlpha = this.matter / this.matter_max;
 		
