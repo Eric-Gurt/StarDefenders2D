@@ -5069,7 +5069,12 @@ class sdWorld
 							{
 							}
 							else
-							throw new Error();
+							{
+								console.warn( 'Strange value set for opcode: ', opcode, value );
+								//throw new Error();
+								debugger;
+								return;
+							}
 
 							sdWorld.draw_methods_output_ptr.push( opcode, value );
 						}
