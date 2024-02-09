@@ -800,6 +800,12 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
+				
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 40, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 80, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 160, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 320, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 640, speciality: 1, _category:'Development tests' });
 			}
 
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

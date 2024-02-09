@@ -93,6 +93,8 @@ class sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
 		sdWorld.entity_classes_array = null;
+		
+		sdEntity.default_driver_position_offset = { x:0, y:0 };
 	}
 	static AllEntityClassesLoadedAndInitiated()
 	{
@@ -458,6 +460,14 @@ class sdEntity
 	VehicleHidesLegs()
 	{
 		return true;
+	}
+	VehicleAllowsDriverCombat( character )
+	{
+		return false;
+	}
+	GetDriverPositionOffset( character )
+	{
+		return sdEntity.default_driver_position_offset;
 	}
 	GetDriverSlotsCount() // Not specfiying this will cause phantom effect on drivers after entity was destroyed
 	{
@@ -3614,6 +3624,7 @@ class sdEntity
 									this[ prop ] === null || 
 									typeof this[ prop ] === 'boolean' || 
 									prop === '_shielded' || // It became way too common and means only one thing anyway. LRTPs and CCs don't check for it and it causes them to lose protection on server reboot
+									prop === '_shield_ent' || // Bubble shields
 									this.ExtraSerialzableFieldTest( prop ) 
 								  ) 
 								) 

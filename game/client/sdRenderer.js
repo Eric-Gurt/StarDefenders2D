@@ -94,7 +94,7 @@ class sdRenderer
 		document.body.insertBefore( canvas, null );
 		
 		//sdRenderer._visual_settings = 0;
-		sdRenderer.visual_settings = 0; // Still used at some parts of code
+		sdRenderer.visual_settings = 0; // 0; // Still used at some parts of code
 	
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too

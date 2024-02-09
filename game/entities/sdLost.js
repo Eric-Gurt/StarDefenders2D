@@ -443,7 +443,7 @@ class sdLost extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.apply_shading = false;
+		//ctx.apply_shading = false;
 
 		/*ctx.drawImageFilterCache( sdLost.img_crystal_empty, - 16, - 16, 32,32 );
 		

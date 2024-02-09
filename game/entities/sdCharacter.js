@@ -720,7 +720,7 @@ class sdCharacter extends sdEntity
 
 				let t = /*'<' + */sdWorld.ClassNameToProperName( ent.GetClass(), ent, true );// + '>';
 
-				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15000 )
+				if ( Math.abs( sdWorld.time - this._last_discovery ) > 2 * 60 * 1000 ) // Once in 2 minutes // Was 15 seconds
 				if ( this.hea > this.hmax * 0.75 )
 				{
 					this._last_discovery = sdWorld.time;
@@ -1262,6 +1262,7 @@ THING is cosmic mic drop!`;
 		this._last_e_state = 0; // For E key taps to activate ability
 		this._last_fire_state = 0; // For semi auto weaponry
 		this._shielding = false; // Shielding, same as ghosting
+		this._shield_ent = null; // Magic property name
 		
 		this._shield_allowed = false; // Through upgrade
 		
@@ -1440,7 +1441,7 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
-			if ( !this.driver_of )
+			if ( !this.driver_of || this.driver_of.VehicleAllowsDriverCombat( this ) )
 			{
 				let will_throw_grenade = this._key_states.GetKey( 'KeyG' ) && ( this._upgrade_counters[ 'upgrade_grenades' ] );
 				let will_fire = will_throw_grenade || this._key_states.GetKey( 'Mouse1' );
@@ -2382,13 +2383,15 @@ THING is cosmic mic drop!`;
 	
 		// Shield logic, add to other entities if they will use shields
 		// Also import sdBubbleShield if it's not imported
-		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
+		/*let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
 		if ( shielded_by && dmg > 0 )
 		if ( shielded_by.hea > 0 )
 		{
 			shielded_by.Damage( dmg, initiator );
 			return;
-		}
+		}*/
+		if ( sdBubbleShield.DidShieldProtectFromDamage( this, dmg, initiator ) )
+		return;
 		
 		// No healing for frozen players - prevent cube & freezing turret traps
 		if ( this._frozen > 0 )
@@ -4847,8 +4850,10 @@ THING is cosmic mic drop!`;
 	{
 		//if ( this.driver_of.VehicleHidesDrivers() )
 		{
-			this.x = this.driver_of.x;
-			this.y = this.driver_of.y;
+			let offset = this.driver_of.GetDriverPositionOffset( this );
+			
+			this.x = this.driver_of.x + offset.x;
+			this.y = this.driver_of.y + offset.y;
 			this.sx = this.driver_of.sx || 0;
 			this.sy = this.driver_of.sy || 0;
 		}

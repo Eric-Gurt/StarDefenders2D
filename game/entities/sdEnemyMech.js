@@ -62,6 +62,8 @@ class sdEnemyMech extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this._shield_ent = null; // Magic property name
+		
 		this._regen_timeout = 0;
 		
 		this._hmax = 20000; // Was 6000 but even 12000 is easy
@@ -270,21 +272,16 @@ class sdEnemyMech extends sdEntity
 	
 		// Shield logic, add to other entities if they will use shields
 		// Also import sdBubbleShield if it's not imported
-		let shielded_by = sdBubbleShield.CheckIfEntityHasShield( this );
-		if ( shielded_by && dmg > 0 )
-		if ( shielded_by.hea > 0 )
-		{
-			shielded_by.Damage( dmg, initiator );
-			return;
-		}
+		if ( sdBubbleShield.DidShieldProtectFromDamage( this, dmg, initiator ) )
+		return;
 	
 		if ( initiator )
 		{
-			if ( initiator.GetClass() === 'sdCharacter' )
+			if ( initiator.is( sdCharacter ) )
 			if ( initiator._ai_team === 0 ) // Only target players
 			this._current_target = initiator;
 
-			if ( initiator.GetClass() !== 'sdEnemyMech' )
+			if ( !initiator.is( sdEnemyMech ) )
 			this._follow_target = initiator;
 		}
 

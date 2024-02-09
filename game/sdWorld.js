@@ -237,13 +237,31 @@ class sdWorld
 			'restore', 3,
 			'rotate', 4,
 			'scale', 5,
-			'translate', 6
+			'translate', 6,
+			
+			'filter', 7,
+			'apply_shading', 8,
+			'sd_hue_rotation', 9,
+			'sd_color_mult_r', 10,
+			'sd_color_mult_g', 11,
+			'sd_color_mult_b', 12
 		];
+		/*ctx.apply_shading = false;
+		ctx.sd_hue_rotation = 0;
+		ctx.sd_color_mult_r = 1;
+		ctx.sd_color_mult_g = 1;
+		ctx.sd_color_mult_b = 1;*/
 		sdWorld.draw_methods_per_command_id = {};
 		sdWorld.draw_methods_output_ptr = null;
 		sdWorld.draw_operation_no_parameters = {};
 		sdWorld.draw_operation_no_parameters[ 2 ] = true;
 		sdWorld.draw_operation_no_parameters[ 3 ] = true;
+		sdWorld.draw_operation_expects_following_number = {};
+		sdWorld.draw_operation_expects_following_number[ 8 ] = true;
+		sdWorld.draw_operation_expects_following_number[ 9 ] = true;
+		sdWorld.draw_operation_expects_following_number[ 10 ] = true;
+		sdWorld.draw_operation_expects_following_number[ 11 ] = true;
+		sdWorld.draw_operation_expects_following_number[ 12 ] = true;
 		
 		
 	
@@ -4896,6 +4914,13 @@ class sdWorld
 			}
 		}
 		
+		let store_filter_operations = true;
+		
+		if ( ent.is( sdCrystal ) )
+		{
+			store_filter_operations = false;
+		}
+		
 		const command_match_table = sdWorld.draw_operation_command_match_table;
 		const methods_per_command_id = sdWorld.draw_methods_per_command_id;
 
@@ -4907,6 +4932,8 @@ class sdWorld
 		
 		let any_drawImage_happened = false;
 		
+		let ctx_filter = 'none';
+		
 		var fake_ctx = new Proxy( 
 			{}, 
 			{
@@ -4914,6 +4941,11 @@ class sdWorld
 				{
 					if ( name === 'drawImage' )
 					name = 'drawImageFilterCache';
+					
+					if ( name === 'filter' )
+					{
+						return ctx_filter;
+					}
 				
 					if ( name === 'drawImageFilterCache' )
 					{
@@ -4921,6 +4953,12 @@ class sdWorld
 					}
 					
 					let command_offset = command_match_table.indexOf( name );
+					
+					/*if ( !store_filter_operations )
+					if ( name === 'filter' )
+					{
+						command_offset = -1;
+					}*/
 					
 					if ( command_offset !== -1 )
 					{
@@ -4984,13 +5022,57 @@ class sdWorld
 				},
 				set: function( target, prop, value ) 
 				{
-					if ( prop === 'sd_filter' )
+					/*if ( prop === 'sd_filter' )
 					sdWorld.draw_methods_output_ptr.push( 0, value );
-					//sdWorld.draw_methods_output_ptr.push( 0, [ value ] );
-					
+					else
+					if ( prop === 'filter' && store_filter_operations )
+					{
+						if ( typeof value !== 'string' )
+						throw new Error();
+						
+						sdWorld.draw_methods_output_ptr.push( 7, value );
+					}
+					else*/
 					if ( prop === '' )
 					{
 						blend_mode = value;
+					}
+					else
+					{
+						let id = sdWorld.draw_operation_command_match_table.indexOf( prop );
+						
+						if ( prop === 'filter' )
+						{
+							ctx_filter = value;
+							
+							if ( !store_filter_operations )
+							id = -1;
+						}
+						
+						if ( id !== -1 )
+						{
+							let opcode = sdWorld.draw_operation_command_match_table[ id + 1 ];
+							
+							if ( typeof value === 'boolean' )
+							value = value ? 1 : 0;
+							else
+							if ( typeof value === 'number' )
+							{
+							}
+							else
+							if ( typeof value === 'object' )
+							{
+								// sd_filter
+							}
+							else
+							if ( typeof value === 'string' && value.length < 256 )
+							{
+							}
+							else
+							throw new Error();
+
+							sdWorld.draw_methods_output_ptr.push( opcode, value );
+						}
 					}
 					
 					return true;
@@ -5054,29 +5136,98 @@ class sdWorld
 							
 		*/
 	   
+		let filter0 = ctx.filter;
+		let filter1 = null;
+		
+		let r0 = ctx.sd_color_mult_r;
+		let g0 = ctx.sd_color_mult_g;
+		let b0 = ctx.sd_color_mult_b;
+		
+		let r1 = 1;
+		let g1 = 1;
+		let b1 = 1;
+	   
 		let opcode = -1;
 		
 		for ( let i = 0; i < output.length; i++ )
 		{
 			if ( typeof output[ i ] === 'number' )
-			opcode = output[ i ];
+			{
+				opcode = output[ i ];
+				
+				if ( sdWorld.draw_operation_expects_following_number[ opcode ] )
+				{
+					i++;
+				}
+			}
 			
-			if ( typeof output[ i ] !== 'number' || sdWorld.draw_operation_no_parameters[ opcode ] )
+			if ( typeof output[ i ] !== 'number' || sdWorld.draw_operation_no_parameters[ opcode ] || sdWorld.draw_operation_expects_following_number[ opcode ] )
 			{
 				if ( !ctx )
 				{
-					if ( opcode === 0 ) // sd_filter set
+					// Decoding preparations, if needed
+					if ( opcode === 0 ) // sd_filter
 					{
 						if ( output[ i ] )
 						if ( !output[ i ].s )
 						output[ i ] = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( output[ i ] );
 					}
+					else
+					if ( opcode === 8 ) // apply_shading
+					{
+						output[ i ] = ( output[ i ] === 1 );
+						//i++; // Skip number after opcode
+					}
 				}
 				else
 				{
-					if ( opcode === 0 ) // sd_filter set
+					if ( opcode === 0 || opcode === 8 || opcode === 9 ) // sd_filter || apply_shading || sd_hue_rotation
 					{
-						ctx.sd_filter = output[ i ];
+						let id = sdWorld.draw_operation_command_match_table.indexOf( opcode );
+						
+						if ( id === -1 )
+						throw new Error();
+						else
+						ctx[ sdWorld.draw_operation_command_match_table[ id - 1 ] ] = output[ i ];
+						
+						//ctx.sd_filter = output[ i ];
+						//i++; // Skip number after opcode
+					}
+					else
+					if ( opcode === 7 ) // filter
+					{
+						filter1 = output[ i ];
+						
+						if ( filter1 === 'none' )
+						ctx.filter = filter0;
+						else
+						{
+							if ( filter0 === 'none' )
+							ctx.filter = filter1;
+							else
+							ctx.filter = filter1 + ' ' + filter0;
+						}
+					}
+					else
+					if ( opcode === 10 ) // r
+					{
+						r1 = output[ i ];
+						ctx.sd_color_mult_r = r0 * r1;
+						//i++; // Skip number after opcode
+					}
+					else
+					if ( opcode === 11 ) // g
+					{
+						g1 = output[ i ];
+						ctx.sd_color_mult_g = g0 * g1;
+						//i++; // Skip number after opcode
+					}
+					else
+					if ( opcode === 12 ) // b
+					{
+						b1 = output[ i ];
+						ctx.sd_color_mult_b = b0 * b1;
+						//i++; // Skip number after opcode
 					}
 					else
 					{
@@ -5113,6 +5264,12 @@ class sdWorld
 						else
 						ctx[ method_name ]( ...args );
 					}
+				}
+				
+				if ( sdWorld.draw_operation_expects_following_number[ opcode ] )
+				{
+					// Reset opcode state once we received number
+					opcode = -1;
 				}
 			}
 		}

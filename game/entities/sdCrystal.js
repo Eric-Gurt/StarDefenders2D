@@ -12,6 +12,7 @@ import sdWater from './sdWater.js';
 import sdEffect from './sdEffect.js';
 import sdGrass from './sdGrass.js';
 import sdGuanako from './sdGuanako.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 
 class sdCrystal extends sdEntity
@@ -41,6 +42,8 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.anticrystal_value = 5120 * 16; // 10240;
 		
+		sdCrystal.max_matter_regen = 400;
+		
 		sdCrystal.TYPE_CRYSTAL = 1;
 		sdCrystal.TYPE_CRYSTAL_BIG = 2;
 		sdCrystal.TYPE_CRYSTAL_CRAB = 3;
@@ -58,6 +61,256 @@ class sdCrystal extends sdEntity
 		sdCrystal.lowest_matter_regen = 0; // 20;
 		
 		sdCrystal.ignored_classes_array = [ 'sdLifeBox' ];
+		
+		sdCrystal.spaciality_table = [];
+		sdCrystal.spaciality_table[ 40 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Mitosis ' + base_title.toLowerCase();
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( !e.held_by )
+				{
+					e._private_props.dupe_timer = ( e._private_props.dupe_timer || 0 ) + GSPEED;
+					if ( e._private_props.dupe_timer_max === undefined )
+					e._private_props.dupe_timer_max = 90 + Math.random() * 10;
+
+					if ( e._private_props.dupe_timer > e._private_props.dupe_timer_max )
+					{
+						e._private_props.dupe_timer = 0;
+
+						e.DamageWithEffect( 30 );
+						if ( e._is_being_removed )
+						//if ( Math.random() < 0.5 )
+						{
+							let a = new sdCrystal({ x:e.x, y:e.y, matter_max: e.matter_max, type: e.type, matter_regen: e.matter_regen, speciality: ( Math.random() < 0.48 ) ? 1 : 0 });
+							let b = new sdCrystal({ x:e.x, y:e.y, matter_max: e.matter_max, type: e.type, matter_regen: e.matter_regen, speciality: ( Math.random() < 0.48 ) ? 1 : 0 });
+							a.sx = e.sx;
+							a.sy = e.sy;
+							b.sx = e.sx;
+							b.sy = e.sy;
+							sdEntity.entities.push( a );
+							sdEntity.entities.push( b );
+
+							let okA = false;
+							let okB = false;
+							
+							for ( let i = 0; i < 16; i++ )
+							{
+								let an = Math.random() * Math.PI * 2;
+								let r = 4 + ( i / 16 ) * 96;
+								let xx = Math.sin( an ) * r;
+								let yy = Math.cos( an ) * r;
+
+								/*if ( Math.abs( xx ) > Math.abs( yy ) )
+								{
+									a.x = e.x - a._hitbox_x1;
+									b.x = e.x - b._hitbox_x2;
+								}
+								else
+								{
+									a.y = e.y - a._hitbox_y1;
+									b.y = e.y - b._hitbox_y2;
+								}*/
+								
+								if ( !okA )
+								if ( a.CanMoveWithoutOverlap( e.x-xx, e.y-yy, 0 ) )
+								{
+									a.x = e.x-xx;
+									a.y = e.y-yy;
+									sdWorld.UpdateHashPosition( a, false );
+									okA = true;
+								}
+							
+								if ( !okB )
+								if ( b.CanMoveWithoutOverlap( e.x+xx, e.y+yy, 0 ) )
+								{
+									b.x = e.x+xx;
+									b.y = e.y+yy;
+									sdWorld.UpdateHashPosition( b, false );
+									okB = true;
+								}
+							
+								if ( okA && okB )
+								break;
+							}
+							if ( !okA )
+							{
+								a.remove();
+								a._broken = false;
+							}
+							if ( !okB )
+							{
+								b.remove();
+								b._broken = false;
+							}
+						}
+					}
+				}
+			},
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'hue-rotate(-20deg)brightness(1.5)saturate(0.25)';
+			},
+			onDraw: ( e, ctx, attached )=>
+			{
+				let phase = sdWorld.time + ( e._net_id || 0 ) * 1239;
+				let amp = 5;
+				let an = Math.sin( phase / 56 );
+				let s = Math.sin( phase / 20 ) * amp * Math.pow( Math.sin( phase / 3000 ), 16 );
+				let xx = Math.sin( an ) * s;
+				let yy = Math.cos( an ) * s;
+				
+				ctx.globalAlpha = 1 - Math.abs( s / amp ) * 0.8;
+				
+				ctx.save();
+				{
+					ctx.translate( -xx, -yy );
+					e._DefaultDraw( ctx, attached );
+				}
+				ctx.restore();
+				
+				ctx.globalAlpha = ( 1 - Math.abs( s / amp ) * 0.8 ) * Math.abs( s / amp );
+				
+				ctx.save();
+				{
+					ctx.translate( xx, yy );
+					e._DefaultDraw( ctx, attached );
+				}
+				ctx.restore();
+				ctx.globalAlpha = 1;
+			}
+		};
+		sdCrystal.spaciality_table[ 80 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Company-powered ' + base_title.toLowerCase();
+			},
+			
+			//onThink: ( e, GSPEED )=>
+			AlterTimeScale: ( e, GSPEED_scaled )=>
+			{
+				let friends = 0;
+				
+				if ( e.is_very_depleted )
+				e.speciality = 0;
+				else
+				if ( e._anything_near )
+				for ( let i = 0; i < e._anything_near.length; i++ )
+				{
+					let e2 = e._anything_near[ i ];
+					
+					if ( e2.is( sdCrystal ) )
+					if ( e2.GetTier() * 40 === 80 )
+					{
+						if ( e2.speciality < 1 )
+						if ( !e2.is_very_depleted )
+						e2.speciality = 1;
+					
+						friends++;
+						
+						if ( friends >= 8 )
+						break;
+					}
+				}
+				
+				
+				if ( friends > 0 )
+				e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 90 });
+				
+				return GSPEED_scaled * friends * 10;
+			},
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'brightness(1.5)saturate(2)';
+			}
+		};
+		sdCrystal.spaciality_table[ 160 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Explosive ' + base_title.toLowerCase();
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'hue-rotate(-32deg)brightness(0.7)contrast(1.9)saturate(1.5)';
+			},
+			
+			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				if ( e._hea <= 0 && was_alive )
+				sdWorld.SendEffect({ 
+					x:e.x, 
+					y:e.y, 
+					radius:35, // 80 was too much?
+					damage_scale: 3, // 5 was too deadly on relatively far range
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:initiator,
+					color:'#a352ff' 
+				});
+			}
+		};
+		sdCrystal.spaciality_table[ 320 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Jello ' + base_title.toLowerCase();
+			},
+			
+			ImpactAltering: ( e, vel )=>
+			{
+				return vel * 0.1;
+			},
+			
+			BouncinessAltering: ( e )=>
+			{
+				if ( Math.abs( e.sx ) < 0.9 )
+				if ( Math.abs( e.sy ) < 0.9 )
+				return 0;
+				
+				return 0.95;
+			},
+			
+			GetBleedEffect: ( e )=>
+			{
+				return sdEffect.TYPE_BLOOD_GREEN;
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'hue-rotate(10deg)contrast(0.3)brightness(1.2)saturate(0.7)contrast(4)';
+			}
+		};
+		sdCrystal.spaciality_table[ 640 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Damage-charged ' + base_title.toLowerCase();
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'hue-rotate(-20deg)brightness(0.85)saturate(1.6)contrast(2)drop-shadow(0px 0px 1px #ff0000)';
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				e.matter_regen = Math.max( 0, e.matter_regen - GSPEED * 0.01 );
+			},
+			
+			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				if ( e._hea > 0 )
+				{
+					let damage_to_consume = sdCrystal.max_matter_regen - e.matter_regen;
+					
+					e._hea += Math.min( damage_to_consume, dmg );
+					
+					e.matter_regen = Math.min( sdCrystal.max_matter_regen, e.matter_regen + dmg );
+				}
+			}
+			
+		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -93,18 +346,28 @@ class sdCrystal extends sdEntity
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
 		return this.is_anticrystal ? T('Balloon-like anti-crystal') : T('Balloon-like crystal');
 		
+		let t = 'Crystal';
+		
 		if ( this.is_anticrystal )
+		t = 'Anti-' + t.toLowerCase();
+		
+		if ( this.speciality > 0 )
 		{
-			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-			return T('Anti-crystal crab');
-			else
-			return T('Anti-crystal');
+			let tier = this.GetTier() * 40;
+			let methods = sdCrystal.spaciality_table[ tier ];
+			if ( methods && methods.AlterTitle )
+			{
+				t = methods.AlterTitle( this, t );
+			}
 		}
+	
+		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
+		t = 'Balloon-like ' + t.toLowerCase();
 		
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-		return T('Crystal crab');
-		else
-		return T('Crystal');
+		t += ' crab';
+		
+		return T( t );
 	}
 	
 	/*get should_draw()
@@ -167,11 +430,43 @@ class sdCrystal extends sdEntity
 		return this.held_by;
 	}
 	
+	GetBleedEffect()
+	{
+		if ( this.speciality > 0 )
+		{
+			let methods = sdCrystal.spaciality_table[ this.GetTier() * 40 ];
+			if ( methods && methods.GetBleedEffect )
+			return methods.GetBleedEffect( this );
+		}
+		
+		return sdEffect.TYPE_WALL_HIT;
+	}
+	
 	get bounce_intensity()
-	{ return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 0.7 : 0; }
+	{
+		if ( this.speciality > 0 )
+		{
+			let methods = sdCrystal.spaciality_table[ this.GetTier() * 40 ];
+			if ( methods && methods.BouncinessAltering )
+			return methods.BouncinessAltering( this );
+		}
+		
+		return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 0.7 : 0;
+	}
 	
 	get friction_remain()
 	{ return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 0.9 : 0.8; }
+	
+	GetTier()
+	{
+		if ( this.is_big )
+		return this.matter_max / 4 / 40;
+	
+		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
+		return this.matter_max * 4 / 40;
+	
+		return this.matter_max / 40;
+	}
 	
 	constructor( params )
 	{
@@ -295,6 +590,17 @@ class sdCrystal extends sdEntity
 		this._hmax *= 2; 
 
 		this._current_target = null; // For big crystal crabs
+		
+		this.speciality = Math.random() < 0.05 ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
+		if ( params.speciality !== undefined )
+		this.speciality = params.speciality;
+	
+		this._private_props = {};
+		this.extra = {};
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_private_props' || prop === 'extra' );
 	}
 	
 	/*onSnapshotApplied() // To override
@@ -364,7 +670,15 @@ class sdCrystal extends sdEntity
 		let was_alive = ( this._hea > 0 );
 		
 		this._hea -= dmg;
-		
+				
+		if ( this.speciality > 0 )
+		{
+			let tier = this.GetTier() * 40;
+			let methods = sdCrystal.spaciality_table[ tier ];
+			if ( methods && methods.onDamage )
+			methods.onDamage( this, dmg, initiator, was_alive );
+		}
+
 		if ( this._hea <= 0 )
 		{
 			if ( was_alive )
@@ -516,6 +830,13 @@ class sdCrystal extends sdEntity
 		
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
 		min_vel = 6.2;
+	
+		if ( this.speciality > 0 )
+		{
+			let methods = sdCrystal.spaciality_table[ this.GetTier() * 40 ];
+			if ( methods && methods.ImpactAltering )
+			vel = methods.ImpactAltering( this, vel );
+		}
 		
 		if ( vel > min_vel ) // For new mass-based model
 		{
@@ -527,8 +848,15 @@ class sdCrystal extends sdEntity
 	{
 		if ( this.is_anticrystal )
 		GSPEED *= 0.25;
+		
+		let methods = null;
+		if ( this.speciality > 0 )
+		methods = sdCrystal.spaciality_table[ this.GetTier() * 40 ];
 	
 		let GSPEED_scaled = sdGun.HandleTimeAmplification( this, GSPEED );
+		
+		if ( methods && methods.AlterTimeScale )
+		GSPEED_scaled = methods.AlterTimeScale( this, GSPEED_scaled );
 		
 		if ( this.held_by )
 		{
@@ -562,6 +890,9 @@ class sdCrystal extends sdEntity
 				this.sy += sdWorld.gravity * GSPEED;
 			}
 		}
+		
+		if ( methods && methods.onThink )
+		methods.onThink( this, GSPEED );
 		
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 		{
@@ -826,6 +1157,21 @@ class sdCrystal extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.speciality > 0 )
+		{
+			let tier = this.GetTier() * 40;
+			let methods = sdCrystal.spaciality_table[ tier ];
+			if ( methods && methods.onDraw )
+			{
+				methods.onDraw( this, ctx, attached );
+				return;
+			}
+		}
+		
+		this._DefaultDraw( ctx, attached );
+	}
+	_DefaultDraw( ctx, attached )
+	{
 		let filter_brightness_effect = sdCrystal.DoNothing;
 		
 		ctx.apply_shading = false;
@@ -838,6 +1184,18 @@ class sdCrystal extends sdEntity
 		const setFilter = ( crystal_hue_filter )=>
 		{
 			let f = crystal_hue_filter;
+			
+			
+			if ( this.speciality > 0 )
+			{
+				let tier = this.GetTier() * 40;
+				let methods = sdCrystal.spaciality_table[ tier ];
+				if ( methods && methods.GetFilterAltering )
+				{
+					f = methods.GetFilterAltering( this, f );
+				}
+			}
+			
 
 			if ( this.is_very_depleted )
 			f += 'saturate(0.15) hue-rotate(-20deg)';
@@ -892,9 +1250,9 @@ class sdCrystal extends sdEntity
 					setFilter( sdWorld.GetCrystalHue( visual_matter_max ) );
 
 					if ( visual_matter_max === sdCrystal.anticrystal_value )
-					ctx.globalAlpha = ( 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1 ) * alpha_mult;
+					ctx.globalAlpha *= ( 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1 ) * alpha_mult;
 					else
-					ctx.globalAlpha = ( visual_matter / visual_matter_max ) * alpha_mult;
+					ctx.globalAlpha *= ( visual_matter / visual_matter_max ) * alpha_mult;
 
 					ctx.drawImageFilterCache( full_img, - 16, - 16, 32, 32 );
 
@@ -915,9 +1273,9 @@ class sdCrystal extends sdEntity
 					setFilter( sdWorld.GetCrystalHue( this.matter_max / 4 ) );
 
 					if ( this.matter_max === sdCrystal.anticrystal_value * 4 )
-					ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+					ctx.globalAlpha *= 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
 					else
-					ctx.globalAlpha = this.matter / this.matter_max;
+					ctx.globalAlpha *= this.matter / this.matter_max;
 
 					ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster2, - 24, - 24, 48, 48 );
 
@@ -951,9 +1309,9 @@ class sdCrystal extends sdEntity
 					setFilter( sdWorld.GetCrystalHue( (this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? this.matter_max / 4: this.matter_max, 0.75, 'aa' ) );
 
 					if ( ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB && this.matter_max === sdCrystal.anticrystal_value ) || ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG && this.matter_max === sdCrystal.anticrystal_value * 4 ) )
-					ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+					ctx.globalAlpha *= 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
 					else
-					ctx.globalAlpha = this.matter / this.matter_max;
+					ctx.globalAlpha *= this.matter / this.matter_max;
 
 					if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
 					ctx.drawImageFilterCache( sdCrystal.img_crystal_crab, frame*32,0,32,32, - 16, - 16, 32,32 );

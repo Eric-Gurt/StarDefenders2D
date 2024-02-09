@@ -535,6 +535,7 @@ class sdCrystalCombiner extends sdEntity
 			ent.matter_max = this.crystal0.matter_max + this.crystal1.matter_max;
 			ent.matter = this.crystal0.matter + this.crystal1.matter;
 			ent.matter_regen = ( this.crystal0.matter_regen + this.crystal1.matter_regen ) / 2;
+			ent.speciality = 0;
 			
 			if ( ent.is_anticrystal )
 			ent.matter_regen = 100; // Reset regen in this case as it does not matter for these for them to be properly rated by Rifts, LRTPs and BSUs

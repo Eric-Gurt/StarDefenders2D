@@ -272,7 +272,12 @@ import sdWorld from './game/sdWorld.js';
 
 import FakeCanvasContext from './game/libs/FakeCanvasContext.js'; // consts
 globalThis.FakeCanvasContext = FakeCanvasContext;
-globalThis.sdRenderer = { visual_settings: 4 }; // Fake object
+
+
+import sdRenderer from './game/client/sdRenderer.js';
+//globalThis.sdRenderer = { visual_settings: 4 }; // Fake object. Bad, because sdBlock-s will see a real module, and won't know about this altering whenever mimic logic is applied
+sdRenderer.visual_settings = 4;
+globalThis.sdRenderer = sdRenderer;
 
 
 import sdEntity from './game/entities/sdEntity.js';

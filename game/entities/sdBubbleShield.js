@@ -91,17 +91,23 @@ class sdBubbleShield extends sdEntity
 		
 		 // Shield duration. -1 = infinite shield, has to be depleted
 	}
-	static CheckIfEntityHasShield( ent = null ) // Return entity which shields ent, used by sdCharacter for now
+	static GetShieldOfEntity( ent ) // Return entity which shields ent, used by sdCharacter for now
 	{
-		if ( !ent )
-		return null;
-		for( let i = 0; i < sdBubbleShield.shields.length; i++ )
+		return ( ent._shield_ent || null );
+	}
+	static DidShieldProtectFromDamage( ent, dmg, initiator )
+	{
+		if ( dmg <= 0 )
+		return false;
+	
+		let s = sdBubbleShield.GetShieldOfEntity( ent );
+		
+		if ( s && s.hea > 0 )
 		{
-			let shield = sdBubbleShield.shields[ i ];
-			if ( shield.for_ent === ent ) // Has shield?
-			return shield;
+			s.Damage( dmg, initiator );
+			return true;
 		}
-		return null;
+		return false;
 	}
 	constructor( params )
 	{
@@ -166,28 +172,29 @@ class sdBubbleShield extends sdEntity
 		if ( !for_entity )
 		return;
 	
-		let has_shield = false;
-		for( let i = 0; i < sdBubbleShield.shields.length; i++ )
+		let shield = sdBubbleShield.GetShieldOfEntity( for_entity );
+	
+		if ( shield )
 		{
-			let shield = sdBubbleShield.shields[ i ];
-			if ( shield.for_ent === for_entity ) // Already has shield?
+			shield.type = shield_type;
+			shield.hea = shield.GetShieldHealth( shield_type ); // Override shield value
+			shield._time_left = shield.GetShieldDuration( shield_type ); // Override duration
+			
+			if ( manual_override )
 			{
-				shield.type = shield_type;
-				shield.hea = shield.GetShieldHealth( shield_type ); // Override shield value
-				shield._time_left = shield.GetShieldDuration( shield_type ); // Override duration
-				has_shield = true;
-				if ( manual_override )
-				{
-					shield.xscale = xsize;
-					shield.yscale = ysize;
-				}
+				shield.xscale = xsize;
+				shield.yscale = ysize;
 			}
 		}
-		
-		if ( !has_shield )
+		else
 		{
 			let new_shield = new sdBubbleShield({ x:for_entity.x, y:for_entity.y, for_ent: for_entity, type: shield_type, manual_hitbox_override: manual_override, xscale: xsize, yscale: ysize });
 			sdEntity.entities.push( new_shield );
+			
+			if ( typeof for_entity._shield_ent === 'undefined' )
+			throw new Error( 'sdBubbleShield now requires entity it is made for to have property ._shield_ent = null;' );
+			
+			for_entity._shield_ent = new_shield;
 		}
 		
 	}
@@ -206,7 +213,7 @@ class sdBubbleShield extends sdEntity
 		}
 		if ( sdWorld.is_server )
 		{
-			if ( this.for_ent )
+			if ( this.for_ent && !this.for_ent._is_being_removed )
 			{
 				this.x = this.for_ent.x + ( this.for_ent._hitbox_x1 + this.for_ent._hitbox_x2 )/ 2;
 				this.y = this.for_ent.y + ( this.for_ent._hitbox_y1 + this.for_ent._hitbox_y2 )/ 2;
@@ -283,6 +290,14 @@ class sdBubbleShield extends sdEntity
 		if ( i !== -1 )
 		sdBubbleShield.shields.splice( i, 1 );
 
+		if ( this.for_ent )
+		{
+			if ( this.for_ent._shield_ent === this )
+			this.for_ent._shield_ent = null;
+			else
+			if ( sdWorld.is_server )
+			debugger; // How? Are you making shields with ApplyShield method?
+		}
 	}
 }
 //sdBubbleShield.init_class();

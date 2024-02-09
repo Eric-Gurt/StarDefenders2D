@@ -7,6 +7,7 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
+//import sdPlayerOverlord from './sdPlayerOverlord.js';
 
 class sdOctopus extends sdEntity
 {
@@ -34,6 +35,8 @@ class sdOctopus extends sdEntity
 		sdOctopus.max_seek_range = 1000;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+		
+		sdOctopus.driver_position_offset = { x:0, y:-8 };
 	}
 	// 8 as max dimension so it can fit into one block
 	get hitbox_x1() { return -7.9; }
@@ -47,6 +50,14 @@ class sdOctopus extends sdEntity
 	IsVehicle()
 	{
 		return ( this.type === sdOctopus.TYPE_PLAYER_TAKER );
+	}
+	GetDriverPositionOffset( character )
+	{
+		return sdOctopus.driver_position_offset;
+	}
+	VehicleAllowsDriverCombat( character )
+	{
+		return true;
 	}
 	GetPitch()
 	{
@@ -264,7 +275,10 @@ class sdOctopus extends sdEntity
 		if ( this._hea <= 0 )
 		{
 			if ( this.death_anim < sdOctopus.death_duration + sdOctopus.post_death_ttl )
-			this.death_anim += GSPEED;
+			{
+				if ( !this.driver0 && !this.driver1 && !this.driver2 )
+				this.death_anim += GSPEED;
+			}
 			else
 			this.remove();
 		}
@@ -282,14 +296,16 @@ class sdOctopus extends sdEntity
 			{
 				let driver = this[ 'driver' + i ];
 				
+				if ( driver._is_being_removed )
+				{
+					this[ 'driver' + i ] = null;
+					continue;
+				}
+
+				driver.DamageStability( GSPEED * 1000 );
+				
 				if ( digest )
 				{
-					if ( driver._is_being_removed )
-					{
-						this[ 'driver' + i ] = null;
-						continue;
-					}
-					
 					let old_hea = driver.hea;
 
 					driver.DamageWithEffect( dmg_speed, this );
@@ -436,6 +452,7 @@ class sdOctopus extends sdEntity
 							if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
 							{
 								if ( from_entity.IsPlayerClass() )
+								if ( !from_entity.is( sdWorld.entity_classes.sdPlayerOverlord ) )
 								if ( !from_entity.driver_of )
 								if ( !from_entity._god )
 								{
@@ -447,6 +464,8 @@ class sdOctopus extends sdEntity
 
 											//from_entity.driver_of = this;
 											
+											if ( from_entity.scale < 250 )
+											if ( !from_entity._shield_ent )
 											if ( this.AddDriver( from_entity, true ) )
 											{
 											}
