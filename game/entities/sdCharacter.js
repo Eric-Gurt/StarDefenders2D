@@ -3535,7 +3535,12 @@ THING is cosmic mic drop!`;
 			else // Remove shield
 			{
 				sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1, pitch:2 });
-				let shield = sdBubbleShield.CheckIfEntityHasShield( this );
+				/*let shield = sdBubbleShield.CheckIfEntityHasShield( this );
+				if ( shield )
+				if ( !shield._is_being_removed )
+				shield.remove();*/
+		
+				let shield = sdBubbleShield.GetShieldOfEntity( this );
 				if ( shield )
 				if ( !shield._is_being_removed )
 				shield.remove();
