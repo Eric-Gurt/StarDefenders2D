@@ -80,6 +80,7 @@ import sdStealer from './sdStealer.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdVeloxFortifier from './sdVeloxFortifier.js';
 import sdSolarMatterDistributor from './sdSolarMatterDistributor.js';
+import sdExcavator from './sdExcavator.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -154,6 +155,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_PROTECT_SDBG_DRONE =	event_counter++; // 48
 		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
 		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
+		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 51
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -282,7 +284,7 @@ class sdWeather extends sdEntity
 	{
 		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
 			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
-			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR )
+			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION )
 		return true;
 		
 		return false;
@@ -3469,6 +3471,16 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdSolarMatterDistributor,
+				aerial: false
+				
+			});
+		}
+		if ( r === sdWeather.EVENT_SD_EXCAVATION ) // Excavator is placed by SD's and needs to be activated
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdExcavator,
 				aerial: false
 				
 			});
