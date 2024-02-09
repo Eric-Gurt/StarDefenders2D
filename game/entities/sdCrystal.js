@@ -734,7 +734,8 @@ class sdCrystal extends sdEntity
 							y: this.y, 
 							sx: this.sx, 
 							sy: this.sy, 
-							type: 1 
+							type: 1,
+							speciality: this.speciality
 						});
 						
 						if ( xx_tot === 2 && yy_tot === 2 )
