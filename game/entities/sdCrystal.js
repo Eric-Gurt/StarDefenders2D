@@ -603,6 +603,7 @@ class sdCrystal extends sdEntity
 
 		this._current_target = null; // For big crystal crabs
 		
+		// TODO: speciality should not be random by default... Keep randomness only for ground blocks, perhaps?
 		this.speciality = Math.random() < 0.05 ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
 		if ( params.speciality !== undefined )
 		this.speciality = params.speciality;
