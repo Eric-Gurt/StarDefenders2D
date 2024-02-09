@@ -5136,7 +5136,7 @@ class sdWorld
 							
 		*/
 	   
-		let filter0 = ctx.filter;
+		let filter0 = ctx ? ctx.filter : null;
 		let filter1 = null;
 		
 		let r0 = ctx.sd_color_mult_r;
