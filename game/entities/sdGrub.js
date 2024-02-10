@@ -350,7 +350,7 @@ class sdGrub extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		//ctx.filter = this.filter;
 		
 		ctx.scale( this.side, 1 );
 
@@ -394,7 +394,7 @@ class sdGrub extends sdEntity
 		ctx.drawImageFilterCache( sdGrub.img_grub, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
-		ctx.filter = 'none';
+		//ctx.filter = 'none';
 	}
 
 	onRemove() // Class-specific, if needed
