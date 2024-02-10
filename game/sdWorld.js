@@ -762,6 +762,8 @@ class sdWorld
 						'sdDrone.DRONE_CUT_DROID', 0.35
 					];
 			let really_deep_mobs = [ // Really deep
+				
+						'sdSandWorm.KIND_CRYSTAL_HUNTING_WORM', 1.0,
 						'sdCube.KIND_ANCIENT', 0.4,
 						'sdBiter.TYPE_LARGE', 0.4
 
