@@ -4388,7 +4388,10 @@ class sdWeather extends sdEntity
 			ctx.filter = 'none';
 		}
 	}
-	
+	/*onBeforeRemove()
+	{
+		debugger;
+	}*/
 	onRemove() // Class-specific, if needed
 	{
 		if ( sdWeather.only_instance === this )

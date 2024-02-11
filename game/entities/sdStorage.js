@@ -87,7 +87,7 @@ class sdStorage extends sdEntity
 		*/
 		this._allow_pickup = false;
 		
-		this.awake = 1;
+		this.awake = 1; // Magic property name
 		
 		// If these two match - storage is armed with explosive, usually sdJunk but can be sdBarrel too
 		//this.armed_pass = Math.floor( Math.random() * 9007199254740991 );

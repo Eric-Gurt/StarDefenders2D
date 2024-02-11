@@ -1,5 +1,5 @@
 
-/* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun */
+/* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun, sdEntity, sdByteShifter */
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
@@ -450,6 +450,10 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	import LZW from './server/LZW.js';
 	import LZUTF8 from './server/LZUTF8.js';
 	import sdSnapPack from './server/sdSnapPack.js';
+	import sdByteShifter from './server/sdByteShifter.js';
+
+	globalThis.sdByteShifter = sdByteShifter;
+	
 	
 	import sdPathFinding from './ai/sdPathFinding.js';
 
@@ -769,6 +773,7 @@ let enf_once = true;
 	SpawnConnection();
 
 	let messages_to_report_arrival = [];
+	let last_message_uid = -2;
 	
 	function ClearWorld()
 	{
@@ -790,6 +795,10 @@ let enf_once = true;
 		
 		//trace( sdTask.tasks );
 		//setTimeout( ()=>{ trace( sdTask.tasks ) }, 1 );
+		
+		last_message_uid = -2;
+		messages_to_report_arrival = [];
+		
 	}
 	globalThis.ClearWorld = ClearWorld;
 
@@ -885,7 +894,7 @@ let enf_once = true;
 			
 		});
 
-		let old_snapshot_entities = [];
+		//let old_snapshot_entities = [];
 		
 		let played_events = [];
 		let assumptions_event_types = {};
@@ -920,7 +929,7 @@ let enf_once = true;
 			}
 		});
 		
-		socket.on( 'RESv2', ( stuff_arr )=>
+		socket.on( 'RESv3', ( stuff_arr )=>
 		{
 			if ( !SOCKET_IO_MODE )
 			stuff_arr = JSON.parse( LZW.lzw_decode( stuff_arr ) );
@@ -941,44 +950,247 @@ let enf_once = true;
 				sdWorld.last_slowest_class = stuff_arr[ 8 ] || '';
 			}
 			
-			let message_id_to_report = ( stuff_arr[ 9 ] === undefined ) ? -1 : stuff_arr[ 9 ];
+			let message_id_to_report = /*( stuff_arr[ 9 ] === undefined ) ? -1 : */stuff_arr[ 9 ];
 			
 			sdRenderer.line_of_sight_mode = stuff_arr[ 10 ] || 0;
 			
-			if ( message_id_to_report !== -1 )
-			messages_to_report_arrival.push( message_id_to_report );
+			let sent_messages_confirmed_ids = stuff_arr[ 11 ] || [];
+			for ( let i = 0; i < sent_messages_confirmed_ids.length; i++ )
+			{
+				let id = messages_to_report_arrival.indexOf( sent_messages_confirmed_ids[ i ] );
+				if ( id !== -1 )
+				{
+					messages_to_report_arrival.splice( id, 1 );
+				}
+			}
+			
+			//if ( message_id_to_report !== -1 )
+			//messages_to_report_arrival.push( message_id_to_report );
+			if ( last_message_uid < message_id_to_report )
+			{
+				last_message_uid = message_id_to_report;
+				
+				messages_to_report_arrival.push( message_id_to_report );
+			}
+			else
+			{
+				/*console.warn( 'How?' );
+				debugger;
+				return;*/
+			}
+			
+			let frame = globalThis.GetFrame();
 
 			// snapshot
 			sdWorld.unresolved_entity_pointers = [];
 			{
-				let new_snapshot_entities = [];
+				//let y_updated = false;
+					
+				let SetEntProp = ( ent, prop, v )=>
+				{
+					if ( typeof v === 'object' && v !== null && !( v instanceof Array ) && v._net_id !== undefined )
+					{
+						let ent2 = sdEntity.entities_by_net_id_cache_map.get( v._net_id );
+						
+						if ( ent2 )
+						v = ent2;
+						else
+						{
+							sdWorld.unresolved_entity_pointers.push([ ent, prop, v._class, v._net_id ]);
+							return;
+						}
+					}
+					
+					/*if ( ent.is( sdGun ) )
+					{
+						trace( prop+': '+ent[ prop ]+' -> '+v );
+					}*/
+				
+					ent[ prop ] = v;
+					
+					/*if ( prop === 'y' )
+					{
+						sdEntity.TrackPotentialYRest( ent );
+					}*/
+				};
+				
+				for ( let i = 0; i < snapshot.length; i++ )
+				{
+					let arr = snapshot[ i ];
+					
+					let _net_id = arr[ 0 ];
+					let properties_or_class_or_deletion_info = arr[ 1 ];
+					
+					let ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
+					
+					if ( ent )
+					if ( ent._is_being_removed )
+					continue;
+			
+					let y_updated = false;
+					
+					if ( typeof properties_or_class_or_deletion_info === 'number' || typeof properties_or_class_or_deletion_info === 'string' )
+					{
+						let class_id_or_deletion_info = properties_or_class_or_deletion_info;
+						
+						if ( class_id_or_deletion_info >= 0 || typeof properties_or_class_or_deletion_info === 'string' )
+						{
+							let class_info = ( class_id_or_deletion_info + '' ).split( '/' );
+							
+							let entity_class = sdWorld.entity_classes_array[ ~~class_info[ 0 ] ];
+							
+							if ( entity_class.name === 'sdBone' )
+							{
+								throw new Error();
+							}
+							
+							if ( !ent )
+							{
+								let params = {
+									_net_id:_net_id, 
+									x:0, 
+									y:0
+								};
+								
+								for ( let i = 1; i < class_info.length; i++ )
+								{
+									let parts = class_info[ i ].split('=');
+									let prop = sdEntity.properties_important_upon_creation[ ~~parts[0] ];
+									let value = ~~parts[1];
+									params[ prop ] = value;
+								}
+								
+								/*for ( let i = 0; i < sdEntity.properties_important_upon_creation.length; i++ )
+								{
+									let prop = sdEntity.properties_important_upon_creation[ i ];
+
+									if ( typeof snapshot[ prop ] !== 'undefined' )
+									params[ prop ] = snapshot[ prop ];
+								}
+								*/
+							   
+								
+							   
+								ent = new entity_class( params );
+								sdEntity.entities.push( ent );
+							}
+							
+							//let props = ent.GetSnapshot( -2, false, null );
+							//let props = sdByteShifter.GetSyncSnapshot( ent );
+							let props = ent.GetSnapshot( frame, false, null, false );
+							let props_keys = Object.keys( props );
+							
+							/*let recreate_params = null;
+							
+							for ( let i = 0; i < sdEntity.properties_important_upon_creation.length; i++ )
+							{
+								let prop = sdEntity.properties_important_upon_creation[ i ];
+								if ( props.hasOwnProperty( prop ) )
+								{
+									if ( recreate_params === null )
+									recreate_params = {};
+								
+									recreate_params[ prop ] = 
+								}
+							}*/
+							
+							for ( let i = 0; i < props_keys.length; i++ )
+							SetEntProp( ent, props_keys[ i ], arr[ i + 2 ] );
+							//ent[ props_keys[ i ] ] = arr[ i + 2 ];
+						
+							ent.onSnapshotApplied();
+		
+							//ent.UpdateHitbox();
+							
+							y_updated = true;
+
+						}
+						else
+						{
+							if ( !ent )
+							{
+								// Should not really happen unless server sends data twice, in that case that is a normal to ignore it
+								continue;
+							}
+							
+							if ( class_id_or_deletion_info === -1 )
+							{
+								// remove
+								ent.remove();
+								ent._broken = false;
+							}
+							else
+							if ( class_id_or_deletion_info === -2 )
+							{
+								// remove with broken property
+								ent.remove();
+								ent._broken = true;
+							}
+						}
+					}
+					else
+					{
+						let property_indices = properties_or_class_or_deletion_info;
+						
+						if ( !ent )
+						{
+							continue;
+						}
+						else
+						//if ( ent.isSnapshotDecodingAllowed === sdEntity.prototype.isSnapshotDecodingAllowed || ent.isSnapshotDecodingAllowed( snapshot ) )
+						{
+							//let props = sdByteShifter.GetSyncSnapshot( ent );
+							let props = ent.GetSnapshot( frame, false, null, false );
+							let props_keys = Object.keys( props );
+							
+							
+							for ( let i = 0; i < property_indices.length; i++ )
+							{
+								let prop = props_keys[ property_indices[ i ] ];
+								let value = arr[ i + 2 ];
+								
+								props[ prop ] = value;
+								
+								//if ( prop !== 'x' && prop !== 'y'
+								//SetEntProp( ent, prop, value );
+								
+								if ( prop === 'y' )
+								y_updated = true;
+							}
+							
+							/*if ( ent.is( sdGun ) )
+							if ( ent.class === sdGun.CLASS_LOST_CONVERTER )
+							{
+								trace( 'ApplySnapshot', ent.x, ent.sx, ent._held_by, ent.held_by_net_id, ent.held_by_class );
+								//trace( 'ApplySnapshot', ( ent.isSnapshotDecodingAllowed === sdEntity.prototype.isSnapshotDecodingAllowed || ent.isSnapshotDecodingAllowed( props ) ), props );
+							}*/
+							
+							if ( ent.isSnapshotDecodingAllowed === sdEntity.prototype.isSnapshotDecodingAllowed || ent.isSnapshotDecodingAllowed( props ) )
+							ent.ApplySnapshot( props );
+						}
+					}
+					
+					if ( ent )
+					if ( !ent._is_being_removed )
+					{
+						if ( !ent.IsGlobalEntity() )
+						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+						ent._hitbox_last_update = 0;
+						ent.UpdateHitbox();
+		
+						if ( y_updated )
+						sdEntity.TrackPotentialYRest( ent );
+					}
+				}
+					
+				/*let new_snapshot_entities = [];
 				for ( var i = 0; i < snapshot.length; i++ )
 				{
-					/*if ( snapshot[ i ]._is_being_removed )
-					{
-						if ( snapshot[ i ]._class === undefined )
-						trace( snapshot[ i ]._class + ' is being removed', snapshot[ i ] )
-					}
-					else*/
-					{
-						//if ( snapshot[ i ]._class === undefined )
-						//snapshot[ i ]._class = 'auto';
- 
-					
-						let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
+					let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
 
-						/*if ( ent )
-						if ( ent._is_being_removed )
-						{
-							if ( ent._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
-							{
-								ent._is_being_removed = false; // Nothing bad will happen? Trying to prevent missing blocks bug // It probably can't be solved here
-							}
-						}*/
-
-						if ( ent )
-						new_snapshot_entities.push( ent );
-					}
+					if ( ent )
+					new_snapshot_entities.push( ent );
 				}
 
 				for ( var i = 0; i < old_snapshot_entities.length; i++ )
@@ -989,7 +1201,7 @@ let enf_once = true;
 						old_snapshot_entities[ i ].remove();
 					}
 				}
-				old_snapshot_entities = new_snapshot_entities;
+				old_snapshot_entities = new_snapshot_entities;*/
 
 				if ( sdWorld.my_entity === null || sdWorld.my_entity_net_id !== sdWorld.my_entity._net_id )
 				sdWorld.ResolveMyEntityByNetId();
@@ -1082,6 +1294,8 @@ let enf_once = true;
 				{
 					if ( sdWorld.my_entity )
 					{
+						//sdWorld.my_entity.x -= params[ 0 ];
+						//sdWorld.my_entity.y -= params[ 1 ];
 						sdWorld.my_entity.x = params[ 0 ];
 						sdWorld.my_entity.y = params[ 1 ];
 						sdWorld.my_entity.sx = params[ 2 ];
@@ -1283,6 +1497,7 @@ let enf_once = true;
 	
 	//let last_sent_snapshot = [];
 	let frame = 0;
+	//let last_gcso_id = 0;
 	const logic = ()=>
 	{
 		try
@@ -1364,39 +1579,53 @@ let enf_once = true;
 						Math.round( sdWorld.my_entity.x * 100 ) / 100, // 5
 						Math.round( sdWorld.my_entity.y * 100 ) / 100, // 6
 						( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1, // 7
+						
+						//last_message_uid,//messages_to_report_arrival, // 8
 						messages_to_report_arrival, // 8
+						
 						look_at_net_id, // 9
 						look_at_relative_to_direct_angle // 10
 					];
 					
 					//socket.volatile.emit( 'M', new_snapshot );
 
-					if ( messages_to_report_arrival.length > 0 )
-					messages_to_report_arrival = [];
+					//if ( messages_to_report_arrival.length > 0 )
+					//messages_to_report_arrival = [];
 				}
 				
 				if ( sdWorld.my_inputs_and_gspeeds.length > 0 )
 				{
 					//trace( [ 'GSCO', sdWorld.my_inputs_and_gspeeds.slice() ] );
 					
-					sd_events.push( [ 'GSCO', sdWorld.my_inputs_and_gspeeds.slice(), new_snapshot ] );
+					
+					// Prevents keys being stuck on server due to lags
+					let held_key_ids = [];
+					
+					for ( let i in sdWorld.my_key_states.key_states )
+					if ( sdWorld.my_key_states.key_states[ i ] )
+					held_key_ids.push( sdKeyStates.default_state_keys.indexOf( i ) );
+					
+					sd_events.push( [ 'GSCO', sdWorld.my_inputs_and_gspeeds.slice(), new_snapshot, held_key_ids ] );
+					//sd_events.push( [ 'GSCO', sdWorld.my_inputs_and_gspeeds.slice(), new_snapshot, last_gcso_id++ ] );
 					sdWorld.my_inputs_and_gspeeds.length = 0;
 				}
 
 				if ( sd_events.length > 0 )
 				{
-					
-					
 					if ( sd_events.length > 32 )
 					{
+						if ( Math.random() < 1 - sdByteShifter.simulate_packet_loss_percentage )
 						socket.emit( 'Kv2', sd_events.slice( 0, 32 ) );
+					
 						sd_events = sd_events.slice( 32 );
 						globalThis.sd_events = sd_events; // Just in case?
 						console.log('Too many events to server are being sent (' + sd_events.length + ') - this might cause input delay on server-side');
 					}
 					else
 					{
+						if ( Math.random() < 1 - sdByteShifter.simulate_packet_loss_percentage )
 						socket.emit( 'Kv2', sd_events );
+					
 						sd_events.length = 0;
 					}
 				}

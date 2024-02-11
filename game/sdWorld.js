@@ -2872,7 +2872,7 @@ class sdWorld
 			if ( sdWorld.my_entity )
 			if ( !sdWorld.is_singleplayer )
 			{
-				let gs = ( timewarps ? ( GetTimeWarpSpeedForEntity( sdWorld.my_entity ) ) : 1 ) * GSPEED;
+				let gs = Math.round( ( timewarps ? ( GetTimeWarpSpeedForEntity( sdWorld.my_entity ) ) : 1 ) * GSPEED * 1000 ) / 1000;
 				
 				const max_merging_gspeed = 0; // Less data but less accurate too
 				
@@ -4916,6 +4916,11 @@ class sdWorld
 			}
 		}
 		
+		/*if ( ent.GetClass() === 'sdQuickie' )
+		{
+			debugger;
+		}*/
+		
 		let store_filter_operations = true;
 		
 		if ( ent.is( sdCrystal ) )
@@ -5045,6 +5050,9 @@ class sdWorld
 						
 						if ( prop === 'filter' )
 						{
+							if ( value === null || value === '' )
+							return true; // It actually does nothing if filter is set to null or empty string, just skip this action
+							
 							ctx_filter = value;
 							
 							if ( !store_filter_operations )
@@ -5075,7 +5083,7 @@ class sdWorld
 								console.warn( 'Strange value set for opcode: ', opcode, value );
 								//throw new Error();
 								debugger;
-								return;
+								return true;
 							}
 
 							sdWorld.draw_methods_output_ptr.push( opcode, value );

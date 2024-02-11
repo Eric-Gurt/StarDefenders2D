@@ -4990,6 +4990,7 @@ THING is cosmic mic drop!`;
 	}
 	DropWeapon( i ) // by slot
 	{
+		//if ( sdWorld.is_server )
 		if ( this._inventory[ i ] )
 		{
 			//console.log( this.title + ' drops gun ' + this._inventory[ i ]._net_id );

@@ -312,7 +312,7 @@ class sdLost extends sdEntity
 		
 		this.f = params.f || 0; // Filter ID
 		
-		this.awake = 1; // For client sync
+		this.awake = 1; // For client sync // Magic property name
 		
 		//if ( this.s )
 		{

@@ -389,7 +389,7 @@ class sdDoor extends sdEntity
 					}
 				}
 				
-				let allow_decrease = true; // Prevent high GSPEED causing doors to constantly open/close offscreeb
+				let allow_decrease = sdWorld.is_server; // Prevent high GSPEED causing doors to constantly open/close offscreeb
 
 				if ( this._entities_within_sensor_area.length > 0 )
 				{

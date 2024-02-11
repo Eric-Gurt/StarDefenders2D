@@ -92,6 +92,14 @@ class sdSandWorm extends sdEntity
 	{
 		super( params );
 		
+		if ( params.tag )
+		{
+			if ( sdSandWorm[ params.tag ] !== undefined )
+			params.kind = sdSandWorm[ params.tag ];
+			else
+			debugger;
+		}
+		
 		this.sx = 0;
 		this.sy = 0;
 

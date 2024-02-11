@@ -1224,6 +1224,17 @@ class sdGun extends sdEntity
 		}
 		return true;
 	}
+	/*get _held_by()
+	{
+		debugger;
+		return this.held_by;
+	}
+	set _held_by(v)
+	{
+		debugger;
+		this.held_by = v;
+	}
+	*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !sdWorld.is_singleplayer )

@@ -85,7 +85,8 @@ class sdEntity
 		sdEntity.y_rest_tracker = new WeakMap(); // entity => { y, repeated_sync_count }
 		
 		//sdEntity.properties_by_class_all = new WeakMap(); // class => [ 'x', 'y' ... ]
-		sdEntity.properties_by_class_public = new WeakMap(); // class => [ 'x', 'y' ... ]
+		//sdEntity.properties_by_class_public = new WeakMap(); // class => [ 'x', 'y' ... ]
+		sdEntity.properties_by_class_public = new Map(); // _class_id => [ 'x', 'y' ... ]
 		
 		sdEntity.removed_object = { _is_being_removed: true };//404.12345;
 		sdEntity.pointer_has_been_cleared = { _inaccessible: true };//403.98765;
@@ -94,11 +95,23 @@ class sdEntity
 		
 		sdWorld.entity_classes_array = null;
 		
+		sdEntity.properties_important_upon_creation = [
+			'class',
+			'type',
+			'mission',
+			'variation', // Grass, needs for timers
+			'natural' // For proper dirt counting
+		];
+		
 		sdEntity.default_driver_position_offset = { x:0, y:0 };
 	}
 	static AllEntityClassesLoadedAndInitiated()
 	{
 		sdWorld.entity_classes_array = Object.values( sdWorld.entity_classes );
+		
+		// Make this consistent on server and client
+		sdWorld.entity_classes_array.sort( (a,b)=>{ return a.name.localeCompare( b.name ); } );
+		
 		for ( let i = 0; i < sdWorld.entity_classes_array.length; i++ )
 		sdWorld.entity_classes_array[ i ].class_id = i;
 	
@@ -3411,7 +3424,7 @@ class sdEntity
 	{
 		return true;
 	}
-	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null ) // Some classes like sdDeepSleep do override it(!)
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null, include_class_and_net_id=true ) // Some classes like sdDeepSleep do override it(!)
 	{
 		let returned_object;
 		
@@ -3435,10 +3448,14 @@ class sdEntity
 				// This code prevents conditional property visibility, but does some optimisations
 				if ( this._snapshot_cache === null )
 				{
+					if ( include_class_and_net_id )
 					returned_object = {
 						_net_id: this._net_id,
 						_class: this.GetClass()
 					};
+					else
+					returned_object = {};
+				
 					this._snapshot_cache = returned_object;
 				}
 				else
@@ -3652,12 +3669,12 @@ class sdEntity
 			}
 			else
 			{
-				let kinds = sdEntity.properties_by_class_public.get( this.__proto__.constructor );
+				let kinds = sdEntity.properties_by_class_public.get( this._class_id );
 				
 				if ( kinds === undefined )
 				{
 					kinds = [];
-					sdEntity.properties_by_class_public.set( this.__proto__.constructor, kinds );
+					sdEntity.properties_by_class_public.set( this._class_id, kinds );
 				}
 				
 				let current_kind = this.material || this.type || this.kind || this.class || this.variation || 0;
@@ -3723,6 +3740,12 @@ class sdEntity
 						}*/
 					}
 					
+					/*if ( this.GetClass() === 'sdGun' )
+					if ( prop === 'sd_filter' )
+					{
+						let a = 1;
+					}*/
+					
 					if ( !save_as_much_as_possible && typeof v === 'number' ) // Do not do number rounding if world is being saved
 					{
 						if ( prop === 'sx' || prop === 'sy' || prop === 'scale' )
@@ -3731,7 +3754,16 @@ class sdEntity
 						returned_object[ prop ] = Math.round( v );
 					}
 					else
-					returned_object[ prop ] = v;
+					{
+						// Object/array copies are required since sdByteShifter otherwise won't be able to tell if values are different since same pointers will be stored on all messages
+						if ( v instanceof Array )
+						returned_object[ prop ] = v.slice();
+						else
+						if ( v instanceof Object )
+						returned_object[ prop ] = Object.assign( {}, v );
+						else
+						returned_object[ prop ] = v;
+					}
 				}
 			}
 		}
@@ -3767,20 +3799,10 @@ class sdEntity
 	{
 		const my_entity = sdWorld.my_entity;
 		
-		//if ( snapshot._net_id !== this._net_id ) Will happen in case of copying
-		//debugger;
-		if ( snapshot._class !== this.GetClass() )
+		/*if ( snapshot._class !== this.GetClass() )
 		if ( snapshot._class !== 'auto' )
-		debugger;
+		debugger;*/
 
-		/*if ( snapshot._class === 'sdGrass' )
-		if ( snapshot.variation === 4 || snapshot.variation === 6 )
-		{
-			trace( 'ApplySnapshot called for', snapshot );
-		}*/
-	
-		//let my_entity_protected_vars = null;
-		
 		if ( this.isSnapshotDecodingAllowed === sdEntity.prototype.isSnapshotDecodingAllowed || this.isSnapshotDecodingAllowed( snapshot ) )
 		for ( var prop in snapshot )
 		{
@@ -4136,7 +4158,7 @@ class sdEntity
 		
 		// Some entities like crystal crabs have separate set of properties
 		
-		if ( typeof snapshot.class !== 'undefined' )
+		/*if ( typeof snapshot.class !== 'undefined' )
 		params.class = snapshot.class;
 		
 		if ( typeof snapshot.type !== 'undefined' )
@@ -4149,7 +4171,14 @@ class sdEntity
 		params.variation = snapshot.variation;
 		
 		if ( typeof snapshot._natural !== 'undefined' ) // For proper dirt counting
-		params.natural = snapshot._natural;
+		params.natural = snapshot._natural;*/
+		for ( let i = 0; i < sdEntity.properties_important_upon_creation.length; i++ )
+		{
+			let prop = sdEntity.properties_important_upon_creation[ i ];
+			
+			if ( typeof snapshot[ prop ] !== 'undefined' )
+			params[ prop ] = snapshot[ prop ];
+		}
 		
 		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
 		var ret = new sdWorld.entity_classes[ snapshot._class ]( params );

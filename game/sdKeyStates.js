@@ -3,14 +3,10 @@ import sdWorld from './sdWorld.js';
 
 class sdKeyStates
 {
-	constructor()
+	static init_class()
 	{
-		this.Reset();
-	}
-	
-	Reset()
-	{
-		this.key_states = {
+		sdKeyStates.default_state = {
+			
 			KeyD: 0,
 			KeyW: 0,
 			KeyS: 0,
@@ -44,6 +40,18 @@ class sdKeyStates
 			KeyK: 0,
 			KeyN: 0
 		};
+		
+		sdKeyStates.default_state_keys = Object.keys( sdKeyStates.default_state );
+	}
+	constructor()
+	{
+		this.key_states = Object.assign( {}, sdKeyStates.default_state );
+		this.Reset();
+	}
+	
+	Reset()
+	{
+		this.key_states = Object.assign( this.key_states, sdKeyStates.default_state );
 		
 		this.one_taps = Object.assign( {}, this.key_states ); // One-taps are for keys that are released faster than game loop tick could happen. This will prevent jumping from being ignored on high ping connections or when server just gets a lag spike.
 		
@@ -85,5 +93,6 @@ class sdKeyStates
 		}
 	}
 }
+sdKeyStates.init_class();
 
 export default sdKeyStates;
