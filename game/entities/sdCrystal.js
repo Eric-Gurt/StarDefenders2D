@@ -13,6 +13,7 @@ import sdEffect from './sdEffect.js';
 import sdGrass from './sdGrass.js';
 import sdGuanako from './sdGuanako.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdCharacter from './sdCharacter.js';
 
 
 class sdCrystal extends sdEntity
@@ -1101,7 +1102,8 @@ class sdCrystal extends sdEntity
 		if ( this.held_by )
 		{
 			if ( this.held_by.is( sdGrass ) ) // On a tree
-			if ( from_entity.IsPlayerClass() )
+			if ( from_entity.is( sdCharacter ) || from_entity.is( sdPlayerDrone ) )
+			//if ( from_entity.IsPlayerClass() )
 			if ( from_entity.hard_collision )
 			{
 				this.held_by.DropCrystal();

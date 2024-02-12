@@ -246,6 +246,9 @@ class sdPlayerSpectator extends sdCharacter
 		{
 			sdWorld.camera.x = this.x;
 			sdWorld.camera.y = this.y;
+
+			this.look_x = this.x;
+			this.look_y = this.y;
 		}
 		
 		if ( sdWorld.is_server && !this._socket )

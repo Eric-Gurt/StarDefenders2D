@@ -493,6 +493,7 @@ class sdDropPod extends sdEntity
 					for ( let i = 0; i < sdWorld.sockets.length; i++ )
 					{
 						if ( sdWorld.sockets[ i ].character )
+						if ( sdWorld.sockets[ i ].character.is( sdCharacter ) )
 						if ( sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x , sdWorld.sockets[ i ].character.y ) < 300 ) // If close enough
 						{
 							player_to_greet = sdWorld.sockets[ i ].character;
