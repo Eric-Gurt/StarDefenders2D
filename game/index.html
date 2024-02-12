@@ -761,7 +761,7 @@
 		return v;
 	    };
 	    
-	    let draw_once = true;
+	    //let draw_once = true;
 	    
 	    let cursor_x = 0;
 	    let cursor_y = 0;
@@ -805,7 +805,7 @@
 		}
 	    };
 	    
-	    let DrawPreview = function()
+	   /*let DrawPreview = function()
 	    {
 		if ( hovered_preview )
 	        sdWorld.time = forced_time;
@@ -869,13 +869,6 @@
 		    ent2._held_by = ent;
 		}
 		else
-		/*if ( inputs_hash[ 'start_with1' ].el.checked )
-		{
-		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
-		    ent._inventory[ 1 ] = ent2;
-		    ent2._held_by = ent;
-	        }
-		else*/
 		if ( inputs_hash[ 'start_with2' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SHOVEL });
@@ -906,10 +899,6 @@
 		{
 		    ent.fire_anim = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
 		    
-		    /*
-		    //if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
-		    if ( ent.gun_slot === 1 )
-		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;*/
 		}
 
 		ctx.scale( 4,4 );
@@ -1017,9 +1006,15 @@
 		}
 		
 		draw_once = false;
+	    };*/
+	
+	    globalThis.preview_fnc = ()=>{ 
+		globalThis.DrawPreview( hovered_preview, forced_time, settings_container, ctx, start_btn, inputs_hash, cursor_x, cursor_y, inputs, format, hovered_color );
+		
+		if ( globalThis.preview_interval )
+		requestAnimationFrame( globalThis.preview_fnc );
 	    };
-	    globalThis.preview_fnc = DrawPreview;
-	    globalThis.preview_interval = setInterval( globalThis.preview_fnc, 16 );
+	    globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );// setInterval( globalThis.preview_fnc, 16 );
 	    
 	    let conditional_elements = [];
 

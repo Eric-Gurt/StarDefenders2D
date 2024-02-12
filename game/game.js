@@ -1,5 +1,5 @@
 
-/* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun, sdEntity, sdByteShifter */
+/* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun, sdEntity, sdByteShifter, sdChat, sdSound, LZW, sdContextMenu, sdPathFinding, sdAdminPanel, sdDatabaseEditor, sdMotherShipStorageManager, sdCodeEditor, FakeCanvasContext, sdAtlasMaterial, sdCharacter */
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
@@ -828,11 +828,20 @@ let enf_once = true;
 			socket.volatile = socket;
 		}
 
-		socket.on('connect', () =>
+		let onConnect = ()=>
 		//socket.onConnect( error =>
 		{
+			if ( globalThis.connection_established )
+			{
+				trace( 'onConnect called extra time, igonred.' );
+				return;
+			}
+		
 			if ( sdWorld.is_singleplayer )
-			return;
+			{
+				trace( 'Connect event igonred due to single-player mode' );
+				return;
+			}
 		
 			socket.emit( 'my_url', window.location.href );
 			
@@ -841,13 +850,32 @@ let enf_once = true;
 			ClearWorld();
 
 			globalThis.connection_established = true;
-
-			//debugger;
-			/*window.onbeforeunload = ()=>
+		};
+		
+		socket.on('connect', onConnect );
+		
+		let eventless_connection_seeker = ()=> // Needed in case if game started on inactive tab - connect event just simply never arrives
+		{
+			if ( socket.connected )
 			{
-				socket.close();
-			};*/
-		});
+				if ( globalThis.connection_started )
+				if ( !globalThis.connection_established )
+				{
+					trace( '"connect" event was not fired but connection is open. Manually triggering onConnect' );
+
+					globalThis.players_online = '?';
+					globalThis.players_playing = '?';
+
+					onConnect();
+				}
+			
+				return;
+			}
+			
+			setTimeout( eventless_connection_seeker, 50 );
+		};
+		
+		eventless_connection_seeker();
 
 		socket.on('disconnect', () => 
 		//socket.onDisconnect( ()=>
@@ -1650,6 +1678,236 @@ let enf_once = true;
 	window.requestAnimationFrame( logic );
 	
 	globalThis.frame_by_frame = false;
+	
+	globalThis.DrawPreview = ( hovered_preview, forced_time, settings_container, ctx, start_btn, inputs_hash, cursor_x, cursor_y, inputs, format, hovered_color )=>
+	{
+		if ( hovered_preview )
+			sdWorld.time = forced_time;
+		
+		//sdWorld.time = 0; // Hack
+		sdWorld.GSPEED = 0.5; // Without it GSPEED may be 0 at time, which will cause ragdoll to crumble
+
+		//if ( !draw_once )
+		//return;
+
+		settings_container.style.transform = 'scale(' + Math.min( document.body.clientWidth / 1260, Math.min( document.body.clientHeight / 830, 1 ) ) + ')';
+
+		if ( !ctx.drawImageFilterCache )
+		{
+			if ( typeof sdRenderer !== 'undefined' )
+			if ( typeof sdWorld !== 'undefined' )
+			if ( typeof sdCharacter !== 'undefined' )
+			if ( typeof sdGun !== 'undefined' )
+			sdRenderer.AddCacheDrawMethod( ctx );
+		}
+
+		if ( !ctx.drawImageFilterCache )
+		return;
+
+		if ( globalThis.socket_io_crashed && !socket.connected )
+		start_btn.value = globalThis.socket_io_crashed;
+		else
+		{
+			let str = T('Play with {1} other players ({2} online)');
+			//start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
+			str = str.split('{1}').join( format( globalThis.players_playing ) );
+			str = str.split('{2}').join( format( globalThis.players_online ) );
+			start_btn.value = str;
+		}
+
+		ctx.fillStyle = '#7b3219';
+		//ctx.fillStyle = '#111111';
+		ctx.fillRect( 0, 0, 128, 128 );
+
+		ctx.save();
+
+		let ent;
+
+		let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( globalThis.GetPlayerSettings() );
+
+		if ( sdWorld.allowed_player_classes.indexOf( preferred_entity ) === -1 )
+		ent = new sdCharacter({ x:1, y:0 });
+		else
+		ent = new sdWorld.entity_classes[ preferred_entity ]({ x:1, y:0 });
+
+
+		let ent2;
+		let ent3;
+		{
+			ent3 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
+			ent._inventory[ 1 ] = ent3;
+			ent3._held_by = ent;
+		}
+
+		if ( inputs_hash[ 'start_with1' ].el.checked )
+		{
+			ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SWORD });
+			ent._inventory[ 0 ] = ent2;
+			ent2._held_by = ent;
+		}
+		else
+		/*if ( inputs_hash[ 'start_with1' ].el.checked )
+		{
+			ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
+			ent._inventory[ 1 ] = ent2;
+			ent2._held_by = ent;
+			}
+		else*/
+		if ( inputs_hash[ 'start_with2' ].el.checked )
+		{
+			ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SHOVEL });
+			ent._inventory[ 0 ] = ent2;
+			ent2._held_by = ent;
+		}	
+
+
+		//if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
+		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
+
+		//ent._an = Math.PI / 2;
+		ent.look_x = -1000;
+		ent.look_y = 0;
+		ent.stands = true;
+		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? -1 : 0;
+		ent._anim_walk = ( sdWorld.time / 50 ) % 10;
+
+		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( globalThis.GetPlayerSettings() );
+		ent.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( globalThis.GetPlayerSettings() );
+		ent.body = sdWorld.ConvertPlayerDescriptionToBody( globalThis.GetPlayerSettings() );
+		ent.legs = sdWorld.ConvertPlayerDescriptionToLegs( globalThis.GetPlayerSettings() );
+
+		if ( sdWorld.time % 5000 < 500 )
+		ent.pain_anim = 10 / ( sdWorld.time % 5000 ) / 500;
+
+		if ( ( sdWorld.time + 500 ) % 2000 < 250 )
+		{
+			ent.fire_anim = Math.max( 0, 15 - ( ( sdWorld.time + 500 ) % 2000 ) / 250 );// 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
+
+			/*
+			//if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
+			if ( ent.gun_slot === 1 )
+			ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;*/
+		}
+
+		ctx.scale( 4,4 );
+		ctx.translate( 16, 14 );
+
+		let real_net_id = ent._net_id;
+		ent._net_id = 0;
+		{
+			sdShop.isDrawing = true;
+			ent.Draw( ctx );
+			
+			/*let old_values = globalThis.snap || [];
+			let new_values = Object.values( ent );
+			for ( let i = 0; i < new_values.length; i++ )
+			{
+				if ( new_values[ i ] !== old_values[ i ] )
+				if ( typeof new_values[ i ] !== 'object' )
+				if ( Object.keys( ent )[ i ] !== 'biometry' )
+				{
+					trace( Object.keys( ent )[ i ] + ' changed from ' + old_values[ i ] + ' to ' + new_values[ i ] );
+				}
+			}
+			globalThis.snap = new_values;*/
+			
+			sdShop.isDrawing = false;
+		}
+		ent._net_id = real_net_id;
+
+		if ( ent._ragdoll )
+		{
+			ent._ragdoll.Delete( true );
+		}
+
+		ent.remove();
+		ent._remove();
+
+		ent2.remove();
+		ent2._remove();
+
+		ent3.remove();
+		ent3._remove();
+
+		ctx.restore();
+
+		if ( hovered_preview )
+		{
+			var p = ctx.getImageData( cursor_x, cursor_y, 1, 1 ).data; 
+			var hex = "#" + ( "000000" + sdWorld.ColorArrayToHex( [ p[0], p[1], p[2] ] ) ).slice( -6 );
+
+			hovered_color = [ p[0], p[1], p[2] ];
+
+			let reset = true;
+
+			for ( let i = 0; i < inputs.length; i++ )
+			if ( inputs[ i ].el.type === 'color' )
+			{
+				if ( inputs[ i ].el.value === hex )
+				{
+					reset = false;
+					break;
+				}
+			}
+
+			if ( reset )
+			hovered_color = null;
+		}
+
+		if ( hovered_color )
+		{
+			let image_data = ctx.getImageData( 0, 0, 128, 128 );
+			let image_data_new = ctx.getImageData( 0, 0, 128, 128 );
+
+			let left = -1 * 4;
+			let right = 1 * 4;
+			let up = -128 * 4;
+			let down = 128 * 4;
+
+			function ColorMatches( i )
+			{
+				if ( image_data.data[ i   ] === hovered_color[ 0 ] )
+				if ( image_data.data[ i+1 ] === hovered_color[ 1 ] )
+				if ( image_data.data[ i+2 ] === hovered_color[ 2 ] )
+				return true;
+
+				return false;
+			}
+
+			let t = Date.now();
+
+			let br = ~~( 127 + Math.sin( t / 100 ) * 127 );
+
+			function Fill( i )
+			{
+				//if ( ( t / 100 + i / 4 ) % 10 < 5 )
+				{
+					image_data_new.data[ i   ] = br;
+					image_data_new.data[ i+1 ] = br;
+					image_data_new.data[ i+2 ] = br;
+				}
+			}
+
+			for ( let i = 0; i < image_data.data.length; i += 4 )
+			{
+				if ( ColorMatches( i ) )
+				{
+					if ( !ColorMatches( i + right ) )
+					Fill( i + right );
+					if ( !ColorMatches( i + left ) )
+					Fill( i + left );
+					if ( !ColorMatches( i + up ) )
+					Fill( i + up );
+					if ( !ColorMatches( i + down ) )
+					Fill( i + down );
+				}
+			}
+
+			ctx.putImageData( image_data_new, 0, 0, 0, 0, 128, 128 );
+		}
+
+		//draw_once = false;
+	};
 
 	let key_states = new sdKeyStates();
 	sdWorld.my_key_states = key_states;
@@ -2000,4 +2258,4 @@ let enf_once = true;
 	if( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 	window.onwheel = window.onmousewheel;
 	
-	socket.open();
+	socket.open(); // Same as socket.connect() it seems

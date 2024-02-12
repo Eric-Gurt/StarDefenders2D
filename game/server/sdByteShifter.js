@@ -14,7 +14,7 @@
 
 	//TODO: is_static objects could be handled much more efficiently if their properties were not scanned unless their _update_version did increment
 
-	TODO: Some crazy camera shaking in stream logger mode
+	TODO: Some crazy camera shaking in stream logger mode. Maybe client is overriding something?
 
 */
 

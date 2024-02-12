@@ -4834,7 +4834,8 @@ class sdWorld
 
 		if ( globalThis.preview_interval !== null )
 		{
-			clearInterval( globalThis.preview_interval );
+			//clearInterval( globalThis.preview_interval );
+			cancelAnimationFrame( globalThis.preview_interval );
 			globalThis.preview_interval = null;
 		}
 
@@ -4868,7 +4869,8 @@ class sdWorld
 		
 		if ( globalThis.preview_interval === null )
 		{
-			globalThis.preview_interval = setInterval( globalThis.preview_fnc, 16 );
+			//globalThis.preview_interval = setInterval( globalThis.preview_fnc, 16 );
+			globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );
 		}
 		
 		globalThis.meSpeak.stop();
