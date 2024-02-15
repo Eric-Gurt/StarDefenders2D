@@ -433,6 +433,7 @@ class sdSandWorm extends sdEntity
 	GetRandomCrystal()
 	{
 		let ent = sdEntity.GetRandomActiveEntity();
+		if ( ent )
 		if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
 				if ( this.IsEntFarEnough( ent ) && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < 2000 ) // Crystal far enough from BSUs and players, but not too far from the worm?

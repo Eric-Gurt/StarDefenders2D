@@ -138,6 +138,7 @@ class sdSpider extends sdEntity
 	{
 		let ent = sdEntity.GetRandomActiveEntity();
 		let array_of_enemies = sdCom.com_faction_attack_classes;
+		if ( ent )
 		if ( array_of_enemies.indexOf( ent.GetClass() ) !== -1 ) // Random entity check found a potential target class inside that array
 			{
 				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?

@@ -130,14 +130,15 @@ class sdStealer extends sdEntity
 	GetRandomCrystal()
 	{
 		let ent = sdEntity.GetRandomActiveEntity();
+		if ( ent )
 		if ( ent.is( sdCrystal ) || ent.is( sdGun ) ) // Is it a crystal or a weapon?
+		{
+			if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
 			{
-				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
-				{
-					this._last_found_target = 0;
-					return ent; // Target it
-				}
+				this._last_found_target = 0;
+				return ent; // Target it
 			}
+		}
 		return null;
 	}
 	
