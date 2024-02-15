@@ -170,6 +170,7 @@ class sdCouncilIncinerator extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
+		if ( e )
 		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 || e.is( sdBaseShieldingUnit ) ) // It should also attack bases
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )

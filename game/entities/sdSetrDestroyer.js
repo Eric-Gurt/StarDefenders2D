@@ -237,6 +237,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
+		if ( e )
 		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 )
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )

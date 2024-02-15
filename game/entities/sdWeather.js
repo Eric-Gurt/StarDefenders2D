@@ -501,7 +501,8 @@ class sdWeather extends sdEntity
 					if ( !place_onto )
 					if ( tr > 0 )
 					tr = 0;
-						
+					
+					if ( place_onto )
 					if ( place_onto.is( sdBlock ) )
 					if ( place_onto.DoesRegenerate() )
 					if ( place_onto._natural )
@@ -661,6 +662,7 @@ class sdWeather extends sdEntity
 				break;
 			}
 
+			if ( place_onto )
 			if ( place_onto.is( sdBlock ) )
 			if ( place_onto.DoesRegenerate() )
 			if ( place_onto._natural )
@@ -3629,6 +3631,7 @@ class sdWeather extends sdEntity
 							this.snow = 1;
 						}
 
+						if ( e )
 						if ( e.is( sdBlock ) )
 						if ( !e._is_being_removed )
 						if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world

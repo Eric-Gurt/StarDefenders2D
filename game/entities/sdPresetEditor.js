@@ -794,21 +794,26 @@ class sdPresetEditor extends sdEntity
 			for ( ; tr > 0 && t2 - t < 4; tr-- )
 			{
 				let e = sdEntity.GetRandomEntity();
-
-				let morph_x = Math.random();
-				let morph_y = Math.random();
-
-				let new_relative_x = Math.floor( (
-													( e.x + e._hitbox_x1 - preset_data.width ) * ( 1 - morph_x ) + ( e.x + e._hitbox_x2 ) * morph_x
-										) / 16 ) * 16;
-
-				let new_relative_y = Math.floor( (
-													( e.y + e._hitbox_y1 - preset_data.height ) * ( 1 - morph_y ) + ( e.y + e._hitbox_y2 ) * morph_y
-										) / 16 ) * 16;
-
-				Try( new_relative_x, new_relative_y );		
 				
-				t2 = Date.now();
+				if ( e )
+				{
+
+					let morph_x = Math.random();
+					let morph_y = Math.random();
+
+					let new_relative_x = Math.floor( (
+														( e.x + e._hitbox_x1 - preset_data.width ) * ( 1 - morph_x ) + ( e.x + e._hitbox_x2 ) * morph_x
+											) / 16 ) * 16;
+
+					let new_relative_y = Math.floor( (
+														( e.y + e._hitbox_y1 - preset_data.height ) * ( 1 - morph_y ) + ( e.y + e._hitbox_y2 ) * morph_y
+											) / 16 ) * 16;
+
+					Try( new_relative_x, new_relative_y );		
+
+					t2 = Date.now();
+				
+				}
 			}
 
 			if ( options.debug )
