@@ -123,7 +123,12 @@ class sdEntity
 	static GetRandomEntity()
 	{
 		if ( sdEntity.entities.length > 0 )
-		return sdEntity.entities[ Math.floor( Math.random() * sdEntity.entities.length ) ];
+		{
+			let e = sdEntity.entities[ Math.floor( Math.random() * sdEntity.entities.length ) ];
+			
+			if ( !e._is_being_removed )
+			return e;
+		}
 	
 		return null;
 	}
@@ -131,7 +136,12 @@ class sdEntity
 	static GetRandomActiveEntity() // For drones and more things in future?
 	{
 		if ( sdEntity.active_entities.length > 0 )
-		return sdEntity.active_entities[ Math.floor( Math.random() * sdEntity.active_entities.length ) ];
+		{
+			let e = sdEntity.active_entities[ Math.floor( Math.random() * sdEntity.active_entities.length ) ];
+			
+			if ( !e._is_being_removed )
+			return e;
+		}
 	
 		return null;
 	}
