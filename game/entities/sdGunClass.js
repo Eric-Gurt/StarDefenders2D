@@ -366,7 +366,7 @@ class sdGunClass
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#404040', 0, 'dark', 'customize_colors' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#808080', 0, 'bright', 'customize_colors' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#6ca2d0', 0, 'energy', 'customize_colors' );
-			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#ff0000', 0, 'laset', 'customize_colors' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#ff0000', 0, 'laser', 'customize_colors' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#9d822f', 0, 'magazine', 'customize_colors' );
 			
 			custom_rifle_upgrades.push(
