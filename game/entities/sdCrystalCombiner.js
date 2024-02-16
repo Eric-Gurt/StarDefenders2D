@@ -418,7 +418,7 @@ class sdCrystalCombiner extends sdEntity
 				ctx.save();
 				{
 					ctx.translate( this.crystal0.x - this.x, this.crystal0.y - this.y );
-					this.crystal0.Draw( ctx, true );
+					this.crystal0.DrawWithStatusEffects( ctx, true );
 				}
 				ctx.restore();
 			}
@@ -427,7 +427,7 @@ class sdCrystalCombiner extends sdEntity
 				ctx.save();
 				{
 					ctx.translate( this.crystal1.x - this.x, this.crystal1.y - this.y );
-					this.crystal1.Draw( ctx, true );
+					this.crystal1.DrawWithStatusEffects( ctx, true );
 				}
 				ctx.restore();
 			}

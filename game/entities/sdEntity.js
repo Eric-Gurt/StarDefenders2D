@@ -52,7 +52,8 @@ class sdEntity
 		sdEntity.SCORE_REWARD_CHALLENGING_MOB = 5;
 		sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB = 10;
 		sdEntity.SCORE_REWARD_BOSS = 30;
-		sdEntity.SCORE_REWARD_COMMON_TASK = 15;
+		//sdEntity.SCORE_REWARD_COMMON_TASK_ITEM = 3;
+		//sdEntity.SCORE_REWARD_UNCOMMON_TASK_ITEM = 15;
 		sdEntity.SCORE_REWARD_TEDIOUS_TASK = 20;
 		sdEntity.SCORE_REWARD_BIG_EVENT_TASK = 50;
 		sdEntity.SCORE_REWARD_ADMIN_CRATE = 100000;
@@ -61,6 +62,18 @@ class sdEntity
 		sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL = 5;
 		sdEntity.SCORE_REWARD_BROKEN_CRAB_CRYSTAL = 1;
 		sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL = 3;
+		sdEntity.SCORE_REWARD_TASK_ITEM_FUNCTION = ( entity )=>
+		{
+			if ( entity.is( sdWorld.entity_classes.sdCrystal ) )
+			{
+				return Math.ceil( entity.matter_max / 640 );
+			}
+			
+			if ( entity.is( sdWorld.entity_classes.sdJunk ) )
+			return Math.ceil( sdWorld.entity_classes.sdJunk.ScoreScaleByType( entity.type ) ); // 20 for artifacts, 5 for other items
+		
+			return 15; // Common task item teleportation, mostly for creatures
+		};
 		
 		/*sdEntity.MATTER_MODE_UNDECIDED = 0;
 		sdEntity.MATTER_MODE_NONE = 1;
@@ -118,6 +131,18 @@ class sdEntity
 		for ( let i = 0; i < sdWorld.entity_classes_array.length; i++ )
 		if ( sdWorld.entity_classes_array[ i ].init )
 		sdWorld.entity_classes_array[ i ].init();
+	}
+	
+	
+	GetRandomEntityNearby( range )
+	{
+		let an = Math.random() * Math.PI * 2;
+
+		if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * range, this.y + Math.cos( an ) * range, this ) )
+		{
+			return sdWorld.last_hit_entity;
+		}
+		return null;
 	}
 	
 	static GetRandomEntity()
@@ -723,6 +748,10 @@ class sdEntity
 			if ( hit_what._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
 			hit_what.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
+	}
+	
+	onBeforeLongRangeTeleport( lrtp ) // Called before snapshot is taken
+	{
 	}
 	
 	get bounce_intensity()
@@ -5508,7 +5537,7 @@ class sdEntity
 	
 	
 	
-	isWaterDamageResistant()
+	isFireAndAcidDamageResistant()
 	{
 		return false;
 	}

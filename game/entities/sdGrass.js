@@ -448,7 +448,7 @@ class sdGrass extends sdEntity
 				//ctx.volumetric_mode = this.crystal.DrawIn3D(); // Not restored
 				//ctx.object_offset = [ 0, -10, 0 ];
 				ctx.translate( this.crystal.x - this.x, this.crystal.y - this.y );
-				this.crystal.Draw( ctx, true );
+				this.crystal.DrawWithStatusEffects( ctx, true );
 			}
 			ctx.restore();
 		}

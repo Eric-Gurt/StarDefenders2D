@@ -305,10 +305,14 @@ class sdQuickie extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return "Quickie";
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Quickie" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

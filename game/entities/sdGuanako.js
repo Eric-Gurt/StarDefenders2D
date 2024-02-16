@@ -103,7 +103,7 @@ class sdGuanako extends sdEntity
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 	}
 	
-	isWaterDamageResistant()
+	isFireAndAcidDamageResistant()
 	{
 		return true;
 	}

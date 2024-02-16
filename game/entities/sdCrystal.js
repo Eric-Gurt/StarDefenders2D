@@ -76,6 +76,7 @@ class sdCrystal extends sdEntity
 			
 			onThink: ( e, GSPEED )=>
 			{
+				if ( sdWorld.is_server )
 				if ( !e.held_by )
 				{
 					e._private_props.dupe_timer = ( e._private_props.dupe_timer || 0 ) + GSPEED;
@@ -123,6 +124,7 @@ class sdCrystal extends sdEntity
 								if ( !okA )
 								if ( a.CanMoveWithoutOverlap( e.x-xx, e.y-yy, 0 ) )
 								{
+									sdCrystal.Zap( e, a, '#aaffaa' );
 									a.x = e.x-xx;
 									a.y = e.y-yy;
 									sdWorld.UpdateHashPosition( a, false );
@@ -132,6 +134,7 @@ class sdCrystal extends sdEntity
 								if ( !okB )
 								if ( b.CanMoveWithoutOverlap( e.x+xx, e.y+yy, 0 ) )
 								{
+									sdCrystal.Zap( e, b, '#aaffaa' );
 									b.x = e.x+xx;
 									b.y = e.y+yy;
 									sdWorld.UpdateHashPosition( b, false );
@@ -212,7 +215,10 @@ class sdCrystal extends sdEntity
 					{
 						if ( e2.speciality < 1 )
 						if ( !e2.is_very_depleted )
-						e2.speciality = 1;
+						{
+							e2.speciality = 1;
+							sdCrystal.Zap( e, e2, '#aafffff' );
+						}
 					
 						friends++;
 						
@@ -316,6 +322,360 @@ class sdCrystal extends sdEntity
 			}
 			
 		};
+		sdCrystal.spaciality_table[ 1280 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Zap-charged ' + base_title.toLowerCase();
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				//return ctx_filter + 'hue-rotate(-80deg)saturate(1)brightness(2)drop-shadow(0px 0px 1px #aaaaff)';
+				return ctx_filter + 'hue-rotate(-95deg)saturate(1)brightness(2)drop-shadow(0px 0px 1px #aaddff)';
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+				{
+					e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
+					
+					if ( e._private_props.zap_timer > 60 )
+					{
+						e._private_props.zap_timer -= 60 * ( 0.5 + Math.random() * 0.5 );
+						
+						if ( e._anything_near )
+						{
+							let matter_demand = Math.min( e.matter_max - e.matter, e.matter_max * 0.1 );
+
+							let play_sound = 0;
+
+							for ( let i = 0; i < e._anything_near.length; i++ )
+							{
+								let e2 = e._anything_near[ i ];
+
+								if ( e2.IsTargetable( e ) )
+								{
+									let old_matter = ( e2.matter || e2._matter || 0 );
+									if ( old_matter >= matter_demand && old_matter > 20 )
+									{
+										e2.TransferMatter( e, matter_demand, 1, true );
+										
+										let new_matter = ( e2.matter || e2._matter || 0 );
+										
+										if ( old_matter !== new_matter )
+										{
+											sdCrystal.Zap( e, e2, '#aaddff' );
+											play_sound = 1;
+										}
+										
+										matter_demand -= ( old_matter - new_matter );
+										
+										if ( matter_demand <= 0 )
+										break;
+									}
+								}
+							}
+						
+							if ( matter_demand > 0 )
+							{
+								for ( let i = 0; i < e._anything_near.length; i++ )
+								{
+									let e2 = e._anything_near[ i ];
+									
+									if ( e2.IsTargetable( e ) )
+									{
+										let old_hp = ( e2.hea || e2._hea || 0 );
+
+										e2.DamageWithEffect( 40, e, false, false );
+
+										let new_hp = ( e2.hea || e2._hea || 0 );
+
+										if ( old_hp !== new_hp )
+										{
+											sdCrystal.Zap( e, e2, '#ffaa00' );
+											play_sound = 2;
+										}
+										
+										let value = ( old_hp - new_hp );// / 0.15;
+
+										e.matter = Math.min( e.matter_max, e.matter + value );
+										matter_demand -= value;
+
+										if ( matter_demand <= 0 )
+										break;
+									}
+								}
+							}
+
+							if ( play_sound )
+							sdSound.PlaySound({ name:'drone_explosion', x:e.x, y:e.y, volume:1, pitch: ( play_sound === 1 ) ? 0.8 : 0.6 });
+					
+						}
+					}
+				}
+			}
+		};
+		sdCrystal.spaciality_table[ 2560 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Soul taking ' + base_title.toLowerCase();
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'brightness(0.6)contrast(2)saturate(0.3)drop-shadow(0px 0px 1px #000000)';
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+				{
+					e._private_props.is_busy = Math.max( 0, ( e._private_props.is_busy || 0 ) - GSPEED );
+					
+					if ( e._private_props.is_busy <= 0 )
+					if ( Math.random() < 0.1 )
+					{
+						const VisitEntity = ( e2 )=>
+						{
+							if ( e._private_props.is_busy > 0 )
+							return;
+						
+							let ef = e2.GetBleedEffect();
+							
+							let is_player = ( 
+									e2.is( sdCharacter ) && 
+									e2.biometry >= 0 && // Real player, not a fake RTP copy that is made on death
+									!e2._ai_enabled );
+
+							if ( 
+									( 
+										is_player && 
+										( e2.hea || e2._hea || 0 ) < ( e2.hmax || e2._hmax || 0 ) 
+									) 
+									|| 
+									( 
+										!is_player && 
+										(
+											ef === sdEffect.TYPE_BLOOD || 
+											ef === sdEffect.TYPE_BLOOD_GREEN 
+										) 
+									)
+							)
+							if ( e2.IsTargetable( e ) )
+							{
+								const Check = ()=>
+								{
+									return ( !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x, e2.y, e,e2, null, sdCom.com_visibility_unignored_classes ) )
+								};
+
+								if ( Check() )
+								{
+									let value = Math.max( 1, ( e2._score || 0 ) );
+
+									e._private_props.is_busy = 90;
+
+									sdSound.PlaySound({ name:'alien_energy_power_charge1', x:e.x, y:e.y, volume:1, pitch:2 });
+									
+									sdCrystal.Zap( e, e2, '#ffaaaa' );
+									
+									let time_scale = 150;
+									
+									if ( e2.is( sdCharacter ) )
+									{
+										e2.Say( [ 
+											'Oh no!',
+											'Run!',
+											'Run away!',
+											'Hide!',
+											'It instakills!'
+										][ ~~( Math.random() * 5 ) ] );
+									}
+
+									for ( let i = 1; i < 10; i++ )
+									setTimeout(()=>{
+										if ( Check() )
+										sdCrystal.Zap( e, e2, '#ffaaaa' );
+									}, i * time_scale );
+
+									setTimeout(()=>{
+
+										e._private_props.is_busy = 30;
+
+										if ( Check() )
+										{
+											sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:e.x, y:e.y, volume:1.5, pitch:0.6 });
+
+											if ( e2.is( sdCharacter ) && e2.AttemptTeleportOut( null, true ) )
+											{
+												// Saved by cloner
+											}
+											else
+											{
+												let old_biometry = e2.biometry;
+											
+												if ( typeof e2.biometry !== 'undefined' )
+												e2.biometry = -3;
+												
+												e2.DamageWithEffect( 10000, e, false, false );
+												sdCrystal.Zap( e, e2, '#ffaaaa' );
+												
+												if ( e2._is_being_removed )
+												{
+													e.matter_regen = Math.min( e.matter_regen + value, 400 );
+
+													sdWorld.SendEffect({ 
+														x:e2.x, 
+														y:e2.y, 
+														radius:50, // 80 was too much?
+														damage_scale: 0, // 5 was too deadly on relatively far range
+														type:sdEffect.TYPE_EXPLOSION, 
+														//owner:e,
+														color:'#ffaaaa' 
+													});
+
+													e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 30 });
+												}
+												else
+												{
+													if ( typeof e2.biometry !== 'undefined' )
+													e2.biometry = old_biometry;
+												}
+											}
+										}
+
+									}, 10 * time_scale );
+								}
+							}
+						};
+						const VisitArray = ( arr )=>
+						{
+							for ( let i = 0; i < arr.length && e._private_props.is_busy <= 0; i++ )
+							{
+								let e2 = arr[ i ];
+								
+								if ( e2 === e )
+								continue;
+							
+								VisitEntity( e2 );
+							}
+						};
+
+						/*if ( e._anything_near )
+						VisitArray( e._anything_near );
+
+						if ( e._affected_hash_arrays )
+						for ( let i = 0; i < e._affected_hash_arrays.length; i++ )
+						VisitArray( e._affected_hash_arrays[ i ].arr );
+
+						for ( let i = 0; i < sdWorld.sockets.length; i++ )
+						if ( sdWorld.sockets[ i ].character )
+						VisitEntity( sdWorld.sockets[ i ].character );*/
+						
+						let e2 = e.GetRandomEntityNearby( 300 );
+						if ( e2 )
+						VisitEntity( e2 );
+															
+					}
+				}
+			}
+		};
+		sdCrystal.spaciality_table[ 5120 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Burning ' + base_title.toLowerCase();
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				{
+					//e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED });
+					if ( e.is_very_depleted )
+					{
+						e.speciality = 0;
+					}
+					else
+					e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:1000, remain_part: 0.8, GSPEED:GSPEED }); // 700-800 won't cause fire spreading // 1000 is not enough to burn stuff around on its own, but can burn stuff when couple of such crystals are there
+				}
+			},
+			
+			isFireAndAcidDamageResistant: ( e )=>
+			{
+				return true;
+			}
+		};
+		
+		sdCrystal.spaciality_table[ 40960 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Freezing ' + base_title.toLowerCase();
+			},
+			
+			onThinkFrozen: ( e, GSPEED )=>
+			{
+				e.onThink( GSPEED );
+				
+				return true; // Prevent regular frozen logic
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				{
+					e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:-100, remain_part: 0.8, GSPEED:GSPEED });
+
+					let visited_ents = new Set();
+					for ( let i = 0; i < 4; i++ )
+					{
+						let e2 = e.GetRandomEntityNearby( 64 );
+						
+						if ( e2 )
+						if ( !visited_ents.has( e2 ) )
+						{
+							visited_ents.add( e2 );
+							//let old_t = ( e2.is( sdCharacter ) ) ? sdStatusEffect.GetTemperature( e2 ) : 0;
+
+							e2.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:-100, remain_part: 0.8, GSPEED:GSPEED * 0.125 });
+
+							//if ( Math.random() < 0.5 )
+							if ( sdWorld.time > e2._last_damage_upg_complain + 6000 )
+							if ( e2.is( sdCharacter ) )
+							if ( e2._frozen <= 0 )
+							{
+								let new_t = Math.floor( sdStatusEffect.GetTemperature( e2 ) );
+
+								if ( new_t < 20 )
+								{
+									e2._last_damage_upg_complain = sdWorld.time;
+									
+									let new_t_str = ( new_t > 0 ) ? '+'+new_t : new_t;
+									
+									if ( new_t > 10 )
+									e2.Say( [ 
+										new_t_str + ' degrees. It is getting really cold there',
+										new_t_str + ' degrees. I hope I wont turn into an ice block',
+										new_t_str + ' degrees. I better run away now',
+										new_t_str + ' degrees. I\'m very cold',
+										new_t_str + ' degrees. I should better go to a warmer place',
+									][ ~~( Math.random() * 5 ) ] );	
+									else
+									e2.Say( [ 
+										new_t_str + ' degrees. I\'m an icicle now',
+										new_t_str + ' degrees. I\'m soon gone',
+										new_t_str + ' degrees. I won\'t be able to move soon',
+										new_t_str + ' degrees. This is more than chill. Should I be worried?',
+										new_t_str + ' degrees. I could really use some fireplace'
+									][ ~~( Math.random() * 5 ) ] );
+								}
+							}
+						}
+					}
+				}
+			}
+		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -348,10 +708,13 @@ class sdCrystal extends sdEntity
 	
 	get title()
 	{
-		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
-		return this.is_anticrystal ? T('Balloon-like anti-crystal') : T('Balloon-like crystal');
+		//if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
+		//return this.is_anticrystal ? T('Balloon-like anti-crystal') : T('Balloon-like crystal');
 		
 		let t = 'Crystal';
+		
+		if ( this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ )
+		t = 'Excavator quartz';
 		
 		if ( this.is_anticrystal )
 		t = 'Anti-' + t.toLowerCase();
@@ -361,21 +724,31 @@ class sdCrystal extends sdEntity
 			let tier = this.GetTier() * 40;
 			let methods = sdCrystal.spaciality_table[ tier ];
 			if ( methods && methods.AlterTitle )
-			{
-				t = methods.AlterTitle( this, t );
-			}
+			t = methods.AlterTitle( this, t );
 		}
 	
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
 		t = 'Balloon-like ' + t.toLowerCase();
 		
-		if ( this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ )
-		return T('Excavator quartz');
+		//if ( this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ )
+		//return T('Excavator quartz');
 		
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 		t += ' crab';
+	
+		if ( this.is_big )
+		t = 'Large ' + t.toLowerCase();
+	
+		if ( !this.is_natural )
+		t = 'Artificial ' + t.toLowerCase();
+	
+		if ( this.is_depleted )
+		t = 'Depleted ' + t.toLowerCase();
+		else
+		if ( this.is_overcharged )
+		t = 'Overcharged ' + t.toLowerCase();
 		
-		return T( t );
+		return t;//T( t );
 	}
 	
 	/*get should_draw()
@@ -398,7 +771,7 @@ class sdCrystal extends sdEntity
 	get is_natural()
 	{ return ( this.type !== sdCrystal.TYPE_CRYSTAL_ARTIFICIAL ); }
 	
-	get is_big()
+	get is_big() // is_large // is_cluster
 	{ return ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ); }
 	
 	get is_crab()
@@ -438,6 +811,17 @@ class sdCrystal extends sdEntity
 		return this.held_by;
 	}
 	
+	isFireAndAcidDamageResistant()
+	{
+		if ( this.speciality > 0 )
+		{
+			let methods = sdCrystal.spaciality_table[ this.GetTier() * 40 ];
+			if ( methods && methods.isFireAndAcidDamageResistant )
+			return methods.isFireAndAcidDamageResistant( this );
+		}
+		
+		return false;
+	}
 	GetBleedEffect()
 	{
 		if ( this.speciality > 0 )
@@ -638,7 +1022,43 @@ class sdCrystal extends sdEntity
 	{
 		return sdCrystal.ignored_classes_array;
 	}
+	
+	static Zap( e, e2, color )
+	{
+		let xx = e2.x + ( e2.hitbox_x1 + e2.hitbox_x2 ) / 2;
+		let yy = e2.y + ( e2.hitbox_y1 + e2.hitbox_y2 ) / 2;
 
+		let di = sdWorld.Dist2D_Vector( xx - e.x, yy - e.y )
+
+		let p = [];
+
+		p.push({
+			x: e.x,
+			y: e.y 
+		});
+
+		for ( let i = 0; i < 2; i++ )
+		{
+			let morph = ( i + 1 ) / 3;
+
+			let an = Math.random() * Math.PI * 2;
+			let r = di * 0.333 / 2;
+
+			p.push({
+				x: xx * morph + e.x * ( 1 - morph ) + Math.sin( an ) * r,
+				y: yy * morph + e.y * ( 1 - morph ) + Math.cos( an ) * r 
+			});
+		}
+
+		p.push({
+			x: xx,
+			y: yy 
+		});
+
+		for ( let i = 0; i < p.length-1; i++ )
+		sdWorld.SendEffect({ x:p[i].x, y:p[i].y, x2:p[i+1].x, y2:p[i+1].y, type:sdEffect.TYPE_BEAM, color:color });
+	}
+				
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -858,7 +1278,17 @@ class sdCrystal extends sdEntity
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
+	onThinkFrozen( GSPEED )
+	{
+		let methods = null;
+		if ( this.speciality > 0 )
+		methods = sdCrystal.spaciality_table[ this.GetTier() * 40 ];
 	
+		if ( methods && methods.onThinkFrozen && methods.onThinkFrozen( this, GSPEED ) )
+		return;
+	
+		super.onThinkFrozen( GSPEED );
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.is_anticrystal )
@@ -1358,6 +1788,17 @@ class sdCrystal extends sdEntity
 		}
 		
 		//ctx.apply_shading = true;
+	}
+	DrawWithStatusEffects( ctx, attached=true )
+	{
+		let STATUS_EFFECT_LAYER_NORMAL = 1;
+		let STATUS_EFFECT_BEFORE = 0;
+		let STATUS_EFFECT_AFTER = 1;
+		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_BEFORE, ctx, false );
+
+		this.Draw( ctx, attached );
+
+		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_AFTER, ctx, false );
 	}
 	onBeforeRemove() // Class-specific, if needed
 	{

@@ -453,22 +453,16 @@ class sdConveyor extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return "Conveyor";
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx,  "Conveyor" );
-		/*
-		let w = 30;
-	
-		ctx.fillStyle = '#000000';
-		ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
-
-		ctx.fillStyle = '#FF0000';
-		ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
-		
-		this.DrawConnections( ctx );*/
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null

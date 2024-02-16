@@ -1067,6 +1067,8 @@ THING is cosmic mic drop!`;
 	{
 		super( params );
 		
+		//EnforceChangeLog( this, '_frozen' );
+		
 		//this._is_cable_priority = true;
 
 		this._debug_last_removed_stack = null;
@@ -1442,6 +1444,7 @@ THING is cosmic mic drop!`;
 		else
 		{
 			if ( !this.driver_of || this.driver_of.VehicleAllowsDriverCombat( this ) )
+			if ( this._frozen <= 0 )
 			{
 				let will_throw_grenade = this._key_states.GetKey( 'KeyG' ) && ( this._upgrade_counters[ 'upgrade_grenades' ] );
 				let will_fire = will_throw_grenade || this._key_states.GetKey( 'Mouse1' );
@@ -1685,7 +1688,7 @@ THING is cosmic mic drop!`;
 	{
 		if ( this._auto_shoot_in <= 0 )
 		{
-			if ( this._key_states.GetKey( 'KeyV' ) && !this.driver_of )
+			if ( this._key_states.GetKey( 'KeyV' ) && !this.driver_of && this._frozen <= 0 )
 			{
 				this._key_states.SetKey( 'KeyV', 0, true ); // So sword is not dropped all the time
 
@@ -2128,6 +2131,7 @@ THING is cosmic mic drop!`;
 			if ( !lost_effect || t.IsCloner() )
 			if ( close_enough )
 			if ( t._owner === this || t.owner_biometry === this.biometry )
+			//if ( t.owner_biometry === this.biometry )
 			if ( t.delay <= 0 )
 			if ( t.matter >= t._matter_max ) // Fully charged
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
@@ -3674,7 +3678,7 @@ THING is cosmic mic drop!`;
 	{
 		if ( !sdWorld.is_singleplayer )
 		if ( sdWorld.is_server )
-		if ( this._socket && this._socket.last_gsco_time > sdWorld.time - 1000 && this.hea > 0 && !sdCharacter.allow_alive_players_think )
+		if ( this._socket && this._socket.last_gsco_time > sdWorld.time - 1000 && this.hea > 0 && this._frozen <= 0 && !sdCharacter.allow_alive_players_think )
 		{
 			this._GSPEED_buffer_length_allowed += GSPEED;
 			return true;
@@ -3950,7 +3954,7 @@ THING is cosmic mic drop!`;
 		this.HandlePlayerPowerups( GSPEED );
 		
 
-		let act_y_or_unstable = ( this.driver_of ) ? 0 : this.act_y;
+		let act_y_or_unstable = ( this.driver_of || this._frozen > 0 ) ? 0 : this.act_y;
 		
 		if ( this.stability < 50 )
 		act_y_or_unstable = 1;
@@ -4057,7 +4061,7 @@ THING is cosmic mic drop!`;
 				this.act_y = 0;
 			}*/
 
-			if ( this.hea > 0 && ( !this.driver_of || this.hook_relative_to ) && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
+			if ( this.hea > 0 && ( !this.driver_of || this.hook_relative_to ) && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed && this._frozen <= 0 )
 			{
 				if ( this._hook_once )
 				{
@@ -4375,6 +4379,7 @@ THING is cosmic mic drop!`;
 			if ( this.act_y === -1 )
 			if ( Math.abs( this.sy ) <= 3 )
 			if ( Math.abs( this.sx ) <= 3 )
+			if ( this._frozen <= 0 )
 			//if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 - 8, this.y, this ) )
 			//if ( sdWorld.CheckWallExists( this.x + this._hitbox_x2 + 8, this.y, this ) )
 			if ( !this.CanMoveWithoutOverlap( this.x - 8, this.y ) )
@@ -4388,7 +4393,7 @@ THING is cosmic mic drop!`;
 		
 		this._in_water = in_water;
 		
-		if ( ( this._key_states.GetKey( 'KeyX' ) && !this.driver_of ) || ( in_water && !this._can_breathe ) )
+		if ( this._frozen <= 0 && ( ( this._key_states.GetKey( 'KeyX' ) && !this.driver_of ) || ( in_water && !this._can_breathe ) ) )
 		{
 			//this.tilt_speed += this.act_x * 1 * GSPEED;
 			
@@ -4464,7 +4469,7 @@ THING is cosmic mic drop!`;
 			
 			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 
-			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
+			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 || this._frozen > 0 )
 			this.flying = false;
 			else
 			{
@@ -4488,6 +4493,7 @@ THING is cosmic mic drop!`;
 				 this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
 				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
+				 this._frozen <= 0 &&
 				 !this.stands )
 			this.flying = true;
 		
@@ -4576,8 +4582,11 @@ THING is cosmic mic drop!`;
 				y_force /= di;
 			}
 			
-			this.sx += x_force * 0.2 * GSPEED;
-			this.sy += y_force * 0.2 * GSPEED;
+			if ( this._frozen <= 0 )
+			{
+				this.sx += x_force * 0.2 * GSPEED;
+				this.sy += y_force * 0.2 * GSPEED;
+			}
 			/*
 			if ( !sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y1, null, null, sdWater.water_class_array ) )
 			{
@@ -4679,9 +4688,6 @@ THING is cosmic mic drop!`;
 				{
 					if ( act_y_or_unstable === -1 )
 					{
-						//if ( this._crouch_intens > 0.1 )
-						//this.sy = Math.min( this.sy, -6 );
-						//else
 						this.sy = Math.min( this.sy, -4 * speed_scale /*( 1 - ( this.armor_speed_reduction / 100 ) )*/ );
 					}
 					else

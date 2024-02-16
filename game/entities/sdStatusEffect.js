@@ -257,7 +257,7 @@ class sdStatusEffect extends sdEntity
 				return false; // Keep
 			}
 		};
-		const temperature_normal = 20;
+		const temperature_normal = 20; // Copy
 		const temperature_fire = 700;
 		const temperature_frozen = -50;
 		
@@ -269,6 +269,11 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
+				/*if ( sdWorld.is_server )
+				if ( params.for )
+				if ( params.for.is( sdWorld.entity_classes.sdCharacter ) && params.for._net_id === 85738 )
+				trace( 'onMade' );*/
+				
 				status_entity.t = temperature_normal; // Temperature
 				
 				status_entity._normal_temperature_removal_timer = 30; // Resets if temperature is being added, for example due to overheating
@@ -285,10 +290,16 @@ class sdStatusEffect extends sdEntity
 				
 				if ( params.t !== undefined )
 				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 1 / 2 ]
+			
+				status_entity._every_synced = false;
 			},
 			
 			onNotMergedAndAboutToBeMade: ( params )=>
 			{
+				/*if ( sdWorld.is_server )
+				if ( params.for.is( sdWorld.entity_classes.sdCharacter ) && params.for._net_id === 85738 )
+				trace( 'onNotMergedAndAboutToBeMade' );*/
+				
 				if ( params.target_value === temperature_normal || params.target_value_rise < temperature_normal || params.t === 0 )
 				return false; // Do not make
 			
@@ -297,9 +308,14 @@ class sdStatusEffect extends sdEntity
 			
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
+				/*if ( sdWorld.is_server )
+				if ( params.for.is( sdWorld.entity_classes.sdCharacter ) && params.for._net_id === 85738 )
+				trace( 'onStatusOfSameTypeApplied' );*/
+				
 				if ( params.t )
 				{
 					status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
+					status_entity._update_version++;
 					
 					if ( status_entity._normal_temperature_removal_timer < 30 )
 					status_entity._normal_temperature_removal_timer = 30;
@@ -314,6 +330,7 @@ class sdStatusEffect extends sdEntity
 				if ( params.GSPEED !== undefined )
 				{
 					status_entity.t = sdWorld.MorphWithTimeScale( status_entity.t, ( params.target_value !== undefined ) ? params.target_value : params.target_value_rise, params.remain_part, params.GSPEED );
+					status_entity._update_version++;
 				}
 				
 				return true; // Do not create new status effect
@@ -321,19 +338,29 @@ class sdStatusEffect extends sdEntity
 			
 			IsVisible: ( status_entity, observer_entity )=>
 			{
-				if ( status_entity.t >= temperature_fire || status_entity.t <= temperature_frozen )
+				if ( status_entity.t >= temperature_fire || status_entity.t <= temperature_frozen || status_entity._every_synced )
 				if ( status_entity.for && !status_entity.for._is_being_removed )
-				return status_entity.for.IsVisible( observer_entity );
+				{
+					status_entity._every_synced = true;
+					return status_entity.for.IsVisible( observer_entity );
+				}
 			},
 			
 			onThink: ( status_entity, GSPEED )=>
 			{
+				/*let arr = sdStatusEffect.entity_to_status_effects.get( status_entity.for );
+				
+				if ( arr.indexOf( status_entity ) === -1 )
+				throw new Error( 'How?' );*/
+				
 				if ( status_entity.for._god || ( status_entity.for._shielded && !status_entity.for._shielded._is_being_removed && status_entity.for._shielded.enabled ) )
 				return true; // Cancel for gods
 				
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
-					status_entity._next_spawn -= GSPEED;					
+					let area = ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) / ( 24 * 24 );
+					
+					status_entity._next_spawn -= GSPEED * area;					
 					const up_velocity = ( status_entity.t >= temperature_fire ) ? 0 : 0.05;//-0.4;
 					const range = 4;
 					const y_offset = 0;
@@ -407,6 +434,7 @@ class sdStatusEffect extends sdEntity
 						{
 							let burn_intensity = 1 + ( status_entity.t - temperature_fire ) / 500;
 							
+							if ( !status_entity.for.isFireAndAcidDamageResistant() )
 							status_entity.for.DamageWithEffect( 4 * burn_intensity, status_entity._initiator );
 							
 							let nearby = sdWorld.GetAnythingNear( status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2, status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2, sdWorld.Dist2D( status_entity.for._hitbox_x1, status_entity.for._hitbox_y1, status_entity.for._hitbox_x2, status_entity.for._hitbox_y2 ) / 2 + 4, null, null, null );
@@ -453,14 +481,47 @@ class sdStatusEffect extends sdEntity
 							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 							
 							if ( e_is_organic )
-							status_entity.for.Damage( 1, status_entity._initiator );
+							{
+								if ( status_entity.for.IsPlayerClass() )
+								{
+									let any_nearby_players = false;
+									
+									for ( let i = 0; i < sdWorld.sockets.length; i++ )
+									if ( sdWorld.sockets[ i ].character )
+									if ( !sdWorld.sockets[ i ].character._is_being_removed )
+									if ( sdWorld.sockets[ i ].character.hea > 0 && sdWorld.sockets[ i ].character._frozen <= 0 )
+									if ( sdWorld.sockets[ i ].character.is( sdWorld.entity_classes.sdCharacter ) || sdWorld.sockets[ i ].character.is( sdWorld.entity_classes.sdPlayerDrone ) )
+									if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, status_entity.for.x, status_entity.for.y, 400 ) )
+									{
+										any_nearby_players = true;
+										break;
+									}
+									
+									if ( any_nearby_players )
+									status_entity.for.Damage( 1, status_entity._initiator );
+									else
+									status_entity.for.Damage( 10, status_entity._initiator );
+								}
+								else
+								status_entity.for.Damage( 1, status_entity._initiator );
+							}
 						}
 				
 						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment
 					}
 				}
 				
+				if ( status_entity._is_being_removed )
+				return true; // Delete (already removed by something like RTP, thus we should not change _frozen property of .for !)
+				
+				//if ( sdWorld.is_server )
+				//if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) && status_entity.for._net_id === 85738 )
+				//trace( 'onThink called by '+status_entity._net_id+' on '+status_entity.for._net_id+', ._frozen = ' + Math.max( 0, temperature_frozen - status_entity.t + 1 ) );
+		
 				status_entity.for._frozen = Math.max( 0, temperature_frozen - status_entity.t + 1 ); //( status_entity.t <= temperature_frozen );
+				
+				//if ( status_entity._is_being_removed )
+				//throw new Error( 'How?' );
 				
 				if ( status_entity.t > temperature_frozen )
 				status_entity._last_world_time = sdWorld.time;
@@ -475,8 +536,17 @@ class sdStatusEffect extends sdEntity
 			
 			onBeforeRemove: ( status_entity )=>
 			{
+				/*if ( sdWorld.is_server )
+				if ( status_entity.for )
+				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) && status_entity.for._net_id === 85738 )
+				trace( 'onBeforeRemove called, .for = ' + status_entity.for );
+				*/
 				if ( status_entity.for )
 				status_entity.for._frozen = 0;
+			
+				/*if ( sdWorld.is_server )
+				if ( !status_entity.for )
+				trace( 'onBeforeRemove called, .for = ' + null );*/
 			},
 			
 			onBeforeEntityRender: ( status_entity, ctx, attached )=>
@@ -759,7 +829,7 @@ class sdStatusEffect extends sdEntity
 						{
 							status_entity._fell = true;
 							
-							status_entity.Damage( ( status_entity.hea || status_entity._hea || 0 ) * 0.9 );
+							current.Damage( ( current.hea || current._hea || 0 ) * 0.9 );
 						}
 						
 						status_entity._lying_for += GSPEED;
@@ -1431,6 +1501,20 @@ class sdStatusEffect extends sdEntity
 		}
 	}
 	
+	static GetTemperature( e )
+	{
+		let status_effects_on_entity = sdStatusEffect.entity_to_status_effects.get( e );
+		
+		if ( status_effects_on_entity !== undefined )
+		for ( let i = 0; i < status_effects_on_entity.length; i++ )
+		if ( status_effects_on_entity[ i ].type === sdStatusEffect.TYPE_TEMPERATURE )
+		return status_effects_on_entity[ i ].t;
+		
+		const temperature_normal = 20; // Copy
+		
+		return temperature_normal;
+	}
+	
 	IsVisible( observer_entity )
 	{
 		if ( !sdWorld.is_server )
@@ -1492,6 +1576,7 @@ class sdStatusEffect extends sdEntity
 	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
 	{
 		this._for_confirmed = false; // Reset this one since we need to update map
+		//trace( this._net_id + '._for_confirmed = false');
 	}
 	
 	get hitbox_x1() { return 0; }
@@ -1565,16 +1650,59 @@ class sdStatusEffect extends sdEntity
 	{
 		let isforless = false;
 		
-		if ( this._for_confirmed )
+		if ( !this._for_confirmed )
 		{
+			let arr = sdStatusEffect.entity_to_status_effects.get( this.for );
+
+			this._for_confirmed = true;
+			
+			//if ( this._net_id === 93678 ) // Cursed status effect that can't find itself in the arr later
+			//debugger;
+			
+			/*if ( this.for )
+			if ( this.for._net_id === 85738 )
+			{
+				trace( 'Adding status effect '+this._net_id+' for tracked character '+this.for._net_id+', effects:', arr ? arr.slice() : undefined );
+			}*/
+
+			if ( arr )
+			{
+				arr.push( this );
+				arr.inversed.unshift( this );
+			}
+			else
+			{
+				if ( this.for )
+				{
+					arr = [ this ];
+					arr.inversed = [ this ];
+					sdStatusEffect.entity_to_status_effects.set( this.for, arr );
+				}
+			}
+		}
+		
+		//if ( this._for_confirmed )
+		//{
 			if ( !this.for || this.for._is_being_removed )
 			{
+				if ( this.remove_if_for_removed )
+				{
+					/*if ( this.for )
+					if ( this.for._net_id === 85738 )
+					{
+						trace( 'Remove called for status effect for tracked character' );
+					}*/
+
+					this.remove();
+					return true;
+				}
+				
 				this.for = null;
 				isforless = true;
 			}
-		}
-		else
-		if ( this.for && !this.for._is_being_removed )
+		//}
+		//else
+		/*if ( this.for )//&& !this.for._is_being_removed )
 		{
 			let arr = sdStatusEffect.entity_to_status_effects.get( this.for );
 
@@ -1591,19 +1719,19 @@ class sdStatusEffect extends sdEntity
 				arr.inversed = [ this ];
 				sdStatusEffect.entity_to_status_effects.set( this.for, arr );
 			}
-		}
-		else
+		}*/
+		/*else
 		{
 			isforless = true;
-		}
+		}*/
 
 		if ( isforless )
 		{
-			if ( this.remove_if_for_removed )
+			/*if ( this.remove_if_for_removed )
 			{
 				this.remove();
 				return true;
-			}
+			}*/
 		}
 		else
 		{
@@ -1615,10 +1743,18 @@ class sdStatusEffect extends sdEntity
 		
 		if ( status_type )
 		{
+			//if ( status_type._is_being_removed )
+			//throw new Error( 'How?' );
+			
+			if ( this._is_being_removed )
+			throw new Error( 'How?' );
+			
 			if ( status_type.onThink )
 			if ( status_type.onThink( this, GSPEED ) )
 			{
+				if ( sdWorld.is_server )
 				this.remove();
+			
 				return true;
 			}
 		}

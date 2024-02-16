@@ -82,12 +82,16 @@ class sdBarrel extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
 	}
+	get title()
+	{
+		return 'Barrel';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.arming < 100 )
-		sdEntity.TooltipUntranslated( ctx, T( "Barrel" ) + ' ( ' + T('building') + ': ' + (~~this.arming) + '% )' );
+		sdEntity.TooltipUntranslated( ctx, this.title + ' ( ' + T('building') + ': ' + (~~this.arming) + '% )' );
 		else
-		sdEntity.Tooltip( ctx, "Barrel" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

@@ -27,6 +27,17 @@ class sdArea extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	get title()
+	{
+		if ( this.type === sdArea.TYPE_PREVENT_DAMAGE )
+		return 'No-combat area';
+	
+		if ( this.type === sdArea.TYPE_ERASER_AREA )
+		return 'Area eraser';
+	
+		return 'Area';
+	}
 
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.size; }

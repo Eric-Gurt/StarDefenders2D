@@ -175,7 +175,7 @@ class sdTutel extends sdEntity
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
-	isWaterDamageResistant()
+	isFireAndAcidDamageResistant()
 	{
 		return true;
 	}

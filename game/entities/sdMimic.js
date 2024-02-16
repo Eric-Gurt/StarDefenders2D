@@ -147,7 +147,7 @@ class sdMimic extends sdEntity
 		
 		this.d3d = 0;
 		this.d = null; // Disguise
-		this.title = null;
+		this.title_str = null;
 		this.f = 'none';
 		/*this.hue = 0;
 		this.br = 100;*/
@@ -405,7 +405,7 @@ class sdMimic extends sdEntity
 								{
 									this.d3d = ent.DrawIn3D();
 									this.d = d;
-									this.title = ent.title || null;
+									this.title_str = ent.title_str || null;
 									this.sh = 1;
 
 									this.x1 = ent._hitbox_x1;
@@ -426,7 +426,7 @@ class sdMimic extends sdEntity
 										else
 										this.f = sdWorld.GetCrystalHue( ent.matter_max );
 
-										this.title += ' ( ' + (~~(ent.matter)) + ' / ' + ent.matter_max + ' )';
+										this.title_str += ' ( ' + (~~(ent.matter)) + ' / ' + ent.matter_max + ' )';
 										
 										this.sh = 0;
 									}
@@ -595,16 +595,14 @@ class sdMimic extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return ( this.d === null ) ? "Mimic" : ( this.title_str !== null ) ? this.title_str : '';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
 		{
-			if ( this.d === null )
-			{
-				sdEntity.Tooltip( ctx, "Mimic" );
-			}
-			else
-			if ( this.title !== null )
 			sdEntity.Tooltip( ctx, this.title );
 		}
 	}

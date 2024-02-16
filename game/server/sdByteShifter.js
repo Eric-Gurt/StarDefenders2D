@@ -486,8 +486,8 @@ class sdByteShifter
 						for ( let y = min_y; y < max_y; y += CHUNK_SIZE )
 						{
 							cells.push({ 
-								x: x - min_x, 
-								y: y - min_y, 
+								x: Math.round( x - min_x ), 
+								y: Math.round( y - min_y ), 
 								dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y )
 							});
 						}

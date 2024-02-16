@@ -61,6 +61,13 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 		sdJunk.TYPE_STEALER_ARTIFACT = 9;
+		sdJunk.ScoreScaleByType = ( t )=>
+		{
+			if ( t === sdJunk.TYPE_ALIEN_ARTIFACT || t === sdJunk.TYPE_STEALER_ARTIFACT )
+			return 20;
+			
+			return 5;
+		};
 
 		sdJunk.bounds_by_type = [];
 		sdJunk.bounds_by_type[ sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ] = { x1: -5, x2: 5, y1: -5, y2: 5 };

@@ -295,6 +295,41 @@ class sdBlock extends sdEntity
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return this.height; }
 	
+	get title()
+	{
+		let mat = ( this.material || 0 );
+		let tex = ( this.texture_id || 0 );
+	
+		if ( tex === sdBlock.TEXTURE_ID_GLASS )
+		return 'Glass';
+		
+		if ( tex === sdBlock.TEXTURE_ID_CAGE )
+		return 'Cage';
+	
+		if ( mat === sdBlock.MATERIAL_WALL )
+		return 'Wall';
+	
+		if ( mat === sdBlock.MATERIAL_SHARP )
+		return 'Trap';
+	
+		if ( mat === sdBlock.MATERIAL_TRAPSHIELD )
+		return 'Shield';
+	
+		if ( mat === sdBlock.MATERIAL_ROCK )
+		return 'Rock';
+	
+		if ( mat === sdBlock.MATERIAL_SAND )
+		return 'Sand';
+	
+		if ( mat === sdBlock.MATERIAL_FLESH )
+		return 'Flesh';
+	
+		if ( mat === sdBlock.MATERIAL_SNOW )
+		return 'Snow';
+	
+		return 'Ground';
+	}
+	
 	DrawIn3D()
 	{
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD || this.texture_id === sdBlock.TEXTURE_ID_GLASS )

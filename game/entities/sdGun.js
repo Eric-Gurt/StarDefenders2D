@@ -401,6 +401,10 @@ class sdGun extends sdEntity
 	{
 		return sdGun.classes[ this.class ].slot_dynamic ? sdGun.classes[ this.class ].slot_dynamic( this ) : sdGun.classes[ this.class ].slot;
 	}
+	get title()
+	{
+		return this.GetTitle();
+	}
 	GetTitle()
 	{
 		return sdGun.classes[ this.class ].title_dynamic ? sdGun.classes[ this.class ].title_dynamic( this ) : sdGun.classes[ this.class ].title;

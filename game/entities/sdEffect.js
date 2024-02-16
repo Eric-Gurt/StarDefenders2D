@@ -646,6 +646,12 @@ class sdEffect extends sdEntity
 			if ( spoken === 'nvm' )
 			spoken = 'nevermind';
 
+			if ( spoken.charAt( 0 ) === '-' )
+			spoken = 'minus ' + spoken.slice( 1 );
+
+			if ( spoken.charAt( 0 ) === '+' )
+			spoken = 'plus ' + spoken.slice( 1 );
+
 			spoken = spoken.split('-').join('');
 
 			spoken = spoken.split(':)').join('smileyface');

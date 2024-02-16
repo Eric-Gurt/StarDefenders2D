@@ -552,6 +552,86 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	import sdBeacon from './entities/sdBeacon.js';
 	import sdPortal from './entities/sdPortal.js';*/
 
+	
+
+let enf_once = true;
+
+	globalThis.CATCH_ERRORS = false;
+	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true, only_catch_nans=false )
+	{
+		if ( enf_once )
+		{
+			enf_once = false;
+			console.warn('Enforcing method applied');
+		}
+
+		let enforced_prop = '_enfroce_' + property_to_enforce;
+		mat[ enforced_prop ] = mat[ property_to_enforce ];
+
+		mat[ property_to_enforce ] = null;
+
+		Object.defineProperty( mat, property_to_enforce, 
+		{
+			enumerable: mat.propertyIsEnumerable( property_to_enforce ),
+			get: function () { return mat[ enforced_prop ]; },
+			set: function ( v ) { 
+
+				if ( mat[ enforced_prop ] !== v )
+				{
+					if ( only_catch_nans )
+					{
+						if ( isNaN( v ) || v === undefined )
+						{
+							console.warn( 'NaN or undefined (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
+							throw new Error('NaN or undefined ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
+						}
+					}
+					else
+					{
+						if ( v === undefined )
+						{
+							throw new Error('undef set');
+						}
+
+						if ( value_as_string )
+						console.warn( mat.constructor.name,'.'+property_to_enforce+' = '+v );
+						else
+						console.warn( mat.constructor.name,'.'+property_to_enforce+' = ',v );
+
+					}
+					mat[ enforced_prop ] = v;
+				}
+
+			}
+		});
+
+		mat[ property_to_enforce+'_unenforce' ] = function()
+		{
+			let old_val = mat[ property_to_enforce ];
+			
+			delete mat[ property_to_enforce ];
+			
+			mat[ property_to_enforce ] = old_val;
+		};
+	};
+	
+	globalThis.getStackTrace = ()=>
+	{
+		if ( sdWorld.mobile )
+		return 581;
+	
+		var obj = {};
+		try
+		{
+			Error.captureStackTrace( obj, globalThis.getStackTrace ); // Webkit
+			return obj.stack;
+		}
+		catch ( e )
+		{
+			return ( new Error ).stack; // Firefox
+		}
+	};
+	
 
 	sdWorld.init_class();
 	sdAtlasMaterial.init_class();
@@ -667,84 +747,6 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	globalThis.sdCodeEditor = sdCodeEditor;
 	
 	sdWorld.FinalizeClasses();
-
-let enf_once = true;
-
-	globalThis.CATCH_ERRORS = false;
-	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true, only_catch_nans=false )
-	{
-		if ( enf_once )
-		{
-			enf_once = false;
-			console.warn('Enforcing method applied');
-		}
-
-		let enforced_prop = '_enfroce_' + property_to_enforce;
-		mat[ enforced_prop ] = mat[ property_to_enforce ];
-
-		mat[ property_to_enforce ] = null;
-
-		Object.defineProperty( mat, property_to_enforce, 
-		{
-			enumerable: mat.propertyIsEnumerable( property_to_enforce ),
-			get: function () { return mat[ enforced_prop ]; },
-			set: function ( v ) { 
-
-				if ( mat[ enforced_prop ] !== v )
-				{
-					if ( only_catch_nans )
-					{
-						if ( isNaN( v ) || v === undefined )
-						{
-							console.warn( 'NaN or undefined (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
-							throw new Error('NaN or undefined ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
-						}
-					}
-					else
-					{
-						if ( v === undefined )
-						{
-							throw new Error('undef set');
-						}
-
-						if ( value_as_string )
-						console.warn( mat.constructor.name,'.'+property_to_enforce+' = '+v );
-						else
-						console.warn( mat.constructor.name,'.'+property_to_enforce+' = ',v );
-
-					}
-					mat[ enforced_prop ] = v;
-				}
-
-			}
-		});
-
-		mat[ property_to_enforce+'_unenforce' ] = function()
-		{
-			let old_val = mat[ property_to_enforce ];
-			
-			delete mat[ property_to_enforce ];
-			
-			mat[ property_to_enforce ] = old_val;
-		};
-	};
-	
-	globalThis.getStackTrace = ()=>
-	{
-		if ( sdWorld.mobile )
-		return 581;
-	
-		var obj = {};
-		try
-		{
-			Error.captureStackTrace( obj, globalThis.getStackTrace ); // Webkit
-			return obj.stack;
-		}
-		catch ( e )
-		{
-			return ( new Error ).stack; // Firefox
-		}
-	};
 	
 	globalThis.sd_events = [];
 

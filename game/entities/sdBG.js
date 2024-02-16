@@ -38,12 +38,22 @@ class sdBG extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	get title()
+	{
+		if ( this.texture_id === sdBG.TEXTURE_GLOWING )
+		return 'Background light';
+	
+		if ( this.texture_id === sdBG.TEXTURE_ELEVATOR_PATH )
+		return 'Elevator path';
+		
+		return 'Background wall';
+	}
 	get description()
 	{
 		if ( this.texture_id === sdBG.TEXTURE_ELEVATOR_PATH )
 		return 'Path for elevator motors to travel through.';
 	
-		return 'Background wall. Can be damaged while holding Shift key.';
+		return 'Can be damaged while holding Shift key.';
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.width; }

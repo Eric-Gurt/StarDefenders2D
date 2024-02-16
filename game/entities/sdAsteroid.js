@@ -160,7 +160,16 @@ class sdAsteroid extends sdEntity
 			}
 		}
 	}
-	
+	PlayerIsHooked( character, GSPEED )
+	{
+		this.AsteroidLanded();
+	}
+	onBeforeLongRangeTeleport( lrtp ) // Called before snapshot is taken
+	{
+		this.AsteroidLanded();
+		this._land_x = 0;
+		this._land_y = -Number.MAX_SAFE_INTEGER;
+	}
 	AsteroidLanded()
 	{
 		if ( !this.landed )
@@ -295,12 +304,12 @@ class sdAsteroid extends sdEntity
 	get title()
 	{
 		if ( this.type === sdAsteroid.TYPE_FLESH )
-		return T('Space flesh asteroid');
+		return ('Space flesh asteroid');
 	
 		if ( this.type === sdAsteroid.TYPE_SHARDS )
-		return T('Asteroid with crystal shards');
+		return ('Asteroid with crystal shards');
 	
-		return T('Asteroid');
+		return ('Asteroid');
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer

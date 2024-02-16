@@ -621,10 +621,14 @@ class sdOctopus extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return 'Octopus';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Octopus" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

@@ -519,10 +519,14 @@ class sdAbomination extends sdEntity
 		if ( from_entity === this._current_target )
 		from_entity.DamageWithEffect( 1 );
 	}
+	get title()
+	{
+		return "Abomination";
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Abomination" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

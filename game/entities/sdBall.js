@@ -110,6 +110,10 @@ class sdBall extends sdEntity
 			this.remove();
 		}
 	}
+	get title()
+	{
+		return ( this.type === 1 ) ? 'Big ball' : 'Small ball';
+	}
 	Draw( ctx, attached )
 	{
 		if ( !sdShop.isDrawing )

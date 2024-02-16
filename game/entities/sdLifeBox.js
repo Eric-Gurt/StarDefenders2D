@@ -385,13 +385,20 @@ class sdLifeBox extends sdEntity
 	}
 	//get friction_remain()
 	//{ return 0; }
-	
+	get title()
+	{
+		return 'Life Box';
+	}
+	get description()
+	{
+		return `A safer place to keep your character in when going offline, not as good as Base Shielding Units though`;
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx,  "Life Box ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
+		sdEntity.Tooltip( ctx,  this.title + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
 		
 		let w = 40;
 	

@@ -809,6 +809,13 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 160, speciality: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 320, speciality: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 640, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 1280, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 2560, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 10240, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 20480, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 40960, speciality: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 81920, speciality: 1, _category:'Development tests' });
 			}
 
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -1480,9 +1487,19 @@ class sdShop
 				else
 				if ( pseudo_entity._class !== null )
 				{
-					let c = sdWorld.ClassNameToProperName( pseudo_entity._class, pseudo_entity );
+					//let c = sdWorld.ClassNameToProperName( pseudo_entity._class, pseudo_entity );
 					
-					try
+					let descr_obj = Object.getOwnPropertyDescriptors( sdWorld.entity_classes[ pseudo_entity._class ].prototype );
+
+					for ( let prop in descr_obj )
+					Object.defineProperty( pseudo_entity, prop, descr_obj[ prop ] );
+
+					item_title = pseudo_entity.title;
+
+					description = pseudo_entity.description;
+
+					
+					/*try
 					{
 						let title = sdWorld.entity_classes[ pseudo_entity._class ].prototype.title;
 						
@@ -1497,13 +1514,13 @@ class sdShop
 						c = title;
 					}catch(e){};
 					
-					item_title = c;
+					item_title = c;*/
 					
-					how_to_build_hint = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
+					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as a build object. Then click to place this object in world.');
 					
-					pseudo_entity.title = c; // Storages' description won't know the title otherwise
+					//pseudo_entity.title = c; // Storages' description won't know the title otherwise
 					
-					try
+					/*try
 					{
 						if ( sdWorld.entity_classes[ pseudo_entity._class ].prototype.description !== undefined )
 						description = sdWorld.entity_classes[ pseudo_entity._class ].prototype.description;
@@ -1517,7 +1534,7 @@ class sdShop
 					if ( sdCable.attacheable_entities.indexOf( pseudo_entity._class ) !== -1 )
 					{
 						description = 'This entity can be connected to other entities via cable management tool (slot 7).';
-					}
+					}*/
 				}
 				else
 				if ( pseudo_entity.upgrade_name )

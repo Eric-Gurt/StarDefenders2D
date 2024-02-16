@@ -343,10 +343,14 @@ class sdGrub extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return 'Grub';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Grub" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

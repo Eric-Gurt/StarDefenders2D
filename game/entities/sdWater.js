@@ -462,7 +462,7 @@ class sdWater extends sdEntity
 						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 						{
 							if ( this.type === sdWater.TYPE_LAVA )
-							if ( !e.isWaterDamageResistant() )
+							if ( !e.isFireAndAcidDamageResistant() )
 							{
 								if ( effect_once )
 								{
@@ -495,7 +495,7 @@ class sdWater extends sdEntity
 							}
 							if ( sdWater.damage_by_type[ this.type ] !== 0 )
 							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
-							if ( !e.isWaterDamageResistant() )
+							if ( !e.isFireAndAcidDamageResistant() )
 							//if ( e.Damage !== sdEntity.prototype.Damage )
 							{
 								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 

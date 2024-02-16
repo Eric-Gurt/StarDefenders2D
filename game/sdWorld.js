@@ -81,7 +81,6 @@ class sdWorld
 		sdWorld.server_start_values = {}; // All values are JSON.parse results or strings on parse error, world_slot is one of them as long as it is passed in command line (will be missing if default slot is used, check globalThis.world_slot for relevant value of world slot)
 		sdWorld.server_config = {};
 		
-		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
 		sdWorld.frame = 0;
 		
 		sdWorld.paused = false; // Single-player only, prevents some global logic like sdDeepSleep spawns
@@ -97,6 +96,11 @@ class sdWorld
 		sdWorld.is_server = ( typeof window === 'undefined' );
 		sdWorld.is_singleplayer = false; // Local offline mode has it as true
 		sdWorld.mobile = false;
+		
+		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
+		
+		//if ( !sdWorld.is_server )
+		//EnforceChangeLog( sdWorld, 'time' );
 		
 		sdWorld.soft_camera = true;
 		sdWorld.show_videos = true;
@@ -2046,15 +2050,8 @@ class sdWorld
 				c = 'Flesh corruption';
 			}
 
-			if ( c === 'Crystal' )
+			/*if ( c === 'Crystal' )
 			{
-				/*sdCrystal.TYPE_CRYSTAL = 1;
-				sdCrystal.TYPE_CRYSTAL_BIG = 2;
-				sdCrystal.TYPE_CRYSTAL_CRAB = 3;
-				sdCrystal.TYPE_CRYSTAL_CORRUPTED = 4;
-				sdCrystal.TYPE_CRYSTAL_ARTIFICIAL = 5;
-				sdCrystal.TYPE_CRYSTAL_CRAB_BIG = 6;*/
-									
 				let matter_value = ( ent.is_big ? Math.round( ent.matter_max / 4 ) : ent.matter_max );
 
 				if ( matter_value < 1000 )
@@ -2079,8 +2076,8 @@ class sdWorld
 				c = 'Depleted ' + c;
 				else
 				if ( ent.is_overcharged )
-				c = 'Overcharged ' + c;
-			}
+				c = 'Overcharged ' + c;/
+			}*/
 
 			if ( c === 'Area' )
 			{
@@ -3547,7 +3544,6 @@ class sdWorld
 	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
-		//var step = 16;
 		var step = 8;
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )
@@ -3559,10 +3555,24 @@ class sdWorld
 		}
 		return true;
 	}
+	static CheckLineOfSight2( x1, y1, x2, y2, ignore_entity=null, ignore_entity2=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
+	{
+		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
+		var step = 8;
+		
+		for ( var s = step / 2; s < di - step / 2; s += step )
+		{
+			var x = x1 + ( x2 - x1 ) / di * s;
+			var y = y1 + ( y2 - y1 ) / di * s;
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity2, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
+			return false;
+		}
+		return true;
+	}
 	static TraceRayPoint( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
-		//var step = 16;
 		var step = 8;
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )

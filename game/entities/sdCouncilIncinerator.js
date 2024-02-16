@@ -182,9 +182,28 @@ class sdCouncilIncinerator extends sdEntity
 	}
 	IsEnemy( target )
 	{
+		// Trying to stop it from destroying whole ground within the area
+		if ( target.is( sdBlock ) )
+		{
+			if ( !target._natural )
+			{
+				return true;
+			}
+			
+			// Allow attacking dirt in between target and this boss
+			if ( this._current_target )
+			if ( this._current_target.IsPlayerClass() )
+			{
+				if ( sdWorld.inDist2D_Boolean( ( this.x + this._current_target.x ) / 2, ( this.y + this._current_target.y ) / 2, target.x+target.width/2, target.y+target.height/2, sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) / 2 ) )
+				{
+					return true;
+				}
+			}
+		}
+		
 		if ( target.GetClass() !== 'sdCharacter' && target.GetClass() !== 'sdDrone' &&
-		target.GetClass() !== 'sdJunk' && target.GetClass() !== 'sdSandWorm' &&
-		target.GetClass() !== 'sdCouncilMachine' && target.GetClass() !== 'sdCouncilIncinerator' )
+			 target.GetClass() !== 'sdJunk' && target.GetClass() !== 'sdSandWorm' &&
+			 target.GetClass() !== 'sdCouncilMachine' && target.GetClass() !== 'sdCouncilIncinerator' )
 		return true;
 		else
 		{

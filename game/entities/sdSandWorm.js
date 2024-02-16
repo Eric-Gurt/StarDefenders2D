@@ -166,7 +166,7 @@ class sdSandWorm extends sdEntity
 		this._can_spawn_more = true;
 	}
 	
-	isWaterDamageResistant()
+	isFireAndAcidDamageResistant()
 	{
 		return ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM );
 	}

@@ -813,7 +813,11 @@ class sdLongRangeTeleport extends sdEntity
 		let current_frame = globalThis.GetFrame();
 
 		for ( let i = 0; i < ents_to_push.length; i++ )
-		snapshots.push( ents_to_push[ i ].GetSnapshot( current_frame, true ) );
+		{
+			ents_to_push[ i ].onBeforeLongRangeTeleport( this );
+			
+			snapshots.push( ents_to_push[ i ].GetSnapshot( current_frame, true ) );
+		}
 	
 		if ( ents_to_push.length > 0 )
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -1385,7 +1389,7 @@ class sdLongRangeTeleport extends sdEntity
 											else
 											{
 												for ( let i = 0; i < collected_entities_array.length; i++ )
-												exectuter_character.GiveScore( sdEntity.SCORE_REWARD_COMMON_TASK, collected_entities_array[ i ] );
+												exectuter_character.GiveScore( sdEntity.SCORE_REWARD_TASK_ITEM_FUNCTION( collected_entities_array[ i ] ), collected_entities_array[ i ] );
 
 												this.matter = 0;
 											}

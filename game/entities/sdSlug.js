@@ -346,10 +346,14 @@ class sdSlug extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return 'Slug';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Slug" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

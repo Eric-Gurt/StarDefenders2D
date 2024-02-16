@@ -296,7 +296,7 @@ class sdSound
 
 						if ( e._swimmers )
 						for ( let sw of e._swimmers )
-						if ( !sw.isWaterDamageResistant() )
+						if ( !sw.isFireAndAcidDamageResistant() )
 						{
 							count_lava_burn += 0.15 * 1 * sdSound.GetDistanceMultForPosition( sw.x, sw.y );
 						}

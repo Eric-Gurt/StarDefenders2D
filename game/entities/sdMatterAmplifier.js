@@ -7,6 +7,7 @@ import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdBullet from './sdBullet.js';
+
 //import sdWorld.entity_classes.sdPlayerDrone from './sdWorld.entity_classes.sdPlayerDrone.js';
 
 class sdMatterAmplifier extends sdEntity
@@ -266,7 +267,8 @@ class sdMatterAmplifier extends sdEntity
 			ctx.save();
 			{
 				ctx.translate( this.crystal.x - this.x, this.crystal.y - this.y );
-				this.crystal.Draw( ctx, true );
+				
+				this.crystal.DrawWithStatusEffects( ctx, true );
 			}
 			ctx.restore();
 			
@@ -420,7 +422,7 @@ class sdMatterAmplifier extends sdEntity
 					from_entity.held_by = this;
 					this.crystal = from_entity;
 
-					this._matter_max = Math.max( 20, this.crystal.matter_max / 10 );
+					this._matter_max = 20; // Math.max( 20, this.crystal.matter_max / 10 ); What was this for?
 
 					this._hitbox_y1 = this.hitbox_y1;
 					sdWorld.UpdateHashPosition( this, false ); // Hitbox update

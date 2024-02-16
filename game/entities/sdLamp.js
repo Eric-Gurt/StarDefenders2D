@@ -62,6 +62,10 @@ class sdLamp extends sdEntity
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
 	
+	get title()
+	{
+		return 'Lamp';
+	}
 	Draw( ctx, attached )
 	//DrawBG( ctx, attached )
 	{

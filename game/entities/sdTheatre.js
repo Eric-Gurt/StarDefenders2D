@@ -442,12 +442,16 @@ class sdTheatre extends sdEntity
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };
 	
+	get title()
+	{
+		return ( this.program_name ) ? 'Computer' : 'Theatre';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.program_name )
-		sdEntity.TooltipUntranslated( ctx, T('Computer ( application: "')+ this.program_name+'.sd" )', 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T( this.title + ' ( application: "')+ this.program_name+'.sd" )', 0, -10 );
 		else
-		sdEntity.TooltipUntranslated( ctx, T('Theatre ( channel: "')+this.service + ' > ' + ( this.channel || this.video ) + T('", volume: ')+this.volume+'% )', 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T( this.title + ' ( channel: "')+this.service + ' > ' + ( this.channel || this.video ) + T('", volume: ')+this.volume+'% )', 0, -10 );
 	}
 	
 	DrawBG( ctx, attached )

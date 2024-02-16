@@ -462,10 +462,14 @@ class sdAsp extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+	get title()
+	{
+		return ( this._tier === 2 ) ? "Crystal Asp" : 'Asp';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, ( this._tier === 2 ) ? "Crystal Asp" : 'Asp' ); // This won't work. _tier is not synced
+		sdEntity.Tooltip( ctx, this.title ); // This won't work. _tier is not synced
 	}
 	Draw( ctx, attached )
 	{		

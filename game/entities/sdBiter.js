@@ -368,12 +368,15 @@ class sdBiter extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+	get title()
+	{
+		return this.type === sdBiter.TYPE_LARGE ? "Infectious biter" : "Biter";
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
 		{
-			let tooltip = this.type === sdBiter.TYPE_LARGE ? "Infectious biter" : "Biter";
-			sdEntity.Tooltip( ctx, tooltip );
+			sdEntity.Tooltip( ctx, this.title );
 		}
 	}
 	Draw( ctx, attached )

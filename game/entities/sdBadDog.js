@@ -260,7 +260,7 @@ class sdBadDog extends sdEntity
 		//this.sx += x * 0.2;
 		//this.sy += y * 0.2;
 	}
-	isWaterDamageResistant()
+	isFireAndAcidDamageResistant()
 	{
 		return true;
 	}
@@ -716,10 +716,14 @@ class sdBadDog extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return 'Bad Dog';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.TooltipUntranslated( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s Bad Dog ( "+( 12 + this.turret_level )+" damage )" : T("Bad Dog") );
+		sdEntity.TooltipUntranslated( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s "+this.title+" ( "+( 12 + this.turret_level )+" damage )" : T( this.title ) );
 	
 		if ( this.death_anim < 20 )
 		if ( this.owned )
@@ -862,7 +866,7 @@ class sdBadDog extends sdEntity
 				}
 				else
 				{
-					executer_socket.SDServiceMessage( 'Bad Dog is too far' );
+					executer_socket.SDServiceMessage( this.title + ' is too far' );
 					return;
 				}
 			}
