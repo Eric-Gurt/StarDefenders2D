@@ -423,13 +423,17 @@ class sdCable extends sdEntity
 				debugger; // Should be always connected to something, for example to owner itself while being built. Can end up being not on client due to static entity count limit per sync
 			}
 			
+			if ( sdWorld.is_server )
 			this.remove();
+		
 			return;
 		}
 		
 		if ( this.p._is_being_removed || this.c._is_being_removed )
 		{
+			if ( sdWorld.is_server )
 			this.remove();
+		
 			return;
 		}
 		
