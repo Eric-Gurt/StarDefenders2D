@@ -2244,7 +2244,25 @@ THING is cosmic mic drop!`;
 			}
 			else
 			{
+				if ( !lost_effect )
+				{
+					let voice_preset = sdCharacter.voice_sound_effects[ this._voice.variant ] || sdCharacter.voice_sound_effects[ 'default' ];
+					
+					let result = 
+							( voice_preset.death_scream instanceof Array ) ? 
+								sdWorld.AnyOf( voice_preset.death_scream ) :
+								voice_preset.death_scream();
+						
+					if ( result )
+					sdSound.PlaySound({ name:result, x:this.x, y:this.y, volume:voice_preset.volume || 1, pitch:voice_preset.pitch || this.GetVoicePitch(), channel:this._voice_channel });
+				
+					this.DropWeapons();
+				}
+				
+				if ( best_t.IsVehicle() )
 				best_t.AddDriver( this, true );
+			
+				best_t.onRescued( this );
 			}
 			
 			sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>

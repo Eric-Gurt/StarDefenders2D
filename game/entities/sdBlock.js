@@ -687,7 +687,7 @@ class sdBlock extends sdEntity
 								let parts = this._contains_class.split( '.' );
 								this._contains_class = parts[ 0 ];
 
-								let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null };
+								let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null, from_ground:this };
 
 								if ( this._contains_class_params )
 								{

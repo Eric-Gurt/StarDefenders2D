@@ -1705,6 +1705,8 @@ io.on( 'connection', ( socket )=>
 		
 		let character_entity = null;
 		
+		let skip_arrival_sequence = false;
+		
 		function RemoveOldPlayerOnSocket()
 		{
 			if ( socket.character )
@@ -1769,7 +1771,8 @@ io.on( 'connection', ( socket )=>
 			}
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
-			sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
+			if ( sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket ) )
+			skip_arrival_sequence = true;
 		}
 		function TryToAssignDisconnectedPlayerEntity()
 		{
@@ -1949,7 +1952,7 @@ io.on( 'connection', ( socket )=>
 		if ( player_settings.full_reset )
 		{
 			if ( sdWorld.server_config.onRespawn )
-			sdWorld.server_config.onRespawn( character_entity, player_settings );
+			sdWorld.server_config.onRespawn( character_entity, player_settings, skip_arrival_sequence );
 			/*
 			let guns = [ sdGun.CLASS_BUILD_TOOL ];
 			if ( player_settings.start_with1 )
@@ -2376,7 +2379,7 @@ io.on( 'connection', ( socket )=>
 			socket.waiting_on_M_event_until = 0;
 			
 			if ( socket.character ) 
-			if ( !socket.character.is( sdPlayerSpectator ) ) 
+			//if ( !socket.character.is( sdPlayerSpectator ) ) 
 			{ 
 				/*let test_ent = sdEntity.entities_by_net_id_cache_map.get( 40580166 ); // Hack. Testing what is wrong here - possibly compression fails
 				socket.character.x = test_ent.x;

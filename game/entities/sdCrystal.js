@@ -913,8 +913,9 @@ class sdCrystal extends sdEntity
 		//r *= 0.25;
 		
 		
-		let depth_tier = Math.max( 0, Math.floor( params.y / 1500 ) );
-		r /= Math.pow( 2, Math.random() * depth_tier );
+		let depth_tier = Math.max( 0, Math.floor( params.y / 2000 ) );
+		//r /= Math.pow( 2, Math.random() * depth_tier );
+		r /= Math.pow( 2, Math.pow( Math.random(), 2 ) * depth_tier );
 		
 		if ( r < 0.00390625 / 8 && is_deep ) // matter consuming crystal
 		this.matter_max *= 2048;
@@ -989,12 +990,17 @@ class sdCrystal extends sdEntity
 		this._current_target = null; // For big crystal crabs
 		
 		// TODO: speciality should not be random by default... Keep randomness only for ground blocks, perhaps?
-		this.speciality = Math.random() < 0.05 ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
+		this.speciality = ( ( params.from_ground || params.from_tree ) && Math.random() < 0.05 ) ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
 		if ( params.speciality !== undefined )
 		this.speciality = params.speciality;
 	
 		this._private_props = {};
 		this.extra = {};
+		
+		if ( params.from_ground || params.from_tree )
+		{
+			sdWorld.server_config.ModifyDugOutCrystalProperties( this, params.from_ground, params.from_tree );
+		}
 	}
 	ExtraSerialzableFieldTest( prop )
 	{

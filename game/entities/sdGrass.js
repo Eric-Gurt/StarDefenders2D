@@ -290,7 +290,7 @@ class sdGrass extends sdEntity
 								xx += Math.sin( an ) * 8;
 								yy += Math.cos( an ) * 4;
 
-								let ent = new sdCrystal({ x: xx, y: yy, tag:'deep', type:sdCrystal.TYPE_CRYSTAL_BALLOON });
+								let ent = new sdCrystal({ x: xx, y: yy, tag:'deep', from_tree:this, type:sdCrystal.TYPE_CRYSTAL_BALLOON });
 								sdEntity.entities.push( ent );
 
 								if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )

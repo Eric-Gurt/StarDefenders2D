@@ -815,8 +815,10 @@ class sdWorld
 				potential_crystal = 'sdCrystal.crab';
 			}
 			
-			let contains_class = ( !half && Math.random() > 0.85 / hp_mult ) ? 
-									( ( Math.random() < Math.min( 0.725, 0.3 * ( 1*0.75 + hp_mult*0.25 ) ) ) ? random_enemy : potential_crystal ) : 
+			//let contains_class = ( !half && Math.random() > 0.85 / hp_mult ) ? 
+			let contains_class = ( !half && sdWorld.server_config.ShouldBlockContainAnything( x, y, hp_mult ) ) ? 
+									//( ( Math.random() < Math.min( 0.725, 0.3 * ( 0.75 + hp_mult * 0.25 ) ) ) ? random_enemy : potential_crystal ) : 
+									( sdWorld.server_config.ShouldBlockContainMobRatherThanCrystal( x, y, hp_mult ) ? random_enemy : potential_crystal ) : 
 									( 
 										( Math.random() < 0.1 ) ? 'weak_ground' : null 
 									);
@@ -838,7 +840,7 @@ class sdWorld
 			if ( !only_plantless_block )
 			if ( y === from_y )
 			if ( y <= sdWorld.base_ground_level )
-			if ( !icy )
+			//if ( !icy )
 			{
 				if ( plants === null )
 				{
@@ -931,28 +933,19 @@ class sdWorld
 		
 		if ( ent )
 		{
-			if ( icy )
-			{
-				ent.filter = 'saturate(0.3)';
-				ent.br *= 4;
-				ent.hue = 180;
+			sdWorld.server_config.ModifyTerrainEntity( ent, icy );
 
-				if ( ent._plants )
-				for ( let i = 0; i < ent._plants.length; i++ )
+			if ( ent._plants )
+			for ( let i = 0; i < ent._plants.length; i++ )
+			{
+				let e = sdEntity.entities_by_net_id_cache_map.get( ent._plants[ i ] );
+				if ( e )
 				{
-					let e = sdEntity.entities_by_net_id_cache_map.get( ent._plants[ i ] );
-					if ( e )
-					{
-						e.snowed = true;
-						/*
-						e.br *= 4;
-						e.filter = 'saturate(0.3)';
-						e.hue = 180;*/
-					}
+					e.filter = ent.filter;
+					e.hue = ent.hue;
+					e.br = ent.br;
 				}
 			}
-
-			sdWorld.server_config.ModifyTerrainEntity( ent );
 		}
 
 		if ( ent )

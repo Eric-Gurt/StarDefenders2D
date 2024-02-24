@@ -1,5 +1,5 @@
 
-/* global sdShop */
+/* global sdShop, Infinity */
 
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
@@ -31,6 +31,7 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.max_matter = 1700;
 		sdRescueTeleport.max_matter_short = 500;
 		sdRescueTeleport.max_matter_cloner = 40000 * 3; // 40k can be charged rather quickly. It is a last resort escape thing after all.
+		sdRescueTeleport.max_matter_respawn_point = 100;
 		
 		sdRescueTeleport.clonning_time = 30 * 60 * 3;// 3 minutes
 
@@ -51,6 +52,7 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.TYPE_INFINITE_RANGE = 0; // Infinite range rescue teleporter
 		sdRescueTeleport.TYPE_SHORT_RANGE = 1; // Short range teleporter
 		sdRescueTeleport.TYPE_CLONER = 2; // Long recharge, high cost, but can respawn in case player was lost
+		sdRescueTeleport.TYPE_RESPAWN_POINT = 3; // Same as cloner, but instantly. Resets player's level and items.
 		
 		sdRescueTeleport.players_can_build_rtps = undefined;
 		
@@ -65,6 +67,7 @@ class sdRescueTeleport extends sdEntity
 				sdRescueTeleport.players_can_build_rtps = false;
 				for ( let i = 0; i < sdShop.options.length; i++ )
 				if ( sdShop.options[ i ]._class === 'sdRescueTeleport' )
+				if ( sdShop.options[ i ].type !== sdRescueTeleport.TYPE_RESPAWN_POINT )
 				{
 					sdRescueTeleport.players_can_build_rtps =  true;
 					break;
@@ -246,6 +249,39 @@ class sdRescueTeleport extends sdEntity
 		return false;
 	}
 	
+	onRescued( c )
+	{
+		/*if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+		{
+			if ( c._save_file )
+			{
+				let player_settings = c._save_file;
+				let character_entity = c;
+				
+				// Spawn starter items based off what player wants to spawn with
+				let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL ];
+
+				if ( player_settings.start_with1 )
+				guns.unshift( sdGun.CLASS_SWORD );
+				else
+				if ( player_settings.start_with2 )
+				guns.unshift( sdGun.CLASS_SHOVEL );
+
+				if ( character_entity.is( sdCharacter ) )
+				for ( var i = 0; i < sdGun.classes.length; i++ )
+				if ( guns.indexOf( i ) !== -1 )
+				{
+					let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
+					sdEntity.entities.push( gun );
+
+					character_entity.onMovementInRange( gun );
+				}
+
+				character_entity.gun_slot = 1;
+			}
+		}*/
+	}
+	
 	get hitbox_x1() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? -8 : -11; }
 	get hitbox_x2() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? 8 : 11; }
 	get hitbox_y1() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? -15 : 10; }
@@ -338,6 +374,7 @@ class sdRescueTeleport extends sdEntity
 		//this.owner_net_id = null;
 		this.owner_title = '';
 		this.owner_biometry = -1;
+		this._owner_hash = null; // Used by respawn points
 		
 		this.UpdateMaxMatter(); // Update max matter so old snapshots are updated
 		/*this._matter_max = 
@@ -358,6 +395,7 @@ class sdRescueTeleport extends sdEntity
 		this._matter_max = 
 			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
 			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
+			this.type === sdRescueTeleport.TYPE_RESPAWN_POINT ? sdRescueTeleport.max_matter_respawn_point : 
 			sdRescueTeleport.max_matter_short;
 	}
 	onSnapshotApplied() // To override
@@ -372,6 +410,9 @@ class sdRescueTeleport extends sdEntity
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
 		return Infinity;
 	
+		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+		return -1; // Essentially always skipped in sdCharacter logic. These are only used at server's full respawn logic
+	
 		return sdRescueTeleport.max_short_range_distance;
 	}
 	GetRTPMatterCost( character )
@@ -383,6 +424,9 @@ class sdRescueTeleport extends sdEntity
 
 		if ( !character.is( sdCharacter ) )
 		tele_cost = 100;
+	
+		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+		tele_cost = sdRescueTeleport.max_matter_respawn_point;
 	
 		return tele_cost;
 	}
@@ -398,7 +442,10 @@ class sdRescueTeleport extends sdEntity
 	onBuilt()
 	{
 		if ( this._owner )
-		this.owner_biometry = this._owner.biometry;
+		{
+			this.owner_biometry = this._owner.biometry;
+			this._owner_hash = this._owner._my_hash;
+		}
 		
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -410,6 +457,9 @@ class sdRescueTeleport extends sdEntity
 	
 	MeasureMatterCost()
 	{
+		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+		return this._hmax * sdWorld.damage_to_matter + 200; 
+		
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE || this.type === sdRescueTeleport.TYPE_CLONER )
 		return this._hmax * sdWorld.damage_to_matter + 2000;
 		else
@@ -505,6 +555,9 @@ class sdRescueTeleport extends sdEntity
 
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
 		return 'Rescue cloner';
+
+		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+		return 'Respawn point';
 	}
 	get description()
 	{
@@ -516,6 +569,9 @@ class sdRescueTeleport extends sdEntity
 
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
 		return 'Prints a new you in case you die. Costs a lot of matter and 20 minutes to fully restore you. Your items won\'t be kept, only upgrades. It makes sense to wire this cloner to matter amplifiers using cable management tool.';
+	
+		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+		return 'This is a respawn point. It does not save you from dying, but will bring you back to your base with no items nor score.';
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -677,6 +733,7 @@ class sdRescueTeleport extends sdEntity
 						//{
 							this._owner = exectuter_character;
 							this.owner_biometry = exectuter_character.biometry;
+							this._owner_hash = exectuter_character._my_hash;
 
 							this._update_version++;
 
@@ -694,6 +751,7 @@ class sdRescueTeleport extends sdEntity
 						//{
 							this._owner = null;
 							this.owner_biometry = -1;
+							this._owner_hash = null;
 
 							this._update_version++;
 

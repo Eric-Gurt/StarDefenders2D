@@ -119,6 +119,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED, sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ] to allow specific ones or null to allow all
 	static allow_private_storage = true; // These are accesible via LRTPs. Setting this to false will make database reject acceess, not server itself (set allow_private_storage_access to false if you wan to disable private storate on specific servers only)
 	static allow_rescue_teleports = true;
+	static allowed_rescue_teleports = null; // [ sdRescueTeleport.TYPE_INFINITE_RANGE, sdRescueTeleport.TYPE_SHORT_RANGE, sdRescueTeleport.TYPE_CLONER, sdRescueTeleport.TYPE_RESPAWN_POINT ]
 	static allow_private_storage_access = true; // These are accesible via LRTPs. This disables private storage only on this server. If this server is uses as database - other servers will still be able to access privage storage unless allow_private_storage is set to false
 	static com_node_hack_success_rate = 0.0015; // 0 - never works, 1 - works always
 	static allowed_player_spawn_classes = undefined; // Defaults to sdWorld.allowed_player_classes aka [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdPlayerSpectator' ]
@@ -129,6 +130,32 @@ class sdServerConfigFull extends sdServerConfigShort
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
 	static player_vs_player_damage_scale = 3;
+	
+	static ShouldBlockContainAnything ( x,y,hp_mult )
+	{
+		return ( Math.random() > 0.85 / hp_mult ); // hp_mult scales with hitpoints of a sdBlock, usually depth-dependant
+	}
+	static ShouldBlockContainMobRatherThanCrystal( x,y,hp_mult )
+	{
+		return ( Math.random() < Math.min( 0.725, 0.3 * ( 0.75 + hp_mult * 0.25 ) ) );
+	}
+	static ModifyDugOutCrystalProperties( crystal, from_ground, from_tree )
+	{
+		/*
+		
+		let limit = 640;
+		
+		if ( crystal.is_big )
+		limit *= 4;
+			
+		if ( from_tree )
+		limit /= 4;
+			
+		if ( crystal.matter_max > limit )
+		crystal.matter_max = limit;
+		
+		*/
+	}
 	
 	static LinkPlayerMatterCapacityToScore( character )
 	{
@@ -280,12 +307,12 @@ class sdServerConfigFull extends sdServerConfigShort
 			}, 5000 );
 		}
 	}
-	static onRespawn( character_entity, player_settings )
+	static onRespawn( character_entity, player_settings, skip_arrival_sequence )
 	{
 		// Player just fully respawned. Best moment to give him guns for example. Alternatively onReconnect can be called
-		sdWorld.server_config.GiveStarterRespawnItems( character_entity, player_settings );
+		sdWorld.server_config.GiveStarterRespawnItems( character_entity, player_settings, skip_arrival_sequence );
 	}
-	static GiveStarterRespawnItems( character_entity, player_settings )
+	static GiveStarterRespawnItems( character_entity, player_settings, skip_arrival_sequence )
 	{
 		
 		let instructor_entity = null;
@@ -376,7 +403,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		}, 15000 );
 		
 		if ( !hover )
-		if ( !sdWorld.server_config.skip_arrival_sequence )
+		if ( !sdWorld.server_config.skip_arrival_sequence && !skip_arrival_sequence )
 		if ( character_entity.is( sdCharacter ) || character_entity.is( sdPlayerDrone ) )
 		{
 			fresh_hover = true;
@@ -441,7 +468,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		}
 		
 		// Instructor, obviously
-		if ( player_settings.hints2 && character_entity.is( sdCharacter ) )
+		if ( player_settings.hints2 && character_entity.is( sdCharacter ) && !skip_arrival_sequence )
 		{
 			let intro_offset = 0;
 			let intro_to_speak = [];
@@ -1162,6 +1189,33 @@ class sdServerConfigFull extends sdServerConfigShort
 		//const sdBaseShieldingUnit = sdWorld.entity_classes.sdBaseShieldingUnit;
 		//const sdBlock = sdWorld.entity_classes.sdBlock;
 		
+		for ( let i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
+		{
+			let t = sdRescueTeleport.rescue_teleports[ i ];
+			
+			if ( t.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
+			{
+				let cost = t.GetRTPMatterCost( character_entity );
+				
+				if ( t._owner_hash === socket.my_hash )
+				if ( t.allowed )
+				if ( t.matter >= cost )
+				if ( t.GetRTPPotentialPlayerPlacementTestResult( character_entity ) )
+				{
+					character_entity.x = t.x;
+					character_entity.y = t.y + t._hitbox_y1 - character_entity.hitbox_y2;
+					
+					t.matter -= cost;
+					t.WakeUpMatterSources();
+					t._update_version++;
+					
+					return true; // Skip arrival sequence
+				}
+			}
+		}
+
+
+		
 		let x1 = Math.max( sdWorld.world_bounds.x1, -sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x );
 		let x2 = Math.min( sdWorld.world_bounds.x2, sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x );
 		
@@ -1328,6 +1382,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		} while( true );
 		
 		//trace( tr + ' / ' + max_tr );
+		return false; // Do not skip arrival sequence
 	}
 	
 	static ModifyReconnectRestartAttempt( player_settings, socket ) // This happens after password/ban/JS challenge checks, though occasionally banned players will be able to join for a short period of time (especially if database is on a network resource or database server is not responding)
@@ -1370,8 +1425,22 @@ class sdServerConfigFull extends sdServerConfigShort
 		)
 		sdWorld.leaders.push({ name:sockets[ i2 ].character.title, name_censored:sockets[ i2 ].character.title_censored, score:sockets[ i2 ].GetScore(), here:1 });
 	}
-	static ModifyTerrainEntity( ent ) // ent can be sdBlock or sdBG
+	static ModifyTerrainEntity( ent, icy ) // ent can be sdBlock or sdBG
 	{
+		if ( icy )
+		{
+			ent.filter = 'saturate(0.3)';
+			ent.br *= 4;
+			ent.hue = 180;
+
+			if ( ent._plants )
+			for ( let i = 0; i < ent._plants.length; i++ )
+			{
+				let e = sdEntity.entities_by_net_id_cache_map.get( ent._plants[ i ] );
+				if ( e )
+				e.snowed = true;
+			}
+		}
 	}
 	
 	static InitialSnapshotLoadAttempt()
