@@ -2127,7 +2127,8 @@ THING is cosmic mic drop!`;
 				if ( di > sdRescueTeleport.max_short_range_distance ) // 1200 units
 				close_enough = false;
 			}*/
-																				
+			
+			if ( t.allowed )
 			if ( !lost_effect || t.IsCloner() )
 			if ( close_enough )
 			if ( t._owner === this || t.owner_biometry === this.biometry )
