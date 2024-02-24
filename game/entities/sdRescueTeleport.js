@@ -486,7 +486,7 @@ class sdRescueTeleport extends sdEntity
 		else
 		this.owner_title = '';
 	
-		this.allowed = sdWorld.server_config.allow_rescue_teleports;
+		this.allowed = sdWorld.server_config.allow_rescue_teleports && ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( this.type ) !== -1 );
 	
 		let can_hibernateA = false;
 		let can_hibernateB = false;
