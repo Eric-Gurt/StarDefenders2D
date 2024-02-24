@@ -157,6 +157,7 @@ class sdByteShifter
 					let frame = globalThis.GetFrame();
 
 					const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+					const listed_ent_flag = sdEntity.GetUniqueFlagValue();
 
 					const triggers_sync = !socket.character.is( sdPlayerSpectator ); // Also used for task sync
 					
@@ -166,13 +167,16 @@ class sdByteShifter
 					
 					const AddEntity = ( ent )=>//, forced )=>
 					{
-						if ( ent._flag !== visited_ent_flag )
+						//if ( ent._flag !== visited_ent_flag )
+						if ( ent._flag < visited_ent_flag )
 						{
-							ent._flag = visited_ent_flag;
+							//ent._flag = visited_ent_flag;
 
 							if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
 								 ent.IsVisible( socket.character ) )
 							{
+								ent._flag = listed_ent_flag;
+							
 								current_snapshot_entities.push( ent );
 								
 								let is_static = ent.is_static;
@@ -445,6 +449,10 @@ class sdByteShifter
 									AddEntity( ents[ i ], true );
 								}
 							}
+							else
+							{
+								ent._flag = visited_ent_flag;
+							}
 						}
 					};
 
@@ -620,9 +628,9 @@ class sdByteShifter
 									this.known_statics_versions.set( ent, new_version );
 								}
 								
-								if ( ent._flag !== visited_ent_flag ) // No longer listed? Then it is probably no longer visible or actually broken
+								if ( ent._flag !== listed_ent_flag ) // No longer listed? Then it is probably no longer visible or actually broken
 								{
-									ent._flag = visited_ent_flag;
+									ent._flag = listed_ent_flag;
 
 									//if ( ent.is( sdTask ) )
 									//trace( 'Requesting removal of task', ent._net_id );
