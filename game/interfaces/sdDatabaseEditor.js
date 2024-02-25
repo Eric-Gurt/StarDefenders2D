@@ -663,7 +663,8 @@ class sdDatabaseEditor extends sdInterface
 					}
 					else
 					{
-						if ( obj._partial )
+						//if ( obj._partial )
+						if ( obj._path[ obj._path.length - 1 ].indexOf( 'table' ) !== -1 || obj._is_array )
 						{
 							// Another line
 							let line = new_objects.createElement({ 

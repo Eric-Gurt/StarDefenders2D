@@ -367,6 +367,11 @@ class sdDatabase
 					table_by_user_uid:
 					{
 						// Key is user_uid/hash
+					},
+			
+					table_by_challenge:
+					{
+						// Key is challenge result
 					}
 				}
 			}
@@ -897,7 +902,7 @@ class sdDatabase
 		return obj;
 	}
 	
-	static GetBan( ip=null, _my_hash=null ) // null if no ban
+	static GetBan( ip=null, _my_hash=null, challenge=null ) // null if no ban
 	{
 		let t = Date.now();
 		
@@ -908,6 +913,23 @@ class sdDatabase
 		else
 		if ( _my_hash !== null && sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
 		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
+		else
+		if ( challenge !== null && sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] )
+		ban = sdDatabase.data.moderation.bans.table_by_challenge[ challenge ];
+
+		let ip_parts = ip ? ip.split(':').join('.').split('.') : null;
+		
+		// Subnet bans
+		if ( !ban )
+		if ( ip_parts )
+		for ( let i = 0; i < ip_parts.length - 1; i++ )
+		{
+			let wild_card_ip_length = ip_parts.slice( 0, ip_parts.length - 1 - i ).join('.').length;
+			let wild_card_ip = ip.substring( 0, wild_card_ip_length + 1 ) + '*';
+			
+			if ( sdDatabase.data.moderation.bans.table_by_ip[ wild_card_ip ] )
+			ban = sdDatabase.data.moderation.bans.table_by_ip[ wild_card_ip ];
+		}
 		
 		if ( ban )
 		{
@@ -922,6 +944,9 @@ class sdDatabase
 				if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] === null )
 				delete sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
 			
+				if ( sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] === null )
+				delete sdDatabase.data.moderation.bans.table_by_challenge[ challenge ];
+			
 				ban = null;
 			}
 			else
@@ -931,12 +956,31 @@ class sdDatabase
 				if ( _my_hash !== null )
 				{
 					if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
-					if ( !sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
-					sdDatabase.data.moderation.bans.table_by_ip[ ip ] = ban;
+					{
+						if ( !sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+						sdDatabase.data.moderation.bans.table_by_ip[ ip ] = ban;
+					
+						if ( !sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] )
+						sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] = ban;
+					}
 
 					if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
-					if ( !sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
-					sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] = ban;
+					{
+						if ( !sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+						sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] = ban;
+					
+						if ( !sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] )
+						sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] = ban;
+					}
+					// Do not spread bans from challenge, perhaps it can be faked
+					/*if ( sdDatabase.data.moderation.bans.table_by_challenge[ challenge ] )
+					{
+						if ( !sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+						sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] = ban;
+					
+						if ( !sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+						sdDatabase.data.moderation.bans.table_by_ip[ ip ] = ban;
+					}*/
 				}
 
 				return ban;
@@ -989,31 +1033,10 @@ class sdDatabase
 			delete user.browser_fingerprints[ print ];
 		}
 		
-		let ban = sdDatabase.GetBan( ip, _my_hash );
+		let ban = sdDatabase.GetBan( ip, _my_hash, browser_finger_print );
 		if ( ban )
 		responses.push([ 'BANNED', ban.reason_public, ban.until, ban.uid ]);
 		
-		/*let ban = null;
-		
-		if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
-		ban = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
-		else
-		if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
-		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
-		
-		if ( ban )
-		{
-			if ( ban.until === undefined )
-			ban.until = 0;
-		
-			if ( ban.until !== 0 && t > ban.until )
-			{
-				delete sdDatabase.data.moderation.bans.table_by_ip[ ip ];
-				delete sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
-			}
-			else
-			responses.push([ 'BANNED', ban.reason_public, ban.until, ban.uid ]);
-		}*/
 		
 		return responses;
 	}
@@ -1196,6 +1219,7 @@ class sdDatabase
 				let player_row = sdDatabase.data.players.table[ target_hash ];
 
 				let ips = [];
+				let browser_fingerprints = [];
 
 				if ( player_row )
 				{
@@ -1203,6 +1227,9 @@ class sdDatabase
 
 					for ( let ip in known_ips )
 					ips.push( ip );
+				
+					for ( let browser_fingerprint in player_row.browser_fingerprints )
+					browser_fingerprints.push( browser_fingerprint );
 				}
 				else
 				{
@@ -1220,7 +1247,10 @@ class sdDatabase
 				sdDatabase.data.moderation.bans.table_by_ip[ ips[ i ] ] = ban_object;
 
 				sdDatabase.data.moderation.bans.table_by_user_uid[ target_hash ] = ban_object;
-
+				
+				for ( let i = 0; i < browser_fingerprints.length; i++ )
+				sdDatabase.data.moderation.bans.table_by_challenge[ browser_fingerprints[ i ] ] = ban_object;
+			
 				anything_done = true;
 			}
 			else
@@ -1244,6 +1274,16 @@ class sdDatabase
 					if ( ban_object.uid === ban_uid )
 					{
 						delete sdDatabase.data.moderation.bans.table_by_user_uid[ hash ];
+						anything_done = true;
+					}
+				}
+
+				for ( let hash in sdDatabase.data.moderation.bans.table_by_challenge )
+				{
+					let ban_object = sdDatabase.data.moderation.bans.table_by_challenge[ hash ];
+					if ( ban_object.uid === ban_uid )
+					{
+						delete sdDatabase.data.moderation.bans.table_by_challenge[ hash ];
 						anything_done = true;
 					}
 				}
