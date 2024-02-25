@@ -356,8 +356,8 @@ class sdCharacter extends sdEntity
 			'klatt3':
 			{
 				// These use TTS alternative
-				death_tts: [ 'Critical damage!', 'Shutting down', 'Structural integrity compromised!' ],
-				hurt_tts: [ 'Ouch!', 'Aaa!', 'Uh!' ]
+				death_tts: [ '/Critical damage!', '/Shutting down', '/Structural integrity compromised!' ],
+				hurt_tts: [ '/Ouch!', '/Aaa!', '/Uh!' ]
 			},
 			
 			// Falkok
@@ -2788,8 +2788,8 @@ THING is cosmic mic drop!`;
 						else
 						if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
 						{
-							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, filter:this.GetBleedEffectFilter(), sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, filter:this.GetBleedEffectFilter(), sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, hue:this.GetBleedEffectHue() });
 						}
 						else
 						{
