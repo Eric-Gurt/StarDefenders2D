@@ -65,7 +65,7 @@ class sdModeration
 			{
 				let potential = JSON.parse( fs.readFileSync( sdWorld.moderation_data_path_const ) );
 				
-				if ( typeof potential === 'object' && typeof potential.admins === 'object' && typeof potential.ban_ips === 'object' && typeof potential.ban_passwords === 'object' )
+				if ( typeof potential === 'object' && typeof potential.admins === 'object' )
 				sdModeration.data = potential;
 				else
 				throw new Error('Bad JSON object property types');
