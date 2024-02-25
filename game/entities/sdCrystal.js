@@ -468,7 +468,7 @@ class sdCrystal extends sdEntity
 							{
 								const Check = ()=>
 								{
-									return ( !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x, e2.y, e,e2, null, sdCom.com_visibility_unignored_classes ) )
+									return ( !e._is_being_removed && !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x, e2.y, e,e2, null, sdCom.com_visibility_unignored_classes ) )
 								};
 
 								if ( Check() )
