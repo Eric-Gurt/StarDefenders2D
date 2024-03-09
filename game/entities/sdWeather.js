@@ -270,6 +270,7 @@ class sdWeather extends sdEntity
 	onSnapshotApplied()
 	{
 		// Patch for daily events being never really saved
+		if ( sdWorld.is_server )
 		if ( this._daily_events.length === 0 )
 		{
 			this.GetDailyEvents();
