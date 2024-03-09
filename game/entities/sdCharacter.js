@@ -2078,7 +2078,7 @@ THING is cosmic mic drop!`;
 			this.DamageStability( vel * sdCharacter.stability_damage_from_velocity_changes_scale );
 		}
 	}
-	AttemptTeleportOut( from_ent=null, lost_effect=false )
+	AttemptTeleportOut( from_ent=null, lost_effect=false, assumed_health_after_damage=0 )
 	{
 		if ( from_ent )
 		if ( from_ent._is_being_removed )
@@ -2249,10 +2249,17 @@ THING is cosmic mic drop!`;
 				{
 					let voice_preset = sdCharacter.voice_sound_effects[ this._voice.variant ] || sdCharacter.voice_sound_effects[ 'default' ];
 					
-					let result = 
-							( voice_preset.death_scream instanceof Array ) ? 
+					let result = null;
+					
+					if ( assumed_health_after_damage < -100 && voice_preset.death_scream )
+					result = ( voice_preset.death_scream instanceof Array ) ? 
 								sdWorld.AnyOf( voice_preset.death_scream ) :
 								voice_preset.death_scream();
+					else
+					if ( voice_preset.death )
+					result = ( voice_preset.death instanceof Array ) ? 
+								sdWorld.AnyOf( voice_preset.death ) :
+								voice_preset.death();
 						
 					if ( result )
 					sdSound.PlaySound({ name:result, x:this.x, y:this.y, volume:voice_preset.volume || 1, pitch:voice_preset.pitch || this.GetVoicePitch(), channel:this._voice_channel });
@@ -2569,7 +2576,7 @@ THING is cosmic mic drop!`;
 			if ( was_alive )
 			if ( this.hea - damage_to_deal <= 0 )
 			{
-				if ( this.AttemptTeleportOut( initiator ) )
+				if ( this.AttemptTeleportOut( initiator, false, this.hea - damage_to_deal ) )
 				return;
 			}
 			if ( this._ai_team === 10 && this.hea - damage_to_deal <= 0 ) // Time shifters aren't supposed to die ( prevent barrel/bomb/whatever cheesing )
@@ -3733,7 +3740,7 @@ THING is cosmic mic drop!`;
 		
 		if ( this.hea <= 0 )
 		{
-			if ( this.AttemptTeleportOut() )
+			if ( this.AttemptTeleportOut( null, false, this.hea ) )
 			return;
 		
 			this.MatterGlow( 0.01, 30, GSPEED );
@@ -6073,7 +6080,7 @@ THING is cosmic mic drop!`;
 				character.Damage( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
 				else
 				{
-					if ( !character.AttemptTeleportOut( null, false ) )
+					if ( !character.AttemptTeleportOut( null, false, 0 ) )
 					{
 						character.Say( [ 'Jokes on you! I don\'t have any Rescue Teleport nearby', 'I\'d have to build Rescue Teleport or Rescue Cloner', 'Huh? It does not work...' ][ ~~( Math.random() * 3 ) ], false, false, true );
 					}
