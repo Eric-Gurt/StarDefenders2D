@@ -372,6 +372,9 @@ class sdDeepSleep extends sdEntity
 					if ( cell.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
 					cell.remove();
 					else
+					if ( cell.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
+					cell.remove();
+					else
 					debugger;
 				}
 			}

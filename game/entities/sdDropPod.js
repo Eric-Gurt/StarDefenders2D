@@ -71,7 +71,7 @@ class sdDropPod extends sdEntity
 		
 		this.type = params.type || sdDropPod.TYPE_KVT; // Default to KVT Pod if no parameters gave it other properties
 		
-		this.hmax = 4000; // was 6000
+		this.hmax = 2000; // was 6000, then 4000
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this.matter_max = 5500;
@@ -303,6 +303,7 @@ class sdDropPod extends sdEntity
 		if ( this.uses <= 0 )
 		{
 			this.empty = true;
+			this.hea = Math.min( this.hea, 100 );
 		}
 	}
 	Loot()
@@ -454,6 +455,7 @@ class sdDropPod extends sdEntity
 		if ( this.uses <= 0 )
 		{
 			this.empty = true;
+			this.hea = Math.min( this.hea, 100 );
 		}
 	}
 

@@ -267,6 +267,21 @@ class sdWeather extends sdEntity
 		
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 	}
+	onSnapshotApplied()
+	{
+		// Patch for daily events being never really saved
+		if ( this._daily_events.length === 0 )
+		{
+			this.GetDailyEvents();
+			this.GetDailyWeatherEvents();
+			this.GetDailySDEvents();
+		}
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_potential_invasion_events' || prop === '_daily_events' || prop === '_daily_weather_events' || prop === '_daily_sd_task_events' );
+	}
+	
 	GetSunIntensity()
 	{
 		return -Math.cos( this.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
@@ -3532,10 +3547,10 @@ class sdWeather extends sdEntity
 				sdTask.completed_tasks_count = 0; // Reset counter
 				sdWeather.SimpleSpawner({
 				
-				count: [ 1, 1 ],
-				class: sdDropPod,
-				params: { type: sdDropPod.TYPE_SD },
-				aerial: true
+					count: [ 1, 1 ],
+					class: sdDropPod,
+					params: { type: sdDropPod.TYPE_SD },
+					aerial: true
 				});
 				
 			}
