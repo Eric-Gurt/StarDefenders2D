@@ -157,7 +157,7 @@ class sdSound
 		if ( target_volume < 0 )
 		target_volume = Math.min( 0, target_volume + 0.5 );
 	
-		sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
+		sdSound.matter_charge_loop.volume = document.hidden ? 0 : sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
 		//sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
 		
 		if ( target_volume >= 0 )

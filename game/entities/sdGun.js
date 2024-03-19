@@ -199,6 +199,14 @@ class sdGun extends sdEntity
 					from_entity.extra = new_extra;
 					from_entity.sd_filter = sdGun.score_shard_recolor_tiers[ new_extra ];
 					from_entity.ttl = from_entity.ttl + this.ttl;
+					
+					if ( this.follow )
+					if ( !this.follow._is_being_removed )
+					{
+						if ( !from_entity.follow || from_entity.follow._is_being_removed )
+						from_entity.follow = this.follow;
+					}
+					
 					this.remove();
 					return;
 				}

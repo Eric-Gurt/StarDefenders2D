@@ -1110,6 +1110,7 @@ THING is cosmic mic drop!`;
 		this.legs = 1;
 		
 		this._weapon_draw_timer = 0;
+		this.weapon_stun_timer = 0; // Octopuses hold players' so they can't shoot
 		
 		this._in_water = false;
 		
@@ -1404,6 +1405,9 @@ THING is cosmic mic drop!`;
 	{
 		if ( this._weapon_draw_timer > 0 )
 		this._weapon_draw_timer = Math.max( 0, this._weapon_draw_timer - GSPEED );
+	
+		if ( this.weapon_stun_timer > 0 )
+		this.weapon_stun_timer = Math.max( 0, this.weapon_stun_timer - GSPEED );
 		
 		if ( this._recoil > 0 )
 		this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
@@ -1472,6 +1476,12 @@ THING is cosmic mic drop!`;
 					will_throw_grenade = false;
 					will_fire = false;
 					shoot_from_scenario = false;
+				}
+			
+				if ( this.weapon_stun_timer > 0 )
+				{
+					will_fire = false;
+					will_throw_grenade = false;
 				}
 
 				if ( will_fire )
@@ -1722,6 +1732,9 @@ THING is cosmic mic drop!`;
 
 	WeaponSwitchLogic( GSPEED )
 	{
+		if ( this.weapon_stun_timer > 0 )
+		return;
+	
 		if ( this._auto_shoot_in <= 0 )
 		{
 			if ( this._key_states.GetKey( 'KeyQ' ) )

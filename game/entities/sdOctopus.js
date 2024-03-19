@@ -76,6 +76,11 @@ class sdOctopus extends sdEntity
 		return sdWorld.default_zoom;// * 1.5;
 	}
 	
+	GetRange()
+	{
+		return ( this.type === sdOctopus.TYPE_GUN_TAKER ) ? 170 : 64;
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -105,7 +110,8 @@ class sdOctopus extends sdEntity
 		this.tenta_x = 0;
 		this.tenta_y = 0;
 		this.tenta_tim = 0;
-		this._tenta_target = null;
+		this.tenta_target = null;
+		this._tenta_hold_duration = 0; // For gun disabling
 		
 		this.type = ( params.type !== undefined ) ? params.type : ~~( Math.random() * 2 );
 		
@@ -241,6 +247,8 @@ class sdOctopus extends sdEntity
 				sdSound.PlaySound({ name:'octopus_hurt2', x:this.x, y:this.y, volume: 0.5, pitch: this.GetPitch() });
 				this.hurt_timer = 1;
 				
+				this.tenta_target = null; // Release any target that it is holding
+				
 				if ( initiator )
 				this.SyncedToPlayer( initiator );
 			}
@@ -267,6 +275,59 @@ class sdOctopus extends sdEntity
 			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
+	GenericOctoAttack( from_entity, will_play_damage_effect_and_sound=true )
+	{
+		let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+		let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+				
+		if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
+		{
+			if ( this._consumed_guns_snapshots.length < 64 )
+			{
+				// For some reason guns can disappear completely at random which is bad considering how some guns are very important to keep
+				if ( from_entity._hea < 50 )
+				from_entity._hea = 50;
+
+				this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+				from_entity.remove();
+			}
+		}
+		else
+		{
+			from_entity.DamageWithEffect( 75, this );
+
+			if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
+			{
+				if ( from_entity.IsPlayerClass() )
+				if ( !from_entity.is( sdWorld.entity_classes.sdPlayerOverlord ) )
+				if ( !from_entity.driver_of )
+				if ( !from_entity._god )
+				{
+					if ( sdWorld.is_server )
+					{
+						if ( from_entity.scale < 250 )
+						if ( !from_entity._shield_ent )
+						if ( this.AddDriver( from_entity, true ) )
+						{
+						}
+					}
+				}
+			}
+		}
+
+		this._hea = Math.min( this._hmax, this._hea + 25 );
+
+		if ( will_play_damage_effect_and_sound )
+		{
+			from_entity.PlayDamageEffect( xx, yy );
+
+			sdSound.PlaySound({ name:'tentacle_end', x:xx, y:yy, pitch: this.GetPitch() });
+
+			let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+			if ( di > 0 )
+			from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
@@ -407,88 +468,109 @@ class sdOctopus extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
+		//if ( sdWorld.is_server )
 		if ( this.tenta_tim > 0 )
 		{
+			let old_tenta_tim = this.tenta_tim;
+			
+			let hit_time = 70;
+			
+			if ( this.tenta_target )
+			if ( this.tenta_target._is_being_removed )
+			this.tenta_target = null;
+	
+			let will_damage = true;
+			let will_play_damage_effect_and_sound = true;
+
+			if ( this.type === sdOctopus.TYPE_GUN_TAKER && this.tenta_target && this.tenta_target.is( sdGun ) && this.tenta_target._held_by && this.tenta_target._held_by.IsPlayerClass() && !this.tenta_target._held_by._is_being_removed )
+			{
+				let from_entity = this.tenta_target;
+
+				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+
+				if ( this.tenta_tim >= hit_time && 
+					 sdWorld.inDist2D_Boolean( this.x, this.y, xx, yy, this.GetRange() + 64 ) &&
+					 sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+				{
+					this.tenta_tim = Math.max( hit_time, this.tenta_tim - GSPEED * 5 );
+					this._last_bite = sdWorld.time;
+
+					this.tenta_x = xx - this.x;
+					this.tenta_y = yy - this.y;
+					
+					from_entity._held_by.weapon_stun_timer = Math.max( from_entity._held_by.weapon_stun_timer, 5 );
+					
+					will_damage = false;
+					
+					//if ( this.tenta_tim <= hit_time && old_tenta_tim > hit_time )
+					if ( this.tenta_tim === hit_time )
+					{
+						let old_tenta_hold_duration = this._tenta_hold_duration;
+						
+						this._tenta_hold_duration += GSPEED;
+						
+						if ( this._tenta_hold_duration > 0 && old_tenta_hold_duration <= 0 )
+						{
+							//sdSound.PlaySound({ name:'tentacle_end', x:xx, y:yy, pitch: this.GetPitch() });
+							
+							this.GenericOctoAttack( from_entity._held_by, true );
+						}
+						
+						if ( this._tenta_hold_duration > 30 && old_tenta_hold_duration <= 30 )
+						this.tenta_target._held_by.Say( [ 
+									'Hey, how about releasing my gun?',
+									'It holds my weapon',
+									'Hey, let it go!',
+									'And what do you think you are doing?',
+									'Can\'t shoot',
+									'Give it back, you!',
+									'Disgusting!',
+									'It tries to take my gun!'
+						][ ~~( Math.random() * 8 ) ] );
+						
+
+						if ( this._tenta_hold_duration > 30 * 4.7 && old_tenta_hold_duration <= 30 * 4.7 )
+						this.tenta_target._held_by.Say( [ 
+									'Hey, it took my gun',
+									'No, my gun!',
+									'I lost a gun',
+									'His tentacle is too strong',
+									'I can\'t hold anymore',
+									'Here goes my gun'
+						][ ~~( Math.random() * 6 ) ] );
+
+						if ( this._tenta_hold_duration > 30 * 5 )
+						{
+							will_damage = true;
+							will_play_damage_effect_and_sound = false;
+						}
+					}
+				}
+				else
+				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+			}
+			else
 			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 			
+			if ( sdWorld.is_server )
+			if ( will_damage )
 			if ( this._hea > 0 )
+			if ( this.tenta_target )
+			if ( ( this.tenta_tim <= hit_time && old_tenta_tim > hit_time ) || !will_play_damage_effect_and_sound ) // Time of hit or taking gun due to logic above
 			{
+				let from_entity = this.tenta_target;
 
-				if ( this._tenta_target )
-				if ( this._tenta_target._is_being_removed )
-				this._tenta_target = null;
+				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-				if ( this._tenta_target )
-				if ( this.tenta_tim > 20 && this.tenta_tim < 80 )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, xx, yy, this.GetRange() + 64 ) &&
+					 sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
-					let from_entity = this._tenta_target;
+					this.GenericOctoAttack( from_entity, will_play_damage_effect_and_sound );
 
-					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
-					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+					this.tenta_target = null;
 
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
-					{
-						if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
-						{
-							if ( this._consumed_guns_snapshots.length < 64 )
-							{
-								// For some reason guns can disappear completely at random which is bad considering how some guns are very important to keep
-								if ( from_entity._hea < 50 )
-								from_entity._hea = 50;
-
-								this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
-								from_entity.remove();
-							}
-						}
-						else
-						{
-							if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
-							{
-								from_entity.DamageWithEffect( 75, this );
-							}
-							else
-							from_entity.DamageWithEffect( 75, this );
-						
-							if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
-							{
-								if ( from_entity.IsPlayerClass() )
-								if ( !from_entity.is( sdWorld.entity_classes.sdPlayerOverlord ) )
-								if ( !from_entity.driver_of )
-								if ( !from_entity._god )
-								{
-									if ( sdWorld.is_server )
-									{
-										//if ( !this.driver0 )
-										//{
-											//this.driver0 = from_entity;
-
-											//from_entity.driver_of = this;
-											
-											if ( from_entity.scale < 250 )
-											if ( !from_entity._shield_ent )
-											if ( this.AddDriver( from_entity, true ) )
-											{
-											}
-										//}
-									}
-								}
-							}
-						}
-
-						this._hea = Math.min( this._hmax, this._hea + 25 );
-
-						from_entity.PlayDamageEffect( xx, yy );
-
-
-						sdSound.PlaySound({ name:'tentacle_end', x:xx, y:yy, pitch: this.GetPitch() });
-
-						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
-						if ( di > 0 )
-						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
-
-						this._tenta_target = null;
-
-					}
 				}
 			}
 		}
@@ -505,7 +587,7 @@ class sdOctopus extends sdEntity
 				this._last_bite = sdWorld.time; // So it is not so much calc intensive
 						
 					
-				let nears_raw = this.GetAnythingNearCache( this.x, this.y, ( this.type === sdOctopus.TYPE_GUN_TAKER ) ? 170 : 64 );
+				let nears_raw = this.GetAnythingNearCache( this.x, this.y, this.GetRange() );
 				let from_entity;
 				
 				let nears = [];
@@ -607,7 +689,8 @@ class sdOctopus extends sdEntity
 						this.tenta_x = xx - this.x;
 						this.tenta_y = yy - this.y;
 						this.tenta_tim = 100;
-						this._tenta_target = from_entity;
+						this.tenta_target = from_entity;
+						this._tenta_hold_duration = 0;
 						
 						sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5, pitch: this.GetPitch() });
 						

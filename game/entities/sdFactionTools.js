@@ -16,55 +16,6 @@ class sdFactionTools extends sdEntity
 {
 	static init_class()
 	{
-		sdFactionTools.img_character_sd = sdWorld.CreateImageFromFile( 'helmets/helmet_star_defender' );
-		sdFactionTools.img_character_falkok = sdWorld.CreateImageFromFile( 'helmets/helmet_falkok' );
-		sdFactionTools.img_character_pfalkok = sdWorld.CreateImageFromFile( 'helmets/helmet_phfalkok' );
-		sdFactionTools.img_character_erthal = sdWorld.CreateImageFromFile( 'helmets/helmet_dino' );
-		sdFactionTools.img_character_council = sdWorld.CreateImageFromFile( 'helmets/helmet_council' );
-		sdFactionTools.img_character_council2 = sdWorld.CreateImageFromFile( 'helmets/helmet_scion' );
-		sdFactionTools.img_character_sarronian = sdWorld.CreateImageFromFile( 'helmets/helmet_biohazard' );
-		sdFactionTools.img_character_velox = sdWorld.CreateImageFromFile( 'helmets/helmet_velox' );
-		sdFactionTools.img_character_setr = sdWorld.CreateImageFromFile( 'helmets/helmet_eyes' );
-		sdFactionTools.img_character_tzyrg = sdWorld.CreateImageFromFile( 'helmets/helmet_skeleton' );
-		sdFactionTools.img_character_shurg = sdWorld.CreateImageFromFile( 'helmets/helmet_oxide' );
-		sdFactionTools.img_character_fsb = sdWorld.CreateImageFromFile( 'helmets/helmet_omega' );
-		sdFactionTools.img_character_ts = sdWorld.CreateImageFromFile( 'helmets/helmet_forge' );
-		sdFactionTools.img_character_pilot = sdWorld.CreateImageFromFile( 'helmets/helmet_pilot' );
-		sdFactionTools.img_character_zektaron = sdWorld.CreateImageFromFile( 'helmets/helmet_scope' );
-		sdFactionTools.img_character_zektaron2 = sdWorld.CreateImageFromFile( 'helmets/helmet_overseer' );
-
-		sdFactionTools.img_gun_sd1 = sdWorld.CreateImageFromFile( 'sniper' );
-		sdFactionTools.img_gun_sd2 = sdWorld.CreateImageFromFile( 'shotgun' );
-		sdFactionTools.img_gun_sd3 = sdWorld.CreateImageFromFile( 'lmg' );
-		sdFactionTools.img_gun_sd4 = sdWorld.CreateImageFromFile( 'rifle' );
-		sdFactionTools.img_gun_f1 = sdWorld.CreateImageFromFile( 'f_heavy_rifle' );
-		sdFactionTools.img_gun_f2 = sdWorld.CreateImageFromFile( 'f_marksman' );
-		sdFactionTools.img_gun_f3 = sdWorld.CreateImageFromFile( 'f_rifle' );
-		sdFactionTools.img_gun_f4 = sdWorld.CreateImageFromFile( 'f_psicutter' );
-		sdFactionTools.img_gun_f5 = sdWorld.CreateImageFromFile( 'raygun_c01y' );
-		sdFactionTools.img_gun_sarronian1 = sdWorld.CreateImageFromFile( 'sarronian_energy_displacer' );
-		sdFactionTools.img_gun_sarronian2 = sdWorld.CreateImageFromFile( 'sarronian_smg' );
-		sdFactionTools.img_gun_velox1 = sdWorld.CreateImageFromFile( 'rail_cannon' );
-		sdFactionTools.img_gun_velox2 = sdWorld.CreateImageFromFile( 'combat_rifle' );
-		sdFactionTools.img_gun_velox3 = sdWorld.CreateImageFromFile( 'burst_pistol3' );
-		sdFactionTools.img_gun_setr1 = sdWorld.CreateImageFromFile( 'setr_lmg' );
-		sdFactionTools.img_gun_setr2 = sdWorld.CreateImageFromFile( 'setr_plasma_shotgun' );
-		sdFactionTools.img_gun_tzyrg1 = sdWorld.CreateImageFromFile( 'tzyrg_shotgun' );
-		sdFactionTools.img_gun_tzyrg2 = sdWorld.CreateImageFromFile( 'tzyrg_rifle' );
-		sdFactionTools.img_gun_erthal1 = sdWorld.CreateImageFromFile( 'erthal_burst_rifle' );
-		sdFactionTools.img_gun_erthal2 = sdWorld.CreateImageFromFile( 'erthal_plasma_pistol' );
-		sdFactionTools.img_gun_shurg1 = sdWorld.CreateImageFromFile( 'shurg_sniper' );
-		sdFactionTools.img_gun_shurg2 = sdWorld.CreateImageFromFile( 'shurg_pistol' );
-		sdFactionTools.img_gun_council1 = sdWorld.CreateImageFromFile( 'council_shotgun2' );
-		sdFactionTools.img_gun_council2 = sdWorld.CreateImageFromFile( 'council_gun2' );
-		sdFactionTools.img_gun_council3 = sdWorld.CreateImageFromFile( 'council_pistol3' );
-		sdFactionTools.img_gun_ts = sdWorld.CreateImageFromFile( 'time_shifter_sword' );
-		sdFactionTools.img_gun_instructor1 = sdWorld.CreateImageFromFile( 'emergency_instructor' );
-		sdFactionTools.img_gun_instructor2 = sdWorld.CreateImageFromFile( 'emergency_instructor2' );
-		sdFactionTools.img_gun_pilot = sdWorld.CreateImageFromFile( 'smg' );
-		sdFactionTools.img_gun_zektaron1 = sdWorld.CreateImageFromFile( 'zektaron_combat_rifle' );
-		sdFactionTools.img_gun_zektaron2 = sdWorld.CreateImageFromFile( 'zektaron_railgun' );
-
 		sdFactionTools.FT_SD_A = 1; // Star Defender Sniper
 		sdFactionTools.FT_SD_B = 2; // Star Defender Shotgun
 		sdFactionTools.FT_SD_C = 3; // Star Defender Light Machine Gunner
@@ -122,536 +73,373 @@ class sdFactionTools extends sdEntity
 		this.hmax = 100;
 		this.hea = this.hmax;
 	}
+	
+	get title()
+	{
+		let [ character_entity, gun_entity ] = sdFactionTools.SpawnCharacter( this.type );
+		
+		if ( character_entity )
+		{
+			if ( gun_entity )
+			if ( sdGun.classes[ gun_entity.class ] )
+			{
+				return character_entity.title + ' ' + T( 'equipped with' ) + ' ' + sdGun.classes[ gun_entity.class ].title;
+			}
+				
+			return character_entity.title;
+		}
+	}
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		
-		if ( this.type === sdFactionTools.FT_SD_A || this.type === sdFactionTools.FT_SDR_A || this.type === sdFactionTools.FT_SDA_A )
+		let [ character_entity, gun_entity ] = sdFactionTools.SpawnCharacter( this.type );
+		
+		ctx.sd_filter = character_entity.sd_filter;
+		ctx.save();
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd1, -8, - 16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SD_B || this.type === sdFactionTools.FT_SDR_B || this.type === sdFactionTools.FT_SDA_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SD_C || this.type === sdFactionTools.FT_SDR_C || this.type === sdFactionTools.FT_SDA_C )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd3, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SD_D || this.type === sdFactionTools.FT_SDR_D || this.type === sdFactionTools.FT_SDA_D )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd4, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_FALKOK_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_falkok, - 16, -16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_f1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_FALKOK_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_falkok, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_f2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_FALKOK_C )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_falkok, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_f3, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_PFALKOK_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_pfalkok, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_f4, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_PFALKOK_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_pfalkok, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_f5, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SARRONIAN_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sarronian, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_sarronian1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SARRONIAN_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sarronian, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_sarronian2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_VELOX_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_velox, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_velox1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_VELOX_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_velox, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_velox2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_VELOX_C )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_velox, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_velox3, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SETR_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_setr, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_setr1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SETR_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_setr, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_setr2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_TZYRG_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_tzyrg, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_tzyrg1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_TZYRG_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_tzyrg, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_tzyrg2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_ERTHAL_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_erthal, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_erthal1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_ERTHAL_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_erthal, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_erthal2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SHURG_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_shurg, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_shurg1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_SHURG_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_shurg, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_shurg2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_COUNCIL_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_council, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_council1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_COUNCIL_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_council2, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_council2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_COUNCIL_C )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_council2, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_council3, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_FSB )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_fsb, - 16, - 16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_TS )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_ts, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_ts, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_IR_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_instructor1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_IR_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_instructor2, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_PILOT )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_pilot, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_pilot, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_ZEKTARON_A )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_zektaron, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_zektaron1, -8, -16, 32,32 );
-		}
-		if ( this.type === sdFactionTools.FT_ZEKTARON_B )
-		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_zektaron2, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdFactionTools.img_gun_zektaron2, -8, -16, 32,32 );
-		}
+			ctx.translate( -4, 0 );
+			
+			if ( character_entity.s )
+			ctx.scale( character_entity.s/100, character_entity.s/100 );
+			
+			ctx.drawImageFilterCache( sdCharacter.img_helmets[ character_entity.helmet ], 0, 0, 32, 32, - 16, - 16, 32,32 );
 
+			if ( gun_entity )
+			ctx.drawImageFilterCache( sdGun.classes[ gun_entity.class ].image, -8, - 16, 32,32 );
+		}
+		ctx.restore();
+		
+		ctx.sd_filter = null;
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	onThink( GSPEED ) // Class-specific, if needed
+	static SpawnCharacter( type, relative_to=null ) // If relative_to is not specified - it will create daft object that has all needed properties
 	{
-		if ( !sdWorld.is_server )
-		return;
-
-		this.hea -= GSPEED;
-
-		if ( this.hea < 95 )
+		let xx = 0;
+		let yy = 0;
+		
+		let CHARACTER_CLASS = sdCharacter;
+		let GUN_CLASS = sdGun;
+		let ENTITIES_ARRAY = sdEntity.entities;
+		
+		let teleport_sound = 'teleport';
+		let teleport_volume = 1;
+		let teleport_effect_filter = 'none';
+		
+		if ( relative_to )
 		{
-			if ( this.type === sdFactionTools.FT_SD_A )
+			xx = relative_to.x;
+			yy = relative_to.y;
+		}
+		else
+		{
+			CHARACTER_CLASS = 
+				GUN_CLASS = class Daft
+				{ 
+					constructor(params)
+					{
+						Object.assign( this, params );
+					} 
+					ApplyStatusEffect(){} 
+				};
+		
+			ENTITIES_ARRAY = { 
+				push: ()=>{}
+			};
+		}
+		
+		let character_entity = null;
+		let gun_entity = null;
+		
+		{
+			if ( type === sdFactionTools.FT_SD_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SD_B )
+			if ( type === sdFactionTools.FT_SD_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SD_C )
+			if ( type === sdFactionTools.FT_SD_C )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SD_D )
+			if ( type === sdFactionTools.FT_SD_D )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_FALKOK_A )
+			if ( type === sdFactionTools.FT_FALKOK_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_FALKOK_B )
+			if ( type === sdFactionTools.FT_FALKOK_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_FALKOK_C )
+			if ( type === sdFactionTools.FT_FALKOK_C )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_PFALKOK_A )
+			if ( type === sdFactionTools.FT_PFALKOK_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_PHOENIX_FALKOK );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_PFALKOK_B )
+			if ( type === sdFactionTools.FT_PFALKOK_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_PHOENIX_FALKOK );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_SARRONIAN_A )
+			if ( type === sdFactionTools.FT_SARRONIAN_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
 					character_entity._ai_gun_slot = 5;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN_HEAVY );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SARRONIAN_B )
+			if ( type === sdFactionTools.FT_SARRONIAN_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_ZEKTARON_A )
+			if ( type === sdFactionTools.FT_ZEKTARON_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				teleport_effect_filter = 'hue-rotate(140deg)';
 
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_ZEKTARON_B )
+			if ( type === sdFactionTools.FT_ZEKTARON_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				teleport_effect_filter = 'hue-rotate(140deg)';
 
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_VELOX_A )
+			if ( type === sdFactionTools.FT_VELOX_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX_DEVASTATOR );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_VELOX_B )
+			if ( type === sdFactionTools.FT_VELOX_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX_RIFLE );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_VELOX_C )
+			if ( type === sdFactionTools.FT_VELOX_C )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_SETR_A )
+			if ( type === sdFactionTools.FT_SETR_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_SETR_B )
+			if ( type === sdFactionTools.FT_SETR_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_TZYRG_A )
+			if ( type === sdFactionTools.FT_TZYRG_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_TZYRG_B )
+			if ( type === sdFactionTools.FT_TZYRG_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_ERTHAL_A )
+			if ( type === sdFactionTools.FT_ERTHAL_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_ERTHAL_B )
+			if ( type === sdFactionTools.FT_ERTHAL_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_SHURG_A )
+			if ( type === sdFactionTools.FT_SHURG_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_SNIPER }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SHURG_COMMANDER );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SHURG_B )
+			if ( type === sdFactionTools.FT_SHURG_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SHURG );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_COUNCIL_A )
+			if ( type === sdFactionTools.FT_COUNCIL_A )
 			{
-				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+				teleport_sound = 'council_teleport';
+				teleport_volume = 0.5;
+				teleport_effect_filter = 'hue-rotate(170deg)';
 
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL_VANGUARD );
 
@@ -669,15 +457,16 @@ class sdFactionTools extends sdEntity
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_COUNCIL_B )
+			if ( type === sdFactionTools.FT_COUNCIL_B )
 			{
-				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+				teleport_sound = 'council_teleport';
+				teleport_volume = 0.5;
+				teleport_effect_filter = 'hue-rotate(170deg)';
 
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL );
 
@@ -695,15 +484,16 @@ class sdFactionTools extends sdEntity
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_COUNCIL_C )
+			if ( type === sdFactionTools.FT_COUNCIL_C )
 			{
-				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+				teleport_sound = 'council_teleport';
+				teleport_volume = 0.5;
+				teleport_effect_filter = 'hue-rotate(170deg)';
 
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL );
 
@@ -722,189 +512,170 @@ class sdFactionTools extends sdEntity
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_FSB )
+			if ( type === sdFactionTools.FT_FSB )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKONIAN_SWORD_BOT );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_SDR_A )
+			if ( type === sdFactionTools.FT_SDR_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SDR_B )
+			if ( type === sdFactionTools.FT_SDR_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SDR_C )
+			if ( type === sdFactionTools.FT_SDR_C )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SDR_D )
+			if ( type === sdFactionTools.FT_SDR_D )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_SDA_A )
+			if ( type === sdFactionTools.FT_SDA_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SDA_B )
+			if ( type === sdFactionTools.FT_SDA_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SDA_C )
+			if ( type === sdFactionTools.FT_SDA_C )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_SDA_D )
+			if ( type === sdFactionTools.FT_SDA_D )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_TS )
+			if ( type === sdFactionTools.FT_TS )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TELEPORT_SWORD }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TELEPORT_SWORD }) );
 					character_entity._ai_gun_slot = 0;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TIME_SHIFTER );
 				}
 			}
 
-			if ( this.type === sdFactionTools.FT_IR_A )
+			if ( type === sdFactionTools.FT_IR_A )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAILGUN }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAILGUN }) );
 					character_entity._ai_gun_slot = 4;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_INSTRUCTOR );
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FT_IR_B )
+			if ( type === sdFactionTools.FT_IR_B )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COMBAT_INSTRUCTOR );
 				}
 			}
 			else
 
-			if ( this.type === sdFactionTools.FT_PILOT )
+			if ( type === sdFactionTools.FT_PILOT )
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
-
-				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
-				sdEntity.entities.push( character_entity );
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
+				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SMG }) );
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SMG }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_EXTRACTION_PILOT );
 				}
 			}
+		}
+		
+		if ( relative_to )
+		{
+			sdSound.PlaySound({ name:teleport_sound, x:xx, y:yy, pitch: 1, volume:teleport_volume });
+			sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:teleport_effect_filter });
+		}
+		
+		return [ character_entity, gun_entity ];
+	}
+	onThink( GSPEED ) // Class-specific, if needed
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		this.hea -= GSPEED;
+
+		if ( this.hea < 95 )
+		{
+			sdFactionTools.SpawnCharacter( this.type, this );
 
 			this.remove();
 		}
