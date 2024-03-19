@@ -171,7 +171,7 @@ class sdExcavator extends sdEntity
 			{
 				// Drop the Excavator Quartz which has the matter value of dug up crystals
 				let crystal = new sdCrystal({ x: this.x, y: this.y, type: sdCrystal.TYPE_EXCAVATOR_QUARTZ });
-				crystal.matter_max = this.crystal_matter;
+				crystal.matter_max = Math.max( 40, this.crystal_matter );
 				crystal.matter = this.crystal_matter;
 				
 				sdEntity.entities.push( crystal );
