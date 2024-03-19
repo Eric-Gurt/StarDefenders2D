@@ -761,8 +761,11 @@ class sdTurret extends sdEntity
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
+	
 	RequireSpawnAlign()
-	{ return false; }
+	{ return true; }
+	get spawn_align_x(){ return 4; };
+	get spawn_align_y(){ return 4; };
 	
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null

@@ -428,8 +428,11 @@ class sdCom extends sdEntity
 		
 		return 60;
 	}
+	
 	RequireSpawnAlign()
-	{ return false; }
+	{ return true; }
+	get spawn_align_x(){ return 4; };
+	get spawn_align_y(){ return 4; };
 	
 	GetHackablesNearby( complain_as=null )
 	{

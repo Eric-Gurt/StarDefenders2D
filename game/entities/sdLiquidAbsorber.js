@@ -56,8 +56,11 @@ class sdLiquidAbsorber extends sdEntity
 			this.DamageWithEffect( ( vel - 3 ) * 25 );
 		}
 	}
-	RequireSpawnAlign() 
-	{ return false; }
+	
+	RequireSpawnAlign()
+	{ return true; }
+	get spawn_align_x(){ return 4; };
+	get spawn_align_y(){ return 4; };
 
 	constructor( params )
 	{
@@ -82,11 +85,6 @@ class sdLiquidAbsorber extends sdEntity
 		
 		//sdLiquidAbsorber.all_scan_units.push( this );
 	}
-	RequireSpawnAlign()
-	{ return true; }
-	
-	get spawn_align_x(){ return 8; };
-	get spawn_align_y(){ return 8; };
 	
 	get description()
 	{
