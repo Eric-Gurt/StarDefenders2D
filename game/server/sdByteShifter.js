@@ -14,7 +14,10 @@
 
 	//TODO: is_static objects could be handled much more efficiently if their properties were not scanned unless their _update_version did increment
 
-	TODO: Some crazy camera shaking in stream logger mode. Maybe client is overriding something?
+	//TODO: Some crazy camera shaking in stream logger mode. Maybe client is overriding something?
+
+	TODO: Shaking camera with fast camera left and right causes parts of non-static objects to disappear... Even without packet shuffling.
+	UPD: It is better now but still occasionally some rare objects can be missing for some reason
 
 */
 
@@ -34,6 +37,32 @@ class sdByteShifter
 	static init_class()
 	{
 		sdByteShifter.simulate_packet_loss_percentage = 0;//0.5;
+		sdByteShifter.simulate_packet_shuffle = false;
+		
+		//sdByteShifter.simulate_all_as_non_static = false; // Bug still happens even when this is enabled. Comment out for some performance gain.
+		
+		sdByteShifter.allow_weirdly_ordered_messages_to_be_used_as_reference = false;
+	}
+	
+	static InstallDebugFeatures( socket )
+	{
+		if ( sdByteShifter.simulate_packet_shuffle )
+		{
+			let e = socket.emit;
+			socket.emit = ( ...args )=>
+			{
+				for ( let i = 0; i < args.length; i++ )
+				{
+					if ( args[ i ] instanceof Array )
+					args[ i ] = args[ i ].slice();
+				}
+				
+				setTimeout( ()=>
+				{
+					e.call( socket, ...args );
+				}, 50 + Math.random() * 1000 );
+			};
+		}
 	}
 	
 	constructor( socket )
@@ -53,6 +82,8 @@ class sdByteShifter
 		this.known_statics_versions = new WeakMap(); // entity => version // Only scan optimization purposes
 		this.snap_object_to_its_version = new WeakMap(); // snap_values => version
 		//this.last_gcso_id = -1;
+		
+		//this.message_id = 0;
 	}
 	/*AppendCSGOID( num )
 	{
@@ -106,6 +137,7 @@ class sdByteShifter
 			else
 			{
 				// Completely refresh reference snapshot since client reported really outdated one
+				//trace( 'ClientReportedArrival', uid, arr );
 				debugger;
 				this.confirmed_snapshot = new Map();
 			}
@@ -113,8 +145,16 @@ class sdByteShifter
 	}
 	ClearOutdatedSentMessages()
 	{
-		while ( this.sent_messages_first < this.sent_messages_confirmed_id_first || this.sent_messages_first < this.sent_messages_last - 100 )
-		this.send_messages.delete( this.sent_messages_first++ );
+		if ( sdByteShifter.allow_weirdly_ordered_messages_to_be_used_as_reference )
+		{
+			while ( this.sent_messages_first < this.sent_messages_confirmed_id_first - 100 || this.sent_messages_first < this.sent_messages_last - 100 ) // Leave some space for out of order message reports
+			this.send_messages.delete( this.sent_messages_first++ );
+		}
+		else
+		{
+			while ( this.sent_messages_first < this.sent_messages_confirmed_id_first || this.sent_messages_first < this.sent_messages_last - 100 ) // Leave some space for out of order message reports
+			this.send_messages.delete( this.sent_messages_first++ );
+		}
 	}
 	
 	/*static GetSyncSnapshot( ent, observer=null )
@@ -181,6 +221,9 @@ class sdByteShifter
 								
 								let is_static = ent.is_static;
 								
+								//if ( sdByteShifter.simulate_all_as_non_static )
+								//is_static = false;
+								
 								if ( is_static )
 								{
 									let old_version = this.known_statics_versions.get( ent );
@@ -226,6 +269,10 @@ class sdByteShifter
 								}*/
 								
 								let confirmed_state = this.confirmed_snapshot.get( ent );
+								
+								/*if ( confirmed_state !== undefined )
+								if ( confirmed_state._broken || confirmed_state._is_being_removed )
+								throw new Error( 'TEST' );*/
 								
 								//let snap = ent.GetSnapshot( frame, false, socket.character );
 								//let snap = sdByteShifter.GetSyncSnapshot( ent, socket.character );
@@ -616,6 +663,7 @@ class sdByteShifter
 							for ( let [ ent, snap_values ] of confirmed_snapshot )
 							{
 								if ( ent.is_static )
+								//if ( !sdByteShifter.simulate_all_as_non_static )
 								{
 									let new_version = this.snap_object_to_its_version.get( snap_values );
 									
@@ -642,6 +690,12 @@ class sdByteShifter
 
 									]);
 									
+									// Scan all snapshots into future and remove this entity, effectivaly causing full snapshot of this entity next time
+									//for ( let i = this.sent_messages_confirmed_id_last; i < this.sent_messages_confirmed_id_last; i++ )
+									for ( let [ uid, snapshot ] of this.send_messages )
+									snapshot.delete( ent );
+									
+									if ( ent.is_static )
 									this.known_statics_versions.delete( ent );
 								}
 							}
@@ -712,7 +766,8 @@ class sdByteShifter
 						sdWorld.last_slowest_class, // 8
 						this.sent_messages_last, // 9
 						line_of_sight_mode ? 1 : 0, // 10
-						this.sent_messages_confirmed_ids.slice() // 11
+						this.sent_messages_confirmed_ids.slice(), // 11
+						//this.message_id++ // 12
 					];
 
 					// Await can happen after disconnection and full GC removal of any pointer on socket

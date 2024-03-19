@@ -26,8 +26,10 @@ class sdLiquidAbsorber extends sdEntity
 		
 		//sdLiquidAbsorber.all_scan_units = [];
 
-		sdLiquidAbsorber.scan_distance = 64;
+		sdLiquidAbsorber.scan_distance = 84;
 		sdLiquidAbsorber.cost_per_absorption = 2; // Cost per removed liquid, in matter
+		
+		sdLiquidAbsorber.cycle_time = 60;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -74,6 +76,8 @@ class sdLiquidAbsorber extends sdEntity
 		this.matter = 0;
 		this._allow_liquid_removal = true;
 		
+		this.toggle_enabled = false; // sdButton thing, makes it work indefinitely
+		
 		// 1 slot
 		
 		//sdLiquidAbsorber.all_scan_units.push( this );
@@ -88,11 +92,25 @@ class sdLiquidAbsorber extends sdEntity
 	{
 		return 'When placed and charged with matter, liquid absorber absorbs liquid into itself and converts into a toxic gas.';
 	}
-				
+	onToggleEnabledChange()
+	{
+		this.SetState();
+	}
 	SetState()
 	{
-		this.enabled = !this.enabled;
-		sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:3 });
+		if ( this.toggle_enabled )
+		{
+			if ( !this.enabled )
+			{
+				this.enabled = true;
+				sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:3 });
+			}
+		}
+		else
+		{
+			this.enabled = !this.enabled;
+			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:3 });
+		}
 		
 		this._update_version++;
 	}
@@ -133,8 +151,8 @@ class sdLiquidAbsorber extends sdEntity
 		{
 			//this.sx = 0;
 			//this.sy = 0;
-			if ( this.charge < 110 )
-			this.charge = Math.min( 110, this.charge + GSPEED );
+			if ( this.charge < sdLiquidAbsorber.cycle_time )
+			this.charge = Math.min( sdLiquidAbsorber.cycle_time, this.charge + GSPEED );
 			else
 			{
 				this.charge = 0;
@@ -144,9 +162,10 @@ class sdLiquidAbsorber extends sdEntity
 			}
 
 
-			if ( this.charge >= 100 )
+			if ( this.charge >= sdLiquidAbsorber.cycle_time )
 			{
-				let liquids = sdWorld.GetAnythingNear( this.x, this.y , sdLiquidAbsorber.scan_distance, null, [ 'sdWater' ] );
+				//let liquids = sdWorld.GetAnythingNear( this.x, this.y , sdLiquidAbsorber.scan_distance, null, [ 'sdWater' ] );
+				let liquids = this.GetAnythingNearCache( this.x, this.y, sdLiquidAbsorber.scan_distance, null, [ 'sdWater' ] );
 				
 				for ( let i = 0; i < liquids.length; i++ ) // Protect nearby entities inside base unit's radius
 				{
@@ -212,7 +231,7 @@ class sdLiquidAbsorber extends sdEntity
 		let xx = 0;
 		if ( this.enabled )
 		{
-			if ( this.charge >= 100 )
+			if ( this.charge >= sdLiquidAbsorber.cycle_time )
 			xx = 2;
 			else
 			xx = 1;
@@ -242,7 +261,7 @@ class sdLiquidAbsorber extends sdEntity
 	{
 		//return 0; // Hack
 		
-		return 100;
+		return 300;
 	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{

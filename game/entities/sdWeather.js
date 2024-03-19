@@ -511,10 +511,10 @@ class sdWeather extends sdEntity
 				let tr = 1000;
 				do
 				{
-					let place_onto = sdEntity.GetRandomEntity();
+					let place_onto = sdEntity.GetRandomEntity(); // Can be null if random entity is being removed
 					
-					// Give up if there is not entities in world at all
-					if ( !place_onto )
+					// Give up if there is no entities in world at all
+					if ( sdEntity.entities.length === 0 )
 					if ( tr > 0 )
 					tr = 0;
 					
@@ -671,12 +671,9 @@ class sdWeather extends sdEntity
 			let place_onto = sdEntity.GetRandomEntity();
 					
 			// Give up if there is not entities in world at all
-			if ( !place_onto )
+			if ( sdEntity.entities.length === 0 )
 			if ( tr > 0 )
-			{
-				tr = 0;
-				break;
-			}
+			tr = 0;
 
 			if ( place_onto )
 			if ( place_onto.is( sdBlock ) )

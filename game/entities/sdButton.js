@@ -18,6 +18,7 @@ import sdNode from './sdNode.js';
 import sdTurret from './sdTurret.js';
 import sdSampleBuilder from './sdSampleBuilder.js';
 import sdSteeringWheel from './sdSteeringWheel.js';
+import sdLiquidAbsorber from './sdLiquidAbsorber.js';
 
 import sdSound from '../sdSound.js';
 
@@ -33,6 +34,7 @@ class sdButton extends sdEntity
 		sdButton.TYPE_FLOOR_SENSOR = 1;
 		sdButton.TYPE_WALL_SENSOR = 2;
 		sdButton.TYPE_WALL_MATTER_SENSOR = 3;
+		sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR = 4;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
 		
 		sdButton.BUTTON_KIND_TOGGLE = 0;
@@ -86,12 +88,18 @@ class sdButton extends sdEntity
 		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 		return 'Matter capacity sensor';
 	
+		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+		return 'Elevator callback sensor';
+	
 		return 'Button';
 	}
 	get description()
 	{
 		if ( this.type === sdButton.TYPE_WALL_SWITCH && this.kind >= sdButton.BUTTON_KIND_TAP_UP && this.kind <= sdButton.BUTTON_KIND_TAP_RIGHT )
 		return `Directional buttons to be used along with elevator motors. Make sure your elevator motor has elevator path built with background walls.`;
+	
+		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+		return `Reacts to elevator motors. Isn\'t switched off automatically, unless one of controlled elevator stops.`;
 	
 		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields etc.`;
 	}
@@ -175,12 +183,15 @@ class sdButton extends sdEntity
 	
 		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures max_matter
+	
+		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures count
 		
 		sdButton.buttons.push( this );
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR || this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		if ( from_entity._is_bg_entity === 0 )
 		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdBlock ) )
@@ -245,6 +256,12 @@ class sdButton extends sdEntity
 								best_found = true;
 							}
 						}
+					}
+					else
+					if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+					{
+						if ( e.is( sdSteeringWheel ) && e.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+						v += 1;
 					}
 				}
 			}
@@ -312,6 +329,14 @@ class sdButton extends sdEntity
 				// These should not auto-activate
 			}
 			else
+			if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+			{
+				// Can be only enabled
+				let c = this.IsFilterConditionsMet();
+				if ( c )
+				this.SetActivated( true );
+			}
+			else
 			this.SetActivated( this.IsFilterConditionsMet() );
 		}
 		
@@ -373,7 +398,8 @@ class sdButton extends sdEntity
 			let entities_with_toggle_enabled = [ 
 				...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), 
 				...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ), 
-				...this.FindObjectsInACableNetwork( null, sdSteeringWheel, true ) 
+				...this.FindObjectsInACableNetwork( null, sdSteeringWheel, true ), 
+				...this.FindObjectsInACableNetwork( null, sdLiquidAbsorber, true ) 
 			]; // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
 			let turrets = this.FindObjectsInACableNetwork( null, sdTurret, true );
@@ -392,6 +418,11 @@ class sdButton extends sdEntity
 			{
 				let delay = 0;
 				
+				if ( !this.activated )
+				{
+					// Skip delays on deactivation? This will allow ping-pong movement for elevator movements when delay is added
+				}
+				else
 				for ( let i2 = 0; i2 < path.length; i2++ ) // 0 is button/sensor
 				{
 					let node = path[ i2 ];
@@ -541,6 +572,8 @@ class sdButton extends sdEntity
 					}
 				});
 			}
+
+			//trace( entities_with_toggle_enabled );
 			for ( let i = 0; i < entities_with_toggle_enabled.length; i++ )
 			{
 				let antigravity = entities_with_toggle_enabled[ i ].entity;
@@ -557,6 +590,12 @@ class sdButton extends sdEntity
 				
 				if ( !IsPathTraversable( path ) )
 				continue;
+			
+				/*for ( let i2 = 0; i2 < path.length; i2++ )
+				if ( path[i2]._net_id === 161235055 )
+				{
+					trace('visited 161235055 node');
+				}*/
 				
 				MeasureDelayAndDo( path, antigravity, ()=>
 				{
@@ -570,8 +609,25 @@ class sdButton extends sdEntity
 						
 						antigravity._toggle_source_current = vv ? this : null;
 					}
+					
+					if ( typeof antigravity._toggle_direction_current !== 'undefined' )
+					{
+						antigravity._toggle_direction_current = null;
+						for ( let i = path.length - 1; i >= 0; i-- )
+						{
+							let e = path[ i ]
+							if ( ( e.is( sdButton ) && ( e.kind >= sdButton.BUTTON_KIND_TAP_UP && e.kind <= sdButton.BUTTON_KIND_TAP_RIGHT ) ) ||
+								 ( e.is( sdNode ) && ( e.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER ) ))
+							{
+								antigravity._toggle_direction_current = e;
+								break;
+							}
+						}
+					}
+					
 
 					antigravity.toggle_enabled = vv;
+					antigravity.onToggleEnabledChange();
 					
 					if ( vv )
 					antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -670,7 +726,7 @@ class sdButton extends sdEntity
 				)
 			)
 		{
-			if ( this.type === sdButton.TYPE_WALL_BUTTON )
+			if ( this.type === sdButton.TYPE_WALL_BUTTON || this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 			{
 				if ( command_name === 'PRESS_BUTTON' )
 				this.SetActivated( true );
@@ -687,6 +743,7 @@ class sdButton extends sdEntity
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			}
 			
+			if ( this.type !== sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 			if ( this.filter )
 			{
 				if ( command_name === 'SET_FILTER_CONDITION' )
@@ -720,7 +777,7 @@ class sdButton extends sdEntity
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
 		if ( exectuter_character.canSeeForUse( this ) )
 		{
-			if ( this.type === sdButton.TYPE_WALL_BUTTON )
+			if ( this.type === sdButton.TYPE_WALL_BUTTON || this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 			{
 				if ( this.activated )
 				this.AddContextOption( 'Deactivate button (E works too)', 'UNPRESS_BUTTON', [] );
@@ -741,7 +798,7 @@ class sdButton extends sdEntity
 				this.AddContextOption( 'Enable door reaction', 'TOGGLE_DOOR_REACTION', [] );
 			}
 
-			
+			if ( this.type !== sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 			if ( this.filter )
 			{
 				this.AddContextOption( 'Toggle filter condition', 'SET_FILTER_CONDITION', [], false );
@@ -752,7 +809,7 @@ class sdButton extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.filter )
+		if ( this.filter && this.type !== sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		{
 			sdEntity.Tooltip( ctx, this.title, 0, -8 );
 			sdEntity.TooltipUntranslated( ctx, this.filter.join(' '), 0, 0, this.IsFilterConditionsMet() ? '#66ff66' : '#ff6666' );
@@ -790,6 +847,9 @@ class sdButton extends sdEntity
 		else
 		{
 			var activated = ( this.activated || ( sdShop.isDrawing && this.type !== sdButton.TYPE_FLOOR_SENSOR ) ) ? 3 : 2;
+			
+			if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+			activated = this.activated ? 1 : 0;
 
 			ctx.apply_shading = true;
 			ctx.drawImageFilterCache( sdButton.img_button, 0,yy, 32,32,-16,-16,32,32 );

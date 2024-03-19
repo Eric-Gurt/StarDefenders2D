@@ -473,13 +473,14 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:0, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdButton', type:0, kind:2, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdButton', type:0, kind:3, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdButton', type:0, kind:4, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdButton', type:0, kind:5, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:2, _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:3, _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:4, _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdButton', type:0, kind:5, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 
 
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )

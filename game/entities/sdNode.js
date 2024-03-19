@@ -151,6 +151,9 @@ class sdNode extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.type === sdNode.TYPE_SIGNAL_ONCE || ( this.type === sdNode.TYPE_SIGNAL_DELAYER && this.variation === 1 ) )
+		ctx.apply_shading = false;
+			
 		let xx = 0;
 		
 		if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )

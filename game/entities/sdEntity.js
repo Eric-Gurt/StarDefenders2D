@@ -4238,6 +4238,9 @@ class sdEntity
 	onSnapshotApplied() // To override
 	{
 	}
+	onToggleEnabledChange()
+	{
+	}
 	//static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	static GuessEntityName( net_id_or_biometry ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	{

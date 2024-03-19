@@ -5654,7 +5654,7 @@ class sdGunClass
 			sound: 'gun_rifle',
 			
 			//title: 'Rifle',
-			title_dynamic: ( gun )=> { return gun.extra[ ID_TITLE ]; },
+			title_dynamic: ( gun )=> { return gun.extra ? gun.extra[ ID_TITLE ] : 'title_dynamic?'; },
 			
 			//slot: 2,
 			slot_dynamic: ( gun )=> { return gun.extra[ ID_SLOT ]; },

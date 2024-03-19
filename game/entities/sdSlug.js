@@ -175,7 +175,7 @@ class sdSlug extends sdEntity
 						{
 							//this.last_jump = sdWorld.time;
 							this.time_since_jump = 0;
-							sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.25 });
+							sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.17 });
 
 							let dx = ( this._current_target.x - this.x );
 							let dy = ( this._current_target.y - this.y );
@@ -252,7 +252,7 @@ class sdSlug extends sdEntity
 					//this.last_jump = sdWorld.time;
 					this.time_since_jump = 0;
 							
-					sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.25 });
+					sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.17 });
 
 					let dx = this.side;
 					let dy = 0;

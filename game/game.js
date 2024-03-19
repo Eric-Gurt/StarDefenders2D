@@ -383,6 +383,7 @@ var socket = io( '/', {
 
 } );
 
+sdByteShifter.InstallDebugFeatures( socket );
 
 globalThis.socket_io_crashed = false;
 
@@ -775,7 +776,9 @@ let enf_once = true;
 	SpawnConnection();
 
 	let messages_to_report_arrival = [];
-	let last_message_uid = -2;
+	let last_message_uid = -2; // For arrival reporting
+		
+	//let last_message_id = -1; // For out-of-order detection and ignoring of such messages
 	
 	function ClearWorld()
 	{
@@ -798,6 +801,7 @@ let enf_once = true;
 		//trace( sdTask.tasks );
 		//setTimeout( ()=>{ trace( sdTask.tasks ) }, 1 );
 		
+		//last_message_id = -1;
 		last_message_uid = -2;
 		messages_to_report_arrival = [];
 		
@@ -964,6 +968,12 @@ let enf_once = true;
 			if ( !SOCKET_IO_MODE )
 			stuff_arr = JSON.parse( LZW.lzw_decode( stuff_arr ) );
 			
+			// Prevent out of order messages, which happens
+			/*let message_id = stuff_arr[ 12 ];
+			if ( message_id <= last_message_id )
+			return;
+			else
+			last_message_id = message_id;*/
 			
 			let snapshot = sdSnapPack.Decompress( stuff_arr[ 0 ] );
 			let score = stuff_arr[ 1 ];
@@ -994,19 +1004,11 @@ let enf_once = true;
 				}
 			}
 			
-			//if ( message_id_to_report !== -1 )
-			//messages_to_report_arrival.push( message_id_to_report );
-			if ( last_message_uid < message_id_to_report )
+			if ( sdByteShifter.allow_weirdly_ordered_messages_to_be_used_as_reference || last_message_uid < message_id_to_report )
 			{
 				last_message_uid = message_id_to_report;
 				
 				messages_to_report_arrival.push( message_id_to_report );
-			}
-			else
-			{
-				/*console.warn( 'How?' );
-				debugger;
-				return;*/
 			}
 			
 			let frame = globalThis.GetFrame();
@@ -1528,6 +1530,7 @@ let enf_once = true;
 	//let last_sent_snapshot = [];
 	let frame = 0;
 	//let last_gcso_id = 0;
+	//let my_message_id = 0;
 	const logic = ()=>
 	{
 		try
@@ -1600,6 +1603,8 @@ let enf_once = true;
 						}
 					}
 					
+					//trace( messages_to_report_arrival.slice() ); // Seems to be always in order
+					
 					new_snapshot = [ 
 						Math.round( sdWorld.my_entity.look_x ), // 0
 						Math.round( sdWorld.my_entity.look_y ), // 1
@@ -1654,7 +1659,7 @@ let enf_once = true;
 					else
 					{
 						if ( Math.random() < 1 - sdByteShifter.simulate_packet_loss_percentage )
-						socket.emit( 'Kv2', sd_events );
+						socket.emit( 'Kv2', sd_events.slice() );
 					
 						sd_events.length = 0;
 					}

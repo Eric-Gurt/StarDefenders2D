@@ -1127,6 +1127,8 @@ let next_drop_log = 0;
 io.on( 'connection', ( socket )=> 
 //io.onConnection( socket =>
 {
+	sdByteShifter.InstallDebugFeatures( socket );
+
 	socket.likely_a_real_player = true; // Can be a sign of webcrawler too, though these are likely to disconnect quickly
 	
 	// Note: Make sure to remove all pointers at socket.on('disconnect', () => 
@@ -2051,8 +2053,19 @@ io.on( 'connection', ( socket )=>
 	
 	socket.last_gsco_time = sdWorld.time;
 	
+	//let last_message_id = -1;
+	
 	socket.on('Kv2', ( sd_events )=>
 	{
+		// Prevent out of order messages, which happens
+		/*if ( message_id instanceof Number )
+		{
+			if ( message_id <= last_message_id )
+			return;
+			else
+			last_message_id = message_id;
+		}*/
+		
 		if ( sd_events instanceof Array )
 		if ( sd_events.length < 32 )
 		for ( var i = 0; i < sd_events.length; i++ )

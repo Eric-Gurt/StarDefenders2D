@@ -23,6 +23,7 @@ import sdManualTurret from './sdManualTurret.js';
 import sdTimer from './sdTimer.js';
 import sdSampleBuilder from './sdSampleBuilder.js';
 import sdButton from './sdButton.js';
+import sdNode from './sdNode.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -182,10 +183,13 @@ class sdSteeringWheel extends sdEntity
 		
 		this._regen_timeout = 0;
 		
+		this._last_stop_sound = 0;
+		
 		this.driver0 = null;
 		
 		this.toggle_enabled = false;
 		this._toggle_source_current = null;
+		this._toggle_direction_current = null;
 		
 		this._scan = [ this ];
 		this._scan_net_ids = [ this._net_id ];
@@ -586,12 +590,23 @@ class sdSteeringWheel extends sdEntity
 	ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === '_scan_net_ids' ) return true;
+		if ( prop === '_toggle_direction_current' ) return true;
+		if ( prop === '_toggle_source_current' ) return true;
 		
 		return false;
 	}
 	/*static GlobalThink( GSPEED )
 	{
 	}*/
+	
+	onToggleEnabledChange()
+	{
+		//if ( !this.toggle_enabled )
+		{
+			sdSound.PlaySound({ name:'door_start', x:this.x, y:this.y, volume:0.2 });
+		}
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -675,16 +690,27 @@ class sdSteeringWheel extends sdEntity
 				let dx = 0;
 				let dy = 0;
 				
-				if ( this._toggle_source_current )
+				if ( this._toggle_direction_current )
 				{
-					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_UP )
-					dy = -1;
-					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_DOWN )
-					dy = 1;
-					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_LEFT )
-					dx = -1;
-					if ( this._toggle_source_current.kind === sdButton.BUTTON_KIND_TAP_RIGHT )
-					dx = 1;
+					if ( this._toggle_direction_current.is( sdButton ) )
+					{
+						if ( this._toggle_direction_current.kind === sdButton.BUTTON_KIND_TAP_UP )
+						dy = -1;
+						if ( this._toggle_direction_current.kind === sdButton.BUTTON_KIND_TAP_DOWN )
+						dy = 1;
+						if ( this._toggle_direction_current.kind === sdButton.BUTTON_KIND_TAP_LEFT )
+						dx = -1;
+						if ( this._toggle_direction_current.kind === sdButton.BUTTON_KIND_TAP_RIGHT )
+						dx = 1;
+					}
+					else
+					if ( this._toggle_direction_current.is( sdNode ) )
+					{
+						let an = this._toggle_direction_current.variation / 8 * Math.PI * 2;
+						
+						dx = Math.sin( an );
+						dy = -Math.cos( an );
+					}
 				}
 				
 				this.vx = dx * GSPEED * speed;
@@ -718,7 +744,13 @@ class sdSteeringWheel extends sdEntity
 					else
 					{					
 						if ( !sdWorld.inDist2D_Boolean( 0,0, this.vx,this.vy, 1 ) )
-						sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.25, volume:1 });
+						if ( sdWorld.time > this._last_stop_sound - 1000 )
+						{
+							this._last_stop_sound = sdWorld.time;
+							sdSound.PlaySound({ name:'door_stop', x:this.x, y:this.y, volume:0.2 });
+							
+							
+						}
 
 						this.vx = 0;
 						this.vy = 0;
@@ -798,7 +830,11 @@ class sdSteeringWheel extends sdEntity
 						else
 						{					
 							if ( !sdWorld.inDist2D_Boolean( 0,0, this.vx,this.vy, 1 ) )
-							sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.25, volume:1 });
+							if ( sdWorld.time > this._last_stop_sound - 1000 )
+							{
+								this._last_stop_sound = sdWorld.time;
+								sdSound.PlaySound({ name:'world_hit2', x:this.x, y:this.y, pitch:0.5, volume:1 });
+							}
 
 							this.vx = 0;
 							this.vy = 0;
