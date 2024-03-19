@@ -1985,29 +1985,30 @@ class sdRenderer
 			
 			ctx.camera_relative_world_scale = sdRenderer.distance_scale_on_screen_foreground;
 			
+			
+		}
+		
+		if ( show_hud ) // Makeing it entity-independant for case of game logic crash, to allow admin commands
+		{
 			if ( sdShop.open )
 			sdShop.Draw( ctx );
-			
+
 			if ( sdChat.open )
 			sdChat.Draw( ctx );
-			
+
 			if ( sdContextMenu.open )
 			sdContextMenu.Draw( ctx );
-		
-			if ( !sdRenderer.UseCrosshair() )
-			{
-				/*ctx.drawImage( sdWorld.img_cursor, 
-					sdWorld.mouse_screen_x, 
-					sdWorld.mouse_screen_y, 64,64 );*/
-					
-				ctx.drawImageFilterCache( sdWorld.img_cursor, 
-					sdWorld.mouse_screen_x, 
-					sdWorld.mouse_screen_y, 64,64 );
-					
-					
-			}
-			
-			
+		}
+
+		if ( !sdRenderer.UseCrosshair() )
+		{
+			/*ctx.drawImage( sdWorld.img_cursor, 
+				sdWorld.mouse_screen_x, 
+				sdWorld.mouse_screen_y, 64,64 );*/
+
+			ctx.drawImageFilterCache( sdWorld.img_cursor, 
+				sdWorld.mouse_screen_x, 
+				sdWorld.mouse_screen_y, 64,64 );
 		}
 		
 		if ( !sdWorld.my_entity || sdWorld.my_entity.hea < 0 || sdWorld.my_entity._is_being_removed )

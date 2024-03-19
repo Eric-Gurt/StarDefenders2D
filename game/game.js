@@ -1535,7 +1535,16 @@ let enf_once = true;
 	{
 		try
 		{
-			sdWorld.HandleWorldLogic( frame );
+			try
+			{
+				sdWorld.HandleWorldLogic( frame );
+			}
+			catch( e )
+			{
+				sdRenderer.service_mesage_until = sdWorld.time + 5000;
+				sdRenderer.service_mesage = 'World simulation logic error! ' + e;
+				debugger;
+			}
 
 			const isTransportWritable = socket.io.engine &&
 										socket.io.engine.transport &&
@@ -1666,12 +1675,21 @@ let enf_once = true;
 				}
 			}
 
-			sdRenderer.Render( frame );
+			try
+			{
+				sdRenderer.Render( frame );
+			}
+			catch( e )
+			{
+				sdRenderer.service_mesage_until = sdWorld.time + 5000;
+				sdRenderer.service_mesage = 'Render logic error! ' + e;
+				debugger;
+			}
 		}
 		catch( e )
 		{
 			sdRenderer.service_mesage_until = sdWorld.time + 5000;
-			sdRenderer.service_mesage = 'Game/render logic error! ' + e;
+			sdRenderer.service_mesage = 'Overall game logic error! ' + e;
 			debugger;
 		}
 		
