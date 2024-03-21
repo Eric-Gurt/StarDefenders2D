@@ -1070,6 +1070,10 @@ class sdShop
 	}
 	static IsGodModeOnlyItem( _build_params, inception=0 )
 	{
+		// Loop found, ignore this parent folder
+		if ( inception > 100 )
+		return undefined;
+		
 		const Result = ( v )=>
 		{
 			if ( _build_params._opens_category )
@@ -1080,7 +1084,6 @@ class sdShop
 		
 		if ( _build_params._godmode_only )
 		{
-			
 			return Result( true );
 		}
 		
@@ -1094,7 +1097,12 @@ class sdShop
 			{
 				if ( sdShop.options[ i ]._opens_category )
 				if ( sdShop.options[ i ]._opens_category === _build_params._category )
-				return Result( sdShop.IsGodModeOnlyItem( sdShop.options[ i ], inception + 1 ) );
+				{
+					let r = sdShop.IsGodModeOnlyItem( sdShop.options[ i ], inception + 1 );
+					
+					if ( r !== undefined ) // Inception
+					return Result( r );
+				}
 			}
 		}
 		
