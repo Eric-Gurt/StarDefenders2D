@@ -842,7 +842,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_DAMAGER, _category:'Admin tools' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', is_server_teleport:1, _category:'Admin tools' });
 
-			for ( var i = 1; i <= 40; i++ ) // increment when you add new humanoids or else they won't show up in shop
+			// for ( var i = 1; i <= 40; i++ ) // increment when you add new humanoids or else they won't show up in shop // This is no longer required. - Molis
+			for ( var i = 1; i < sdFactionTools.FACTIONS_LENGTH; i++ )
 			{
 				sdShop.options.push({
 					_class: 'sdFactionTools',
