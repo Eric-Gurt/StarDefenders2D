@@ -33,6 +33,8 @@ class sdShop
 		sdShop.options = [];
 		sdShop.options_snappack = null; // Generated on very first connection. It means shop items can not be changed after world initialization, but not only because of that (shop data is sent only once per connection)
 		
+		sdShop.category_godmode_permission_cache = new Map(); // String => true/false
+		
 		sdShop.scroll_y = 0;
 		sdShop.scroll_y_target = 0;
 		
@@ -1064,6 +1066,38 @@ class sdShop
 				_category:'Upgrades', _min_build_tool_level: sdShop.upgrades[ i ].min_build_tool_level || 0 });
 		}
 
+	}
+	static IsGodModeOnlyItem( _build_params, inception=0 )
+	{
+		const Result = ( v )=>
+		{
+			if ( _build_params._opens_category )
+			sdShop.category_godmode_permission_cache.set( _build_params._opens_category, v );
+			
+			return v;
+		};
+		
+		if ( _build_params._godmode_only )
+		{
+			
+			return Result( true );
+		}
+		
+		if ( _build_params._category )
+		{
+			let v = sdShop.category_godmode_permission_cache.get( _build_params._category );
+			if ( v !== undefined )
+			return Result( v );
+			
+			for ( let i = 0; i < sdShop.options.length; i++ )
+			{
+				if ( sdShop.options[ i ]._opens_category )
+				if ( sdShop.options[ i ]._opens_category === _build_params._category )
+				return Result( sdShop.IsGodModeOnlyItem( sdShop.options[ i ], inception + 1 ) );
+			}
+		}
+		
+		return Result( false );
 	}
 	static Draw( ctx )
 	{

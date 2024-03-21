@@ -641,6 +641,9 @@ class sdGun extends sdEntity
 			
 			if ( this._held_by._build_params === null )
 			return Infinity; // Unable to place anyway
+		
+			if ( !this._held_by._god && sdShop.IsGodModeOnlyItem( this._held_by._build_params ) )
+			return Infinity;
 			
 			//globalThis.EnforceChangeLog( this, '_held_by' );
 			
