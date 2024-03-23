@@ -51,6 +51,12 @@ class sdLongRangeTeleport extends sdEntity
 		
 		sdLongRangeTeleport.teleported_items = new WeakSet(); // Will be used to prevent rewards for teleporting beacons to other servers rather than destroying them
 		
+		sdLongRangeTeleport.ignored_class_pointers = new Set();
+		sdLongRangeTeleport.ignored_class_pointers.add( 'sdTask' );
+		sdLongRangeTeleport.ignored_class_pointers.add( 'sdSensorArea' );
+		sdLongRangeTeleport.ignored_class_pointers.add( 'sdBG' );
+		//sdLongRangeTeleport.ignored_class_pointers.add( 'sdStatusEffect' );
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -48; }
@@ -919,7 +925,9 @@ class sdLongRangeTeleport extends sdEntity
 			sdWorld.unresolved_entity_pointers[ i ][ 3 ] = net_id_remap.get( sdWorld.unresolved_entity_pointers[ i ][ 3 ] );
 			else
 			{
+				if ( !sdLongRangeTeleport.ignored_class_pointers.has( sdWorld.unresolved_entity_pointers[ i ]._class ) )
 				trace( 'Warning: Pointer is impossible to resolve - entity was not recreated in new world. Pointer will likely be set to null. Pointer: ', sdWorld.unresolved_entity_pointers[ i ] );
+			
 				sdWorld.unresolved_entity_pointers[ i ][ 3 ] = -1;
 			}
 		}

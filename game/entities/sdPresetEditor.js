@@ -35,6 +35,7 @@ import sdCharacter from './sdCharacter.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -1061,7 +1062,9 @@ class sdPresetEditor extends sdEntity
 			sdWorld.unresolved_entity_pointers[ i ][ 3 ] = net_id_remap.get( sdWorld.unresolved_entity_pointers[ i ][ 3 ] );
 			else
 			{
+				if ( !sdLongRangeTeleport.ignored_class_pointers.has( sdWorld.unresolved_entity_pointers[ i ]._class ) )
 				trace( 'Warning: Pointer is impossible to resolve - entity was not recreated in new world. Pointer will likely be set to null. Pointer: ', sdWorld.unresolved_entity_pointers[ i ] );
+			
 				sdWorld.unresolved_entity_pointers[ i ][ 3 ] = -1;
 			}
 		}

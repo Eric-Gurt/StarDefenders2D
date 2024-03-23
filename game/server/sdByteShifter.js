@@ -39,6 +39,8 @@ class sdByteShifter
 		sdByteShifter.simulate_packet_loss_percentage = 0;//0.5;
 		sdByteShifter.simulate_packet_shuffle = false;
 		
+		sdByteShifter.last_warning = 0;
+		
 		//sdByteShifter.simulate_all_as_non_static = false; // Bug still happens even when this is enabled. Comment out for some performance gain.
 		
 		sdByteShifter.allow_weirdly_ordered_messages_to_be_used_as_reference = false;
@@ -702,7 +704,12 @@ class sdByteShifter
 						}
 						else
 						{
-							trace( 'Unable to compare snapshot that is being sent to old snapshots that were client-mentioned as confirmed ( '+this.sent_messages_confirmed_ids[ i ]+' < '+this.sent_messages_first+' < '+this.sent_messages_last+' ). This may cause entities not being properly removed on client-side, especially RTP tasks since they are constantly made and deleted...' );
+							if ( sdWorld.time > sdByteShifter.last_warning + 60 * 1000 )
+							{
+								sdByteShifter.last_warning = sdWorld.time;
+								trace( 'Unable to compare snapshot that is being sent to old snapshots that were client-mentioned as confirmed ( '+this.sent_messages_confirmed_ids[ i ]+' < '+this.sent_messages_first+' < '+this.sent_messages_last+' ). This may cause entities not being properly removed on client-side, especially RTP tasks since they are constantly made and deleted...' );
+							}
+							
 							this.sent_messages_confirmed_ids.splice( i, 1 );
 							i--;
 							continue;
