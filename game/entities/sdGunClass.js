@@ -7314,14 +7314,6 @@ class sdGunClass
 			projectile_properties: 
 			{ 
 				time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
-				/*
-				_custom_target_reaction:( bullet, target_entity )=>
-				{
-					if ( target_entity.is( sdCrystal ) )
-					{
-						target_entity._being_sawed_time = sdWorld.time;
-					}
-				}*/
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -7331,15 +7323,13 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				obj._custom_target_reaction = ( bullet, target_entity )=>
+				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
 				{
 					if ( target_entity.is( sdCrystal ) )
 					{
 						target_entity._being_sawed_time = sdWorld.time;
 					}
 				};
-				
-				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				return obj;
 			},

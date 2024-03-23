@@ -42,7 +42,7 @@ class sdFactionskin extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 
-	static SetHumanoidSkinClass( character_entity, skin_class = -1 )
+	static SetHumanoidSkinClass( character_entity, skin_class = -1, ENTITIES_ARRAY=sdEntity.entities, GUN_CLASS=sdGun )
 	{
 		let character_settings;
 		if ( skin_class === sdFactionskin.SKIN_STAR_DEFENDER ) // Star Defender Regular
@@ -756,7 +756,7 @@ class sdFactionskin extends sdEntity
 
 			if ( Math.random() < 0.25 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_EMERGENCY_INSTRUCTOR }) );
+				ENTITIES_ARRAY.push( new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_EMERGENCY_INSTRUCTOR }) );
 			}
 		}
 

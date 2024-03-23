@@ -83,7 +83,9 @@ class sdSound
 				});
 			};
 
-			MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loop2.wav' );
+			//MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loop2.wav' );
+			MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loopB.wav' );
+			MakeLoopAmbient( 'matter_charge_loop_inverse', './audio/matter_charge_loopB_inverse.wav' );
 			MakeLoopAmbient( 'ambient1', './audio/ambient1_looped3.wav' );
 			MakeLoopAmbient( 'ambient3', './audio/ambient3.wav' );
 			MakeLoopAmbient( 'ambient4_short', './audio/ambient4_short.wav' );
@@ -126,6 +128,9 @@ class sdSound
 
 			sdSound.server_mute = false; // Becomes true during silent removals
 
+			//sdSound.matter_charge_sum = 0;
+			//sdSound.matter_decrease_strength = 0;
+			sdSound.matter_target_volume_soft = 0;
 		}
 	}
 	static AllowSound()
@@ -148,28 +153,39 @@ class sdSound
 		{
 			let old_old = sdWorld.my_entity._matter_old;
 			
-			sdWorld.my_entity._matter_old = sdWorld.MorphWithTimeScale( sdWorld.my_entity._matter_old, sdWorld.my_entity.matter, 0.9, GSPEED );
+			//sdWorld.my_entity._matter_old = sdWorld.MorphWithTimeScale( sdWorld.my_entity._matter_old, sdWorld.my_entity.matter, 0.9, GSPEED );
+			sdWorld.my_entity._matter_old = sdWorld.MorphWithTimeScale( sdWorld.my_entity._matter_old, sdWorld.my_entity.matter, 0.95, GSPEED );
 			
 			target_volume = ( ( sdWorld.my_entity._matter_old - old_old ) );
 		}
 		
 		// Do not play negative matter sound during regular building
-		if ( target_volume < 0 )
-		target_volume = Math.min( 0, target_volume + 0.5 );
-	
-		sdSound.matter_charge_loop.volume = document.hidden ? 0 : sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
-		//sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
+		//if ( target_volume < 0 )
+		//target_volume = Math.min( 0, target_volume + 0.5 );
 		
-		if ( target_volume >= 0 )
+		sdSound.matter_target_volume_soft = sdWorld.MorphWithTimeScale( sdSound.matter_target_volume_soft, target_volume, 0.9, GSPEED );
+	
+		let v = document.hidden ? 0 : ( sdSound.volume * Math.min( 1, Math.abs( sdSound.matter_target_volume_soft ) ) * 2 );
+		
+		if ( sdSound.matter_target_volume_soft >= 0 )
 		{
-			sdSound.matter_charge_loop.playbackRate = 1;
-			//sdSound.matter_charge_loop.playbackRate = 1;
+			sdSound.matter_charge_loop.volume = v;
+			sdSound.matter_charge_loop_inverse.volume = 0;
 		}
 		else
 		{
-			sdSound.matter_charge_loop.playbackRate = 0.6;
-			//sdSound.matter_charge_loop.playbackRate = 0.6;
+			sdSound.matter_charge_loop_inverse.volume = v;
+			sdSound.matter_charge_loop.volume = 0;
 		}
+		
+		//sdSound.matter_charge_loop.pitch = 1 + Math.abs( sdSound.matter_target_volume_soft ) * 0.01;
+		//sdSound.matter_charge_loop_inverse.pitch = 1 + Math.abs( sdSound.matter_target_volume_soft ) * 0.01;
+		
+		/*if ( target_volume >= 0 )
+		sdSound.matter_charge_loop.pitch = 1;
+		else
+		sdSound.matter_charge_loop.pitch = 0.6;*/
+		
 	
 		sdSound.allow_matter_drain_loop = false;
 		
@@ -383,7 +399,8 @@ class sdSound
 	{
 		let di = sdWorld.Dist2D( sdWorld.camera.x, sdWorld.camera.y, x, y );
 		
-		return Math.max( 0.2, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
+		//return Math.max( 0.2, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
+		return Math.max( 0.05, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
 	}
 	static CreateSoundChannel( for_entity )
 	{

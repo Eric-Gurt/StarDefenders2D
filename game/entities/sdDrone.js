@@ -2046,7 +2046,7 @@ class sdDrone extends sdEntity
 				let x0;
 				let y0;
 			
-				let r = 15 + Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI * 2 ) * 2;
+				let r = 15 + Math.sin( ( sdWorld.time + ( sdShop.isDrawing ? 0 : this._anim_shift ) ) / 1000 * Math.PI * 2 ) * 2;
 				
 				let morph = this._anim_flap;//Math.min( 1, timer / 30, ( 2.3 * 30 - timer ) / 30 );
 				r = 64 * morph + r * ( 1 - morph );

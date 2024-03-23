@@ -508,7 +508,7 @@ class sdCrystal extends sdEntity
 										{
 											sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:e.x, y:e.y, volume:1.5, pitch:0.6 });
 
-											if ( e2.is( sdCharacter ) && e2.AttemptTeleportOut( null, true ) )
+											if ( e2.is( sdCharacter ) && ( e2._god || e2.AttemptTeleportOut( null, true ) ) )
 											{
 												// Saved by cloner
 											}
@@ -1159,12 +1159,14 @@ class sdCrystal extends sdEntity
 					{
 						let ent = new sdCrystal({ 
 							x: this.x, 
-							y: this.y, 
+							y: this.y + this.hitbox_y2, 
 							sx: this.sx, 
 							sy: this.sy, 
 							type: 1,
 							speciality: this.speciality
 						});
+						
+						ent.y -= ent.hitbox_y2;
 						
 						if ( xx_tot === 2 && yy_tot === 2 )
 						{

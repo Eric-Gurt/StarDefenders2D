@@ -1637,11 +1637,6 @@ class sdStatusEffect extends sdEntity
 	}
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		/*if ( by_entity )
-		if ( by_entity.IsPlayerClass() )
-		if ( by_entity._god )
-		return true;
-		*/
 		return false;
 	}
 	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
@@ -1649,22 +1644,13 @@ class sdStatusEffect extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let isforless = false;
+		//let isforless = false;
 		
 		if ( !this._for_confirmed )
 		{
 			let arr = sdStatusEffect.entity_to_status_effects.get( this.for );
 
 			this._for_confirmed = true;
-			
-			//if ( this._net_id === 93678 ) // Cursed status effect that can't find itself in the arr later
-			//debugger;
-			
-			/*if ( this.for )
-			if ( this.for._net_id === 85738 )
-			{
-				trace( 'Adding status effect '+this._net_id+' for tracked character '+this.for._net_id+', effects:', arr ? arr.slice() : undefined );
-			}*/
 
 			if ( arr )
 			{
@@ -1682,63 +1668,32 @@ class sdStatusEffect extends sdEntity
 			}
 		}
 		
-		//if ( this._for_confirmed )
-		//{
-			if ( !this.for || this.for._is_being_removed )
-			{
-				if ( this.remove_if_for_removed )
-				{
-					/*if ( this.for )
-					if ( this.for._net_id === 85738 )
-					{
-						trace( 'Remove called for status effect for tracked character' );
-					}*/
-
-					this.remove();
-					return true;
-				}
-				
-				this.for = null;
-				isforless = true;
-			}
-		//}
-		//else
-		/*if ( this.for )//&& !this.for._is_being_removed )
+		if ( this.for )
 		{
-			let arr = sdStatusEffect.entity_to_status_effects.get( this.for );
+			this.x = this.for.x + ( this.for._hitbox_x1 + this.for._hitbox_x2 ) / 2;
+			this.y = this.for.y + ( this.for._hitbox_y1 + this.for._hitbox_y2 ) / 2;
+		}
 
-			this._for_confirmed = true;
-
-			if ( arr )
-			{
-				arr.push( this );
-				arr.inversed.unshift( this );
-			}
-			else
-			{
-				arr = [ this ];
-				arr.inversed = [ this ];
-				sdStatusEffect.entity_to_status_effects.set( this.for, arr );
-			}
-		}*/
-		/*else
+		if ( !this.for || this.for._is_being_removed )
 		{
-			isforless = true;
-		}*/
-
-		if ( isforless )
-		{
-			/*if ( this.remove_if_for_removed )
+			if ( this.remove_if_for_removed )
 			{
 				this.remove();
 				return true;
-			}*/
+			}
+
+			this.for = null;
+			//isforless = true;
+		}
+
+		/*if ( isforless )
+		{
 		}
 		else
 		{
 			this.x = this.for.x + ( this.for._hitbox_x1 + this.for._hitbox_x2 ) / 2;
 			this.y = this.for.y + ( this.for._hitbox_y1 + this.for._hitbox_y2 ) / 2;
-		}
+		}*/
 		
 		let status_type = sdStatusEffect.types[ this.type ];
 		

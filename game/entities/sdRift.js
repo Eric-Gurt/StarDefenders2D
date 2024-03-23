@@ -34,16 +34,26 @@ class sdRift extends sdEntity
 		sdRift.portals = 0;
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
+		sdRift.TYPE_UNSET = 0;
 		sdRift.TYPE_CRYSTALLIZED_PORTAL = 1; // Crystal asps and quickies
 		sdRift.TYPE_CUBE_PORTAL = 2; // Cubes
 		sdRift.TYPE_ASTEROID_PORTAL = 3; // Asteroid Portal
 		sdRift.TYPE_DIMENSIONAL_TEAR = 4; // "Black hole" / dimensional tear
 		sdRift.TYPE_COUNCIL_PORTAL = 5; // Council portal, from failing the portal machine task
+		
+		sdRift.scale_by_type = [
+			1, // 0
+			1, // 1
+			1.3, // 2
+			1, // 3
+			2, // 4
+			1.3 // 5
+		];
 	}
-	get hitbox_x1() { return -7; }
-	get hitbox_x2() { return 7; }
-	get hitbox_y1() { return -15; }
-	get hitbox_y2() { return 15; }
+	get hitbox_x1() { return -15 * ( sdRift.scale_by_type[ this.type ] || 1 ); }
+	get hitbox_x2() { return 15 * ( sdRift.scale_by_type[ this.type ] || 1 ); }
+	get hitbox_y1() { return -15 * ( sdRift.scale_by_type[ this.type ] || 1 ); }
+	get hitbox_y2() { return 15 * ( sdRift.scale_by_type[ this.type ] || 1 ); }
 
 	get hard_collision()
 	{ return false; }
@@ -84,6 +94,7 @@ class sdRift extends sdEntity
 		this.teleport_alpha = 0; // Alpha/transparency ( divided by 60 in draw code ) when portal is about to change location
 		this._tear_range = 48; // It starts out weak so players have a chance to close it, then grows stronger over time
 
+		this._consumed_guns_snapshots = [];
 		//this._pull_entities = []; // For dimensional tear
 
 		/*if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
@@ -93,6 +104,10 @@ class sdRift extends sdEntity
 
 		if ( this.type !== 5 ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
 		sdRift.portals++;
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_consumed_guns_snapshots' );
 	}
 	GetFilterColor()
 	{
@@ -240,8 +255,13 @@ class sdRift extends sdEntity
 							{
 								if ( di < 20 )
 								if ( !e._held_by )
-								//if ( e.class === sdGun.CLASS_CRYSTAL_SHARD || e.class === sdGun.CLASS_SCORE_SHARD )
-								e.remove();
+								if ( !e._is_being_removed )
+								{
+									this._consumed_guns_snapshots.push( e.GetSnapshot( globalThis.GetFrame(), true ) );
+									
+									//if ( e.class === sdGun.CLASS_CRYSTAL_SHARD || e.class === sdGun.CLASS_SCORE_SHARD )
+									e.remove();
+								}
 							}
 							else
 							if ( !e.is( sdCrystal ) || !e.is_anticrystal ) // Otherwise anticrystals get removed without touching the rift // EG: Not sure if we want to damage other kinds of crystals though
@@ -512,13 +532,36 @@ class sdRift extends sdEntity
 
 					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-					let gun;
-					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					gun.extra = 1;
+						let gun;
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+						gun.extra = 1;
 
-					//gun.sx = sx;
-					//gun.sy = sy;
-					sdEntity.entities.push( gun );
+						//gun.sx = sx;
+						//gun.sy = sy;
+						sdEntity.entities.push( gun );
+						
+						
+						while ( this._consumed_guns_snapshots.length > 0 )
+						{
+							let snapshot = this._consumed_guns_snapshots.shift();
+							try
+							{
+								let ent = sdEntity.GetObjectFromSnapshot( snapshot );
+								ent.x = this.x;
+								ent.y = this.y;
+								ent.sx = 0 + Math.random() * 8 - 4;
+								ent.sy = 0 + Math.random() * 8 - 4;
+								ent.ttl = sdGun.disowned_guns_ttl;
+								ent._held_by = null;
+								sdEntity.entities.push( ent );
+
+								sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+							}
+							catch ( e )
+							{
+								trace( 'Rift can\'t drop consumed weapon', snapshot );
+							}
+						}
 
 					}, 500 );
 				}
@@ -613,7 +656,12 @@ class sdRift extends sdEntity
 		if ( !sdShop.isDrawing )
 		{
 			ctx.globalAlpha = this.teleport_alpha / 60;
-			ctx.scale( 0.75 * this.scale + ( 0.25 * this.hea / this.hmax ), 0.75 * this.scale + ( 0.25 * this.hea / this.hmax ) );
+			
+			let s = 0.75 * this.scale + ( 0.25 * this.hea / this.hmax );
+			
+			s *= ( sdRift.scale_by_type[ this.type ] || 1 );
+			
+			ctx.scale( s, s );
 		}
 		ctx.drawImageFilterCache( sdRift.img_rift_anim, frame * 32, 0, 32, 32, - 16, - 16, 32,32 );
 		ctx.globalAlpha = 1;

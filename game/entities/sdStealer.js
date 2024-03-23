@@ -9,6 +9,7 @@ import sdCom from './sdCom.js';
 import sdCrystal from './sdCrystal.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdJunk from './sdJunk.js';
+import sdArea from './sdArea.js';
 
 class sdStealer extends sdEntity
 {
@@ -160,7 +161,8 @@ class sdStealer extends sdEntity
 						{
 							if ( sdWorld.last_hit_entity )
 							{
-								if ( e === sdWorld.last_hit_entity ) 
+								if ( e === sdWorld.last_hit_entity )
+								if ( sdArea.CheckPointDamageAllowed( xx, yy ) )
 								{
 									e.remove();
 									e._broken = false;

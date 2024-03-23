@@ -51,6 +51,7 @@ import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdVeloxMiner from './sdVeloxMiner.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdStealer from './sdStealer.js';
+import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
 class sdTurret extends sdEntity
 {
@@ -105,7 +106,8 @@ class sdTurret extends sdEntity
 			sdVeloxMiner,
 			sdWorld.entity_classes.sdShurgTurret,
 			sdZektaronDreadnought,
-			sdStealer
+			sdStealer,
+			sdCouncilIncinerator
 			
 		] ); // Module random load order that causes error prevention
 		

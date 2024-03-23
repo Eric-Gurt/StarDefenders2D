@@ -192,6 +192,7 @@ class sdBullet extends sdEntity
 		this._return_damage_to_owner = false; // Stimpack and medikit
 		this._custom_target_reaction = null;
 		this._custom_target_reaction_protected = null;
+		this._custom_target_reaction_before_damage_tests = null; // Ignores protection, called always even for BSU and other kinds of protected entities
 		this._custom_detonation_logic = null;
 		this._custom_post_bounce_reaction = null;
 		this._custom_extra_think_logic = null;
@@ -714,6 +715,11 @@ class sdBullet extends sdEntity
 
 		if ( !this.RegularCollisionFiltering( from_entity ) )
 		return;
+	
+
+		if ( this._custom_target_reaction_before_damage_tests )
+		this._custom_target_reaction_before_damage_tests( this, from_entity );
+
 
 		if ( (
 				this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) &&
@@ -732,7 +738,7 @@ class sdBullet extends sdEntity
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					{
 						let damaged = true;
-
+						
 						if ( this._damage !== 0 )
 						{
 							let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
