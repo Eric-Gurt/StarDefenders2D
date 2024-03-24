@@ -86,6 +86,7 @@ class sdByteShifter
 		//this.last_gcso_id = -1;
 		
 		//this.message_id = 0;
+		this.old_leaders_str = '';
 	}
 	/*AppendCSGOID( num )
 	{
@@ -476,7 +477,16 @@ class sdByteShifter
 									]);
 								}
 								
-								let snap_stored_copy = Object.assign( {}, snap );
+								let snap_stored_copy = null;
+								
+								//if ( Math.random() < 0.5 )
+								//snap_stored_copy = Object.assign( {}, snap ); // Slower than structuredClone
+								//else
+								//if ( Math.random() < 0.5 )
+								snap_stored_copy = structuredClone( snap ); // Much faster somehow
+								//else
+								//snap_stored_copy = { ...snap }; // Slower than structuredClone
+								
 								replacement_for_confirmed_snapshot.set( ent, snap_stored_copy );
 								//replacement_for_confirmed_snapshot.set( ent, snap );
 								
@@ -724,8 +734,17 @@ class sdByteShifter
 					{
 						socket.last_sync_score = sdWorld.time;
 
-						//socket.emit('LEADERS', [ sdWorld.leaders, GetPlayingPlayersCount() ] );
 						leaders = [ sdWorld.leaders_global, sdWorld.GetPlayingPlayersCount() ];
+						
+						let leaders_str = JSON.stringify( leaders );
+						
+						if ( leaders_str !== this.old_leaders_str )
+						{
+							leaders = LZW.lzw_encode( leaders_str );
+							this.old_leaders_str = leaders_str;
+						}
+						else
+						leaders = null;
 					}
 
 					let sd_events = [];
@@ -751,8 +770,12 @@ class sdByteShifter
 					
 					
 				
-					let promise_snapshot_compress = sdSnapPack.Compress( snapshot );
-					let promise_sd_events_compress = globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_LZW, data: JSON.stringify( sd_events ) });
+					let promise_snapshot_compress = globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_LZW, data: JSON.stringify( snapshot ) });//sdSnapPack.Compress( snapshot );
+					let promise_sd_events_compress = ( sd_events.length === 0 ) ?
+														null
+														: 
+														globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_LZW, data: JSON.stringify( sd_events ) });
+					
 					//LZW.lzw_encode( JSON.stringify( sd_events ) )
 
 					//await Promise.all([ promise_snapshot_compress, promise_sd_events_compress ]);
@@ -762,8 +785,8 @@ class sdByteShifter
 					let full_msg = [ 
 						await promise_snapshot_compress, // 0
 						socket.GetScore(), // 1
-						LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
-						await promise_sd_events_compress, // 3
+						leaders,//LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
+						( sd_events.length === 0 ) ? 0 : await promise_sd_events_compress, // 3
 						//leaders, // 2
 						//sd_events, // 3
 						socket.character ? Math.round( socket.character._force_add_sx * 1000 ) / 1000 : 0, // 4

@@ -13,13 +13,17 @@ class WorkerServiceLogic
 		WorkerServiceLogic.ACTION_EXIT = 2;
 		WorkerServiceLogic.ACTION_STRINGIFY = 3;
 	}
-	static HandleCommand( command, callback )
+	static async HandleCommand( command, callback )
 	{
 		//callback( LZW.lzw_encode.toString() );
 			
 		if ( command.action === WorkerServiceLogic.ACTION_LZW ) // { action: WorkerServiceLogic.ACTION_LZW, data: String }
 		{
-			callback( LZW.lzw_encode( command.data ) );
+			//callback( LZW.lzw_encode( command.data ) );
+			
+			let r = await LZW.lzw_encode_csapi( command.data );
+			
+			callback( r );
 		}
 		else
 		if ( command.action === WorkerServiceLogic.ACTION_ECHO )

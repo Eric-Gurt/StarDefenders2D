@@ -3146,6 +3146,16 @@ globalThis.StopAllWorkers = ()=> // Probably not needed
 		worker_services[ i ].Execute({ action: WorkerServiceLogic.ACTION_EXIT });
 	}*/
 };
+/*
+
+	To disable workers:
+		
+	globalThis.ExecuteParallel = ( command, callback )=>
+	{
+		WorkerServiceLogic.HandleCommand( command, callback );
+	};
+
+*/
 globalThis.ExecuteParallel = ( command, callback )=>
 {
 	for ( let i = 0; i < worker_services.length; i++ )

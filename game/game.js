@@ -963,7 +963,7 @@ let enf_once = true;
 			}
 		});
 		
-		socket.on( 'RESv3', ( stuff_arr )=>
+		socket.on( 'RESv3', async ( stuff_arr )=>
 		{
 			if ( !SOCKET_IO_MODE )
 			stuff_arr = JSON.parse( LZW.lzw_decode( stuff_arr ) );
@@ -975,10 +975,10 @@ let enf_once = true;
 			else
 			last_message_id = message_id;*/
 			
-			let snapshot = sdSnapPack.Decompress( stuff_arr[ 0 ] );
+			let snapshot = JSON.parse( await LZW.lzw_decode_csapi( stuff_arr[ 0 ] ) );//sdSnapPack.Decompress( stuff_arr[ 0 ] );
 			let score = stuff_arr[ 1 ];
-			let leaders = JSON.parse( LZW.lzw_decode( stuff_arr[ 2 ] ) );
-			let sd_events = JSON.parse( LZW.lzw_decode( stuff_arr[ 3 ] ) );
+			let leaders = ( stuff_arr[ 2 ] === null ) ? null : JSON.parse( LZW.lzw_decode( stuff_arr[ 2 ] ) );
+			let sd_events = ( stuff_arr[ 3 ] === 0 ) ? [] : JSON.parse( await LZW.lzw_decode_csapi( stuff_arr[ 3 ] ) );
 
 			let _force_add_sx = stuff_arr[ 4 ];
 			let _force_add_sy = stuff_arr[ 5 ];
