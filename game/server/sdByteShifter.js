@@ -31,6 +31,7 @@ import sdWorld from '../sdWorld.js';
 
 let vision_cells_cache = {};
 
+let ShallowClone = ( typeof structuredClone === 'undefined' ) ? ( a )=>Object.assign( {}, a ) : structuredClone;
 
 class sdByteShifter
 {
@@ -483,9 +484,10 @@ class sdByteShifter
 								//snap_stored_copy = Object.assign( {}, snap ); // Slower than structuredClone
 								//else
 								//if ( Math.random() < 0.5 )
-								snap_stored_copy = structuredClone( snap ); // Much faster somehow
+								//snap_stored_copy = structuredClone( snap ); // Much faster somehow
 								//else
 								//snap_stored_copy = { ...snap }; // Slower than structuredClone
+								snap_stored_copy = ShallowClone( snap );
 								
 								replacement_for_confirmed_snapshot.set( ent, snap_stored_copy );
 								//replacement_for_confirmed_snapshot.set( ent, snap );
