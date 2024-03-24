@@ -42,7 +42,7 @@ class sdFactionskin extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 
-	static SetHumanoidSkinClass( character_entity, skin_class = -1, ENTITIES_ARRAY=sdEntity.entities, GUN_CLASS=sdGun )
+	static SetHumanoidSkinClass( character_entity, skin_class = -1, ENTITIES_ARRAY=sdEntity.entities, GUN_CLASS=sdGun, PLAY_SOUND_METHOD=sdSound.PlaySound, SEND_EFFECT_METHOD=sdWorld.SendEffect )
 	{
 		let character_settings;
 		if ( skin_class === sdFactionskin.SKIN_STAR_DEFENDER ) // Star Defender Regular
@@ -219,10 +219,10 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 3; // AI team 3 is for the Council
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-			sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+			PLAY_SOUND_METHOD({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 			character_entity._ai.next_action = 5;
 
-			sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+			SEND_EFFECT_METHOD({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_COUNCIL_VANGUARD ) // Council Vanguard
@@ -258,10 +258,10 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 3; // AI team 3 is for the Council
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-			sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+			PLAY_SOUND_METHOD({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 			character_entity._ai.next_action = 5;
 
-			sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+			SEND_EFFECT_METHOD({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_SARRONIAN ) // Sarronian E3 Unit

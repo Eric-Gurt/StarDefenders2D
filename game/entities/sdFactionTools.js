@@ -176,6 +176,19 @@ class sdFactionTools extends sdEntity
 		
 		let logic = null;
 		
+		let play_sound_calls = [];
+		let PLAY_SOUND_METHOD = ( ...args )=>
+		{
+			play_sound_calls.push( args );
+		};
+		let send_effect_calls = [];
+		let SEND_EFFECT_METHOD = ( ...args )=>
+		{
+			send_effect_calls.push( args );
+		};
+		
+		let CLASSES_AND_STUFF = [ ENTITIES_ARRAY, GUN_CLASS, PLAY_SOUND_METHOD, SEND_EFFECT_METHOD ];
+		
 		{
 			if ( type === sdFactionTools.FT_SD_A )
 			{
@@ -184,7 +197,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -195,7 +208,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -206,7 +219,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -217,7 +230,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -229,7 +242,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -240,7 +253,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -251,7 +264,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKOK, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -262,7 +275,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_PHOENIX_FALKOK, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_PHOENIX_FALKOK, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -273,7 +286,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_PHOENIX_FALKOK, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_PHOENIX_FALKOK, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -285,7 +298,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
 					character_entity._ai_gun_slot = 5;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN_HEAVY, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN_HEAVY, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -296,7 +309,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG }) );
 					character_entity._ai_gun_slot = 1;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -309,7 +322,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -322,7 +335,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -334,7 +347,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX_DEVASTATOR, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX_DEVASTATOR, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -345,7 +358,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX_RIFLE, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX_RIFLE, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -356,7 +369,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -368,7 +381,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -380,7 +393,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -392,7 +405,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -403,7 +416,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -415,7 +428,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -426,7 +439,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -438,7 +451,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SHURG_COMMANDER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SHURG_COMMANDER, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -449,7 +462,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SHURG, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SHURG, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -465,7 +478,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL_VANGUARD, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL_VANGUARD, ...CLASSES_AND_STUFF );
 
 					logic = LOGIC_COUNCIL;
 				}
@@ -482,7 +495,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL, ...CLASSES_AND_STUFF );
 
 					logic = LOGIC_COUNCIL;
 				}
@@ -499,7 +512,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL, ...CLASSES_AND_STUFF );
 
 					logic = LOGIC_COUNCIL;
 				}
@@ -511,7 +524,7 @@ class sdFactionTools extends sdEntity
 				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 				ENTITIES_ARRAY.push( character_entity );
 				{
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKONIAN_SWORD_BOT, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_FALKONIAN_SWORD_BOT, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -523,7 +536,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -534,7 +547,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -545,7 +558,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -556,7 +569,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -568,7 +581,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -579,7 +592,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 					character_entity._ai_gun_slot = 3;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -590,7 +603,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -601,7 +614,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -613,7 +626,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TELEPORT_SWORD }) );
 					character_entity._ai_gun_slot = 0;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TIME_SHIFTER, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TIME_SHIFTER, ...CLASSES_AND_STUFF );
 				}
 			}
 
@@ -624,7 +637,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAILGUN }) );
 					character_entity._ai_gun_slot = 4;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_INSTRUCTOR, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_INSTRUCTOR, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -635,7 +648,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 					character_entity._ai_gun_slot = 2;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COMBAT_INSTRUCTOR, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COMBAT_INSTRUCTOR, ...CLASSES_AND_STUFF );
 				}
 			}
 			else
@@ -647,7 +660,7 @@ class sdFactionTools extends sdEntity
 				{
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SMG }) );
 					character_entity._ai_gun_slot = 1;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_EXTRACTION_PILOT, ENTITIES_ARRAY, GUN_CLASS );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_EXTRACTION_PILOT, ...CLASSES_AND_STUFF );
 				}
 			}
 		}
