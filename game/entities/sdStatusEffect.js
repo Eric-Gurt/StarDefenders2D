@@ -1524,6 +1524,9 @@ class sdStatusEffect extends sdEntity
 		
 		let type = sdStatusEffect.types[ this.type ];
 		
+		if ( !this.for || this.for._is_being_removed )
+		return false;
+		
 		if ( type )
 		if ( type.IsVisible )
 		return type.IsVisible( this, observer_entity );
