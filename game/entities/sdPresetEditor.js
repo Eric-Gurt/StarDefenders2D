@@ -1321,8 +1321,12 @@ class sdPresetEditor extends sdEntity
 				if ( command_name === 'TIMESCALE' )
 				{
 					this.time_scale = parseFloat( parameters_array[ 0 ] ) * 1000;
-					if ( isNaN( this.time_scale ) )
+					
+					if ( isNaN( this.time_scale ) || this.time_scale < 0 )
 					this.time_scale = 0;
+				
+					if ( this.time_scale > 10 * 1000 )
+					this.time_scale = 10 * 1000;
 				
 					this._update_version++;
 				}

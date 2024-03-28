@@ -1926,7 +1926,12 @@ class sdWorld
 		
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
-		ret.push( sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ) );
+		{
+			ret.push( sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ) );
+			
+			//if ( ret.length > 10000 )
+			//throw new Error( 'Timescale crash?' );
+		}
 		
 		return ret;
 	}
@@ -2802,7 +2807,7 @@ class sdWorld
 			}
 
 			for ( i = 0; i < sdPresetEditor.regions.length; i++ )
-			if ( sdPresetEditor.regions[ i ].time_scale !== 1 )
+			if ( sdPresetEditor.regions[ i ].time_scale !== 1000 )
 			{
 				if ( stop_motion_regions === null )
 				stop_motion_regions = [];
