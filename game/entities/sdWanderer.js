@@ -60,7 +60,7 @@ class sdWanderer extends sdEntity
 		//this.x = 0;
 		//this.y = 0;
 		
-		this.time_left = 30 * 60 * 60; // Time to move across the screen, in GSPEED units ( 30 GSPEED = 1 second )
+		//this.time_left = 30 * 60 * 60; // Time to move across the screen, in GSPEED units ( 30 GSPEED = 1 second )
 		
 		this.layer = Math.round( Math.random() * 7 ); // Behind which skybox / darklands layer will this entity move?
 		
@@ -111,7 +111,11 @@ class sdWanderer extends sdEntity
 				this.side = 1;
 			}
 			
-			if ( this.time_left <= 0 )
+			//if ( this.time_left <= 0 )
+			if ( this._move_x > 0 && this.x > sdWorld.world_bounds.x2 + ( 1600 * this.layer ) )
+			this.remove();
+		
+			if ( this._move_x <= 0 && this.x < sdWorld.world_bounds.x1 - ( 1600 * this.layer ) )
 			this.remove();
 		}
 	}
