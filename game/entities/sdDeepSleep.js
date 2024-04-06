@@ -145,6 +145,7 @@ import sdRescueTeleport from './sdRescueTeleport.js';
 import sdBeacon from './sdBeacon.js';
 import sdHover from './sdHover.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
+import sdWanderer from './sdWanderer.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -484,6 +485,9 @@ class sdDeepSleep extends sdEntity
 		
 		if ( from_entity.is( sdDeepSleep ) )
 		return;
+	
+		if ( from_entity.is( sdWanderer ) )
+		return; // Don't let bg ents wake up deep sleep cells
 		
 		//this.ping_time = sdWorld.time;
 		
@@ -1137,6 +1141,9 @@ class sdDeepSleep extends sdEntity
 					if ( as_dependence || this.DoesOverlapWith( e ) )
 					{
 						if ( e.is( sdWeather ) )
+						return false;
+					
+						if ( e.is( sdWanderer ) )
 						return false;
 
 						if ( e._is_being_removed )
