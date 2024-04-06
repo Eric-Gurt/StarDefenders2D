@@ -22,6 +22,7 @@ import sdStatusEffect from '../entities/sdStatusEffect.js';
 import sdCharacter from '../entities/sdCharacter.js';
 import sdPlayerSpectator from '../entities/sdPlayerSpectator.js';
 import sdOctopus from '../entities/sdOctopus.js';
+import sdWanderer from '../entities/sdWanderer.js';
 
 import sdAtlasMaterial from './sdAtlasMaterial.js';
 
@@ -917,6 +918,43 @@ class sdRenderer
 				let w = offset_scale * 800 * current_camera_scale;
 				let h = offset_scale * 400 * current_camera_scale;
 				
+				// sdWanderer / background entities
+				if ( sdWanderer.wanderers.length > 0 )
+				{
+					// Same as dark land parallax canvas / background
+					//ctx.sd_color_mult_r = 
+					//ctx.sd_color_mult_g = 
+					//ctx.sd_color_mult_b = 1 / ( 1 + Math.max( 0, sdWorld.camera.y - sdWorld.base_ground_level - 256 ) * 0.003 );
+					for ( let i = 0; i < sdWanderer.wanderers.length; i++ )
+					{
+						let wanderer = sdWanderer.wanderers[ i ];
+						ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - sdWanderer.wanderers[ i ].layer * 0.001;
+		
+						let xx = sdRenderer.screen_width / 2;
+						let yy = sdRenderer.screen_height / 2;
+			
+						let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - sdWanderer.wanderers[ i ].layer ) ) * offset_scale * current_camera_scale;
+					
+						xx += ( 0 - sdWorld.camera.x + wanderer.x ) * scale;
+						yy += ( sdWorld.base_ground_level + 150 - sdWorld.camera.y + wanderer.y ) * scale;
+					
+						xx -= sdRenderer.screen_width / 2 * current_camera_scale;
+						yy -= sdRenderer.screen_height / 2 * current_camera_scale;
+						
+					
+						yy = Math.max( yy, yy % h - h ); // Faster for "deep down" cases
+					
+						ctx.globalAlpha = 1; // Just in case
+						
+						//ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( 'fmech_boost' ), xx, yy, 64 * scale, 64 * scale );
+						ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( wanderer.GetImageFromModel() ), wanderer.GetXOffsetFromModel(),wanderer.GetYOffsetFromModel(),
+						wanderer.GetWidthFromModel(), wanderer.GetHeightFromModel(), xx, yy,
+						wanderer.GetWidthFromModel() * scale * wanderer.side, wanderer.GetHeightFromModel() * scale );
+						
+						// Not ideal but it works? - Booraz149
+					}
+				}
+				//
 				
 				
 				
