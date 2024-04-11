@@ -821,6 +821,21 @@ class sdHover extends sdEntity
 		else
 		return `Flying vehicle, uses matter instead of fuel. Extra drivers grant the ability to shoot.`;
 	}
+
+	get title()
+	{
+		if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
+		return "Fighter Hover";
+
+		if ( this.type === sdHover.TYPE_TANK )
+		return "Tank SD-7";
+
+		if ( this.type === sdHover.TYPE_BIKE )
+		return "Hoverbike";
+
+		return "Hover";
+	}
+
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea <= 0 )
@@ -829,7 +844,8 @@ class sdHover extends sdEntity
 		if ( this.nick !== '' )
 		sdEntity.Tooltip( ctx, this.nick );
 		else
-		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, this.title );
+		/* if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, "Fighter Hover" );
 		else
 		if ( this.type === 2 )
@@ -838,7 +854,7 @@ class sdHover extends sdEntity
 		if ( this.type === 3 )
 		sdEntity.Tooltip( ctx, "Hoverbike" );
 		else
-		sdEntity.Tooltip( ctx, "Hover" );
+		sdEntity.Tooltip( ctx, "Hover" ); */
 		
 		let w = this.type === 3 ? 20 : 40;
 	
