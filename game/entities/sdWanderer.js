@@ -88,7 +88,7 @@ class sdWanderer extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		{
-			this.time_left -= GSPEED;
+			//this.time_left -= GSPEED;
 			
 			/*if ( !this._set_spawn )
 			{
