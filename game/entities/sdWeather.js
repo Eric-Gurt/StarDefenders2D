@@ -81,6 +81,7 @@ import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdVeloxFortifier from './sdVeloxFortifier.js';
 import sdSolarMatterDistributor from './sdSolarMatterDistributor.js';
 import sdExcavator from './sdExcavator.js';
+import sdWanderer from './sdWanderer.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -254,6 +255,8 @@ class sdWeather extends sdEntity
 		this._event_rotation_time = ( 30 * 60 * 14 ) + ( 30 * 45 ); // Time until potential events rotate, set to 14 minutes and 45 seconds so it can roll new events when fresh game starts instead of having earthquakes only for 15 minutes
 		this._weather_rotation_time = ( 30 * 60 * 19 ) + ( 30 * 45 ); // Same as above but for weather, set to 19 minutes and 45 seconds so 15 seconds after it selects new weather events
 		this._sd_task_rotation_time = ( 30 * 60 * 29 ) + ( 30 * 45 );; // 29 minutes, 45 seconds, selects new at 30
+		
+		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -3511,6 +3514,22 @@ class sdWeather extends sdEntity
 			this.y2 = sdWorld.world_bounds.y2;
 			
 			//return; // Hack
+			
+			this._next_wanderer_spawn -= GSPEED;
+			
+			if ( this._next_wanderer_spawn <= 0 )
+			{
+				let spawn_layer = Math.round( Math.random() * 7 );
+				let x_spawn = ( Math.random() < 0.5 ) ? ( this.x1 - 1600 * ( 1 + spawn_layer ) ) : ( this.x2 + 1600 * ( 1 + spawn_layer ) ); // Will probably need tweaking - Booraz149
+				this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 );
+				let ent = new sdWanderer({ 
+					x:x_spawn,
+					y:( 0 - Math.random() * 400 ),
+					layer:spawn_layer
+				});
+				sdEntity.entities.push( ent );
+				
+			}
 
 			this.day_time += GSPEED;
 			this._event_rotation_time += GSPEED;
