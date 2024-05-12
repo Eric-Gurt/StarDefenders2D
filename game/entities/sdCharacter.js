@@ -4541,6 +4541,7 @@ THING is cosmic mic drop!`;
 		
 		let can_breathe = false;
 
+		if ( sdWeather.only_instance )
 		if ( sdWeather.only_instance.air > 0 )
 		can_breathe = true;
 	
