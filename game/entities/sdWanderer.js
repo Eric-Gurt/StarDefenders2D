@@ -191,13 +191,13 @@ class sdWanderer extends sdEntity
 	{
 
 		if ( this.model === sdWanderer.MODEL_SD_HOVER )
-		return 64;
+		return 32;
 
 		if ( this.model === sdWanderer.MODEL_SD_FIGHTER_HOVER )
-		return 64;
+		return 32;
 	
 		if ( this.model === sdWanderer.MODEL_SD_TANK_HOVER )
-		return 64;
+		return 32;
 	
 		if ( this.model === sdWanderer.MODEL_CUBE )
 		return 32;
