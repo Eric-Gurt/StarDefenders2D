@@ -1582,6 +1582,19 @@ class sdServerConfigFull extends sdServerConfigShort
 			let snapshot_made_time;
 			
 			let frame = globalThis.GetFrame();
+			
+			function replacer( key, value ) // Really only needed for singleplayer
+			{
+				// Filtering out properties
+				//if (typeof value === "string") {
+				if ( value instanceof Image )
+				{
+					return value.filename;
+					//return undefined;
+				}
+				return value;
+			}
+
 
 			while ( true )
 			{
@@ -1608,13 +1621,15 @@ class sdServerConfigFull extends sdServerConfigShort
 					{
 						try
 						{
-							let json_test = JSON.stringify( ent_snapshot );
+							let json_test = JSON.stringify( ent_snapshot, replacer );
 						}
 						catch ( e )
 						{
 							console.warn( 'Object can not be json-ed! Snapshot likely contains recursion. Error: ', e );
 
 							console.warn( ent_snapshot );
+							
+							snapshot_save_busy = false;
 							throw new Error( 'Stopping everything because saving is no longer possible...' );
 						}
 					}
@@ -1634,6 +1649,8 @@ class sdServerConfigFull extends sdServerConfigShort
 				if ( one_by_one )
 				{
 					debugger;
+					
+					snapshot_save_busy = false;
 					throw new Error( '...Did not find?' );
 				}
 
@@ -1648,7 +1665,7 @@ class sdServerConfigFull extends sdServerConfigShort
 						throw 'worker error';
 					}
 					else*/
-					json = JSON.stringify( save_obj ); // Backup timings report (ms): 755, 894, 2667, 3
+					json = JSON.stringify( save_obj, replacer ); // Backup timings report (ms): 755, 894, 2667, 3
 
 					break;
 				}
@@ -1662,6 +1679,8 @@ class sdServerConfigFull extends sdServerConfigShort
 			if ( entities.length === 0 )
 			{
 				debugger;
+							
+				snapshot_save_busy = false;
 				throw new Error( '0 entities snapshot is about to be saved. This should not happen on regular/singleplayer servers!' );
 			}
 			
