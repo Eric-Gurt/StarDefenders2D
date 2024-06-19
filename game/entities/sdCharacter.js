@@ -5469,7 +5469,9 @@ THING is cosmic mic drop!`;
 								 fake_ent.material === obstacle.material &&
 								 fake_ent._hmax === obstacle._hmax &&
 								 fake_ent._armor_protection_level >= obstacle._armor_protection_level &&
-								 ( obstacle._shielded === null || fake_ent._owner === obstacle._owner || obstacle._shielded._is_being_removed ) &&
+								 
+								 //( obstacle._shielded === null || fake_ent._owner === obstacle._owner || obstacle._shielded._is_being_removed ) &&
+								 ( obstacle._shielded === null || ( initiator === obstacle._owner && obstacle._owner ) || obstacle._shielded._is_being_removed ) &&
 								 !fake_ent.IsInSafeArea()
 							)
 							{

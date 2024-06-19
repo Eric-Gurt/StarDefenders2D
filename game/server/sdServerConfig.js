@@ -1587,7 +1587,7 @@ class sdServerConfigFull extends sdServerConfigShort
 			{
 				// Filtering out properties
 				//if (typeof value === "string") {
-				if ( value instanceof Image )
+				if ( typeof Image !== 'undefined' && value instanceof Image ) // Image is not defined in Node.js, it only exists in a browser
 				{
 					return value.filename;
 					//return undefined;
