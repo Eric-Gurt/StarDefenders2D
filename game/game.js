@@ -1,6 +1,48 @@
 
 /* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun, sdEntity, sdByteShifter, sdChat, sdSound, LZW, sdContextMenu, sdPathFinding, sdAdminPanel, sdDatabaseEditor, sdMotherShipStorageManager, sdCodeEditor, FakeCanvasContext, sdAtlasMaterial, sdCharacter */
 
+/* 
+/** @type { ServiceWorkerRegistration } */ /*
+let registered_service_worker; // ServiceWorkerRegistration
+
+/** @type { ServiceWorker } */ /*
+let service_worker; // ServiceWorker
+
+if ( navigator.serviceWorker.controller ) {
+	console.log( "sdCacher.js service worker is active", navigator.serviceWorker.controller );
+};
+
+// TODO: maybe we can use the main database server to speed up loading files from other servers but i'm not sure if we could do that for now
+navigator.serviceWorker.register( "./client/sdCacher.js", {
+	type: "module"
+} ).then( ( worker_registeration ) => {
+	console.log( "Service Worker registered" );
+	registered_service_worker = worker_registeration;
+
+	service_worker = registered_service_worker.active;
+
+	registered_service_worker.onupdatefound = ( event ) => {
+		console.log( "sdCacher.js update detected" );
+	};
+
+	globalThis.registered_service_worker = registered_service_worker;
+	globalThis.service_worker = service_worker;
+
+	service_worker.onstatechange = ( event ) => {
+		console.log( "Service Worker is changing states" );
+
+		service_worker.onstatechange = null;
+	};
+} );
+
+navigator.serviceWorker.onmessage = ( message ) => {
+	console.log( "Service Worker has sent a message" );
+};
+
+navigator.serviceWorker.onmessageerror = ( messageerror ) => {
+	console.log( "Something went wrong here: " + messageerror );
+}; */
+
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
 sdMobileKeyboard.init_class();
