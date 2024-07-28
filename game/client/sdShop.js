@@ -636,6 +636,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdRift', type: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 5, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdRift', type: 6, _category:'Development tests' });
 				
 				{
 					let base_props = { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals' };
