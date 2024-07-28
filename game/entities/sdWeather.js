@@ -157,6 +157,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
 		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
 		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 51
+		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -294,7 +295,7 @@ class sdWeather extends sdEntity
 	{
 		if ( n === sdWeather.EVENT_ACID_RAIN || n === sdWeather.EVENT_ASTEROIDS || n === sdWeather.EVENT_QUAKE ||
 		n === sdWeather.EVENT_WATER_RAIN || n === sdWeather.EVENT_SNOW ||n === sdWeather.EVENT_MATTER_RAIN ||
-		n === sdWeather.EVENT_DIRTY_AIR )
+		n === sdWeather.EVENT_DIRTY_AIR || n === sdWeather.EVENT_EM_ANOMALIES )
 		return true;
 		
 		return false;
@@ -3502,6 +3503,19 @@ class sdWeather extends sdEntity
 				aerial: false
 				
 			});
+		}
+		if ( r === sdWeather.EVENT_EM_ANOMALIES ) // Electromagnetic anomalies spawn and exist on the map for about 5 minutes.
+		{
+			{
+				sdWeather.SimpleSpawner({
+
+					count: [ 1, 3 ],
+					class: sdRift,
+					params: { type: sdRift.TYPE_ELECTROMAGNETIC_ANOMALY },
+					aerial: true
+
+				});
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
