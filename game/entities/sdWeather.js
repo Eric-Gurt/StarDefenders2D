@@ -259,6 +259,7 @@ class sdWeather extends sdEntity
 		
 		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
 		
+		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
 		this._dustiness = 0; // Client-side variable that is used to apply visual dust effects
@@ -3533,9 +3534,11 @@ class sdWeather extends sdEntity
 			
 			if ( this._next_wanderer_spawn <= 0 )
 			{
+				// Remember, higher layer count = closer to the player's enviroment
 				let spawn_layer = Math.round( Math.random() * 7 );
-				let x_spawn = ( Math.random() < 0.5 ) ? ( this.x1 - 1600 * ( 1 + spawn_layer ) ) : ( this.x2 + 1600 * ( 1 + spawn_layer ) ); // Will probably need tweaking - Booraz149
+				let x_spawn = ( Math.random() < 0.5 ) ? ( this.x1 - ( 1600 * 8 ) + ( 1600 * ( 1 + spawn_layer ) ) ) : ( this.x2 + ( 1600 * 8 ) - ( 1600 * ( 1 + spawn_layer ) ) ); // Will probably need tweaking - Booraz149
 				this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 );
+				
 				let ent = new sdWanderer({ 
 					x:x_spawn,
 					y:( 0 - Math.random() * 400 ),

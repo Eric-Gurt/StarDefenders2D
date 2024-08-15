@@ -62,14 +62,14 @@ class sdWanderer extends sdEntity
 		
 		//this.time_left = 30 * 60 * 60; // Time to move across the screen, in GSPEED units ( 30 GSPEED = 1 second )
 		
-		this.layer = Math.round( Math.random() * 7 ); // Behind which skybox / darklands layer will this entity move?
-		
 		this.side = params.side || 1;
 		
 		this._move_x = ( this.x < ( ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ) ? 0.01 : -0.01; // Move from one border to another
 		this._move_y = 0 * ( 1 + this.layer );
 		
-		this._move_x *= Math.random() * 12 * ( 1 + this.layer );
+		//this._move_x *= Math.random() * 12 * ( 1 + this.layer );
+		
+		//this._move_x = 1;
 		
 		//this._set_spawn = false; // Set it's coords to world borders when spawned
 		
@@ -111,11 +111,35 @@ class sdWanderer extends sdEntity
 				this.side = 1;
 			}
 			
+			/*if ( this.x > sdWorld.world_bounds.x2 )
+			{
+				if ( this._move_x > 0 )
+				this._move_x = 8;
+				else
+				this._move_x = -8;
+			}
+			else
+			if ( this.x < sdWorld.world_bounds.x1 )
+			{
+				if ( this._move_x > 0 )
+				this._move_x = 8;
+				else
+				this._move_x = -8;
+			}
+			else
+			{
+				if ( this._move_x > 0 )
+				this._move_x = 2;
+				else
+				this._move_x = -2;
+			}*/
+		
+			
 			//if ( this.time_left <= 0 )
-			if ( this._move_x > 0 && this.x > sdWorld.world_bounds.x2 + ( 1600 * this.layer ) )
+			if ( this._move_x > 0 && this.x > sdWorld.world_bounds.x2 + ( 1600 * 8 ) - ( 1600 * this.layer ) )
 			this.remove();
 		
-			if ( this._move_x <= 0 && this.x < sdWorld.world_bounds.x1 - ( 1600 * this.layer ) )
+			if ( this._move_x <= 0 && this.x < sdWorld.world_bounds.x1 - ( 1600 * 8 ) + ( 1600 * this.layer ) )
 			this.remove();
 		}
 	}
