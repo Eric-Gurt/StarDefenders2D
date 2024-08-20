@@ -258,6 +258,7 @@ class sdWeather extends sdEntity
 		this._sd_task_rotation_time = ( 30 * 60 * 29 ) + ( 30 * 45 );; // 29 minutes, 45 seconds, selects new at 30
 		
 		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
+		this._wanderer_models = [ 0, 1, 2 ]; // These refresh whenever daily events appear. 0, 1 and 2 value are standard SD vehicles. They kinda tell which enemies can spawn on the planet at the moment.
 		
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
@@ -375,6 +376,8 @@ class sdWeather extends sdEntity
 			}
 		}
 		//console.log( "General events: " + this._daily_events );
+		
+		this.GetWandererModels(); // Refresh potential wandering entity spawns
 	}
 	GetDailyWeatherEvents() // Select up to 3 weather events, 2 if you don't count earthquakes
 	{
@@ -475,6 +478,39 @@ class sdWeather extends sdEntity
 			//Essentially we allow 4 events for every 30 minutes, when one happens it cannot happen again until next SD event selection happens.
 		}
 		//console.log( "SD Task events: " + this._daily_sd_task_events );
+	}
+	
+	GetWandererModels() // Set new models which can spawn as background/wandering entities
+	{
+		this._wanderer_models = [ 0, 1, 2 ]; // Default SD vehicles
+		for ( let i = 0; i < this._daily_events.length; i++ )
+		{
+			if ( this._daily_events[ i ] === sdWeather.EVENT_CUBES ) // Can cubes spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_CUBE );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_FALKOKS ) // Can Falkoks spawn on the map?
+			{
+				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_DRONE );
+				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_DRONE2 );
+			}
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_FLYING_MECH ) // Can the Velox mech spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_VELOX_MECH );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_ERTHALS ) // Can the Erthals spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_ERTHAL_DRONE );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SARRONIANS ) // Can Sarronians spawn on the map?
+			{
+				this._wanderer_models.push( sdWanderer.MODEL_SARRONIAN_DRONE );
+				this._wanderer_models.push( sdWanderer.MODEL_SARRONIAN_DRONE2 );
+			}
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR ) // Can the Setr spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_SETR_DRONE );
+		}
+		
+		console.log( "Wanderer models: " + this._wanderer_models );
 	}
 	
 	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }

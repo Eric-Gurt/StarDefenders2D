@@ -25,9 +25,13 @@ class sdWanderer extends sdEntity
 		sdWanderer.MODEL_SD_FIGHTER_HOVER = 1; // SD fighter hover sprite
 		sdWanderer.MODEL_SD_TANK_HOVER = 2; // SD tank hover sprite
 		sdWanderer.MODEL_CUBE = 3; // The good old cyan cube
-		sdWanderer.MODEL_YELLOW_CUBE = 4; // Yellow cube, will need filtering so I'll leave that for later - Booraz149
-		sdWanderer.MODEL_WHITE_CUBE = 5; // White cube, will need filtering so I'll leave that for later - Booraz149
-		sdWanderer.MODEL_ASP = 6; // Asp, will need hue filter but can be done later - Booraz149
+		sdWanderer.MODEL_FALKOK_DRONE = 4; // Falkok drone
+		sdWanderer.MODEL_FALKOK_DRONE2 = 5; // Falkok 2nd drone
+		sdWanderer.MODEL_VELOX_MECH = 6; // Velox flying mech
+		sdWanderer.MODEL_ERTHAL_DRONE = 7; // Erthal drone
+		sdWanderer.MODEL_SARRONIAN_DRONE = 8; // Sarronian drone
+		sdWanderer.MODEL_SARRONIAN_DRONE2 = 9; // Sarronian 2nd drone - There's 5 of these. Let's keep it at 2 spawning for now.
+		sdWanderer.MODEL_SETR_DRONE = 10; // Setr drone
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 0; }
@@ -55,7 +59,7 @@ class sdWanderer extends sdEntity
 	{
 		super( params );
 		
-		this.model = params.model || Math.round( Math.random() * 3 );
+		this.model = params.model || Math.round( Math.random() * 10 );
 		
 		//this.x = 0;
 		//this.y = 0;
@@ -159,6 +163,28 @@ class sdWanderer extends sdEntity
 	
 		if ( this.model === sdWanderer.MODEL_CUBE )
 		return 'sdCube';
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE )
+		return 'drone_falkok_sprite2';
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE2 )
+		return 'drone_falkok_sprite3';
+	
+		if ( this.model === sdWanderer.MODEL_VELOX_MECH )
+		return 'fmech2_sheet';
+	
+		if ( this.model === sdWanderer.MODEL_ERTHAL_DRONE )
+		return 'drone_erthal';
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE )
+		return 'sarronian_drone1';
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE2 )
+		return 'sarronian_drone2';
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
+		return 'drone_setr_sprite';
+	
 		
 	}
 	GetXOffsetFromModel() // X offset for the image to match a flying animation, for example
@@ -175,6 +201,28 @@ class sdWanderer extends sdEntity
 	
 		if ( this.model === sdWanderer.MODEL_CUBE )
 		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE2 )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_VELOX_MECH )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_ERTHAL_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE2 )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
+		return 0;
+	
 		
 	}
 	
@@ -191,6 +239,27 @@ class sdWanderer extends sdEntity
 		return 0;
 	
 		if ( this.model === sdWanderer.MODEL_CUBE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE2 )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_VELOX_MECH )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_ERTHAL_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE2 )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
 		return 0;
 		
 	}
@@ -209,6 +278,27 @@ class sdWanderer extends sdEntity
 	
 		if ( this.model === sdWanderer.MODEL_CUBE )
 		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE2 )
+		return 48;
+	
+		if ( this.model === sdWanderer.MODEL_VELOX_MECH )
+		return 64;
+	
+		if ( this.model === sdWanderer.MODEL_ERTHAL_DRONE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE )
+		return 48;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE2 )
+		return 64;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
+		return 32;
 		
 	}
 	
@@ -225,6 +315,27 @@ class sdWanderer extends sdEntity
 		return 32;
 	
 		if ( this.model === sdWanderer.MODEL_CUBE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_FALKOK_DRONE2 )
+		return 48;
+	
+		if ( this.model === sdWanderer.MODEL_VELOX_MECH )
+		return 96;
+	
+		if ( this.model === sdWanderer.MODEL_ERTHAL_DRONE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE )
+		return 48;
+	
+		if ( this.model === sdWanderer.MODEL_SARRONIAN_DRONE2 )
+		return 64;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
 		return 32;
 		
 	}
