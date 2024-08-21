@@ -32,6 +32,10 @@ class sdWanderer extends sdEntity
 		sdWanderer.MODEL_SARRONIAN_DRONE = 8; // Sarronian drone
 		sdWanderer.MODEL_SARRONIAN_DRONE2 = 9; // Sarronian 2nd drone - There's 5 of these. Let's keep it at 2 spawning for now.
 		sdWanderer.MODEL_SETR_DRONE = 10; // Setr drone
+		sdWanderer.MODEL_SETR_DESTROYER = 11; // Setr destroyer
+		sdWanderer.MODEL_TZYRG_DRONE = 12; // Tzyrg drone
+		sdWanderer.MODEL_TZYRG_DRONE2 = 13; // Tzyrg 2nd drone 
+		sdWanderer.MODEL_ZEKTARON_DREADNOUGHT = 14; // Zektaron dreadnought
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 0; }
@@ -59,7 +63,7 @@ class sdWanderer extends sdEntity
 	{
 		super( params );
 		
-		this.model = params.model || Math.round( Math.random() * 10 );
+		this.model = params.model || Math.round( Math.random() * 2 );
 		
 		//this.x = 0;
 		//this.y = 0;
@@ -185,6 +189,17 @@ class sdWanderer extends sdEntity
 		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
 		return 'drone_setr_sprite';
 	
+		if ( this.model === sdWanderer.MODEL_SETR_DESTROYER )
+		return 'sdSetrDestroyer';
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE )
+		return 'drone_tzyrg_sprite';
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE2 )
+		return 'drone_tzyrg2_sprite';
+	
+		if ( this.model === sdWanderer.MODEL_ZEKTARON_DREADNOUGHT )
+		return 'zektaron_dreadnought';
 		
 	}
 	GetXOffsetFromModel() // X offset for the image to match a flying animation, for example
@@ -221,6 +236,18 @@ class sdWanderer extends sdEntity
 		return 0;
 	
 		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DESTROYER )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE2 )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_ZEKTARON_DREADNOUGHT )
 		return 0;
 	
 		
@@ -261,7 +288,19 @@ class sdWanderer extends sdEntity
 	
 		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
 		return 0;
-		
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DESTROYER )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE2 )
+		return 0;
+	
+		if ( this.model === sdWanderer.MODEL_ZEKTARON_DREADNOUGHT )
+		return 0;
+	
 	}
 	
 	GetWidthFromModel() // Image width value for specific model
@@ -299,6 +338,18 @@ class sdWanderer extends sdEntity
 	
 		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
 		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DESTROYER )
+		return 96;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE2 )
+		return 64;
+	
+		if ( this.model === sdWanderer.MODEL_ZEKTARON_DREADNOUGHT )
+		return 224;
 		
 	}
 	
@@ -337,6 +388,18 @@ class sdWanderer extends sdEntity
 	
 		if ( this.model === sdWanderer.MODEL_SETR_DRONE )
 		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_SETR_DESTROYER )
+		return 64;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE )
+		return 32;
+	
+		if ( this.model === sdWanderer.MODEL_TZYRG_DRONE2 )
+		return 64;
+	
+		if ( this.model === sdWanderer.MODEL_ZEKTARON_DREADNOUGHT )
+		return 128;
 		
 	}
 	

@@ -508,9 +508,24 @@ class sdWeather extends sdEntity
 			
 			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR ) // Can the Setr spawn on the map?
 			this._wanderer_models.push( sdWanderer.MODEL_SETR_DRONE );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR_DESTROYER ) // Can the Setr destroyer spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_SETR_DESTROYER );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR_DESTROYER ) // Can the Setr destroyer spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_SETR_DESTROYER );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_TZYRG ) // Can Tzyrgs spawn on the map?
+			{
+				this._wanderer_models.push( sdWanderer.MODEL_TZYRG_DRONE );
+				this._wanderer_models.push( sdWanderer.MODEL_TZYRG_DRONE2 );
+			}
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Can the Zektaron dreadnought spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_ZEKTARON_DREADNOUGHT );
 		}
 		
-		console.log( "Wanderer models: " + this._wanderer_models );
+		//console.log( "Wanderer models: " + this._wanderer_models );
 	}
 	
 	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
@@ -3566,19 +3581,21 @@ class sdWeather extends sdEntity
 			
 			//return; // Hack
 			
-			this._next_wanderer_spawn -= GSPEED;
+			this._next_wanderer_spawn -= GSPEED * 10;
 			
-			if ( this._next_wanderer_spawn <= 0 )
+			if ( this._next_wanderer_spawn <= 0 && this._wanderer_models.length > 0 )
 			{
 				// Remember, higher layer count = closer to the player's enviroment
 				let spawn_layer = Math.round( Math.random() * 7 );
+				let ent_model = this._wanderer_models[ ~~( Math.random() * this._wanderer_models.length ) ]; // Which wandering sprite will appear?
 				let x_spawn = ( Math.random() < 0.5 ) ? ( this.x1 - ( 1600 * 8 ) + ( 1600 * ( 1 + spawn_layer ) ) ) : ( this.x2 + ( 1600 * 8 ) - ( 1600 * ( 1 + spawn_layer ) ) ); // Will probably need tweaking - Booraz149
 				this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 );
 				
 				let ent = new sdWanderer({ 
 					x:x_spawn,
 					y:( 0 - Math.random() * 400 ),
-					layer:spawn_layer
+					layer:spawn_layer,
+					model: ent_model
 				});
 				sdEntity.entities.push( ent );
 				
