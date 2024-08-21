@@ -3581,7 +3581,7 @@ class sdWeather extends sdEntity
 			
 			//return; // Hack
 			
-			this._next_wanderer_spawn -= GSPEED * 10;
+			this._next_wanderer_spawn -= GSPEED;
 			
 			if ( this._next_wanderer_spawn <= 0 && this._wanderer_models.length > 0 )
 			{
