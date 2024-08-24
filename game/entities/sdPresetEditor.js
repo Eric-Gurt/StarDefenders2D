@@ -698,6 +698,31 @@ class sdPresetEditor extends sdEntity
 				}
 			}
 			
+			for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+			{
+				let c = sdLongRangeTeleport.long_range_teleports[ i ];
+				
+				if ( c )
+				{
+					if ( !c.is_server_teleport ) // Make sure we check server / red LRTP's only for now.
+					{
+						return;
+					}
+				
+					if ( new_relative_x + preset_data.width < c.x - assumed_player_view_range ||
+						 new_relative_x > c.x + assumed_player_view_range ||
+						 new_relative_y + preset_data.height < c.y - assumed_player_view_range ||
+						 new_relative_y > c.y + assumed_player_view_range )
+					{
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+				
+			
 			// Keep away from deep sleep areas
 			if ( sdWorld.CheckSolidDeepSleepExistsAtBox( new_relative_x, new_relative_y, new_relative_x + preset_data.width, new_relative_y + preset_data.height ) )
 			{
