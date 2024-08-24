@@ -86,6 +86,7 @@ import sdWanderer from './sdWanderer.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdPresetEditor from './sdPresetEditor.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -862,7 +863,7 @@ class sdWeather extends sdEntity
 		return false;
 		*/
 	}
-	GenerateOutpost( x = 0, y = 0, base_type = -1, interior_type = -1, ai_team = 0 ) // Generate a faction outpost.
+	/*GenerateOutpost( x = 0, y = 0, base_type = -1, interior_type = -1, ai_team = 0 ) // Generate a faction outpost.
 	{
 		// TODO: These will be reworked with presets at some point. Also spawn is inefficient in terms of how many sdDeepSleep it would awake
 		
@@ -1170,6 +1171,7 @@ class sdWeather extends sdEntity
 			}
 		}
 	}
+	*/
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false, rain_tracer=false )
 	{
 		const consider_sky_open_height = 200;
@@ -2978,7 +2980,10 @@ class sdWeather extends sdEntity
 			
 			if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
 			{
-				if ( sdWorld.server_config.aggressive_hibernation )
+				
+				sdPresetEditor.SpawnPresetInWorld( 'falkok_outpost1' );
+				// I hope this works in "open world" server configs
+				/*if ( sdWorld.server_config.aggressive_hibernation )
 				{
 					trace( 'Falkok outpost spawn has been prevented due to aggressive_hibernation being enabled - should be redone with preset spawns and use simpler location test (for example try to spawn over random sdBlock entity - as long as it does not wake up thousands of sdDeepSleep cells across whole map it would be fine)' );
 				}
@@ -3055,7 +3060,7 @@ class sdWeather extends sdEntity
 							tr = 0;
 						}
 					} while ( tr > 0 );
-				}
+				}*/
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
