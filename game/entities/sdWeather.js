@@ -1408,10 +1408,10 @@ class sdWeather extends sdEntity
 			while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
 			{
 
-				let virus_entity = new sdVirus({ x:0, y:0 });
-				virus_entity._is_big = true;
+				let virus_entity = new sdVirus({ x:0, y:0, _is_big:true });
+				//virus_entity._is_big = true;
 				sdEntity.entities.push( virus_entity );
-				sdVirus.big_viruses++;
+				//sdVirus.big_viruses++;
 				{
 					if ( !sdWeather.SetRandomSpawnLocation( virus_entity ) )
 					{
