@@ -76,8 +76,10 @@ class sdRift extends sdEntity
 	{
 		super( params );
 		
+		let num = Math.random(); // Maybe better to rework portal spawning this way
 		
-		let portal_type = ( Math.random() < 0.2 ) ? sdRift.TYPE_DIMENSIONAL_TEAR : ( Math.random() < 0.35 ) ? sdRift.TYPE_ASTEROID_PORTAL : ( Math.random() < 0.45 ) ? sdRift.TYPE_CUBE_PORTAL : sdRift.TYPE_CRYSTALLIZED_PORTAL; // Portal chances since they're no longer determined in sdWeather
+		
+		let portal_type = ( num < 0.2 ) ? sdRift.TYPE_DIMENSIONAL_TEAR : ( num < 0.4 ) ? sdRift.TYPE_ASTEROID_PORTAL : ( num < 0.7 ) ? sdRift.TYPE_CUBE_PORTAL : sdRift.TYPE_CRYSTALLIZED_PORTAL; // Portal chances since they're no longer determined in sdWeather
 		
 		this.type = params.type || portal_type; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
 		// this.type needs to be placed before hmax and hea so council portals can actually last long enough. Otherwise it disappears in a minute or so

@@ -36,6 +36,8 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdStorage from './sdStorage.js';
+import sdBeacon from './sdBeacon.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -610,11 +612,14 @@ class sdPresetEditor extends sdEntity
 			let is_bg_entity = e.IsBGEntity();
 			if ( is_bg_entity === 0 || is_bg_entity === 1 )
 			{
-				// Fail if disconnected player ended up under preset area, same for rescue teleports and BSU protected entities
+				// Fail if disconnected player ended up under preset area, same for rescue teleports and BSU protected entities, non empty storage crates and vehicles
 				if ( e.IsPlayerClass() || 
 					 ( e._shielded && !e._shielded._is_being_removed ) || 
 					 ( e.is( sdRescueTeleport ) && e.owner_biometry !== -1 ) ||
-					 !e.IsDamageAllowedByAdmins() )
+					 !e.IsDamageAllowedByAdmins() ||
+					 ( e.is( sdStorage ) && e._stored_items.length > 0 ) ||
+					 e.IsVehicle() ||
+					 e.is( sdBeacon ) )
 				{
 					unsuitable_entity_found = true;
 					return true;

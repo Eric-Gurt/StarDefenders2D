@@ -193,7 +193,7 @@ class sdGib extends sdEntity
 	}
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return false; }
 	
 
 	GetBleedEffect()

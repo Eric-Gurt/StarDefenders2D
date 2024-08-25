@@ -228,7 +228,7 @@ class sdWeather extends sdEntity
 		this._max_ai_count = 8; //  Can be altered with onAfterSnapshotLoad inside sdServerConfig
 		this._max_velox_mech_count = 3;
 		this._max_setr_destroyer_count = 3;
-		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
+		this._max_zektaron_dreadnought_count = 2; // Can spawn alot of drones and is tanky so it's best to limit it to 2
 		this._max_council_incinerator_count = 2;
 		this._max_drone_count = 15; // How much drones are allowed per faction?
 		this._max_portal_count = 4;
@@ -287,7 +287,7 @@ class sdWeather extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_potential_invasion_events' || prop === '_daily_events' || prop === '_daily_weather_events' || prop === '_daily_sd_task_events' );
+		return ( prop === '_potential_invasion_events' || prop === '_daily_events' || prop === '_daily_weather_events' || prop === '_daily_sd_task_events' || prop === '_wanderer_models' );
 	}
 	
 	GetSunIntensity()
@@ -1486,7 +1486,7 @@ class sdWeather extends sdEntity
 
 		if ( r === sdWeather.EVENT_RIFT_PORTAL ) // Portal event
 		{
-			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
+			//if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				if ( sdRift.portals < this._max_portal_count )
 				sdWeather.SimpleSpawner({
@@ -1556,8 +1556,8 @@ class sdWeather extends sdEntity
 					instances--;
 				}*/
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 					
 		if ( r === sdWeather.EVENT_ERTHALS ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
