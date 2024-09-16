@@ -3588,7 +3588,7 @@ class sdWeather extends sdEntity
 			
 			this._next_wanderer_spawn -= GSPEED;
 			
-			if ( this._next_wanderer_spawn <= 0 && this._wanderer_models.length > 0 )
+			if ( this._next_wanderer_spawn <= 0 && this._wanderer_models.length > 0 && sdWanderer.wanderers.length < 50 )
 			{
 				// Remember, higher layer count = closer to the player's enviroment
 				let spawn_layer = Math.round( Math.random() * 7 );

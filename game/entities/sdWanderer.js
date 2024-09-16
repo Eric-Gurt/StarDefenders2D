@@ -74,10 +74,10 @@ class sdWanderer extends sdEntity
 		
 		this.side = params.side || 1;
 		
-		this._move_x = ( this.x < ( ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ) ? 0.01 : -0.01; // Move from one border to another
+		this._move_x = ( this.x < ( ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ) ? 0.03 : -0.03; // Move from one border to another
 		this._move_y = 0 * ( 1 + this.layer );
 		
-		this._move_x *= Math.random() * 12 * ( 1 + this.layer );
+		this._move_x *= Math.max( 1, Math.random() * 4 * ( 1 + this.layer ) );
 		//this._move_x = 1;
 		
 		//this._set_spawn = false; // Set it's coords to world borders when spawned
