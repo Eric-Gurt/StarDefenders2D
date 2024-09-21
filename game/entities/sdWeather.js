@@ -82,6 +82,7 @@ import sdVeloxFortifier from './sdVeloxFortifier.js';
 import sdSolarMatterDistributor from './sdSolarMatterDistributor.js';
 import sdExcavator from './sdExcavator.js';
 import sdWanderer from './sdWanderer.js';
+import sdShurgManualTurret from './sdShurgManualTurret.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -3206,6 +3207,14 @@ class sdWeather extends sdEntity
 					class: sdShurgExcavator
 				});
 
+				if ( Math.random() < 0.3 ) // 30% chance for a Shurg manual turret and pilot to spawn
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdShurgManualTurret,
+					aerial:true,
+					params: { spawn_with_pilot: true }, // Spawn with pilot
+				});
 			}
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter converter anywhere on the map outside player views.
