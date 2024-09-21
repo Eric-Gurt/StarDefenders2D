@@ -3349,7 +3349,7 @@ THING is cosmic mic drop!`;
 						if ( this.x < closest.x - 32 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) || ( this.y > closest.y + Math.random() * 64 ) )
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) || ( this.y > closest.y + Math.random() * 64 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 						if ( Math.random() < 0.4 && !this.driver_of )
@@ -3389,32 +3389,6 @@ THING is cosmic mic drop!`;
 							if ( this._ai.target.IsVehicle() )
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
-						/*else
-						{
-							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
-							this._key_states.SetKey( 'Mouse1', 1 );
-
-							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdBlock'] ) && // Scenario for targetting player built blocks from neutral
-								 sdWorld.last_hit_entity && // Can be null when hits void
-								 sdWorld.last_hit_entity.is( sdBlock ) && // Just in case
-								 ( 
-									sdWorld.last_hit_entity === this._ai.target 
-									|| 
-									( sdWorld.last_hit_entity.GetClass() === this._ai.target.GetClass() && sdWorld.last_hit_entity.material === this._ai.target.material ) 
-								)
-							)
-							{
-								this._ai.target = sdWorld.last_hit_entity;
-								this._key_states.SetKey( 'Mouse1', 1 );
-							}
-							else
-							{
-								this._ai.target = sdCharacter.GetRandomEntityNearby( this );
-								//if ( this._ai.target )
-								//this.PlayAIAlertedSound( this._ai.target );
-							}
-						}
-						*/
 					}
 				}
 				else
@@ -3474,34 +3448,40 @@ THING is cosmic mic drop!`;
 	AIVehicleLogic() // For piloting some vehicles
 	{
 		{
-			
-			if ( typeof this.driver_of.driver0 !== 'undefined' )
-			if ( this.driver_of.driver0 === null ) // No driver?
+			let vehicle = this.driver_of;
+			if ( typeof vehicle.driver0 !== 'undefined' )
+			if ( vehicle.driver0 === null ) // No driver?
 			this._key_states.SetKey( 'KeyE', 1 );
 		
-			if ( typeof this.driver_of.matter !== 'undefined' )
-			if ( this.driver_of.matter < 1 ) // No matter?
+			if ( typeof vehicle.matter !== 'undefined' )
+			if ( vehicle.matter < 1 ) // No matter?
 			this._key_states.SetKey( 'KeyE', 1 ); // Leave
 			
-			if ( this.driver_of.hea < this.driver_of.hmax * 0.05 && Math.random() < 0.5 ) // Vehicle is below 5% HP and RNG decides it's time to leave?
+			if ( vehicle.hea < vehicle.hmax * 0.05 && Math.random() < 0.5 ) // Vehicle is below 5% HP and RNG decides it's time to leave?
 			this._key_states.SetKey( 'KeyE', 1 ); // Leave
+			
+			if ( sdWorld.CheckLineOfSight( vehicle.x, vehicle.y + vehicle._hitbox_y2, vehicle.x, vehicle.y + vehicle._hitbox_y2 + 300, vehicle, null, sdCom.com_visibility_unignored_classes ) ) // Too far above?
+			{
+				this._key_states.SetKey( 'KeyW', 0 );
+				this._key_states.SetKey( 'KeyS', 1 ); // Go down a little, unless below conditions tell otherwise
+			}
 					
-			if ( this.driver_of.sy > 1 ) // Prevents vehicle fall damage?
+			if ( vehicle.sy > 1 ) // Prevents vehicle fall damage?
 			{
 				this._key_states.SetKey( 'KeyW', 1 );
 				this._key_states.SetKey( 'KeyS', 0 );
 			}
-			if ( this.driver_of.sy < -1 ) // Prevents vehicle upwards border damage?
+			if ( vehicle.sy < -1 ) // Prevents vehicle upwards border damage?
 			{
 				this._key_states.SetKey( 'KeyW', 0 );
 				this._key_states.SetKey( 'KeyS', 0 );
 			}
-			if ( this.driver_of.sx > 1 ) // Prevents vehicle impact
+			if ( vehicle.sx > 1 ) // Prevents vehicle impact
 			{
 				this._key_states.SetKey( 'KeyA', 1 );
 				this._key_states.SetKey( 'KeyD', 0 );
 			}
-			if ( this.driver_of.sx < -1 ) //Prevents vehicle impact
+			if ( vehicle.sx < -1 ) //Prevents vehicle impact
 			{
 				this._key_states.SetKey( 'KeyA', 0 );
 				this._key_states.SetKey( 'KeyD', 1 );

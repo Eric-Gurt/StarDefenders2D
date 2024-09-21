@@ -85,8 +85,8 @@ class sdShurgManualTurret extends sdEntity
 		
 		//EnforceChangeLog( this, 'driver0' );
 		
-		this.matter = 600; // Not that players can spawn it anyway
-		this.matter_max = 600;
+		this.matter = 1500; // Not that players can spawn it anyway
+		this.matter_max = 1500;
 		
 		this._spawn_with_pilot = params.spawn_with_pilot || false; // Spawn with a Shurg humanoid?
 	}
@@ -207,7 +207,7 @@ class sdShurgManualTurret extends sdEntity
 	}
 	
 	get mass() { 
-		return 200;
+		return 250;
 	}
 	Impulse( x, y )
 	{
@@ -680,7 +680,7 @@ class sdShurgManualTurret extends sdEntity
 					ctx.translate( -6, 6 );
 					ctx.scale( 1, -1 );
 					
-					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - ( this.y + 8 ), this[ 'driver' + i ].look_x - this.x ) ) );
+					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 					
 					ctx.drawImageFilterCache( sdShurgManualTurret.img_pistol, - 16, - 16, 32,32 );
 
