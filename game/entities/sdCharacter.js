@@ -3337,7 +3337,7 @@ THING is cosmic mic drop!`;
 						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
-						if ( Math.random() < 0.4 && !this.driver_of )
+						if ( Math.random() < 0.4 )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
 
@@ -3352,7 +3352,7 @@ THING is cosmic mic drop!`;
 						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) || ( this.y > closest.y + Math.random() * 64 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
-						if ( Math.random() < 0.4 && !this.driver_of )
+						if ( Math.random() < 0.4 )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
 
@@ -3367,7 +3367,7 @@ THING is cosmic mic drop!`;
 						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
-						if ( Math.random() < 0.1 && !this.driver_of )
+						if ( Math.random() < 0.1 )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
 
@@ -3466,7 +3466,7 @@ THING is cosmic mic drop!`;
 				this._key_states.SetKey( 'KeyS', 1 ); // Go down a little, unless below conditions tell otherwise
 			}
 					
-			if ( vehicle.sy > 1 ) // Prevents vehicle fall damage?
+			if ( vehicle.sy > 1 || Math.random() < 0.66 ) // Prevents vehicle fall damage?
 			{
 				this._key_states.SetKey( 'KeyW', 1 );
 				this._key_states.SetKey( 'KeyS', 0 );
