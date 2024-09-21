@@ -3460,13 +3460,19 @@ THING is cosmic mic drop!`;
 			if ( vehicle.hea < vehicle.hmax * 0.05 && Math.random() < 0.5 ) // Vehicle is below 5% HP and RNG decides it's time to leave?
 			this._key_states.SetKey( 'KeyE', 1 ); // Leave
 			
+			if ( Math.random() < 0.66 ) // Needs to be above LOS check or it will continually go up regardless
+			{
+				this._key_states.SetKey( 'KeyW', 1 );
+				this._key_states.SetKey( 'KeyS', 0 );
+			}
+			
 			if ( sdWorld.CheckLineOfSight( vehicle.x, vehicle.y + vehicle._hitbox_y2, vehicle.x, vehicle.y + vehicle._hitbox_y2 + 300, vehicle, null, sdCom.com_visibility_unignored_classes ) ) // Too far above?
 			{
 				this._key_states.SetKey( 'KeyW', 0 );
 				this._key_states.SetKey( 'KeyS', 1 ); // Go down a little, unless below conditions tell otherwise
 			}
 					
-			if ( vehicle.sy > 1 || Math.random() < 0.66 ) // Prevents vehicle fall damage?
+			if ( vehicle.sy > 1 ) // Prevents vehicle fall damage?
 			{
 				this._key_states.SetKey( 'KeyW', 1 );
 				this._key_states.SetKey( 'KeyS', 0 );
