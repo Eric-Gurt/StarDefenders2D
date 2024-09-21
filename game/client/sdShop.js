@@ -628,6 +628,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdShurgTurret', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgTurret', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgExcavator', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdShurgManualTurret', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdShurgManualTurret', spawn_with_pilot: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
