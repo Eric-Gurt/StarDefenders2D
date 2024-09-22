@@ -2413,7 +2413,34 @@ THING is cosmic mic drop!`;
 		}
 		return false;
 	}
-	
+	AICheckInitiator( initiator ) // Targetting logic when AI is hit is now stored here - to simplify vehicle Targetting
+	{
+			if ( typeof initiator._ai_team !== 'undefined' )
+			{
+				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.25 ) // 25% chance to return friendly fire
+				{
+					if ( !this._ai.target )
+					this.PlayAIAlertedSound( initiator );
+							
+					this._ai.target = initiator;
+							
+							
+					if ( Math.random() < 0.3 ) // 30% chance
+					this.AIWarnTeammates();
+				}
+			}
+			else // No faction?
+			{
+				if ( !this._ai.target )
+				this.PlayAIAlertedSound( initiator );
+							
+				this._ai.target = initiator;
+							
+							
+				if ( Math.random() < 0.3 ) // 30% chance
+				this.AIWarnTeammates();
+			}
+	}
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
 		if ( !sdWorld.is_server )
@@ -2476,34 +2503,7 @@ THING is cosmic mic drop!`;
 				if ( this._ai )
 				{
 					if ( initiator )
-					{
-						/*if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
-						{
-							if ( !this._ai.target )
-							this.PlayAIAlertedSound( initiator );
-							
-							this._ai.target = initiator;
-							
-							
-							if ( Math.random() < 0.3 ) // 30% chance
-							this.AIWarnTeammates();
-						}
-						else
-						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
-						this._ai.target = initiator;*/
-						if ( ( initiator._ai_team || -1 ) !== this._ai_team )
-						{
-							if ( !this._ai.target )
-							this.PlayAIAlertedSound( initiator );
-							
-							this._ai.target = initiator;
-							
-							
-							if ( Math.random() < 0.3 ) // 30% chance
-							this.AIWarnTeammates();
-						}
-
-					}
+					this.AICheckInitiator( initiator ); // Check if damage initiator is an enemy
 				}
 				else
 				{

@@ -10,6 +10,8 @@ import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
+import sdTask from './sdTask.js';
+
 class sdHover extends sdEntity
 {
 	static init_class()
@@ -159,12 +161,17 @@ class sdHover extends sdEntity
 		
 		//EnforceChangeLog( this, 'driver0' );
 		
+		this._spawn_with_criminal = params.spawn_with_criminal || false; // Spawn a criminal? Also depends on which vehicle type it spawns.
+		
 		this.matter = 300; // Should be less than Hover cost
 		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
 			this.type === sdHover.TYPE_TANK ? 12000 :
 			this.type === sdHover.TYPE_BIKE ? 400 :
 			1000
 		);
+		
+		if ( this._spawn_with_criminal )
+		this.matter = this.matter_max; // Let criminals have more matter
 	}
 	
 	
@@ -316,6 +323,18 @@ class sdHover extends sdEntity
 	
 		if ( dmg > 0 )
 		{
+			
+			if ( initiator ) // Something damaged hover?
+			{
+				for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+				if ( this[ 'driver' + i ] )
+				{	
+					let driver = this[ 'driver' + i ];
+					if ( driver._ai ) // is one of the drivers an AI?
+					driver.AICheckInitiator( initiator ); // Check for targeting
+				}
+			}
+
 			if ( this.hea <= 0 )
 			{
 				const break_at_hp = -400;
@@ -413,6 +432,98 @@ class sdHover extends sdEntity
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( sdWorld.is_server )
+		{
+			if ( this._spawn_with_criminal === true ) // Should this vehicle spawn with a pilot?
+			{
+				let pilot_count = ( this.type === sdHover.TYPE_BIKE ) ? 1 : 2 + Math.round( Math.random() ); // 1 for hoverbike, 2-3 for other hovers
+				for ( let i = 0; i < pilot_count; i++ ) // Hoverbike spawns one criminal, while other hovers spawn 2-3
+				{
+					let character_entity = new sdCharacter({ x:this.x + ( 4 * i ), y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+					sdEntity.entities.push( character_entity );
+
+					if ( Math.random() < 0.5 ) // Random gun given to Star Defender
+					{
+						if ( Math.random() < 0.2 )
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+							character_entity._ai_gun_slot = 4;
+						}
+						else
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+							character_entity._ai_gun_slot = 3;
+						}
+					}
+					else
+					{ 
+						if ( Math.random() < 0.1 )
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+							character_entity._ai_gun_slot = 2;
+						}
+						else
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+							character_entity._ai_gun_slot = 2;
+						}
+					}
+					
+					let sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
+					character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
+					character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
+					character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
+					character_entity.title = sd_settings.hero_name;
+					character_entity.matter = 185;
+					character_entity.matter_max = 185;
+
+					character_entity.hea = 250; // It is a star defender after all
+					character_entity.hmax = 250;
+
+					character_entity.armor = 500;
+					character_entity.armor_max = 500;
+					character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
+					character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+
+					//character_entity._damage_mult = 2;	
+					character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+											
+					character_entity._ai_level = 5;
+											
+					character_entity._matter_regeneration = 5; // At least some ammo regen
+					character_entity._jetpack_allowed = true; // Jetpack
+					//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+					character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+					character_entity._ai_team = 6; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
+					character_entity._allow_despawn = false;
+					character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
+					//character_entity._ai.next_action = 1;
+					character_entity._potential_vehicle = this;
+					character_entity._key_states.SetKey( 'KeyE', 1 );
+					
+					// Give task for players
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+character_entity._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: character_entity,
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Arrest Star Defender',
+							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+						});
+					}
+				
+				}
+				this._spawn_with_criminal = false;
+			}
+			
+			
+		}
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -437,6 +548,9 @@ class sdHover extends sdEntity
 		if ( this.driver0 && this.hea > 0 )
 		{
 			let cost = ( ( sdWorld.Dist2D_Vector_pow2( this.driver0.act_x, this.driver0.act_y ) > 0 ) ? GSPEED : GSPEED * 0.01 ) * this.mass / 1000;
+			
+			if ( this.driver0._ai )
+			cost = 0; // AI should have no cost for piloting, or it will stop driving in a minute or two
 			
 			if ( this.matter >= cost )
 			{
@@ -532,6 +646,9 @@ class sdHover extends sdEntity
 					bullet_obj._armor_penetration_level = 0;
 
 					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
+					
+					if ( this.driver0._ai )
+					cost = cost / 3; // AI should have less cost for attacking, or it will stop driving in a minute or two
 					
 					if ( this.matter >= cost )
 					{
@@ -645,6 +762,9 @@ class sdHover extends sdEntity
 					bullet_obj._armor_penetration_level = 0;
 				
 					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
+					
+					if ( this.driver0._ai )
+					cost = cost / 3; // AI should have less cost for attacking, or it will stop driving in a minute or two
 					
 					if ( this.matter >= cost )
 					{
@@ -764,6 +884,9 @@ class sdHover extends sdEntity
 					bullet_obj._armor_penetration_level = 0;
 
 					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
+					
+					if ( this.driver0._ai )
+					cost = cost / 3; // AI should have less cost for attacking, or it will stop driving in a minute or two
 					
 					if ( this.matter >= cost )
 					{

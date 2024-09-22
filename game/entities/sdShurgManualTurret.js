@@ -77,6 +77,8 @@ class sdShurgManualTurret extends sdEntity
 		
 		this._regen_timeout = 0;
 		
+		this._ai_team = 9; // 9 is AI team for Shurgs
+		
 		
 		this._last_damage = 0; // Sound flood prevention
 		
@@ -123,8 +125,15 @@ class sdShurgManualTurret extends sdEntity
 		if ( this.hea > this.hmax )
 		this.hea = this.hmax;
 	
+	
 		if ( dmg > 0 )
 		{
+			if ( initiator && this.driver0 ) // AI piloted turrets inherit humanoid targetting rules
+			{
+				if ( this.driver0._ai )
+				this.driver0.AICheckInitiator( initiator );
+			}
+			
 			if ( this.hea <= 0 )
 			{
 				const break_at_hp = -400;
@@ -262,7 +271,7 @@ class sdShurgManualTurret extends sdEntity
 			let cost = ( ( sdWorld.Dist2D_Vector_pow2( this.driver0.act_x, this.driver0.act_y ) > 0 ) ? GSPEED : GSPEED * 0.01 ) * this.mass / 1000;
 			
 			if ( this.driver0._ai )
-			cost = cost / 3; // AI should have less cost for driving, or it will stop driving in a minute or two
+			cost = 0; // AI should have no cost for piloting, or it will stop driving in a minute or two
 			
 			if ( this.matter >= cost )
 			{
