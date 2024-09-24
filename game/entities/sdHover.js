@@ -763,7 +763,7 @@ class sdHover extends sdEntity
 				
 					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
 					
-					if ( this.driver0._ai )
+					if ( this.driver1._ai )
 					cost = cost / 3; // AI should have less cost for attacking, or it will stop driving in a minute or two
 					
 					if ( this.matter >= cost )
@@ -885,7 +885,7 @@ class sdHover extends sdEntity
 
 					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
 					
-					if ( this.driver0._ai )
+					if ( this.driver2._ai )
 					cost = cost / 3; // AI should have less cost for attacking, or it will stop driving in a minute or two
 					
 					if ( this.matter >= cost )
