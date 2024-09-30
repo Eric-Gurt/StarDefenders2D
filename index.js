@@ -1049,7 +1049,7 @@ if ( directory_to_save_player_count !== null )
 {
 	setInterval( ()=>{
 		
-		fs.writeFile( directory_to_save_player_count, sdWorld.sockets.length+'', ( err )=>
+		fs.writeFile( directory_to_save_player_count, sdWorld.GetPlayingPlayersCount()+'/'+sdWorld.sockets.length+'', ( err )=>
 		{
 			
 		});
