@@ -36,6 +36,8 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdStorage from './sdStorage.js';
+import sdBeacon from './sdBeacon.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -610,11 +612,14 @@ class sdPresetEditor extends sdEntity
 			let is_bg_entity = e.IsBGEntity();
 			if ( is_bg_entity === 0 || is_bg_entity === 1 )
 			{
-				// Fail if disconnected player ended up under preset area, same for rescue teleports and BSU protected entities
+				// Fail if disconnected player ended up under preset area, same for rescue teleports and BSU protected entities, non empty storage crates and vehicles
 				if ( e.IsPlayerClass() || 
 					 ( e._shielded && !e._shielded._is_being_removed ) || 
 					 ( e.is( sdRescueTeleport ) && e.owner_biometry !== -1 ) ||
-					 !e.IsDamageAllowedByAdmins() )
+					 !e.IsDamageAllowedByAdmins() ||
+					 ( e.is( sdStorage ) && e._stored_items.length > 0 ) ||
+					 e.IsVehicle() ||
+					 e.is( sdBeacon ) )
 				{
 					unsuitable_entity_found = true;
 					return true;
@@ -697,6 +702,31 @@ class sdPresetEditor extends sdEntity
 					}
 				}
 			}
+			
+			for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+			{
+				let c = sdLongRangeTeleport.long_range_teleports[ i ];
+				
+				if ( c )
+				{
+					if ( !c.is_server_teleport ) // Make sure we check server / red LRTP's only for now.
+					{
+						return;
+					}
+				
+					if ( new_relative_x + preset_data.width < c.x - assumed_player_view_range ||
+						 new_relative_x > c.x + assumed_player_view_range ||
+						 new_relative_y + preset_data.height < c.y - assumed_player_view_range ||
+						 new_relative_y > c.y + assumed_player_view_range )
+					{
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+				
 			
 			// Keep away from deep sleep areas
 			if ( sdWorld.CheckSolidDeepSleepExistsAtBox( new_relative_x, new_relative_y, new_relative_x + preset_data.width, new_relative_y + preset_data.height ) )

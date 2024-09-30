@@ -2413,7 +2413,34 @@ THING is cosmic mic drop!`;
 		}
 		return false;
 	}
-	
+	AICheckInitiator( initiator ) // Targetting logic when AI is hit is now stored here - to simplify vehicle Targetting
+	{
+			if ( typeof initiator._ai_team !== 'undefined' )
+			{
+				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.25 ) // 25% chance to return friendly fire
+				{
+					if ( !this._ai.target )
+					this.PlayAIAlertedSound( initiator );
+							
+					this._ai.target = initiator;
+							
+							
+					if ( Math.random() < 0.3 ) // 30% chance
+					this.AIWarnTeammates();
+				}
+			}
+			else // No faction?
+			{
+				if ( !this._ai.target )
+				this.PlayAIAlertedSound( initiator );
+							
+				this._ai.target = initiator;
+							
+							
+				if ( Math.random() < 0.3 ) // 30% chance
+				this.AIWarnTeammates();
+			}
+	}
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
 		if ( !sdWorld.is_server )
@@ -2476,34 +2503,7 @@ THING is cosmic mic drop!`;
 				if ( this._ai )
 				{
 					if ( initiator )
-					{
-						/*if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
-						{
-							if ( !this._ai.target )
-							this.PlayAIAlertedSound( initiator );
-							
-							this._ai.target = initiator;
-							
-							
-							if ( Math.random() < 0.3 ) // 30% chance
-							this.AIWarnTeammates();
-						}
-						else
-						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
-						this._ai.target = initiator;*/
-						if ( ( initiator._ai_team || -1 ) !== this._ai_team )
-						{
-							if ( !this._ai.target )
-							this.PlayAIAlertedSound( initiator );
-							
-							this._ai.target = initiator;
-							
-							
-							if ( Math.random() < 0.3 ) // 30% chance
-							this.AIWarnTeammates();
-						}
-
-					}
+					this.AICheckInitiator( initiator ); // Check if damage initiator is an enemy
 				}
 				else
 				{
@@ -3032,11 +3032,13 @@ THING is cosmic mic drop!`;
 
 			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
-				if ( this._ai_team !== 0 && this._ai_team !== 6 && this._ai_team !== 10 )// Prevent SD, Instructor and Time Shifter from disappearing
+				if ( this._ai_team !== 0 && this._ai_team !== 6 && this._ai_team !== 10 && !this.driver_of )// Prevent SD, Instructor and Time Shifter from disappearing
 				{
 					this.remove();
 					return;
 				}
+				else
+				this._ai.direction = -this._ai.direction // Switch sides
 			}
 
 			if ( !this._ai.target || this._ai.target._is_being_removed )
@@ -3076,12 +3078,6 @@ THING is cosmic mic drop!`;
 						if ( this._potential_vehicle.driver0._ai_team === this._ai_team && this.driver_of === null )
 						this._key_states.SetKey( 'KeyE', 1 );
 					}
-				}
-				if ( this.driver_of )
-				{
-					if ( typeof this.driver_of.driver0 !== 'undefined' )
-					if ( this.driver_of.driver0 === null )
-					this._key_states.SetKey( 'KeyE', 1 );	
 				}
 				//
 				let closest = null;
@@ -3247,6 +3243,24 @@ THING is cosmic mic drop!`;
 
 				this._key_states.SetKey( 'Mouse1', 0 );
 
+				/*if ( this.driver_of )
+				{
+					if ( typeof this.driver_of.driver0 !== 'undefined' )
+					if ( this.driver_of.driver0 === null )
+					this._key_states.SetKey( 'KeyE', 1 );	
+				
+					if ( this.driver_of.sy > 1 ) // Prevents vehicle fall damage?
+					{
+						this._key_states.SetKey( 'KeyW', 1 );
+						this._key_states.SetKey( 'KeyS', 0 );
+					}
+					if ( this.driver_of.sy < -1 ) // Prevents vehicle upwards border damage?
+					{
+						this._key_states.SetKey( 'KeyW', 0 );
+						this._key_states.SetKey( 'KeyS', 0 );
+					}
+				}*/
+
 				if ( this._ai_stay_near_entity ) // Is there an entity AI should stay near?
 				{
 					if ( !this._ai_stay_near_entity._is_being_removed && !sdWorld.inDist2D_Boolean( this.x, this.y, this._ai_stay_near_entity.x, this._ai_stay_near_entity.y, this._ai_stay_distance ) ) // Is the AI too far away from the entity?
@@ -3320,7 +3334,7 @@ THING is cosmic mic drop!`;
 						if ( Math.random() < 0.3 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 						if ( Math.random() < 0.4 )
@@ -3335,7 +3349,7 @@ THING is cosmic mic drop!`;
 						if ( this.x < closest.x - 32 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) || ( this.y > closest.y + Math.random() * 64 ) )
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) || ( this.y > closest.y + Math.random() * 64 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 						if ( Math.random() < 0.4 )
@@ -3375,32 +3389,6 @@ THING is cosmic mic drop!`;
 							if ( this._ai.target.IsVehicle() )
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
-						/*else
-						{
-							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
-							this._key_states.SetKey( 'Mouse1', 1 );
-
-							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdBlock'] ) && // Scenario for targetting player built blocks from neutral
-								 sdWorld.last_hit_entity && // Can be null when hits void
-								 sdWorld.last_hit_entity.is( sdBlock ) && // Just in case
-								 ( 
-									sdWorld.last_hit_entity === this._ai.target 
-									|| 
-									( sdWorld.last_hit_entity.GetClass() === this._ai.target.GetClass() && sdWorld.last_hit_entity.material === this._ai.target.material ) 
-								)
-							)
-							{
-								this._ai.target = sdWorld.last_hit_entity;
-								this._key_states.SetKey( 'Mouse1', 1 );
-							}
-							else
-							{
-								this._ai.target = sdCharacter.GetRandomEntityNearby( this );
-								//if ( this._ai.target )
-								//this.PlayAIAlertedSound( this._ai.target );
-							}
-						}
-						*/
 					}
 				}
 				else
@@ -3434,6 +3422,8 @@ THING is cosmic mic drop!`;
 						}
 					}
 				}
+				if ( this.driver_of ) // Is the AI inside of a vehicle?
+				this.AIVehicleLogic();
 			}
 
 			if ( this._ai.target && this._ai.target.IsVisible( this ) )
@@ -3453,6 +3443,55 @@ THING is cosmic mic drop!`;
 		if ( this._ai_enabled === sdCharacter.AI_MODEL_INSTRUCTOR )
 		{
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
+		}
+	}
+	AIVehicleLogic() // For piloting some vehicles
+	{
+		{
+			let vehicle = this.driver_of;
+			if ( typeof vehicle.driver0 !== 'undefined' )
+			if ( vehicle.driver0 === null ) // No driver?
+			this._key_states.SetKey( 'KeyE', 1 );
+		
+			if ( typeof vehicle.matter !== 'undefined' )
+			if ( vehicle.matter < 1 ) // No matter?
+			this._key_states.SetKey( 'KeyE', 1 ); // Leave
+			
+			if ( vehicle.hea < vehicle.hmax * 0.05 && Math.random() < 0.5 ) // Vehicle is below 5% HP and RNG decides it's time to leave?
+			this._key_states.SetKey( 'KeyE', 1 ); // Leave
+			
+			if ( Math.random() < 0.66 ) // Needs to be above LOS check or it will continually go up regardless
+			{
+				this._key_states.SetKey( 'KeyW', 1 );
+				this._key_states.SetKey( 'KeyS', 0 );
+			}
+			
+			if ( sdWorld.CheckLineOfSight( vehicle.x, vehicle.y + vehicle._hitbox_y2, vehicle.x, vehicle.y + vehicle._hitbox_y2 + 300, vehicle, null, sdCom.com_visibility_unignored_classes ) ) // Too far above?
+			{
+				this._key_states.SetKey( 'KeyW', 0 );
+				this._key_states.SetKey( 'KeyS', 1 ); // Go down a little, unless below conditions tell otherwise
+			}
+					
+			if ( vehicle.sy > 1 ) // Prevents vehicle fall damage?
+			{
+				this._key_states.SetKey( 'KeyW', 1 );
+				this._key_states.SetKey( 'KeyS', 0 );
+			}
+			if ( vehicle.sy < -1 ) // Prevents vehicle upwards border damage?
+			{
+				this._key_states.SetKey( 'KeyW', 0 );
+				this._key_states.SetKey( 'KeyS', 0 );
+			}
+			if ( vehicle.sx > 1 ) // Prevents vehicle impact
+			{
+				this._key_states.SetKey( 'KeyA', 1 );
+				this._key_states.SetKey( 'KeyD', 0 );
+			}
+			if ( vehicle.sx < -1 ) //Prevents vehicle impact
+			{
+				this._key_states.SetKey( 'KeyA', 0 );
+				this._key_states.SetKey( 'KeyD', 1 );
+			}
 		}
 	}
 	GetBulletSpawnOffset()

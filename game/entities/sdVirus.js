@@ -58,7 +58,7 @@ class sdVirus extends sdEntity
 		this._hea = this.hmax;
 		
 		this.death_anim = 0;
-		this._is_big = false; // Used for distinction between regular and event virus
+		this._is_big = params._is_big || false; // Used for distinction between regular and event virus
 		this._grow_size = 320; // Grow in case if _is_big is true
 		
 		this._current_target = null;
@@ -74,6 +74,9 @@ class sdVirus extends sdEntity
 		this.hurt_timer = 0;
 
 		sdVirus.viruses_tot++;
+		
+		if ( this._is_big )
+		sdVirus.big_viruses++;
 		
 		this.hue = ~~( Math.random() * 360 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';

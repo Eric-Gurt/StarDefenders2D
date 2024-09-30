@@ -31,6 +31,7 @@ class sdRift extends sdEntity
 	static init_class()
 	{
 		sdRift.img_rift_anim = sdWorld.CreateImageFromFile( 'rift_anim' );
+		sdRift.img_em_anomaly = sdWorld.CreateImageFromFile( 'em_anomaly' );
 		sdRift.portals = 0;
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
@@ -40,6 +41,7 @@ class sdRift extends sdEntity
 		sdRift.TYPE_ASTEROID_PORTAL = 3; // Asteroid Portal
 		sdRift.TYPE_DIMENSIONAL_TEAR = 4; // "Black hole" / dimensional tear
 		sdRift.TYPE_COUNCIL_PORTAL = 5; // Council portal, from failing the portal machine task
+		sdRift.TYPE_ELECTROMAGNETIC_ANOMALY = 6; // Electromagnetic anomaly, drains matter on contact with objects that contain matter
 		
 		sdRift.scale_by_type = [
 			1, // 0
@@ -47,7 +49,8 @@ class sdRift extends sdEntity
 			1.3, // 2
 			1, // 3
 			2, // 4
-			1.3 // 5
+			1.3, // 5
+			1 // 6
 		];
 	}
 	get hitbox_x1() { return -15 * ( sdRift.scale_by_type[ this.type ] || 1 ); }
@@ -73,12 +76,14 @@ class sdRift extends sdEntity
 	{
 		super( params );
 		
+		let num = Math.random(); // Maybe better to rework portal spawning this way
 		
-		let portal_type = ( Math.random() < 0.2 ) ? sdRift.TYPE_DIMENSIONAL_TEAR : ( Math.random() < 0.35 ) ? sdRift.TYPE_ASTEROID_PORTAL : ( Math.random() < 0.45 ) ? sdRift.TYPE_CUBE_PORTAL : sdRift.TYPE_CRYSTALLIZED_PORTAL; // Portal chances since they're no longer determined in sdWeather
+		
+		let portal_type = ( num < 0.2 ) ? sdRift.TYPE_DIMENSIONAL_TEAR : ( num < 0.4 ) ? sdRift.TYPE_ASTEROID_PORTAL : ( num < 0.7 ) ? sdRift.TYPE_CUBE_PORTAL : sdRift.TYPE_CRYSTALLIZED_PORTAL; // Portal chances since they're no longer determined in sdWeather
 		
 		this.type = params.type || portal_type; // Default is the weakest variation of the rift ( Note: params.type as 0 will be defaulted to 1, implement typeof check here if 0 value is needed )
 		// this.type needs to be placed before hmax and hea so council portals can actually last long enough. Otherwise it disappears in a minute or so
-		this.hmax = this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 1800 * 30; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
+		this.hmax = this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY ? 1800 * 5 : this.type === sdRift.TYPE_DIMENSIONAL_TEAR ? 5120 : 1800 * 30; // Dimensional tears are closable with normal crystals now, while everything else disappears on it's own
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this._cooldown = 0;
@@ -86,7 +91,7 @@ class sdRift extends sdEntity
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._spawn_timer = params._spawn_timer || 30 * 60; // Either defined by spawn or 60 seconds
 		this._spawn_timer_cd = this._spawn_timer; // Countdown/cooldown for spawn timer
-		this._teleport_timer = 30 * 60 * 10; // Time for the portal to switch location
+		this._teleport_timer = this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY ? ( 30 * 60 * 1 ) : ( 30 * 60 * 10 ); // Time for the portal to switch location
 		this._time_until_teleport = this._teleport_timer;
 		this._rotate_timer = 10; // Timer for rotation sprite index
 		this.frame = 0; // Rotation sprite index
@@ -102,7 +107,7 @@ class sdRift extends sdEntity
 		if ( this.type === sdRift.TYPE_CUBE_PORTAL )
 		this.filter = 'none';*/
 
-		if ( this.type !== 5 ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
+		if ( this.type !== sdRift.TYPE_COUNCIL_PORTAL && this.type !== sdRift.TYPE_ELECTROMAGNETIC_ANOMALY ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
 		sdRift.portals++;
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -130,6 +135,10 @@ class sdRift extends sdEntity
 
 		if ( this.type === sdRift.TYPE_COUNCIL_PORTAL )
 		return 'brightness(2) saturate(0.1)';
+	
+			if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
+		return 'none';
+
 	}
 	MeasureMatterCost()
 	{
@@ -309,7 +318,7 @@ class sdRift extends sdEntity
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
 			if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
-			if ( this.type !== 4 ) // Black portals / Black holes do not spawn things
+			if ( this.type !== sdRift.TYPE_DIMENSIONAL_TEAR && this.type !== sdRift.TYPE_ELECTROMAGNETIC_ANOMALY ) // Black portals / Black holes do not spawn things, aswell as the anomalies
 			{
 				sdSound.PlaySound({ name:'rift_spawn1', x:this.x, y:this.y, volume:2 });
 				
@@ -472,7 +481,7 @@ class sdRift extends sdEntity
 				this.matter_crystal -= GSPEED * 3;
 			}
 			
-			if ( this.type !== 4 ) // All but dimensional tears disappear over time
+			if ( this.type !== sdRift.TYPE_DIMENSIONAL_TEAR ) // All but dimensional tears disappear over time
 			this.hea = Math.max( this.hea - GSPEED, 0 );
 		
 			if ( this._time_until_teleport > 0 )
@@ -617,6 +626,45 @@ class sdRift extends sdEntity
 				}
 			}
 		}
+		
+		if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY && !from_entity._is_being_removed )
+		{
+			if ( from_entity.is( sdJunk ) )
+			{
+				if ( from_entity.type === sdJunk.TYPE_ALIEN_BATTERY ) // Is it an alien battery?
+				{
+					sdWorld.SendEffect({ 
+						x:this.x, 
+						y:this.y, 
+						radius:32,
+						damage_scale: 0.01, // Just a decoration effect
+						type:sdEffect.TYPE_EXPLOSION, 
+						owner:this,
+						color:'#33FFFF' 
+					});
+					from_entity.remove();
+				
+					this.remove();
+				}
+			}
+			else
+			if ( typeof from_entity.matter !== 'undefined' ) // Can the entity be drained of matter?
+			{
+				from_entity.matter = Math.max( 0, from_entity.matter - 60 );
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius:32,
+					damage_scale: 0.01, // Just a decoration effect
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					color:'#33FFFF' 
+				});
+				//Relocate the anomaly
+				this.teleport_alpha = 0;
+				this._time_until_teleport = 0;
+			}
+		}
 
 		/*if ( from_entity.is( sdJunk ) )
 		if ( from_entity.type === 1 ) // Is it an alien battery?
@@ -663,21 +711,49 @@ class sdRift extends sdEntity
 			
 			ctx.scale( s, s );
 		}
-		ctx.drawImageFilterCache( sdRift.img_rift_anim, frame * 32, 0, 32, 32, - 16, - 16, 32,32 );
+		if ( this.type !== sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
+		ctx.drawImageFilterCache( sdRift.img_rift_anim, frame * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		else // Lots of alpha altering, is this performance heavy? - Booraz149
+		{
+			let alpha_mult = this.teleport_alpha / 60; // This fixes the fade in/out animation when teleporting
+			if ( sdWorld.time % 10000 <= 5000 )
+			ctx.globalAlpha = 0.45 + ( this.teleport_alpha / 60 ) * ( 0.35 * ( sdWorld.time % 5000 ) / 5000 );
+			else
+			ctx.globalAlpha = 0.8 - ( this.teleport_alpha / 60 ) * ( 0.35 * ( sdWorld.time % 5000 ) / 5000 );
+		
+			ctx.globalAlpha = ctx.globalAlpha * alpha_mult;
+			ctx.drawImageFilterCache( sdRift.img_em_anomaly, 0, 0, 32, 32, - 16, - 16, 32, 32 );
+			
+			
+			if ( sdWorld.time % 6400 <= 3200 )
+			ctx.globalAlpha = ( this.teleport_alpha / 60 ) * ( 0.35 * ( sdWorld.time % 3200 ) / 3200 );
+			else
+			ctx.globalAlpha = 0.35 - ( ( this.teleport_alpha / 60 ) * ( 0.35 * ( sdWorld.time % 3200 ) / 3200 ) );
+		
+			ctx.scale( ( 0.8 * ( sdWorld.time % 6400 ) / 3200 ), ( 0.8 * ( sdWorld.time % 6400 ) / 3200 ) );
+			ctx.globalAlpha = ctx.globalAlpha * alpha_mult;
+			ctx.drawImageFilterCache( sdRift.img_em_anomaly, 0, 0, 32, 32, - 16, - 16, 32, 32 );
+		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.matter_crystal < this.hea )
-		sdEntity.Tooltip( ctx, "Dimensional portal", 0, 0 );
+		if ( this.type !== sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
+		{
+			if ( this.matter_crystal < this.hea )
+			sdEntity.Tooltip( ctx, "Dimensional portal", 0, 0 );
+			else
+			sdEntity.Tooltip( ctx, "Dimensional portal (overcharged)", 0, 0 ); // Lets players know it has enough matter to destroy itself
+		}
 		else
-		sdEntity.Tooltip( ctx, "Dimensional portal (overcharged)", 0, 0 ); // Lets players know it has enough matter to destroy itself
+		if ( this.matter_crystal < this.hea )
+		sdEntity.Tooltip( ctx, "Electromagnetic anomaly", 0, 0 );
 	}
 	
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.type !== 5 ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
+		if ( this.type !== sdRift.TYPE_COUNCIL_PORTAL && this.type !== sdRift.TYPE_ELECTROMAGNETIC_ANOMALY ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
 		sdRift.portals--;
 		//this.onRemoveAsFakeEntity();
 

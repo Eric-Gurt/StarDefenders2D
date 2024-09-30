@@ -82,10 +82,13 @@ import sdVeloxFortifier from './sdVeloxFortifier.js';
 import sdSolarMatterDistributor from './sdSolarMatterDistributor.js';
 import sdExcavator from './sdExcavator.js';
 import sdWanderer from './sdWanderer.js';
+import sdShurgManualTurret from './sdShurgManualTurret.js';
+import sdHover from './sdHover.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdPresetEditor from './sdPresetEditor.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -157,6 +160,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
 		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
 		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 51
+		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -226,7 +230,7 @@ class sdWeather extends sdEntity
 		this._max_ai_count = 8; //  Can be altered with onAfterSnapshotLoad inside sdServerConfig
 		this._max_velox_mech_count = 3;
 		this._max_setr_destroyer_count = 3;
-		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
+		this._max_zektaron_dreadnought_count = 2; // Can spawn alot of drones and is tanky so it's best to limit it to 2
 		this._max_council_incinerator_count = 2;
 		this._max_drone_count = 15; // How much drones are allowed per faction?
 		this._max_portal_count = 4;
@@ -257,6 +261,8 @@ class sdWeather extends sdEntity
 		this._sd_task_rotation_time = ( 30 * 60 * 29 ) + ( 30 * 45 );; // 29 minutes, 45 seconds, selects new at 30
 		
 		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
+		this._wanderer_models = [ 0, 1, 2 ]; // These refresh whenever daily events appear. 0, 1 and 2 value are standard SD vehicles. They kinda tell which enemies can spawn on the planet at the moment.
+		
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -283,7 +289,7 @@ class sdWeather extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_potential_invasion_events' || prop === '_daily_events' || prop === '_daily_weather_events' || prop === '_daily_sd_task_events' );
+		return ( prop === '_potential_invasion_events' || prop === '_daily_events' || prop === '_daily_weather_events' || prop === '_daily_sd_task_events' || prop === '_wanderer_models' );
 	}
 	
 	GetSunIntensity()
@@ -294,7 +300,7 @@ class sdWeather extends sdEntity
 	{
 		if ( n === sdWeather.EVENT_ACID_RAIN || n === sdWeather.EVENT_ASTEROIDS || n === sdWeather.EVENT_QUAKE ||
 		n === sdWeather.EVENT_WATER_RAIN || n === sdWeather.EVENT_SNOW ||n === sdWeather.EVENT_MATTER_RAIN ||
-		n === sdWeather.EVENT_DIRTY_AIR )
+		n === sdWeather.EVENT_DIRTY_AIR || n === sdWeather.EVENT_EM_ANOMALIES )
 		return true;
 		
 		return false;
@@ -373,6 +379,8 @@ class sdWeather extends sdEntity
 			}
 		}
 		//console.log( "General events: " + this._daily_events );
+		
+		this.GetWandererModels(); // Refresh potential wandering entity spawns
 	}
 	GetDailyWeatherEvents() // Select up to 3 weather events, 2 if you don't count earthquakes
 	{
@@ -473,6 +481,54 @@ class sdWeather extends sdEntity
 			//Essentially we allow 4 events for every 30 minutes, when one happens it cannot happen again until next SD event selection happens.
 		}
 		//console.log( "SD Task events: " + this._daily_sd_task_events );
+	}
+	
+	GetWandererModels() // Set new models which can spawn as background/wandering entities
+	{
+		this._wanderer_models = [ 0, 1, 2 ]; // Default SD vehicles
+		for ( let i = 0; i < this._daily_events.length; i++ )
+		{
+			if ( this._daily_events[ i ] === sdWeather.EVENT_CUBES ) // Can cubes spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_CUBE );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_FALKOKS ) // Can Falkoks spawn on the map?
+			{
+				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_DRONE );
+				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_DRONE2 );
+			}
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_FLYING_MECH ) // Can the Velox mech spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_VELOX_MECH );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_ERTHALS ) // Can the Erthals spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_ERTHAL_DRONE );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SARRONIANS ) // Can Sarronians spawn on the map?
+			{
+				this._wanderer_models.push( sdWanderer.MODEL_SARRONIAN_DRONE );
+				this._wanderer_models.push( sdWanderer.MODEL_SARRONIAN_DRONE2 );
+			}
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR ) // Can the Setr spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_SETR_DRONE );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR_DESTROYER ) // Can the Setr destroyer spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_SETR_DESTROYER );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_SETR_DESTROYER ) // Can the Setr destroyer spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_SETR_DESTROYER );
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_TZYRG ) // Can Tzyrgs spawn on the map?
+			{
+				this._wanderer_models.push( sdWanderer.MODEL_TZYRG_DRONE );
+				this._wanderer_models.push( sdWanderer.MODEL_TZYRG_DRONE2 );
+			}
+			
+			if ( this._daily_events[ i ] === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Can the Zektaron dreadnought spawn on the map?
+			this._wanderer_models.push( sdWanderer.MODEL_ZEKTARON_DREADNOUGHT );
+		}
+		
+		//console.log( "Wanderer models: " + this._wanderer_models );
 	}
 	
 	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
@@ -809,7 +865,7 @@ class sdWeather extends sdEntity
 		return false;
 		*/
 	}
-	GenerateOutpost( x = 0, y = 0, base_type = -1, interior_type = -1, ai_team = 0 ) // Generate a faction outpost.
+	/*GenerateOutpost( x = 0, y = 0, base_type = -1, interior_type = -1, ai_team = 0 ) // Generate a faction outpost.
 	{
 		// TODO: These will be reworked with presets at some point. Also spawn is inefficient in terms of how many sdDeepSleep it would awake
 		
@@ -1117,6 +1173,7 @@ class sdWeather extends sdEntity
 			}
 		}
 	}
+	*/
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false, rain_tracer=false )
 	{
 		const consider_sky_open_height = 200;
@@ -1353,10 +1410,10 @@ class sdWeather extends sdEntity
 			while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
 			{
 
-				let virus_entity = new sdVirus({ x:0, y:0 });
-				virus_entity._is_big = true;
+				let virus_entity = new sdVirus({ x:0, y:0, _is_big:true });
+				//virus_entity._is_big = true;
 				sdEntity.entities.push( virus_entity );
-				sdVirus.big_viruses++;
+				//sdVirus.big_viruses++;
 				{
 					if ( !sdWeather.SetRandomSpawnLocation( virus_entity ) )
 					{
@@ -1431,7 +1488,7 @@ class sdWeather extends sdEntity
 
 		if ( r === sdWeather.EVENT_RIFT_PORTAL ) // Portal event
 		{
-			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
+			//if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				if ( sdRift.portals < this._max_portal_count )
 				sdWeather.SimpleSpawner({
@@ -1501,8 +1558,8 @@ class sdWeather extends sdEntity
 					instances--;
 				}*/
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 					
 		if ( r === sdWeather.EVENT_ERTHALS ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
@@ -2206,10 +2263,11 @@ class sdWeather extends sdEntity
 				}
 			}
 		}
-		if ( r === sdWeather.EVENT_SD_EXTRACTION ) // Summon 1 Star Defender AI which appears to need to be escorted/rescued, or arrested, depending on RNG.
+		if ( r === sdWeather.EVENT_SD_EXTRACTION ) // Summon Star Defender AI which appears to need to be escorted/rescued, or arrested, depending on RNG.
 		{
 			let ais = 0;
 			let hostile = ( Math.random() < 0.5 );
+			let scenario = Math.round( Math.random() * 2 ) // 0 = default SD extraction, 1 and 2 can only happen if AI is hostile, which gives them vehicles
 
 			let instances = 0;
 			let instances_tot = 1;
@@ -2224,142 +2282,181 @@ class sdWeather extends sdEntity
 			}
 
 			//let left_side = ( Math.random() < 0.5 );
+			if ( !hostile ) // If AI needs to be rescued
+			scenario = 0; // Revert to the first scenario
+			
+			if ( scenario === 2 && ais > 1 ) // Scenario 3 requires 3 criminal spawns so if it's not possible
+			scenario = Math.round( Math.random() ); // Reroll between 1st and 2nd scenario
 
-			while ( instances < instances_tot && ais < 4 ) // Only 4 of these task types are available at once
+
+			if ( scenario === 0 ) // First scenario, basic SD needs rescue / arrest
 			{
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
-
-				sdEntity.entities.push( character_entity );
-
+				while ( instances < instances_tot && ais < 4 ) // Only 4 of these task types are available at once
 				{
-					//let x,y;
-					let tr = 1;
-					do
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
+
+					sdEntity.entities.push( character_entity );
+
 					{
-						//if ( left_side )
-						//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-						//else
-						//x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
-
-						//y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-
-						//if ( character_entity.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Make them spawn on surface more often when possible
-						//if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-						//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
-
-						if ( sdWeather.SetRandomSpawnLocation( character_entity ) )
+						//let x,y;
+						let tr = 1;
+						do
 						{
-							//character_entity.x = x;
-							//character_entity.y = y;
+							//if ( left_side )
+							//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+							//else
+							//x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
 
-							//sdWorld.UpdateHashPosition( ent, false );
-							if ( Math.random() < 0.5 ) // Random gun given to Star Defender
+							//y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+
+							//if ( character_entity.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Make them spawn on surface more often when possible
+							//if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+							//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
+
+							if ( sdWeather.SetRandomSpawnLocation( character_entity ) )
 							{
-								if ( Math.random() < 0.2 )
+								//character_entity.x = x;
+								//character_entity.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
-									character_entity._ai_gun_slot = 4;
+									if ( Math.random() < 0.2 )
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+										character_entity._ai_gun_slot = 4;
+									}
+									else
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+										character_entity._ai_gun_slot = 3;
+									}
 								}
 								else
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
-									character_entity._ai_gun_slot = 3;
+								{ 
+									if ( Math.random() < 0.1 )
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+										character_entity._ai_gun_slot = 2;
+									}
+									else
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+										character_entity._ai_gun_slot = 2;
+									}
 								}
-							}
-							else
-							{ 
-								if ( Math.random() < 0.1 )
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
-									character_entity._ai_gun_slot = 2;
-								}
+								let sd_settings;
+								if ( hostile )
+								sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
 								else
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
-									character_entity._ai_gun_slot = 2;
-								}
+								sd_settings = {"hero_name":"Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#008000","color_suit2":"#008000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
+								character_entity.title = sd_settings.hero_name;
+								character_entity.matter = 185;
+								character_entity.matter_max = 185;
+
+								character_entity.hea = 250; // It is a star defender after all
+								character_entity.hmax = 250;
+
+								character_entity.armor = 500;
+								character_entity.armor_max = 500;
+								character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
+								character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+
+								//character_entity._damage_mult = 2;	
+								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+											
+								character_entity._ai_level = 5;
+											
+								character_entity._matter_regeneration = 5; // At least some ammo regen
+								character_entity._jetpack_allowed = true; // Jetpack
+								//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+								character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
+								character_entity._allow_despawn = false;
+								character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
+								//character_entity._ai.next_action = 1;
+								break;
 							}
-							let sd_settings;
-							if ( hostile )
-							sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
-							else
-							sd_settings = {"hero_name":"Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#008000","color_suit2":"#008000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
-							character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
-							character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
-							character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
-							character_entity.title = sd_settings.hero_name;
-							character_entity.matter = 185;
-							character_entity.matter_max = 185;
-
-							character_entity.hea = 250; // It is a star defender after all
-							character_entity.hmax = 250;
-
-							character_entity.armor = 500;
-							character_entity.armor_max = 500;
-							character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
-							character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
-
-							//character_entity._damage_mult = 2;	
-							character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-										
-							character_entity._ai_level = 5;
-										
-							character_entity._matter_regeneration = 5; // At least some ammo regen
-							character_entity._jetpack_allowed = true; // Jetpack
-							//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
-							character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-							character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
-							character_entity._allow_despawn = false;
-							character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
-							//character_entity._ai.next_action = 1;
-							break;
-						}
 
 
-						tr--;
-						if ( tr < 0 )
-						{
-							character_entity.remove();
-							character_entity._broken = false;
-							break;
-						}
-					} while( true );
+							tr--;
+							if ( tr < 0 )
+							{
+								character_entity.remove();
+								character_entity._broken = false;
+								break;
+							}
+						} while( true );
+					}
+
+					instances++;
+					ais++;
+					if ( hostile )
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+character_entity._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: character_entity,
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Arrest Star Defender',
+							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+						});
+					}
+					else
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be rescued, although they can be teleported when dead, but not destroyed body.
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+character_entity._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: character_entity,
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Rescue Star Defender',
+							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
+						});
+					}
 				}
-
-				instances++;
-				ais++;
-				if ( hostile )
-				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
-				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'EXTRACT-'+character_entity._net_id, 
-						executer: sdWorld.sockets[ i ].character,
-						target: character_entity,
-						//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-						mission: sdTask.MISSION_LRTP_EXTRACTION,
-						difficulty: 0.14,
-						//lrtp_ents_needed: 1,
-						title: 'Arrest Star Defender',
-						description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
-					});
-				}
+			}
+			if ( scenario === 1 ) // 2nd scenario - Criminal on a hoverbike
+			{
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdHover,
+					aerial:true,
+					params: { type: sdHover.TYPE_BIKE, spawn_with_criminal: true, filter: 'saturate(0) brightness(0.5)' }, // Spawn with criminal
+				});
+			}
+			if ( scenario === 2 ) // 3rd scenario - Multiple criminals in a hover type
+			{
+				let rng = Math.random();
+				let hover_type = sdHover.TYPE_HOVER;
+				if ( rng < 0.55 ) // 55% chance for regular hover
+				hover_type = sdHover.TYPE_HOVER;
 				else
-				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be rescued, although they can be teleported when dead, but not destroyed body.
-				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'EXTRACT-'+character_entity._net_id, 
-						executer: sdWorld.sockets[ i ].character,
-						target: character_entity,
-						//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-						mission: sdTask.MISSION_LRTP_EXTRACTION,
-						difficulty: 0.14,
-						//lrtp_ents_needed: 1,
-						title: 'Rescue Star Defender',
-						description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
-					});
-				}
+				if ( rng < 0.85 ) // 30% chance for fighter hover
+				hover_type = sdHover.TYPE_FIGHTER_HOVER;	
+				else
+				hover_type = sdHover.TYPE_TANK; // 15% chance for tank
+				
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdHover,
+					aerial:true,
+					params: { type: hover_type, spawn_with_criminal: true }, // Spawn with criminals
+				});
 			}
 		}
 		if ( r === sdWeather.EVENT_SETR ) // Setr faction spawn. Spawns humanoids and drones.
@@ -2925,7 +3022,10 @@ class sdWeather extends sdEntity
 			
 			if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
 			{
-				if ( sdWorld.server_config.aggressive_hibernation )
+				
+				sdPresetEditor.SpawnPresetInWorld( 'falkok_outpost1' );
+				// I hope this works in "open world" server configs
+				/*if ( sdWorld.server_config.aggressive_hibernation )
 				{
 					trace( 'Falkok outpost spawn has been prevented due to aggressive_hibernation being enabled - should be redone with preset spawns and use simpler location test (for example try to spawn over random sdBlock entity - as long as it does not wake up thousands of sdDeepSleep cells across whole map it would be fine)' );
 				}
@@ -3002,7 +3102,7 @@ class sdWeather extends sdEntity
 							tr = 0;
 						}
 					} while ( tr > 0 );
-				}
+				}*/
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -3148,6 +3248,14 @@ class sdWeather extends sdEntity
 					class: sdShurgExcavator
 				});
 
+				if ( Math.random() < 0.3 ) // 30% chance for a Shurg manual turret and pilot to spawn
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdShurgManualTurret,
+					aerial:true,
+					params: { spawn_with_pilot: true }, // Spawn with pilot
+				});
 			}
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter converter anywhere on the map outside player views.
@@ -3503,6 +3611,19 @@ class sdWeather extends sdEntity
 				
 			});
 		}
+		if ( r === sdWeather.EVENT_EM_ANOMALIES ) // Electromagnetic anomalies spawn and exist on the map for about 5 minutes.
+		{
+			{
+				sdWeather.SimpleSpawner({
+
+					count: [ 1, 3 ],
+					class: sdRift,
+					params: { type: sdRift.TYPE_ELECTROMAGNETIC_ANOMALY },
+					aerial: true
+
+				});
+			}
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -3517,15 +3638,19 @@ class sdWeather extends sdEntity
 			
 			this._next_wanderer_spawn -= GSPEED;
 			
-			if ( this._next_wanderer_spawn <= 0 )
+			if ( this._next_wanderer_spawn <= 0 && this._wanderer_models.length > 0 && sdWanderer.wanderers.length < 50 )
 			{
+				// Remember, higher layer count = closer to the player's enviroment
 				let spawn_layer = Math.round( Math.random() * 7 );
-				let x_spawn = ( Math.random() < 0.5 ) ? ( this.x1 - 1600 * ( 1 + spawn_layer ) ) : ( this.x2 + 1600 * ( 1 + spawn_layer ) ); // Will probably need tweaking - Booraz149
+				let ent_model = this._wanderer_models[ ~~( Math.random() * this._wanderer_models.length ) ]; // Which wandering sprite will appear?
+				let x_spawn = ( Math.random() < 0.5 ) ? ( this.x1 - ( 1600 * 8 ) + ( 1600 * ( 1 + spawn_layer ) ) ) : ( this.x2 + ( 1600 * 8 ) - ( 1600 * ( 1 + spawn_layer ) ) ); // Will probably need tweaking - Booraz149
 				this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 );
+				
 				let ent = new sdWanderer({ 
 					x:x_spawn,
 					y:( 0 - Math.random() * 400 ),
-					layer:spawn_layer
+					layer:spawn_layer,
+					model: ent_model
 				});
 				sdEntity.entities.push( ent );
 				

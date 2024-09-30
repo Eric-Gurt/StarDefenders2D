@@ -628,6 +628,12 @@ class sdShop
 				sdShop.options.push({ _class: 'sdShurgTurret', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgTurret', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgExcavator', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdShurgManualTurret', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdShurgManualTurret', spawn_with_pilot: true, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdHover', type:0, spawn_with_criminal: true, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdHover', type:1, spawn_with_criminal: true, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdHover', type:2, spawn_with_criminal: true, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdHover', type:3, spawn_with_criminal: true, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
@@ -636,6 +642,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdRift', type: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 5, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdRift', type: 6, _category:'Development tests' });
 				
 				{
 					let base_props = { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals' };
