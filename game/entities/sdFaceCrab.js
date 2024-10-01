@@ -74,6 +74,8 @@ class sdFaceCrab extends sdEntity
 		
 		this._physically_stuck_timer = 0;
 		
+		this._hibernation_check_timer = 30; // Timer which checks if hibernating in an empty block is possible ( if crab did not attack anything past a certain time )
+		
 		//this.side = 1;
 
 		this.filter = null;
@@ -403,6 +405,49 @@ class sdFaceCrab extends sdEntity
 					max_targets--;
 					if ( max_targets <= 0 )
 					break;
+				}
+			}
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 20; // Check if hibernation is possible every 20 seconds
+					let no_players_near = true;
+					
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					if ( sdWorld.sockets[ i ].character )
+					{
+						if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y, 500 ) ) // A player is too close to it?
+						{
+							no_players_near = false; // Prevent hibernation
+							break;
+						}
+					}
+					if ( no_players_near )
+					{
+						let potential_hibernation_blocks = sdWorld.GetAnythingNear( this.x, this.y, 96, null, [ 'sdBlock' ] ); // Look for blocks
+						for ( i = 0; i < potential_hibernation_blocks.length; i++ )
+						{
+							let block = potential_hibernation_blocks[ i ];
+							
+							if ( block )
+							{
+								if ( !block._is_being_removed && block._natural && !block._contains_class ) // Natural block and nothing inside it?
+								{
+									block._contains_class = 'sdFaceCrab'; // Put a crab in there
+									this.remove(); // Disappear
+									this._broken = false;
+									break;
+								}
+							}
+						}
+					}
 				}
 			}
 		}
