@@ -72,10 +72,13 @@ class sdBiter extends sdEntity
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time + ( this.type === sdBiter.TYPE_LARGE ? 400 : 2000 );
+		this._last_bite = sdWorld.time;
 		this._attacking = false;
 		this.side = 1;
 		
 		this.attack_anim = 0;
+		
+		this._hibernation_check_timer = 30;
 		
 		//this._anim_shift = ~~( Math.random() * 10000 );
 		
@@ -115,6 +118,11 @@ class sdBiter extends sdEntity
 	{
 		return 'hue-rotate('+( this.hue + 150 )+'deg)';
 	}
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
+	}
+	
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -337,6 +345,8 @@ class sdBiter extends sdEntity
 						from_entity.DamageWithEffect( dmg, this );
 						from_entity.PlayDamageEffect( xx, yy );
 						
+						this._last_bite = sdWorld.time;
+						
 						if ( from_entity.is( sdCharacter ) )
 						{
 							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 30;
@@ -363,6 +373,20 @@ class sdBiter extends sdEntity
 		else
 		{
 			this.sy += sdWorld.gravity * GSPEED;
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
++					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+				}
+			}
 		}
 		
 		

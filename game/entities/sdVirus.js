@@ -69,6 +69,8 @@ class sdVirus extends sdEntity
 		this._last_grow = sdWorld.time;
 		this._last_target_change = 0;
 		
+		this._hibernation_check_timer = 30;
+		
 		this.side = 1;
 		
 		this.hurt_timer = 0;
@@ -172,6 +174,10 @@ class sdVirus extends sdEntity
 	GetBleedEffectHue()
 	{
 		return this.hue;
+	}
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -380,6 +386,20 @@ class sdVirus extends sdEntity
 		//{
 			this.sy += sdWorld.gravity * GSPEED;
 		//}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) && this.hmax === sdVirus.normal_max_health ) // 3 minutes since last attack? Also did it not grow at all?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
++					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+				}
+			}
+		}
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		

@@ -2543,7 +2543,7 @@ class sdEntity
 	
 	AttemptBlockBurying()
 	{
-		if ( !sdWorld.is_server )
+		if ( !sdWorld.is_server || this.CanBuryIntoBlocks() === 0 )
 		return;
 	
 		let no_players_near = true;
