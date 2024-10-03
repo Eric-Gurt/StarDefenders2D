@@ -87,6 +87,8 @@ class sdAsp extends sdEntity
 		
 		this._crystal_worth = params.crystal_worth || 0;
 		
+		this._hibernation_check_timer = 30;
+		
 		sdAsp.asps_tot++;
 		
 		this.hue = params.filter ? 0 : ~~( Math.random() * 360 );
@@ -205,6 +207,10 @@ class sdAsp extends sdEntity
 		{
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
+	}
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -459,6 +465,19 @@ class sdAsp extends sdEntity
 			this.sy += sdWorld.gravity * GSPEED;
 		}
 		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
++					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+				}
+			}
+		}
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}

@@ -2543,6 +2543,9 @@ class sdEntity
 	
 	AttemptBlockBurying()
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
 		let no_players_near = true;
 		let i;			
 		for ( i = 0; i < sdWorld.sockets.length; i++ )
