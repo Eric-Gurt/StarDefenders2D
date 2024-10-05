@@ -1292,35 +1292,48 @@ class sdWeather extends sdEntity
 			{
 				ais++;
 			}
-
-			let instances = 0;
-			let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
-
-			//let left_side = ( Math.random() < 0.5 );
-
-			while ( instances < instances_tot && ais < this._max_ai_count )
+			
+			if ( ais <= this._max_ai_count - 6 && Math.random() < 0.25 ) // 25% chance for Falkoks to spawn in hover, if theoretical hover max doesn't exceed AI count
 			{
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdHover,
+					aerial:true,
+					params: { spawn_with_ents: 2, type:sdHover.TYPE_FALKOK_HOVER, guns: 0 }, // Spawn with falkoks
+				});
+			}
+			else // Regular AI falkok spawn
+			{
+				let instances = 0;
+				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				//let left_side = ( Math.random() < 0.5 );
 
-				sdEntity.entities.push( character_entity );
-
+				while ( instances < instances_tot && ais < this._max_ai_count )
 				{
-					if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
-					{
-						character_entity.remove();
-						character_entity._broken = false;
-						break;
-					}
-					else
-					{
-						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK );
-						break;
-					}
-				}
 
-				instances++;
-				ais++;
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+					sdEntity.entities.push( character_entity );
+
+					{
+						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
+						{
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK );
+							break;
+						}
+					}
+
+					instances++;
+					ais++;
+				}
 			}
 			{ // Spawn some drones aswell
 				let drones = 0;
@@ -1352,14 +1365,6 @@ class sdWeather extends sdEntity
 					});
 				}
 			}
-			if ( Math.random() < 0.15 ) // 15% chance for a Falkok ship which deploys falkoks. Though maybe this should just be regular falkok spawns?
-				sdWeather.SimpleSpawner({
-				
-					count: [ 1, 1 ],
-					class: sdHover,
-					aerial:true,
-					params: { spawn_with_ents: 2, type:sdHover.TYPE_FALKOK_HOVER, guns: 0 }, // Spawn with falkoks
-				});
 		}
 
 		if ( r === sdWeather.EVENT_ASPS )
@@ -3257,7 +3262,7 @@ class sdWeather extends sdEntity
 					class: sdShurgExcavator
 				});
 
-				if ( Math.random() < 0.3 ) // 30% chance for a Shurg manual turret and pilot to spawn
+				if ( Math.random() < 0.3 && ais < this._max_ai_count ) // 30% chance for a Shurg manual turret and pilot to spawn
 				sdWeather.SimpleSpawner({
 				
 					count: [ 1, 1 ],
