@@ -495,6 +495,7 @@ class sdWeather extends sdEntity
 			{
 				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_DRONE );
 				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_DRONE2 );
+				this._wanderer_models.push( sdWanderer.MODEL_FALKOK_HOVER );
 			}
 			
 			if ( this._daily_events[ i ] === sdWeather.EVENT_FLYING_MECH ) // Can the Velox mech spawn on the map?
@@ -1351,6 +1352,14 @@ class sdWeather extends sdEntity
 					});
 				}
 			}
+			if ( Math.random() < 0.15 ) // 15% chance for a Falkok ship which deploys falkoks. Though maybe this should just be regular falkok spawns?
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 1 ],
+					class: sdHover,
+					aerial:true,
+					params: { spawn_with_ents: 2, type:sdHover.TYPE_FALKOK_HOVER, guns: 0 }, // Spawn with falkoks
+				});
 		}
 
 		if ( r === sdWeather.EVENT_ASPS )
@@ -2435,7 +2444,7 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdHover,
 					aerial:true,
-					params: { type: sdHover.TYPE_BIKE, spawn_with_criminal: true, filter: 'saturate(0) brightness(0.5)' }, // Spawn with criminal
+					params: { type: sdHover.TYPE_BIKE, spawn_with_ents: true, filter: 'saturate(0) brightness(0.5)' }, // Spawn with criminal
 				});
 			}
 			if ( scenario === 2 ) // 3rd scenario - Multiple criminals in a hover type
@@ -2455,7 +2464,7 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdHover,
 					aerial:true,
-					params: { type: hover_type, spawn_with_criminal: true }, // Spawn with criminals
+					params: { type: hover_type, spawn_with_ents: true }, // Spawn with criminals
 				});
 			}
 		}
@@ -3616,7 +3625,7 @@ class sdWeather extends sdEntity
 			{
 				sdWeather.SimpleSpawner({
 
-					count: [ 1, 3 ],
+					count: [ 3, 6 ],
 					class: sdRift,
 					params: { type: sdRift.TYPE_ELECTROMAGNETIC_ANOMALY },
 					aerial: true

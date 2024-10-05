@@ -39,60 +39,86 @@ class sdFactions extends sdEntity
 		let character_settings;
 		if ( faction === sdFactions.FACTION_STAR_DEFENDERS ) // Star Defenders
 		{
+			let gun;
 			if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 			{
 				if ( Math.random() < 0.2 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 4;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 3;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			else
 			{ 
 				if ( Math.random() < 0.1 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER );
 		}
 		if ( faction === sdFactions.FACTION_FALKOK ) // Falkoks
 		{
+			let gun;
 			if ( Math.random() < 0.14 )
 			{
 				if ( Math.random() < 0.2 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 4;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 3;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			else
 			{ 
 				if ( Math.random() < 0.1 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			if ( character_entity._ai_gun_slot === 2 ) // Falkok
@@ -104,36 +130,53 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_ERTHAL ) // Erthals
 		{
+			let gun;
 			if ( Math.random() < 0.3 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }); // Works better for vehicle scenarios
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 2;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			else
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 1;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ERTHAL );
 		}
 
 		if ( faction === sdFactions.FACTION_COUNCIL )
 		{
+			let gun;
 			if ( Math.random() < 0.2 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 3;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			else
 			if ( Math.random() < 0.5 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 4;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			else
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 1;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			if ( character_entity._ai_gun_slot === 1 || character_entity._ai_gun_slot === 4 ) // Council Acolyte
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL );
@@ -144,29 +187,42 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_SARRONIAN ) // Sarronians & Zektaron
 		{
+			let gun;
 			if ( Math.random() < 0.4 )
 			{
 				if ( Math.random() < 0.2 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 5;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ZEKTARON_RAILGUN });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 4;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			else
 			if ( Math.random() < 0.65 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 2;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			else
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG }) );
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 1;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 
 			if ( character_entity._ai_gun_slot === 1 )
@@ -187,20 +243,29 @@ class sdFactions extends sdEntity
 			{
 				if ( Math.random() < 0.25 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 4;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			else
 			{ 
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 1;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			if ( character_entity._ai_gun_slot === 1 ) // Velox Combat Pistol Class
@@ -216,45 +281,66 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_SETR ) // Setr
 		{
+			let gun;
 			if ( Math.random() < 0.2 )
-			{ 
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG }) );
-				character_entity._ai_gun_slot = 2;
-			}
+				{
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG });
+					sdEntity.entities.push( gun );
+					
+					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
+				}
 			else
-			{ 
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
-				character_entity._ai_gun_slot = 3;
-			}
+				{
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN });
+					sdEntity.entities.push( gun );
+					
+					character_entity._ai_gun_slot = 3;
+					gun.onMovementInRange( character_entity ); // Force pickup
+				}
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SETR );
 		}
 
 		if ( faction === sdFactions.FACTION_TZYRG ) // Tzyrg
 		{
+			let gun;
 			if ( Math.random() < 0.5 )
-			{ 
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
+			{
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 3;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			else
-			{ 
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE }) );
+			{
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 2;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TZYRG );
 		}
 
 		if ( faction === sdFactions.FACTION_SHURG ) // Shurg
 		{
+			let gun;
 			if ( Math.random() < 0.2 )
-			{ 
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_SNIPER }) );
+			{
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_SNIPER });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 4;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 			else
-			{ 
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL }) );
+			{
+				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL });
+				sdEntity.entities.push( gun );
+					
 				character_entity._ai_gun_slot = 1;
+				gun.onMovementInRange( character_entity ); // Force pickup
 			}
 
 			if ( character_entity._ai_gun_slot === 1 ) // Shurg
@@ -269,65 +355,91 @@ class sdFactions extends sdEntity
 		}
 		if ( faction === sdFactions.FACTION_STAR_DEFENDERS_RESCUE ) // Rescue Star Defenders
 		{
+			let gun;
 			if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 			{
 				if ( Math.random() < 0.2 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 4;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 3;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			else
 			{ 
 				if ( Math.random() < 0.1 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_RESCUE );
 		}
 		if ( faction === sdFactions.FACTION_STAR_DEFENDERS_ARREST ) // Arrest Star Defenders
 		{
+			let gun;
 			if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 			{
 				if ( Math.random() < 0.2 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 4;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 3;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			else
 			{ 
 				if ( Math.random() < 0.1 )
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }); // Works better for vehicle scenarios
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
+					sdEntity.entities.push( gun );
+					
 					character_entity._ai_gun_slot = 2;
+					gun.onMovementInRange( character_entity ); // Force pickup
 				}
 			}
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_STAR_DEFENDER_ARREST );
 		}
-		if ( faction === sdFactions.FACTION_TIME_SHIFTER) // Time Shifter
+		if ( faction === sdFactions.FACTION_TIME_SHIFTER ) // Time Shifter
 		{
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TIME_SHIFTER );
 		}

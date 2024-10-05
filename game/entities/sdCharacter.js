@@ -3450,8 +3450,19 @@ THING is cosmic mic drop!`;
 		{
 			let vehicle = this.driver_of;
 			if ( typeof vehicle.driver0 !== 'undefined' )
-			if ( vehicle.driver0 === null ) // No driver?
-			this._key_states.SetKey( 'KeyE', 1 );
+			{
+				if ( vehicle.driver0 === null ) // No driver?
+				this._key_states.SetKey( 'KeyE', 1 );
+			
+				if ( vehicle.is( sdHover ) )
+				{
+					if ( vehicle.guns === 0 && vehicle.driver0 !== this && Math.random() < 0.1 && this._ai.target ) // Hover with no guns but AI has a target?
+					{
+						this._key_states.SetKey( 'KeyE', 1 ); // Randomly leave and engage the target
+						//this._ai.next_action = 30;
+					}
+				}
+			}
 		
 			if ( typeof vehicle.matter !== 'undefined' )
 			if ( vehicle.matter < 1 ) // No matter?
