@@ -239,6 +239,7 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_VELOX ) // Velox
 		{
+			let gun;
 			if ( Math.random() < 0.35 )
 			{
 				if ( Math.random() < 0.25 )
