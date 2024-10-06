@@ -388,7 +388,7 @@ class sdWeather extends sdEntity
 		
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
-		if ( allowed_event_ids.indexOf( sdWeather.EVENT_QUAKE ) !== -1 ) // Only if allowed
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_QUAKE ) !== -1 && sdWorld.server_config.ForceEarthquakesIfPossible() ) // Only if allowed
 		this._daily_weather_events = [ sdWeather.EVENT_QUAKE ]; // Always enable earthquakes so ground can regenerate
 
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
@@ -426,6 +426,7 @@ class sdWeather extends sdEntity
 					{
 						this._daily_weather_events.push( n ); // Add it
 						weather_event_count--;
+						console.log( n );
 					}
 				}
 				time--;
@@ -1529,14 +1530,14 @@ class sdWeather extends sdEntity
 		{
 			//if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
-				if ( sdRift.portals < this._max_portal_count )
+				if ( sdRift.portals < this._max_portal_count || ( sdWorld.server_config.aggressive_hibernation && sdRift.portals < this._max_portal_count * 2 ) )
 				sdWeather.SimpleSpawner({
 
 					count: [ 1, 1 ],
 					class: sdRift
 
 				});
-
+				// I doubt there'll be 8 portals at once on open worlds, but just in case a cap should exist.
 
 				/*let instances = 1;
 				while ( instances > 0 && sdRift.portals < this._max_portal_count )
@@ -2362,11 +2363,9 @@ class sdWeather extends sdEntity
 		if ( r === sdWeather.EVENT_SD_EXTRACTION ) // Summon Star Defender AI which appears to need to be escorted/rescued, or arrested, depending on RNG.
 		{
 			let ais = 0;
-			let hostile = ( Math.random() < 0.5 );
+			let hostile = 0; //( Math.random() < 0.5 );
 			let scenario = Math.round( Math.random() * 2 ) // 0 = default SD extraction, 1 and 2 can only happen if AI is hostile, which gives them vehicles
 
-			let instances = 0;
-			let instances_tot = 1;
 			
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
@@ -2387,140 +2386,114 @@ class sdWeather extends sdEntity
 
 			if ( scenario === 0 ) // First scenario, basic SD needs rescue / arrest
 			{
-				while ( instances < instances_tot && ais < 4 ) // Only 4 of these task types are available at once
+				if ( ais < 4 )
 				{
-					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
+					//let max_ai = Math.min( 6, this._max_ai_count - ais );
+					//let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
 
-					sdEntity.entities.push( character_entity );
+						count: [ 1,1 ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
 
+					});
+					
+					for ( let i = 0; i < character_ents.length; i++ )
 					{
-						//let x,y;
-						let tr = 1;
-						do
+						let character_entity = character_ents[ i ];
+						if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 						{
-							//if ( left_side )
-							//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-							//else
-							//x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
-
-							//y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-
-							//if ( character_entity.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Make them spawn on surface more often when possible
-							//if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-							//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
-
-							if ( sdWeather.SetRandomSpawnLocation( character_entity ) )
+							if ( Math.random() < 0.2 )
 							{
-								//character_entity.x = x;
-								//character_entity.y = y;
-
-								//sdWorld.UpdateHashPosition( ent, false );
-								if ( Math.random() < 0.5 ) // Random gun given to Star Defender
-								{
-									if ( Math.random() < 0.2 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
-										character_entity._ai_gun_slot = 4;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
-										character_entity._ai_gun_slot = 3;
-									}
-								}
-								else
-								{ 
-									if ( Math.random() < 0.1 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
-										character_entity._ai_gun_slot = 2;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
-										character_entity._ai_gun_slot = 2;
-									}
-								}
-								let sd_settings;
-								if ( hostile )
-								sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
-								else
-								sd_settings = {"hero_name":"Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#008000","color_suit2":"#008000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
-								character_entity.title = sd_settings.hero_name;
-								character_entity.matter = 185;
-								character_entity.matter_max = 185;
-
-								character_entity.hea = 250; // It is a star defender after all
-								character_entity.hmax = 250;
-
-								character_entity.armor = 500;
-								character_entity.armor_max = 500;
-								character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
-								character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
-
-								//character_entity._damage_mult = 2;	
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-											
-								character_entity._ai_level = 5;
-											
-								character_entity._matter_regeneration = 5; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
-								character_entity._allow_despawn = false;
-								character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
-								//character_entity._ai.next_action = 1;
-								break;
+								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+								character_entity._ai_gun_slot = 4;
 							}
-
-
-							tr--;
-							if ( tr < 0 )
+							else
 							{
-								character_entity.remove();
-								character_entity._broken = false;
-								break;
+								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+								character_entity._ai_gun_slot = 3;
 							}
-						} while( true );
-					}
+						}
+						else
+						{ 
+							if ( Math.random() < 0.1 )
+							{
+								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+								character_entity._ai_gun_slot = 2;
+							}
+							else
+							{
+								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+								character_entity._ai_gun_slot = 2;
+							}
+						}
+						let sd_settings;
+						if ( hostile )
+						sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
+						else
+						sd_settings = {"hero_name":"Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#008000","color_suit2":"#008000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
+						character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
+						character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
+						character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
+						character_entity.title = sd_settings.hero_name;
+						character_entity.matter = 185;
+						character_entity.matter_max = 185;
 
-					instances++;
-					ais++;
-					if ( hostile )
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
-					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'EXTRACT-'+character_entity._net_id, 
-							executer: sdWorld.sockets[ i ].character,
-							target: character_entity,
-							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
-							//lrtp_ents_needed: 1,
-							title: 'Arrest Star Defender',
-							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
-						});
-					}
-					else
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be rescued, although they can be teleported when dead, but not destroyed body.
-					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'EXTRACT-'+character_entity._net_id, 
-							executer: sdWorld.sockets[ i ].character,
-							target: character_entity,
-							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
-							//lrtp_ents_needed: 1,
-							title: 'Rescue Star Defender',
-							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
-						});
+						character_entity.hea = 250; // It is a star defender after all
+						character_entity.hmax = 250;
+
+						character_entity.armor = 500;
+						character_entity.armor_max = 500;
+						character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
+						character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+
+						//character_entity._damage_mult = 2;	
+						character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+												
+						character_entity._ai_level = 5;
+												
+						character_entity._matter_regeneration = 5; // At least some ammo regen
+						character_entity._jetpack_allowed = true; // Jetpack
+						//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+						character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+						character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
+						character_entity._allow_despawn = false;
+						character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
+						//character_entity._ai.next_action = 1;
+						if ( hostile )
+						for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+						{
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'EXTRACT-'+character_entity._net_id, 
+								executer: sdWorld.sockets[ i ].character,
+								target: character_entity,
+								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+								mission: sdTask.MISSION_LRTP_EXTRACTION,
+								difficulty: 0.14,
+								//lrtp_ents_needed: 1,
+								title: 'Arrest Star Defender',
+								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+							});
+						}
+						else
+						for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be rescued, although they can be teleported when dead, but not destroyed body.
+						{
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'EXTRACT-'+character_entity._net_id, 
+								executer: sdWorld.sockets[ i ].character,
+								target: character_entity,
+								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+								mission: sdTask.MISSION_LRTP_EXTRACTION,
+								difficulty: 0.14,
+								//lrtp_ents_needed: 1,
+								title: 'Rescue Star Defender',
+								description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
+							});
+						}
 					}
 				}
 			}

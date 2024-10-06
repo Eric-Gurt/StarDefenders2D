@@ -200,7 +200,7 @@ class sdFactions extends sdEntity
 				}
 				else
 				{
-					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ZEKTARON_RAILGUN });
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN });
 					sdEntity.entities.push( gun );
 					
 					character_entity._ai_gun_slot = 4;

@@ -121,11 +121,14 @@ class sdCube extends sdEntity
 		if ( r < 0.1 + 0.04 + 0.14 )
 		return sdCube.KIND_PINK;
 	
-		// I hate them - EG
-		//if ( r < 0.1 + 0.04 + 0.14 + 0.1 )
-		//return sdCube.KIND_GREEN;
-		//if ( r < 0.1 + 0.04 + 0.14 + 0.1 + 0.1 ) // 0.48
-		//return sdCube.KIND_BLUE;
+		if ( sdWorld.server_config.EnableForbiddenCubes() ) // Only if server allows it
+		{
+			// I hate them - EG
+			if ( r < 0.1 + 0.04 + 0.14 + 0.1 )
+			return sdCube.KIND_GREEN;
+			if ( r < 0.1 + 0.04 + 0.14 + 0.1 + 0.1 ) // 0.48
+			return sdCube.KIND_BLUE;
+		}
 		
 		return sdCube.KIND_CYAN;
 		
