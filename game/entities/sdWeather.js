@@ -426,7 +426,7 @@ class sdWeather extends sdEntity
 					{
 						this._daily_weather_events.push( n ); // Add it
 						weather_event_count--;
-						console.log( n );
+						//console.log( n );
 					}
 				}
 				time--;
@@ -2363,7 +2363,7 @@ class sdWeather extends sdEntity
 		if ( r === sdWeather.EVENT_SD_EXTRACTION ) // Summon Star Defender AI which appears to need to be escorted/rescued, or arrested, depending on RNG.
 		{
 			let ais = 0;
-			let hostile = 0; //( Math.random() < 0.5 );
+			let hostile = ( Math.random() < 0.5 );
 			let scenario = Math.round( Math.random() * 2 ) // 0 = default SD extraction, 1 and 2 can only happen if AI is hostile, which gives them vehicles
 
 			
