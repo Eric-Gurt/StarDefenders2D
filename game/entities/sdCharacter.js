@@ -3334,7 +3334,7 @@ THING is cosmic mic drop!`;
 						if ( Math.random() < 0.3 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
+						if ( Math.random() < 0.2 || ( this.sy > 2.5 && this._jetpack_allowed && this.matter > 30 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 						if ( Math.random() < 0.4 )

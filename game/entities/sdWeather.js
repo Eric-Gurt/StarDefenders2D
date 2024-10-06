@@ -544,6 +544,8 @@ class sdWeather extends sdEntity
 	
 		let near_entity = params.near_entity || null;
 		
+		let store_ents = params.store_ents || null; // Store spawned ents in an array, for adding humanoid faction properties, for example
+		
 		params.group_radius = params.group_radius || 0;
 		
 		if ( near_entity && !params.group_radius )
@@ -645,6 +647,9 @@ class sdWeather extends sdEntity
 								{
 									near_entity = dog;
 								}
+
+								if ( store_ents ) // Store entity into an array?
+								store_ents.push( dog );
 
 								break;
 							}
@@ -1305,8 +1310,28 @@ class sdWeather extends sdEntity
 			}
 			else // Regular AI falkok spawn
 			{
-				let instances = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_FALKOK ); // And give them Falkok properties
+				}
+				
+				/*let instances = 0;
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+				
 
 				//let left_side = ( Math.random() < 0.5 );
 
@@ -1333,7 +1358,7 @@ class sdWeather extends sdEntity
 
 					instances++;
 					ais++;
-				}
+				}*/
 			}
 			{ // Spawn some drones aswell
 				let drones = 0;
@@ -1627,7 +1652,26 @@ class sdWeather extends sdEntity
 			}
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least one built tool / shop upgrade
 			{
-				let robots = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_ERTHAL ); // And give them Erthal properties
+				}
+				
+				/*let robots = 0;
 				let robots_tot = 1 + ( ~~( Math.random() * 2 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
@@ -1656,6 +1700,7 @@ class sdWeather extends sdEntity
 					ais++;
 					//console.log('Erthal spawned!');
 				}
+				*/
 			}
 		}
 		if ( r === sdWeather.EVENT_OBELISK ) // Spawn an obelisk near ground where players don't see them
@@ -1910,7 +1955,25 @@ class sdWeather extends sdEntity
 			}
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 20 levels
 			{
-				let instances = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_SARRONIAN ); // And give them Sarronian properties
+				}
+				/*let instances = 0;
 				let instances_tot = 4 + ( ~~( Math.random() * 3 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
@@ -1940,7 +2003,7 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
-
+				*/
 				//let drones = 0;
 				//let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 				
@@ -2213,7 +2276,25 @@ class sdWeather extends sdEntity
 			}
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
 			{
-				let instances = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_VELOX ); // And give them Velox properties
+				}
+				/*let instances = 0;
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
@@ -2242,6 +2323,7 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
+				*/
 				sdWeather.SimpleSpawner({
 				
 					count: [ 1, 2 ],
@@ -2497,7 +2579,25 @@ class sdWeather extends sdEntity
 			}
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
 			{
-				let instances = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_SETR ); // And give them Setr properties
+				}
+				/*let instances = 0;
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
 				let left_side = ( Math.random() < 0.5 );
@@ -2526,8 +2626,9 @@ class sdWeather extends sdEntity
 
 					instances++;
 					ais++;
+					
 				}
-
+				*/
 				//let drones = 0;
 				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
@@ -2969,7 +3070,25 @@ class sdWeather extends sdEntity
 			}
 
 			{
-				let instances = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: true,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_TZYRG ); // And give them Tzyrg properties
+				}
+				/*let instances = 0;
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
@@ -2999,7 +3118,7 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
-				
+				*/
 				let drones = 0;
 				for ( let i = 0; i < sdDrone.drones.length; i++ )
 				{
@@ -3225,7 +3344,25 @@ class sdWeather extends sdEntity
 			}
 
 			{
-				let instances = 0;
+				if ( ais < this._max_ai_count )
+				{
+					let max_ai = Math.min( 6, this._max_ai_count - ais );
+					let min_ai = Math.min( 3, this._max_ai_count );
+					let character_ents = [];
+					
+					sdWeather.SimpleSpawner({
+
+						count: [ min_ai, max_ai ],
+						class: sdCharacter,
+						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						aerial: false,
+						store_ents: character_ents
+
+					});
+					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_SHURG ); // And give them Shurg properties
+				}
+				/*let instances = 0;
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
@@ -3255,6 +3392,7 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
+				*/
 
 				sdWeather.SimpleSpawner({
 				
