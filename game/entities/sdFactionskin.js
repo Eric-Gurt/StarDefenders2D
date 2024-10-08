@@ -605,7 +605,8 @@ class sdFactionskin extends sdEntity
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 
 			character_entity._ai_level = 4;
-			character_entity._ai_gun_slot = -1;
+			character_entity.gun_slot = -1;
+			character_entity._ai_allow_weapon_switch = false;
 
 			character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack

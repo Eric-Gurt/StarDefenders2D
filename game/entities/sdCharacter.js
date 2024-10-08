@@ -1139,6 +1139,7 @@ THING is cosmic mic drop!`;
 		this._ai_stay_near_entity = null; // Should AI stay near an entity/protect it?
 		this._ai_stay_distance = params._ai_stay_distance || 128; // Max distance AI can stray from entity it follows/protects.
 		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
+		this._ai_allow_weapon_switch = true; // Allow switching weapons if AI has multiple of them
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -2861,6 +2862,12 @@ THING is cosmic mic drop!`;
 					}
 				}
 			}
+			if ( initiator && this._ai ) // AI got healed?
+			{
+				if ( this._ai.target )
+				if ( this._ai.target === initiator ) // AI got healed by whoever shot them before? ( Instructor or SD soldiers come to mind here )
+				this._ai.target = null; // Maybe AI could forgive
+			}
 			
 			this._dying = false;
 			
@@ -3060,10 +3067,39 @@ THING is cosmic mic drop!`;
 			{
 				this._ai.next_action = 5 + Math.random() * 10;
 
-				if ( this.gun_slot !== this._ai_gun_slot )
+				/*if ( this.gun_slot !== this._ai_gun_slot && this._inventory[ this._ai_gun_slot ] && !this._inventory[ this._gun_slot ] ) // Any weapon in it's predicted slot? And no weapon is currently equipped?
 				{
-					this.gun_slot = this._ai_gun_slot;
+					this.gun_slot = this._ai_gun_slot; // Equip it
 					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+				}
+				else
+				*/
+				if ( ( !this._inventory[ this.gun_slot ] || Math.random() < 0.15 ) && this._ai_allow_weapon_switch ) // No weapon ( or occasionally check if they have a better one ) and is allowed to switch weapons?
+				{
+					if ( this._inventory.length > 0 ) // Any weapons?
+					{
+						//let slots = [];
+						let best_slot = -1; // Which slot is most suitable for current situation?
+						// Currently it only checks DPS for weapons, though it should probably check target distance so it selects a sniper, or shotgun, or a pistol if it's low on matter.
+						for ( let i = 0; i < 9; i++ )
+						{
+							if ( this._inventory[ i ] )
+							{
+								if ( best_slot === -1 )
+								best_slot = i;
+								else
+								if ( this._inventory[ i ].class._max_dps > this._inventory[ best_slot ].class._max_dps )
+								best_slot = i;
+							}
+						}
+						//if ( best_slot !== -1 )
+						//this.gun_slot = slots[ Math.round( Math.random() * slots.length ) ];
+						//else
+						this.gun_slot = best_slot;
+						this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+					}
+					
+					
 				}
 				
 				
