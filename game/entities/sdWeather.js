@@ -2037,19 +2037,19 @@ class sdWeather extends sdEntity
 		{
 			let chance = 0;
 			let req_char = 0;
-			let char = 0;
+			let chars = 0;
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				if ( sdWorld.sockets[ i ].character !== null )
 				if ( sdWorld.sockets[ i ].character.hea > 0 )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
 				{
-					char++;
+					chars++;
 					if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 )
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 15+ , max 60% chance
+			chance = ( req_char / chars ) * 0.6; // Chance to execute this event depends on how many players reached 15+ , max 60% chance
 
 			if ( Math.random() < chance )
 			{
@@ -2159,19 +2159,19 @@ class sdWeather extends sdEntity
 		{
 			let chance = 0;
 			let req_char = 0;
-			let char = 0;
+			let chars = 0;
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				if ( sdWorld.sockets[ i ].character !== null )
 				if ( sdWorld.sockets[ i ].character.hea > 0 )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
 				{
-					char++;
+					chars++;
 					if ( sdWorld.sockets[ i ].character.build_tool_level >= 5 )
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
+			chance = ( req_char / chars ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
 
 			if ( Math.random() < chance )
 			{
@@ -2396,7 +2396,7 @@ class sdWeather extends sdEntity
 
 						count: [ 1,1 ],
 						class: sdCharacter,
-						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+						params: { _ai_enabled: ( hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE ) },
 						aerial: true,
 						store_ents: character_ents
 
@@ -2853,19 +2853,19 @@ class sdWeather extends sdEntity
 		{
 			let chance = 0;
 			let req_char = 0;
-			let char = 0;
+			let chars = 0;
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				if ( sdWorld.sockets[ i ].character !== null )
 				if ( sdWorld.sockets[ i ].character.hea > 0 )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
 				{
-					char++;
+					chars++;
 					if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 )
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ); // 100% chance to roll if all players are level 15 or above
+			chance = ( req_char / chars ); // 100% chance to roll if all players are level 15 or above
 			
 			if ( Math.random() < chance )
 			{
@@ -3688,19 +3688,19 @@ class sdWeather extends sdEntity
 		{
 			let chance = 0;
 			let req_char = 0;
-			let char = 0;
+			let chars = 0;
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				if ( sdWorld.sockets[ i ].character !== null )
 				if ( sdWorld.sockets[ i ].character.hea > 0 )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
 				{
-					char++;
+					chars++;
 					if ( sdWorld.sockets[ i ].character.build_tool_level >= 5 )
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
+			chance = ( req_char / chars ) * 0.6; // Chance to execute this event depends on how many players reached 5+ , max 60% chance
 
 			if ( Math.random() < chance )
 			{

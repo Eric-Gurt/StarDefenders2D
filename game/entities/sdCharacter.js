@@ -1994,7 +1994,7 @@ THING is cosmic mic drop!`;
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
-			if ( targets[ i ].material === sdBlock.MATERIAL_GROUND || targets[ i ]._ai_team !== this._ai_team )
+			if ( targets[ i ]._natural || targets[ i ]._ai_team !== this._ai_team )
 			{
 				this._ai.target = targets[ i ];
 				return;
