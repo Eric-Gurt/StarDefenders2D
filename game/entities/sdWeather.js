@@ -549,6 +549,8 @@ class sdWeather extends sdEntity
 		
 		params.group_radius = params.group_radius || 0;
 		
+		let aerial_radius = params.aerial_radius || 400; // Radius if entity can spawn in air
+		
 		if ( near_entity && !params.group_radius )
 		console.warn( 'params.near_entity was used but it requires params.group_radius to be used too' );
 	
@@ -595,8 +597,8 @@ class sdWeather extends sdEntity
 							let morph = Math.random();
 							let morph2 = Math.random();
 							
-							x = place_onto.x + ( place_onto._hitbox_x1 - 400 ) * morph + ( place_onto._hitbox_x2 + 400 ) * ( 1 - morph );
-							y = place_onto.y + ( place_onto._hitbox_y1 - 400 ) * morph2 + ( place_onto._hitbox_y2 ) * ( 1 - morph2 );
+							x = place_onto.x + ( place_onto._hitbox_x1 - aerial_radius ) * morph + ( place_onto._hitbox_x2 + aerial_radius ) * ( 1 - morph );
+							y = place_onto.y + ( place_onto._hitbox_y1 - aerial_radius ) * morph2 + ( place_onto._hitbox_y2 ) * ( 1 - morph2 );
 						}
 						else
 						{
@@ -610,6 +612,10 @@ class sdWeather extends sdEntity
 						
 						if ( near_entity )
 						if ( !sdWorld.inDist2D_Boolean( near_entity.x, near_entity.y, x, y, params.group_radius ) )
+						ok = false;
+					
+						if ( params.min_air_height !== 0 ) // Needs to have a minimum height distance of emptyness/air?
+						if ( !sdWorld.CheckLineOfSight( x, y, x, y + params.min_air_height ) ) // Check it
 						ok = false;
 				
 						if ( ok )
@@ -1260,7 +1266,9 @@ class sdWeather extends sdEntity
 				params: { kind: ()=>sdCube.GetRandomKind() },
 				evalute_params: [ 'kind' ],
 				
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
+				
 
 			});
 			/*
@@ -1305,7 +1313,7 @@ class sdWeather extends sdEntity
 				
 					count: [ 1, 1 ],
 					class: sdHover,
-					aerial:true,
+					aerial: true,
 					params: { spawn_with_ents: 2, type:sdHover.TYPE_FALKOK_HOVER, guns: 0 }, // Spawn with falkoks
 				});
 			}
@@ -1401,7 +1409,8 @@ class sdWeather extends sdEntity
 				count: [ 1, 1 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdAsp,
 				
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
 
 			});
 
@@ -1502,7 +1511,8 @@ class sdWeather extends sdEntity
 				
 					count: [ 1, 1 ],
 					class: sdEnemyMech,
-					aerial: true
+					aerial: true,
+					aerial_radius: 800
 				
 				});
 
@@ -2058,7 +2068,8 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdJunk,
-					params: { type: sdJunk.TYPE_COUNCIL_BOMB }
+					params: { type: sdJunk.TYPE_COUNCIL_BOMB },
+					min_air_height: -400 // Minimum free space above entity placement location
 
 				});
 				
@@ -2180,7 +2191,8 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdJunk,
-					params: { type: sdJunk.TYPE_ERTHAL_DISTRESS_BEACON }
+					params: { type: sdJunk.TYPE_ERTHAL_DISTRESS_BEACON },
+					min_air_height: -400 // Minimum free space above entity placement location
 
 				});
 
@@ -2504,7 +2516,7 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdHover,
 					aerial:true,
-					params: { type: sdHover.TYPE_BIKE, spawn_with_ents: true, filter: 'saturate(0) brightness(0.5)' }, // Spawn with criminal
+					params: { type: sdHover.TYPE_BIKE, spawn_with_ents: 1, filter: 'saturate(0) brightness(0.5)' }, // Spawn with criminal
 				});
 			}
 			if ( scenario === 2 ) // 3rd scenario - Multiple criminals in a hover type
@@ -2524,7 +2536,7 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdHover,
 					aerial:true,
-					params: { type: hover_type, spawn_with_ents: true }, // Spawn with criminals
+					params: { type: hover_type, spawn_with_ents: 1 }, // Spawn with criminals
 				});
 			}
 		}
@@ -2634,7 +2646,8 @@ class sdWeather extends sdEntity
 				count: [ 1, 1 ],
 				class: sdSetrDestroyer,
 				
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
 				
 			});
 			
@@ -2785,7 +2798,8 @@ class sdWeather extends sdEntity
 				count: [ 1, Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdBiter,
 				
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
 				
 			});
 			
@@ -3555,7 +3569,8 @@ class sdWeather extends sdEntity
 				count: [ 1, 1 ],
 				class: sdZektaronDreadnought,
 				
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
 				
 			});
 			else
@@ -3587,7 +3602,8 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdBeamProjector,
-				aerial: false
+				aerial: false,
+				min_air_height: -400 // Minimum free space above entity placement location
 				
 			});
 			else
@@ -3607,7 +3623,8 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdCouncilIncinerator,
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
 				
 			});
 			else
@@ -3620,7 +3637,8 @@ class sdWeather extends sdEntity
 				
 				count: [ 2, 3 ],
 				class: sdStealer,
-				aerial: true
+				aerial: true,
+				aerial_radius: 800
 				
 			});
 		}
@@ -3631,7 +3649,8 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdLongRangeAntenna,
-				aerial: false
+				aerial: false,
+				min_air_height: -400 // Minimum free space above entity placement location
 				
 			});
 			else
@@ -3709,7 +3728,8 @@ class sdWeather extends sdEntity
 				sdWeather.SimpleSpawner({
 
 					count: [ 1, 1 ],
-					class: sdVeloxFortifier 
+					class: sdVeloxFortifier,
+					min_air_height: -400 // Minimum free space above entity placement location
 
 				});
 
@@ -3723,7 +3743,8 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdSolarMatterDistributor,
-				aerial: false
+				aerial: false,
+				min_air_height: -400 // Minimum free space above entity placement location
 				
 			});
 		}
@@ -3733,7 +3754,8 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdExcavator,
-				aerial: false
+				aerial: false,
+				min_air_height: -400 // Minimum free space above entity placement location
 				
 			});
 		}

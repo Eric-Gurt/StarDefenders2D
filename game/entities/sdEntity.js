@@ -2541,7 +2541,7 @@ class sdEntity
 		return 0; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
 	}
 	
-	AttemptBlockBurying()
+	AttemptBlockBurying( custom_ent_tag = null )
 	{
 		if ( !sdWorld.is_server || this.CanBuryIntoBlocks() === 0 )
 		return;
@@ -2572,7 +2572,10 @@ class sdEntity
 					{
 						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material !== 7 && block.material !== 9 ) // Natural block, no flesh or corruption and nothing inside it?
 						{
+							if ( !custom_ent_tag )
 							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
 							this.remove(); // Disappear
 							this._broken = false;
 							break;
@@ -2582,7 +2585,10 @@ class sdEntity
 					{
 						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material === 7 ) // Natural corrupted block and nothing inside it?
 						{
+							if ( !custom_ent_tag )
 							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
 							this.remove(); // Disappear
 							this._broken = false;
 							break;
@@ -2592,7 +2598,10 @@ class sdEntity
 					{
 						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material === 9 ) // Natural flesh block and nothing inside it?
 						{
+							if ( !custom_ent_tag )
 							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
 							this.remove(); // Disappear
 							this._broken = false;
 							break;

@@ -156,6 +156,8 @@ class sdSandWorm extends sdEntity
 		
 		this._last_found_target = 0; // When has it last time found a target? Used for Crystal Hunting Worm.
 		
+		this._hibernation_check_timer = 30;
+		
 		sdSandWorm.worms_tot++;
 		
 		this.hue = ~~( Math.random() * 360 );
@@ -169,6 +171,18 @@ class sdSandWorm extends sdEntity
 	isFireAndAcidDamageResistant()
 	{
 		return ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM );
+	}
+	
+	CanBuryIntoBlocks()
+	{
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		return 0;
+		
+		if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+		return 2;
+	
+	
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks
 	}
 	
 	onBeforeRemove()
@@ -443,6 +457,84 @@ class sdSandWorm extends sdEntity
 				}
 			}
 		return null;
+	}
+	
+	AttemptBlockBurying( custom_ent_tag = null )
+	{
+		// Did it this way, though maybe it should just have a special check if class is sdSandWorm inside sdEntity - Booraz
+		if ( !sdWorld.is_server || this.CanBuryIntoBlocks() === 0 )
+		return;
+	
+		let no_players_near = true;
+		let i;			
+		for ( i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character )
+		{
+			if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y, 500 ) ) // A player is too close to it?
+			{
+				no_players_near = false; // Prevent hibernation
+				break;
+			}
+		}
+		if ( no_players_near )
+		{
+			let potential_hibernation_blocks = sdWorld.GetAnythingNear( this.x, this.y, 96, null, [ 'sdBlock' ] ); // Look for blocks
+			// sdWorld.shuffleArray( potential_hibernation_blocks ); // Not sure if needed? Though check will mostly start from left to right of the entity.
+			for ( i = 0; i < potential_hibernation_blocks.length; i++ )
+			{
+				
+				let block = potential_hibernation_blocks[ i ];
+							
+				if ( block )
+				{
+					if ( this.CanBuryIntoBlocks() === 1 ) // 1st scenario, natural blocks
+					{
+						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material !== 7 && block.material !== 9 ) // Natural block, no flesh or corruption and nothing inside it?
+						{
+							if ( !custom_ent_tag )
+							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
+						
+							this.Damage( this._hea );
+							this.remove(); // Disappear
+							this._broken = false;
+							break;
+						}
+					}
+					if ( this.CanBuryIntoBlocks() === 2 ) // 2nd scenario, corrupted blocks
+					{
+						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material === 7 ) // Natural corrupted block and nothing inside it?
+						{
+							if ( !custom_ent_tag )
+							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
+						
+							this.Damage( this._hea );
+							this.remove(); // Disappear
+							this._broken = false;
+							break;
+						}
+					}
+					if ( this.CanBuryIntoBlocks() === 3 ) // 3rd scenario, flesh blocks
+					{
+						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material === 9 ) // Natural flesh block and nothing inside it?
+						{
+							if ( !custom_ent_tag )
+							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
+						
+							this.Damage( this._hea );
+							this.remove(); // Disappear
+							this._broken = false;
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -954,6 +1046,26 @@ class sdSandWorm extends sdEntity
 			
 			if ( !in_water )
 			this.sy += sdWorld.gravity * GSPEED;
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 && ( this.GetHeadEntity() === this ) )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
+					
+					if ( this.kind === sdSandWorm.KIND_NORMAL_WORM || this.kind === sdSandWorm.KIND_SPIKY_WORM )
++					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
++					this.AttemptBlockBurying( 'sdSandWorm.corrupted' );
+					if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
++					this.AttemptBlockBurying( 'sdSandWorm.KIND_CRYSTAL_HUNTING_WORM' );
+				}
+			}
 		}
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null );

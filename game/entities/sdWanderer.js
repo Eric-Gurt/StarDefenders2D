@@ -36,7 +36,7 @@ class sdWanderer extends sdEntity
 		sdWanderer.MODEL_TZYRG_DRONE = 12; // Tzyrg drone
 		sdWanderer.MODEL_TZYRG_DRONE2 = 13; // Tzyrg 2nd drone 
 		sdWanderer.MODEL_ZEKTARON_DREADNOUGHT = 14; // Zektaron dreadnought
-		sdWanderer.MODEL_FALKOK_HOVER = 12; // Falkok hover
+		sdWanderer.MODEL_FALKOK_HOVER = 15; // Falkok hover
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 0; }
