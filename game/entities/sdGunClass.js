@@ -1559,7 +1559,7 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
 			has_images: true,
 			sound: 'gun_raygun',
-			title: 'Raygun C01y',
+			title: 'Ray Gun C-01y',
 			slot: 3,
 			reload_time: 60, // Might be inaccurate - not checked
 			muzzle_x: 9,
