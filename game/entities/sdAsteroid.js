@@ -21,6 +21,7 @@ class sdAsteroid extends sdEntity
 		sdAsteroid.TYPE_DEFAULT = 0;
 		sdAsteroid.TYPE_SHARDS = 1;
 		sdAsteroid.TYPE_FLESH = 2;
+		sdAsteroid.TYPE_MISSILE = 3;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -87,23 +88,26 @@ class sdAsteroid extends sdEntity
 		
 		//this._max_build_tool_level_near = 0;
 
-		this.scale = Math.max( 0.8, Math.random() * 2 ) * 100; // Scale / size of the asteroid
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
+		this._activated_warhead = false;
+
 		
 		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
-		
+                this.scale = ( this.type === sdAsteroid.TYPE_MISSILE ) ? 100 : Math.max( 0.8, Math.random() * 2 ) * 100; // Scale / size of the asteroid
+
 		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;
-		this.sy = 10;
+		this.sy = ( this.type === sdAsteroid.TYPE_MISSILE ) ? 32 : 10;
 		
 		// Check for flesh asteroids to only fleshify near this area
 		this._land_x = 0;
 		this._land_y = 0;
 
 		this.matter_max = 0;
+
 		
 		this._witnessers = new WeakSet();
 		
@@ -185,6 +189,10 @@ class sdAsteroid extends sdEntity
 				this._land_x = this.x;
 				this._land_y = this.y;
 			}
+			if ( this.type === sdAsteroid.TYPE_MISSILE ) 
+			{
+				if ( Math.random() < 0.9 ) this.Fragmentation() // Small chance to malfunction, for realism
+			}
 			else
 			sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
 
@@ -192,7 +200,41 @@ class sdAsteroid extends sdEntity
 			this.sy *= 0.02;
 		}
 	}
+	Fragmentation()
+	{
 
+		let initial_rand = Math.random() * Math.PI * 2;
+		let steps = Math.min( 50, Math.max( 16, 50 * this.scale / 100 / 70 * 50 ) );
+		let an;
+		let bullet_obj;
+						
+		for ( let s = 0; s < steps; s++ )
+		{
+			an = s / steps * Math.PI * 2;
+				
+			bullet_obj = new sdBullet({ 
+				x: this.x + Math.sin( an + initial_rand ) * 1, 
+				y: this.y + Math.cos( an + initial_rand ) * 1 
+			});	
+			
+			bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
+			bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
+			bullet_obj.time_left = 200 * this.scale / 100 / 16 * 2;
+												
+			bullet_obj._damage = 50;
+			bullet_obj._temperature_addition = 3000;
+
+			bullet_obj._owner = this;
+				
+			bullet_obj._can_hit_owner = true;
+			bullet_obj.color = '#ffff00';
+
+			sdEntity.entities.push( bullet_obj );
+
+			this._activated_warhead = true;
+		}
+
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.landed )
@@ -203,7 +245,7 @@ class sdAsteroid extends sdEntity
 			
 			this._an += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
 			
-			if ( this._time_to_despawn < 0 )
+			if ( this.type !== sdAsteroid.TYPE_MISSILE && this._time_to_despawn < 0 )
 			{
 				this.remove();
 				this._broken = false;
@@ -297,6 +339,11 @@ class sdAsteroid extends sdEntity
 
 				}
 			}
+			if ( this.type === sdAsteroid.TYPE_MISSILE )
+			{
+				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
+				if ( !this._activated_warhead ) this.Fragmentation(); // Always activate warhead in case of destruction
+			}
 			else
 			sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 		}
@@ -308,6 +355,10 @@ class sdAsteroid extends sdEntity
 	
 		if ( this.type === sdAsteroid.TYPE_SHARDS )
 		return ('Asteroid with crystal shards');
+
+		if ( this.type === sdAsteroid.TYPE_MISSILE )
+		return ('Cruise missile');
+
 	
 		return ('Asteroid');
 	}
