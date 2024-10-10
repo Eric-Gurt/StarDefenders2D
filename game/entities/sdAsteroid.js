@@ -189,6 +189,7 @@ class sdAsteroid extends sdEntity
 				this._land_x = this.x;
 				this._land_y = this.y;
 			}
+			else
 			if ( this.type === sdAsteroid.TYPE_MISSILE ) 
 			{
 				if ( Math.random() < 0.9 ) this.Fragmentation() // Small chance to malfunction, for realism
