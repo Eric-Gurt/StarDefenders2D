@@ -8,6 +8,7 @@
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
+import sdAsteroid from './sdAsteroid.js';
 import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
 import sdJunk from './sdJunk.js';
@@ -509,6 +510,18 @@ class sdStorage extends sdEntity
 				||
 
 				( 
+					is_for_crystals 
+					&& 
+					from_entity.is( sdAsteroid )
+					&& 
+					( 
+						from_entity.type === sdAsteroid.TYPE_MISSILE
+					)
+				) 
+
+				||
+
+				( 
 					( 
 						is_for_crystals 
 						||
@@ -597,6 +610,14 @@ class sdStorage extends sdEntity
 							
 							name = 'Face crab';
 						}
+
+						if ( from_entity.is( sdAsteroid ) )
+						{
+							is_armable = 1;
+
+							name = 'Cruise missile';
+						}
+
 						
 						
 						this.stored_names.push( name );
