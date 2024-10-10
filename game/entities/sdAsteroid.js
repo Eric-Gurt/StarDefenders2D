@@ -202,36 +202,37 @@ class sdAsteroid extends sdEntity
 	}
 	Fragmentation()
 	{
-
-		let initial_rand = Math.random() * Math.PI * 2;
-		let steps = Math.min( 50, Math.max( 16, 50 * this.scale / 100 / 70 * 50 ) );
-		let an;
-		let bullet_obj;
+		if ( !this._activated_warhead ) {
+			let initial_rand = Math.random() * Math.PI * 2;
+			let steps = Math.min( 50, Math.max( 16, 50 * this.scale / 100 / 70 * 50 ) );
+			let an;
+			let bullet_obj;
 						
-		for ( let s = 0; s < steps; s++ )
-		{
-			an = s / steps * Math.PI * 2;
+			for ( let s = 0; s < steps; s++ )
+			{
+				an = s / steps * Math.PI * 2;
 				
-			bullet_obj = new sdBullet({ 
-				x: this.x + Math.sin( an + initial_rand ) * 1, 
-				y: this.y + Math.cos( an + initial_rand ) * 1 
-			});	
+				bullet_obj = new sdBullet({ 
+					x: this.x + Math.sin( an + initial_rand ) * 1, 
+					y: this.y + Math.cos( an + initial_rand ) * 1 
+				});	
 			
-			bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
-			bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
-			bullet_obj.time_left = 200 * this.scale / 100 / 16 * 2;
+				bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
+				bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
+				bullet_obj.time_left = 200 * this.scale / 100 / 16 * 2;
 												
-			bullet_obj._damage = 50;
-			bullet_obj._temperature_addition = 3000;
+				bullet_obj._damage = 50;
+				bullet_obj._temperature_addition = 3000;
 
-			bullet_obj._owner = this;
+				bullet_obj._owner = this;
 				
-			bullet_obj._can_hit_owner = true;
-			bullet_obj.color = '#ffff00';
+				bullet_obj._can_hit_owner = true;
+				bullet_obj.color = '#ffff00';
 
-			sdEntity.entities.push( bullet_obj );
+				sdEntity.entities.push( bullet_obj );
 
-			this._activated_warhead = true;
+				this._activated_warhead = true;
+			}
 		}
 
 	}
@@ -342,7 +343,7 @@ class sdAsteroid extends sdEntity
 			if ( this.type === sdAsteroid.TYPE_MISSILE )
 			{
 				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
-				if ( !this._activated_warhead ) this.Fragmentation(); // Always activate warhead in case of destruction
+				this.Fragmentation(); // Always activate warhead in case of destruction
 			}
 			else
 			sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
