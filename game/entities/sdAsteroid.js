@@ -90,7 +90,7 @@ class sdAsteroid extends sdEntity
 
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
-		this._warhead_detonated = false;
+		this.warhead_detonated = false;
 
 		
 		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
@@ -203,7 +203,7 @@ class sdAsteroid extends sdEntity
 	}
 	Fragmentation()
 	{
-		if ( !this._warhead_detonated ) {
+		if ( !this.warhead_detonated ) {
 			let initial_rand = Math.random() * Math.PI * 2;
 			let steps = Math.min( 32, Math.max( 16, 32 * this.scale / 100 / 70 * 32 ) );
 			let an;
@@ -235,7 +235,7 @@ class sdAsteroid extends sdEntity
 
 				sdEntity.entities.push( bullet_obj );
 
-				this._warhead_detonated = true;
+				this.warhead_detonated = true;
 			}
 		}
 	}
