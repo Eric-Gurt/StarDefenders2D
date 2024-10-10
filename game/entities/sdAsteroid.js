@@ -234,7 +234,6 @@ class sdAsteroid extends sdEntity
 				this._activated_warhead = true;
 			}
 		}
-
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
