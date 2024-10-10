@@ -4280,6 +4280,21 @@ class sdWorld
 		document.getElementById('password_screen_message').textContent = message_and_color[ 0 ];
 		document.getElementById('password_screen_message').style.color = message_and_color[ 1 ];
 	}
+
+	/* static async GetImageFromCache( filename )
+	{
+		const cachedStorage = await self.caches.open( "sdFile" );
+
+		const cachedImageResponse = await cachedStorage.match( document.location.origin + "/assets/" + filename + ".png" );
+
+		if ( cachedImageResponse )
+		{
+			const img = await cachedImageResponse.blob();
+			const imagebitmap = await window.createImageBitmap( img );
+
+			return imagebitmap;
+		}
+	} */
 	
 	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override
 	{
