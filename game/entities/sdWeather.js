@@ -161,6 +161,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
 		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 51
 		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
+		sdWeather.EVENT_MISSILES =			event_counter++; // 53
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -212,6 +213,7 @@ class sdWeather extends sdEntity
 		this.matter_rain = 0; // 0,1 or 2 ( 1 = crystal shard rain, 2 = anti-crystal shard rain )
 		
 		this._asteroid_spam_amount = 0;
+		this._missile_spam_amount = 0;
 		
 		this._invasion = false;
 		this._invasion_timer = 0; // invasion length timer
@@ -253,6 +255,10 @@ class sdWeather extends sdEntity
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
+
+		this._missile_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
+		this._missile_timer_scale_next = 0;
+
 		
 		this.day_time = 30 * 60 * 24 / 3;
 		
@@ -1256,6 +1262,10 @@ class sdWeather extends sdEntity
 
 		if ( r === sdWeather.EVENT_ASTEROIDS )
 		this._asteroid_spam_amount = 30 * 15 * ( 1 + Math.random() * 2 );
+
+		if ( r === sdWeather.EVENT_MISSILES && Math.random() < 0.5)
+		this._missile_spam_amount = 50 * 15 * ( 1 + Math.random() * 2 );
+
 
 		if ( r === sdWeather.EVENT_CUBES )
 		{
@@ -3884,7 +3894,7 @@ class sdWeather extends sdEntity
 				{
 					let ent = new sdAsteroid({ 
 						x:xx, 
-						y:sdWorld.world_bounds.y1 + 1
+						y:sdWorld.world_bounds.y1 + 16, // 1 was too high, asteroids would self destruct
 					});
 					sdEntity.entities.push( ent );
 				}
@@ -3898,7 +3908,45 @@ class sdWeather extends sdEntity
 				this._asteroid_spam_amount -= GSPEED * 1;
 				this._asteroid_timer += GSPEED * 40;
 			}
+
+
+			this._missile_timer += GSPEED;
+			if ( this._missile_timer > 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 ) )
+			{
+				let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+				
+				let proper_distnace = false;
+
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				{
+					if ( Math.abs( sdWorld.sockets[ i ].character.x - xx ) < sdWeather.min_distance_from_online_players_for_entity_events )
+					{
+						proper_distnace = true;
+						break;
+					}
+				}
+				
+				if ( proper_distnace )
+				{
+					let missile = new sdAsteroid({ 
+						x:xx, 
+						y:sdWorld.world_bounds.y1 + 16, // 1 was too high, asteroids would self destruct
+						type:sdAsteroid.TYPE_MISSILE
+					});
+					sdEntity.entities.push( missile );
+				}
+
+				this._missile_timer = 0;
+				this._missile_timer_scale_next = Math.random();
+			}
 			
+			if ( this._missile_spam_amount > 0 )
+			{
+				this._missile_spam_amount -= GSPEED * 1;
+				this._missile_timer += GSPEED * 40;
+			}
+
 			if ( this._rain_amount > 0 )
 			{
 				this.raining_intensity = Math.min( 100, this.raining_intensity + GSPEED * 0.1 );
