@@ -90,7 +90,7 @@ class sdAsteroid extends sdEntity
 
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
-		this._activated_warhead = false;
+		this._warhead_detonated = false;
 
 		
 		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
@@ -203,9 +203,9 @@ class sdAsteroid extends sdEntity
 	}
 	Fragmentation()
 	{
-		if ( !this._activated_warhead ) {
+		if ( sdWorld.is_server && !this._warhead_detonated ) { // Prevent visual bugs on lagging client
 			let initial_rand = Math.random() * Math.PI * 2;
-			let steps = Math.min( 50, Math.max( 16, 50 * this.scale / 100 / 70 * 50 ) );
+			let steps = Math.min( 32, Math.max( 16, 32 * this.scale / 100 / 70 * 32 ) );
 			let an;
 			let bullet_obj;
 						
@@ -220,10 +220,13 @@ class sdAsteroid extends sdEntity
 			
 				bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
 				bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
-				bullet_obj.time_left = 200 * this.scale / 100 / 16 * 2;
+				bullet_obj.time_left = 500 * this.scale / 100 / 16 * 2;
 												
-				bullet_obj._damage = 50;
-				bullet_obj._temperature_addition = 3000;
+				bullet_obj._damage = 32;
+				bullet_obj._temperature_addition = 1000;
+
+				bullet_obj._affected_by_gravity = true;
+				bullet_obj.gravity_scale = 2;
 
 				bullet_obj._owner = this;
 				
@@ -232,7 +235,7 @@ class sdAsteroid extends sdEntity
 
 				sdEntity.entities.push( bullet_obj );
 
-				this._activated_warhead = true;
+				this._warhead_detonated = true;
 			}
 		}
 	}
