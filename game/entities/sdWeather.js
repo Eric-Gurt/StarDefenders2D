@@ -7,11 +7,11 @@
  
 	Test specific event on server:
 
-			sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 18 );
+			sdWorld.entity_classes.sdWeather.only_instance.SimpleExecuteEvent( 18 );
 
 		OR
 
-			sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( sdWorld.entity_classes.sdWeather.EVENT_WATER_RAIN );
+			sdWorld.entity_classes.sdWeather.only_instance.SimpleExecuteEvent( sdWorld.entity_classes.sdWeather.EVENT_WATER_RAIN );
 
 		OR (will break any other event)
 
@@ -30,7 +30,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 32 ); // Swap 32 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.SimpleExecuteEvent( 32 ); // Swap 32 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -1249,8 +1249,29 @@ class sdWeather extends sdEntity
 
 		return true;
 	}
-	ExecuteEvent( r = -1 ) // Used to be under OnThink ( GSPEED ) but swapped for this so any event can be executed at any time, from any entity
+	SimpleExecuteEvent( r ) // Old ExecuteEvent so we can still use this while debugging / testing in DevTools
 	{
+		this.ExecuteEvent({
+			event: r 
+		});
+		
+	}
+	ExecuteEvent( params ) // Used to be under OnThink ( GSPEED ) but swapped for this so any event can be executed at any time, from any entity
+	{
+		/* Using parameters now, like SimpleSpawner so we can have more control over event functions/purposes,
+			for example, spawning invasion mobs closer to tasks which need protection ( LR antenna, solar matter distributor )
+		*/
+		let r = params.event || -1; // Which event should be executed?
+		
+		let near_ent = params.near_entity || null; // Should this spawn near any entity?
+		let group_rad = params.group_radius || 0; // Allowed radius if spawning near entity, needs to be defined
+		let target_ent = params.target_entity || null; // Should spawned entities target something?
+		
+		// near_ent, group_rad can be used in most entity spawns, target_ent will be soon
+		
+		if ( near_ent && !params.group_radius )
+		console.warn( 'params.near_entity was used but it requires params.group_radius to be used too' );
+	
 		sdWeather.NotifyExtractableSoldiers(); // Upon every event execution, notify players about remaining SD soldiers for LRTP extraction
 		// This is implemented this way because players connect after a SD soldier spawns and task is not given to the later connected players.
 		
@@ -1277,7 +1298,10 @@ class sdWeather extends sdEntity
 				evalute_params: [ 'kind' ],
 				
 				aerial: true,
-				aerial_radius: 800
+				aerial_radius: 800,
+				
+				near_entity: near_ent,
+				group_radius: group_rad
 				
 
 			});
@@ -1325,6 +1349,8 @@ class sdWeather extends sdEntity
 					class: sdHover,
 					aerial: true,
 					params: { spawn_with_ents: 2, type:sdHover.TYPE_FALKOK_HOVER, guns: 0 }, // Spawn with falkoks
+					near_entity: near_ent,
+					group_radius: group_rad
 				});
 			}
 			else // Regular AI falkok spawn
@@ -1341,7 +1367,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: true,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -1394,17 +1422,21 @@ class sdWeather extends sdEntity
 						count: [ 2, 3 ],
 						class: sdDrone,
 						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
-						aerial: true
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 				
-					if ( Math.random() < 0.5 )
+					if ( Math.random() < 0.25 )
 					sdWeather.SimpleSpawner({
 
 						count: [ 2, 3 ],
 						class: sdDrone,
 						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
-						aerial: true
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 				}
@@ -1420,7 +1452,9 @@ class sdWeather extends sdEntity
 				class: sdAsp,
 				
 				aerial: true,
-				aerial_radius: 800
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
 
 			});
 
@@ -1522,7 +1556,9 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdEnemyMech,
 					aerial: true,
-					aerial_radius: 800
+					aerial_radius: 800,
+					near_entity: near_ent,
+					group_radius: group_rad
 				
 				});
 
@@ -1629,7 +1665,9 @@ class sdWeather extends sdEntity
 
 				count: [ 1, 2 ],
 				class: sdSpider,
-				params: { _ai_team: 2, type: spider_type }
+				params: { _ai_team: 2, type: spider_type },
+				near_entity: near_ent,
+				group_radius: group_rad
 
 			});
 			
@@ -1646,7 +1684,9 @@ class sdWeather extends sdEntity
 				count: [ 2, 3 ],
 				class: sdDrone,
 				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL },
-				aerial: true
+				aerial: true,
+				near_entity: near_ent,
+				group_radius: group_rad
 
 			});
 			
@@ -1685,7 +1725,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: true,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -1988,7 +2030,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: true,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -2045,7 +2089,9 @@ class sdWeather extends sdEntity
 					count: [ 2, 4 ],
 					class: sdDrone,
 					params: { _ai_team: 4, type: drone_type },
-					aerial: true
+					aerial: true,
+					near_entity: near_ent,
+					group_radius: group_rad
 
 				});
 				
@@ -2311,7 +2357,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: true,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -2350,7 +2398,9 @@ class sdWeather extends sdEntity
 				sdWeather.SimpleSpawner({
 				
 					count: [ 1, 2 ],
-					class: sdVeloxMiner
+					class: sdVeloxMiner,
+					near_entity: near_ent,
+					group_radius: group_rad
 				});
 			}
 			else
@@ -2586,7 +2636,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: true,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -2640,7 +2692,9 @@ class sdWeather extends sdEntity
 					count: [ 3, 6 ],
 					class: sdDrone,
 					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
-					aerial: true
+					aerial: true,
+					near_entity: near_ent,
+					group_radius: group_rad
 
 				});
 				
@@ -2657,7 +2711,9 @@ class sdWeather extends sdEntity
 				class: sdSetrDestroyer,
 				
 				aerial: true,
-				aerial_radius: 800
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
 				
 			});
 			
@@ -2724,7 +2780,7 @@ class sdWeather extends sdEntity
 				count: [ 2, Math.floor( Math.random() * 5 ) ],
 				class: sdAmphid,
 				
-				group_radius: 160
+				group_radius: 160 // Doesn't work without near_entity? I don't know - Booraz
 				
 			});
 			/*let instances = Math.floor( 2 + Math.random() * 5 );
@@ -2809,7 +2865,9 @@ class sdWeather extends sdEntity
 				class: sdBiter,
 				
 				aerial: true,
-				aerial_radius: 800
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
 				
 			});
 			
@@ -3080,7 +3138,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: true,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -3131,7 +3191,9 @@ class sdWeather extends sdEntity
 						count: [ 3, 5 ],
 						class: sdDrone,
 						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
-						aerial: true
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 				
@@ -3141,7 +3203,9 @@ class sdWeather extends sdEntity
 						count: [ 1, 2 ],
 						class: sdDrone,
 						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
-						aerial: true
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 				}
@@ -3244,7 +3308,9 @@ class sdWeather extends sdEntity
 			sdWeather.SimpleSpawner({
 				
 				count: [ 1, 2 ],
-				class: sdGuanako
+				class: sdGuanako,
+				near_entity: near_ent,
+				group_radius: group_rad
 				
 			});
 		}
@@ -3354,7 +3420,9 @@ class sdWeather extends sdEntity
 						class: sdCharacter,
 						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
 						aerial: false,
-						store_ents: character_ents
+						store_ents: character_ents,
+						near_entity: near_ent,
+						group_radius: group_rad
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -3395,7 +3463,9 @@ class sdWeather extends sdEntity
 				sdWeather.SimpleSpawner({
 				
 					count: [ 1, 3 ],
-					class: sdShurgExcavator
+					class: sdShurgExcavator,
+					near_entity: near_ent,
+					group_radius: group_rad
 				});
 
 				if ( Math.random() < 0.3 && ais < this._max_ai_count ) // 30% chance for a Shurg manual turret and pilot to spawn
@@ -3404,7 +3474,9 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdShurgManualTurret,
 					aerial:true,
-					params: { spawn_with_pilot: true }, // Spawn with pilot
+					params: { spawn_with_pilot: true },
+					near_entity: near_ent,
+					group_radius: group_rad					// Spawn with pilot
 				});
 			}
 		}
@@ -3634,7 +3706,9 @@ class sdWeather extends sdEntity
 				count: [ 1, 1 ],
 				class: sdCouncilIncinerator,
 				aerial: true,
-				aerial_radius: 800
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
 				
 			});
 			else
@@ -3648,7 +3722,9 @@ class sdWeather extends sdEntity
 				count: [ 2, 3 ],
 				class: sdStealer,
 				aerial: true,
-				aerial_radius: 800
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
 				
 			});
 		}
@@ -3869,7 +3945,9 @@ class sdWeather extends sdEntity
 					this._invasion_spawn_timer = 30 * ( 5 + ( Math.random() * 5 ) ) ; // Every 5+ to 10 seconds it will summon an event
 					this._invasion_spawns_con -= 1;
 					
-					this.ExecuteEvent( this._invasion_event );
+					this.ExecuteEvent({
+					event: this._invasion_event 
+					});
 					
 				}
 			}
@@ -4574,7 +4652,9 @@ class sdWeather extends sdEntity
 				if ( allowed_event_ids.length > 0 )
 				{
 					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-					this.ExecuteEvent( r );
+					this.ExecuteEvent({ 
+						event: r 
+					});
 				}
 			}
 			
@@ -4587,7 +4667,9 @@ class sdWeather extends sdEntity
 				if ( allowed_event_ids.length > 0 )
 				{
 					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-					this.ExecuteEvent( r );
+					this.ExecuteEvent({ 
+						event: r 
+					});
 				}
 			}
 			
@@ -4601,7 +4683,9 @@ class sdWeather extends sdEntity
 				{
 					let event = ~~( Math.random() * allowed_event_ids.length );
 					let r = allowed_event_ids[ event ];
-					this.ExecuteEvent( r );
+					this.ExecuteEvent({ 
+						event: r 
+					});
 					
 					allowed_event_ids.splice( event, 1 );
 					//console.log( 'Executed event ' + r +', current available events:' + this._daily_sd_task_events );

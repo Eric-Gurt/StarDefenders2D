@@ -727,9 +727,21 @@ class sdJunk extends sdEntity
 						}
 						if ( spawn_cubes === true ) // Spawn a ton of cubes
 						{
-							sdWeather.only_instance.ExecuteEvent( 2 );
-							sdWeather.only_instance.ExecuteEvent( 2 );
-							sdWeather.only_instance.ExecuteEvent( 2 );
+							sdWeather.only_instance.ExecuteEvent({
+								event: 2,
+								near_entity: this,
+								group_radius: 3000
+							});
+							sdWeather.only_instance.ExecuteEvent({
+								event: 2,
+								near_entity: this,
+								group_radius: 3000
+							});
+							sdWeather.only_instance.ExecuteEvent({
+								event: 2,
+								near_entity: this,
+								group_radius: 3000
+							});
 						}
 					}
 					
@@ -962,7 +974,11 @@ class sdJunk extends sdEntity
 				{
 					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
 					this._spawn_ent_in_delay *= 1.1; // 1.25 seemed way too weak
-					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
+					sdWeather.only_instance.ExecuteEvent({
+						event: 11,
+						near_entity: this,
+						group_radius: 3000
+					}); // Execute Erthal spawn event
 					
 					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )
 					{

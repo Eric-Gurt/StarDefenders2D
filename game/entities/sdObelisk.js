@@ -96,7 +96,9 @@ class sdObelisk extends sdEntity
 					n = sdWeather.only_instance._daily_events[ i ];
 					if ( n !== 8 ) // No need for earthquakes when there's a specific obelisk doing that
 					//console.log(n);
-					sdWeather.only_instance.ExecuteEvent( n );
+					sdWeather.only_instance.ExecuteEvent({
+						event: n
+					});
 				}
 			}
 		}
@@ -119,7 +121,9 @@ class sdObelisk extends sdEntity
 					summon = false;
 				}
 				if ( summon === true )
-				sdWeather.only_instance.ExecuteEvent( j );
+				sdWeather.only_instance.ExecuteEvent({
+					event: j
+				});
 			}
 		}
 		if ( this.type === 7 ) // Obelisk which holds artifact, is destroyed and artifact can be extracted to mothership as a task.
@@ -133,7 +137,9 @@ class sdObelisk extends sdEntity
 			j = ~~( Math.random() * sdWeather.supported_events.length );
 			for( let i = 0; i < 10; i++ )
 			{
-				sdWeather.only_instance.ExecuteEvent( j );
+				sdWeather.only_instance.ExecuteEvent({
+					event: j
+				});
 			}
 		}
 
