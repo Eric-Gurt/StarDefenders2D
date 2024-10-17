@@ -460,9 +460,10 @@ class sdEntity
 			attacker = sdEntity.entities_by_net_id_cache_map.get( this._last_attacker_net_id );
 		
 			if ( attacker )
-			if ( attacker._is_being_removed || ( attacker.hea || attacker._hea || 0 ) <= 0 || !attacker.IsPlayerClass() )
+			if ( attacker._is_being_removed || ( attacker.hea || attacker._hea || 0 ) <= 0 || !attacker.IsPlayerClass() || !attacker._socket )
 			attacker = null;
-
+		
+			if ( attacker )
 			sdWorld.GiveScoreToPlayerEntity( amount, this, true, attacker );
 		}
 	}
