@@ -841,12 +841,12 @@ class sdShop
 			// Tzyrg
 			sdShop.options.push({ _class: 'sdTzyrgMortar', _spawn_with_full_hp: true, _category:'Faction outpost tools' });
 			sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _spawn_with_full_hp: true, _category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
-			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, _ai_team: 1, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, _ai_team: 1, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, _ai_team: 1, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _ai_team: 1, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, _ai_team: 1, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, _ai_team: 1, _spawn_with_full_hp: true, texture_id: sdBlock.TEXTURE_ID_TZYRG_WALL, _category:'Faction outpost tools' });
 			//
 
 			//let remover_sd_filter = sdWorld.CreateSDFilter();
