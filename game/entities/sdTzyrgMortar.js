@@ -58,7 +58,7 @@ class sdTzyrgMortar extends sdEntity
 		this.attack_frame = 0;
 		this.attack_an = ( Math.atan2( -1, 0 ) ) * 1000;
 		this.side = 1; // For mortar weapon
-		this._last_seen = 0;
+		this._last_attack = 0;
 		
 		this._reload_timer = -1;
 		this._ammo = 4; // It will fire in volleys of 4
@@ -88,10 +88,13 @@ class sdTzyrgMortar extends sdEntity
 
 		if ( initiator )
 		{
-			if ( ( initiator._ai_team || -1 ) !== this._ai_team )
+			if ( typeof initiator._ai_team !== 'undefined' )
 			{
-				this._target = initiator;
+				if ( initiator._ai_team !== this._ai_team )
+				this._target = initiator;	
 			}
+			else // No faction?	
+			this._target = initiator;	
 		}
 	
 		dmg = Math.abs( dmg );
@@ -255,7 +258,6 @@ class sdTzyrgMortar extends sdEntity
 						let yy = ( this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 );
 
 						{
-							this._last_seen = 0; // Reset "last seen" timer
 							let dx = xx - this.x;
 							let dy = yy - this.y - 320;
 
@@ -309,6 +311,8 @@ class sdTzyrgMortar extends sdEntity
 									bullet_obj._affected_by_gravity = true;
 									bullet_obj.time_left = 600;
 									bullet_obj._dirt_mult = 3;
+									
+									this._last_attack = 0; // Reset "last seen" timer
 		
 									sdEntity.entities.push( bullet_obj );
 								}
@@ -323,6 +327,15 @@ class sdTzyrgMortar extends sdEntity
 									
 								sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: 1, pitch:0.5 });
 								sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume: 1.25, pitch:1.25 });
+							}
+							else
+							this._last_attack++;
+						
+							if ( this._last_attack > 150 )
+							{
+								this._target = null;
+								this._last_attack = 0;
+								
 							}
 						}
 						if ( this._ammo <= 0 && this._reload_timer === -1 ) // No ammo?
