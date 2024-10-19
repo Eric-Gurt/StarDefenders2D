@@ -161,7 +161,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
 		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 51
 		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
-		sdWeather.EVENT_MISSILES =			event_counter++; // 53
+		sdWeather.EVENT_MISSILES =				event_counter++; // 53
+		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -3857,6 +3858,17 @@ class sdWeather extends sdEntity
 
 				});
 			}
+		}
+		if ( r === sdWeather.EVENT_TZYRG_OUTPOST ) // Tzyrg mortar structure spawn.
+		{
+			
+			//if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
+			{
+				
+				sdPresetEditor.SpawnPresetInWorld( 'tzyrg_mortar1' );
+			}
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

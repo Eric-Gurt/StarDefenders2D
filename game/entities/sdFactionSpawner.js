@@ -12,6 +12,7 @@ import sdLost from './sdLost.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
+import sdFactions from './sdFactions.js';
 
 // This is an entity which spawns humanoids and drones of specific factions inside generated outposts.
 
@@ -20,6 +21,7 @@ class sdFactionSpawner extends sdEntity
 	static init_class()
 	{
 		sdFactionSpawner.img_falkok_spawner = sdWorld.CreateImageFromFile( 'falkok_teleporter' );
+		sdFactionSpawner.img_tzyrg_spawner = sdWorld.CreateImageFromFile( 'tzyrg_constructor' );
 
 		sdFactionSpawner.falkok_spawners = 0;
 		sdFactionSpawner.sarronian_spawners = 0;
@@ -30,16 +32,36 @@ class sdFactionSpawner extends sdEntity
 		sdFactionSpawner.SARRONIAN_SPAWNER = 2;
 		sdFactionSpawner.COUNCIL_SPAWNER = 3;
 		sdFactionSpawner.TZYRG_SPAWNER = 4;
+		
+		sdFactionSpawner.bounds_by_type = []; // Hitboxes
+		sdFactionSpawner.bounds_by_type[ sdFactionSpawner.FALKOK_SPAWNER ] = { x1: -20, x2: 20, y1: 12, y2: 16 };
+		sdFactionSpawner.bounds_by_type[ sdFactionSpawner.TZYRG_SPAWNER ] = { x1: -24, x2: 24, y1: -16, y2: 32 };
+		
+		//sdFactionSpawner.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter', 'sdDrone' ];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -20; }
-	get hitbox_x2() { return 20; }
-	get hitbox_y1() { return 12; }
-	get hitbox_y2() { return 16; }
+	get hitbox_x1() { return sdFactionSpawner.bounds_by_type[ this.type ] ? sdFactionSpawner.bounds_by_type[ this.type ].x1 : -20; }
+	get hitbox_x2() { return sdFactionSpawner.bounds_by_type[ this.type ] ? sdFactionSpawner.bounds_by_type[ this.type ].x2 : 20; }
+	get hitbox_y1() { return sdFactionSpawner.bounds_by_type[ this.type ] ? sdFactionSpawner.bounds_by_type[ this.type ].y1 : -12; }
+	get hitbox_y2() { return sdFactionSpawner.bounds_by_type[ this.type ] ? sdFactionSpawner.bounds_by_type[ this.type ].y2 : 16; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ 
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		return false;
+	
+	
+		return true;
+	}
+	
+	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	{
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		return sdFactionSpawner.ignored_classes_arr;
+		
+		return null;
+	}*/
 	
 	constructor( params )
 	{
@@ -50,13 +72,50 @@ class sdFactionSpawner extends sdEntity
 
 		this.type = params.type || 1;
 
-		this.hmax = 1000;
+		this.hmax = this.GetHealthFromType();
 		this.hea = this.hmax;
 		this._last_damage = 0; // Sound flood prevention
-		this._next_spawn_in = 30 * 15; // TImer for spawning entities
+		this.next_spawn_in = this.GetSpawnSpeedFromType(); // Timer for spawning entities
+		
+		this._ai_team = this.GetAITeamFromType();
 
 		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
 		sdFactionSpawner.falkok_spawners++;
+
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		sdFactionSpawner.tzyrg_spawners++;
+	}
+	
+	GetHealthFromType()
+	{
+		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
+		return 1000;
+		
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		return 4000;
+	
+		return 1000;
+	}
+	
+	GetAITeamFromType()
+	{
+		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
+		return 1;
+		
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		return 8;
+	
+		return 0;
+	}
+	GetSpawnSpeedFromType()
+	{
+		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
+		return 30 * 15;
+		
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		return 30 * 8;
+	
+		return 30 * 15;
 	}
 
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
@@ -90,123 +149,103 @@ class sdFactionSpawner extends sdEntity
 		this._regen_timeout -= GSPEED;
 		else
 		this.hea = Math.min( this.hea + GSPEED, this.hmax );
+	
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		{
+			if ( this.next_spawn_in < 80 )
+			this._update_version++;
+			if ( this.next_spawn_in > 240 - 80 )
+			this._update_version++;
+		
+			// Unfortunately needed for spawn animation
+		}
 
-		if ( this._next_spawn_in > 0 )
-		this._next_spawn_in -= GSPEED;
+		if ( this.next_spawn_in > 0 )
+		this.next_spawn_in -= GSPEED;
 		else
-		if ( this.CanMoveWithoutOverlap( this.x, this.y - 8, 4 ) )
 		{
 
 			let ais = 0;
-			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			let i;
+			for ( i = 0; i < sdCharacter.characters.length; i++ )
 			if ( sdCharacter.characters[ i ].hea > 0 )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
-			if ( sdCharacter.characters[ i ]._ai_team === this.type )
+			if ( sdCharacter.characters[ i ]._ai_team === this._ai_team )
 			{
 				ais++;
+			}
+			
+			let drones = 0;
+			
+			for ( i = 0; i < sdDrone.drones.length; i++ )
+			if ( sdDrone.drones[ i ].hea > 0 )
+			if ( !sdDrone.drones[ i ]._is_being_removed )
+			if ( sdDrone.drones[ i ]._ai_team === this._ai_team )
+			{
+				drones++;
 			}
 
 			if ( this.type === sdFactionSpawner.FALKOK_SPAWNER && ais < sdWorld.entity_classes.sdWeather.only_instance._max_ai_count ) // Falkok spawner
 			{
-				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-
-				this._next_spawn_in = 30 * 15;
-				//if ( Math.random() < 0.666 ) // 66% chance a humanoid spawns
+				if ( this.CanMoveWithoutOverlap( this.x, this.y - 8, 4 ) )
 				{
-					let character_entity = new sdCharacter({ x:this.x, y:this.y - 8, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
-					sdEntity.entities.push( character_entity );
-
+					this.next_spawn_in = this.GetSpawnSpeedFromType();
+					//if ( Math.random() < 0.666 ) // 66% chance a humanoid spawns
 					{
-						{	
-							{
+						let character_entity = new sdCharacter({ x:this.x, y:this.y - 8, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-								//sdWorld.UpdateHashPosition( ent, false );
-								if ( Math.random() < 0.07 )
-								{
-									if ( Math.random() < 0.2 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-										character_entity._ai_gun_slot = 4;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-										character_entity._ai_gun_slot = 3;
-									}
-								}
-								else
-								{ 
-									if ( Math.random() < 0.1 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
-										character_entity._ai_gun_slot = 2;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-										character_entity._ai_gun_slot = 2;
-									}
-								}
-								let falkok_settings;
-								if ( character_entity._ai_gun_slot === 2 )
-								falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","color_extra1":"#240000","helmet1":false,"helmet2":true,"body60":true,"legs60":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-								if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
-								falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
-								character_entity.title = falkok_settings.hero_name;
-								if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
-								{
-									character_entity.matter = 75;
-									character_entity.matter_max = 75;
-	
-									character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-									character_entity.hmax = 115;
-	
-									//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
-								}
-	
-								if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
-								{
-									character_entity.matter = 100;
-									character_entity.matter_max = 100;
-	
-									character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
-									character_entity.hmax = 250;
-	
-									//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-								}	
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-											
-								character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
-											
-								character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-							}
-						}
+						sdEntity.entities.push( character_entity );
+						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK ); // Give them Falkok properties
 					}
 				}
-				/*else // Spawn the drone instead
-				{
-					let drone = new sdDrone({ x:this.x, y:this.y - 16, _ai_team: 1});
-					sdEntity.entities.push( drone );
-				}*/
+			}
 
-				// Drone spawns are disabled due to them attacking interior walls
+			if ( this.type === sdFactionSpawner.TZYRG_SPAWNER ) // Tzyrg spawner
+			{
+				this.next_spawn_in = this.GetSpawnSpeedFromType();
+
+				if ( ais < sdWorld.entity_classes.sdWeather.only_instance._max_ai_count ) // Check for humanoids
+				{
+					//if ( Math.random() < 0.666 ) // 66% chance a humanoid spawns
+					{
+						let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+						sdEntity.entities.push( character_entity );
+						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_TZYRG ); // Give them Tzyrg properties
+					}
+				}
+				else // If no space for humanoids, then try to spawn drones
+				if ( drones < sdWorld.entity_classes.sdWeather.only_instance._max_drone_count ) // Check for drones
+				{
+						let drone = new sdDrone({ x:this.x, y:this.y, type: sdDrone.DRONE_TZYRG, _ai_team: this._ai_team });
+						sdEntity.entities.push( drone );
+						drone.sy = -2;
+						drone.sx = -3 + ( Math.random() * 6 );
+				}
 			}
 		}
+	}
+	
+	onMovementInRange( from_entity )
+	{
+		if ( !this.hard_collision )
+		if ( from_entity.is( sdDrone ) || from_entity.is( sdCharacter ) )
+		if ( this._ai_team === from_entity._ai_team )
+		{
+				if ( from_entity.is( sdCharacter ) )
+				from_entity._ai.target = null;
+				
+				if ( from_entity.is ( sdDrone ) )
+				from_entity.SetTarget( null );
+			
+		}
+		
+		
+		
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
@@ -214,15 +253,31 @@ class sdFactionSpawner extends sdEntity
 		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
 		sdEntity.Tooltip( ctx, "Falkonian teleporter" );
 	
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		sdEntity.Tooltip( ctx, "Tzyrg constructor" );
+	
 	}
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		//ctx.filter = this.filter;
-		
 		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER ) // Falkok spawner
 		{
 			ctx.drawImageFilterCache( sdFactionSpawner.img_falkok_spawner, - 24, - 16, 48,32 );
+		}
+		else
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER ) // Tzyrg spawner
+		{
+			let xx = 1;
+
+			if ( this.next_spawn_in < 80 )
+			xx = Math.max( 1, 10 - Math.round( this.next_spawn_in / 8 ) );
+			if ( this.next_spawn_in > 240 - 80 )
+			xx = Math.min( 10, Math.round( ( this.next_spawn_in - 150 ) / 8 ) );
+		
+			ctx.drawImageFilterCache( sdFactionSpawner.img_tzyrg_spawner, 0, 0, 64, 64, - 32, - 32, 64, 64 ); // General structure
+			
+			ctx.drawImageFilterCache( sdFactionSpawner.img_tzyrg_spawner, xx * 64, 0, 64, 64, - 32, - 32, 64, 64 ); // The doors
 		}
 		else
 		{
@@ -241,6 +296,9 @@ class sdFactionSpawner extends sdEntity
 	{
 		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
 		sdFactionSpawner.falkok_spawners--;
+	
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		sdFactionSpawner.tzyrg_spawners--;
 
 		sdWorld.BasicEntityBreakEffect( this, 10 );
 	}
