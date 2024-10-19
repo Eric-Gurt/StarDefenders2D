@@ -3081,8 +3081,8 @@ class sdWeather extends sdEntity
 								character_entity.matter = 800;
 								character_entity.matter_max = 800;
 
-								character_entity.hea = 8500; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-								character_entity.hmax = 8500;
+								character_entity.hea = 7000;
+								character_entity.hmax = 7000;
 
 								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 							}

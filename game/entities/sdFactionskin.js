@@ -173,8 +173,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 150;
 			character_entity.matter_max = 150;
 
-			character_entity.hea = 650;
-			character_entity.hmax = 650;
+			character_entity.hea = 500;
+			character_entity.hmax = 500;
 	
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };			
 			character_entity._ai_level = 4;
@@ -208,8 +208,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 300;
 			character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-			character_entity.hea = 850;
-			character_entity.hmax = 850;
+			character_entity.hea = 650;
+			character_entity.hmax = 650;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = 10;
@@ -247,8 +247,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 300;
 			character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-			character_entity.hea = 1000;
-			character_entity.hmax = 1000;
+			character_entity.hea = 800;
+			character_entity.hmax = 800;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = 10;
@@ -356,8 +356,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 200;
 			character_entity.matter_max = 200;
 
-			character_entity.hea = 650;
-			character_entity.hmax = 650;
+			character_entity.hea = 500;
+			character_entity.hmax = 500;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -391,8 +391,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 200;
 			character_entity.matter_max = 200;
 
-			character_entity.hea = 650;
-			character_entity.hmax = 650;
+			character_entity.hea = 500;
+			character_entity.hmax = 500;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -426,8 +426,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 400;
 			character_entity.matter_max = 400;
 
-			character_entity.hea = 1100;
-			character_entity.hmax = 1100;
+			character_entity.hea = 900;
+			character_entity.hmax = 900;
 			character_entity.s = 110; // Tougher so bigger target
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
@@ -599,8 +599,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 800;
 			character_entity.matter_max = 800;
 
-			character_entity.hea = 8500; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-			character_entity.hmax = 8500;
+			character_entity.hea = 7000;
+			character_entity.hmax = 7000;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 

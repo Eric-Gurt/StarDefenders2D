@@ -66,7 +66,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 20000; // Was 6000 but even 12000 is easy
+		this._hmax = 15000; // Was 6000 but even 12000 is easy
 		this.hea = this._hmax;
 
 		this._ai_team = 5;
@@ -709,7 +709,7 @@ class sdEnemyMech extends sdEntity
 
 						//bullet_obj._rail = true;
 
-						bullet_obj._damage = 20;
+						bullet_obj._damage = 25;
 						bullet_obj.color = '#ffaa00';
 
 						sdEntity.entities.push( bullet_obj );
