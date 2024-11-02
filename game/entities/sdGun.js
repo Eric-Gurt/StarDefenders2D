@@ -1532,8 +1532,20 @@ class sdGun extends sdEntity
 		{
 			sdEntity.Tooltip( ctx, this.GetTitle() );
 
+			let xx = 8;
 			if ( !sdGun.classes[ this.class ].ignore_slot )
-			sdEntity.Tooltip( ctx, 'Slot ' + this.GetSlot(), 0, 8, '#ffff00' );
+			{
+				sdEntity.Tooltip( ctx, 'Slot ' + this.GetSlot(), 0, xx, '#ffff00' );
+				xx += 8;
+			}
+			if ( sdGun.classes[ this.class ].has_description.length > 0 ) // Description of items ( like Cube shards or armor, for example )
+			{
+				for( let i = 0; i < sdGun.classes[ this.class ].has_description.length; i++ )
+				{
+					sdEntity.Tooltip( ctx, sdGun.classes[ this.class ].has_description[ i ], 0, xx, '#aaffaa' );
+					xx += 8;
+				}
+			}
 		}
 	}
 	Draw( ctx, attached )
