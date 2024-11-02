@@ -1530,15 +1530,26 @@ class sdGun extends sdEntity
 	{
 		if ( !this._held_by )
 		{
-			sdEntity.Tooltip( ctx, this.GetTitle() );
-
-			let xx = 8;
-			if ( !sdGun.classes[ this.class ].ignore_slot )
+			
+			let xx = 0;
+			let has_description = sdGun.classes[ this.class ].has_description;
+			
+			let has_slot = !sdGun.classes[ this.class ].ignore_slot;
+			
+			if ( has_description )
+			xx = Math.min( xx, 16 - ( sdGun.classes[ this.class ].has_description.length * 8 ) - ( has_slot ? 8 : 0 ) );
+		
+			// I am making this too complicated - Booraz
+		
+			
+			sdEntity.Tooltip( ctx, this.GetTitle(), 0, xx );
+			xx += 8;
+			if ( has_slot )
 			{
 				sdEntity.Tooltip( ctx, 'Slot ' + this.GetSlot(), 0, xx, '#ffff00' );
 				xx += 8;
 			}
-			if ( sdGun.classes[ this.class ].has_description.length > 0 ) // Description of items ( like Cube shards or armor, for example )
+			if ( has_description ) // Description of items ( like Cube shards or armor, for example )
 			{
 				for( let i = 0; i < sdGun.classes[ this.class ].has_description.length; i++ )
 				{

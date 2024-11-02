@@ -3275,6 +3275,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 125,
 			min_workbench_level: 3,
+			has_description:[ 'Regeneration rate: 2.5 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 250 ) )
@@ -3297,6 +3298,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 250,
 			min_workbench_level: 4,
+			has_description:[ 'Regeneration rate: 5 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 500 ) )
@@ -3319,6 +3321,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 375,
 			min_workbench_level: 7,
+			has_description:[ 'Regeneration rate: 7.5 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 750 ) )
@@ -5965,6 +5968,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			spawnable: false,
+			has_description:[ 'Regeneration rate: 10 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 1000 ) )
