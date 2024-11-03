@@ -979,6 +979,8 @@ class sdShop
 			{
 				max_level: 5,
 				matter_cost: 200,
+				max_with_upgrade_station_level: 10,
+				min_upgrade_station_level: 3,
 				description: 'Allows you to regenerate matter to a certain amount.',
 				action: ( character, level_purchased )=>
 				{
@@ -1010,10 +1012,12 @@ class sdShop
 				max_level: 5,
 				matter_cost: 150,
 				min_build_tool_level: 1,
+				max_with_upgrade_station_level: 10,
+				min_upgrade_station_level: 2,
 				description: 'Reduces matter cost for using jetpack.',
 				action: ( character, level_purchased )=>
 				{
-					character._jetpack_fuel_multiplier = 1 - ( 0.15 * level_purchased ); // Max 75% fuel cost reduction
+					character._jetpack_fuel_multiplier = 1 - ( 0.09 * level_purchased ); // Max 90% fuel cost reduction
 				}
 			},
 			upgrade_matter_regeneration_speed: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
@@ -1021,6 +1025,8 @@ class sdShop
 				max_level: 3,
 				matter_cost: 200,
 				min_build_tool_level: 2,
+				max_with_upgrade_station_level: 5,
+				min_upgrade_station_level: 4,
 				description: 'Increases matter regeneration speed.',
 				action: ( character, level_purchased )=>
 				{
@@ -1032,10 +1038,12 @@ class sdShop
 				max_level: 3,
 				matter_cost: 100,
 				min_build_tool_level: 4,
+				max_with_upgrade_station_level: 5,
+				min_upgrade_station_level: 5,
 				description: 'Increases jetpack efficiency to reach higher speeds faster.',
 				action: ( character, level_purchased )=>
 				{
-					character._jetpack_power = 1 + ( level_purchased * 0.5 );
+					character._jetpack_power = 1 + ( level_purchased * 0.4 );
 				}
 			},
 			upgrade_stability_recovery:
@@ -1043,6 +1051,8 @@ class sdShop
 				max_level: 3,
 				matter_cost: 125,
 				min_build_tool_level: 3,
+				max_with_upgrade_station_level: 5,
+				min_upgrade_station_level: 6,
 				description: 'Reduces time to recover after falling down.',
 				action: ( character, level_purchased )=>
 				{
@@ -1075,6 +1085,46 @@ class sdShop
 					character.TogglePlayerAbility();
 				}
 			},
+			upgrade_invisibility_cost_reduction:
+			{
+				max_level: 0, // Only with upgrade station
+				matter_cost: 300,
+				min_build_tool_level: 10,
+				max_with_upgrade_station_level: 5,
+				min_upgrade_station_level: 7,
+				description: 'Reduces matter cost of invisibility ability.',
+				action: ( character, level_purchased )=>
+				{
+					character._ghost_cost_multiplier = 1 - ( 0.07 * level_purchased );
+				}
+			},
+			upgrade_shield_cost_reduction:
+			{
+				max_level: 0, // Only with upgrade station
+				matter_cost: 300,
+				min_build_tool_level: 10,
+				max_with_upgrade_station_level: 5,
+				min_upgrade_station_level: 8,
+				description: 'Reduces matter cost of shield ability.',
+				action: ( character, level_purchased )=>
+				{
+					character._shield_cost_multiplier = 1 - ( 0.07 * level_purchased );
+				}
+			},
+			upgrade_armor_repair_speed:
+			{
+				max_level: 0, // Only with upgrade station
+				matter_cost: 500,
+				min_build_tool_level: 10,
+				max_with_upgrade_station_level: 5,
+				min_upgrade_station_level: 9,
+				description: 'Increases speed of armor repair modules.',
+				action: ( character, level_purchased )=>
+				{
+					character._armor_repair_mult = 1 + ( 0.1 * level_purchased ); // 50% increased speed at max level
+				}
+			}
+
 		};
 		for ( var i in sdShop.upgrades )
 		{
@@ -1236,6 +1286,7 @@ class sdShop
 				let selectable = true;
 				let max_level = 0;
 				let cur_level = 0;
+				let max_level_with_station = 0;
 					
 				if ( sdWorld.my_entity._build_params._class === null )
 				{
@@ -1251,8 +1302,11 @@ class sdShop
 						{
 							max_level = sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].max_level;
 							cur_level = ( sdWorld.my_entity._upgrade_counters[ sdWorld.my_entity._build_params.upgrade_name ] || 0 );
+							
+							let min_station_level_needed = ( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].min_upgrade_station_level || 0 );
+							max_level_with_station = ( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].max_with_upgrade_station_level || max_level );
 
-							if ( cur_level >= max_level )
+							if ( ( cur_level >= max_level && sdWorld.my_entity.GetUpgradeStationLevel() < min_station_level_needed ) || ( cur_level >= max_level_with_station ) )
 							selectable = false;
 						}
 						else
@@ -1472,13 +1526,22 @@ class sdShop
 				}
 				
 				
-				if ( max_level > 0 )
+				if ( max_level > 0 || max_level_with_station > 0 )
 				{
 					ctx.fillStyle = '#ffffff';
 					//ctx.font = "4.5px Verdana";
 					ctx.font = "5.5px Verdana";
 					ctx.textAlign = 'right';
+					
+					if ( max_level_with_station === 0 ) // No upgrade station upgrades?
 					ctx.fillText( cur_level + " / " + max_level, 32, 32 );
+					else
+					{
+						if ( cur_level >= max_level )
+						ctx.fillText( cur_level + " / " + max_level_with_station, 32, 32 );
+						else
+						ctx.fillText( cur_level + " / " + max_level, 32, 32 );
+					}
 				}
 
 				ctx.restore();
@@ -1588,7 +1651,19 @@ class sdShop
 				{
 					item_title = T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') ));
 					
+					
+					// Oh man, here I go butchering the code again :( - Booraz149
+					
+					let max_level = sdShop.upgrades[ pseudo_entity.upgrade_name ].max_level;
+					let cur_level = ( sdWorld.my_entity._upgrade_counters[ pseudo_entity.upgrade_name ] || 0 );
+					let min_station_level = ( sdShop.upgrades[ pseudo_entity.upgrade_name ].min_upgrade_station_level || 0 )
+					
+					
 					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as an upgrade. Then click anywhere to purchase upgrade.');
+					
+					if ( ( cur_level >= max_level ) && ( sdWorld.my_entity.GetUpgradeStationLevel() < min_station_level ) )
+					how_to_build_hint = T('To further')+' "' + item_title + '" '+T(', you need a level ')+ min_station_level +T(' upgrade station.');
+				
 					description = capitalize( pseudo_entity.description );
 				}
 				
