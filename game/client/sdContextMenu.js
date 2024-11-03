@@ -28,7 +28,7 @@ class sdContextMenu
 			
 			sdContextMenu.options = [];
 				
-			if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
+			/*if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
 			{
 				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
 				{
@@ -44,7 +44,7 @@ class sdContextMenu
 							globalThis.socket.emit( 'UPGRADE_GET_EQUIP', [ sdContextMenu.current_target._net_id ] );
 						}
 					});
-					if ( sdWorld.my_entity.build_tool_level > 1 && sdContextMenu.current_target.level < 3 )
+					/*if ( sdWorld.my_entity.build_tool_level > 1 && sdContextMenu.current_target.level < 3 )
 					sdContextMenu.options.push({ title: 'Upgrade the station (5000 matter cost)',
 						action: ()=>
 						{
@@ -54,6 +54,7 @@ class sdContextMenu
 				}
 			}
 			else
+			*/
 			/*if ( sdContextMenu.current_target.GetClass() === 'sdCrystalCombiner' )
 			{
 				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, 64 ) >= 0 )
