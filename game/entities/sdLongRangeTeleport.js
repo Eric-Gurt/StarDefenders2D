@@ -806,6 +806,13 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( core );
 		}
 		
+		if ( rewards === 'CLAIM_UPGRADE_STATION_CHIP' )
+		{
+			let chipset;
+			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET });
+			sdEntity.entities.push( chipset );
+		}
+		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 		
@@ -1180,7 +1187,9 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_CRYSTALS' ||
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
 						command_name === 'CLAIM_REWARD_AD' ||
-						command_name === 'CLAIM_MERGER_CORE'
+						command_name === 'CLAIM_MERGER_CORE' ||
+						command_name === 'CLAIM_UPGRADE_STATION_CHIP'
+						
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1768,6 +1777,7 @@ class sdLongRangeTeleport extends sdEntity
 							this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
 							this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
 							this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
+							this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
 						}
 
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )

@@ -7244,7 +7244,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 4;
+				return 3;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -7275,11 +7275,11 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y,volume:0.8, pitch: 1.2 });
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 0.7 });
 					
-					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by.matter >= 3 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 4;
-						gun._held_by.matter -= 4;
+						gun._held_by.matter -= 3;
 					}
 					else
 					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
@@ -8938,6 +8938,25 @@ class sdGunClass
 				sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#222222' );
 				
 				gun.sd_filter = remover_sd_filter;
+			}
+		};
+		sdGun.classes[ sdGun.CLASS_UPGRADE_STATION_CHIPSET = 138 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'upgrade_station_chipset' ),
+			sound: 'gun_defibrillator',
+			title: 'Upgrade station chipset',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Used for upgrading the Upgrade station' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
 			}
 		};
 

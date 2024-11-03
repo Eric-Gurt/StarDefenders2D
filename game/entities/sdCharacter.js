@@ -32,6 +32,7 @@ import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
 import sdShurgConverter from './sdShurgConverter.js';
 import sdBubbleShield from './sdBubbleShield.js';
+import sdUpgradeStation from './sdUpgradeStation.js';
 //import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdShop from '../client/sdShop.js';
@@ -505,8 +506,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
-		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
-		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
 
 		sdCharacter.max_level = 60;
 		
@@ -5287,6 +5288,19 @@ THING is cosmic mic drop!`;
 		if ( this._potential_vehicle )
 		if ( !this._potential_vehicle._is_being_removed )
 		if ( this._potential_vehicle.is( sdWorkbench ) )
+		if ( this.DoesOverlapWith( this._potential_vehicle ) )
+		{
+			return this._potential_vehicle.level;
+		}
+		
+		return 0;
+	}
+	
+	GetUpgradeStationLevel()
+	{
+		if ( this._potential_vehicle )
+		if ( !this._potential_vehicle._is_being_removed )
+		if ( this._potential_vehicle.is( sdUpgradeStation ) )
 		if ( this.DoesOverlapWith( this._potential_vehicle ) )
 		{
 			return this._potential_vehicle.level;
