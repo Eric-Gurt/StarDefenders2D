@@ -19,6 +19,8 @@ class sdUpgradeStation extends sdEntity
 		
 		sdUpgradeStation.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
+		sdUpgradeStation.MAX_STATION_LEVEL = 9;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -10; }
@@ -246,7 +248,7 @@ class sdUpgradeStation extends sdEntity
 		if ( !from_entity._is_being_removed )
 		if ( from_entity.is( sdGun ) )
 		if ( from_entity.class === sdGun.CLASS_UPGRADE_STATION_CHIPSET )
-		if ( this.level < 3 )
+		if ( this.level < sdUpgradeStation.MAX_STATION_LEVEL )
 		{
 			this.UpgradeStation();
 			

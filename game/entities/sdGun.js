@@ -653,11 +653,17 @@ class sdGun extends sdEntity
 				return Infinity; // Can't be built
 					
 				if ( typeof this._held_by._build_params.upgrade_name !== 'undefined' )
-				if ( ( this._held_by._upgrade_counters[ this._held_by._build_params.upgrade_name ] || 0 ) >= sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_level )
 				{
-					//this._held_by_unenforce();
+					let cur_level = ( this._held_by._upgrade_counters[ this._held_by._build_params.upgrade_name ] || 0 );
+					let max_level = sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_level;
+					let min_station_level_needed = (sdShop.upgrades[ this._held_by._build_params.upgrade_name ].min_upgrade_station_level || 0 );
+					let max_level_with_station = ( sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_with_upgrade_station_level || max_level );
+					if ( ( cur_level >= max_level && this._held_by.GetUpgradeStationLevel() < min_station_level_needed ) || ( cur_level >= max_level_with_station ) )
+					{
+						//this._held_by_unenforce();
 				
-					return Infinity; // Maxed out
+						return Infinity; // Maxed out
+					}
 				}
 				
 				if ( typeof this._held_by._build_params.matter_cost !== 'undefined' )

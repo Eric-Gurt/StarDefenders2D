@@ -1247,6 +1247,9 @@ THING is cosmic mic drop!`;
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this._stability_recovery_multiplier = 1; // How fast does the character recover after stability damage?
 		this._shield_allowed = false; // Through upgrade
+		this._ghost_cost_multiplier = 1; // Through upgrade
+		this._shield_cost_multiplier = 1; // Through upgrade
+		this._armor_repair_mult = 1; // Through upgrade
 		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
@@ -2007,11 +2010,24 @@ THING is cosmic mic drop!`;
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
-		if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
+		if ( sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level === 0 )
 		{
-			return;
+			if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
+			{
+				return;
+			}
 		}
-		
+		else
+		{
+			if ( ( this.GetUpgradeStationLevel() < sdShop.upgrades[ upgrade_name ].min_upgrade_station_level ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) // Can't upgrade without the station level
+			return;
+			else
+			{
+				if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level ) // Don't go beyond the limit
+				return;
+			}
+	
+		}
 		
 		
 		
@@ -3946,7 +3962,7 @@ THING is cosmic mic drop!`;
 						if ( this.matter > GSPEED )
 						{
 							this.matter -= GSPEED * 0.1 * ( this._armor_repair_amount / 1000 ); // 0.15
-							this.armor += Math.min( this.armor_max, GSPEED * ( this._armor_repair_amount / 3000 ) );
+							this.armor += Math.min( this.armor_max, this._armor_repair_mult * GSPEED * ( this._armor_repair_amount / 3000 ) );
 							//this._armor_repair_amount -= GSPEED * 1 / 6;
 						}
 					}
@@ -4554,7 +4570,7 @@ THING is cosmic mic drop!`;
 		
 		if ( this.ghosting )
 		{
-			let fuel_cost = 0.4 * GSPEED; // 0.4 Previously
+			let fuel_cost = 0.4 * GSPEED * this._ghost_cost_multiplier; // 0.4 Previously
 			
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			{
@@ -4573,7 +4589,7 @@ THING is cosmic mic drop!`;
 		}
 		if ( this._shielding && sdWorld.is_server )
 		{
-			let fuel_cost = 0.6 * GSPEED; // 0.4 Previously
+			let fuel_cost = 0.6 * GSPEED * this._shield_cost_multiplier; // 0.6 Previously
 			
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			{
