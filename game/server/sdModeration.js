@@ -892,23 +892,25 @@ class sdModeration
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
-				socket.character.GiveScore( 3000, null, false );
+				socket.character.GiveScore( 12005, null, false );
+				socket.character.quick_started = true;
+
 				for ( var i = 0; i < sdShop.options.length; i++ )
 				{
 					if ( sdShop.options[ i ]._category === 'Upgrades' )
 					{
 						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
 						let cur_level = ( socket.character._upgrade_counters[ sdShop.options[ i ].upgrade_name ] || 0 );
-						if ( sdShop.options[ i ]._min_build_tool_level <= socket.character.build_tool_level )
+
+						let max_level_with_station = ( sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_with_upgrade_station_level || max_level );
+
+						for ( var j = cur_level; j < max_level_with_station; j++ )
 						{
-							for ( var j = cur_level; j < max_level; j++ )
-							{
-								socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name );
-							}
+							socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name );
 						}
 					}
 				}
-				socket.character._matter_capacity_boosters = 900;
+				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
 			}
 		}
 		else

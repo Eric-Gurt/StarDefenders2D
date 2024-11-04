@@ -1250,6 +1250,7 @@ THING is cosmic mic drop!`;
 		this._ghost_cost_multiplier = 1; // Through upgrade
 		this._shield_cost_multiplier = 1; // Through upgrade
 		this._armor_repair_mult = 1; // Through upgrade
+		this.quick_started = false; // Quick Start, if used it, then unlock all. (No?)
 		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
@@ -2019,7 +2020,7 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
-			if ( ( this.GetUpgradeStationLevel() < sdShop.upgrades[ upgrade_name ].min_upgrade_station_level ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) // Can't upgrade without the station level
+			if ( ( ( this.GetUpgradeStationLevel() < sdShop.upgrades[ upgrade_name ].min_upgrade_station_level ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) && !this.quick_started ) // Can't upgrade without the station level
 			return;
 			else
 			{
@@ -6630,7 +6631,7 @@ THING is cosmic mic drop!`;
 					if ( this !== sdWorld.my_entity )
 					{
 					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
-					this.AddContextOption( 'Start controlling ( AI only )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
+					this.AddContextOption( 'Replace as player ( AI only )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 					}
 				}
 
