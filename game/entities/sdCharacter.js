@@ -2069,10 +2069,16 @@ THING is cosmic mic drop!`;
 		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
 		
+		let max_level = ( upgrade_obj.max_with_upgrade_station_level || upgrade_obj.max_level ); // Used to reduce value if beyond max level
+		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
 		this._upgrade_counters[ upgrade_name ] = 0;
 		else
-		this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+		{
+			if ( this._upgrade_counters[ upgrade_name ] > max_level )
+			this._upgrade_counters[ upgrade_name ] = max_level;
+			this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+		}
 	
 		upgrade_obj.reverse_action( this, this._upgrade_counters[ upgrade_name ] );
 		
