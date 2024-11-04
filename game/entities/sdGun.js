@@ -656,7 +656,7 @@ class sdGun extends sdEntity
 				{
 					let cur_level = ( this._held_by._upgrade_counters[ this._held_by._build_params.upgrade_name ] || 0 );
 					let max_level = sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_level;
-					let min_station_level_needed = (sdShop.upgrades[ this._held_by._build_params.upgrade_name ].min_upgrade_station_level || 0 );
+					let min_station_level_needed = ( sdShop.upgrades[ this._held_by._build_params.upgrade_name ].min_upgrade_station_level || 0 );
 					let max_level_with_station = ( sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_with_upgrade_station_level || max_level );
 					if ( ( cur_level >= max_level && this._held_by.GetUpgradeStationLevel() < min_station_level_needed ) || ( cur_level >= max_level_with_station ) )
 					{
