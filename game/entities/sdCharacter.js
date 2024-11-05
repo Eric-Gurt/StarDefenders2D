@@ -2011,33 +2011,46 @@ THING is cosmic mic drop!`;
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
-		if ( sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level === 0 )
+		if ( ( sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level || 0 ) === 0 )
 		{
 			if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
 			{
+				this._upgrade_counters[ upgrade_name ] = sdShop.upgrades[ upgrade_name ].max_level; // Reset the upgrade, just in case
+				sdShop.upgrades[ upgrade_name ].action( this, this._upgrade_counters[ upgrade_name ] );
+		
+				if ( this._socket )
+				this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
 				return;
 			}
 		}
 		else
 		{
-			if ( ( ( this.GetUpgradeStationLevel() < sdShop.upgrades[ upgrade_name ].min_upgrade_station_level ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) && !this.quick_started ) // Can't upgrade without the station level
+			if ( ( ( this.GetUpgradeStationLevel() < ( sdShop.upgrades[ upgrade_name ].min_upgrade_station_level || 0 ) ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) && !this.quick_started ) // Can't upgrade without the station level
 			return;
 			else
 			{
 				if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level ) // Don't go beyond the limit
-				return;
+				{
+					this._upgrade_counters[ upgrade_name ] = sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level; // Reset the upgrade, just in case
+					sdShop.upgrades[ upgrade_name ].action( this, this._upgrade_counters[ upgrade_name ] );
+		
+					if ( this._socket )
+					this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
+					return;
+				}
 			}
 	
 		}
 		
 		
-		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
+		
+		let max_level = ( upgrade_obj.max_with_upgrade_station_level || upgrade_obj.max_level ); // Sets value to either max value with upgrade station or max level
 		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
 		this._upgrade_counters[ upgrade_name ] = 1;
 		else
-		this._upgrade_counters[ upgrade_name ]++;
+		this._upgrade_counters[ upgrade_name ] = Math.min( this._upgrade_counters[ upgrade_name ] + 1, max_level ); // Prevent max level exceeding
 	
 		upgrade_obj.action( this, this._upgrade_counters[ upgrade_name ] );
 		
@@ -2057,10 +2070,16 @@ THING is cosmic mic drop!`;
 		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
 		
+		let max_level = ( upgrade_obj.max_with_upgrade_station_level || upgrade_obj.max_level ); // Used to reduce value if beyond max level
+		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
 		this._upgrade_counters[ upgrade_name ] = 0;
 		else
-		this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+		{
+			if ( this._upgrade_counters[ upgrade_name ] > max_level )
+			this._upgrade_counters[ upgrade_name ] = max_level;
+			this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+		}
 	
 		upgrade_obj.reverse_action( this, this._upgrade_counters[ upgrade_name ] );
 		
