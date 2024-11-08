@@ -796,7 +796,7 @@ class sdBaseShieldingUnit extends sdEntity
 	}
 	SetAttackState()
 	{
-		if ( this.enabled )
+		//if ( this.enabled )
 		{
 			this.attack_other_units = !this.attack_other_units;
 
