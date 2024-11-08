@@ -196,7 +196,12 @@ class sdSolarMatterDistributor extends sdEntity
 			{
 				this._spawn_timer = 150 + Math.random() * 150;
 
-				sdWeather.only_instance.ExecuteEvent( this._event_to_spawn );
+				sdWeather.only_instance.ExecuteEvent({ 
+					event: this._event_to_spawn,
+					near_entity: this,
+					group_radius: 3000,
+					target_entity: this
+				});
 			}
 		
 			if ( !this._spawned_ai ) // Spawn random SD soldier which will stand near the beam projector

@@ -74,6 +74,8 @@ class sdFaceCrab extends sdEntity
 		
 		this._physically_stuck_timer = 0;
 		
+		this._hibernation_check_timer = 30; // Timer which checks if hibernating in an empty block is possible ( if crab did not attack anything past a certain time )
+		
 		//this.side = 1;
 
 		this.filter = null;
@@ -102,6 +104,10 @@ class sdFaceCrab extends sdEntity
 		}
 		
 		return true;
+	}
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
 	}
 	
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
@@ -403,6 +409,20 @@ class sdFaceCrab extends sdEntity
 					max_targets--;
 					if ( max_targets <= 0 )
 					break;
+				}
+			}
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
++					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}

@@ -83,7 +83,7 @@ class sdSunPanel extends sdEntity
 		this.multiplier = params.multiplier || 1; // New solar panels, yay!
 		//this.UpdatePropertiesDueToUpgrade();
 		this._matter = 0;
-		this._matter_max = 20 * this.multiplier; // Higher tiers store more matter inside it
+		this._matter_max = 20; // Don't go over 20 matter, that way it will not hoard matter
 		
 		this.dirt = 0;
 		
@@ -117,6 +117,12 @@ class sdSunPanel extends sdEntity
 				this._sun_reaches = sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y + this.hitbox_y1, Infinity, true );
 
 				this._next_trace_rethink = sdWorld.time + 5000 + Math.random() * 10000;
+				
+				if ( this._matter_max > 20 )
+				{
+					this._matter_max = 20;
+					this._update_version++;
+				}
 			}
 
 			if ( this.dirt <= 1 )

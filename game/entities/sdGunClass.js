@@ -1271,6 +1271,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 250,
 			projectile_velocity: 16,
+			has_description: [ 'Increases melee attack and reload speed', 'Duration: 20 seconds' ],
 			GetAmmoCost: ()=>
 			{
 				return 100;
@@ -1559,7 +1560,7 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
 			has_images: true,
 			sound: 'gun_raygun',
-			title: 'Raygun C01y',
+			title: 'Ray Gun C-01y',
 			slot: 3,
 			reload_time: 60, // Might be inaccurate - not checked
 			muzzle_x: 9,
@@ -1763,6 +1764,7 @@ class sdGunClass
 			spawnable: false,
 			ignore_slot: true,
 			apply_shading: false,
+			has_description: [ 'Increases max matter capacity on pickup' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				// 20 more levels, 20 * 45 more matter, 4 * 45 matter per shard
@@ -1898,6 +1900,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			spawnable: false,
 			ignore_slot: true,
+			has_description: [ 'Increases score on pickup' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( !character._ai )
@@ -2018,6 +2021,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 150,
 			min_workbench_level: 1,
+			has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
 				if ( character.ApplyArmor({ armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }) )
@@ -2051,6 +2055,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 250,
 			min_workbench_level: 1,
+			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }) )
@@ -2084,6 +2089,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 350,
 			min_workbench_level: 1,
+			has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }) )
@@ -2775,6 +2781,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 300,
+			has_description: [ 'Used to connect base equipment together' ],
 			projectile_velocity: 16,
 			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
 				_custom_target_reaction_protected: cable_reaction_method,
@@ -2861,6 +2868,7 @@ class sdGunClass
 			count: 0,
 			matter_cost: 500, // More DPS relative to stimpack
 			projectile_velocity: 16,
+			has_description: [ 'Slows down time for everything near', 'Duration: 30 seconds' ],
 			GetAmmoCost: ()=>
 			{
 				return 750;
@@ -2895,6 +2903,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 275,
 			min_workbench_level: 2,
+			has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }) )
@@ -2928,6 +2937,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 375,
 			min_workbench_level: 2,
+			has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }) )
@@ -2961,6 +2971,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 475,
 			min_workbench_level: 2,
+			has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) )
@@ -3264,6 +3275,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 125,
 			min_workbench_level: 3,
+			has_description:[ 'Regeneration rate: 2.5 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 250 ) )
@@ -3286,6 +3298,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 250,
 			min_workbench_level: 4,
+			has_description:[ 'Regeneration rate: 5 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 500 ) )
@@ -3308,6 +3321,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 375,
 			min_workbench_level: 7,
+			has_description:[ 'Regeneration rate: 7.5 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 750 ) )
@@ -3330,6 +3344,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 400,
 			min_workbench_level: 6,
+			has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }) )
@@ -3363,6 +3378,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 500,
 			min_workbench_level: 6,
+			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }) )
@@ -3396,6 +3412,7 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 600,
 			min_workbench_level: 6,
+			has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor({ armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }) )
@@ -3430,6 +3447,7 @@ class sdGunClass
 			matter_cost: 200, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			spawnable: false,
+			has_description: [ 'Summons an Instructor to aid you', 'Duration: 60 seconds' ],
 			GetAmmoCost: ()=>
 			{
 				return 300;
@@ -4363,6 +4381,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			ignore_slot: true,
+			has_description: [ 'Can be used to upgrade workbench' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates
 			{ 
 				return false; 
@@ -4616,9 +4635,10 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			spawnable: false,
+			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }) )
+				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
@@ -5092,6 +5112,7 @@ class sdGunClass
 			count: 0,
 			projectile_velocity: 16,
 			spawnable: false,
+			has_description: [ 'Summons an Instructor to aid you', 'Lasts until death' ],
 			GetAmmoCost: ()=>
 			{
 				return 800;
@@ -5947,6 +5968,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			spawnable: false,
+			has_description:[ 'Regeneration rate: 10 armor/sec' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character.ApplyArmorRegen( 1000 ) )
@@ -6019,6 +6041,7 @@ class sdGunClass
 			spawnable: true,
 			category: 'Other',
 			is_sword: false,
+			has_description: [ 'Used to clean stains off walls'],
 			GetAmmoCost: ()=>
 			{
 				return 1;
@@ -6858,6 +6881,7 @@ class sdGunClass
 			matter_cost: 1000,
 			projectile_velocity: 10,
 			spawnable: false,
+			has_description: [ 'Amplifies speed of entities hit by projectile', 'Duration: 2-3 seconds' ],
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				return 300;
@@ -6957,6 +6981,7 @@ class sdGunClass
 			matter_cost: 1000,
 			projectile_velocity: 10,
 			spawnable: false,
+			has_description: [ 'Creates illusions of objects hit' ],
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				return 600;
@@ -7219,7 +7244,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 4;
+				return 3;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -7250,11 +7275,11 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y,volume:0.8, pitch: 1.2 });
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 0.7 });
 					
-					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by.matter >= 3 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 4;
-						gun._held_by.matter -= 4;
+						gun._held_by.matter -= 3;
 					}
 					else
 					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
@@ -8561,11 +8586,11 @@ class sdGunClass
 		{
 			if ( target_entity.is( sdLost ) )
 			{
-				target_entity.DamageWithEffect( 10, bullet._owner );
+				target_entity.DamageWithEffect( 9, bullet._owner );
 			}
 			else
 			{
-				sdLost.ApplyAffection( target_entity, 10, bullet, sdLost.FILTER_GOLDEN );
+				sdLost.ApplyAffection( target_entity, 9, bullet, sdLost.FILTER_GOLDEN );
 			}
 		};
 		sdGun.classes[ sdGun.CLASS_ANCIENT_TRIPLE_RAIL = 131 ] = // Cube gun but deals lost damage. Cannot be upgraded. Obtainable only via Ancient cubes.
@@ -8600,6 +8625,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			ignore_slot: true,
+			has_description: [ 'Needed for weapon merging in weapon merging bench' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
 			{ 
 				return false; 
@@ -8664,6 +8690,7 @@ class sdGunClass
 			spawnable: false,
 			ignore_slot: true,
 			apply_shading: false,
+			has_description: [ 'Increases max matter capacity on pickup' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				// 20 more levels, 20 * 45 more matter, 4 * 45 matter per shard
@@ -8911,6 +8938,25 @@ class sdGunClass
 				sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#222222' );
 				
 				gun.sd_filter = remover_sd_filter;
+			}
+		};
+		sdGun.classes[ sdGun.CLASS_UPGRADE_STATION_CHIPSET = 138 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'upgrade_station_chipset' ),
+			sound: 'gun_defibrillator',
+			title: 'Upgrade station chipset',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Used for upgrading the Upgrade station' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
 			}
 		};
 

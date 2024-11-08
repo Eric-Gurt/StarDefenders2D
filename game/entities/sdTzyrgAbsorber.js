@@ -281,7 +281,11 @@ class sdTzyrgAbsorber extends sdEntity
 			else
 			{
 				this._spawn_timer = 30 * 60 * 5; // Not too frequent spawns of tzyrg faction when the absorber is present
-				sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 35 ); // Spawn some Tzyrgs in the world
+				sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent({
+					event: 35,
+					near_entity: this,
+					group_radius: 3000
+				}); // Spawn some Tzyrgs in the world
 			}
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );

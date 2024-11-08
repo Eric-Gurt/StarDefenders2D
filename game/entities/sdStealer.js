@@ -27,10 +27,10 @@ class sdStealer extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return -16; }
-	get hitbox_y2() { return 16; }
+	get hitbox_x1() { return -7; }
+	get hitbox_x2() { return 7; }
+	get hitbox_y1() { return -7; }
+	get hitbox_y2() { return 7; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -285,7 +285,7 @@ class sdStealer extends sdEntity
 				the crystal hunting worm, which would become obsolete since this entity will replace it.
 				Basically this steals crystals, maybe more entities will be needed to "steal" in future. */
 				
-				if ( this._last_found_target > 240 || ( this.hea < this._hmax * 0.2 && !this.IsEntFarEnough( this ) ) ) // Disappear if it can't find crystals or near players and low HP
+				if ( this._last_found_target > 250 || ( this.hea < this._hmax * 0.2 && !this.IsEntFarEnough( this ) ) ) // Disappear if it can't find crystals or near players and low HP
 				{
 					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -352,7 +352,7 @@ class sdStealer extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Stealer" );
-		this.DrawHealthBar( ctx, undefined, 4 );
+		this.DrawHealthBar( ctx, undefined, 12 );
 	}
 	Draw( ctx, attached )
 	{
@@ -362,6 +362,7 @@ class sdStealer extends sdEntity
 		let xx = 19;
 		
 		ctx.drawImageFilterCache( sdStealer.img_stealer, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		
 		
 		let cur_img = sdWorld.time % 3400;
 		if ( cur_img < 850 )
@@ -376,6 +377,8 @@ class sdStealer extends sdEntity
 		xx = 10 + Math.round( 8 * ( ( cur_img - 2600 ) / 800 ) );
 		ctx.drawImageFilterCache( sdStealer.img_stealer, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 		
+		xx = 20;
+		ctx.drawImageFilterCache( sdStealer.img_stealer, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 		
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';

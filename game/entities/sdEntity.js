@@ -483,9 +483,10 @@ class sdEntity
 			attacker = sdEntity.entities_by_net_id_cache_map.get( this._last_attacker_net_id );
 		
 			if ( attacker )
-			if ( attacker._is_being_removed || ( attacker.hea || attacker._hea || 0 ) <= 0 || !attacker.IsPlayerClass() )
+			if ( attacker._is_being_removed || ( attacker.hea || attacker._hea || 0 ) <= 0 || !attacker.IsPlayerClass() || !attacker._socket )
 			attacker = null;
-
+		
+			if ( attacker )
 			sdWorld.GiveScoreToPlayerEntity( amount, this, true, attacker );
 		}
 	}
@@ -2555,6 +2556,82 @@ class sdEntity
 	GetBleedEffectFilter()
 	{
 		return '';
+	}
+	
+	CanBuryIntoBlocks() // Can this entity bury inside sdBlock?
+	{
+		return 0; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
+	}
+	
+	AttemptBlockBurying( custom_ent_tag = null )
+	{
+		if ( !sdWorld.is_server || this.CanBuryIntoBlocks() === 0 )
+		return;
+	
+		let no_players_near = true;
+		let i;			
+		for ( i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character )
+		{
+			if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y, 500 ) ) // A player is too close to it?
+			{
+				no_players_near = false; // Prevent hibernation
+				break;
+			}
+		}
+		if ( no_players_near )
+		{
+			let potential_hibernation_blocks = sdWorld.GetAnythingNear( this.x, this.y, 96, null, [ 'sdBlock' ] ); // Look for blocks
+			// sdWorld.shuffleArray( potential_hibernation_blocks ); // Not sure if needed? Though check will mostly start from left to right of the entity.
+			for ( i = 0; i < potential_hibernation_blocks.length; i++ )
+			{
+				
+				let block = potential_hibernation_blocks[ i ];
+							
+				if ( block )
+				{
+					if ( this.CanBuryIntoBlocks() === 1 ) // 1st scenario, natural blocks
+					{
+						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material !== 7 && block.material !== 9 ) // Natural block, no flesh or corruption and nothing inside it?
+						{
+							if ( !custom_ent_tag )
+							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
+							this.remove(); // Disappear
+							this._broken = false;
+							break;
+						}
+					}
+					if ( this.CanBuryIntoBlocks() === 2 ) // 2nd scenario, corrupted blocks
+					{
+						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material === 7 ) // Natural corrupted block and nothing inside it?
+						{
+							if ( !custom_ent_tag )
+							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
+							this.remove(); // Disappear
+							this._broken = false;
+							break;
+						}
+					}
+					if ( this.CanBuryIntoBlocks() === 3 ) // 3rd scenario, flesh blocks
+					{
+						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material === 9 ) // Natural flesh block and nothing inside it?
+						{
+							if ( !custom_ent_tag )
+							block._contains_class = this.GetClass(); // Put the entity in there
+							else
+							block._contains_class = custom_ent_tag;
+							this.remove(); // Disappear
+							this._broken = false;
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	PlayDamageEffect( xx, yy, scale=1 )

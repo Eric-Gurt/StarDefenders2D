@@ -32,6 +32,7 @@ import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
 import sdShurgConverter from './sdShurgConverter.js';
 import sdBubbleShield from './sdBubbleShield.js';
+import sdUpgradeStation from './sdUpgradeStation.js';
 //import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdShop from '../client/sdShop.js';
@@ -505,8 +506,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
-		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
-		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
 
 		sdCharacter.max_level = 60;
 		
@@ -1139,6 +1140,7 @@ THING is cosmic mic drop!`;
 		this._ai_stay_near_entity = null; // Should AI stay near an entity/protect it?
 		this._ai_stay_distance = params._ai_stay_distance || 128; // Max distance AI can stray from entity it follows/protects.
 		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
+		this._ai_allow_weapon_switch = true; // Allow switching weapons if AI has multiple of them
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -1245,6 +1247,9 @@ THING is cosmic mic drop!`;
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this._stability_recovery_multiplier = 1; // How fast does the character recover after stability damage?
 		this._shield_allowed = false; // Through upgrade
+		this._ghost_cost_multiplier = 1; // Through upgrade
+		this._shield_cost_multiplier = 1; // Through upgrade
+		this._armor_repair_mult = 1; // Through upgrade
 		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
@@ -1994,7 +1999,7 @@ THING is cosmic mic drop!`;
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
-			if ( targets[ i ].material === sdBlock.MATERIAL_GROUND || targets[ i ]._ai_team !== this._ai_team )
+			if ( targets[ i ]._natural || targets[ i ]._ai_team !== this._ai_team )
 			{
 				this._ai.target = targets[ i ];
 				return;
@@ -2005,20 +2010,46 @@ THING is cosmic mic drop!`;
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
-		if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
+		if ( ( sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level || 0 ) === 0 )
 		{
-			return;
+			if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
+			{
+				this._upgrade_counters[ upgrade_name ] = sdShop.upgrades[ upgrade_name ].max_level; // Reset the upgrade, just in case
+				sdShop.upgrades[ upgrade_name ].action( this, this._upgrade_counters[ upgrade_name ] );
+		
+				if ( this._socket )
+				this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
+				return;
+			}
 		}
+		else
+		{
+			if ( ( this.GetUpgradeStationLevel() < ( sdShop.upgrades[ upgrade_name ].min_upgrade_station_level || 0 ) ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) // Can't upgrade without the station level
+			return;
+			else
+			{
+				if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level ) // Don't go beyond the limit
+				{
+					this._upgrade_counters[ upgrade_name ] = sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level; // Reset the upgrade, just in case
+					sdShop.upgrades[ upgrade_name ].action( this, this._upgrade_counters[ upgrade_name ] );
 		
-		
+					if ( this._socket )
+					this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
+					return;
+				}
+			}
+	
+		}
 		
 		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
 		
+		let max_level = ( upgrade_obj.max_with_upgrade_station_level || upgrade_obj.max_level ); // Sets value to either max value with upgrade station or max level
+		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
 		this._upgrade_counters[ upgrade_name ] = 1;
 		else
-		this._upgrade_counters[ upgrade_name ]++;
+		this._upgrade_counters[ upgrade_name ] = Math.min( this._upgrade_counters[ upgrade_name ] + 1, max_level ); // Prevent max level exceeding
 	
 		upgrade_obj.action( this, this._upgrade_counters[ upgrade_name ] );
 		
@@ -2038,10 +2069,16 @@ THING is cosmic mic drop!`;
 		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
 		
+		let max_level = ( upgrade_obj.max_with_upgrade_station_level || upgrade_obj.max_level ); // Used to reduce value if beyond max level
+		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
 		this._upgrade_counters[ upgrade_name ] = 0;
 		else
-		this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+		{
+			if ( this._upgrade_counters[ upgrade_name ] > max_level )
+			this._upgrade_counters[ upgrade_name ] = max_level;
+			this._upgrade_counters[ upgrade_name ] = Math.max( this._upgrade_counters[ upgrade_name ] - 1, 0 );
+		}
 	
 		upgrade_obj.reverse_action( this, this._upgrade_counters[ upgrade_name ] );
 		
@@ -2861,6 +2898,12 @@ THING is cosmic mic drop!`;
 					}
 				}
 			}
+			if ( initiator && this._ai ) // AI got healed?
+			{
+				if ( this._ai.target )
+				if ( this._ai.target === initiator ) // AI got healed by whoever shot them before? ( Instructor or SD soldiers come to mind here )
+				this._ai.target = null; // Maybe AI could forgive
+			}
 			
 			this._dying = false;
 			
@@ -3060,10 +3103,39 @@ THING is cosmic mic drop!`;
 			{
 				this._ai.next_action = 5 + Math.random() * 10;
 
-				if ( this.gun_slot !== this._ai_gun_slot )
+				/*if ( this.gun_slot !== this._ai_gun_slot && this._inventory[ this._ai_gun_slot ] && !this._inventory[ this._gun_slot ] ) // Any weapon in it's predicted slot? And no weapon is currently equipped?
 				{
-					this.gun_slot = this._ai_gun_slot;
+					this.gun_slot = this._ai_gun_slot; // Equip it
 					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+				}
+				else
+				*/
+				if ( ( !this._inventory[ this.gun_slot ] || Math.random() < 0.15 ) && this._ai_allow_weapon_switch ) // No weapon ( or occasionally check if they have a better one ) and is allowed to switch weapons?
+				{
+					if ( this._inventory.length > 0 ) // Any weapons?
+					{
+						//let slots = [];
+						let best_slot = -1; // Which slot is most suitable for current situation?
+						// Currently it only checks DPS for weapons, though it should probably check target distance so it selects a sniper, or shotgun, or a pistol if it's low on matter.
+						for ( let i = 0; i < 9; i++ )
+						{
+							if ( this._inventory[ i ] )
+							{
+								if ( best_slot === -1 )
+								best_slot = i;
+								else
+								if ( this._inventory[ i ].class._max_dps > this._inventory[ best_slot ].class._max_dps )
+								best_slot = i;
+							}
+						}
+						//if ( best_slot !== -1 )
+						//this.gun_slot = slots[ Math.round( Math.random() * slots.length ) ];
+						//else
+						this.gun_slot = best_slot;
+						this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+					}
+					
+					
 				}
 				
 				
@@ -3334,7 +3406,7 @@ THING is cosmic mic drop!`;
 						if ( Math.random() < 0.3 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
+						if ( Math.random() < 0.2 || ( this.sy > 2.5 && this._jetpack_allowed && this.matter > 30 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 						if ( Math.random() < 0.4 )
@@ -3450,8 +3522,19 @@ THING is cosmic mic drop!`;
 		{
 			let vehicle = this.driver_of;
 			if ( typeof vehicle.driver0 !== 'undefined' )
-			if ( vehicle.driver0 === null ) // No driver?
-			this._key_states.SetKey( 'KeyE', 1 );
+			{
+				if ( vehicle.driver0 === null ) // No driver?
+				this._key_states.SetKey( 'KeyE', 1 );
+			
+				if ( vehicle.is( sdHover ) )
+				{
+					if ( vehicle.guns === 0 && vehicle.driver0 !== this && Math.random() < 0.1 && this._ai.target ) // Hover with no guns but AI has a target?
+					{
+						this._key_states.SetKey( 'KeyE', 1 ); // Randomly leave and engage the target
+						//this._ai.next_action = 30;
+					}
+				}
+			}
 		
 			if ( typeof vehicle.matter !== 'undefined' )
 			if ( vehicle.matter < 1 ) // No matter?
@@ -3898,7 +3981,7 @@ THING is cosmic mic drop!`;
 						if ( this.matter > GSPEED )
 						{
 							this.matter -= GSPEED * 0.1 * ( this._armor_repair_amount / 1000 ); // 0.15
-							this.armor += Math.min( this.armor_max, GSPEED * ( this._armor_repair_amount / 3000 ) );
+							this.armor += Math.min( this.armor_max, this._armor_repair_mult * GSPEED * ( this._armor_repair_amount / 3000 ) );
 							//this._armor_repair_amount -= GSPEED * 1 / 6;
 						}
 					}
@@ -4506,7 +4589,7 @@ THING is cosmic mic drop!`;
 		
 		if ( this.ghosting )
 		{
-			let fuel_cost = 0.4 * GSPEED; // 0.4 Previously
+			let fuel_cost = 0.4 * GSPEED * this._ghost_cost_multiplier; // 0.4 Previously
 			
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			{
@@ -4525,7 +4608,7 @@ THING is cosmic mic drop!`;
 		}
 		if ( this._shielding && sdWorld.is_server )
 		{
-			let fuel_cost = 0.6 * GSPEED; // 0.4 Previously
+			let fuel_cost = 0.6 * GSPEED * this._shield_cost_multiplier; // 0.6 Previously
 			
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			{
@@ -5240,6 +5323,19 @@ THING is cosmic mic drop!`;
 		if ( this._potential_vehicle )
 		if ( !this._potential_vehicle._is_being_removed )
 		if ( this._potential_vehicle.is( sdWorkbench ) )
+		if ( this.DoesOverlapWith( this._potential_vehicle ) )
+		{
+			return this._potential_vehicle.level;
+		}
+		
+		return 0;
+	}
+	
+	GetUpgradeStationLevel()
+	{
+		if ( this._potential_vehicle )
+		if ( !this._potential_vehicle._is_being_removed )
+		if ( this._potential_vehicle.is( sdUpgradeStation ) )
 		if ( this.DoesOverlapWith( this._potential_vehicle ) )
 		{
 			return this._potential_vehicle.level;

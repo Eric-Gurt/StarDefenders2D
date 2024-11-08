@@ -109,6 +109,7 @@ class sdBlock extends sdEntity
 		SpawnSizes( sdBlock.TEXTURE_ID_WHITE_BRICK = tc++,			'wall_white_brick',			0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_DARK_BRICK = tc++,			'wall_dark_brick',			0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_FULL_WHITE_BRICK = tc++,		'wall_full_bright_brick',	0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_TZYRG_WALL = tc++,			'wall_tzyrg',				0 );
 		
 		
 		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
@@ -348,7 +349,7 @@ class sdBlock extends sdEntity
 	}
 	
 	get hard_collision()
-	{ return this.material !== sdBlock.MATERIAL_SHARP; }
+	{ return this.material !== sdBlock.MATERIAL_SHARP && this.material !== sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }

@@ -67,6 +67,8 @@ class sdSlug extends sdEntity
 		this._last_bite = sdWorld.time;
 		this._last_stand_when = 0;
 		
+		this._hibernation_check_timer = 30;
+		
 		this.side = 1;
 		
 		this.blinks = [ 0, 0, 0 ];
@@ -105,6 +107,10 @@ class sdSlug extends sdEntity
 	{
 		return this.filter;
 	}*/
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -342,6 +348,20 @@ class sdSlug extends sdEntity
 					max_targets--;
 					if ( max_targets <= 0 )
 					break;
+				}
+			}
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
++					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}

@@ -9,6 +9,7 @@ import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdFactions from './sdFactions.js';
 
 import sdTask from './sdTask.js';
 
@@ -22,6 +23,8 @@ class sdHover extends sdEntity
 		sdHover.img_tank_hover = sdWorld.CreateImageFromFile( 'tank_sprite' ); // image by lazyrain
 
 		sdHover.img_hoverbike = sdWorld.CreateImageFromFile( 'sdHoverBike' );
+		
+		sdHover.img_falkok_hover = sdWorld.CreateImageFromFile( 'falkok_hover' ); // initial sprite by gravel/flora
 
 		/*sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
 		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
@@ -65,6 +68,7 @@ class sdHover extends sdEntity
 		sdHover.TYPE_FIGHTER_HOVER = 1;
 		sdHover.TYPE_TANK = 2;
 		sdHover.TYPE_BIKE = 3;
+		sdHover.TYPE_FALKOK_HOVER = 4;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -161,7 +165,9 @@ class sdHover extends sdEntity
 		
 		//EnforceChangeLog( this, 'driver0' );
 		
-		this._spawn_with_criminal = params.spawn_with_criminal || false; // Spawn a criminal? Also depends on which vehicle type it spawns.
+		this._spawn_with_ents = params.spawn_with_ents || 0; // Spawn entities inside the vehicle? Depends on number aswell
+		this._disable_custom_ai_logic = false; // For AI piloting vehicles
+		// 0 = nothing, 1 = SD criminals, 2 = falkoks
 		
 		this.matter = 300; // Should be less than Hover cost
 		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
@@ -170,8 +176,8 @@ class sdHover extends sdEntity
 			1000
 		);
 		
-		if ( this._spawn_with_criminal )
-		this.matter = this.matter_max; // Let criminals have more matter
+		if ( this._spawn_with_ents )
+		this.matter = this.matter_max; // Let AI have more matter
 	}
 	
 	
@@ -434,94 +440,123 @@ class sdHover extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		{
-			if ( this._spawn_with_criminal === true ) // Should this vehicle spawn with a pilot?
+			if ( this._spawn_with_ents > 0 ) // Should this vehicle spawn with entities?
 			{
-				let pilot_count = ( this.type === sdHover.TYPE_BIKE ) ? 1 : 2 + Math.round( Math.random() ); // 1 for hoverbike, 2-3 for other hovers
-				for ( let i = 0; i < pilot_count; i++ ) // Hoverbike spawns one criminal, while other hovers spawn 2-3
+				if ( this._spawn_with_ents === 1 ) // Spawn SD criminals
 				{
-					let character_entity = new sdCharacter({ x:this.x + ( 4 * i ), y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-					sdEntity.entities.push( character_entity );
-
-					if ( Math.random() < 0.5 ) // Random gun given to Star Defender
+					let pilot_count = ( this.type === sdHover.TYPE_BIKE ) ? 1 : 2 + Math.round( Math.random() ); // 1 for hoverbike, 2-3 for other hovers
+					for ( let i = 0; i < pilot_count; i++ ) // Hoverbike spawns one criminal, while other hovers spawn 2-3
 					{
-						if ( Math.random() < 0.2 )
+						let character_entity = new sdCharacter({ x:this.x + ( 4 * i ), y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+						let gun;
+
+						sdEntity.entities.push( character_entity );
+
+						if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
-							character_entity._ai_gun_slot = 4;
+							if ( Math.random() < 0.2 )
+							{
+								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER });
+								sdEntity.entities.push( gun );
+								character_entity._ai_gun_slot = 4;
+								gun.onMovementInRange( character_entity );
+							}
+							else
+							{
+								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN });
+								sdEntity.entities.push( gun );
+								character_entity._ai_gun_slot = 3;
+								gun.onMovementInRange( character_entity );
+							}
 						}
 						else
+						{ 
+							if ( Math.random() < 0.1 )
+							{
+								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG });
+								sdEntity.entities.push( gun );
+								character_entity._ai_gun_slot = 2;
+								gun.onMovementInRange( character_entity );
+							}
+							else
+							{
+								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
+								sdEntity.entities.push( gun );
+								character_entity._ai_gun_slot = 2;
+								gun.onMovementInRange( character_entity );
+							}
+						}
+						
+						let sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
+						character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
+						character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
+						character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
+						character_entity.title = sd_settings.hero_name;
+						character_entity.matter = 185;
+						character_entity.matter_max = 185;
+
+						character_entity.hea = 250; // It is a star defender after all
+						character_entity.hmax = 250;
+
+						character_entity.armor = 500;
+						character_entity.armor_max = 500;
+						character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
+						character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+
+						//character_entity._damage_mult = 2;	
+						character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+												
+						character_entity._ai_level = 5;
+												
+						character_entity._matter_regeneration = 5; // At least some ammo regen
+						character_entity._jetpack_allowed = true; // Jetpack
+						//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+						character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+						character_entity._ai_team = 6; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
+						character_entity._allow_despawn = false;
+						character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
+						//character_entity._ai.next_action = 1;
+						//character_entity._potential_vehicle = this;
+						//character_entity._key_states.SetKey( 'KeyE', 1 );
+						this.AddDriver( character_entity, true );
+						
+						// Give task for players
+						for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
-							character_entity._ai_gun_slot = 3;
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'EXTRACT-'+character_entity._net_id, 
+								executer: sdWorld.sockets[ i ].character,
+								target: character_entity,
+								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+								mission: sdTask.MISSION_LRTP_EXTRACTION,
+								difficulty: 0.14,
+								//lrtp_ents_needed: 1,
+								title: 'Arrest Star Defender',
+								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+							});
 						}
 					}
-					else
-					{ 
-						if ( Math.random() < 0.1 )
-						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
-							character_entity._ai_gun_slot = 2;
-						}
-						else
-						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
-							character_entity._ai_gun_slot = 2;
-						}
-					}
-					
-					let sd_settings = {"hero_name":"Criminal Star Defender","color_bright":"#c0c0c0","color_dark":"#808080","color_bright3":"#c0c0c0","color_dark3":"#808080","color_visor":"#ff0000","color_suit":"#800000","color_suit2":"#800000","color_dark2":"#808080","color_shoes":"#000000","color_skin":"#808000","helmet1":true,"helmet2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false};
-					character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( sd_settings );
-					character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
-					character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
-					character_entity.title = sd_settings.hero_name;
-					character_entity.matter = 185;
-					character_entity.matter_max = 185;
-
-					character_entity.hea = 250; // It is a star defender after all
-					character_entity.hmax = 250;
-
-					character_entity.armor = 500;
-					character_entity.armor_max = 500;
-					character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
-					character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
-
-					//character_entity._damage_mult = 2;	
-					character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-											
-					character_entity._ai_level = 5;
-											
-					character_entity._matter_regeneration = 5; // At least some ammo regen
-					character_entity._jetpack_allowed = true; // Jetpack
-					//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
-					character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-					character_entity._ai_team = 6; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
-					character_entity._allow_despawn = false;
-					character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
-					//character_entity._ai.next_action = 1;
-					character_entity._potential_vehicle = this;
-					character_entity._key_states.SetKey( 'KeyE', 1 );
-					
-					// Give task for players
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be arrested ( don't destroy the body )
-					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'EXTRACT-'+character_entity._net_id, 
-							executer: sdWorld.sockets[ i ].character,
-							target: character_entity,
-							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
-							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
-							//lrtp_ents_needed: 1,
-							title: 'Arrest Star Defender',
-							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
-						});
-					}
-				
 				}
-				this._spawn_with_criminal = false;
+				if ( this._spawn_with_ents === 2 ) // Spawn Falkoks
+				{
+					let pilot_count = ( 3 + Math.round( Math.random() * 3 ) ); // 3-6 falkoks inside their ships
+					for ( let i = 0; i < pilot_count; i++ )
+					{
+						let character_entity = new sdCharacter({ x:this.x + ( 4 * i ), y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+						sdEntity.entities.push( character_entity );
+						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK );
+						
+						//character_entity._potential_vehicle = this; // Select this as enterable vehicle
+						//character_entity._key_states.SetKey( 'KeyE', 1 ); // Put the entity into the vehicle
+						this.AddDriver( character_entity, true );
+					}
+				}
+				this._spawn_with_ents = 0;
 			}
-			
+			if ( this.driver0 )
+			if ( this.driver0._ai )
+			this.AdditionalAIBehaviour(); // Additional AI behaviour script, for example Falkok Hover pilots leaving when no co-pilots are left inside
 			
 		}
 		if ( this._regen_timeout > 0 )
@@ -934,6 +969,45 @@ class sdHover extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 5 );
 	}
 	
+	AdditionalAIBehaviour() // In certain scenarios, this overrides default sdCharacter AI
+	{
+		if ( this.driver0._ai_team === 1 && this.type === sdHover.TYPE_FALKOK_HOVER ) // Falkoks piloting Falkok hover?
+		if ( !this.driver1 && !this.driver2 && !this.driver3 && !this.driver4 && !this.driver5 ) // Teammates left to fight?
+		{
+			this.doors_locked = true; // Lock the doors
+			
+			if ( this.sy > -5 )
+			this.driver0._key_states.SetKey( 'KeyW', 1 ); // Move up
+			if ( !this._disable_custom_ai_logic )
+			{
+				setTimeout( ()=>{
+					
+					if ( !this._is_being_removed )
+					{
+						let driver = this.driver0;
+							
+						if ( driver )
+						if ( !driver._is_being_removed )
+						{
+							driver.remove();
+							driver._broken = false;
+						}
+						sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:1 });
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(170deg)' });
+						this.remove();
+						this._broken = false;
+						
+					}
+					
+				}, 5000 );
+				
+				this._disable_custom_ai_logic = true; // Mostly here so the timeouts don't stack
+			}
+			// And disappear
+			
+		}
+	}
+	
 	get friction_remain()
 	{ return /*this.type === 3 ? 0.6 :*/ this.driver0 ? 0.95 : 0.8; } // I don't know if Hoverbike is needed in this case
 	
@@ -955,6 +1029,9 @@ class sdHover extends sdEntity
 
 		if ( this.type === sdHover.TYPE_BIKE )
 		return "Hoverbike";
+	
+		if ( this.type === sdHover.TYPE_FALKOK_HOVER )
+		return "Falkonian Hover";
 
 		return "Hover";
 	}
@@ -1023,6 +1100,9 @@ class sdHover extends sdEntity
 			image = sdHover.img_hoverbike;
 		}
 		
+		if ( this.type === sdHover.TYPE_FALKOK_HOVER )
+		image = sdHover.img_falkok_hover;
+		
 		if ( this._tilt > 0 )
 		{
 			ctx.scale( -1, 1 );
@@ -1044,7 +1124,10 @@ class sdHover extends sdEntity
 						this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
 
 						ctx.scale( -0.8, 0.8 );
-
+						
+						if ( this.type === 4 )
+						ctx.translate( ( -34 + ( 1 - i / ( this.GetDriverSlotsCount() - 1 ) ) * 60 ) * 0.5, -2 );
+						else
 						if ( this.type === 3 )
 						ctx.translate( 1, -4 );
 						else
@@ -1113,6 +1196,11 @@ class sdHover extends sdEntity
 
 		ctx.drawImageFilterCache( image, xx * width, 0, width,32, - width/2, -16, width,32 );
 		
+		if ( this.type === sdHover.TYPE_FALKOK_HOVER && this.matter > 0 && can_boost ) // Draw glow parts as glow parts when the vehicle is active
+		{
+			ctx.filter = 'brightness(1) drop-shadow(0px 0px 1px #03D3FC';
+			ctx.drawImageFilterCache( image, 3 * width, 0, width,32, - width/2, -16, width,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

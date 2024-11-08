@@ -119,19 +119,19 @@ class sdDrone extends sdEntity
 		this.type = params.type || 1;
 		
 		this._hmax = 
-			this.type === sdDrone.DRONE_SETR ? 150 : 
-			this.type === sdDrone.DRONE_COUNCIL ? 200 : 
+			this.type === sdDrone.DRONE_SETR ? 120 : 
+			this.type === sdDrone.DRONE_COUNCIL ? 180 : 
 			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR ? 100 : 
-			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ? 900 : 
-			this.type === sdDrone.DRONE_SARRONIAN ? 600 :
+			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ? 800 : 
+			this.type === sdDrone.DRONE_SARRONIAN ? 550 :
 			this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE ? 200 :
-			this.type === sdDrone.DRONE_SARRONIAN_GAUSS ? 800 :
+			this.type === sdDrone.DRONE_SARRONIAN_GAUSS ? 650 :
 			this.type === sdDrone.DRONE_ZEKTARON ? 170 :
-			this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ? 900 :
-			this.type === sdDrone.DRONE_ZEKTARON_HUNTER ? 800 :
+			this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ? 500 :
+			this.type === sdDrone.DRONE_ZEKTARON_HUNTER ? 500 :
 			this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : 
 			this.type === sdDrone.DRONE_FALKOK ? 130 : 
-			this.type === sdDrone.DRONE_FALKOK_RAIL ? 350 : 
+			this.type === sdDrone.DRONE_FALKOK_RAIL ? 320 : 
 			this.type === sdDrone.DRONE_CUT_DROID ? 2000 : 
 			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun

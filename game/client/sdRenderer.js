@@ -276,7 +276,7 @@ class sdRenderer
 					//if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
 					if ( !image_obj_cache_named_item )
 					{
-						if ( typeof OffscreenCanvas !== 'undefined' && "filter" in OffscreenCanvasRenderingContext2D.prototype )
+						if ( typeof OffscreenCanvas !== 'undefined' )
 						{
 							//image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
 							image_obj_cache_named_item = new OffscreenCanvas( image_obj.width, image_obj.height );

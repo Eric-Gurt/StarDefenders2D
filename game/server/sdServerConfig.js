@@ -232,6 +232,14 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		return 30 * 60 * 4; //3 * ( 3 / 2 ); // Return max possible time until next event rolls
 	}
+	static ForceEarthquakesIfPossible()
+	{
+		return true; // Always enable earthquakes if possible
+	}
+	static EnableForbiddenCubes()
+	{
+		return false; // Enable shield and invisibility cubes?
+	}
 	static GetBSUDamageMultiplier()
 	{
 		return 1; // Damage multiplier from damaging blocks proteced by BSU.

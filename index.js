@@ -2829,7 +2829,7 @@ io.on( 'connection', ( socket )=>
 			socket.SDServiceMessage( 'Storage no longer exists' );
 		}
 	});*/
-	socket.on('UPGRADE_STAT', ( arr ) => { 
+	/*socket.on('UPGRADE_STAT', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
 		return;
@@ -2865,7 +2865,8 @@ io.on( 'connection', ( socket )=>
 			socket.SDServiceMessage( 'Upgrade station no longer exists' );
 		}
 	});
-	socket.on('UPGRADE_GET_EQUIP', ( arr ) => { 
+	*/
+	/*socket.on('UPGRADE_GET_EQUIP', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
 		return;
@@ -2901,7 +2902,8 @@ io.on( 'connection', ( socket )=>
 			socket.SDServiceMessage( 'Upgrade station no longer exists' );
 		}
 	});
-	socket.on('UPGRADE_CHAR', ( arr ) => { 
+	*/
+	/*socket.on('UPGRADE_CHAR', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
 		return;
@@ -2932,6 +2934,7 @@ io.on( 'connection', ( socket )=>
 			socket.SDServiceMessage( 'Upgrade station no longer exists' );
 		}
 	});
+	*/
 	/*socket.on('CRYSTAL_COMBINE', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
