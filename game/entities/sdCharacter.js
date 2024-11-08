@@ -5737,6 +5737,18 @@ THING is cosmic mic drop!`;
 				
 				break;
 			}
+			
+			// Extra check for previous item since it is very likely to be a temporary entity that was never made/removed after creation (and thus cause rather big memory leaks)
+			if ( arr.length >= 2 )
+			{
+				let id = arr.length - 2;
+				
+				let e = sdEntity.entities_by_net_id_cache_map.get( arr[ id ]._net_id );
+				if ( !e || e._is_being_removed )
+				{
+					arr.splice( id, 1 );
+				}
+			}
 		}
 		
 		return fake_ent;

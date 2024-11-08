@@ -229,6 +229,20 @@ class sdEntity
 			}
 		}
 	}
+	SetPhysRestOn( best_ent )
+	{
+		if ( typeof this._phys_last_rest_on !== 'undefined' )
+		if ( this._phys_last_rest_on !== best_ent )
+		{
+			let old_rest_on = this._phys_last_rest_on;
+
+			this._phys_last_rest_on = best_ent;
+
+			if ( old_rest_on )
+			if ( !old_rest_on._is_being_removed )
+			old_rest_on.ManageTrackedPhysWakeup();
+		}
+	}
 	ManageTrackedPhysWakeup() // Can make sense to call this on entity deletion too
 	{
 		//var arr = sdEntity.phys_stand_on_map.get( this );
@@ -262,6 +276,15 @@ class sdEntity
 			//sdEntity.phys_stand_on_map.delete( this );
 			this._phys_entities_on_top = null;
 		}
+		
+		//if ( this._is_being_removed )
+		/*if ( this._phys_last_rest_on )
+		{
+			this._phys_last_rest_on.ManageTrackedPhysWakeup();
+			
+			if ( this._is_being_removed )
+			this._phys_last_rest_on = null;
+		}*/
 	}
 	
 	IsGlobalEntity() // Should never change
@@ -1908,9 +1931,7 @@ class sdEntity
 						if ( this.y + this._hitbox_y2 <= best_ent.y + best_ent._hitbox_y1 )
 						if ( this.x + this._hitbox_x1 <= best_ent.x + best_ent._hitbox_x2 )
 						if ( this.x + this._hitbox_x2 >= best_ent.x + best_ent._hitbox_x1 )
-						{
-							this._phys_last_rest_on = best_ent;
-						}
+						this.SetPhysRestOn( best_ent );
 					}
 
 					GSPEED = GSPEED * ( 1 - best_t );
@@ -5230,6 +5251,7 @@ class sdEntity
 		//this.RemoveAllDrivers();
 		
 		this.ManageTrackedPhysWakeup();
+		this.SetPhysRestOn( null );
 		
 		if ( !this.IsGlobalEntity() )
 		{

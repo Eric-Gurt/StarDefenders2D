@@ -247,10 +247,15 @@ class sdSound
 		let count_anti_crystal_ambient = 0;
 		let count_water_loop = 0;
 		let count_antigravity = 0;
+		
+		// Singleplayer entities array is huge and will damage performance there otherwise
+		const entities_array = sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities;
 			
-		for ( let i = 0; i < sdEntity.entities.length; i++ )
+		//for ( let i = 0; i < sdEntity.entities.length; i++ )
+		for ( let i = 0; i < entities_array.length; i++ )
 		{
-			const e = sdEntity.entities[ i ];
+			//const e = sdEntity.entities[ i ];
+			const e = entities_array[ i ];
 			
 			if ( !sdWorld.is_server || sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.camera.x, sdWorld.camera.y, 1000 ) )
 			//if ( !e.is( sdCharacterRagdoll.sdBone ) )
