@@ -899,8 +899,12 @@ class sdModeration
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
+				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
 				socket.character.GiveScore( 12005, null, false );
-				socket.character.quick_started = true;
+				
+				socket.character.matter = socket.character.matter_max;
+				
+				socket.character._quick_start = true; // Not make player's upgrades again.
 
 				for ( var i = 0; i < sdShop.options.length; i++ )
 				{
@@ -917,7 +921,6 @@ class sdModeration
 						}
 					}
 				}
-				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
 			}
 		}
 		else
