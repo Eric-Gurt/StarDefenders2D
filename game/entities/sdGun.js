@@ -964,8 +964,19 @@ class sdGun extends sdEntity
 						x:this.x, y:this.y, 
 						volume: ( 0.75 + scale * 0.25 ) * 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), 
 						pitch: pitch });
-				}
 			
+				}
+				
+				if ( this.extra[ 19 ] ) // Has exalted core fused?
+				{
+					sdSound.PlaySound({ name:'turret', 
+						x:this.x, y:this.y, 
+						volume: 1, 
+						pitch: 1.25 });
+						
+					// On lower volume it can barely be heard
+				}
+				
 				this.reload_time_left = this._reload_time;
 				if ( sdGun.classes[ this.class ].burst )
 				if ( this.burst_ammo <= 0 )

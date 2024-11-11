@@ -4,6 +4,8 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 
+import sdEffect from './sdEffect.js';
+
 
 class sdWeaponMerger extends sdEntity
 {
@@ -87,42 +89,82 @@ class sdWeaponMerger extends sdEntity
 	
 		if ( !this.item0 || !this.item1 || !this.item2 ) // If any of the items is somehow missing
 		return; // Just in case
-	
-		this.item2.remove();
-		let dps_proportions = this.item1._max_dps / this.item0._max_dps; // Basically DPS of the right item should be measured / divided by one on the left
-		dps_proportions *= 0.95; // 95% of max DPS of other gun.
-		/* Reason for 95% instead of 100% is simple - something like Velox Minigun reaches max DPS with buildup at the start and after firing a while.
-		Giving it 100% of DPS to let's say an SD assault rifle just straight up makes the assault rifle much better because of no buildup at the start nor having to fire a while for max DPS.
-		At 95% of power most, if not all will still be viable and on par with a weapon like Velox Minigun.
-		Also there was a problem where merged gun power could be transfered onto other without any disadvantage, as long as you had merger cores and matter.
-		So yeah, 2 birds with 1 stone - Booraz149
-		*/
-		this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
-		this.item0._max_dps *= dps_proportions; // Even out max DPS
 		
-		//console.log( sdGun.classes[ this.item1.class ].title + ' power transferred to ' + sdGun.classes[ this.item0.class ].title );
-		//console.log( this.item1._max_dps + ' -> ' + this.item0._max_dps );
+		if ( this.item1.class === sdGun.CLASS_EXALTED_CORE ) // Exalted core scenario
+		{
+			if ( !this.item0.extra[ 19 ] || this.item0.extra[ 19 ] === 0 ) // Maybe prevent wasting cores this way?
+			{
+				this.item2.remove(); // Remove merger core
+			
+				this.item0.extra[ 19 ] = 1; // Add "has exalted core" stat to the weapon
+			
+				this.item1.remove(); // Also destroy the item on the right
 		
-		this.item1.remove(); // Also destroy the item on the right
+				this.item1 = null; // Needed? Not sure.
 		
-		this.item1 = null; // Needed? Not sure.
+				this.item2 = this.item0; // Move gun to the middle
 		
-		this.item2 = this.item0;
+				this.item0 = null;
 		
-		this.item0 = null;
+				this.matter = 0;
+				
+				sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				sdWorld.SendEffect({ x:this.x + 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+			}
+		}
+		else
+		{
+			this.item2.remove();
+			let dps_proportions = this.item1._max_dps / this.item0._max_dps; // Basically DPS of the right item should be measured / divided by one on the left
+			dps_proportions *= 0.95; // 95% of max DPS of other gun.
+			/* Reason for 95% instead of 100% is simple - something like Velox Minigun reaches max DPS with buildup at the start and after firing a while.
+			Giving it 100% of DPS to let's say an SD assault rifle just straight up makes the assault rifle much better because of no buildup at the start nor having to fire a while for max DPS.
+			At 95% of power most, if not all will still be viable and on par with a weapon like Velox Minigun.
+			Also there was a problem where merged gun power could be transfered onto other without any disadvantage, as long as you had merger cores and matter.
+			So yeah, 2 birds with 1 stone - Booraz149
+			*/
+			this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
+			this.item0._max_dps *= dps_proportions; // Even out max DPS
 		
-		this.matter = 0;
+			//console.log( sdGun.classes[ this.item1.class ].title + ' power transferred to ' + sdGun.classes[ this.item0.class ].title );
+			//console.log( this.item1._max_dps + ' -> ' + this.item0._max_dps );
+		
+			this.item1.remove(); // Also destroy the item on the right
+		
+			this.item1 = null; // Needed? Not sure.
+		
+			this.item2 = this.item0;
+		
+			this.item0 = null;
+		
+			this.matter = 0;
+			
+			sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+			sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+			sdWorld.SendEffect({ x:this.x + 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+		}
 		
 		this._update_version++;
 		
 	}
 	
-	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
+	IgnoresSlot( weapon )
 	{
-		if ( weapon.class === sdGun.CLASS_MERGER_CORE )
+		if ( weapon.class === sdGun.CLASS_EXALTED_CORE )
 		return true;
 	
-		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5  || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
+	
+		return false;
+		
+	}
+	
+	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
+	{
+		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE )
+		return true;
+	
+		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
 		return false;
 		
 		if ( weapon.class === sdGun.CLASS_SETR_REPULSOR || weapon.class === sdGun.CLASS_CUSTOM_RIFLE ) // Disabled guns due to balance reasons
@@ -134,7 +176,7 @@ class sdWeaponMerger extends sdEntity
 		if ( this.item0 && weapon.GetSlot() !== this.item0.GetSlot() ) // Only allow same slot merging
 		return false;
 		
-		if ( this.item1 && weapon.GetSlot() !== this.item1.GetSlot() ) // Only allow same slot merging
+		if ( this.item1 && ( weapon.GetSlot() !== this.item1.GetSlot() && !this.IgnoresSlot( this.item1 ) ) ) // Only allow same slot merging, or cores
 		return false;
 		
 		return true;
@@ -340,7 +382,15 @@ class sdWeaponMerger extends sdEntity
 				
 					if ( from_entity.class === sdGun.CLASS_MERGER_CORE ) // Merger core
 					free_slot = 2; // Slot 3 item goes in the middle
-				
+					
+					if ( this.IgnoresSlot( from_entity ) ) // Exalted core scenario
+					{
+						if ( !this.item1 ) // Right slot not taken?
+						free_slot = 1;
+						else
+						return;
+						
+					}
 				
 				
 					this[ 'item' + free_slot ] = from_entity;

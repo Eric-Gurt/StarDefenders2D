@@ -101,7 +101,7 @@ class sdCouncilMachine extends sdEntity
 					if ( sdWeather.SetRandomSpawnLocation( machine ) ) // SimpleSpawner sometimes doesn't spawn the entity if ents are left nor does it drop the BT
 					{
 						spawned_ent = true;
-						machine.detonation_in = this.detonation_in
+						machine.detonation_in = this.detonation_in;
 					}
 					else
 					{
@@ -157,6 +157,33 @@ class sdCouncilMachine extends sdEntity
 					//gun.sx = sx;
 					//gun.sy = sy;
 					sdEntity.entities.push( gun );
+
+					}, 500 );
+				}
+				let r = Math.random();
+				if ( r < 0.02 ) // 2% chance to drop Exalted core on task completion
+				{
+					let x = this.x;
+					let y = this.y;
+					let sx = this.sx;
+					let sy = this.sy;
+
+					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+						let random_value = Math.random();
+
+						let gun;
+
+						//if ( random_value < 0.45 )
+						//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+						//else
+						{
+							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
+						}
+
+						gun.sx = sx;
+						gun.sy = sy;
+						sdEntity.entities.push( gun );
 
 					}, 500 );
 				}
