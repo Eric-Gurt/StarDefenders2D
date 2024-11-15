@@ -10,6 +10,7 @@ import sdCrystal from './sdCrystal.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdJunk from './sdJunk.js';
 import sdArea from './sdArea.js';
+import sdAsteroid from './sdAsteroid.js';
 
 class sdStealer extends sdEntity
 {
@@ -23,6 +24,13 @@ class sdStealer extends sdEntity
 		sdStealer.post_death_ttl = 120;
 		
 		sdStealer.attack_range = 375;
+		
+		sdStealer.debug = false; // Debug mode allows stealer to ignore players, BSUs. Enabled at your own risk
+		
+		if ( sdStealer.debug )
+		{
+			trace( 'WARNING: Running server with sdStealer\'s debug values enabled. They ignore distance or BSU checks.' );
+		}
 		
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -117,6 +125,9 @@ class sdStealer extends sdEntity
 	
 	IsEntFarEnough( ent ) // Check if entity is outside BSU and far away from player's views
 	{
+		if ( sdStealer.debug )
+		return true;
+	
 		for ( let i = 0; i < sdWorld.sockets.length; i++ )
 		if ( sdWorld.sockets[ i ].character )
 		{
@@ -132,19 +143,30 @@ class sdStealer extends sdEntity
 	{
 		let ent = sdEntity.GetRandomActiveEntity();
 		if ( ent )
-		if ( ent.is( sdCrystal ) || ent.is( sdGun ) ) // Is it a crystal or a weapon?
 		{
-			if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
+			if ( ent.is( sdCrystal ) || ent.is( sdGun ) ) // Is it a crystal or a weapon? 
 			{
-				this._last_found_target = 0;
-				return ent; // Target it
+				if ( this.IsEntFarEnough( ent ) && ent.held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character/amplifier )
+				{
+					this._last_found_target = 0;
+					return ent; // Target it
+				}
 			}
+			/*if ( ent.is( sdAsteroid ) ) // Is it an asteroid?
+			{
+				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
+				{
+					this._last_found_target = 0;
+					return ent; // Target it
+				}
+			}*/
+			// Asteroids are buggy to teleport near for some reason.
 		}
 		return null;
 	}
 	
 	StealNearbyCrystals(){
-		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 192 );
+		let attack_entities = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 192, null, [ 'sdCrystal', 'sdGun', 'sdAsteroid' ] );
 		let stolen_crystals = 0; // How much crystals did it steal?
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )
@@ -152,12 +174,12 @@ class sdStealer extends sdEntity
 			let e = attack_entities[ i ];
 			if ( !e._is_being_removed )
 			{
-				if ( e.is( sdCrystal ) || e.is( sdGun ) )
+				//if ( e.is( sdCrystal ) || e.is( sdGun ) || e.is( sdAsteroid ) )
 				{
 					{
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, [ 'sdGrass' ], null ) )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
 						{
 							if ( sdWorld.last_hit_entity )
 							{
@@ -176,6 +198,27 @@ class sdStealer extends sdEntity
 								}
 							}
 						}
+						else // Nothing colliding between stealer and entity?
+						{
+							let can_steal = true;
+							if ( e.is( sdCrystal ) || e.is( sdGun ) )
+							{
+								if ( e.held_by ) // Is object held by something?
+								can_steal = false; // Don't allow stealing
+							}
+							if ( sdArea.CheckPointDamageAllowed( xx, yy ) && can_steal )
+							{
+								e.remove();
+								e._broken = false;
+										
+								stolen_crystals++;
+										
+								sdWorld.SendEffect({ x: this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
+								sdSound.PlaySound({ name:'teleport', x:xx, y:yy, pitch: 1, volume:0.5 });
+										
+								sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+							}
+						}
 					}
 				}
 			}
@@ -186,12 +229,58 @@ class sdStealer extends sdEntity
 		let i = 0;
 		let xx;
 		let yy;
-		while ( i < 60 )
+		{
+			xx = this._current_target.x - 32; // Check left
+			yy = this._current_target.y;
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			{
+				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+										
+				this.x = xx;
+				this.y = yy;
+										
+				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
+				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				return true;
+			}
+			
+			xx = this._current_target.x + 32; // Check right
+			yy = this._current_target.y;
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			{
+				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+										
+				this.x = xx;
+				this.y = yy;
+										
+				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
+				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				return true;
+			}
+			
+			xx = this._current_target.x;
+			yy = this._current_target.y - 32; // Check up
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			{
+				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+										
+				this.x = xx;
+				this.y = yy;
+										
+				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
+				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				return true;
+			}
+		}
+		while ( i < 57 ) // First 3 checks are done above
 		{
 			xx = this._current_target.x - 192 + Math.random() * 384;
 			yy = this._current_target.y - 192 + Math.random() * 384;
 									
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 4 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -279,7 +368,7 @@ class sdStealer extends sdEntity
 			this._attack_timer -= GSPEED;
 			else
 			{
-				this._attack_timer = 120; // Every 4 seconds it should either look for a new crystal, steal one near it or teleport away
+				this._attack_timer = 60; // Every 2 seconds it should either look for a new crystal, steal one near it or teleport away
 				/* It should probably teleport away from players and teleport crystals, aswell as check if it can teleport to a new location
 				where crystals are outside of BSU and player range. Should be much more efficient at doing that rather than 
 				the crystal hunting worm, which would become obsolete since this entity will replace it.
@@ -298,8 +387,9 @@ class sdStealer extends sdEntity
 					if ( this.IsEntFarEnough( this ) ) // Far away from players and BSUs?
 					{
 						let stolen_crystals = this.StealNearbyCrystals();
-						if ( stolen_crystals === 0 && !this._current_target ) // No crystals stolen? Relocate
+						if ( stolen_crystals === 0 ) // No crystals stolen? Relocate
 						{
+							this._current_target = null;
 							let i = 0;
 							while ( i < 60 )
 							{
@@ -317,7 +407,10 @@ class sdStealer extends sdEntity
 							}
 						}
 						else
-						this._attack_timer = 15 + Math.random() * 15; // Speed up stealing
+						{
+							this._attack_timer = 15 + Math.random() * 15; // Speed up stealing
+							this._last_found_target = 0; // It should not disappear if it teleported something
+						}
 					}
 					else
 					{
@@ -384,9 +477,34 @@ class sdStealer extends sdEntity
 		//ctx.filter = 'none';
 		//ctx.sd_filter = null;
 	}
-	/*onMovementInRange( from_entity )
+	/*onMovementInRange( from_entity ) // Allow stealing on collision
 	{
-		//this._last_stand_on = from_entity;
+		if ( !sdWorld.is_server )
+		return;
+		
+		if ( from_entity.is( sdCrystal ) || from_entity.is( sdGun ) || from_entity.is( sdAsteroid ) )
+		{
+			let can_steal = true;
+			if ( from_entity.is( sdCrystal ) || from_entity.is( sdGun ) ) // Otherwise it can disarm players
+			{
+				if ( from_entity.held_by )
+				can_steal = false;
+			}
+			
+			let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+			let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+			if ( sdArea.CheckPointDamageAllowed( xx, yy ) && can_steal )
+			{
+				from_entity.remove();
+				from_entity._broken = false;
+									
+									
+					sdWorld.SendEffect({ x: this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
+					sdSound.PlaySound({ name:'teleport', x:xx, y:yy, pitch: 1, volume:0.5 });
+									
+					sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+			}
+		}
 	}*/
 	onRemove() // Class-specific, if needed
 	{
