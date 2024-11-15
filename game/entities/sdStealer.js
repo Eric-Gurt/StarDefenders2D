@@ -152,15 +152,14 @@ class sdStealer extends sdEntity
 					return ent; // Target it
 				}
 			}
-			/*if ( ent.is( sdAsteroid ) ) // Is it an asteroid?
+			if ( ent.is( sdAsteroid ) ) // Is it an asteroid?
 			{
 				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
 				}
-			}*/
-			// Asteroids are buggy to teleport near for some reason.
+			}
 		}
 		return null;
 	}
