@@ -17,6 +17,7 @@ import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
 import sdRift from './sdRift.js';
 import sdBlock from './sdBlock.js';
+import sdSandWorm from './sdSandWorm.js';
 import sdFactions from './sdFactions.js';
 
 class sdCouncilMachine extends sdEntity
@@ -434,72 +435,117 @@ class sdCouncilMachine extends sdEntity
 					// Spawn a council support drone
 					if ( this.hea < ( this.hmax * 0.75 ) )
 					{
-						
-						let left_side = ( Math.random() < 0.5 );
-
-						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
-
-						sdEntity.entities.push( drone );
-
+						if ( Math.random() < 0.8 ) // 80% it spawns a support healing Drone
 						{
-							let x,y;
-							let tr = 1000;
-							do
+							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+
+							sdEntity.entities.push( drone );
+
 							{
-								if ( left_side )
+								let x,y;
+								let tr = 100;
+								do
 								{
-									x = this.x + 16 + 16 + ( Math.random() * 192 );
+									{
+										x = this.x + 192 - ( Math.random() * 384 );
 
-									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+										if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
 
-									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
-								}
-								else
+										if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+									}
+
+									y = this.y + 192 - ( Math.random() * ( 384 ) );
+									if ( y < sdWorld.world_bounds.y1 + 32 )
+									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+									if ( y > sdWorld.world_bounds.y2 - 32 )
+									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+									if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+									{
+										drone.x = x;
+										drone.y = y;
+
+										sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
+										sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
+										drone.SetTarget( this );
+
+										sdWorld.UpdateHashPosition( drone, false );
+										//console.log('Drone spawned!');
+										break;
+									}
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										drone.remove();
+										drone._broken = false;
+										break;
+									}
+								} while( true );
+							}
+						}
+						else // Worm time
+						{
+							let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5});
+
+							sdEntity.entities.push( worm );
+
+							{
+								let x,y;
+								let tr = 100;
+								do
 								{
-									x = this.x - 16 - 16 - ( Math.random() * 192 );
+									{
+										x = this.x + 192 - ( Math.random() * 384 );
 
-									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+										if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
 
-									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
-								}
+										if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+									}
 
-								y = this.y + 192 - ( Math.random() * ( 384 ) );
-								if ( y < sdWorld.world_bounds.y1 + 32 )
-								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+									y = this.y + 192 - ( Math.random() * ( 384 ) );
+									if ( y < sdWorld.world_bounds.y1 + 32 )
+									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-								if ( y > sdWorld.world_bounds.y2 - 32 )
-								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+									if ( y > sdWorld.world_bounds.y2 - 32 )
+									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-								{
-									drone.x = x;
-									drone.y = y;
+									if ( worm.CanMoveWithoutOverlap( x, y, 0 ) )
+									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+									{
+										worm.x = x;
+										worm.y = y;
 
-									sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
-									sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+										sdSound.PlaySound({ name:'teleport', x:worm.x, y:worm.y, volume:0.5 });
+										sdWorld.SendEffect({ x:worm.x, y:worm.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
-									drone.SetTarget( this );
+										//worm.SetTarget( this );
 
-									sdWorld.UpdateHashPosition( drone, false );
-									//console.log('Drone spawned!');
-									break;
-								}
+										sdWorld.UpdateHashPosition( worm, false );
+										//console.log('worm spawned!');
+										break;
+									}
 
 
-								tr--;
-								if ( tr < 0 )
-								{
-									drone.remove();
-									drone._broken = false;
-									break;
-								}
-							} while( true );
+									tr--;
+									if ( tr < 0 )
+									{
+										worm.remove();
+										worm._broken = false;
+										break;
+									}
+								} while( true );
+							}
 						}
 					}
 				}
