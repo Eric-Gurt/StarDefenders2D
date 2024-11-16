@@ -752,8 +752,9 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] ) // Custom projectile colors?
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
+				// Done inside sdGun now.
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -800,8 +801,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				return obj;
 			},
@@ -852,8 +853,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -900,8 +901,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1206,8 +1207,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1332,8 +1333,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1378,8 +1379,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1544,8 +1545,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1610,8 +1611,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1656,8 +1657,8 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1708,8 +1709,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1764,8 +1765,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1856,8 +1857,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1906,8 +1907,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -2186,8 +2187,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -2288,8 +2289,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -2339,8 +2340,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3070,8 +3071,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3120,8 +3121,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3178,8 +3179,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3232,8 +3233,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3749,8 +3750,8 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3842,8 +3843,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3896,8 +3897,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -3947,8 +3948,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4000,8 +4001,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4083,8 +4084,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4136,8 +4137,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4265,8 +4266,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4391,8 +4392,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4440,8 +4441,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4551,8 +4552,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4603,8 +4604,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4656,8 +4657,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4703,8 +4704,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -5025,8 +5026,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -5077,8 +5078,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -5524,8 +5525,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -5855,8 +5856,8 @@ class sdGunClass
 				
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				return obj;
 			},
@@ -6549,8 +6550,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6644,8 +6645,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6695,8 +6696,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6749,8 +6750,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -6976,8 +6977,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7162,8 +7163,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				return obj;
 			},
@@ -7291,8 +7292,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7343,8 +7344,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7441,8 +7442,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7587,8 +7588,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7784,8 +7785,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7836,8 +7837,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 
 				return obj;
 			},
@@ -8381,8 +8382,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -8431,8 +8432,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -8483,8 +8484,8 @@ class sdGunClass
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -8910,8 +8911,8 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
-				if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				obj._damage *= 1.25; // Increase damage further by 25%
+				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				

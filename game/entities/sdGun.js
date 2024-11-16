@@ -1100,6 +1100,10 @@ class sdGun extends sdEntity
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
 					
+						if ( this.extra[ 19 ] ) // Has exalted core infused?
+						bullet_obj._damage *= 1.25; // Increase damage by 25%
+						// Why didn't I think of this earlier? - Booraz
+					
 						/*if ( globalThis.CATCH_ERRORS )
 						if ( isNaN( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale ) || 
 							 isNaN( -bullet_obj.sy * 0.3 * bullet_obj._knock_scale ) || 
