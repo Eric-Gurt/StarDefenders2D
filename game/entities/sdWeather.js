@@ -1267,6 +1267,7 @@ class sdWeather extends sdEntity
 		let near_ent = params.near_entity || null; // Should this spawn near any entity?
 		let group_rad = params.group_radius || 0; // Allowed radius if spawning near entity, needs to be defined
 		let target_ent = params.target_entity || null; // Should spawned entities target something?
+		let inf_range = params.unlimited_range || false; // Should entities have unlimited range? Only some can have it though.
 		
 		// near_ent, group_rad can be used in most entity spawns, target_ent will be soon
 		
@@ -1449,13 +1450,14 @@ class sdWeather extends sdEntity
 			if ( sdAsp.asps_tot < 25 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 
-				count: [ 1, 1 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
+				count: [ 2, 2 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdAsp,
 				
 				aerial: true,
 				aerial_radius: 800,
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				unlimited_range: inf_range
 
 			});
 
@@ -2862,13 +2864,14 @@ class sdWeather extends sdEntity
 			if ( sdBiter.biters_counter < 35 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 				
-				count: [ 1, Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
+				count: [ 2, 2 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdBiter,
 				
 				aerial: true,
 				aerial_radius: 800,
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				unlimited_range: inf_range
 				
 			});
 			

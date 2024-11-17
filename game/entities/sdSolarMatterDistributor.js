@@ -200,7 +200,8 @@ class sdSolarMatterDistributor extends sdEntity
 					event: this._event_to_spawn,
 					near_entity: this,
 					group_radius: 3000,
-					target_entity: this
+					target_entity: this,
+					unlimited_range: true
 				});
 			}
 		
