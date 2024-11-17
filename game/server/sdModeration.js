@@ -910,7 +910,6 @@ class sdModeration
 					{
 						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_with_upgrade_station_level || sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
 						let cur_level = ( socket.character._upgrade_counters[ sdShop.options[ i ].upgrade_name ] || 0 );
-
 						//if ( sdShop.options[ i ]._min_build_tool_level <= socket.character.build_tool_level )
 						{
 							for ( var j = cur_level; j < max_level; j++ )
