@@ -893,7 +893,9 @@ class sdModeration
 			if ( !socket.character._is_being_removed )
 			{
 				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
-				socket.character.GiveScore( 12005, null, false );
+				
+				let full_level = sdCharacter.max_level * 300 - (6000 - 5);
+				socket.character.GiveScore( full_level, null, false );
 				
 				socket.character.matter = socket.character.matter_max;
 
