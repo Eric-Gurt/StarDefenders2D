@@ -593,6 +593,7 @@ class sdWeaponMerger extends sdEntity
 			
 			if ( this.item0 && this.item1 && this.item2 )
 			{
+				if ( this.item2.class === sdGun.CLASS_MERGER_CORE ) // Bug fix
 				this.AddContextOption( 'Transfer power of ' + sdEntity.GuessEntityName( this.item1._net_id ) + ' to ' + sdEntity.GuessEntityName( this.item0._net_id ), 'MERGE', [ ] );
 			}
 			
