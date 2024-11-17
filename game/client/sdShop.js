@@ -576,6 +576,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdAsteroid', type:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsteroid', type:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsteroid', type:2, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
@@ -598,6 +599,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 3, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSandWorm', kind: 3, scale: 0.5, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', variation:1, _category:'Development tests' });
