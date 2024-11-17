@@ -6661,7 +6661,7 @@ THING is cosmic mic drop!`;
 					if ( this !== sdWorld.my_entity )
 					{
 					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
-					this.AddContextOption( 'Start controlling ( AI only )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
+					this.AddContextOption( 'Replace as player ( AI only, delete self-owned )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 					}
 				}
 

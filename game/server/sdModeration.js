@@ -892,7 +892,13 @@ class sdModeration
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
-				socket.character.GiveScore( 3000, null, false );
+				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
+				
+				let full_level = sdCharacter.max_level * 300 - (6000 - 5);
+				socket.character.GiveScore( full_level, null, false );
+				
+				socket.character.matter = socket.character.matter_max;
+
 				for ( var i = 0; i < sdShop.options.length; i++ )
 				{
 					if ( sdShop.options[ i ]._category === 'Upgrades' )
@@ -908,7 +914,6 @@ class sdModeration
 						}
 					}
 				}
-				socket.character._matter_capacity_boosters = 900;
 			}
 		}
 		else
