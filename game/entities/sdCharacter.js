@@ -1250,7 +1250,6 @@ THING is cosmic mic drop!`;
 		this._ghost_cost_multiplier = 1; // Through upgrade
 		this._shield_cost_multiplier = 1; // Through upgrade
 		this._armor_repair_mult = 1; // Through upgrade
-		this._quick_start = false; // Quick Start, if used it, then unlock all. (No?)
 		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
@@ -2009,8 +2008,8 @@ THING is cosmic mic drop!`;
 		this._ai.direction = -this._ai.direction; // Change direction if no suitable blocks are found
 	}
 
-	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
-	{
+	InstallUpgrade( upgrade_name, quick_start = false ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
+	{ // Quick start ignores upgrade station requirement, so /qs gives all upgrades and levels
 		if ( ( sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level || 0 ) === 0 )
 		{
 			if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
@@ -2025,7 +2024,7 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
-			if ( ( ( this.GetUpgradeStationLevel() < ( sdShop.upgrades[ upgrade_name ].min_upgrade_station_level || 0 ) ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) && !this._quick_start ) // Can't upgrade without the station level
+			if ( ( this.GetUpgradeStationLevel() < ( sdShop.upgrades[ upgrade_name ].min_upgrade_station_level || 0 ) ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) && !quick_start ) // Can't upgrade without the station level
 			return;
 			else
 			{
@@ -5833,6 +5832,18 @@ THING is cosmic mic drop!`;
 				}
 				
 				break;
+			}
+			
+			// Extra check for previous item since it is very likely to be a temporary entity that was never made/removed after creation (and thus cause rather big memory leaks)
+			if ( arr.length >= 2 )
+			{
+				let id = arr.length - 2;
+				
+				let e = sdEntity.entities_by_net_id_cache_map.get( arr[ id ]._net_id );
+				if ( !e || e._is_being_removed )
+				{
+					arr.splice( id, 1 );
+				}
 			}
 		}
 		

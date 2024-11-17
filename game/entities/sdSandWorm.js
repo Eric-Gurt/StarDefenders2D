@@ -105,6 +105,8 @@ class sdSandWorm extends sdEntity
 
 		this.kind = params.kind || 0;
 		
+		this._ai_team = -1; // Default set to -1
+		
 		let is_corrupted = params.tag === 'corrupted';
 
 		if ( is_corrupted )
@@ -115,7 +117,8 @@ class sdSandWorm extends sdEntity
 		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
 		{
 			this._regen_timeout = 0; // For HP regen
-			this.scale = 1;
+			this.scale = params.scale || 1;
+			this._ai_team = 3; // So other Council stuff doesn't attack it
 		}
 		
 		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
@@ -123,7 +126,7 @@ class sdSandWorm extends sdEntity
 			this.scale = 0.6;
 		}
 
-		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 12 : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
+		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? ( this.scale >= 1 ? 12 : 4 ) : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
 
 		this._regen_timeout = 0; // For council worm HP regen, for some reason it claims object is not extensible if placed in brackets below which check if the worm is council one.
@@ -391,6 +394,7 @@ class sdSandWorm extends sdEntity
 				let sx = this.sx;
 				let sy = this.sy;
 
+				if ( this.scale >= 1 || ( Math.random() < 0.15 ) ) // Small ones have smaller chance to drop shards
 				setTimeout(()=>{ // Hacky, without this item does not appear to be pickable or interactable...
 					let shard = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
 					shard.sx = sx;
@@ -399,11 +403,23 @@ class sdSandWorm extends sdEntity
 
 				}, 500 );
 
-				if ( this === head_entity && Math.random() < 0.025 ) // 2.5% chance for Council Worm gun
+				if ( this === head_entity && ( ( this.scale >= 1 && Math.random() < 0.05 ) || ( this.scale < 1 && Math.random() < 0.005 ) ) ) // 5% chance for Council Immolator, 0.5% if smaller worm
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 				let gun;
 				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun );
+
+				}, 500 );
+				
+				if ( this === head_entity && ( ( this.scale >= 1 && Math.random() < 0.02 ) || ( this.scale < 1 && Math.random() < 0.002 ) ) ) // 2% chance for Exalted core, 0.2% if smaller worm
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun;
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
 
 				//gun.sx = sx;
 				//gun.sy = sy;
@@ -582,6 +598,7 @@ class sdSandWorm extends sdEntity
 					let sx = this.sx;
 					let sy = this.sy;
 
+					if ( this.scale >= 1 || ( Math.random() < 0.15 ) ) // Small ones have smaller chance to drop shards
 					setTimeout(()=>{ // Hacky, without this item does not appear to be pickable or interactable...
 						let shard = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
 						shard.sx = sx;

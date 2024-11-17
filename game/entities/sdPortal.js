@@ -153,6 +153,7 @@ class sdPortal extends sdEntity
 		if ( this._teleport_delay <= 0 )
 		//if ( from_entity.hard_collision )
 		if ( typeof from_entity.sx !== 'undefined' )
+		if ( this.DoesOverlapWith( from_entity, 16 ) ) // Potential base raiding fix
 		{
 			let from_entity_group = from_entity.getTeleportGroup();
 			

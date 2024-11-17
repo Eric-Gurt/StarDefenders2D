@@ -964,8 +964,19 @@ class sdGun extends sdEntity
 						x:this.x, y:this.y, 
 						volume: ( 0.75 + scale * 0.25 ) * 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), 
 						pitch: pitch });
-				}
 			
+				}
+				
+				if ( this.extra[ 19 ] ) // Has exalted core fused?
+				{
+					sdSound.PlaySound({ name:'turret', 
+						x:this.x, y:this.y, 
+						volume: 1, 
+						pitch: 1.25 });
+						
+					// On lower volume it can barely be heard
+				}
+				
 				this.reload_time_left = this._reload_time;
 				if ( sdGun.classes[ this.class ].burst )
 				if ( this.burst_ammo <= 0 )
@@ -1088,6 +1099,10 @@ class sdGun extends sdEntity
 					
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
+					
+						if ( this.extra[ 19 ] ) // Has exalted core infused?
+						bullet_obj._damage *= 1.25; // Increase damage by 25%
+						// Why didn't I think of this earlier? - Booraz
 					
 						/*if ( globalThis.CATCH_ERRORS )
 						if ( isNaN( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale ) || 

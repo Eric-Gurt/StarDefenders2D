@@ -903,21 +903,20 @@ class sdModeration
 				socket.character.GiveScore( 12005, null, false );
 				
 				socket.character.matter = socket.character.matter_max;
-				
-				socket.character._quick_start = true; // Not make player's upgrades again.
 
 				for ( var i = 0; i < sdShop.options.length; i++ )
 				{
 					if ( sdShop.options[ i ]._category === 'Upgrades' )
 					{
-						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
+						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_with_upgrade_station_level || sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
 						let cur_level = ( socket.character._upgrade_counters[ sdShop.options[ i ].upgrade_name ] || 0 );
 
-						let max_level_with_station = ( sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_with_upgrade_station_level || max_level );
-
-						for ( var j = cur_level; j < max_level_with_station; j++ )
+						//if ( sdShop.options[ i ]._min_build_tool_level <= socket.character.build_tool_level )
 						{
-							socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name );
+							for ( var j = cur_level; j < max_level; j++ )
+							{
+								socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name, true );
+							}
 						}
 					}
 				}
