@@ -633,7 +633,6 @@ class sdModeration
 						socket.character.InstallUpgrade( 'upgrade_invisibility' );
 						socket.character.InstallUpgrade( 'upgrade_grenades' );
 
-
 						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
 						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
 						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
