@@ -630,15 +630,9 @@ class sdModeration
 
 						socket.character.InstallUpgrade( 'upgrade_jetpack' );
 						socket.character.InstallUpgrade( 'upgrade_hook' );
+						socket.character.InstallUpgrade( 'upgrade_invisibility' );
 						socket.character.InstallUpgrade( 'upgrade_grenades' );
 
-						let max_level = sdShop.upgrades[ 'upgrade_invisibility' ].max_level;
-						let cur_level = ( socket.character._upgrade_counters[ 'upgrade_invisibility' ] || 0 );
-
-						for ( var j = cur_level; j < max_level; j++ )
-						{
-							socket.character.InstallUpgrade( 'upgrade_invisibility' );
-						}
 
 						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
 						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
