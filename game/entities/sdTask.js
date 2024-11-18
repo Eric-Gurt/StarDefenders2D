@@ -142,7 +142,17 @@ class sdTask extends sdEntity
 			onTimeOut: ( task )=>
 			{
 				if ( sdWorld.is_server )
-				task.remove();
+				{
+					if ( task._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'FAILED-' + task._similarity_hash, 
+						executer: task._executer,
+						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+						title: 'Task failed',
+						description: 'You\'ve failed to complete "' + task.title + '"'
+					});
+					task.remove();
+				}
 			}
 		};
 		sdTask.missions[ sdTask.MISSION_TRACK_ENTITY = id++ ] = 
@@ -251,6 +261,21 @@ class sdTask extends sdEntity
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
+			failure_condition: (task ) =>
+			{
+				if ( task._lrtp_class_proprty_value_array )
+				{
+					// In case of not specific entity
+				}
+				else
+				{
+					// It is a failure condition now
+					// Specific entity
+					if ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt
+					return true;
+				}
+				return false;
+			},
 			completion_condition: ( task )=>
 			{
 				if ( task._lrtp_matter_capacity_needed !== -1 )
@@ -271,20 +296,31 @@ class sdTask extends sdEntity
 				{
 					// In case of not specific entity
 				}
-				else
+				/*else
 				{
+					// It is a failure condition now
 					// Specific entity
 					if ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
 					task.remove();
 					// Maybe this should be considrered a failure condition instead? - Booraz
-				}
+				}*/
 			
 				return false;
 			},
 			onTimeOut: ( task )=>
 			{
 				if ( sdWorld.is_server )
-				task.remove();
+				{
+					if ( task._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'FAILED-' + task._similarity_hash, 
+						executer: task._executer,
+						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+						title: 'Task failed',
+						description: 'You\'ve failed to complete "' + task.title + '"'
+					});
+					task.remove();
+				}
 			},
 			
 			onLongRangeTeleportCalledForEntity: ( task, long_range_teleport, entity )=>
@@ -471,8 +507,18 @@ class sdTask extends sdEntity
 			{
 				if ( sdWorld.is_server )
 				{
-					if ( task._protect_type === 0 ) // Not a time based protection task?
-					task.remove();
+					if ( task._protect_type === 0 )
+					{	
+						if ( task._difficulty > 0 )
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'FAILED-' + task._similarity_hash, 
+							executer: task._executer,
+							mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+							title: 'Task failed',
+							description: 'You\'ve failed to complete "' + task.title + '"'
+						});
+						task.remove();
+					}
 				}
 			}
 		};
