@@ -1426,19 +1426,23 @@ class sdWeather extends sdEntity
 						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				
-					if ( Math.random() < 0.25 )
+					if ( Math.random() < 0.2 )
 					sdWeather.SimpleSpawner({
 
-						count: [ 2, 3 ],
+						count: [ 1 ],
 						class: sdDrone,
 						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				}
@@ -1457,7 +1461,8 @@ class sdWeather extends sdEntity
 				aerial_radius: 800,
 				near_entity: near_ent,
 				group_radius: group_rad,
-				unlimited_range: inf_range
+				unlimited_range: inf_range,
+				target: target_ent
 
 			});
 
@@ -1689,7 +1694,9 @@ class sdWeather extends sdEntity
 				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL },
 				aerial: true,
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				unlimited_range: inf_range,
+				target: target_ent
 
 			});
 			
@@ -2094,7 +2101,9 @@ class sdWeather extends sdEntity
 					params: { _ai_team: 4, type: drone_type },
 					aerial: true,
 					near_entity: near_ent,
-					group_radius: group_rad
+					group_radius: group_rad,
+					unlimited_range: inf_range,
+					target: target_ent
 
 				});
 				
@@ -2697,7 +2706,9 @@ class sdWeather extends sdEntity
 					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
 					aerial: true,
 					near_entity: near_ent,
-					group_radius: group_rad
+					group_radius: group_rad,
+					unlimited_range: inf_range,
+					target: target_ent
 
 				});
 				
@@ -3197,7 +3208,9 @@ class sdWeather extends sdEntity
 						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				
@@ -3209,7 +3222,9 @@ class sdWeather extends sdEntity
 						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				}

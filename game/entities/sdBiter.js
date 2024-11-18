@@ -67,7 +67,7 @@ class sdBiter extends sdEntity
 		
 		this.death_anim = 0;
 		
-		this._current_target = null;
+		this._current_target = params.target || null;
 		
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;

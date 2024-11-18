@@ -145,8 +145,14 @@ class sdDrone extends sdEntity
 		this.attack_an = 0;
 		this.death_anim = 0;
 		
-		this._current_target = null;
+		// Targetting
+		this._current_target = params.target || null;
 		this._pathfinding = null;
+		
+		if ( this._current_target ) 
+		this.SetTarget( this._current_target ); 
+	
+		//
 		
 		this.hurt_timer = 0;
 
@@ -188,6 +194,8 @@ class sdDrone extends sdEntity
 		this._anim_last_effect_time = 0;
 		
 		this._voice_channel = sdSound.CreateSoundChannel( this );
+		
+		this._unlimited_range = params.unlimited_range || false; // Unlimited attack range? Reserved for some "protect entity" events.
 		
 		sdDrone.drones.push( this );
 		
@@ -242,8 +250,8 @@ class sdDrone extends sdEntity
 				return false;
 				else
 				{
-				this._current_target === ent;
-				return true;
+					this._current_target === ent;
+					return true;
 				}
 			}
 		}
@@ -303,7 +311,7 @@ class sdDrone extends sdEntity
 			{
 				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 				{
-					if ( ent._ai_team !== this._ai_team && sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdDrone.max_seek_range ) // Is this not a friendly faction? And is this close enough?
+					if ( ent._ai_team !== this._ai_team && ( sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdDrone.max_seek_range || this._unlimited_range ) ) // Is this not a friendly faction? And is this close enough?
 					return ent; // Target it
 				}
 				else
@@ -795,7 +803,7 @@ class sdDrone extends sdEntity
 			
 			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdDrone.max_seek_range + 32 )
+				if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdDrone.max_seek_range + 32 && !this._unlimited_range ) )
 				{
 					//this._current_target = null;
 					this.SetTarget( null );
@@ -817,7 +825,7 @@ class sdDrone extends sdEntity
 						let dx = 0;
 						let dy = 0;
 						
-						if ( pathfinding_result && pathfinding_result.attack_target === this._current_target )
+						if ( ( pathfinding_result && pathfinding_result.attack_target === this._current_target ) || this._unlimited_range )
 						{
 							dx = ( this._current_target.x + ( this._current_target.sx || 0 ) * 10 - this.x - this.sx * 10 );
 							dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
