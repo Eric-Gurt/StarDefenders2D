@@ -106,7 +106,7 @@ class sdTask extends sdEntity
 				// Create extra properties here
 				
 				task._approached_target = false; // Players now need to at least get close to the target to count the task as "completed"
-				task._approach_target_check_timer = 60; // Every 2 seconds it will check if target was approached by task executor, until it does.
+				task._approach_target_check_timer = 1; // Every 2 seconds it will check if target was approached by task executor, until it does.
 				// Players that don't get close to the objective don't get rewards now.
 				
 			},
@@ -147,9 +147,10 @@ class sdTask extends sdEntity
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'FAILED-' + task._similarity_hash, 
 						executer: task._executer,
-						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
 						title: 'Task failed',
-						description: 'You\'ve failed to complete "' + task.title + '"'
+						description: 'You\'ve failed to complete "' + task.title + '"',
+						time_left: 30 * 5
 					});
 					task.remove();
 				}
@@ -315,9 +316,10 @@ class sdTask extends sdEntity
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'FAILED-' + task._similarity_hash, 
 						executer: task._executer,
-						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
 						title: 'Task failed',
-						description: 'You\'ve failed to complete "' + task.title + '"'
+						description: 'You\'ve failed to complete "' + task.title + '"',
+						time_left: 30 * 5
 					});
 					task.remove();
 				}
@@ -457,7 +459,7 @@ class sdTask extends sdEntity
 				// Create extra properties here
 				task._protect_type = params.protect_type || 0; // 0 = progress bar ( Dark matter beam projector, Long range frequency antenna ), 1 = Entity must survive for a time limit ( SD-BG drone )
 				task._approached_target = false; // Same as destroy entity tasks
-				task._approach_target_check_timer = 60;
+				task._approach_target_check_timer = 1;
 			},
 			onCompletion: ( task )=>
 			{
@@ -513,9 +515,10 @@ class sdTask extends sdEntity
 						sdTask.MakeSureCharacterHasTask({ 
 							similarity_hash:'FAILED-' + task._similarity_hash, 
 							executer: task._executer,
-							mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+							mission: sdTask.MISSION_GAMEPLAY_HINT,
 							title: 'Task failed',
-							description: 'You\'ve failed to complete "' + task.title + '"'
+							description: 'You\'ve failed to complete "' + task.title + '"',
+							time_left: 30 * 5
 						});
 						task.remove();
 					}
@@ -819,9 +822,10 @@ class sdTask extends sdEntity
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'FAILED-' + this._similarity_hash, 
 						executer: this._executer,
-						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
 						title: 'Task failed',
-						description: 'You\'ve failed to complete "' + this.title + '"'
+						description: 'You\'ve failed to complete "' + this.title + '"',
+						time_left: 30 * 5
 					});
 					
 					this.remove();
