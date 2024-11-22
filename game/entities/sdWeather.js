@@ -316,7 +316,8 @@ class sdWeather extends sdEntity
 	{
 		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
 			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
-			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION )
+			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION || n === sdWeather.EVENT_COUNCIL_BOMB ||
+			n === sdWeather.EVENT_COUNCIL_PORTAL )
 		return true;
 		
 		return false;
@@ -2966,81 +2967,18 @@ class sdWeather extends sdEntity
 			
 			if ( Math.random() < chance )
 			{
-				let instances = 0;
-				let instances_tot = 1;
+				let portal_machine = [];
 
-				while ( instances < instances_tot && sdCouncilMachine.ents < 1 )
-				{
-					let council_mach = new sdCouncilMachine({ x:0, y:0});
-
-					sdEntity.entities.push( council_mach );
-					
-					if ( sdWeather.SetRandomSpawnLocation( council_mach ) )
-					{
-						sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
-					}
-					else
-					{
-						council_mach.remove();
-						council_mach._broken = false;
-					}
-
-					/*let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-
-						if ( council_mach.CanMoveWithoutOverlap( x, y - 64, 0 ) )
-						if ( council_mach.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !council_mach.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + council_mach._hitbox_x1 - 16, 
-								y + council_mach._hitbox_y1 - 16, 
-								x + council_mach._hitbox_x2 + 16, 
-								y + council_mach._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let proper_distnace = true;
-									
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-										
-								if ( di < 500 )
-								{
-									proper_distnace = false;
-									break;
-								}
-							}
-									
-							if ( proper_distnace )
-							{
-								council_mach.x = x;
-								council_mach.y = y;
-								sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
-								break;
-							}
-						}
-								
-
-
-						tr--;
-						if ( tr < 0 )
-							{
-							council_mach.remove();
-							council_mach._broken = false;
-							break;
-						}
-					} while( true );*/
-
-					instances++;
-				}
-
+				sdWeather.SimpleSpawner({
+					count: [ 1, 1 ],
+					class: sdCouncilMachine,
+					aerial:false,
+					store_ents: portal_machine,
+					min_air_height: -400 // Minimum free space above entity placement location
+				});
+				
+				if ( portal_machine.length > 0 ) // Spawned the machine?
+				sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
