@@ -889,11 +889,12 @@ class sdJunk extends sdEntity
 						{
 							if ( Math.random() < 0.8 ) // 80% it spawns a support healing Drone
 							{
-								let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
-
-								sdEntity.entities.push( drone );
-
+								if ( this._current_minions_count < 3 )
 								{
+									let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
+
+									sdEntity.entities.push( drone );
+									
 									let x,y;
 									let tr = 100;
 									do
