@@ -319,6 +319,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 2, _min_build_tool_level: 3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 4, _min_build_tool_level: 9, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 8, _min_build_tool_level: 18, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 20, _min_build_tool_level: 36, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponMerger',_min_workbench_level: 5, _category:'Base equipment' });
 
@@ -801,6 +802,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdMothershipContainer', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
