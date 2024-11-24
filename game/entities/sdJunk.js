@@ -146,7 +146,7 @@ class sdJunk extends sdEntity
 		// Variables for Council bomb
 		this.glow_animation = 0; // Glow animation for the bomb
 		this._glow_fade = 0; // Should the glow fade or not?
-		this.detonation_in = 30 * 10;//30 * 60 * 10; // 10 minutes until the bomb explodes
+		this.detonation_in = 30 * 60 * 10; // 10 minutes until the bomb explodes
 		this._rate = 120;
 		this._max_damage = 4000; // Max damage the council bomb can take under a timer
 		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
