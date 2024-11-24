@@ -44,6 +44,8 @@ class sdMothershipContainer extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this._ai_team = 0;
+		
 		//this._last_sync_matter = this.matter;
 		
 		this.progress = 0;
@@ -52,10 +54,12 @@ class sdMothershipContainer extends sdEntity
 		this.hea = this.hmax;
 		
 		this._next_distributor_spawn = 30 * 60 * 20; // Spawn solar distributors
-		this._next_council_bomb = 30;//30 * 60 * 60; // Spawn council bomb
+		this._next_council_bomb = 30 * 60 * 60; // Spawn council bomb
 		this._next_task_refresh = 30; // Timer to assign task to players, should be about once a second
 		
 		this._last_spawned_distributor = null; // Last spawned distributor
+		
+		this._damagable_in = 60;
 		
 		/*	
 			This way we can check if players are completing the distributors spawned by the container
@@ -80,6 +84,9 @@ class sdMothershipContainer extends sdEntity
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this._damagable_in > 0 )
 		return;
 	
 		dmg = Math.abs( dmg );
@@ -132,6 +139,10 @@ class sdMothershipContainer extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
+			if ( this._damagable_in > 0 )
+			this._damagable_in -= GSPEED;
+			
+			
 			if ( !this._last_spawned_distributor || this._last_spawned_distributor._is_being_removed )
 			this._last_spawned_distributor = null;
 			
@@ -155,91 +166,148 @@ class sdMothershipContainer extends sdEntity
 				if ( this._next_distributor_spawn <= 0 ) // Time to spawn distributor?
 				{
 					this._next_distributor_spawn = 30 * 60 * 18 + ( Math.random() * 30 * 60 * 4 ); // Spawn one every 18-22 minutes
-					let has_players_nearby = false;
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let's check if there are any players close to the matter container
+					if ( !this._last_spawned_distributor || this._last_spawned_distributor.progress >= 100 ) // Don't overflow with spawns if last spawned distributor needs completion
 					{
-						let character = sdWorld.sockets[ i ].character;
-						if ( character )
+						let has_players_nearby = false;
+						for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let's check if there are any players close to the matter container
 						{
-							if ( sdWorld.Dist2D( character.x, character.y, this.x, this.y ) < 800 ) // Is player close enough?
+							let character = sdWorld.sockets[ i ].character;
+							if ( character )
 							{
-								has_players_nearby = true;
-								break;
-							}
-						}
-					}
-					if ( !has_players_nearby ) // First scenario, spawn a solar matter distributor near the mothership matter container
-					{
-						let distributors = 0;
-						let distributors_tot = 1;
-
-						while ( distributors < distributors_tot )
-						{
-
-							let distributor = new sdSolarMatterDistributor({ x:0, y:0 });
-
-							sdEntity.entities.push( distributor );
-
-							{
-								let x,y;
-								let tr = 100;
-								do
+								if ( sdWorld.Dist2D( character.x, character.y, this.x, this.y ) < 800 ) // Is player close enough?
 								{
-									x = this.x + 192 - ( Math.random() * 384 );
-
-									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
-
-									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
-
-									y = this.y + 192 - ( Math.random() * ( 384 ) );
-									if ( y < sdWorld.world_bounds.y1 + 32 )
-									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-									if ( y > sdWorld.world_bounds.y2 - 32 )
-									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-									if ( distributor.CanMoveWithoutOverlap( x, y, 1 ) )
-									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, this, sdCom.com_visibility_ignored_classes, null ) )
-									{
-										distributor.x = x;
-										distributor.y = y;
-
-										this._last_spawned_distributor = distributor;
-										
-										break;
-									}
-
-									tr--;
-									if ( tr < 0 )
-									{
-										distributor.remove();
-										distributor._broken = false;
-										
-										break;
-									}
-								} while( true );
+									has_players_nearby = true;
+									break;
+								}
 							}
-							distributors++;
 						}
-					}
-					else // Spawn it anywhere, because players are near the container
-					{
-						let distributors = [];
-						sdWeather.SimpleSpawner({
-							count: [ 1, 1 ],
-							class: sdSolarMatterDistributor,
-							aerial: false,
-							store_ents: distributors,
-							min_air_height: -400 // Minimum free space above entity placement location
-						});
-						
-						if ( distributors.length > 0 )
-						this._last_spawned_distributor = distributors[ 0 ]; // Assign the spawned distributor as the last one
+						if ( !has_players_nearby ) // First scenario, spawn a solar matter distributor near the mothership matter container
+						{
+							let distributors = 0;
+							let distributors_tot = 1;
+
+							while ( distributors < distributors_tot )
+							{
+
+								let ent = new sdSolarMatterDistributor({ x:0, y:0 });
+
+								sdEntity.entities.push( ent );
+
+								{
+									let x,y;
+									let tr = 100;
+									do
+									{
+										x = this.x + 192 - ( Math.random() * 384 );
+
+										if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+										if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+
+										y = this.y + 192 - ( Math.random() * ( 384 ) );
+										if ( y < sdWorld.world_bounds.y1 + 32 )
+										y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+										if ( y > sdWorld.world_bounds.y2 - 32 )
+										y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+										if ( ent.CanMoveWithoutOverlap( x, y, 1 ) )
+										if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, this, sdCom.com_visibility_ignored_classes, null ) )
+										{
+											ent.x = x;
+											ent.y = y;
+
+											this._last_spawned_distributor = ent;
+											
+											break;
+										}
+
+										tr--;
+										if ( tr < 0 )
+										{
+											ent.remove();
+											ent._broken = false;
+											
+											break;
+										}
+									} while( true );
+								}
+								distributors++;
+							}
+						}
+						else // Spawn it anywhere, because players are near the container
+						{
+							let distributors = [];
+							sdWeather.SimpleSpawner({
+								count: [ 1, 1 ],
+								class: sdSolarMatterDistributor,
+								aerial: false,
+								store_ents: distributors,
+								min_air_height: -400 // Minimum free space above entity placement location
+							});
+							
+							if ( distributors.length > 0 )
+							this._last_spawned_distributor = distributors[ 0 ]; // Assign the spawned ent as the last one
+						}
 					}
 				}
-				
+				if ( this._next_council_bomb < 0 )
+				{
+					this._next_council_bomb = 30 * 60 * 58 + ( 30 * 60 * 4 ); // 58-62 minutes between council bombs
+					let ents = 0;
+					let ents_tot = 1;
+
+					while ( ents < ents_tot )
+					{
+
+						let ent = new sdJunk({ x:0, y:0, type: sdJunk.TYPE_COUNCIL_BOMB });
+
+						sdEntity.entities.push( ent );
+
+						{
+							let x,y;
+							let tr = 100;
+							do
+							{
+								x = this.x + 96 - ( Math.random() * 192 );
+
+								if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+								x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+								if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+								x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+
+								y = this.y + 96 - ( Math.random() * ( 192 ) );
+								if ( y < sdWorld.world_bounds.y1 + 32 )
+								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( y > sdWorld.world_bounds.y2 - 32 )
+								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( ent.CanMoveWithoutOverlap( x, y, 1 ) )
+								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, this, sdCom.com_visibility_ignored_classes, null ) )
+								{
+									ent.x = x;
+									ent.y = y;
+										
+									break;
+								}
+
+								tr--;
+								if ( tr < 0 )
+								{
+									ent.remove();
+									ent._broken = false;
+										
+									break;
+								}
+							} while( true );
+						}
+						ents++;
+					}
+				}
 				if ( this._next_task_refresh < 0 )
 				{
 					this._next_task_refresh = 60;
@@ -255,7 +323,7 @@ class sdMothershipContainer extends sdEntity
 							mission: sdTask.MISSION_PROTECT_ENTITY,				
 							title: 'Protect and fill the mothership matter container with matter',
 							description: desc,
-							difficulty: 0.5,
+							difficulty: 1.2,
 							time_left: this._time_until_remove - ( 30 * 3 )
 						});
 					}
@@ -360,7 +428,7 @@ class sdMothershipContainer extends sdEntity
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
 							title: 'Extract the mothership matter container',
 							description: desc,
-							difficulty: 1.5,
+							difficulty: 0.8,
 							for_all_players: true, // Reward everyone if successfully completed
 							lrtp_class_proprty_value_array: [ 'sdMothershipContainer', 'matter', this.matter_max ], // And make sure the container is filled
 							time_left: this._time_until_remove - ( 30 * 3 )

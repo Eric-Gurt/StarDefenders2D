@@ -84,6 +84,7 @@ import sdExcavator from './sdExcavator.js';
 import sdWanderer from './sdWanderer.js';
 import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
+import sdMothershipContainer from './sdMothershipContainer.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -163,6 +164,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
 		sdWeather.EVENT_MISSILES =				event_counter++; // 53
 		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
+		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -317,7 +319,7 @@ class sdWeather extends sdEntity
 		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
 			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
 			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION || n === sdWeather.EVENT_COUNCIL_BOMB ||
-			n === sdWeather.EVENT_COUNCIL_PORTAL )
+			n === sdWeather.EVENT_COUNCIL_PORTAL || n === sdWeather.EVENT_MOTHERSHIP_CONTAINER )
 		return true;
 		
 		return false;
@@ -3825,6 +3827,20 @@ class sdWeather extends sdEntity
 			}
 			//else
 			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_MOTHERSHIP_CONTAINER ) // Mothership matter container spawns, takes awhile to fill, a long task for SD's around the planet.
+		{
+			if ( sdMothershipContainer.containers.length < 1 )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdMothershipContainer,
+				aerial: true, // It takes 0 damage for first few seconds
+				min_air_height: -400 // Minimum free space above entity placement location
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

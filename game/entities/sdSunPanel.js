@@ -18,11 +18,12 @@ class sdSunPanel extends sdEntity
 		sdSunPanel.img_sun_panel2 = sdWorld.CreateImageFromFile( 'sunpanel2' );
 		sdSunPanel.img_sun_panel3 = sdWorld.CreateImageFromFile( 'sunpanel3' );
 		sdSunPanel.img_sun_panel4 = sdWorld.CreateImageFromFile( 'sunpanel4' );
+		sdSunPanel.img_sun_panel5 = sdWorld.CreateImageFromFile( 'sunpanel5' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -5; }
-	get hitbox_x2() { return 7; }
+	get hitbox_x1() { return ( this.multiplier === 20 ) ? -16 : -5; }
+	get hitbox_x2() { return  ( this.multiplier === 20 ) ? 16 : 7; }
 	get hitbox_y1() { return -10; }
 	get hitbox_y2() { return 0; }
 	
@@ -189,6 +190,10 @@ class sdSunPanel extends sdEntity
 		if ( this.multiplier === 8 )
 		{
 			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel4, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		}
+		if ( this.multiplier === 20 )
+		{
+			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel5, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 		}
 	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
