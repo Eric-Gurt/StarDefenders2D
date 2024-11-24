@@ -146,7 +146,7 @@ class sdJunk extends sdEntity
 		// Variables for Council bomb
 		this.glow_animation = 0; // Glow animation for the bomb
 		this._glow_fade = 0; // Should the glow fade or not?
-		this.detonation_in = 30 * 60 * 10; // 10 minutes until the bomb explodes
+		this.detonation_in = 30 * 10;//30 * 60 * 10; // 10 minutes until the bomb explodes
 		this._rate = 120;
 		this._max_damage = 4000; // Max damage the council bomb can take under a timer
 		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
@@ -795,29 +795,16 @@ class sdJunk extends sdEntity
 
 							{
 								let x,y;
-								let tr = 1000;
+								let tr = 100;
 								do
 								{
-									if ( left_side )
-									{
-										x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
+									x = this.x + 192 - ( Math.random() * 384 );
 
-										if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
+									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
 
-										if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-									}
-									else
-									{
-										x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
-
-										if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
-
-										if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-									}
+									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
 
 									y = this.y + 192 - ( Math.random() * ( 384 ) );
 									if ( y < sdWorld.world_bounds.y1 + 32 )
@@ -867,20 +854,19 @@ class sdJunk extends sdEntity
 										}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 										break;
-								}
+									}
 
-
-								tr--;
-								if ( tr < 0 )
-								{
-									character_entity.remove();
-									character_entity._broken = false;
-									break;
-								}
-							} while( true );
-						}
-						councils++;
-						ais++;
+									tr--;
+									if ( tr < 0 )
+									{
+										character_entity.remove();
+										character_entity._broken = false;
+										break;
+									}
+								} while( true );
+							}
+							councils++;
+							ais++;
 						}
 					}
 					{

@@ -284,7 +284,6 @@ class sdBeamProjector extends sdEntity
 					let councils = 0;
 					let councils_tot = Math.min( 6, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
 
-					let left_side = ( Math.random() < 0.5 );
 
 					while ( councils < councils_tot )
 					{
@@ -296,29 +295,16 @@ class sdBeamProjector extends sdEntity
 
 						{
 							let x,y;
-							let tr = 1000;
+							let tr = 100;
 							do
 							{
-								if ( left_side )
-								{
-									x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
+								x = this.x + 192 - ( Math.random() * 384 );
 
-									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
+								if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+								x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
 
-									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-								}
-								else
-								{
-									x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
-
-									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-								}
+								if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+								x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
 
 								y = this.y + 192 - ( Math.random() * ( 384 ) );
 								if ( y < sdWorld.world_bounds.y1 + 32 )
