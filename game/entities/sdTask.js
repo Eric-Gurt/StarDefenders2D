@@ -272,7 +272,7 @@ class sdTask extends sdEntity
 				{
 					// It is a failure condition now
 					// Specific entity
-					if ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt
+					if ( ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) && task._lrtp_ents_count < task._lrtp_ents_needed  ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt
 					return true;
 				}
 				return false;
@@ -790,7 +790,10 @@ class sdTask extends sdEntity
 					if ( this._executer && !this._executer._is_being_removed && this._target && !this._target._is_being_removed ) // Make sure everything exists I guess
 					{
 						if ( sdWorld.Dist2D( this._executer.x, this._executer.y, this._target.x, this._target.y ) < 600 ) // Is player close enough?
-						this._approached_target = true;
+						{
+							this._approached_target = true;
+							this._update_version++;
+						}
 					
 					}
 				}
