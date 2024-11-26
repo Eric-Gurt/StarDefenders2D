@@ -1040,7 +1040,7 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity._teleport_timer > 30 )
 					status_entity.for._weapon_draw_timer = 15 + ( 3 * status_entity.charges_left ); // This prevents Time Shifter from attacking after teleport
 				
-					if ( status_entity._teleport_timer && typeof status_entity.for._ai.target !== 'undefined' ){
+					if ( status_entity._teleport_timer && status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ){
 						if ( status_entity.for._ai.target )
 						status_entity._teleport_timer -= GSPEED;
 						if ( status_entity._teleport_timer <= 0 && status_entity.for._ai.target && sdWorld.Dist2D(status_entity.for.x, status_entity.for.y, status_entity.for._ai.target.x, status_entity.for._ai.target.y ) < 300 ) // Time to teleport?
