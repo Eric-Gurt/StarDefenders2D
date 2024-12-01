@@ -227,7 +227,7 @@ class sdSunPanel extends sdEntity
 							}
 						}
 
-						if ( best_option )
+						if ( best_option && best_option.multiplier < 20 ) // Prevent T4 solars to upgrading into T5/wide panels
 						{
 							let cost_this = this.MeasureMatterCost();
 							let multiplier_old = this.multiplier;

@@ -59,6 +59,8 @@ class sdMothershipContainer extends sdEntity
 		
 		this._last_spawned_distributor = null; // Last spawned distributor
 		
+		this._last_progress = 0; // For additional council bomb spawns
+		
 		this._damagable_in = 60;
 		
 		/*	
@@ -166,7 +168,7 @@ class sdMothershipContainer extends sdEntity
 				if ( this._next_distributor_spawn <= 0 ) // Time to spawn distributor?
 				{
 					this._next_distributor_spawn = 30 * 60 * 18 + ( Math.random() * 30 * 60 * 4 ); // Spawn one every 18-22 minutes
-					if ( !this._last_spawned_distributor || this._last_spawned_distributor.progress >= 100 ) // Don't overflow with spawns if last spawned distributor needs completion
+					if ( !this._last_spawned_distributor || ( this._last_spawned_distributor && this._last_spawned_distributor.progress >= 100 ) ) // Don't overflow with spawns if last spawned distributor needs completion
 					{
 						let has_players_nearby = false;
 						for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let's check if there are any players close to the matter container
@@ -237,7 +239,7 @@ class sdMothershipContainer extends sdEntity
 								distributors++;
 							}
 						}
-						else // Spawn it anywhere, because players are near the container
+						if ( has_players_nearby || ( !this._last_spawned_distributor || ( this._last_spawned_distributor && this._last_spawned_distributor.progress >= 100 ) ) ) // Spawn it anywhere, because players are near the container, or it did not spawn despite nothing near it
 						{
 							let distributors = [];
 							sdWeather.SimpleSpawner({
@@ -253,11 +255,18 @@ class sdMothershipContainer extends sdEntity
 						}
 					}
 				}
-				if ( this._next_council_bomb < 0 )
+				if ( this._next_council_bomb < 0 || ( this.progress >= this._last_progress + 10 ) ) // Time to spawn the bomb, or did the container progress enough?
 				{
+					if ( this._next_council_bomb < 0 ) // Spawn by time?
 					this._next_council_bomb = 30 * 60 * 58 + ( 30 * 60 * 4 ); // 58-62 minutes between council bombs
+				
 					let ents = 0;
 					let ents_tot = 1;
+					
+					if ( this.progress >= this._last_progress + 10 ) // Spawn by progress?
+					{
+						this._last_progress = this._last_progress + 10; // Increment spawn requirement by 10
+					}
 
 					while ( ents < ents_tot )
 					{
