@@ -3703,49 +3703,40 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_PROTECT_SDBG_DRONE ) // Mothership is trying to see if old drone stockpile is effective on planet ( players need to protect the drone for 5 minutes )
 		{
-			let instances = 0;
-			let instances_tot = 1;
-			while ( instances < instances_tot ) // Only 1 should spawn
 			{
-				let ent = new sdDrone({ x:0, y:0, type: 17, _ai_team: 0 });
+				//let ent = new sdDrone({ x:0, y:0, type: 17, _ai_team: 0 });
 
-				sdEntity.entities.push( ent );
+				//sdEntity.entities.push( ent );
+				
+				let ents = [];
 
+				sdWeather.SimpleSpawner({
+
+					count: [ 1, 1 ],
+					class: sdDrone,
+					params: { type: 17, _ai_team: 0, unlimited_range: true },
+					aerial: true,
+					store_ents: ents,
+					near_entity: near_ent,
+					group_radius: group_rad
+				});
+				for ( let j = 0; j < ents.length; j++ )
 				{
-					//let x,y;
-					let tr = 2;
-					do
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be protected
+					if ( sdWorld.sockets[ i ].character )
 					{
-						if ( sdWeather.SetRandomSpawnLocation( ent ) )
-						{
-							break;
-						}
-
-						tr--;
-						if ( tr < 0 )
-						{
-							ent.remove();
-							ent._broken = false;
-							break;
-						}
-					} while( true );
-				}
-
-				instances++;
-				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be protected
-				if ( sdWorld.sockets[ i ].character )
-				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'PROTECT-'+ent._net_id, 
-						executer: sdWorld.sockets[ i ].character,
-						target: ent,
-						mission: sdTask.MISSION_PROTECT_ENTITY,
-						protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
-						time_left: 30 * 60 * 5, // 5 minutes
-						difficulty: 0.075,
-						title: 'Protect a drone',
-						description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
-					});
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'PROTECT-'+ents[ j ]._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: ents[ j ],
+							mission: sdTask.MISSION_PROTECT_ENTITY,
+							protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
+							time_left: 30 * 60 * 5, // 5 minutes
+							difficulty: 0.075,
+							title: 'Protect a drone',
+							description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
+						});
+					}
 				}
 			}
 		}
