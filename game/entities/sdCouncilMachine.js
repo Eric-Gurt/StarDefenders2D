@@ -95,29 +95,27 @@ class sdCouncilMachine extends sdEntity
 				{
 					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
 
-					let machine = new sdCouncilMachine({ x:0, y:0 });
+					//let machine = new sdCouncilMachine({ x:0, y:0 });
 
-					sdEntity.entities.push( machine );
+					//sdEntity.entities.push( machine );
 					
-					if ( sdWeather.SetRandomSpawnLocation( machine ) ) // SimpleSpawner sometimes doesn't spawn the entity if ents are left nor does it drop the BT
-					{
-						spawned_ent = true;
-						machine.detonation_in = this.detonation_in;
-					}
-					else
-					{
-						machine.remove();
-						machine._broken = false;
-					}
-
-
-					/*sdWeather.SimpleSpawner({
+					let machine = [];
+					
+					sdWeather.SimpleSpawner({
 						
 						count: [ 1, 1 ],
 						class: sdCouncilMachine,
-						params: {}
+						store_ents: machine,
+						aerial: true,
+						aerial_radius: 128
 						
-					});*/
+					})
+					
+					if ( machine.length > 0 ) // Spawned the machine?
+					{
+						spawned_ent = true;
+						machine[ 0 ].detonation_in = this.detonation_in;
+					}
 
 					instances++;
 				}

@@ -1601,7 +1601,9 @@ class sdWeather extends sdEntity
 				sdWeather.SimpleSpawner({
 
 					count: [ 1, 1 ],
-					class: sdRift
+					class: sdRift,
+					aerial:true,
+					aerial_radius: 128
 
 				});
 				// I doubt there'll be 8 portals at once on open worlds, but just in case a cap should exist.
@@ -1786,7 +1788,9 @@ class sdWeather extends sdEntity
 
 				count: [ 1, 1 ],
 				class: sdObelisk,
-				params: { type: 1 + Math.round( Math.random() * 7 ) }
+				params: { type: 1 + Math.round( Math.random() * 7 ) },
+				aerial:true,
+				aerial_radius: 128 // This way it can have some leeway when spawning somewhere
 
 			});
 
@@ -1933,7 +1937,9 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdJunk,
-					params: { type: sdJunk.TYPE_PLANETARY_MATTER_DRAINER }
+					params: { type: sdJunk.TYPE_PLANETARY_MATTER_DRAINER },
+					aerial: true,
+					aerial_radius: 128
 
 				});
 				
@@ -2140,7 +2146,9 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdJunk,
 					params: { type: sdJunk.TYPE_COUNCIL_BOMB },
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 
 				});
 				
@@ -2263,7 +2271,9 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdJunk,
 					params: { type: sdJunk.TYPE_ERTHAL_DISTRESS_BEACON },
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 
 				});
 
@@ -2974,9 +2984,10 @@ class sdWeather extends sdEntity
 				sdWeather.SimpleSpawner({
 					count: [ 1, 1 ],
 					class: sdCouncilMachine,
-					aerial:false,
 					store_ents: portal_machine,
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 				});
 				
 				if ( portal_machine.length > 0 ) // Spawned the machine?
@@ -3643,8 +3654,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdBeamProjector,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 			else
@@ -3694,8 +3706,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdLongRangeAntenna,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 			else
@@ -3765,7 +3778,9 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdVeloxFortifier,
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 
 				});
 
@@ -3779,8 +3794,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdSolarMatterDistributor,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 		}
@@ -3790,8 +3806,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdExcavator,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 		}

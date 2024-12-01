@@ -93,11 +93,23 @@ class sdShurgConverter extends sdEntity
 				while ( instances < instances_tot && sdShurgConverter.converters.length < 2 ) // Spawn another Shurg converter until last one
 				{
 					//let points = sdShurgConverter.ents_left === 0 ? 0.25: 0;
-					let converter = new sdShurgConverter({ x:0, y:0 });
+					//let converter = new sdShurgConverter({ x:0, y:0 });
 
-					sdEntity.entities.push( converter );
+					//sdEntity.entities.push( converter );
 					
-					if ( sdWeather.SetRandomSpawnLocation( converter ) ) // SimpleSpawner sometimes doesn't spawn the entity if ents are left nor does it drop the BT
+					let converter = [];
+					
+					sdWeather.SimpleSpawner({
+						
+						count: [ 1, 1 ],
+						class: sdShurgConverter,
+						store_ents: converter,
+						aerial: true,
+						aerial_radius: 128
+						
+					})
+					
+					if ( converter.length > 0 ) // Successful spawn?
 					{
 						spawned_ent = true;
 
@@ -107,7 +119,7 @@ class sdShurgConverter extends sdEntity
 						class: sdShurgTurret,
 				
 						group_radius: 800,
-						near_entity: converter
+						near_entity: converter[ 0 ]
 				
 						});
 
@@ -117,26 +129,12 @@ class sdShurgConverter extends sdEntity
 						class: sdShurgTurret,
 						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
 						group_radius: 400,
-						near_entity: converter,
+						near_entity: converter[ 0 ],
 						aerial: true
 			
 						});
 					}
-					else
-					{
-						converter.remove();
-						converter._broken = false;
-					}
-
-
-					/*sdWeather.SimpleSpawner({
-						
-						count: [ 1, 1 ],
-						class: sdShurgConverter,
-						params: {}
-						
-					});*/
-
+					
 					instances++;
 				}
 

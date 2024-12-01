@@ -245,9 +245,10 @@ class sdMothershipContainer extends sdEntity
 							sdWeather.SimpleSpawner({
 								count: [ 1, 1 ],
 								class: sdSolarMatterDistributor,
-								aerial: false,
 								store_ents: distributors,
-								min_air_height: -400 // Minimum free space above entity placement location
+								min_air_height: -400, // Minimum free space above entity placement location
+								aerial: true,
+								aerial_radius: 128
 							});
 							
 							if ( distributors.length > 0 )
