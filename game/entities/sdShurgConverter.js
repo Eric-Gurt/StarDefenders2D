@@ -87,10 +87,10 @@ class sdShurgConverter extends sdEntity
 			if ( sdShurgConverter.ents_left > 0 )
 			{
 				sdShurgConverter.ents_left--;
-				let instances = 0;
-				let instances_tot = 1;
+				//let instances = 0;
+				//let instances_tot = 1;
 
-				while ( instances < instances_tot && sdShurgConverter.converters.length < 2 ) // Spawn another Shurg converter until last one
+				//while ( instances < instances_tot && sdShurgConverter.converters.length < 2 ) // Spawn another Shurg converter until last one
 				{
 					//let points = sdShurgConverter.ents_left === 0 ? 0.25: 0;
 					//let converter = new sdShurgConverter({ x:0, y:0 });
@@ -117,7 +117,8 @@ class sdShurgConverter extends sdEntity
 				
 						count: [ 2, 2 ],
 						class: sdShurgTurret,
-				
+						aerial:true,
+						aerial_radius: 128,
 						group_radius: 800,
 						near_entity: converter[ 0 ]
 				
@@ -135,7 +136,7 @@ class sdShurgConverter extends sdEntity
 						});
 					}
 					
-					instances++;
+					//instances++;
 				}
 
 

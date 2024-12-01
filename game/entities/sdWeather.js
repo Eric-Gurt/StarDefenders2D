@@ -3453,16 +3453,28 @@ class sdWeather extends sdEntity
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter converter anywhere on the map outside player views.
 		{
 			{
-				let instances = 0;
-				let instances_tot = 1;
+				//let instances = 0;
+				//let instances_tot = 1;
 
-				while ( instances < instances_tot && sdShurgConverter.converters.length < 1 )
+				//while ( instances < instances_tot && sdShurgConverter.converters.length < 1 )
 				{
-					let converter = new sdShurgConverter({ x:0, y:0});
+					//let converter = new sdShurgConverter({ x:0, y:0});
 
-					sdEntity.entities.push( converter );
+					//sdEntity.entities.push( converter );
 					
-					if ( sdWeather.SetRandomSpawnLocation( converter ) )
+					let converter = [];
+					
+					sdWeather.SimpleSpawner({
+						
+						count: [ 1, 1 ],
+						class: sdShurgConverter,
+						store_ents: converter,
+						aerial: true,
+						aerial_radius: 128
+						
+					})
+					
+					if ( converter.length > 0 ) // Successful spawn?
 					{
 						sdShurgConverter.ents_left = 2; // 3 converters to destroy
 
@@ -3470,9 +3482,10 @@ class sdWeather extends sdEntity
 				
 						count: [ 2, 2 ],
 						class: sdShurgTurret,
-				
+						aerial:true,
+						aerial_radius: 128,
 						group_radius: 800,
-						near_entity: converter
+						near_entity: converter[ 0 ]
 			
 						});
 						sdWeather.SimpleSpawner({
@@ -3481,18 +3494,13 @@ class sdWeather extends sdEntity
 						class: sdShurgTurret,
 						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
 						group_radius: 400,
-						near_entity: converter,
+						near_entity: converter[ 0 ],
 						aerial: true
 			
 						});
 					}
-					else
-					{
-						converter.remove();
-						converter._broken = false;
-					}
 
-					instances++;
+					//instances++;
 				}
 
 			}
@@ -3630,7 +3638,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_KIVORTEC_WEAPONS_POD ) // KIVORTEC Weapons Pod. Has to be hacked before being opened and giving Star Defenders random KVT weaponry.
 		{
-			if ( sdDropPod.pod_counter < ( this._max_pod_count + sdWorld.GetPlayingPlayersCount() ) ) // +1 for every player online.
+			if ( sdDropPod.kvt_pod_counter < ( this._max_pod_count + sdWorld.GetPlayingPlayersCount() ) ) // +1 for every player online.
 			sdWeather.SimpleSpawner({
 				
 				count: [ 1, 1 ],
