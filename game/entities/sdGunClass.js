@@ -7048,7 +7048,7 @@ class sdGunClass
 						{
 							let e = nears[ i ];
 							
-							if ( e !== bullet._gun )
+							if ( e !== bullet._gun && !e.is( sdBaseShieldingUnit ) )
 							if ( typeof e._time_amplification !== 'undefined' )
 							{
 								let t = 0;

@@ -53,9 +53,12 @@ class sdMothershipContainer extends sdEntity
 		this.hmax = 40000; // Tanky enough? Should be able to survive up to 2 council bombs probably
 		this.hea = this.hmax;
 		
-		this._next_distributor_spawn = 30 * 60 * 20; // Spawn solar distributors
-		this._next_council_bomb = 30 * 60 * 60; // Spawn council bomb
-		this._next_task_refresh = 30; // Timer to assign task to players, should be about once a second
+		this._next_distributor_spawn = sdWorld.time + ( 1000 * 60 * 20 ); // Spawn solar distributors
+		this._next_council_bomb = sdWorld.time + ( 1000 * 60 * 60 ); // Spawn council bomb
+		
+		// Better to use sdWorld.time for those spawns so if offscreen simulation is slown down, spawn time remains unaffected
+		
+		this._next_task_refresh = 30; // Timer to assign task to players
 		
 		this._last_spawned_distributor = null; // Last spawned distributor
 		
@@ -74,6 +77,8 @@ class sdMothershipContainer extends sdEntity
 		this._spawned_ai = false;
 		
 		this._time_until_remove = 30 * 60 * 60 * 24 * 7; // One week of gameplay until it despawns
+		
+		// Maybe I should use sdWorld.time for this one aswell? - Booraz
 		
 		sdMothershipContainer.containers.push( this );
 	}
@@ -165,9 +170,9 @@ class sdMothershipContainer extends sdEntity
 				this._next_distributor_spawn -= GSPEED;
 				this._next_council_bomb -= GSPEED;
 			
-				if ( this._next_distributor_spawn <= 0 ) // Time to spawn distributor?
+				if ( this._next_distributor_spawn <= sdWorld.time ) // Time to spawn distributor?
 				{
-					this._next_distributor_spawn = 30 * 60 * 18 + ( Math.random() * 30 * 60 * 4 ); // Spawn one every 18-22 minutes
+					this._next_distributor_spawn = sdWorld.time + ( 1000 * 60 * 18 + ( Math.random() * 1000 * 60 * 4 ) ); // Spawn one every 18-22 minutes
 					if ( !this._last_spawned_distributor || ( this._last_spawned_distributor && this._last_spawned_distributor.progress >= 100 ) ) // Don't overflow with spawns if last spawned distributor needs completion
 					{
 						let has_players_nearby = false;
@@ -256,10 +261,10 @@ class sdMothershipContainer extends sdEntity
 						}
 					}
 				}
-				if ( this._next_council_bomb < 0 || ( this.progress >= this._last_progress + 10 ) ) // Time to spawn the bomb, or did the container progress enough?
+				if ( this._next_council_bomb < sdWorld.time || ( this.progress >= this._last_progress + 10 ) ) // Time to spawn the bomb, or did the container progress enough?
 				{
-					if ( this._next_council_bomb < 0 ) // Spawn by time?
-					this._next_council_bomb = 30 * 60 * 58 + ( 30 * 60 * 4 ); // 58-62 minutes between council bombs
+					if ( this._next_council_bomb < sdWorld.time ) // Spawn by time?
+					this._next_council_bomb = sdWorld.time + ( 1000 * 60 * 58 + ( Math.random() * 1000 * 60 * 4 ) ); // Spawn one every 58-62 minutes
 				
 					let ents = 0;
 					let ents_tot = 1;
@@ -281,7 +286,7 @@ class sdMothershipContainer extends sdEntity
 							let tr = 100;
 							do
 							{
-								x = this.x + 96 - ( Math.random() * 192 );
+								x = this.x + 96 + ( 100 - tr ) - ( Math.random() * ( 292 - tr ) ); // Potential spawn radius scales over attempts
 
 								if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
 								x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
@@ -289,7 +294,7 @@ class sdMothershipContainer extends sdEntity
 								if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
 								x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
 
-								y = this.y + 96 - ( Math.random() * ( 192 ) );
+								y = this.y + 96 + ( 100 - tr ) - ( Math.random() * ( 292 - tr ) );
 								if ( y < sdWorld.world_bounds.y1 + 32 )
 								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
