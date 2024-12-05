@@ -497,11 +497,16 @@ class sdDeepSleep extends sdEntity
 		
 		if ( from_entity.is( sdBullet ) ) // Bullet?
 		{
-			if ( !from_entity._owner.is( sdCharacter ) ) // Is this not a character's bullet?
+			if ( !from_entity._owner )
 			return;
 			else
-			if ( !from_entity._owner._socket ) // Is this not a player's bullet?
-			return;
+			{
+				if ( !from_entity._owner.is( sdCharacter ) ) // Is this not a character's bullet?
+				return;
+				else
+				if ( !from_entity._owner._socket ) // Is this not a player's bullet?
+				return;
+			}
 		}
 		
 		
