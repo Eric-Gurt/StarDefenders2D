@@ -218,6 +218,7 @@ class sdExcavator extends sdEntity
 						if ( target_entity.is_big )
 						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
 						else
+						if ( bullet._owner )
 						bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
 					}
 				};
@@ -242,6 +243,7 @@ class sdExcavator extends sdEntity
 						if ( target_entity.is_big )
 						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
 						else
+						if ( bullet._owner )
 						bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
 					}
 				};
@@ -266,6 +268,7 @@ class sdExcavator extends sdEntity
 						if ( target_entity.is_big )
 						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
 						else
+						if ( bullet._owner )
 						bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
 					}
 				};
