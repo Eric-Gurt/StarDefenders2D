@@ -7247,7 +7247,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 6;
+				return 3.5;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -7275,7 +7275,8 @@ class sdGunClass
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 3;
-						gun._held_by.matter -= 6;
+						gun._held_by.matter -= 3.5; // Zektaron beam is at 6 or 7 while being 2x as strong
+						gun._held_by.matter -= 3.5; // Zektaron beam is at 6 or 7 while being 2x as strong
 					}
 				}
 				return true;
@@ -7283,7 +7284,7 @@ class sdGunClass
 			projectile_properties: { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }; // High fire damage. Custom guns go to 500 temperature, so why not.
+				let obj = { _rail: true, _rail_alt:true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }; // High fire damage. Custom guns go to 500 temperature, so why not.
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -7296,6 +7297,12 @@ class sdGunClass
 				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					let temp = sdStatusEffect.GetTemperature( target_entity ) || 0; // Check entity temperature
+					if ( temp > 700 ) // On fire?
+					obj._damage = obj._damage * 1.25; // 25% more damage on targets set on fire
+				};
 				
 				return obj;
 			},

@@ -10,6 +10,7 @@ import sdBlock from './sdBlock.js';
 import sdGun from './sdGun.js';
 import sdTask from './sdTask.js';
 import sdFactions from './sdFactions.js';
+import sdDrone from './sdDrone.js';
 import sdWeather from './sdWeather.js';
 
 
@@ -457,9 +458,68 @@ class sdBeamProjector extends sdEntity
 				}
 			}
 			if ( this.has_players_nearby )
-			this.progress = Math.min( this.progress + 0.35, 101 );
+			{
+				let old_progress = this.progress;
+				this.progress = Math.min( this.progress + 0.35, 101 );
+				
+				if ( Math.round( ( old_progress * 100 ) / 250 ) < Math.round( ( this.progress * 100 ) / 250 ) ) // Should spawn about 40 assault drones during the fight
+				{
+					let drone = new sdDrone({ x:0, y:0 , type:18 });
+
+					sdEntity.entities.push( drone );
+										
+					let x,y;
+					let tr = 100;
+					do
+					{
+						{
+							x = this.x + 128 - ( Math.random() * 256 );
+
+							if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+							x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+							if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+							x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+						}
+
+						y = this.y + 128 - ( Math.random() * ( 256 ) );
+						if ( y < sdWorld.world_bounds.y1 + 32 )
+						y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+						if ( y > sdWorld.world_bounds.y2 - 32 )
+						y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+						if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+						{
+							drone.x = x;
+							drone.y = y;
+
+							sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
+							sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
+							//if ( ( this._ai_team || -1 ) !== this._ai_team )
+							//drone.SetTarget( this );
+								
+							drone._attack_timer = 10;
+
+							sdWorld.UpdateHashPosition( drone, false );
+							//console.log('Drone spawned!');
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							drone.remove();
+							drone._broken = false;
+							break;
+						}
+					} while( true );
+				}
+			}
 		}
-		
 	}
 	onMovementInRange( from_entity )
 	{

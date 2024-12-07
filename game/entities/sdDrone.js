@@ -45,6 +45,7 @@ class sdDrone extends sdEntity
 		sdDrone.img_zektaron_drone3 = sdWorld.CreateImageFromFile( 'zektaron_drone3' ); // By LordBored
 
 		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council_sprite' );
+		sdDrone.img_drone_council2 = sdWorld.CreateImageFromFile( 'drone_council_sprite2' );
 		sdDrone.img_drone_setr = sdWorld.CreateImageFromFile( 'drone_setr_sprite' );
 
 		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg_sprite' ); // By floor/flora/Gravel
@@ -78,6 +79,7 @@ class sdDrone extends sdEntity
 		sdDrone.DRONE_ZEKTARON_CORVETTE = 15;
 		sdDrone.DRONE_ZEKTARON_HUNTER = 16;
 		sdDrone.DRONE_SD_BG = 17;
+		sdDrone.DRONE_COUNCIL_ATTACK = 18;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -134,10 +136,11 @@ class sdDrone extends sdEntity
 			this.type === sdDrone.DRONE_FALKOK_RAIL ? 320 : 
 			this.type === sdDrone.DRONE_CUT_DROID ? 2000 : 
 			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
+			this.type === sdDrone.DRONE_COUNCIL_ATTACK ? 150 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 	
 		this._hea = this._hmax;
-		this._ai_team = params._ai_team || 0;
+		this._ai_team = params._ai_team || this.GetDroneTeam();
 		
 		if ( this.type === sdDrone.DRONE_CUT_DROID )
 		this._ai_team = -1; // Not affiliated with any faction
@@ -148,6 +151,10 @@ class sdDrone extends sdEntity
 		// Targetting
 		this._current_target = params.target || null;
 		this._pathfinding = null;
+		
+		// Aiming
+		this._look_x = this.x;
+		this._look_y = this.y;
 		
 		if ( this._current_target ) 
 		this.SetTarget( this._current_target ); 
@@ -302,6 +309,34 @@ class sdDrone extends sdEntity
 		}
 	}*/
 	
+	GetDroneTeam(){
+		if ( this.type === sdDrone.DRONE_SD_BG )
+		return 0;
+		
+		if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL )
+		return 1;
+		
+		if ( this.type === sdDrone.DRONE_ERTHAL )
+		return 2;
+	
+		if ( this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_COUNCIL_ATTACK )
+		return 3;
+	
+		if ( this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE )
+		return 4;
+	
+		if ( this.type === sdDrone.DRONE_ZEKTARON || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE || this.type === sdDrone.DRONE_ZEKTARON_HUNTER )
+		return 4;
+	
+		if ( this.type === sdDrone.DRONE_SETR )
+		return 7;
+	
+		if ( this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
+		return 8;
+		
+		return -1;
+	}
+	
 	GetRandomTarget()
 	{
 		let ent = sdEntity.GetRandomActiveEntity();
@@ -438,7 +473,8 @@ class sdDrone extends sdEntity
 			}
 	
 			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || 
-				 this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL || this.type === sdDrone.DRONE_SD_BG )
+				 this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL || this.type === sdDrone.DRONE_SD_BG ||
+				 this.type === sdDrone.DRONE_COUNCIL_ATTACK )
 			{
 				let explosion_color = sdEffect.default_explosion_color;
 				
@@ -811,7 +847,7 @@ class sdDrone extends sdEntity
 				else
 				{
 					if ( this.attack_frame < 1 ) // Not attacking
-					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
+					this.side = ( this._look_x > this.x ) ? 1 : -1;
 
 					if ( this._last_jump < sdWorld.time - 200 )
 					//if ( this._last_stand_on )
@@ -897,6 +933,7 @@ class sdDrone extends sdEntity
 
 						this.sx += dx;
 						this.sy += dy;
+						
 
 						//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
 						//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
@@ -985,12 +1022,18 @@ class sdDrone extends sdEntity
 
 			if ( this.attack_frame > 0 )
 			this.attack_frame = Math.max( 0, this.attack_frame - GSPEED * 0.1 );
-			else
+			//else
+				
+			// Drones now "aim" at entities
 			if ( sdWorld.is_server )
 			if ( this._current_target )
 			{
-				let dx = this._current_target.x - this.x;
-				let dy = this._current_target.y - this.y;
+				// Target aiming so players can dodge
+				this._look_x = sdWorld.MorphWithTimeScale( this._look_x, this._current_target.x + ( ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 ), 0.95, GSPEED );
+				this._look_y = sdWorld.MorphWithTimeScale( this._look_y, this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 ), 0.95, GSPEED );
+				
+				let dx = this._look_x - this.x;
+				let dy = this._look_y - this.y;
 				if ( this.type !== 6 )
 				this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 			}
@@ -1048,7 +1091,7 @@ class sdDrone extends sdEntity
 				{
 					this._last_attack = sdWorld.time; // So it is not so much calc intensive
 
-					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, sdCom.com_faction_attack_classes );
+					/*let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, sdCom.com_faction_attack_classes );
 					let from_entity;
 
 					let nears = [];
@@ -1109,6 +1152,13 @@ class sdDrone extends sdEntity
 
 					//let hits_left = 4;
 					
+					*/
+					
+					let nears = [];
+					let from_entity;
+					if ( this._current_target )
+					nears.push( { ent: this._current_target, rank: Math.random() * 0.1, ignore_line_of_sight: false } ); // It attacks only one target now
+				
 					if ( pathfinding_result && pathfinding_result.attack_target )
 					{
 						nears.push( { ent: pathfinding_result.attack_target, rank: 0, ignore_line_of_sight: true } ); // Not a priority usually
@@ -1118,10 +1168,11 @@ class sdDrone extends sdEntity
 					{
 						from_entity = nears[ i ].ent;
 
-						let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
-						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+						let xx = this._look_x;
+						let yy = this._look_y;
 
-						if ( nears[ i ].ignore_line_of_sight || sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+						let in_attack_range = ( sdWorld.Dist2D( this.x, this.y, from_entity.x, from_entity.y ) < 240 ) ? true : false;
+						if ( ( nears[ i ].ignore_line_of_sight || sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) ) && in_attack_range )
 						{
 							let dx = xx - this.x;
 							let dy = yy - this.y;
@@ -1146,7 +1197,7 @@ class sdDrone extends sdEntity
 							//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
 
 							//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:2.8 });
-							if ( this.type === sdDrone.DRONE_FALKOK  ) // Falkok drones
+							if ( this.type === sdDrone.DRONE_FALKOK ) // Falkok drones
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -1173,7 +1224,7 @@ class sdDrone extends sdEntity
 								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
 							}
 							else
-							if ( this.type === sdDrone.DRONE_ERTHAL  ) // Erthal drones
+							if ( this.type === sdDrone.DRONE_ERTHAL ) // Erthal drones
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -1671,7 +1722,7 @@ class sdDrone extends sdEntity
 							}
 							else
 							if ( this.type === sdDrone.DRONE_SETR && // Setr drones
-								 sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 128 )
+								 sdWorld.Dist2D( this.x, this.y, from_entity.x, from_entity.y ) < 128 )
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -1853,6 +1904,36 @@ class sdDrone extends sdEntity
 								//IsCuttingHook() cuts the hook
 							}
 							else
+							if ( this.type === sdDrone.DRONE_COUNCIL_ATTACK ) // Council assault drone
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+								bullet_obj._owner = this;
+
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								bullet_obj.x += bullet_obj.sx * 3;
+								bullet_obj.y += bullet_obj.sy * 3;
+
+								bullet_obj.sx *= 12;
+								bullet_obj.sy *= 12;
+
+								bullet_obj._damage = 24;
+								bullet_obj.color = '#ffff00';
+								bullet_obj._rail = true;
+								bullet_obj._rail_alt = true;
+								bullet_obj._temperature = 100;
+
+
+								sdEntity.entities.push( bullet_obj );
+
+								this.attack_frame = 2;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
+								this._attack_timer = 13;
+
+								sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:this.x, y:this.y, volume:1.2 });
+							}
+							else
 							{
 								// Drone type has undefined behavior or too far from one of targets. We should skip the target as it can not be damaged
 								continue
@@ -1920,6 +2001,8 @@ class sdDrone extends sdEntity
 		return "Cut droid";
 		if ( this.type === sdDrone.DRONE_SD_BG )
 		return "SD-BG Drone";
+		if ( this.type === sdDrone.DRONE_COUNCIL_ATTACK )
+		return "Council Assault Drone";
 	
 		return 'Drone';
 	}
@@ -2017,6 +2100,9 @@ class sdDrone extends sdEntity
 
 		if ( this.type === sdDrone.DRONE_COUNCIL )
 		image = sdDrone.img_drone_council;
+	
+		if ( this.type === sdDrone.DRONE_COUNCIL_ATTACK )
+		image = sdDrone.img_drone_council2;
 
 		if ( this.type === sdDrone.DRONE_SETR )
 		image = sdDrone.img_drone_setr;
