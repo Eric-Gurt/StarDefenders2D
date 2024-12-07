@@ -682,10 +682,6 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
 				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
 				sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });*/
-				sdShop.options.push({ _class: 'sdDrone', type: 6, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
 				/*sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 40, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 80, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', matter_max: 160, _category:'Development tests' });
@@ -741,18 +737,23 @@ class sdShop
 				
 				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_EXCAVATOR_QUARTZ, _category:'Development tests' });*/
 				
-				sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
+				//sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', _ai_team: 1, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 10, _ai_team: 1, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 2, _ai_team: 2, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 3, _ai_team: 4,_category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 4, _ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 5, _ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 12, _ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 13, _ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 14, _ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 15, _ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 16, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 10, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 2, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 5, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 6, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 12, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 13, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 14, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 15, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 16, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 18, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 11, _ai_team: -1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
