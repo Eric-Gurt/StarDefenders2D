@@ -120,6 +120,9 @@ class sdCouncilMachine extends sdEntity
 					{
 						drone.x = x;
 						drone.y = y;
+						
+						drone._look_x = x + 0.5 - Math.random();
+						drone._look_y = y + 0.5 - Math.random();
 
 						sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
 						sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
