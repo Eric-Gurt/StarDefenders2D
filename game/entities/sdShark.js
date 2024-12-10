@@ -42,7 +42,7 @@ class sdShark extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 600;
+		this._hmax = 300;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;

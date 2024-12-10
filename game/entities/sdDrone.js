@@ -121,22 +121,22 @@ class sdDrone extends sdEntity
 		this.type = params.type || 1;
 		
 		this._hmax = 
-			this.type === sdDrone.DRONE_SETR ? 120 : 
-			this.type === sdDrone.DRONE_COUNCIL ? 180 : 
-			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR ? 100 : 
-			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ? 800 : 
-			this.type === sdDrone.DRONE_SARRONIAN ? 550 :
-			this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE ? 200 :
-			this.type === sdDrone.DRONE_SARRONIAN_GAUSS ? 650 :
-			this.type === sdDrone.DRONE_ZEKTARON ? 170 :
-			this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ? 500 :
+			this.type === sdDrone.DRONE_SETR ? 90 : 
+			this.type === sdDrone.DRONE_COUNCIL ? 140 : 
+			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR ? 90 : 
+			this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ? 750 : 
+			this.type === sdDrone.DRONE_SARRONIAN ? 500 :
+			this.type === sdDrone.DRONE_SARRONIAN_REPAIR_DRONE ? 140 :
+			this.type === sdDrone.DRONE_SARRONIAN_GAUSS ? 600 :
+			this.type === sdDrone.DRONE_ZEKTARON ? 160 :
+			this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ? 450 :
 			this.type === sdDrone.DRONE_ZEKTARON_HUNTER ? 500 :
-			this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : 
-			this.type === sdDrone.DRONE_FALKOK ? 130 : 
-			this.type === sdDrone.DRONE_FALKOK_RAIL ? 320 : 
-			this.type === sdDrone.DRONE_CUT_DROID ? 2000 : 
-			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
-			this.type === sdDrone.DRONE_COUNCIL_ATTACK ? 150 : 
+			this.type === sdDrone.DRONE_TZYRG_WATCHER ? 350 : 
+			this.type === sdDrone.DRONE_FALKOK ? 120 : 
+			this.type === sdDrone.DRONE_FALKOK_RAIL ? 280 : 
+			this.type === sdDrone.DRONE_CUT_DROID ? 1200 : 
+			this.type === sdDrone.DRONE_SD_BG ? 1800 : 
+			this.type === sdDrone.DRONE_COUNCIL_ATTACK ? 180 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 	
 		this._hea = this._hmax;
@@ -245,15 +245,16 @@ class sdDrone extends sdEntity
 		if ( this._current_target === ent )
 		return true;
 
-		if ( this._ai_team === 1 || this._ai_team === 6 || this._ai_team === 7 || this._ai_team === 8 ) // Falkok, Council, Setr and Tzyrg drones
+		if ( this._ai_team === 1 || this._ai_team === 8 ) // Tier 1 drones targetting: Falkok and Tzyrg drones
 		return true;
-		if ( this._ai_team === 2 ) // Erthal drones
+
+		if ( this._ai_team === 2 || ent._ai_team === 7 ) // Tier 2 drones targetting: Erthal and Setr drones
 		{
-			if ( ent._ai_team === 2 )
+			if ( ent._ai_team === this._ai_team  )
 			return false;
 			else
 			{
-				if ( ent._ai_team === 0 && ent.matter < 200 && this._current_target !== ent )
+				if ( ent._ai_team === 0 && ent.matter < 1200 && this._current_target !== ent )
 				return false;
 				else
 				{
@@ -262,13 +263,14 @@ class sdDrone extends sdEntity
 				}
 			}
 		}
-		if ( this._ai_team === 4 ) // Sarronian & Zektaron drones
+
+		if ( this._ai_team === 4 || ent._ai_team === 6 ) // Tier 3 drones targetting: Sarronian + Zektaron & Council drones
 		{
-			if ( ent._ai_team === 4  )
+			if ( ent._ai_team === this._ai_team  )
 			return false;
 			else
 			{
-				if ( ent._ai_team === 0 && ent.matter < 1200 && this._current_target !== ent )
+				if ( ent._ai_team === 0 && ent.matter < 1800 && this._current_target !== ent )
 				return false;
 				else
 				{
@@ -466,7 +468,7 @@ class sdDrone extends sdEntity
 			//if ( initiator )
 			if ( this._ai_team !== 0 ) // Not friendly?
 			{
-				if ( this._hmax > 550 )
+				if ( this._hmax > 400 )
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 				else
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
@@ -1211,7 +1213,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 12;
 								bullet_obj.sy *= 12;
 
-								bullet_obj._damage = 15;
+								bullet_obj._damage = 12;
 								bullet_obj.color = '#afdfff';
 
 
@@ -1271,9 +1273,9 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 12;
 								bullet_obj.sy *= 12;
 
-								bullet_obj._damage = 24; // 20, changed values to fit more the weapon they drop
+								bullet_obj._damage = 24;
 								bullet_obj.color = '#00c600';
-								bullet_obj.explosion_radius = 18; // 32
+								bullet_obj.explosion_radius = 12;
 								bullet_obj.model = 'sarronian_ball';
 
 								sdEntity.entities.push( bullet_obj );
@@ -1297,7 +1299,7 @@ class sdDrone extends sdEntity
 									obj._ignore_collisions_with = this; // Make sure it can pass through the detonator carrier 
 									obj.model = 'sarronian_bio_blob';
 									obj.color = '#974800';
-									obj.explosion_radius = 16;
+									obj.explosion_radius = 18;
 									obj._hittable_by_bullets = false;
 									obj.is_grenade = true;
 									obj.time_left = 120;
@@ -1473,10 +1475,10 @@ class sdDrone extends sdEntity
 									bullet_obj.sx *= 32;
 									bullet_obj.sy *= 32;
 	
-									bullet_obj._damage = 128;
+									bullet_obj._damage = 118;
 									bullet_obj.model = 'sarronian_bolt',
 									bullet_obj.color = '#00c600';
-									bullet_obj.explosion_radius = 24 / 1.5; // one-shots at 128 damage
+									bullet_obj.explosion_radius = 16;
 									
 									sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:this.x, y:this.y, volume: 1.5, pitch: 2 });
 									sdEntity.entities.push( bullet_obj );
@@ -1505,7 +1507,7 @@ class sdDrone extends sdEntity
 
 								bullet_obj._damage = 24;
 								bullet_obj.color = '#900000';
-								bullet_obj.explosion_radius = 6; // 32
+								bullet_obj.explosion_radius = 6;
 								bullet_obj.model = 'ball_red';
 
 								sdEntity.entities.push( bullet_obj );
@@ -1539,10 +1541,10 @@ class sdDrone extends sdEntity
 									bullet_obj.sx *= 8 + Math.random() * 9 - Math.random();
 									bullet_obj.sy *= 8 + Math.random() * 9 - Math.random();
 
-									bullet_obj._damage = 27;
+									bullet_obj._damage = 26;
 									bullet_obj.color = '#cd1e1e';
 									bullet_obj.model = 'ball_red';
-									bullet_obj.explosion_radius = 9;
+									bullet_obj.explosion_radius = 8;
 
 									sdEntity.entities.push( bullet_obj );
 								}
@@ -1736,7 +1738,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 12;
 								bullet_obj.sy *= 12;
 
-								bullet_obj._damage = 20;
+								bullet_obj._damage = 22;
 								bullet_obj.color = '#0000c8';
 								bullet_obj._rail = true;
 								bullet_obj._knock_scale = 3; // Low damage, high knockback
@@ -1784,7 +1786,7 @@ class sdDrone extends sdEntity
 								bullet_obj2.sx *= 12;
 								bullet_obj2.sy *= 12;
 
-								bullet_obj2._damage = 15;
+								bullet_obj2._damage = 14;
 
 
 								sdEntity.entities.push( bullet_obj2 );
@@ -1816,7 +1818,7 @@ class sdDrone extends sdEntity
 									bullet_obj.sx *= 12 + Math.random() * 8 - Math.random() * 8;
 									bullet_obj.sy *= 12 + Math.random() * 8 - Math.random() * 8;
 
-									bullet_obj._damage = 15;
+									bullet_obj._damage = 14;
 
 
 									sdEntity.entities.push( bullet_obj );
@@ -1845,7 +1847,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 12;
 								bullet_obj.sy *= 12;
 
-								bullet_obj._damage = 20;
+								bullet_obj._damage = 18;
 								bullet_obj.color = '#ff0000';
 								bullet_obj._rail = true;
 								bullet_obj._rail_circled = true;
@@ -1874,7 +1876,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 14 + Math.random() * 2;
 								bullet_obj.sy *= 14 + Math.random() * 2;
 
-								bullet_obj._damage = 13.5 * 2;
+								bullet_obj._damage = 18;
 								bullet_obj.color = '#ffaa00';
 
 
@@ -1918,7 +1920,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 12;
 								bullet_obj.sy *= 12;
 
-								bullet_obj._damage = 24;
+								bullet_obj._damage = 22;
 								bullet_obj.color = '#ffff00';
 								bullet_obj._rail = true;
 								bullet_obj._rail_alt = true;

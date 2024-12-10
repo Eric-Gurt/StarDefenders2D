@@ -62,8 +62,8 @@ class sdFactionskin extends sdEntity
 			"helmet1":true,
 			"voice1":true };
 
-			character_entity.matter = 185;
-			character_entity.matter_max = 185;
+			character_entity.matter = 250;
+			character_entity.matter_max = 250;
 
 			character_entity.hea = 250; // It is a star defender after all
 			character_entity.hmax = 250;
@@ -101,16 +101,20 @@ class sdFactionskin extends sdEntity
 			"legs60":true,
 			"voice6":true };
 
-			character_entity.matter = 85;
-			character_entity.matter_max = 85;
+			character_entity.matter = 150;
+			character_entity.matter_max = 150;
 
 			character_entity.hea = 125; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
 			character_entity.hmax = 125;
+			character_entity.armor = 1000;
+			character_entity.armor_max = 1000;
+			character_entity._armor_absorb_perc = 0.33; // 33% damage reduction, regular Falkonian armor
+			character_entity.armor_speed_reduction = 35; // Armor speed reduction, 35% for regular Falkonian armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 
-			character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+			character_entity._matter_regeneration = 5 + character_entity._ai_level; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
@@ -135,16 +139,20 @@ class sdFactionskin extends sdEntity
 			"legs60":true,
 			"voice6":true };
 
-			character_entity.matter = 125;
-			character_entity.matter_max = 125;
+			character_entity.matter = 250;
+			character_entity.matter_max = 250;
 
 			character_entity.hea = 250; // It is a stronger falkok after all
 			character_entity.hmax = 250;
+			character_entity.armor = 1000;
+			character_entity.armor_max = 1000;
+			character_entity._armor_absorb_perc = 0.4; // 40% damage reduction, regular Falkonian armor
+			character_entity.armor_speed_reduction = 40; // Armor speed reduction, 40% for Phoenix Falkonian armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 										
-			character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+			character_entity._matter_regeneration = 5 + character_entity._ai_level; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
@@ -170,12 +178,16 @@ class sdFactionskin extends sdEntity
 			"legs3":true,
 			"voice11":true };
 
-			character_entity.matter = 150;
-			character_entity.matter_max = 150;
+			character_entity.matter = 250;
+			character_entity.matter_max = 250;
 
-			character_entity.hea = 500;
-			character_entity.hmax = 500;
-	
+			character_entity.hea = 300;
+			character_entity.hmax = 300;
+			character_entity.armor = 100;
+			character_entity.armor_max = 100;
+			character_entity._armor_absorb_perc = 0.75; // 75% damage reduction, standard Erthalian armor
+			character_entity.armor_speed_reduction = 15; // Armor speed reduction, 15% for Erthalian armor
+
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };			
 			character_entity._ai_level = 4;
 
@@ -205,11 +217,11 @@ class sdFactionskin extends sdEntity
 			"legs27":true,
 			"voice8":true };
 
-			character_entity.matter = 300;
-			character_entity.matter_max = 300; // Let player leech matter off the bodies
+			character_entity.matter = 500;
+			character_entity.matter_max = 500; // Let player leech matter off the bodies
 
-			character_entity.hea = 650;
-			character_entity.hmax = 650;
+			character_entity.hea = 600;
+			character_entity.hmax = 600;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = 10;
@@ -244,11 +256,15 @@ class sdFactionskin extends sdEntity
 			"legs68":true,
 			"voice8":true };
 
-			character_entity.matter = 300;
-			character_entity.matter_max = 300; // Let player leech matter off the bodies
+			character_entity.matter = 750;
+			character_entity.matter_max = 750; // Let player leech matter off the bodies
 
-			character_entity.hea = 800;
-			character_entity.hmax = 800;
+			character_entity.hea = 750;
+			character_entity.hmax = 750;
+			character_entity.armor = 250;
+			character_entity.armor_max = 250;
+			character_entity._armor_absorb_perc = 0.6; // 60% damage reduction, standard Council armor
+			character_entity.armor_speed_reduction = 20; // Armor speed reduction, 20% for Council armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = 10;
@@ -283,11 +299,15 @@ class sdFactionskin extends sdEntity
 			"legs51":true,
 			"voice10":true };
 
-			character_entity.matter = 350;
-			character_entity.matter_max = 350;
+			character_entity.matter = 400;
+			character_entity.matter_max = 400;
 
-			character_entity.hea = 350;
-			character_entity.hmax = 350;
+			character_entity.hea = 400;
+			character_entity.hmax = 400;
+			character_entity.armor = 125;
+			character_entity.armor_max = 125;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction, reactive Sarronian armor
+			character_entity.armor_speed_reduction = 5; // Armor speed reduction, 5% for Sarronian armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -318,11 +338,15 @@ class sdFactionskin extends sdEntity
 			"legs51":true,
 			"voice10":true };
 
-			character_entity.matter = 350;
-			character_entity.matter_max = 350;
+			character_entity.matter = 450;
+			character_entity.matter_max = 450;
 
-			character_entity.hea = 350;
-			character_entity.hmax = 350;
+			character_entity.hea = 450;
+			character_entity.hmax = 450;
+			character_entity.armor = 250;
+			character_entity.armor_max = 250;
+			character_entity._armor_absorb_perc = 0.33; // 33% damage reduction, standard Sarronian armor
+			character_entity.armor_speed_reduction = 5; // Armor speed reduction, 5% for Sarronian armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -353,11 +377,15 @@ class sdFactionskin extends sdEntity
 			"legs89":true, // Lite Velox legs
 			"voice7":true };
 
-			character_entity.matter = 200;
-			character_entity.matter_max = 200;
+			character_entity.matter = 350;
+			character_entity.matter_max = 350;
 
-			character_entity.hea = 500;
-			character_entity.hmax = 500;
+			character_entity.hea = 350;
+			character_entity.hmax = 350;
+			character_entity.armor = 250;
+			character_entity.armor_max = 250;
+			character_entity._armor_absorb_perc = 33; // 33% damage reduction, standard Velox armor
+			character_entity.armor_speed_reduction = 15; // Armor speed reduction, 15% for Velox armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -388,11 +416,15 @@ class sdFactionskin extends sdEntity
 			"legs59":true, // Velox legs
 			"voice7":true };
 
-			character_entity.matter = 200;
-			character_entity.matter_max = 200;
+			character_entity.matter = 350;
+			character_entity.matter_max = 350;
 
-			character_entity.hea = 500;
-			character_entity.hmax = 500;
+			character_entity.hea = 400;
+			character_entity.hmax = 400;
+			character_entity.armor = 125;
+			character_entity.armor_max = 125;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction, reactive Velox armor
+			character_entity.armor_speed_reduction = 15; // Armor speed reduction, 15% for Velox armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -423,17 +455,21 @@ class sdFactionskin extends sdEntity
 			"legs90":true, // Heavy Velox legs
 			"voice7":true };
 
-			character_entity.matter = 400;
-			character_entity.matter_max = 400;
+			character_entity.matter = 600;
+			character_entity.matter_max = 600;
 
-			character_entity.hea = 900;
-			character_entity.hmax = 900;
+			character_entity.hea = 600;
+			character_entity.hmax = 600;
+			character_entity.armor = 250;
+			character_entity.armor_max = 250;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction, Devastator Velox armor
+			character_entity.armor_speed_reduction = 25; // Armor speed reduction, 25% for Devastator Velox armor
 			character_entity.s = 110; // Tougher so bigger target
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
-			character_entity._matter_regeneration = 5; // At least some ammo regen
+			character_entity._matter_regeneration = 25; // ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 5; // AI team 5 is for Velox faction
@@ -458,16 +494,20 @@ class sdFactionskin extends sdEntity
 			"legs22":true,
 			"voice9":true };
 
-			character_entity.matter = 150;
-			character_entity.matter_max = 150;
+			character_entity.matter = 400;
+			character_entity.matter_max = 400;
 
-			character_entity.hea = 560;
-			character_entity.hmax = 560;
+			character_entity.hea = 350;
+			character_entity.hmax = 350;
+			character_entity.armor = 175;
+			character_entity.armor_max = 175;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction, reactive Setr armor
+			character_entity.armor_speed_reduction = 20; // Armor speed reduction, 20% for Setr armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
-			character_entity._matter_regeneration = 5; // At least some ammo regen
+			character_entity._matter_regeneration = 10; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 7; // AI team 7 is for Setr faction
@@ -496,8 +536,12 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 100;
 			character_entity.matter_max = 100;
 
-			character_entity.hea = 200;
-			character_entity.hmax = 200;
+			character_entity.hea = 175;
+			character_entity.hmax = 175;
+			character_entity.armor = 75;
+			character_entity.armor_max = 75;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction, Tzyrgan armor
+			character_entity.armor_speed_reduction = 5; // Armor speed reduction, 5% for Tzyrgan armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
@@ -528,11 +572,15 @@ class sdFactionskin extends sdEntity
 			"legs17":true,
 			"voice10":true };
 
-			character_entity.matter = 85;
-			character_entity.matter_max = 85;
+			character_entity.matter = 90;
+			character_entity.matter_max = 90;
 
 			character_entity.hea = 200;
 			character_entity.hmax = 200;
+			character_entity.armor = 100;
+			character_entity.armor_max = 100;
+			character_entity._armor_absorb_perc = 0.25; // 25% damage reduction, Shurg armor
+			character_entity.armor_speed_reduction = 15; // Armor speed reduction, 15% for Shurg armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
@@ -565,8 +613,12 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 125;
 			character_entity.matter_max = 125;
 
-			character_entity.hea = 350;
-			character_entity.hmax = 350;
+			character_entity.hea = 250;
+			character_entity.hmax = 250;
+			character_entity.armor = 125;
+			character_entity.armor_max = 125;
+			character_entity._armor_absorb_perc = 0.45; // 45% damage reduction, Shurg Commander armor
+			character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for Shurg armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
@@ -596,11 +648,15 @@ class sdFactionskin extends sdEntity
 			"legs25":true,
 			"voice10":true};
 
-			character_entity.matter = 800;
-			character_entity.matter_max = 800;
+			character_entity.matter = 1200;
+			character_entity.matter_max = 1200;
 
-			character_entity.hea = 7000;
-			character_entity.hmax = 7000;
+			character_entity.hea = 3000;
+			character_entity.hmax = 3000;
+			character_entity.armor = 500;
+			character_entity.armor_max = 500;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction, Falkonian Sword Bot armor
+			character_entity.armor_speed_reduction = 20; // Armor speed reduction, 20% for Falkonian Sword Bot armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 
@@ -634,8 +690,8 @@ class sdFactionskin extends sdEntity
 			"helmet1":true,
 			"voice1":true };
 
-			character_entity.matter = 185;
-			character_entity.matter_max = 185;
+			character_entity.matter = 250;
+			character_entity.matter_max = 250;
 
 			character_entity.hea = 250; // It is a star defender after all
 			character_entity.hmax = 250;
@@ -647,7 +703,7 @@ class sdFactionskin extends sdEntity
 
 			character_entity._ai_level = 5;
 
-			character_entity._matter_regeneration = 5; // At least some ammo regen
+			character_entity._matter_regeneration = 50; // ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 0; // AI team 0 is for normal Star Defenders
@@ -671,8 +727,8 @@ class sdFactionskin extends sdEntity
 			"helmet1":true,
 			"voice1":true };
 
-			character_entity.matter = 185;
-			character_entity.matter_max = 185;
+			character_entity.matter = 500;
+			character_entity.matter_max = 500;
 
 			character_entity.hea = 250; // It is a star defender after all
 			character_entity.hmax = 250;
@@ -684,7 +740,7 @@ class sdFactionskin extends sdEntity
 
 			character_entity._ai_level = 5;
 
-			character_entity._matter_regeneration = 5; // At least some ammo regen
+			character_entity._matter_regeneration = 10; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 6; // AI team 6 is for Criminal Star Defenders
@@ -713,8 +769,12 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 1000;
 			character_entity.matter_max = 1000;
 
-			character_entity.hea = 3000;
-			character_entity.hmax = 3000;
+			character_entity.hea = 1500;
+			character_entity.hmax = 1500;
+			character_entity.armor = 500;
+			character_entity.armor_max = 500;
+			character_entity._armor_absorb_perc = 0.33; // 33% damage reduction
+			character_entity.armor_speed_reduction = 0; // Armor speed reduction, 0% for Time Shifter armor
 
 			character_entity._ai = { direction: ( Math.random() < 0.5 ) ? -1 : 1 };
 			character_entity._ai_level =  4; // AI Level
@@ -744,14 +804,14 @@ class sdFactionskin extends sdEntity
 			"helmet1":true,
 			"voice1":true };
 
-			character_entity.matter = 185;
-			character_entity.matter_max = 185;
+			character_entity.matter = 200;
+			character_entity.matter_max = 200;
 
 			character_entity.hea = 250; // It is a star defender after all
 			character_entity.hmax = 250;
 
 			character_entity._ai_level = 10;
-			character_entity._matter_regeneration = 1;
+			character_entity._matter_regeneration = 5;
 			character_entity._matter_regeneration_multiplier = 10;
 			character_entity._ai_team = 0; // AI team 0 is for normal Star Defenders
 
@@ -777,15 +837,15 @@ class sdFactionskin extends sdEntity
 			"helmet1":true,
 			"voice1":true };
 
-			character_entity.matter = 185;
-			character_entity.matter_max = 185;
+			character_entity.matter = 250;
+			character_entity.matter_max = 250;
 
 			character_entity.hea = 250; // It is a star defender after all
 			character_entity.hmax = 250;
 
 			character_entity.armor = 370;
 			character_entity.armor_max = 370;
-			character_entity._armor_absorb_perc = 0.55;
+			character_entity._armor_absorb_perc = 0.55; // 55% damage reduction
 			character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
 
 			character_entity._ai_level = 10;
@@ -816,11 +876,15 @@ class sdFactionskin extends sdEntity
 			"legs37":true,
 			"voice1":true };
 
-			character_entity.matter = 50;
-			character_entity.matter_max = 50;
+			character_entity.matter = 75;
+			character_entity.matter_max = 75;
 
-			character_entity.hea = 100;
-			character_entity.hmax = 100;
+			character_entity.hea = 200;
+			character_entity.hmax = 200;
+			character_entity.armor = 100;
+			character_entity.armor_max = 100;
+			character_entity._armor_absorb_perc = 0.50; // 50% damage reduction
+			character_entity.armor_speed_reduction = 0; // Armor speed reduction, 0% for pilot armor
 
 			character_entity._ai_level = 1;
 			character_entity._ai_team = 0;
@@ -848,8 +912,12 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 500;
 			character_entity.matter_max = 500;
 
-			character_entity.hea = 600;
-			character_entity.hmax = 600;
+			character_entity.hea = 450;
+			character_entity.hmax = 450;
+			character_entity.armor = 250;
+			character_entity.armor_max = 250;
+			character_entity._armor_absorb_perc = 0.4; // 40% damage reduction
+			character_entity.armor_speed_reduction = 15; // Armor speed reduction, 15% for Zektaron armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -861,7 +929,7 @@ class sdFactionskin extends sdEntity
 			character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
 		}
 
-		if ( skin_class === sdFactionskin.SKIN_ZEKTARON_SEEKER ) // Zektaron Assault Unit
+		if ( skin_class === sdFactionskin.SKIN_ZEKTARON_SEEKER ) // Zektaron Seeker Unit
 		{
 			character_settings = { "hero_name":"Zektaron Seeker Unit", // Name
 			"color_bright":"#c0c0c0", // Helmet bright color
@@ -883,8 +951,12 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 500;
 			character_entity.matter_max = 500;
 
-			character_entity.hea = 600;
-			character_entity.hmax = 600;
+			character_entity.hea = 400;
+			character_entity.hmax = 400;
+			character_entity.armor = 150;
+			character_entity.armor_max = 150;
+			character_entity._armor_absorb_perc = 1; // 100% damage reduction
+			character_entity.armor_speed_reduction = 5; // Armor speed reduction, 5% for Zektaron Seeker armor
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels

@@ -44,7 +44,7 @@ class sdVeloxMiner extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 350;
+		this.hmax = 250;
 		this.hea = this.hmax;
 		this.death_anim = 0;
 		this._ai_team = 5; // 5 is AI team for Velox

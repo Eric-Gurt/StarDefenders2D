@@ -32,8 +32,8 @@ class sdVirus extends sdEntity
 		
 		sdVirus.max_seek_range = 1000;
 		
-		sdVirus.normal_max_health = 80;
-		sdVirus.normal_max_health_max = 800 * 3; 
+		sdVirus.normal_max_health = 50;
+		sdVirus.normal_max_health_max = 500 * 3; 
 
 		sdVirus.viruses_tot = 0; // Will bug out in case of manual creation with build tool - because onRemoveAsFakeEntity will be called instead of onRemove
 		sdVirus.big_viruses = 0; // Will bug out in case of manual creation with build tool - because onRemoveAsFakeEntity will be called instead of onRemove
@@ -193,7 +193,7 @@ class sdVirus extends sdEntity
 		if ( this._hea <= 0 && was_alive )
 		{
 			// If not broken into pieces
-			if ( this._hea >= -this.hmax / 80 * 100 )
+			if ( this._hea >= -this.hmax / 50 * 100 )
 			sdSound.PlaySound({ name:'virus_damage2', x:this.x, y:this.y, volume: 1.25, pitch: 1 * sdVirus.normal_max_health / this.hmax });
 				
 			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 * sdVirus.normal_max_health / this.hmax });
@@ -202,7 +202,7 @@ class sdVirus extends sdEntity
 	
 
 			//if ( this._split === 1 )
-			if ( this.hmax > 160 )
+			if ( this.hmax > 100 )
 			{
 				const filtering = ( from_entity )=>
 				{
@@ -271,7 +271,7 @@ class sdVirus extends sdEntity
 			}
 		}
 		
-		if ( this._hea < -this.hmax / 80 * 100 )
+		if ( this._hea < -this.hmax / 50 * 100 )
 		this.remove();
 	}
 	
@@ -423,7 +423,7 @@ class sdVirus extends sdEntity
 				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
-					from_entity.DamageWithEffect( 20 * this.hmax / sdVirus.normal_max_health, this );
+					from_entity.DamageWithEffect( 12 * this.hmax / sdVirus.normal_max_health, this );
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 * this.hmax / sdVirus.normal_max_health );
 					

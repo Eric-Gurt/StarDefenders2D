@@ -52,7 +52,7 @@ class sdStealer extends sdEntity
 		
 		this.regen_timeout = 0;
 		
-		this._hmax = 2000;
+		this._hmax = 1000;
 		this.hea = this._hmax;
 
 		

@@ -67,7 +67,7 @@ class sdBadDog extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 200;
+		this.hmax = 160;
 		this.hea = this.hmax;
 
 		this.type = 0;
@@ -180,7 +180,7 @@ class sdBadDog extends sdEntity
 		{
 			this.hea -= Math.abs( dmg );
 			
-			this._regen_timeout = 30;
+			this._regen_timeout = 60;
 
 			if ( initiator )
 			if ( initiator !== this.master )
@@ -687,10 +687,10 @@ class sdBadDog extends sdEntity
 					
 					if ( this._last_bite_sound < sdWorld.time - 500 )
 					{
-						from_entity.DamageWithEffect( 25, this );
+						from_entity.DamageWithEffect( 24, this );
 						from_entity.PlayDamageEffect( xx, yy );
 						//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
-						this.hea = Math.min( this.hmax, this.hea + 25 );
+						this.hea = Math.min( this.hmax, this.hea + 12 );
 					
 						this._last_bite_sound = sdWorld.time;
 						sdSound.PlaySound({ name:'bad_dog_attack', x:this.x, y:this.y, volume: 0.5 });

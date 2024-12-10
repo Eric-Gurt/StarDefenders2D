@@ -69,9 +69,9 @@ class sdGuanako extends sdEntity
 		
 		this._speak_id = -1;
 		
-		this.hea = 300;
-		this.hmax = 300;
-		
+		this.hmax = 250;
+		this.hea = this.hmax;
+
 		this.side = 1;
 		
 		this._has_score = true;

@@ -52,7 +52,7 @@ class sdAmphid extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 120;
+		this.hmax = 90;
 		this._hea = this.hmax;
 
 		this.death_anim = 0;
@@ -286,7 +286,7 @@ class sdAmphid extends sdEntity
 				{
 					this._last_bite = sdWorld.time;
 
-					from_entity.DamageWithEffect( 50, this );
+					from_entity.DamageWithEffect( 60, this );
 					from_entity.PlayDamageEffect( xx, yy );
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 );

@@ -55,7 +55,7 @@ class sdFaceCrab extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 100;
+		this._hmax = 60;
 	
 		this._hea = this._hmax;
 	

@@ -50,7 +50,7 @@ class sdGrub extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 250; // Still can kill new players at 300 if player does not run away or does not have medikit // 500
+		this._hmax = 200; // Still can kill new players at 300 if player does not run away or does not have medikit // 500
 		this._hea = this._hmax;
 		this._move_timer = 30; // Timer used for moving when unprovoked
 		this.idle = 0;
@@ -335,7 +335,7 @@ class sdGrub extends sdEntity
 					from_entity.DamageWithEffect( 30, this );
 				}
 				else
-				from_entity.DamageWithEffect( 30, this );
+				from_entity.DamageWithEffect( 25, this );
 					
 					//this._hea = Math.min( this._hmax, this._hea + 3 );
 

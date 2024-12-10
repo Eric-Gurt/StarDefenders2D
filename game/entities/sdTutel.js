@@ -31,8 +31,8 @@ class sdTutel extends sdEntity
 		sdTutel.max_seek_range = 600;
 		
 		sdTutel.normal_max_health = [
-			600,
-			200
+			400,
+			250
 		];
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -337,7 +337,7 @@ class sdTutel extends sdEntity
 					
 					from_entity.DamageWithEffect( 40 * bite_strength, this );
 					
-					this._hea = Math.min( this.hmax, this._hea + 15 * bite_strength );
+					this._hea = Math.min( this.hmax, this._hea + 10 * bite_strength );
 
 					from_entity.PlayDamageEffect( xx, yy );
 					

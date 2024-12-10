@@ -56,10 +56,10 @@ class sdQuickie extends sdEntity
 		this._crystal_worth = params.crystal_worth || ( ( this._tier === 2 ) ? 160 : 0 );
 
 		if ( this._tier === 1 )
-		this._hmax = 50;
+		this._hmax = 40;
 		else
 		if ( this._tier === 2 ) // Crystal quickies were meant to have 2x HP due to turning into crystal shards on death.
-		this._hmax = 100;
+		this._hmax = 80;
 		else
 		this._hmax = 7;
 	
@@ -288,7 +288,7 @@ class sdQuickie extends sdEntity
 							// No damage
 						}
 						else*/
-						from_entity.DamageWithEffect( 15 * this._tier, this );
+						from_entity.DamageWithEffect( 18 * this._tier, this );
 					}
 					else
 					from_entity.DamageWithEffect( 15 * this._tier, this );

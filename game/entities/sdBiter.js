@@ -62,7 +62,7 @@ class sdBiter extends sdEntity
 		
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === sdBiter.TYPE_LARGE ? 400 : 60;
+		this._hmax = this.type === sdBiter.TYPE_LARGE ? 200 : 20;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;

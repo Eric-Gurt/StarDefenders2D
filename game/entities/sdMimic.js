@@ -120,7 +120,7 @@ class sdMimic extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 400;
+		this._hmax = 300;
 	
 		this._hea = this._hmax;
 		//this.gibbed = false; 
@@ -579,10 +579,10 @@ class sdMimic extends sdEntity
 								// No damage
 							}
 							else*/
-							from_entity.DamageWithEffect( 45, this );
+							from_entity.DamageWithEffect( 40, this );
 						}
 						else
-						from_entity.DamageWithEffect( 45, this );
+						from_entity.DamageWithEffect( 40, this );
 
 						this._hea = Math.min( this._hmax, this._hea + ( 20 ) );
 

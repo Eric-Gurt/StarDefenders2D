@@ -43,7 +43,7 @@ class sdFleshGrabber extends sdEntity
 		super( params );
 		
 		
-		this._hmax = 200;
+		this._hmax = 140;
 		this._hea = this._hmax;
 		this._pull_timer = 50; // Timer for pulling it's enemies towards it
 		this._tenta_target = null;
@@ -226,7 +226,7 @@ class sdFleshGrabber extends sdEntity
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 						{
 							from_entity.DamageWithEffect( 10, this );
-							this._hea = Math.min( this._hmax, this._hea + 25 );
+							this._hea = Math.min( this._hmax, this._hea + 15 );
 
 
 							from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?

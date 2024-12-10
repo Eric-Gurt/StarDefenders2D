@@ -47,7 +47,7 @@ class sdOverlord extends sdEntity
 		
 		this._speak_id = -1;
 		
-		this.hmax = 3000;
+		this.hmax = 2000;
 		this.hea = this.hmax;
 		
 		this._regen_timeout = 0;
@@ -751,7 +751,7 @@ class sdOverlord extends sdEntity
 
 						bullet_obj.model = 'blaster_proj';
 
-						bullet_obj.explosion_radius = 9;
+						bullet_obj.explosion_radius = 4;
 						
 						//bullet_obj._custom_target_reaction = sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER ].projectile_properties._custom_target_reaction;
 						

@@ -67,7 +67,7 @@ class sdSpider extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === 1 ? 700 : 300;
+		this._hmax = this.type === 1 ? 600 : 250;
 		this._hea = this._hmax;
 		this._ai_team = 2;
 
@@ -465,7 +465,7 @@ class sdSpider extends sdEntity
 					}
 					else
 					{
-						bullet_obj.explosion_radius = 12; // 16 is hard for new players, but too low damage is not challenging
+						bullet_obj.explosion_radius = 9; // 16 is hard for new players, but too low damage is not challenging
 
 						bullet_obj.model = 'mini_rocket';
 						bullet_obj.color = '#00aaff';
@@ -517,7 +517,7 @@ class sdSpider extends sdEntity
 	}
 	HasMercyFor( from_entity )
 	{
-		return ( this._hea > this._hmax / 2 && from_entity.is( sdCharacter ) && from_entity._score < 100 && from_entity.matter < 300 && from_entity._ai_enabled === sdCharacter.AI_MODEL_NONE );
+		return ( this._hea > this._hmax / 2 && from_entity.is( sdCharacter ) && from_entity._score < 100 && from_entity.matter < 600 && from_entity._ai_enabled === sdCharacter.AI_MODEL_NONE );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

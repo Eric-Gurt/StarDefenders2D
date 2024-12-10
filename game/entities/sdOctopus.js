@@ -92,7 +92,7 @@ class sdOctopus extends sdEntity
 		this.driver1 = null;
 		this.driver2 = null;
 		
-		this._hmax = 1000; // Was 2000, but too boring to kill them
+		this._hmax = 800; // Was 2000, but too boring to kill them
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -294,7 +294,7 @@ class sdOctopus extends sdEntity
 		}
 		else
 		{
-			from_entity.DamageWithEffect( 75, this );
+			from_entity.DamageWithEffect( 35, this );
 
 			if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
 			{
@@ -315,7 +315,7 @@ class sdOctopus extends sdEntity
 			}
 		}
 
-		this._hea = Math.min( this._hmax, this._hea + 25 );
+		this._hea = Math.min( this._hmax, this._hea + 15 );
 
 		if ( will_play_damage_effect_and_sound )
 		{
@@ -345,7 +345,7 @@ class sdOctopus extends sdEntity
 		}
 		else
 		{
-			let dmg_speed = 25;
+			let dmg_speed = 20;
 			
 			let digest = ( Math.abs( sdWorld.time - this._last_digestion ) > 1000 );
 			

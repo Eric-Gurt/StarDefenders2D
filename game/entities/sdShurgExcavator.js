@@ -45,7 +45,7 @@ class sdShurgExcavator extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 150;
+		this.hmax = 120;
 		this.hea = this.hmax;
 
 		this._ai_team = 9; // 9 is AI team for Shurgs
@@ -258,7 +258,7 @@ class sdShurgExcavator extends sdEntity
 					bullet_obj._owner = this;
 					bullet_obj.sx = this.side;
 					bullet_obj.color = 'transparent';
-					bullet_obj._damage = 30;
+					bullet_obj._damage = 24;
 					bullet_obj._dirt_mult = 1;
 	
 					sdEntity.entities.push( bullet_obj );

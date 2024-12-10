@@ -47,8 +47,8 @@ class sdRoach extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hea = 30;
-		this._hmax = 30;
+		this._hmax = 20;
+		this._hea = 20;
 		
 		this.bgcrawl = 1; // 1 if crawles on background wall, 0 if on the ground. Always tries to crawle on bg walls if there are any
 		

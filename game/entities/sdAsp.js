@@ -60,10 +60,10 @@ class sdAsp extends sdEntity
 		this._tier = params._tier || params.tier || 1; // Used to determine its' HP and damage
 		
 		if ( this._tier === 1 )
-		this._hmax = 80;
+		this._hmax = 60;
 		else
 		if ( this._tier === 2 ) // Crystal asps were meant to have 2x HP due to turning into crystal shards on death.
-		this._hmax = 160;
+		this._hmax = 120;
 		else
 		this._hmax = 10;
 	
@@ -446,7 +446,7 @@ class sdAsp extends sdEntity
 							bullet_obj.sx *= 12;
 							bullet_obj.sy *= 12;
 
-							bullet_obj._damage = 15;
+							bullet_obj._damage = 16;
 							bullet_obj.color = '#00ff00';
 
 							bullet_obj.model = 'ball_g';
