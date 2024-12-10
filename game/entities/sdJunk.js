@@ -942,59 +942,63 @@ class sdJunk extends sdEntity
 						{
 							if ( Math.random() < 0.8 ) // 80% it spawns a support healing Drone
 							{
-								if ( this._current_minions_count < 3 )
+								let spawn_count = ( this.hea < this.hmax * 0.5 ) ? 2 : 1;
+								for ( let i = 0; i < spawn_count; i++ )
 								{
-									let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
-
-									sdEntity.entities.push( drone );
-									
-									let x,y;
-									let tr = 100;
-									do
+									if ( this._current_minions_count < 3 )
 									{
+										let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
+
+										sdEntity.entities.push( drone );
+										
+										let x,y;
+										let tr = 100;
+										do
 										{
-											x = this.x + 192 - ( Math.random() * 384 );
+											{
+												x = this.x + 192 - ( Math.random() * 384 );
 
-											if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-											x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+												if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+												x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
 
-											if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-											x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
-										}
+												if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+												x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+											}
 
-										y = this.y + 192 - ( Math.random() * ( 384 ) );
-										if ( y < sdWorld.world_bounds.y1 + 32 )
-										y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+											y = this.y + 192 - ( Math.random() * ( 384 ) );
+											if ( y < sdWorld.world_bounds.y1 + 32 )
+											y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-										if ( y > sdWorld.world_bounds.y2 - 32 )
-										y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+											if ( y > sdWorld.world_bounds.y2 - 32 )
+											y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-										if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-										//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-										//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-										{
-											drone.x = x;
-											drone.y = y;
+											if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+											//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+											//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+											{
+												drone.x = x;
+												drone.y = y;
 
-											sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
-											sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+												sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
+												sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
-											drone.SetTarget( this );
+												drone.SetTarget( this );
 
-											sdWorld.UpdateHashPosition( drone, false );
-											//console.log('Drone spawned!');
-											break;
-										}
+												sdWorld.UpdateHashPosition( drone, false );
+												//console.log('Drone spawned!');
+												break;
+											}
 
 
-										tr--;
-										if ( tr < 0 )
-										{
-											drone.remove();
-											drone._broken = false;
-											break;
-										}
-									} while( true );
+											tr--;
+											if ( tr < 0 )
+											{
+												drone.remove();
+												drone._broken = false;
+												break;
+											}
+										} while( true );
+									}
 								}
 							}
 							else // Worm time

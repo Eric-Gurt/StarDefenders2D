@@ -118,13 +118,13 @@ class sdTask extends sdEntity
 			},
 			failure_condition: ( task )=>
 			{
-				if ( !task._target && !task._approached_target )
+				//if ( !task._target && !task._approached_target )
+				//return true;
+				
+				if ( ( !task._target || task._target._is_being_removed ) && !task._approached_target ) // Didn't approach the target at all?
 				return true;
 			
-				if ( task._target._is_being_removed && !task._approached_target ) // Didn't approach the target at all?
-				return true;
-			
-				if ( task._target._is_being_removed && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
+				if ( ( !task._target || task._target._is_being_removed ) && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
 				return true;
 			
 				return false;
@@ -603,6 +603,11 @@ class sdTask extends sdEntity
 					{
 						task._difficulty = params.difficulty;
 					}
+					
+					if ( typeof params.allow_hibernation !== 'undefined' )
+					{
+						task._allow_task_hibernation = params.allow_hibernation; // Make sure it's either set to true or false
+					}
 
 					return false;
 				}
@@ -661,6 +666,16 @@ class sdTask extends sdEntity
 
 
 		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
+		
+		this._allow_task_hibernation = params.allow_hibernation || true; // Comment below, set "false" only for long tasks like the mothership container
+		/*
+			Unfortunately tasks like "Protect and fill the Mothership matter container", for example, take a longer amount of time and players cannot stay online 24/7,
+			meaning they will log out eventually and it will get completed by other players, and the logged out player will not recieve any reward, in fact his task will fail
+			because task in hibernation did not check if goal/objective was reached for the Mothership container ( "task._target.progress >= 100" ) because the Mothership container
+			was already filled with matter and LRTP'd or destroyed ( !this._target || this._target._is_being_removed ) inside failure_condition, making the task which then unhibernates
+			when the logged out player comes back - automatically fail since the Mothership container no longer exists.
+			This feels awful especially if someone who contributed significant amount to the task does not get any reward from it. - Booraz149
+		*/
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
@@ -793,8 +808,8 @@ class sdTask extends sdEntity
 						{
 							this._approached_target = true;
 							this._update_version++;
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						}
-					
 					}
 				}
 			}
@@ -902,6 +917,7 @@ class sdTask extends sdEntity
 		if ( this._executer._socket === null )
 		//if ( this._executer._socket === null && this._type === 0 ) Let's just wake up updated tasks instead // task._type = 1 is for public events which all players can contribute towards, so it should disappear regardless if player disconnects. ( Example - sdWeather.EVENT_CRYSTALS_MATTER )
 		{
+			if ( this._allow_task_hibernation )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}

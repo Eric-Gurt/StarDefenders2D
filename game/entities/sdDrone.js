@@ -655,7 +655,7 @@ class sdDrone extends sdEntity
 				}, 100 );
 			}
 
-			if ( Math.random() < 0.3 ) // 30% chance to drop a metal shard on destruction
+			if ( ( Math.random() < 0.3 && this.type !== sdDrone.DRONE_COUNCIL_ATTACK ) || ( Math.random() < 0.2 && this.type === sdDrone.DRONE_COUNCIL_ATTACK ) ) // 30% chance to drop a metal shard on destruction, 20% if Council assault drone
 			{
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 

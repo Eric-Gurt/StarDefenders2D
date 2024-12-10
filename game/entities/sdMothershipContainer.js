@@ -339,8 +339,10 @@ class sdMothershipContainer extends sdEntity
 							title: 'Protect and fill the mothership matter container with matter',
 							description: desc,
 							difficulty: 1.6,
-							time_left: this._time_until_remove - ( 30 * 3 )
+							time_left: this._time_until_remove - ( 30 * 3 ),
+							allow_hibernation: false
 						});
+						
 					}
 				}
 				
@@ -428,6 +430,10 @@ class sdMothershipContainer extends sdEntity
 			}
 			else // First phase completed?
 			{
+				if ( this._time_until_remove > 30 * 60 * 60 )
+				this._time_until_remove = 30 * 60 * 60; // Set time to LRTP this to 60 minutes, if not below already
+			
+			
 				this._next_task_refresh -= GSPEED;
 				if ( this._next_task_refresh < 0 )
 				{

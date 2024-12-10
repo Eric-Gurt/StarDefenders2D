@@ -267,7 +267,7 @@ class sdBeamProjector extends sdEntity
 
 			if ( ( this._spawn_timer <= 0 && this.no_obstacles && this.has_players_nearby ) || ( this.spawn_timer <= 0 && this.progress > 75 ) )
 			{
-				this._spawn_timer = 360 - ( ( this.progress / 100 ) * 3 * 30 );
+				this._spawn_timer = 900 - ( ( this.progress / 100 ) * 10 * 30 ); // 30 seconds at start, approach 20 when nearing the completion
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -462,8 +462,9 @@ class sdBeamProjector extends sdEntity
 				let old_progress = this.progress;
 				this.progress = Math.min( this.progress + 0.35, 101 );
 				
-				if ( Math.round( ( old_progress * 100 ) / 250 ) < Math.round( ( this.progress * 100 ) / 250 ) ) // Should spawn about 40 assault drones during the fight
+				if ( Math.round( ( old_progress * 100 ) / 125 ) < Math.round( ( this.progress * 100 ) / 125 ) ) // Should spawn about 80 assault drones during the fight
 				{
+					// More of a drone fighting task, while Council bomb has more humanoids. (And more rewards)
 					let drone = new sdDrone({ x:0, y:0 , type:18 });
 
 					sdEntity.entities.push( drone );
