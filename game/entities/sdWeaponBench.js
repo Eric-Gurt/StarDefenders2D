@@ -118,6 +118,8 @@ class sdWeaponBench extends sdEntity
 			{
 				let gun = this.item0;
 				
+				let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+				
 				let ID_MAGAZINE = 2;
 		
 				let ID_DAMAGE_MULT = 7;
@@ -130,7 +132,7 @@ class sdWeaponBench extends sdEntity
 				let ID_SLOT = 14;
 
 				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
-				sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
 				sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
 				
 				let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
@@ -152,6 +154,8 @@ class sdWeaponBench extends sdEntity
 			{
 				let gun = this.item0;
 				
+				let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+				
 				//let ID_MAGAZINE = 2;
 		
 				let ID_DAMAGE_MULT = 7;
@@ -161,7 +165,7 @@ class sdWeaponBench extends sdEntity
 				let ID_ALT_DAMAGE_VALUE = 18;
 
 				if ( this.item0.extra[ ID_DAMAGE_VALUE ] )
-				sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -40, '#ffaaaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
 				if ( this.item0.extra[ ID_ALT_DAMAGE_VALUE ] )
 				sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( this.item0.extra[ ID_ALT_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
 				if ( this.item0.extra[ ID_RECOIL_SCALE ] )

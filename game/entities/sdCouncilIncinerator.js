@@ -210,8 +210,11 @@ class sdCouncilIncinerator extends sdEntity
 			if ( target.GetClass() === 'sdCharacter' || target.GetClass() === 'sdDrone' )
 			if ( target._ai_team !== this._ai_team )
 			return true;
-			if ( target.GetClass() === 'sdSandWorm' ) // TODO : add AI team to council worm without breaking regular worms
-			return true;
+			if ( target.GetClass() === 'sdSandWorm' )
+			{				// TODO : add AI team to council worm without breaking regular worms
+				if ( target.kind !== 3 ) // This should do it?
+				return true;
+			}
 		
 			if ( target.GetClass() === 'sdJunk' )
 			if ( target.type !== sdJunk.TYPE_COUNCIL_BOMB )
@@ -416,7 +419,7 @@ class sdCouncilIncinerator extends sdEntity
 					let r = Math.random();
 					let shards = 2 + Math.round( Math.random() * 3 );
 			
-					if ( r < 0.075 ) // 7.5% chance
+					if ( r < 0.1 ) // 10% chance
 					{
 						let x = this.x;
 						let y = this.y;
@@ -442,6 +445,34 @@ class sdCouncilIncinerator extends sdEntity
 
 						}, 500 );
 					}
+					r = Math.random(); // Reroll RNG
+					if ( r < 0.02 ) // 2% chance to drop Exalted core
+					{
+						let x = this.x;
+						let y = this.y;
+						let sx = this.sx;
+						let sy = this.sy;
+
+						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+							let random_value = Math.random();
+
+							let gun;
+
+							//if ( random_value < 0.45 )
+							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+							//else
+							{
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
+							}
+
+							gun.sx = sx;
+							gun.sy = sy;
+							sdEntity.entities.push( gun );
+
+						}, 500 );
+					}
+					
 					while ( shards > 0 )
 					{
 						let x = this.x;

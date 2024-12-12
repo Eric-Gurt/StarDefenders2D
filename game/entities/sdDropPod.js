@@ -19,12 +19,14 @@ class sdDropPod extends sdEntity
 		sdDropPod.img_pod_kvt = sdWorld.CreateImageFromFile( 'sdDropPod_kvt' ); // Might be better to use sprite sheets for future purposes - Booraz149
 		sdDropPod.img_pod_sd = sdWorld.CreateImageFromFile( 'sdDropPod_sd' );
 		
-		sdDropPod.pod_counter = 0;
+		sdDropPod.kvt_pod_counter = 0;
+		sdDropPod.sd_pod_counter = 0;
 
 		sdDropPod.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
 		sdDropPod.TYPE_KVT = 0; // First pod type is KVT
 		sdDropPod.TYPE_SD = 1; // Star Defenders pod type
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -12; }
@@ -102,7 +104,11 @@ class sdDropPod extends sdEntity
 		};
 		*/
 		
-		sdDropPod.pod_counter++;
+		if ( this.type === sdDropPod.TYPE_KVT )
+		sdDropPod.kvt_pod_counter++;
+	
+		if ( this.type === sdDropPod.TYPE_SD )
+		sdDropPod.sd_pod_counter++;
 	}
 	get mass()
 	{
@@ -628,7 +634,11 @@ class sdDropPod extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		sdDropPod.pod_counter--; // Entity counters should be inside onRemove since some things could remove them without damaging them
+		if ( this.type === sdDropPod.TYPE_KVT )
+		sdDropPod.kvt_pod_counter--;
+	
+		if ( this.type === sdDropPod.TYPE_SD )
+		sdDropPod.sd_pod_counter--;
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );

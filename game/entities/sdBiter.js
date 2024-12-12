@@ -67,7 +67,7 @@ class sdBiter extends sdEntity
 		
 		this.death_anim = 0;
 		
-		this._current_target = null;
+		this._current_target = params.target || null;
 		
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
@@ -77,6 +77,8 @@ class sdBiter extends sdEntity
 		this.side = 1;
 		
 		this.attack_anim = 0;
+		
+		this._unlimited_range = params.unlimited_range || false;
 		
 		this._hibernation_check_timer = 30;
 		
@@ -97,7 +99,7 @@ class sdBiter extends sdEntity
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
-			if ( di < sdBiter.max_seek_range )
+			if ( di < sdBiter.max_seek_range || this._unlimited_range )
 			if ( this._current_target === null || 
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
@@ -201,7 +203,7 @@ class sdBiter extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdBiter.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdBiter.max_seek_range + 32 && !this._unlimited_range ) )
 			this._current_target = null;
 			else
 			{

@@ -11,6 +11,7 @@ import sdGun from './sdGun.js';
 import sdTask from './sdTask.js';
 import sdFactions from './sdFactions.js';
 import sdWeather from './sdWeather.js';
+import sdMothershipContainer from './sdMothershipContainer.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -93,7 +94,7 @@ class sdSolarMatterDistributor extends sdEntity
 		this._next_trace_rethink = 0;
 		this._sun_reaches = false;
 		
-		this._multiplier = 16; // As strong as 4 T4 solar panels
+		this._multiplier = 32; // As strong as 4 T4 solar panels
 		
 		this._time_left = 30 * 60 * 60; // 1 hour from activation, it will teleport away
 		
@@ -144,23 +145,32 @@ class sdSolarMatterDistributor extends sdEntity
 				this._sun_reaches = sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y + this.hitbox_y1, Infinity, true );
 
 				this._next_trace_rethink = sdWorld.time + 5000 + Math.random() * 10000;
-				
-				let players_in_need_of_matter = [];
-				let i = 0;
-				for ( i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdMothershipContainer.containers.length > 0 ) // A Mothership container needs filling?
+				for ( let i = 0; i < sdMothershipContainer.containers.length; i++ ) // Just in case multiple of those exist for some reason in future
 				{
-					if ( sdWorld.sockets[ i ].character )
-					{
-						if ( sdWorld.sockets[ i ].character.build_tool_level <= 10 && sdWorld.sockets[ i ].character.matter < ( sdWorld.sockets[ i ].character.matter_max * 0.8 ) )
-						players_in_need_of_matter.push( sdWorld.sockets[ i ].character );
-					}
-				}
-				
-				for ( i = 0; i < players_in_need_of_matter.length; i++ )
-				{
-					let matter_to_give = Math.min( players_in_need_of_matter[ i ].matter_max * 0.8 - players_in_need_of_matter[ i ].matter, this.matter / players_in_need_of_matter.length ); // Make sure all players which fit criteria get equal unless they need less than the others
-					players_in_need_of_matter[ i ].matter = Math.min( players_in_need_of_matter[ i ].matter_max * 0.8, players_in_need_of_matter[ i ].matter + matter_to_give );
+					let matter_to_give = Math.min( sdMothershipContainer.containers[ i ].matter_max - sdMothershipContainer.containers[ i ].matter, this.matter / sdMothershipContainer.containers.length );
+					sdMothershipContainer.containers[ i ].matter = Math.min( sdMothershipContainer.containers[ i ].matter_max, sdMothershipContainer.containers[ i ].matter + matter_to_give );
 					this.matter -= matter_to_give;
+				}
+				else
+				{
+					let players_in_need_of_matter = [];
+					let i = 0;
+					for ( i = 0; i < sdWorld.sockets.length; i++ )
+					{
+						if ( sdWorld.sockets[ i ].character )
+						{
+							if ( sdWorld.sockets[ i ].character.build_tool_level <= 10 && sdWorld.sockets[ i ].character.matter < ( sdWorld.sockets[ i ].character.matter_max * 0.8 ) )
+							players_in_need_of_matter.push( sdWorld.sockets[ i ].character );
+						}
+					}
+					
+					for ( i = 0; i < players_in_need_of_matter.length; i++ )
+					{
+						let matter_to_give = Math.min( players_in_need_of_matter[ i ].matter_max * 0.8 - players_in_need_of_matter[ i ].matter, this.matter / players_in_need_of_matter.length ); // Make sure all players which fit criteria get equal unless they need less than the others
+						players_in_need_of_matter[ i ].matter = Math.min( players_in_need_of_matter[ i ].matter_max * 0.8, players_in_need_of_matter[ i ].matter + matter_to_give );
+						this.matter -= matter_to_give;
+					}
 				}
 			}
 
@@ -200,7 +210,8 @@ class sdSolarMatterDistributor extends sdEntity
 					event: this._event_to_spawn,
 					near_entity: this,
 					group_radius: 3000,
-					target_entity: this
+					target_entity: this,
+					unlimited_range: true
 				});
 			}
 		
@@ -312,6 +323,8 @@ class sdSolarMatterDistributor extends sdEntity
 			if ( sdWorld.sockets[ i ].character && this.progress < 100 )
 			{
 				let desc = 'We placed a solar powered matter distributor - to help out freshly deployed Star defenders which struggle with matter management. You need to protect it so it can start up.';
+				if ( sdMothershipContainer.containers.length > 0 )
+				desc = 'We placed a solar powered matter distributor - to speed up fueling the Mothership matter container. You need to protect it so it can start up.';
 				if ( this._ai_told_player )
 				desc = 'Protect the solar powered matter distributor until it starts functioning.';
 				sdTask.MakeSureCharacterHasTask({ 
@@ -354,6 +367,15 @@ class sdSolarMatterDistributor extends sdEntity
 						'I can\'t wait to get back to the Mothership after this.',
 						'This device helps Star Defenders running low on matter, as long as it can generate it.',
 						'This device streams matter into our suits if it detects we are low on it.'
+					] );
+					
+					if ( sdMothershipContainer.containers.length > 0 ) // Mothership containers exist?
+					potential_dialogue = sdWorld.AnyOf( [ 
+						'Help us boot the distributor so it can transfer matter to the Mothership matter container!',
+						'This device helps filling up the Mothership matter container we placed on this planet.',
+						'We are tasked to start this device so the Mothership matter container can fill up faster.',
+						'I\'ve heard they reward people well for filling their Mothership matter containers.',
+						'Mothership matter containers are used to power the Mothership and create artificial crystals. Make it happen.'
 					] );
 					players[ i ].Say( potential_dialogue, false, false, false );
 					

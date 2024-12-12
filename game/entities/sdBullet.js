@@ -202,6 +202,7 @@ class sdBullet extends sdEntity
 
 		this._rail = false;
 		this._rail_circled = false;
+		this._rail_alt = false;
 
 		this._affected_by_gravity = false; // Bullet drop?
 		this.gravity_scale = 1;
@@ -282,6 +283,9 @@ class sdBullet extends sdEntity
 
 		if ( this.color !== 'transparent' )
 		{
+			if ( this._rail_alt )
+			sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_ALT_RAIL, color:this.color });
+			else
 			if ( this._rail_circled )
 			sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM_CIRCLED, color:this.color });
 			else

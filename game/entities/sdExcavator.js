@@ -77,7 +77,7 @@ class sdExcavator extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 4000;
+		this.hmax = 5000;
 		this.hea = this.hmax;
 		this._check_for_players = 30;
 		this._next_dig_in = 30;
@@ -135,14 +135,18 @@ class sdExcavator extends sdEntity
 			if ( sdWorld.sockets[ i ].character )
 			{
 				let desc = 'We placed an excavator nearby and we need you to start it up.';
+				let exc_title = 'Power up the excavator';
 				if ( this.activated )
-				desc = 'Keep the excavator powered so the mining potential can be maximized. You can power it with Cube shards and Erthal energy cells, while you can use metal shards to repair it.';
+				{
+					desc = 'Keep the excavator powered so the mining potential can be maximized. You can power it with Cube shards and Erthal energy cells, while you can use metal shards to repair it.';
+					exc_title = 'Keep the excavator powered';
+				}
 				sdTask.MakeSureCharacterHasTask({ 
 					similarity_hash:'PROTECT-'+this._net_id, 
 					executer: sdWorld.sockets[ i ].character,
 					target: this,
 					mission: sdTask.MISSION_TRACK_ENTITY,				
-					title: 'Power up the excavator',
+					title: exc_title,
 					description: desc,
 				});
 			}
@@ -190,30 +194,61 @@ class sdExcavator extends sdEntity
 			
 			if ( this._next_dig_in <= 0 ) // Mining
 			{
-				this._next_dig_in = 24;
+				this._next_dig_in = 9;
+				
+				if ( this.sy < 0.1 && this.sy > -0.1 )
+				this.sy += 0.1; // Hopefully prevents it from freezing in place in air
 				
 				
-				let bullet_obj = new sdBullet({ x: this.x - 8, y: this.y + 8, time_left: 1 }); // Left
+				let bullet_obj = new sdBullet({ x: this.x - 10, y: this.y + 8, time_left: 1 }); // Left
 
 				bullet_obj._owner = this;
 				bullet_obj.sx = 0;
 				bullet_obj.sy = 0.5;
 				bullet_obj.color = 'transparent';
-				bullet_obj._damage = 50;
+				bullet_obj._damage = 100;
 				bullet_obj._dirt_mult = 3;
 				bullet_obj._rail = true;
 				
+				bullet_obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						if ( target_entity.is_big )
+						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
+						else
+						{
+							bullet._damage = bullet._damage / 4; // Less damage for smaller crystals
+							if ( bullet._owner )
+							bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
+						}
+					}
+				};
+				
 				sdEntity.entities.push( bullet_obj );
 				
-				let bullet_obj2 = new sdBullet({ x: this.x + 8, y: this.y + 8, time_left: 1 }); // Right
+				let bullet_obj2 = new sdBullet({ x: this.x + 10, y: this.y + 8, time_left: 1 }); // Right
 
 				bullet_obj2._owner = this;
 				bullet_obj2.sx = 0;
 				bullet_obj2.sy = 0.5;
 				bullet_obj2.color = 'transparent';
-				bullet_obj2._damage = 50;
+				bullet_obj2._damage = 100;
 				bullet_obj2._dirt_mult = 3;
 				bullet_obj2._rail = true;
+				
+				bullet_obj2._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						bullet._damage = bullet._damage / 4;
+						if ( target_entity.is_big )
+						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
+						else
+						if ( bullet._owner )
+						bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
+					}
+				};
 				
 				sdEntity.entities.push( bullet_obj2 );
 				
@@ -223,9 +258,22 @@ class sdExcavator extends sdEntity
 				bullet_obj3.sx = 0;
 				bullet_obj3.sy = 0.5;
 				bullet_obj3.color = 'transparent';
-				bullet_obj3._damage = 50;
+				bullet_obj3._damage = 100;
 				bullet_obj3._dirt_mult = 3;
 				bullet_obj3._rail = true;
+				
+				bullet_obj3._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						bullet._damage = bullet._damage / 4;
+						if ( target_entity.is_big )
+						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
+						else
+						if ( bullet._owner )
+						bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
+					}
+				};
 				
 				sdEntity.entities.push( bullet_obj3 );
 			}

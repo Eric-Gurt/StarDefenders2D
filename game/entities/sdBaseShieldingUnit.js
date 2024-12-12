@@ -181,6 +181,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this._last_value_share = 0;
 		
+		this._last_out_of_bounds_check = 30 * 30; // Timer for checking if BSU is out of playable area
+		
 		sdBaseShieldingUnit.all_shield_units.push( this );
 	}
 	onSnapshotApplied()
@@ -198,12 +200,31 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		if ( this.enabled )
 		if ( sdWorld.is_server )
-		if ( sdWorld.server_config.allowed_base_shielding_unit_types !== null )
-		if ( sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( this.type ) === -1 )
 		{
+			if ( sdWorld.server_config.allowed_base_shielding_unit_types !== null )
+			if ( sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( this.type ) === -1 )
+			{
+				this.SetShieldState( false );
+			}
+			if ( this.IsOutOfBounds() ) // Disable BSU if it's outside play area
 			this.SetShieldState( false );
 		}
 	}
+	
+	IsOutOfBounds()
+	{
+		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		if ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation )
+		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
+			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
+		{
+			return true;
+		}
+		
+		return false;
+	}
+
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_protected_entities' );
@@ -1215,8 +1236,18 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 		
-		if ( !sdWorld.is_server)
+		if ( !sdWorld.is_server )
 		return;
+	
+		if ( this.enabled )
+		this._last_out_of_bounds_check -= GSPEED;
+		if ( this._last_out_of_bounds_check < 0 )
+		{
+			this._last_out_of_bounds_check = 30 * 30; // Check every 30 seconds if BSU is out of bounds
+			if ( this.IsOutOfBounds() ) // Disable BSU if it's outside play area
+			this.SetShieldState( false );
+			
+		}
 	
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
@@ -1839,47 +1870,55 @@ class sdBaseShieldingUnit extends sdEntity
 			
 				if ( command_name === 'SHIELD_ON' )
 				{	
-					this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
-						
-					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_SCORE_TIMED ) !== -1 ) )
-					{	
-						if ( this.matter_crystal >= 1 )
-						{
-							if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this ) )
-							this.SetShieldState( true, exectuter_character );
+			
+					if ( !this.IsOutOfBounds() ) // Disallow activation outside playable area
+					{
+						this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
+							
+						if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_SCORE_TIMED ) !== -1 ) )
+						{	
+							if ( this.matter_crystal >= 1 )
+							{
+								if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this ) )
+								this.SetShieldState( true, exectuter_character );
+								else
+								executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
+							}
 							else
-							executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
+							executer_socket.SDServiceMessage( 'Base shield unit needs at least some score being put into it' );
 						}
 						else
-						executer_socket.SDServiceMessage( 'Base shield unit needs at least some score being put into it' );
-					}
-					else
-					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER ) !== -1 ) )
-					{
-						if ( this.matter_crystal >= 800 )
-						this.SetShieldState( true, exectuter_character );
+						if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER ) !== -1 ) )
+						{
+							if ( this.matter_crystal >= 800 )
+							this.SetShieldState( true, exectuter_character );
+							else
+							executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 in total matter capacity crystals to be put into it' );
+						}
 						else
-						executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 in total matter capacity crystals to be put into it' );
-					}
-					else
-					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_MATTER ) !== -1 ) )
-					{
-						if ( this.matter >= 320 )
-						this.SetShieldState( true, exectuter_character );
+						if ( this.type === sdBaseShieldingUnit.TYPE_MATTER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_MATTER ) !== -1 ) )
+						{
+							if ( this.matter >= 320 )
+							this.SetShieldState( true, exectuter_character );
+							else
+							executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
+						}
 						else
-						executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
+						if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ) !== -1 ) )
+						{
+							//if ( this.matter >= 320 )
+							this.SetShieldState( true, exectuter_character );
+							//else
+							//executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
+						}
+						else
+						{
+							executer_socket.SDServiceMessage( 'Base shield unit of this kind does not work in this environment' );
+						}
 					}
 					else
-					if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ) !== -1 ) )
 					{
-						//if ( this.matter >= 320 )
-						this.SetShieldState( true, exectuter_character );
-						//else
-						//executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
-					}
-					else
-					{
-						executer_socket.SDServiceMessage( 'Base shild unit of this kind does not work in this environment' );
+						executer_socket.SDServiceMessage( 'Base shield unit of this kind does not work in this environment' );
 					}
 				}
 				if ( command_name === 'CLAIMS_RESET' )
@@ -1906,6 +1945,7 @@ class sdBaseShieldingUnit extends sdEntity
 					if ( this.enabled === true )
 					{
 						this.SetShieldState( false, exectuter_character );
+						if ( !this.IsOutOfBounds() )
 						this.SetShieldState( true, exectuter_character );
 					}
 				}

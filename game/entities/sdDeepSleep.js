@@ -124,6 +124,7 @@ import sdBeacon from './sdBeacon.js';
 import sdHover from './sdHover.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdWanderer from './sdWanderer.js';
+import sdBullet from './sdBullet.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -487,6 +488,21 @@ class sdDeepSleep extends sdEntity
 		
 		//trace( 'Movement from ', from_entity );
 		//debugger;
+		
+		if ( from_entity.is( sdBullet ) ) // Bullet?
+		{
+			if ( !from_entity._owner )
+			return;
+			else
+			{
+				if ( !from_entity._owner.is( sdCharacter ) ) // Is this not a character's bullet?
+				return;
+				else
+				if ( !from_entity._owner._socket ) // Is this not a player's bullet?
+				return;
+			}
+		}
+		
 		
 		this.WakeUpArea( true, from_entity );
 	}

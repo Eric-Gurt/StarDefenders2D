@@ -85,6 +85,7 @@ import sdExcavator from './sdExcavator.js';
 import sdWanderer from './sdWanderer.js';
 import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
+import sdMothershipContainer from './sdMothershipContainer.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -164,6 +165,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
 		sdWeather.EVENT_MISSILES =				event_counter++; // 53
 		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
+		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -317,7 +319,8 @@ class sdWeather extends sdEntity
 	{
 		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
 			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
-			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION )
+			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION || n === sdWeather.EVENT_COUNCIL_BOMB ||
+			n === sdWeather.EVENT_COUNCIL_PORTAL || n === sdWeather.EVENT_MOTHERSHIP_CONTAINER )
 		return true;
 		
 		return false;
@@ -1268,6 +1271,7 @@ class sdWeather extends sdEntity
 		let near_ent = params.near_entity || null; // Should this spawn near any entity?
 		let group_rad = params.group_radius || 0; // Allowed radius if spawning near entity, needs to be defined
 		let target_ent = params.target_entity || null; // Should spawned entities target something?
+		let inf_range = params.unlimited_range || false; // Should entities have unlimited range? Only some can have it though.
 		
 		// near_ent, group_rad can be used in most entity spawns, target_ent will be soon
 		
@@ -1426,19 +1430,23 @@ class sdWeather extends sdEntity
 						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				
-					if ( Math.random() < 0.25 )
+					if ( Math.random() < 0.2 )
 					sdWeather.SimpleSpawner({
 
-						count: [ 2, 3 ],
+						count: [ 1 ],
 						class: sdDrone,
 						params: { _ai_team: 1, type: sdDrone.DRONE_FALKOK_RAIL },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				}
@@ -1450,13 +1458,15 @@ class sdWeather extends sdEntity
 			if ( sdAsp.asps_tot < 25 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 
-				count: [ 1, 1 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
+				count: [ 2, 2 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdAsp,
 				
 				aerial: true,
 				aerial_radius: 800,
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				unlimited_range: inf_range,
+				target: target_ent
 
 			});
 
@@ -1592,7 +1602,9 @@ class sdWeather extends sdEntity
 				sdWeather.SimpleSpawner({
 
 					count: [ 1, 1 ],
-					class: sdRift
+					class: sdRift,
+					aerial:true,
+					aerial_radius: 128
 
 				});
 				// I doubt there'll be 8 portals at once on open worlds, but just in case a cap should exist.
@@ -1688,7 +1700,9 @@ class sdWeather extends sdEntity
 				params: { _ai_team: 2, type: sdDrone.DRONE_ERTHAL },
 				aerial: true,
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				unlimited_range: inf_range,
+				target: target_ent
 
 			});
 			
@@ -1775,7 +1789,9 @@ class sdWeather extends sdEntity
 
 				count: [ 1, 1 ],
 				class: sdObelisk,
-				params: { type: 1 + Math.round( Math.random() * 7 ) }
+				params: { type: 1 + Math.round( Math.random() * 7 ) },
+				aerial:true,
+				aerial_radius: 128 // This way it can have some leeway when spawning somewhere
 
 			});
 
@@ -1922,7 +1938,9 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdJunk,
-					params: { type: sdJunk.TYPE_PLANETARY_MATTER_DRAINER }
+					params: { type: sdJunk.TYPE_PLANETARY_MATTER_DRAINER },
+					aerial: true,
+					aerial_radius: 128
 
 				});
 				
@@ -2093,7 +2111,9 @@ class sdWeather extends sdEntity
 					params: { _ai_team: 4, type: drone_type },
 					aerial: true,
 					near_entity: near_ent,
-					group_radius: group_rad
+					group_radius: group_rad,
+					unlimited_range: inf_range,
+					target: target_ent
 
 				});
 				
@@ -2127,7 +2147,9 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdJunk,
 					params: { type: sdJunk.TYPE_COUNCIL_BOMB },
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 
 				});
 				
@@ -2250,7 +2272,9 @@ class sdWeather extends sdEntity
 					count: [ 1, 1 ],
 					class: sdJunk,
 					params: { type: sdJunk.TYPE_ERTHAL_DISTRESS_BEACON },
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 
 				});
 
@@ -2696,7 +2720,9 @@ class sdWeather extends sdEntity
 					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
 					aerial: true,
 					near_entity: near_ent,
-					group_radius: group_rad
+					group_radius: group_rad,
+					unlimited_range: inf_range,
+					target: target_ent
 
 				});
 				
@@ -2863,13 +2889,14 @@ class sdWeather extends sdEntity
 			if ( sdBiter.biters_counter < 35 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 				
-				count: [ 1, Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
+				count: [ 2, 2 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdBiter,
 				
 				aerial: true,
 				aerial_radius: 800,
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				unlimited_range: inf_range
 				
 			});
 			
@@ -2953,81 +2980,19 @@ class sdWeather extends sdEntity
 			
 			if ( Math.random() < chance )
 			{
-				let instances = 0;
-				let instances_tot = 1;
+				let portal_machine = [];
 
-				while ( instances < instances_tot && sdCouncilMachine.ents < 1 )
-				{
-					let council_mach = new sdCouncilMachine({ x:0, y:0});
-
-					sdEntity.entities.push( council_mach );
-					
-					if ( sdWeather.SetRandomSpawnLocation( council_mach ) )
-					{
-						sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
-					}
-					else
-					{
-						council_mach.remove();
-						council_mach._broken = false;
-					}
-
-					/*let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-
-						if ( council_mach.CanMoveWithoutOverlap( x, y - 64, 0 ) )
-						if ( council_mach.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !council_mach.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + council_mach._hitbox_x1 - 16, 
-								y + council_mach._hitbox_y1 - 16, 
-								x + council_mach._hitbox_x2 + 16, 
-								y + council_mach._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let proper_distnace = true;
-									
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-										
-								if ( di < 500 )
-								{
-									proper_distnace = false;
-									break;
-								}
-							}
-									
-							if ( proper_distnace )
-							{
-								council_mach.x = x;
-								council_mach.y = y;
-								sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
-								break;
-							}
-						}
-								
-
-
-						tr--;
-						if ( tr < 0 )
-							{
-							council_mach.remove();
-							council_mach._broken = false;
-							break;
-						}
-					} while( true );*/
-
-					instances++;
-				}
-
+				sdWeather.SimpleSpawner({
+					count: [ 1, 1 ],
+					class: sdCouncilMachine,
+					store_ents: portal_machine,
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
+				});
+				
+				if ( portal_machine.length > 0 ) // Spawned the machine?
+				sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -3195,7 +3160,9 @@ class sdWeather extends sdEntity
 						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				
@@ -3207,7 +3174,9 @@ class sdWeather extends sdEntity
 						params: { _ai_team: 8, type: sdDrone.DRONE_TZYRG_WATCHER },
 						aerial: true,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
 					});
 				}
@@ -3485,16 +3454,28 @@ class sdWeather extends sdEntity
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter converter anywhere on the map outside player views.
 		{
 			{
-				let instances = 0;
-				let instances_tot = 1;
+				//let instances = 0;
+				//let instances_tot = 1;
 
-				while ( instances < instances_tot && sdShurgConverter.converters.length < 1 )
+				//while ( instances < instances_tot && sdShurgConverter.converters.length < 1 )
 				{
-					let converter = new sdShurgConverter({ x:0, y:0});
+					//let converter = new sdShurgConverter({ x:0, y:0});
 
-					sdEntity.entities.push( converter );
+					//sdEntity.entities.push( converter );
 					
-					if ( sdWeather.SetRandomSpawnLocation( converter ) )
+					let converter = [];
+					
+					sdWeather.SimpleSpawner({
+						
+						count: [ 1, 1 ],
+						class: sdShurgConverter,
+						store_ents: converter,
+						aerial: true,
+						aerial_radius: 128
+						
+					})
+					
+					if ( converter.length > 0 ) // Successful spawn?
 					{
 						sdShurgConverter.ents_left = 2; // 3 converters to destroy
 
@@ -3502,9 +3483,10 @@ class sdWeather extends sdEntity
 				
 						count: [ 2, 2 ],
 						class: sdShurgTurret,
-				
+						aerial:true,
+						aerial_radius: 128,
 						group_radius: 800,
-						near_entity: converter
+						near_entity: converter[ 0 ]
 			
 						});
 						sdWeather.SimpleSpawner({
@@ -3513,18 +3495,13 @@ class sdWeather extends sdEntity
 						class: sdShurgTurret,
 						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
 						group_radius: 400,
-						near_entity: converter,
+						near_entity: converter[ 0 ],
 						aerial: true
 			
 						});
 					}
-					else
-					{
-						converter.remove();
-						converter._broken = false;
-					}
 
-					instances++;
+					//instances++;
 				}
 
 			}
@@ -3662,7 +3639,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_KIVORTEC_WEAPONS_POD ) // KIVORTEC Weapons Pod. Has to be hacked before being opened and giving Star Defenders random KVT weaponry.
 		{
-			if ( sdDropPod.pod_counter < ( this._max_pod_count + sdWorld.GetPlayingPlayersCount() ) ) // +1 for every player online.
+			if ( sdDropPod.kvt_pod_counter < ( this._max_pod_count + sdWorld.GetPlayingPlayersCount() ) ) // +1 for every player online.
 			sdWeather.SimpleSpawner({
 				
 				count: [ 1, 1 ],
@@ -3686,8 +3663,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdBeamProjector,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 			else
@@ -3737,8 +3715,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdLongRangeAntenna,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 			else
@@ -3746,49 +3725,40 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_PROTECT_SDBG_DRONE ) // Mothership is trying to see if old drone stockpile is effective on planet ( players need to protect the drone for 5 minutes )
 		{
-			let instances = 0;
-			let instances_tot = 1;
-			while ( instances < instances_tot ) // Only 1 should spawn
 			{
-				let ent = new sdDrone({ x:0, y:0, type: 17, _ai_team: 0 });
+				//let ent = new sdDrone({ x:0, y:0, type: 17, _ai_team: 0 });
 
-				sdEntity.entities.push( ent );
+				//sdEntity.entities.push( ent );
+				
+				let ents = [];
 
+				sdWeather.SimpleSpawner({
+
+					count: [ 1, 1 ],
+					class: sdDrone,
+					params: { type: 17, _ai_team: 0, unlimited_range: true },
+					aerial: true,
+					store_ents: ents,
+					near_entity: near_ent,
+					group_radius: group_rad
+				});
+				for ( let j = 0; j < ents.length; j++ )
 				{
-					//let x,y;
-					let tr = 2;
-					do
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be protected
+					if ( sdWorld.sockets[ i ].character )
 					{
-						if ( sdWeather.SetRandomSpawnLocation( ent ) )
-						{
-							break;
-						}
-
-						tr--;
-						if ( tr < 0 )
-						{
-							ent.remove();
-							ent._broken = false;
-							break;
-						}
-					} while( true );
-				}
-
-				instances++;
-				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be protected
-				if ( sdWorld.sockets[ i ].character )
-				{
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'PROTECT-'+ent._net_id, 
-						executer: sdWorld.sockets[ i ].character,
-						target: ent,
-						mission: sdTask.MISSION_PROTECT_ENTITY,
-						protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
-						time_left: 30 * 60 * 5, // 5 minutes
-						difficulty: 0.075,
-						title: 'Protect a drone',
-						description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
-					});
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'PROTECT-'+ents[ j ]._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: ents[ j ],
+							mission: sdTask.MISSION_PROTECT_ENTITY,
+							protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
+							time_left: 30 * 60 * 5, // 5 minutes
+							difficulty: 0.075,
+							title: 'Protect a drone',
+							description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
+						});
+					}
 				}
 			}
 		}
@@ -3817,7 +3787,9 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdVeloxFortifier,
-					min_air_height: -400 // Minimum free space above entity placement location
+					min_air_height: -400, // Minimum free space above entity placement location
+					aerial: true,
+					aerial_radius: 128
 
 				});
 
@@ -3831,8 +3803,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdSolarMatterDistributor,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 		}
@@ -3842,8 +3815,9 @@ class sdWeather extends sdEntity
 				
 				count: [ 1, 1 ],
 				class: sdExcavator,
-				aerial: false,
-				min_air_height: -400 // Minimum free space above entity placement location
+				min_air_height: -400, // Minimum free space above entity placement location
+				aerial: true,
+				aerial_radius: 128
 				
 			});
 		}
@@ -3870,6 +3844,20 @@ class sdWeather extends sdEntity
 			}
 			//else
 			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_MOTHERSHIP_CONTAINER ) // Mothership matter container spawns, takes awhile to fill, a long task for SD's around the planet.
+		{
+			if ( sdMothershipContainer.containers.length < 1 )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdMothershipContainer,
+				aerial: true, // It takes 0 damage for first few seconds
+				min_air_height: -400 // Minimum free space above entity placement location
+				
+			});
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

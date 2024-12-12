@@ -2008,8 +2008,8 @@ THING is cosmic mic drop!`;
 		this._ai.direction = -this._ai.direction; // Change direction if no suitable blocks are found
 	}
 
-	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
-	{
+	InstallUpgrade( upgrade_name, quick_start = false ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
+	{ // Quick start ignores upgrade station requirement, so /qs gives all upgrades and levels
 		if ( ( sdShop.upgrades[ upgrade_name ].max_with_upgrade_station_level || 0 ) === 0 )
 		{
 			if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
@@ -2024,7 +2024,7 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
-			if ( ( this.GetUpgradeStationLevel() < ( sdShop.upgrades[ upgrade_name ].min_upgrade_station_level || 0 ) ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) ) // Can't upgrade without the station level
+			if ( ( this.GetUpgradeStationLevel() < ( sdShop.upgrades[ upgrade_name ].min_upgrade_station_level || 0 ) ) && ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level ) && !quick_start ) // Can't upgrade without the station level
 			return;
 			else
 			{
@@ -6661,7 +6661,7 @@ THING is cosmic mic drop!`;
 					if ( this !== sdWorld.my_entity )
 					{
 					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
-					this.AddContextOption( 'Start controlling ( AI only )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
+					this.AddContextOption( 'Replace as player ( AI only, delete self-owned )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 					}
 				}
 

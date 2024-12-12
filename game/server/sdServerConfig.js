@@ -61,7 +61,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
-	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive', 'scale' ];
+	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive', 'scale', 'logentitycount' ];
 	static let_non_full_access_level_admin_setup_long_range_teleports = false; // Can potentially cause connecting server to some local LRTPs with admin shop-made items. Also can leak server IP if you are using Cloudflare.
 	static let_server_owner_run_eval_command = false; // Unsafe feature for server security in cases if admin account can end up being stolen. Lets first admin to run JavaScript commands on a server via /eval ...
 	static let_non_full_access_level_admins_save_presets = true; // These are saved into presets_users and can't override same files named same way but made by top level admin

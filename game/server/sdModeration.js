@@ -39,7 +39,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval', 'password' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -911,24 +911,41 @@ class sdModeration
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
-				socket.character.GiveScore( 3000, null, false );
+				socket.character._matter_capacity_boosters = socket.character._matter_capacity_boosters_max;
+				
+				//let full_level = sdCharacter.max_level * 300 - (6000 - 5);
+				let full_level = 60 * 300 - (6000 - 5); // sdCharacter isn't imported and above line results in a crash, keeping it like this for now, unless something else requires sdCharacter import - Booraz
+				socket.character.GiveScore( full_level, null, false );
+				
+				socket.character.matter = socket.character.matter_max;
+
 				for ( var i = 0; i < sdShop.options.length; i++ )
 				{
 					if ( sdShop.options[ i ]._category === 'Upgrades' )
 					{
-						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
+						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_with_upgrade_station_level || sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
 						let cur_level = ( socket.character._upgrade_counters[ sdShop.options[ i ].upgrade_name ] || 0 );
-						if ( sdShop.options[ i ]._min_build_tool_level <= socket.character.build_tool_level )
+						//if ( sdShop.options[ i ]._min_build_tool_level <= socket.character.build_tool_level )
 						{
 							for ( var j = cur_level; j < max_level; j++ )
 							{
-								socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name );
+								socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name, true );
 							}
 						}
 					}
 				}
-				socket.character._matter_capacity_boosters = 900;
 			}
+		}
+		else
+		if ( parts[ 0 ] === 'logentitycount' )
+		{
+			let c = {},es = sdEntity.entities;
+			for( let i = 0; i < es.length; i++ )
+			{
+				c[ es[ i ].GetClass() ] = ( c[ es[ i ].GetClass() ] || 0 ) + 1;
+			}
+			trace( c );
+		
 		}
 		else
 		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );

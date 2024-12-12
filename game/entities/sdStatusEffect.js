@@ -12,6 +12,8 @@ import sdBullet from './sdBullet.js';
 import sdGun from './sdGun.js';
 import sdWeather from './sdWeather.js';
 import sdCrystal from './sdCrystal.js';
+import sdLost from './sdLost.js';
+import sdCom from './sdCom.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -1016,6 +1018,7 @@ class sdStatusEffect extends sdEntity
 				status_entity.charges_left = params.charges_left || 3;
 				status_entity.low_hp = false; // Has Time Shifter reached low HP after losing all "charges"?
 				status_entity.time_to_defeat = 30 * 60 * 10; // 10 minutes per "charge"
+				status_entity._teleport_timer = 36; // Timer when Time Shifter teleports around target
 				
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
@@ -1032,6 +1035,100 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
+				if ( sdWorld.is_server )
+				{
+					if ( status_entity._teleport_timer > 30 )
+					status_entity.for._weapon_draw_timer = 15 + ( 3 * status_entity.charges_left ); // This prevents Time Shifter from attacking after teleport
+				
+					if ( status_entity._teleport_timer && status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ){
+						if ( status_entity.for._ai.target )
+						status_entity._teleport_timer -= GSPEED;
+						if ( status_entity._teleport_timer <= 0 && status_entity.for._ai.target && sdWorld.Dist2D(status_entity.for.x, status_entity.for.y, status_entity.for._ai.target.x, status_entity.for._ai.target.y ) < 300 ) // Time to teleport?
+						{
+							status_entity._teleport_timer = 36;
+							let i = 0;
+							let xx;
+							let yy;
+							while ( i < 60 )
+							{
+								xx = status_entity.for._ai.target.x - 128 + Math.random() * 256;
+								yy = status_entity.for._ai.target.y - 128 + Math.random() * 256;
+														
+								if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) && status_entity.for.CanMoveWithoutOverlap( xx, yy, 4 ) )
+								{
+									//sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
+									sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT });
+									
+									let scenario = Math.round( Math.random() ); // RNG scenario
+									let potential_clones = sdWorld.GetAnythingNear( status_entity.for.x, status_entity.for.y, 128, null, [ 'sdLost' ] ); // Seek "clones" to morph into
+									
+									if ( potential_clones.length === 0 ) // Nothing to morph into?
+									scenario = 0;
+									else
+									if ( scenario === 1 ) // Is the scenario selected?
+									{
+										sdWorld.shuffleArray( potential_clones );
+										scenario = 0; // Default to 0 if bottom part finds no suitable clone
+										for ( let j = 0; j < potential_clones.length; j++ )
+										{
+											if ( potential_clones[ j ].t === 'Time Shifter' && potential_clones[ j ].f === sdLost.FILTER_NONE ) // Is this the clone?
+											{
+												scenario = 1; // Suitable clone found
+												break;
+											}
+											
+										}
+									}
+									
+									if ( scenario === 0 ) // First one, teleport to fit location and occasionally drop "clone" of self, if first phase is done
+									{
+										if ( Math.random() < 0.5 && status_entity.charges_left < 3 )
+										sdLost.CreateLostCopy( status_entity.for, 'Time Shifter', sdLost.FILTER_NONE, 300 );
+																
+										status_entity.for.x = xx;
+										status_entity.for.y = yy;
+										
+										status_entity.for.sx = 0;
+										status_entity.for.sy = 0;
+										
+										if ( status_entity.for.IsPlayerClass() )
+										status_entity.for.ApplyServerSidePositionAndVelocity( true );
+																
+										//sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
+										sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT });
+										i = 60;
+									}
+									if ( scenario === 1 ) // Second scenario, swap body with one of the clones if clones are available
+									{
+										sdLost.CreateLostCopy( status_entity.for, 'Time Shifter', sdLost.FILTER_NONE, 300 );
+										
+										for ( let j = 0; j < potential_clones.length; j++ )
+										{
+											if ( potential_clones[ j ].t === 'Time Shifter' && potential_clones[ j ].f === sdLost.FILTER_NONE ) // Is this the clone?
+											{
+												status_entity.for.x = potential_clones[ j ].x; // Take position
+												status_entity.for.y = potential_clones[ j ].y;
+												potential_clones[ j ].remove(); // Remove "clone"
+												break;
+											}
+										}
+																
+										status_entity.for.sx = 0;
+										status_entity.for.sy = 0;
+										
+										if ( status_entity.for.IsPlayerClass() )
+										status_entity.for.ApplyServerSidePositionAndVelocity( true );
+																
+										//sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
+										//sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT });
+										i = 60;
+									}
+								}
+								i++;
+							}
+						}
+					}
+				}
 				if ( status_entity.charges < 3 )
 				status_entity.time_to_defeat -= GSPEED;
 				if ( status_entity.for.hea < 500 && status_entity.charges_left > 0 )

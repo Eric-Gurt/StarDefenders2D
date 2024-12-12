@@ -33,6 +33,8 @@ class sdTask extends sdEntity
 		
 		sdTask.completed_tasks_count = 0; // Whenever someone completes a task, this increases value by 1. Used to spawn SD Item pods
 		
+		sdTask.reward_claim_task_amount = 0.5; // was 1
+		
 		sdTask.missions = [];
 		
 		let id = 0;
@@ -99,6 +101,15 @@ class sdTask extends sdEntity
 			{
 				return -1;
 			},
+			onTaskMade: ( task, params )=>
+			{
+				// Create extra properties here
+				
+				task._approached_target = false; // Players now need to at least get close to the target to count the task as "completed"
+				task._approach_target_check_timer = 1; // Every 2 seconds it will check if target was approached by task executor, until it does.
+				// Players that don't get close to the objective don't get rewards now.
+				
+			},
 			onCompletion: ( task )=>
 			{
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
@@ -107,20 +118,23 @@ class sdTask extends sdEntity
 			},
 			failure_condition: ( task )=>
 			{
-				if ( !task._target )
+				//if ( !task._target && !task._approached_target )
+				//return true;
+				
+				if ( ( !task._target || task._target._is_being_removed ) && !task._approached_target ) // Didn't approach the target at all?
 				return true;
 			
-				if ( task._target._is_being_removed && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
+				if ( ( !task._target || task._target._is_being_removed ) && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
 				return true;
 			
 				return false;
 			},
 			completion_condition: ( task )=>
 			{
-				if ( !task._target )
+				if ( !task._target && task._approached_target )
 				return true;
 			
-				if ( task._target._is_being_removed && !sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
+				if ( task._target._is_being_removed && !sdLongRangeTeleport.teleported_items.has( task._target ) && task._approached_target ) // Detects LRTP abuse
 				return true;
 			
 				return false;
@@ -128,7 +142,18 @@ class sdTask extends sdEntity
 			onTimeOut: ( task )=>
 			{
 				if ( sdWorld.is_server )
-				task.remove();
+				{
+					if ( task._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'FAILED-' + task._similarity_hash, 
+						executer: task._executer,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
+						title: 'Task failed',
+						description: 'You\'ve failed to complete "' + task.title + '"',
+						time_left: 30 * 5
+					});
+					task.remove();
+				}
 			}
 		};
 		sdTask.missions[ sdTask.MISSION_TRACK_ENTITY = id++ ] = 
@@ -156,7 +181,6 @@ class sdTask extends sdEntity
 				return false;
 			}
 		};
-		sdTask.reward_claim_task_amount = 0.5; // was 1
 		sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_NOTHING,
@@ -238,6 +262,21 @@ class sdTask extends sdEntity
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
+			failure_condition: (task ) =>
+			{
+				if ( task._lrtp_class_proprty_value_array )
+				{
+					// In case of not specific entity
+				}
+				else
+				{
+					// It is a failure condition now
+					// Specific entity
+					if ( ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) && task._lrtp_ents_count < task._lrtp_ents_needed  ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt
+					return true;
+				}
+				return false;
+			},
 			completion_condition: ( task )=>
 			{
 				if ( task._lrtp_matter_capacity_needed !== -1 )
@@ -258,19 +297,32 @@ class sdTask extends sdEntity
 				{
 					// In case of not specific entity
 				}
-				else
+				/*else
 				{
+					// It is a failure condition now
 					// Specific entity
 					if ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
 					task.remove();
-				}
+					// Maybe this should be considrered a failure condition instead? - Booraz
+				}*/
 			
 				return false;
 			},
 			onTimeOut: ( task )=>
 			{
 				if ( sdWorld.is_server )
-				task.remove();
+				{
+					if ( task._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'FAILED-' + task._similarity_hash, 
+						executer: task._executer,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
+						title: 'Task failed',
+						description: 'You\'ve failed to complete "' + task.title + '"',
+						time_left: 30 * 5
+					});
+					task.remove();
+				}
 			},
 			
 			onLongRangeTeleportCalledForEntity: ( task, long_range_teleport, entity )=>
@@ -406,6 +458,8 @@ class sdTask extends sdEntity
 			{
 				// Create extra properties here
 				task._protect_type = params.protect_type || 0; // 0 = progress bar ( Dark matter beam projector, Long range frequency antenna ), 1 = Entity must survive for a time limit ( SD-BG drone )
+				task._approached_target = false; // Same as destroy entity tasks
+				task._approach_target_check_timer = 1;
 			},
 			onCompletion: ( task )=>
 			{
@@ -418,6 +472,18 @@ class sdTask extends sdEntity
 				if ( !task._target || task._target._is_being_removed )
 				return true;
 			
+				if ( task._protect_type === 0 ) // Protected entity completed it's objective/purpose?
+				{
+					if ( task._target.progress )
+					if ( task._target.progress >= 100 && !task._approached_target ) // Has executor/player not approached target?
+					return true;
+				}
+				if ( task._protect_type === 1 ) // Protect entity for a certain amount of time task
+				{
+					if ( task.time_left <= 0 && !task._approached_target ) // Has executor/player not approached target?
+					return true;
+				}
+			
 				if ( task._target._is_being_removed && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
 				return true;
 			
@@ -428,12 +494,12 @@ class sdTask extends sdEntity
 				if ( task._protect_type === 0 ) // Protected entity completed it's objective/purpose?
 				{
 					if ( task._target.progress )
-					if ( task._target.progress >= 100 ) // Progress must be defined as a variable inside entity which should be protected.
+					if ( task._target.progress >= 100 && task._approached_target ) // Progress must be defined as a variable inside entity which should be protected.
 					return true;
 				}
 				if ( task._protect_type === 1 ) // Protect entity for a certain amount of time task
 				{
-					if ( task.time_left <= 0 ) // Was it protected long enough?
+					if ( task.time_left <= 0 && task._approached_target ) // Was it protected long enough?
 					return true;
 				}
 			
@@ -443,8 +509,19 @@ class sdTask extends sdEntity
 			{
 				if ( sdWorld.is_server )
 				{
-					if ( task._protect_type === 0 ) // Not a time based protection task?
-					task.remove();
+					if ( task._protect_type === 0 )
+					{	
+						if ( task._difficulty > 0 )
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'FAILED-' + task._similarity_hash, 
+							executer: task._executer,
+							mission: sdTask.MISSION_GAMEPLAY_HINT,
+							title: 'Task failed',
+							description: 'You\'ve failed to complete "' + task.title + '"',
+							time_left: 30 * 5
+						});
+						task.remove();
+					}
 				}
 			}
 		};
@@ -526,6 +603,11 @@ class sdTask extends sdEntity
 					{
 						task._difficulty = params.difficulty;
 					}
+					
+					if ( typeof params.allow_hibernation !== 'undefined' )
+					{
+						task._allow_task_hibernation = params.allow_hibernation; // Make sure it's either set to true or false
+					}
 
 					return false;
 				}
@@ -584,6 +666,16 @@ class sdTask extends sdEntity
 
 
 		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
+		
+		this._allow_task_hibernation = params.allow_hibernation || true; // Comment below, set "false" only for long tasks like the mothership container
+		/*
+			Unfortunately tasks like "Protect and fill the Mothership matter container", for example, take a longer amount of time and players cannot stay online 24/7,
+			meaning they will log out eventually and it will get completed by other players, and the logged out player will not recieve any reward, in fact his task will fail
+			because task in hibernation did not check if goal/objective was reached for the Mothership container ( "task._target.progress >= 100" ) because the Mothership container
+			was already filled with matter and LRTP'd or destroyed ( !this._target || this._target._is_being_removed ) inside failure_condition, making the task which then unhibernates
+			when the logged out player comes back - automatically fail since the Mothership container no longer exists.
+			This feels awful especially if someone who contributed significant amount to the task does not get any reward from it. - Booraz149
+		*/
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
@@ -703,6 +795,24 @@ class sdTask extends sdEntity
 				this.remove();
 				return;
 			}
+			
+			if ( this._approached_target === false && this._approach_target_check_timer ) // Task requires players to be near it?
+			{
+				this._approach_target_check_timer -= GSPEED;
+				if ( this._approach_target_check_timer <= 0 )
+				{
+					this._approach_target_check_timer = 60;
+					if ( this._executer && !this._executer._is_being_removed && this._target && !this._target._is_being_removed ) // Make sure everything exists I guess
+					{
+						if ( sdWorld.Dist2D( this._executer.x, this._executer.y, this._target.x, this._target.y ) < 600 ) // Is player close enough?
+						{
+							this._approached_target = true;
+							this._update_version++;
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
+					}
+				}
+			}
 		}
 		else
 		{
@@ -725,6 +835,17 @@ class sdTask extends sdEntity
 				if ( mission.failure_condition )
 				if ( mission.failure_condition( this ) )
 				{
+					if ( mission !== sdTask.missions[ sdTask.MISSION_TRACK_ENTITY ] && mission !== sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD ] )
+					if ( this._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'FAILED-' + this._similarity_hash, 
+						executer: this._executer,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
+						title: 'Task failed',
+						description: 'You\'ve failed to complete "' + this.title + '"',
+						time_left: 30 * 5
+					});
+					
 					this.remove();
 					return;
 				}
@@ -733,6 +854,17 @@ class sdTask extends sdEntity
 				{
 					if ( mission.onCompletion )
 					mission.onCompletion( this );
+				
+				
+					if ( mission !== sdTask.missions[ sdTask.MISSION_TRACK_ENTITY ] && mission !== sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD ] )
+					if ( this._difficulty > 0 ) // Task completed had difficulty? ( Prevents "task complete" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'COMPLETED-' + this._similarity_hash, 
+						executer: this._executer,
+						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+						title: 'You\'ve completed "' + this.title + '"',
+						description: ( ( this._difficulty / sdTask.reward_claim_task_amount ) * 100 ) +'% progress towards task rewards'
+					});
 
 					this.remove();
 					return;
@@ -785,6 +917,7 @@ class sdTask extends sdEntity
 		if ( this._executer._socket === null )
 		//if ( this._executer._socket === null && this._type === 0 ) Let's just wake up updated tasks instead // task._type = 1 is for public events which all players can contribute towards, so it should disappear regardless if player disconnects. ( Example - sdWeather.EVENT_CRYSTALS_MATTER )
 		{
+			if ( this._allow_task_hibernation )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}
