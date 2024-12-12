@@ -4546,7 +4546,7 @@ THING is cosmic mic drop!`;
 			if ( !this.CanMoveWithoutOverlap( this.x - 8, this.y ) )
 			if ( !this.CanMoveWithoutOverlap( this.x + 8, this.y ) )
 			{
-				this.sy = -2;
+				this.sy = Math.min( this.sy, -2 );
 			}
 		}
 		

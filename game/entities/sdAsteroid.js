@@ -1,4 +1,6 @@
 
+/* global Infinity, sdShop */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
@@ -7,6 +9,7 @@ import sdMimic from './sdMimic.js';
 import sdBlock from './sdBlock.js';
 import sdWeather from './sdWeather.js';
 import sdBullet from './sdBullet.js';
+import sdDeepSleep from './sdDeepSleep.js';
 
 class sdAsteroid extends sdEntity
 {
@@ -192,7 +195,7 @@ class sdAsteroid extends sdEntity
 			else
 			if ( this.type === sdAsteroid.TYPE_MISSILE ) 
 			{
-				if ( Math.random() < 0.9 ) this.Fragmentation() // Small chance to malfunction, for realism
+				if ( Math.random() < 0.9 ) this.Fragmentation(); // Small chance to malfunction, for realism
 			}
 			else
 			sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
@@ -293,6 +296,13 @@ class sdAsteroid extends sdEntity
 				// Fly past them as if nothing is here?
 				this.x = new_x;
 				this.y = new_y;
+				
+				//let old_v = sdDeepSleep.track_entity_stucking_ignore_temporary;
+				//sdDeepSleep.track_entity_stucking_ignore_temporary = true;
+				//{
+					sdWorld.UpdateHashPosition( this, false, true );
+				//}
+				//sdDeepSleep.track_entity_stucking_ignore_temporary = old_v;
 				/*
 				
 				// Despawn asteroids flying into sdDeepSleep
@@ -308,6 +318,7 @@ class sdAsteroid extends sdEntity
 			{
 				this.x = new_x;
 				this.y = new_y;
+				sdWorld.UpdateHashPosition( this, false, true );
 			}
 		}
 	}

@@ -83,7 +83,7 @@ class sdSolarMatterDistributor extends sdEntity
 		
 		this._spawned_ai = false; // Spawn SD AI
 		
-		this._event_to_spawn = sdWeather.only_instance._potential_invasion_events[ Math.floor( Math.random() * sdWeather.only_instance._potential_invasion_events.length ) ] || -1; // Random event which are usually invasions is selected.
+		this._event_to_spawn = sdWeather.only_instance ? sdWeather.only_instance._potential_invasion_events[ Math.floor( Math.random() * sdWeather.only_instance._potential_invasion_events.length ) ] || -1 : -1; // Random event which are usually invasions is selected. // UPD: sdWeather.only_instance can be missing on client-side
 		
 		this.matter_max = 4000;
 		this.matter = 100;

@@ -66,6 +66,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	static let_server_owner_run_eval_command = false; // Unsafe feature for server security in cases if admin account can end up being stolen. Lets first admin to run JavaScript commands on a server via /eval ...
 	static let_non_full_access_level_admins_save_presets = true; // These are saved into presets_users and can't override same files named same way but made by top level admin
 	
+	static run_patch_overlap = ( Date.now() < 1733960619202 + 1000 * 60 * 60 * 24 * 30 * 6 ); // Run overlap patch for 6 months. It runs on server startup and every time sdDeepSleep area is loaded from disk
+	
 	static offscreen_behavior = 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'; // Or 'OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'. We cheat a little bit offscreen as huge/dense worlds would have perforamnce issues otherwise
 	static offscreen_behavior_x_value = 30; // By how much slower or how many steps to do at once. Usually 30 can give 2x performance improvement in case of OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE. You can test if anything goes wrong offscreen by enabling debug_offscreen_behavior
 	static debug_offscreen_behavior = false; // If you want to see how everything moves offscreen - set this to true
@@ -1509,7 +1511,7 @@ class sdServerConfigFull extends sdServerConfigShort
 					if ( ent )
 					if ( !ent._is_being_removed )
 					{
-						if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
+						//if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates // Disabled this just to find out what is causing objects inside of other objects
 						sdWorld.UpdateHashPosition( ent, false, false );
 					}
 				}
@@ -1521,6 +1523,13 @@ class sdServerConfigFull extends sdServerConfigShort
 
 			sdWorld.SolveUnresolvedEntityPointers();
 			sdWorld.unresolved_entity_pointers = null;
+			
+			if ( sdWorld.server_config.run_patch_overlap )
+			{
+				console.log( 'Running overlap patch...' );
+				for ( let [ key, cell ] of sdWorld.world_hash_positions )
+				sdDeepSleep.PatchOverlapInCell( cell );
+			}
 
 			console.log('Continuing from where we\'ve stopped (snapshot decoded)!');
 			//fs.writeFile( 'sd2d_server_started_here.v', 'Continuing from where we\'ve stopped (snapshot decoded)!', ( err )=>{} );

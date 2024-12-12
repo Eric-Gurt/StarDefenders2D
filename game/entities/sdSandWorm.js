@@ -94,8 +94,16 @@ class sdSandWorm extends sdEntity
 		
 		if ( params.tag )
 		{
-			if ( sdSandWorm[ params.tag ] !== undefined )
+			if ( params.tag === 'corrupted' )
+			params.tag = sdSandWorm.KIND_CORRUPTED_WORM;
+			
+			if ( typeof params.tag === 'string' )
+			//if ( sdSandWorm[ params.tag ] !== undefined )
 			params.kind = sdSandWorm[ params.tag ];
+			else
+			if ( typeof params.tag === 'number' )
+			{
+			}
 			else
 			debugger;
 		}
@@ -105,10 +113,10 @@ class sdSandWorm extends sdEntity
 
 		this.kind = params.kind || 0;
 		
-		let is_corrupted = params.tag === 'corrupted';
+		//let is_corrupted = params.tag === 'corrupted';
 
-		if ( is_corrupted )
-		this.kind = sdSandWorm.KIND_CORRUPTED_WORM;
+		//if ( is_corrupted )
+		//this.kind = sdSandWorm.KIND_CORRUPTED_WORM;
 
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 		

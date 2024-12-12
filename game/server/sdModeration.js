@@ -601,6 +601,25 @@ class sdModeration
 			
 			sdModeration.Save();
 		}
+		/*else
+		if ( parts[ 0 ] === 'patch_overlap' )
+		{
+			let ops = 0;
+			
+			socket.SDServiceMessage( 'Server: Applying patch...' );
+			
+			setTimeout( ()=>{
+				
+				let t0 = Date.now();
+			
+				for ( let [ key, cell ] of sdWorld.world_hash_positions )
+				ops += sdDeepSleep.PatchOverlapInCell( cell );
+
+				socket.SDServiceMessage( 'Server: Patch applied ('+ops+' remove operations). Lookup took '+(Date.now()-t0)+' ms.' );
+			
+			}, 1000 );
+		
+		}*/
 		else
 		if ( parts[ 0 ] === 'god' )
 		{

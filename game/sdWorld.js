@@ -17,6 +17,7 @@ import sdGun from './entities/sdGun.js';
 import sdEffect from './entities/sdEffect.js';
 import sdCom from './entities/sdCom.js';
 import sdBullet from './entities/sdBullet.js';
+import sdAsteroid from './entities/sdAsteroid.js';
 import sdWeather from './entities/sdWeather.js';
 import sdBlock from './entities/sdBlock.js';
 import sdDoor from './entities/sdDoor.js';
@@ -2451,7 +2452,8 @@ class sdWorld
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
 		if ( sdWorld.is_server )
-		if ( entity.IsGlobalEntity() )
+		//if ( entity.IsGlobalEntity() )
+		if ( entity.is( sdWeather ) )
 		{
 			debugger;
 		}
@@ -2550,15 +2552,55 @@ class sdWorld
 			
 			for ( var i = 0; i < new_affected_hash_arrays.length; i++ )
 			{
+				let arr = new_affected_hash_arrays[ i ].arr;
+				
+				if ( sdDeepSleep.debug_track_entity_stucking_on_hibernated_deep_sleep_areas )
+				if ( sdWorld.is_server )
+				{
+					if ( sdDeepSleep.track_entity_stucking_ignore_temporary )
+					{
+						// Grass spawning when decoding unspawned areas underneath other unspawned areas
+					}
+					else
+					{
+						if ( entity.is( sdAsteroid ) || entity.is( sdBullet ) || entity.is( sdStatusEffect ) || entity.is( sdGib ) || entity.is( sdGun ) )
+						{
+							// Ignore these
+						}
+						else
+						if ( entity.is( sdDeepSleep ) && ( entity.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP || entity.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE ) )
+						{
+							// These are fine to overlap
+						}
+						else
+						for ( let i2 = 0; i2 < arr.length; i2++ )
+						{
+							let e = arr[ i2 ];
+
+							if ( e.is( sdDeepSleep ) )
+							if ( !e._is_being_removed )
+							{
+								if ( e.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD || e.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
+								{
+									if ( e.DoesOverlapWith( entity, -1 ) )
+									{
+										console.warn( 'Entity',entity,'ended up being stuck in sdDeepSleep object',e );
+										debugger;
+									}
+								}
+							}
+						}
+					}
+				}
+				
 				//if ( new_affected_hash_arrays[ i ].unlinked )
 				//throw new Error('Adding to unlinked hash');
 				
 				//new_affected_hash_arrays[ i ].push( entity );
-				new_affected_hash_arrays[ i ].arr.push( entity );
+				arr.push( entity );
 				//new_affected_hash_arrays[ i ].RecreateWith( entity );
 				
-				if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
-				//if ( new_affected_hash_arrays[ i ].arr.length > 100 ) // Dealing with NaN bounds? Or just entity flood? Likely entity flood (is is bad for performance)
+				if ( arr.length > 1000 ) // Dealing with NaN bounds?
 				debugger;
 			}
 			

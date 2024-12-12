@@ -33,6 +33,7 @@
 	sdWorld.entity_classes.sdWeather.only_instance.SimpleExecuteEvent( 32 ); // Swap 32 for number you want to test inside
  
 */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
@@ -3982,11 +3983,14 @@ class sdWeather extends sdEntity
 				
 				if ( proper_distnace )
 				{
-					let ent = new sdAsteroid({ 
+					/*let ent = new sdAsteroid({ 
 						x:xx, 
 						y:sdWorld.world_bounds.y1 + 16, // 1 was too high, asteroids would self destruct
 					});
 					sdEntity.entities.push( ent );
+					sdWorld.UpdateHashPosition( ent, false );*/
+					
+					sdEntity.Create( sdAsteroid, { x:xx, y:sdWorld.world_bounds.y1 + 16 } );
 				}
 
 				this._asteroid_timer = 0;
@@ -4019,12 +4023,15 @@ class sdWeather extends sdEntity
 				
 				if ( proper_distnace )
 				{
-					let missile = new sdAsteroid({ 
+					/*let missile = new sdAsteroid({ 
 						x:xx, 
 						y:sdWorld.world_bounds.y1 + 16, // 1 was too high, asteroids would self destruct
 						type:sdAsteroid.TYPE_MISSILE
 					});
 					sdEntity.entities.push( missile );
+					sdWorld.UpdateHashPosition( missile, false );*/
+					
+					sdEntity.Create( sdAsteroid, { x:xx, y:sdWorld.world_bounds.y1 + 16, type:sdAsteroid.TYPE_MISSILE } );
 				}
 
 				this._missile_timer = 0;
@@ -4119,10 +4126,10 @@ class sdWeather extends sdEntity
 												// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
 											}
 										}
-										let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
-
-										//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
-										sdEntity.entities.push( grass );
+										//let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
+										//sdEntity.entities.push( grass );
+										
+										let grass = sdEntity.Create( sdGrass, { x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation } );
 
 										//grass.snowed = this.snow;
 										grass.SetSnowed( this.snow );
@@ -4209,11 +4216,14 @@ class sdWeather extends sdEntity
 										else
 										{
 											// Spawn snow?
-											let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
+											/*let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
 											snow_block._hea = snow_block._hmax = 10;
 
 											sdEntity.entities.push( snow_block );
-											sdWorld.UpdateHashPosition( snow_block, false );
+											sdWorld.UpdateHashPosition( snow_block, false );*/
+											
+											let snow_block = sdEntity.Create( sdBlock, { x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 } );
+											snow_block._hea = snow_block._hmax = 10;
 										}
 									}
 								}
@@ -4222,9 +4232,11 @@ class sdWeather extends sdEntity
 								{
 									if ( !this.matter_rain )
 									{
-										let water = new sdWater({ x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
+										/*let water = new sdWater({ x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
 										sdEntity.entities.push( water );
 										sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+										*/
+										sdEntity.Create( sdWater, { x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER } );
 									}
 								}
 							}
@@ -4284,7 +4296,7 @@ class sdWeather extends sdEntity
 			if ( this.quake_intensity >= 60 )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
-				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
+				let ent = new sdBlock({ x:0, y:0, width:16, height:16, skip_hiberstate_and_hash_update:true });
 				
 				//sdEntity.entities.push( ent );
 				

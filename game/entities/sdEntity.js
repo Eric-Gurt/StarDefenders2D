@@ -118,6 +118,13 @@ class sdEntity
 		
 		sdEntity.default_driver_position_offset = { x:0, y:0 };
 	}
+	static Create( class_ptr, params={ x:0, y:0 } ) // Does UpdateHashPosition with onMovementInRange call
+	{
+		let ent = new class_ptr( params );
+		sdEntity.entities.push( ent );
+		sdWorld.UpdateHashPosition( ent, false, true );
+		return ent;
+	}
 	static AllEntityClassesLoadedAndInitiated()
 	{
 		sdWorld.entity_classes_array = Object.values( sdWorld.entity_classes );
@@ -4004,6 +4011,17 @@ class sdEntity
 							if ( prop === '_listeners' )
 							snapshot[ prop ] = null;
 						}
+						
+						
+
+						/*if ( !sdWorld.is_server )
+						if ( this.is( sdWorld.entity_classes.sdDeepSleep ) )
+						if ( prop === 'x' )
+						if ( snapshot[ prop ] === 0 )
+						if ( this.x !== 0 )
+						debugger;*/
+			
+			
 						
 						//if ( typeof this[ prop ] !== 'undefined' ) // Disallow creation of new properties
 						if ( this.hasOwnProperty( prop ) )

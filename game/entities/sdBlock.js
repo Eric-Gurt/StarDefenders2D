@@ -849,6 +849,10 @@ class sdBlock extends sdEntity
 		this.reinforced_frame = 0;
 		this.HandleReinforceUpdate();
 		
+		if ( params.skip_hiberstate_and_hash_update )
+		{
+		}
+		else
 		if ( this.material !== sdBlock.MATERIAL_CORRUPTION && 
 			 this.material !== sdBlock.MATERIAL_FLESH && 
 			 this._hea >= this._hmax )
@@ -1676,6 +1680,30 @@ class sdBlock extends sdEntity
 						new_bg._remove();
 					}
 				}
+
+				// Recursively turn these into default ground
+				if ( this.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+				{
+					sdTimer.ExecuteWithDelay( ( timer )=>{
+						
+						let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16 );
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+							if ( e instanceof sdBlock )
+							if ( e.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+							{
+								e.remove();
+							}
+						}
+					
+					}, 400 + Math.random() * 200 );
+					
+					let block = sdWorld.AttemptWorldBlockSpawn( this.x, this.y, false );
+
+					if ( block )
+					sdWorld.UpdateHashPosition( block, false, true );
+				}
 			}
 
 			
@@ -1703,6 +1731,7 @@ class sdBlock extends sdEntity
             
 			}
 			if ( this.material !== sdBlock.MATERIAL_TRAPSHIELD )
+			if ( this.material !== sdBlock.MATERIAL_BUGGED_CHUNK )
 			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 			if ( this._broken )
 			{

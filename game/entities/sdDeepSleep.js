@@ -6,6 +6,14 @@
 
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
+	Command to count deep sleep areas by type:
+
+		let c = {};
+		for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
+		c[ sdWorld.entity_classes.sdDeepSleep.cells[ i ].type ] = ( c[ sdWorld.entity_classes.sdDeepSleep.cells[ i ].type ] || 0 ) + 1;
+		trace( c );
+
+
 	Command to track memory (for watch):
 
 		if ( sdWorld.time > (globalThis.log_time||0) ) { globalThis.log_time=sdWorld.time + 1000 * 10; trace( 'entities: ' + sdWorld.entity_classes.sdEntity.entities.length + ' / active: ' + sdWorld.entity_classes.sdEntity.active_entities.length + ' / cells: ' + sdWorld.entity_classes.sdDeepSleep.cells.length ) }
@@ -23,6 +31,62 @@
 
 		sdWorld.SaveSnapshotAutoPath();
 
+
+	Command to check sdDeepSleep overlaps with any other entities + blocks vs blocks overlaps:
+
+		let c = new Set(); 
+		let extra_block_block_overaps = new Set();
+		for ( let [ key, cell ] of sdWorld.world_hash_positions )
+		{
+			let arr = cell.arr;
+
+			let hibernated_or_unspawned_deep_sleep = [];
+			let block = [];
+
+			for ( let i = 0; i < arr.length; i++ )
+			{
+				let e = arr[ i ];
+				if ( e.is( sdWorld.entity_classes.sdDeepSleep ) )
+				{
+					if ( e.type <= 1 )
+					hibernated_or_unspawned_deep_sleep.push( e );
+				}
+				else
+				//if ( e.is( sdWorld.entity_classes.sdBlock ) )
+				block.push( e );
+			}
+
+			if ( hibernated_or_unspawned_deep_sleep.length > 0 && block.length > 0 )
+			{
+				for ( let i = 0; i < hibernated_or_unspawned_deep_sleep.length; i++ )
+				{
+					for ( let i2 = 0; i2 < block.length; i2++ )
+					{
+						if ( hibernated_or_unspawned_deep_sleep[ i ].DoesOverlapWith( block[ i2 ], -0.001 ) )
+						c.add( block[ i2 ] );
+					}
+				}
+			}
+
+            if ( block.length > 0 )
+            {
+                
+				for ( let i = 0; i < block.length; i++ )
+                if ( block[ i ].is( sdWorld.entity_classes.sdBlock ) )
+                for ( let i2 = 0; i2 < block.length; i2++ )
+                {
+                    if ( block[ i2 ].is( sdWorld.entity_classes.sdBlock ) )
+                    if ( block[ i ].DoesOverlapWith( block[ i2 ], -0.001 ) )
+					extra_block_block_overaps.add( block[ i2 ] );
+                }
+            }
+		}
+		let r = { 'ents_overlapping_deep_sleep':c, 'blocks_that_overlap_other_blocks':extra_block_block_overaps };
+		r;
+
+
+
+
 	TODO: Had weird bug that caused rift portal overcharge rollback as well as 5k crystal resapwn which I did put into rift... Reboots did not happen. I doubt another 5k would spawn? It could be just GSPEED-unscaled sdRift logic though.
 
 	TODO: Maybe apply compression to chunk files? Though it would slow-down their loading
@@ -37,95 +101,9 @@
 
 	TODO: Consider some shrink-down logic, especially for chunks that do not contain user-created entities? Somehow... Probably impossible - chunks might have rare items or even genearated alien bases in them
 
-	//TODO: Player gets lost/dies somewhere?
-
-	//TODO: Entities can move in hibernated areas...
-
-	//TODO: Client-side sdDeepSleep-s are not removed
-
-	//TODO: Memory leak at sdWorld.entity_classes.sdLongRangeTeleport.teleported_items
-
-	//TODO: Entities cound keeps increasing by 2000 every few minutes or so
-
-	//TODO: GetAnythingNear - crystals can wake up sleeping sdDeepSleep but they probably won't cancel about to sleep sdDeepSleep. Or will they?
-	
-	//TODO: Add save/rename for chunks too?
-
-	//TODO: Spawners should enable modes that do not allow waking up of sdDeepSleep areas? And thus threat them as solid walls/no-spawn areas instead
-	
-	//TODO: Water keeps waking up sdDeepSleep areas
-
-	//TODO: (!) Make sdSteeringWheel pointers for all movable entities?
-
-	//TODO: Keep testing snapshot 3 for a while
-
-	//TODO: Typeing "/god 1" caues installation of more jetpack upgrades there is available
-
-	//TODO: Adding shielding to more stuff, buttons. Should try adding to trap shields and traps?
-
-	//TODO: PvP multiplier? For non-healing bullets only?
-
-	//TODO: What happens if sdFaceCrab is on the character that is in the rescue cloner?
-
-	//TODO: Blocks are missing after call:
-	//	for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
-	//	{
-	//		sdWorld.entity_classes.sdDeepSleep.cells[ i ]._will_hibernate_on = 0;
-	//		sdWorld.entity_classes.sdDeepSleep.cells[ i ]._will_be_written_to_disk = 0;
-	//	}
-
-	//TODO: Prevent nesting sdDeepSleep cells that are not written to disk yet
-
-	//TODO: Why did council beacon spawn at extremely far coordiantes? Shouldn't it be near existing sdBlock-s?
-	
-	//TODO: If cell tries to merge other sdDeepSleep cells - it causes really slow stringify operation, especially if merged sdDeepSleep cells exist in memory rather than on a disk
-	
-	//TODO: Cells still disappear occasionally (without red error blocks). 
-
-	//TODO: It says rescue teleport signal is weak even though player has charger cloner
-
-	//TODO: It should be impossible to switch to nearby limited-range RTP after player was put into cloner - it could make regular RTPs unlimited range esentially for free.
-
-	//TODO: Some way to know where is server LRTP
-
-	//TODO: Most likely any pathfinding will either consume too much memory or path bit map will shift to top left corner on world bounds resize
-
-	//TODO: Make sure current worlds can be ported to open world format. Maybe it should just add extra space around bounds to make coordinates be dividable by sdDeepSleep.normal_cell_size
-
-	//TODO: sdRift does spam calls still, because it teleports from time to time
-
-	//TODO: Check what causes high CPU usage on huge wide world (config 3)
-
-	//TODO: Remove all "x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );" in sdWeather
-
-	//TODO: Cell that merges multiple other cells will cause child cells to lose their files...
-
-	//TODO: Fix rescue task using biometry of sdCharacters
-
-	//TODO: Delay chunk file deletion until world snapshot save - this is what causes them to go missing
-
-	//TODO: Guanako spawn causes chunks to be removed? 
-	//	  sdWorld.entity_classes.sdWeather.SimpleSpawner( { count:[100,100], class:sdWorld.entity_classes.sdGuanako } );
-
-	//TODO: Try to restore _net_id-s of hibernated entities exactly what they were - it will help with de-hibernation of nested sdDeepSleep. It probably is already like this.
-
-	//TODO: _will_be_written_to_disk is not used yet. Save to disk under _net_id names?
-
-	//TODO: Make sure "unspawned" state removes file from the disk as well
-
-	//TODO: this._my_hash_list is generated but not yet used outside of this class
-
-	//TODO: Add SyncedToPlayer logic
-
-	//TODO: Greatly increase range over entities that have some sort of radius-based scans, such as turrets and crystals
-
-	//TODO: Add some sort of global chunk manager
-
-	//TODO: Make point and rect testers wake-up sdDeepSleep areas?
-
-	//TODO: Keep in mind pathfinding can accidentally wake up sdDeepSleep areas it does not really needs. Make pathfinding more directed by default somehow? Limit its' range?
-
 */
+/* global globalThis, Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
@@ -157,6 +135,8 @@ class sdDeepSleep extends sdEntity
 	{
 		sdDeepSleep.debug = false; // Alters timings
 		
+		sdDeepSleep.debug_pause_any_deep_sleep_logic = false;
+		
 		sdDeepSleep.debug_wake_up_sleep_refuse_reasons = false;
 		
 		sdDeepSleep.debug_dependences = false;
@@ -167,13 +147,16 @@ class sdDeepSleep extends sdEntity
 		
 		sdDeepSleep.debug_times = false;
 		
+		sdDeepSleep.debug_track_entity_stucking_on_hibernated_deep_sleep_areas = false;
+		sdDeepSleep.track_entity_stucking_ignore_temporary = false;
+		
 		sdDeepSleep.debug_cell = false;
 		sdDeepSleep.debug_cell_x = -7936;
 		sdDeepSleep.debug_cell_y = 768;
 		
 		fs = globalThis.fs;
 		
-		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_wake_up_sleep_refuse_reasons || sdDeepSleep.debug_pause_any_deep_sleep_logic || sdDeepSleep.debug_track_entity_stucking_on_hibernated_deep_sleep_areas )
 		{
 			trace( 'WARNING: Running server with sdDeepSleep\'s debug values enabled' );
 		}
@@ -247,9 +230,18 @@ class sdDeepSleep extends sdEntity
 	{
 		if ( sdWorld.paused )
 		return;
+	
+		if ( sdDeepSleep.debug_pause_any_deep_sleep_logic )
+		return;
 		
 		//return; // Hack
-		let iters = sdDeepSleep.debug ? sdDeepSleep.cells.length * 0.01 : 1;
+		let iters = Math.max(
+			sdDeepSleep.debug ? 
+				sdDeepSleep.cells.length * 0.01 : 
+				sdDeepSleep.cells.length * 0.001, 
+			1 
+		);
+		
 		sdDeepSleep.time_budget = Math.min( 3, sdDeepSleep.time_budget + 3 );
 		
 		if ( sdWorld.is_server )
@@ -306,6 +298,8 @@ class sdDeepSleep extends sdEntity
 							});
 
 							sdEntity.entities.push( cell );
+							
+							sdWorld.UpdateHashPosition( cell, false, false );
 						}
 						else
 						{
@@ -501,6 +495,9 @@ class sdDeepSleep extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( sdDeepSleep.debug_pause_any_deep_sleep_logic )
+		return;
+	
 		if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
 		trace( 'WakeUpArea()', from_movement_or_vision, initiator, { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length, _is_being_removed:this._is_being_removed } );
 	
@@ -553,25 +550,28 @@ class sdDeepSleep extends sdEntity
 			let x2 = this.x + this.w;
 			let y2 = this.y + this.h;
 
-			for ( let x = this.x; x < x2; x += 16 )
-			for ( let y = this.y; y < y2; y += 16 )
+			sdDeepSleep.track_entity_stucking_ignore_temporary = true;
 			{
-				let block = sdWorld.AttemptWorldBlockSpawn( x, y, false );
-				
-				if ( block )
+				for ( let x = this.x; x < x2; x += 16 )
+				for ( let y = this.y; y < y2; y += 16 )
 				{
+					let block = sdWorld.AttemptWorldBlockSpawn( x, y, false );
+
+					if ( block )
 					sdWorld.UpdateHashPosition( block, false, true ); // Last must be true or else bullets will miss new entities for a frame // Won't call onMovementInRange
 				}
 			}
+			sdDeepSleep.track_entity_stucking_ignore_temporary = false;
 		}
 		else
 		if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		{
-			if ( this._is_being_removed )
+			/*if ( this._is_being_removed )
 			{
 				console.warn( 'Waking up a removed area?' );
 				debugger;
-			}
+				return;
+			}*/
 			
 			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 			trace( 'sdDeepSleep[ '+this._net_id+' ] woken up: TYPE_HIBERNATED_WORLD wakes up due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity ,')', this.x, this.y, this.x+this.w, this.y+this.h );
@@ -703,6 +703,13 @@ class sdDeepSleep extends sdEntity
 			}
 		}
 		
+		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ||
+			 this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
+		{
+			if ( sdWorld.server_config.run_patch_overlap )
+			for ( let i = 0; i < this._affected_hash_arrays.length; i++ )
+			sdDeepSleep.PatchOverlapInCell( this._affected_hash_arrays[ i ] );
+		}
 		
 		if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 		{
@@ -873,9 +880,14 @@ class sdDeepSleep extends sdEntity
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ) // These extremely require optimizations as saving can take 2 seconds
 		{
 			if ( !this._snapshot_cache )
-			this._snapshot_cache = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, type:this.type };
+			{
+				this._snapshot_cache = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, type:this.type };
+			}
 		
 			cache = this._snapshot_cache;
+				
+			//if ( cache.x !== this.x || cache.y !== this.y )
+			//throw new Error();
 		}
 		else
 		{
@@ -904,9 +916,14 @@ class sdDeepSleep extends sdEntity
 			else
 			{
 				if ( !this._snapshot_cache_public )
-				this._snapshot_cache_public = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, r:this.r };
+				{
+					this._snapshot_cache_public = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, r:this.r };
+				}
 			
 				cache = this._snapshot_cache_public;
+				
+				//if ( cache.x !== this.x || cache.y !== this.y )
+				//throw new Error();
 			}
 		
 			cache.type = this.type;
@@ -917,6 +934,14 @@ class sdDeepSleep extends sdEntity
 		
 		if ( this._is_being_removed )
 		cache._is_being_removed = this._is_being_removed;
+	
+		cache.x = this.x;
+		cache.y = this.y;
+		cache.w = this.w;
+		cache.h = this.h;
+	
+		//if ( !save_as_much_as_possible )
+		cache = Object.assign( {}, cache ); // Some mystery is happening to this object
 
 		return cache;
 	}
@@ -1192,7 +1217,12 @@ class sdDeepSleep extends sdEntity
 							if ( e.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
 							{
 								merge_into_existing_cell = e;
-								return true;
+								return true; // Abort
+							}
+							else
+							if ( e.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
+							{
+								// Accept these
 							}
 							else
 							if ( e._snapshots_str === '' && e._snapshots_objects === null )
@@ -1202,7 +1232,8 @@ class sdDeepSleep extends sdEntity
 							else
 							{
 								// Hibernated sdDeepSleep yet it keeps objects/snapshot in memory - we don't want to merge these really
-								return false;
+								//return false;
+								return true; // Abort! Or else we will end up with deep sleep areas overlapping each other, which will result into entities overlapping once both are decoded
 							}
 						}
 						
@@ -1237,7 +1268,16 @@ class sdDeepSleep extends sdEntity
 						if ( e.is( sdBaseShieldingUnit ) )
 						{
 							if ( e.enabled )
-							r = sdBaseShieldingUnit.protect_distance_stretch;
+							{
+								r = sdBaseShieldingUnit.protect_distance_stretch;
+								
+								/*for ( let i = 0; i < e._protected_entities.length; i++ )
+								{
+									let e2 = sdEntity.entities_by_net_id_cache_map.get( e._protected_entities[ i ] );
+									
+									debugger;
+								}*/
+							}
 						}
 						else
 						if ( e.is( sdAntigravity ) )
@@ -1418,10 +1458,19 @@ class sdDeepSleep extends sdEntity
 
 						for ( let i2 = 0; i2 < arr.length; i2++ )
 						{
-							if ( HandleEntity( arr[ i2 ], false ) )
+							let e = arr[ i2 ];
+							
+							if ( _x2 < e.x + e._hitbox_x1 ||
+								 _x >= e.x + e._hitbox_x2 ||
+								 _y2 < e.y + e._hitbox_y1 ||
+								 _y >= e.y + e._hitbox_y2 )
 							{
-								HibernationAborted( arr[ i2 ] );
-								//this.remove();
+								// Does not overlap
+							}
+							else
+							if ( HandleEntity( e, false ) )
+							{
+								HibernationAborted( e );
 								return;
 							}
 						}
@@ -1434,13 +1483,7 @@ class sdDeepSleep extends sdEntity
 						if ( !e._is_being_removed )
 						if ( HandleEntity( e, true ) )
 						{
-							/*if ( test_case )
-							{
-								debugger;
-							}*/
-							
 							HibernationAborted( e );
-							//this.remove();
 							return;
 						}
 					}
@@ -1611,9 +1654,14 @@ class sdDeepSleep extends sdEntity
 
 					for ( let xx = this.x; xx < xx2; xx += sdDeepSleep.normal_cell_size )
 					for ( let yy = this.y; yy < yy2; yy += sdDeepSleep.normal_cell_size )
-					sdEntity.entities.push( new sdDeepSleep({
-						x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
-					}) );
+					{
+						let cell = new sdDeepSleep({
+							x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+						});
+						sdEntity.entities.push( cell );
+						
+						sdWorld.UpdateHashPosition( cell, false, false );
+					}
 			
 					this.remove();
 				}
@@ -1652,6 +1700,98 @@ class sdDeepSleep extends sdEntity
 		// Do not remove file simply because cell was removed - it might be removed in order to be merged into a larger cell too
 	}
 	
+
+
+	static PatchOverlapInCell( cell )
+	{
+		let ops = 0;
+		
+		let arr = cell.arr;
+
+		let hibernated_or_unspawned_deep_sleep = [];
+		let stuck_entities = [];
+
+		for ( let i = 0; i < arr.length; i++ )
+		{
+			let e = arr[ i ];
+			
+			if ( e._is_being_removed )
+			continue;
+			
+			if ( e.is( sdWorld.entity_classes.sdDeepSleep ) )
+			{
+				if ( e.type <= 1 )
+				hibernated_or_unspawned_deep_sleep.push( e );
+			}
+			else
+			stuck_entities.push( e );
+		}
+
+		if ( hibernated_or_unspawned_deep_sleep.length > 0 && stuck_entities.length > 0 )
+		{
+			for ( let i = 0; i < hibernated_or_unspawned_deep_sleep.length; i++ )
+			{
+				for ( let i2 = 0; i2 < stuck_entities.length; i2++ )
+				{
+					let stuck_entity = stuck_entities[ i2 ];
+					if ( hibernated_or_unspawned_deep_sleep[ i ].DoesOverlapWith( stuck_entity, -0.001 ) )
+					{
+						let Delete = ()=>
+						{
+							ops++;
+							stuck_entity.remove();
+							stuck_entity._broken = false;
+						};
+
+						// Remove entities stuck in deep sleep areas
+						if ( stuck_entity.is( sdWorld.entity_classes.sdBlock ) ||
+							 stuck_entity.is( sdWorld.entity_classes.sdBG ) )
+						{
+							if ( !stuck_entity._shielded )
+							Delete();
+						}
+					}
+				}
+			}
+		}
+
+		if ( stuck_entities.length > 0 )
+		{
+			let classes = [ sdWorld.entity_classes.sdBlock, sdWorld.entity_classes.sdBG ];
+
+			for ( let c = 0; c < classes.length; c++ )
+			{
+				for ( let i = 0; i < stuck_entities.length; i++ )
+				if ( stuck_entities[ i ].is( classes[ c ] ) )
+				if ( !stuck_entities[ i ]._is_being_removed )
+				{
+					for ( let i2 = 0; i2 < stuck_entities.length; i2++ )
+					if ( stuck_entities[ i2 ].is( classes[ c ] ) )
+					if ( !stuck_entities[ i2 ]._is_being_removed )
+					if ( stuck_entities[ i ].DoesOverlapWith( stuck_entities[ i2 ], -0.001 ) )
+					if ( i !== i2 )
+					{
+						// Remove overlapped blocks
+
+						let stuck_entity = stuck_entities[ i2 ];
+
+						//if ( stuck_entity.is( sdWorld.entity_classes.sdBlock ) )
+						{
+							if ( !stuck_entity._shielded )
+							{
+								ops++;
+								stuck_entity.remove();
+								stuck_entity._broken = false;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return ops;
+	};
+	
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };
 	
@@ -1662,6 +1802,7 @@ class sdDeepSleep extends sdEntity
 	{
 		if ( sdWorld.my_entity && sdWorld.my_entity._god && sdDeepSleep.debug )
 		{
+			ctx.apply_shading = false;
 			ctx.filter = this.filter;
 
 			if ( sdWorld.time % 1000 < 500 )
@@ -1687,8 +1828,10 @@ class sdDeepSleep extends sdEntity
 
 			ctx.globalAlpha = 1;
 			ctx.filter = 'none';
+			
+			let scale = 1 / sdWorld.camera.scale * 2.1;
 
-			ctx.font = "7px Verdana";
+			ctx.font = Math.round( 7 * scale ) + "px Verdana";
 			ctx.textAlign = 'left';
 
 			let t = 
@@ -1699,12 +1842,12 @@ class sdDeepSleep extends sdEntity
 				'type ' + this.type;
 
 			ctx.fillStyle = '#ffffff';
-			ctx.fillText( t, 2, 8 );
+			ctx.fillText( t, 2, 8 * scale );
 			
 			if ( this.r )
 			{
 				ctx.fillStyle = '#ffaaaa';
-				ctx.fillText( this.r, 2, 8 + 8 );
+				ctx.fillText( this.r, 2, ( 8 + 8 ) * scale );
 			}
 		}
 	}
