@@ -684,7 +684,7 @@ class sdCube extends sdEntity
 					//}
 				}
 
-				r = Math.random(); // Cube shard dropping roll
+				r = Math.random(); // Cube shard and cube fusion core dropping roll
 
 				if ( r < ( this.kind === sdCube.KIND_WHITE ? 0.85 : this.kind === sdCube.KIND_YELLOW ? 0.7 : 0.25 ) * 0.6 ) // Higher chance just for some time at least?
 				{
@@ -696,7 +696,12 @@ class sdCube extends sdEntity
 					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 						let gun;
+						let fusion_core_odds = ( this.kind === sdCube.KIND_WHITE ? 0.055 : this.kind === sdCube.KIND_YELLOW ? 0.045 : this.kind === sdCube.KIND_PINK ? 0 : 0.035 ); // Pinks are too small for fusion cores
+						if ( Math.random() < fusion_core_odds )
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_FUSION_CORE });
+						else
 						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SHARD });
+					
 						gun.sx = sx;
 						gun.sy = sy;
 						//gun.extra = (this.kind === sdCube.KIND_PINK ? 3 : this.kind === sdCube.KIND_WHITE ? 2 : this.kind === sdCube.KIND_YELLOW ? 1 : 0 ); // Color it
