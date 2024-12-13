@@ -193,7 +193,8 @@ class sdGunClass
 		let ID_PROJECTILE_COLOR = 16;
 		let ID_DAMAGE_VALUE = 17; // For non custom-guns so it can display damage properly.
 		let ID_ALT_DAMAGE_VALUE = 18;
-		let ID_HAS_EXALTED_CORE = 19;
+		let ID_HAS_EXALTED_CORE = 19; // Exalted core, final weapon damage multiplier by 25%
+		let ID_HAS_CUBE_FUSION_CORE = 20; // Cube fusion core, final weapon matter cost reduction by 25%
 		
 		function UpdateCusomizableGunProperties( gun )
 		{
@@ -3794,7 +3795,7 @@ class sdGunClass
 			
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
-				
+			
 				return 4;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
@@ -3819,11 +3820,13 @@ class sdGunClass
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 1 });
 					
-					if ( gun._held_by.matter >= 4 )
+					let matter_cost = gun.GetBulletCost();
+					
+					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
-						gun._held_by.matter -= 4;
+						gun._held_by.matter -= matter_cost;
 						gun._combo_timer = 30;
 						if ( gun._combo < 60 )
 						gun._combo += 2; // Speed up rate of fire, the longer it shoots
@@ -4225,7 +4228,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 3;
+				return 2.5;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -4244,12 +4247,12 @@ class sdGunClass
 				else
 				{
 					sdSound.PlaySound({ name: 'saber_hit2', x:gun.x, y:gun.y, volume: 2, pitch: 3 });
-					
-					if ( gun._held_by.matter >= 2 )
+					let matter_cost = gun.GetBulletCost();
+					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 2;
-						gun._held_by.matter -= 2; // Was 3. It is not that strong to drain matter that fast
+						gun._held_by.matter -= matter_cost; // Was 3. It is not that strong to drain matter that fast
 					}
 				}
 				return true;
@@ -6616,12 +6619,12 @@ class sdGunClass
 				{
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 2 });
-					
-					if ( gun._held_by.matter >= 4 )
+					let matter_cost = gun.GetBulletCost();
+					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = ( 14 / ( 1 + gun._combo / 10 ) ); // Faster rate of fire when shooting more
-						gun._held_by.matter -= 4;
+						gun._held_by.matter -= matter_cost;
 						gun._combo_timer = 16;
 						if ( gun._combo < 10 )
 						gun._combo++; // Speed up rate of fire, the longer it shoots
@@ -7270,13 +7273,12 @@ class sdGunClass
 				{
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
 					sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:gun.x, y:gun.y, volume:1.2 });
-					
-					if ( gun._held_by.matter >= 6 )
+					let matter_cost = gun.GetBulletCost();
+					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 3;
-						gun._held_by.matter -= 3.5; // Zektaron beam is at 6 or 7 while being 2x as strong
-						gun._held_by.matter -= 3.5; // Zektaron beam is at 6 or 7 while being 2x as strong
+						gun._held_by.matter -= matter_cost; // Zektaron beam is at 6 or 7 while being 2x as strong
 					}
 				}
 				return true;
@@ -7425,12 +7427,12 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y,volume:0.8, pitch: 1.2 });
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 0.7 });
-					
-					if ( gun._held_by.matter >= 3 )
+					let matter_cost = gun.GetBulletCost();
+					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 4;
-						gun._held_by.matter -= 3;
+						gun._held_by.matter -= matter_cost;
 					}
 					else
 					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
@@ -9149,6 +9151,26 @@ class sdGunClass
 			spawnable: false,
 			ignore_slot: true,
 			has_description: [ 'Can be merged with weapons to increase their damage' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
+			}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_CUBE_FUSION_CORE = 140 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_fusion_core' ),
+			sound: 'gun_defibrillator',
+			title: 'Cube fusion core',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Can be merged with weapons to reduce their matter cost' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
 			{ 
 				return false; 
