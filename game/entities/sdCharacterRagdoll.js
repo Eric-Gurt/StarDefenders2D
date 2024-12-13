@@ -1135,8 +1135,19 @@ class sdCharacterRagdoll
 							console.log( 'Found spring force', Math.abs( p * dy ), this.springs[ i ], di, target_di );
 						}
 */
-						a.RelaxedPush( dx * p, dy * p );
-						b.RelaxedPush( -dx * p, -dy * p );
+						if ( di > target_di * 10 + 10 )
+						{
+							//debugger;
+							b.x = a.x;
+							b.y = a.y;
+							b.sx = 0;
+							b.sy = 0;
+						}
+						else
+						{
+							a.RelaxedPush( dx * p, dy * p );
+							b.RelaxedPush( -dx * p, -dy * p );
+						}
 						
 						a._phys_sleep = b._phys_sleep = Math.max( a._phys_sleep, b._phys_sleep );
 					}

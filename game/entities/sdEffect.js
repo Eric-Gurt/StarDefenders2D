@@ -4,6 +4,8 @@
 	sdWorld.SendEffect({ x: , y: , type:sdEffect.TYPE_WALL_HIT });
 
 */
+/* global THREE */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -51,6 +53,9 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_BEAM_CIRCLED = 19;
 		sdEffect.TYPE_SPEED = 20;
 		sdEffect.TYPE_ALT_RAIL = 21;
+		sdEffect.TYPE_SHIELD = 22;
+		sdEffect.TYPE_DIRT_HIT = 23;
+		sdEffect.TYPE_EXPLOSION_NON_ADDITIVE = 24;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -113,6 +118,22 @@ class sdEffect extends sdEntity
 			sound_to_play: 'world_hit2',
 			sound_to_play_volume: 0.25,
 		};
+		sdEffect.types[ sdEffect.TYPE_DIRT_HIT ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_dirt_hit' ) ],
+			duration: 5,
+			random_flip: true,
+			random_rotation: true,
+			speed: 0.5,
+			random_speed_percentage: 0.1,
+			spritesheet: true,
+			apply_shading: false,
+			
+			sound_to_play: 'world_hit2',
+			sound_to_play_volume: 0.2,
+			
+			sound_to_play2: [ 'digA', 'digB', 'digC', 'digD' ],
+			sound_to_play2_volume: 0.25,
+		};
 		
 		sdEffect.types[ sdEffect.TYPE_BEAM ] = {
 			images: [ 2, 1, 0.5, 0.25 ],
@@ -126,15 +147,16 @@ class sdEffect extends sdEntity
 			random_flip: false,
 			apply_shading: false
 		};
-		sdEffect.types[ sdEffect.TYPE_EXPLOSION ] = {
-			images: [ sdWorld.CreateImageFromFile( 'explosion' ) ],
-			duration: 30,
-			speed: 1.5,
-			random_flip: true,
-			random_rotation: true,
-			sound_to_play: 'explosion3',
-			sound_to_play_volume: 1.5,
-			apply_shading: false
+		sdEffect.types[ sdEffect.TYPE_EXPLOSION ] = 
+			sdEffect.types[ sdEffect.TYPE_EXPLOSION_NON_ADDITIVE ] = {
+				images: [ sdWorld.CreateImageFromFile( 'explosion' ) ],
+				duration: 30,
+				speed: 1.5,
+				random_flip: true,
+				random_rotation: true,
+				sound_to_play: 'explosion3',
+				sound_to_play_volume: 1.5,
+				apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_CHAT ] = {
 			images: [],
@@ -301,6 +323,17 @@ class sdEffect extends sdEntity
 			apply_shading: false,
 			random_speed_percentage: 0.25
 		};
+		
+		sdEffect.types[ sdEffect.TYPE_SHIELD ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_shield' ) ],
+			duration: 4,
+			random_flip: false,
+			random_rotation: false,
+			speed: 40 / 30,
+			spritesheet: true,
+			apply_shading: false,
+			camera_relative_world_scale: 0.9
+		};
 	
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
@@ -428,7 +461,7 @@ class sdEffect extends sdEntity
 		
 		this._decay_speed = sdEffect.types[ this._type ].speed * ( 1 - ( sdEffect.types[ this._type ].random_speed_percentage || 0 ) * Math.random() );
 		
-		this._radius = params.radius;
+		this._radius = params.radius || 0;
 		this._x2 = params.x2;
 		this._y2 = params.y2;
 		this._color = params.color || '#ffffff';
@@ -440,11 +473,7 @@ class sdEffect extends sdEntity
 		
 		this._sd_tint_filter = null;//sdWorld.hexToRgb( params.color );
 		
-		/*
-		if ( this._type === sdEffect.TYPE_EXPLOSION )
-		if ( this._color === undefined )
-		throw new Error('Should not happen');
-		*/
+
 		this._duration = sdEffect.types[ this._type ].duration || sdEffect.types[ this._type ].images.length;
 		
 		this._xscale = ( sdEffect.types[ this._type ].random_flip && Math.random() < 0.5 ) ? -1 : 1;
@@ -573,8 +602,22 @@ class sdEffect extends sdEntity
 			sdEntity.entities.push( ent );
 		}
 		
-		if ( sdEffect.types[ this._type ].sound_to_play )
-		sdSound.PlaySound({ name:sdEffect.types[ this._type ].sound_to_play, x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play_volume, _server_allowed:true });
+		let s = sdEffect.types[ this._type ].sound_to_play;
+		if ( s )
+		{
+			if ( typeof s === 'string' )
+			sdSound.PlaySound({ name:s, x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play_volume, _server_allowed:true });
+			else
+			sdSound.PlaySound({ name:s[ ~~( Math.random() * s.length ) ], x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play_volume, _server_allowed:true });
+		}
+		s = sdEffect.types[ this._type ].sound_to_play2;
+		if ( s )
+		{
+			if ( typeof s === 'string' )
+			sdSound.PlaySound({ name:s, x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play2_volume, _server_allowed:true });
+			else
+			sdSound.PlaySound({ name:s[ ~~( Math.random() * s.length ) ], x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play2_volume, _server_allowed:true });
+		}
 		
 		this._hue = params.hue || 0;
 		this._filter = params.filter || '';
@@ -786,7 +829,7 @@ class sdEffect extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._type === sdEffect.TYPE_EXPLOSION )
+		if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		this._ani += GSPEED * this._decay_speed * ( 20 / this._radius ) / this._scale;
 		else
 		this._ani += GSPEED * this._decay_speed / this._scale;
@@ -910,7 +953,7 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
-		if ( this._type === sdEffect.TYPE_EXPLOSION )
+		if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
 		}
 		else
@@ -1087,7 +1130,7 @@ class sdEffect extends sdEntity
 			ctx.fillText( t, 0, 0 );
 		}
 		else
-		if ( this._type === sdEffect.TYPE_EXPLOSION )
+		if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
 			ctx.scale( this._xscale * this._radius / 20, 1 * this._radius / 20 );
 			ctx.rotate( this._rotation );
@@ -1118,6 +1161,7 @@ class sdEffect extends sdEntity
 				}
 			}
 			
+			if ( this._type === sdEffect.TYPE_EXPLOSION )
 			ctx.blend_mode = THREE.AdditiveBlending;
 			{
 				ctx.sd_tint_filter = this._sd_tint_filter;
@@ -1129,6 +1173,9 @@ class sdEffect extends sdEntity
 		else
 		if ( this._type === sdEffect.TYPE_GLOW_HIT )
 		{
+			if ( this._radius !== 0 )
+			ctx.scale( 1 + this._radius, 1 + this._radius );
+		
 			if ( this._sd_tint_filter === null )
 			{
 				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
@@ -1159,6 +1206,9 @@ class sdEffect extends sdEntity
 		if ( sdEffect.types[ this._type ].spritesheet )
 		//if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
 		{
+			if ( sdEffect.types[ this._type ].camera_relative_world_scale !== undefined )
+			ctx.camera_relative_world_scale *= sdEffect.types[ this._type ].camera_relative_world_scale;
+			
 			if ( this._scale !== 1 )
 			ctx.scale( this._scale, this._scale );
 
@@ -1196,6 +1246,9 @@ class sdEffect extends sdEntity
 			ctx.sd_color_mult_g = 1;
 			ctx.sd_color_mult_b = 1;
 			ctx.globalAlpha = 1;
+			
+			if ( sdEffect.types[ this._type ].camera_relative_world_scale !== undefined )
+			ctx.camera_relative_world_scale /= sdEffect.types[ this._type ].camera_relative_world_scale;
 		}
 		
 		//ctx.apply_shading = true;

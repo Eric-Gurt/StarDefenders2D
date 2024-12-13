@@ -1,6 +1,6 @@
 /*
 
-	Cable connection node, does nothing, stores some amount of matter just so it can transfer it
+	Caption with text
 
 */
 import sdWorld from '../sdWorld.js';

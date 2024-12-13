@@ -5,6 +5,8 @@
 	sdStatusEffects effects could be implemented similarly
 
 */
+/* global sdSound */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
@@ -60,7 +62,7 @@ class sdTask extends sdEntity
 				return -1;
 			},
 			
-			completion_condition: ( task )=>
+		letion_condition: ( task )=>
 			{
 				return false;
 			},
@@ -837,14 +839,27 @@ class sdTask extends sdEntity
 				{
 					if ( mission !== sdTask.missions[ sdTask.MISSION_TRACK_ENTITY ] && mission !== sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD ] )
 					if ( this._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'FAILED-' + this._similarity_hash, 
-						executer: this._executer,
-						mission: sdTask.MISSION_GAMEPLAY_HINT,
-						title: 'Task failed',
-						description: 'You\'ve failed to complete "' + this.title + '"',
-						time_left: 30 * 5
-					});
+					{
+						let executer = this._executer;
+						let title = this.title;
+						let similarity_hash = this._similarity_hash;
+						
+						if ( executer )
+						setTimeout( ()=>
+						{
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'FAILED-' + similarity_hash, 
+								executer: executer,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
+								title: 'Task failed',
+								description: 'You\'ve failed to complete "' + title + '"',
+								time_left: 30 * 5
+							});
+
+							if ( executer._socket )
+							sdSound.PlaySound({ name:'mission_failed', x:executer.x, y:executer.y, volume:1, pitch:1 }, [ executer._socket ] );
+						}, 1000 );
+					}
 					
 					this.remove();
 					return;
@@ -858,13 +873,29 @@ class sdTask extends sdEntity
 				
 					if ( mission !== sdTask.missions[ sdTask.MISSION_TRACK_ENTITY ] && mission !== sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD ] )
 					if ( this._difficulty > 0 ) // Task completed had difficulty? ( Prevents "task complete" on semi-objectives like Shurg Converter if it's not the last one )
-					sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'COMPLETED-' + this._similarity_hash, 
-						executer: this._executer,
-						mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
-						title: 'You\'ve completed "' + this.title + '"',
-						description: ( ( this._difficulty / sdTask.reward_claim_task_amount ) * 100 ) +'% progress towards task rewards'
-					});
+					{
+						let executer = this._executer;
+						let title = this.title;
+						let similarity_hash = this._similarity_hash;
+						let difficulty = this._difficulty;
+						
+						if ( executer )
+						setTimeout( ()=>
+						{
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'COMPLETED-' + similarity_hash, 
+								executer: executer,
+								mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+								title: 'You\'ve completed "' + title + '"',
+								description: Math.floor( ( difficulty / sdTask.reward_claim_task_amount ) * 100 ) +'% progress towards task rewards'
+							});
+
+							if ( executer._socket )
+							{
+								sdSound.PlaySound({ name:'mission_complete', x:executer.x, y:executer.y, volume:1, pitch:1 }, [ executer._socket ] );
+							}
+						}, 1000 );
+					}
 
 					this.remove();
 					return;

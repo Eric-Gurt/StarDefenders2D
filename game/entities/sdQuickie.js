@@ -295,6 +295,7 @@ class sdQuickie extends sdEntity
 					
 					this._hea = Math.min( this._hmax, this._hea + ( 7 * this._tier ) );
 
+					if ( i === 0 ) // Play only one sound and effect. Otherwise it is too loud
 					from_entity.PlayDamageEffect( xx, yy );
 					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					

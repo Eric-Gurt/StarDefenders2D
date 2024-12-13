@@ -29,10 +29,10 @@ class sdFleshGrabber extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.side === 0 || this.side === 2 ) ? -8 : ( this.side === 1 ) ? -2 : 0 }
-	get hitbox_x2() { return ( this.side === 0 || this.side === 2 ) ? 8 : ( this.side === 1 ) ? 0 : 2 }
-	get hitbox_y1() { return ( this.side === 1 || this.side === 3 ) ? -8 : ( this.side === 0 ) ? -2 : 0 }
-	get hitbox_y2() { return ( this.side === 1 || this.side === 3 ) ? 8 : ( this.side === 0 ) ? 0 : 2 }
+	get hitbox_x1() { return ( this.side === 0 || this.side === 2 ) ? -8 : ( this.side === 1 ) ? -2 : 0; }
+	get hitbox_x2() { return ( this.side === 0 || this.side === 2 ) ? 8 : ( this.side === 1 ) ? 0 : 2; }
+	get hitbox_y1() { return ( this.side === 1 || this.side === 3 ) ? -8 : ( this.side === 0 ) ? -2 : 0; }
+	get hitbox_y2() { return ( this.side === 1 || this.side === 3 ) ? 8 : ( this.side === 0 ) ? 0 : 2; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -174,18 +174,25 @@ class sdFleshGrabber extends sdEntity
 
 						if ( this._tenta_target && this.tenta_tim > 10 && this.tenta_tim < 90 )
 						{
+							let dir_mult = 1 / Math.max( 16, sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) );
+							
+							let add_x = - this.tenta_x * dir_mult;
+							let add_y = - this.tenta_y * dir_mult;
+							
 							if ( typeof this._tenta_target.sx !== 'undefined' ) // Is it an entity
-							this._tenta_target.sx += - this.tenta_x / 100; // Pull it in
-							//else
-							//this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+							{
+								add_x -= this._tenta_target.sx * 0.01; // Acceleration stopping force
+								this._tenta_target.sx += add_x; // Pull it in
+							}
 
 							if ( typeof this._tenta_target.sy !== 'undefined' )
-							this._tenta_target.sy += - this.tenta_y / 100;
-							//else
-							//this.sy += this.tenta_y / 100; // Pull itself towards the entity
+							{
+								add_y -= this._tenta_target.sy * 0.01; // Acceleration stopping force
+								this._tenta_target.sy += add_y;
+							}
 
 							if ( this._tenta_target.IsPlayerClass() )
-							this._tenta_target.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+							this._tenta_target.ApplyServerSidePositionAndVelocity( true, add_x, add_y );
 
 							this.tenta_x = this._tenta_target.x - this.x;
 							this.tenta_y = this._tenta_target.y - this.y;

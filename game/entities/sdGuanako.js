@@ -12,6 +12,7 @@ import sdStorage from './sdStorage.js';
 import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
 import sdWeather from './sdWeather.js';
+import sdGuanakoStructure from './sdGuanakoStructure.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -37,6 +38,20 @@ class sdGuanako extends sdEntity
 			30 * 30
 		];
 		
+		sdGuanako.crystal_frame_offset = 
+		[
+			{ x:0, y:0, a:0 },
+			{ x:0, y:0, a:0 },
+			{ x:1, y:0, a:10 * Math.PI / 180 },
+			{ x:0, y:3, a:0 },
+			{ x:0, y:2, a:0 },
+			
+			{ x:0, y:-1, a:0 },
+			{ x:0, y:-1, a:0 },
+			
+			{ x:-2, y:1, a:-30 * Math.PI / 180 },
+		];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
@@ -51,15 +66,54 @@ class sdGuanako extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return this.action_id !== sdGuanako.ACTION_DIES; }
 	
-	/*GetIgnoredEntityClasses()
+	GetIgnoredEntityClasses()
 	{
-		return [ 'sdGuanako' ];
-	}*/
+		return [ 'sdCrystal', 'sdGuanakoStructure' ];
+	}
 	
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		this._lives_until = sdWorld.time + 1000 * 60 * 5; // Lives for 5 minutes without anybody near
 	}*/
+	PickCrystal( from_entity )
+	{
+		if ( !sdWorld.is_server )
+		return;
+		
+		this.DropCrystal( true );
+		
+		this.crystal = from_entity;
+		this.crystal.held_by = this;
+	}
+	DropCrystal( throw_away=false )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.crystal )
+		{
+			if ( !this.crystal._is_being_removed )
+			{
+				this.crystal.sx = this.sx;
+				this.crystal.sy = this.sy;
+				
+				if ( throw_away )
+				{
+					this.crystal.sx -= this.side;
+					this.crystal.sy -= 1;
+				}
+				
+				this.crystal.held_by = null;
+				this.crystal.PhysWakeUp();
+			}
+			else
+			{
+				this.crystal.held_by = null;
+			}
+			this.crystal = null;
+		}
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -73,6 +127,11 @@ class sdGuanako extends sdEntity
 		this.hmax = 300;
 		
 		this.side = 1;
+		
+		this._happiness = 0;
+		
+		this.crystal = null; // They carry the best crystal they can find, then will eventually build their house with that crystal as decoration
+		this._home = null;
 		
 		this._has_score = true;
 		
@@ -89,7 +148,7 @@ class sdGuanako extends sdEntity
 		this._attack_cooldown = 0; // Can't attack when it is positive
 		
 		this._home_entity = null; // Could be shared with few other guanakos
-		this._held_entity = null; // Could drag items and crystals if needed
+		//this._held_entity = null; // Could drag items and crystals if needed
 		this._higher_rank_guanako = null; // All guanakos spawn from one specific guanako - that one is their leader
 		this._community_rank = 0; // 0 = leader, 1 = kid of a leader, 2 = kid of a kid of a leader etc, could be used to limit their population and keep community knowledge information in same place - on a leader
 		
@@ -120,7 +179,12 @@ class sdGuanako extends sdEntity
 			this._current_target = ent;
 			
 			if ( ent )
-			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: 128, options: [ sdPathFinding.OPTION_CAN_CRAWL, sdPathFinding.OPTION_CAN_SWIM, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ] });
+			{
+				if ( ent.is( sdGuanakoStructure ) )
+				this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: 0, options: [ sdPathFinding.OPTION_CAN_CRAWL, sdPathFinding.OPTION_CAN_SWIM, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ] });
+				else
+				this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: 128, options: [ sdPathFinding.OPTION_CAN_CRAWL, sdPathFinding.OPTION_CAN_SWIM, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ] });
+			}
 			else
 			this._pathfinding = null;
 		}
@@ -215,6 +279,8 @@ class sdGuanako extends sdEntity
 				died = true;
 				
 				this.PlayAction( sdGuanako.ACTION_DIES );
+				
+				this.DropCrystal();
 			}
 			//this.remove();
 			
@@ -330,8 +396,76 @@ class sdGuanako extends sdEntity
 		}
 	}
 	
+	static IsFirstCrystalBetter( a, b )
+	{
+		if ( !b )
+		return true;
+	
+		let value_a = a.matter_max * a.matter_regen;
+		let value_b = b.matter_max * b.matter_regen;
+		
+		value_a += a.speciality;
+		value_b += b.speciality;
+	
+		return ( value_a >= value_b );
+	}
+	
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_home' );
+	}
+	
 	onMovementInRange( from_entity )
 	{
+		if ( from_entity.is( sdCrystal ) )
+		{
+			if ( !from_entity.is_big )
+			if ( from_entity.held_by === null )
+			if ( !from_entity._is_being_removed )
+			{
+				if ( this.crystal )
+				{
+					if ( sdGuanako.IsFirstCrystalBetter( this.crystal, from_entity ) )
+					//if ( this.crystal.matter_max * this.crystal.matter_regen >= from_entity.matter_max * from_entity.matter_regen )
+					return;
+				}
+				
+				//this.DropCrystal();
+				this.PickCrystal( from_entity );
+			}
+		}
+		if ( !this._home )
+		{
+			if ( from_entity.is( sdGuanakoStructure ) )
+			if ( from_entity._owner_guanako === null || from_entity._owner_guanako._is_being_removed )
+			{
+				this._home = from_entity;
+				this._home._owner_guanako = this;
+			}
+		}
+		else
+		if ( from_entity === this._home )
+		{
+			if ( this.crystal )
+			if ( sdGuanako.IsFirstCrystalBetter( this.crystal, this._home.crystal ) )
+			if ( this._home.building_progress >= 100 )
+			if ( this._home.hea > 0 )
+			{
+				let home_crystal = this._home.crystal;
+				this._home.DropCrystalGuanakoOnly();
+				
+				let my_crystal = this.crystal;
+				this.DropCrystal( false );
+				
+				this._home.PickCrystal( my_crystal );
+				
+				if ( home_crystal )
+				this.PickCrystal( home_crystal );
+			
+				if ( this._current_target === this._home )
+				this.SetTarget( null );
+			}
+		}
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -423,13 +557,13 @@ class sdGuanako extends sdEntity
 					}
 					else
 					{
-						if ( this._held_entity )
+						/*if ( this._held_entity )
 						{
 							// Carry to base/build base
 
 							 // TODO
 						}
-						else
+						else*/
 						{
 							// Find crystals
 
@@ -469,13 +603,18 @@ class sdGuanako extends sdEntity
 
 									if ( pathfinding_result.attack_target )
 									{
+										if ( pathfinding_result.attack_target.is( sdGuanakoStructure ) )
+										{
+											this.SetTarget( null );
+										}
+										else
+										if ( pathfinding_result.attack_target.is( sdGuanako ) )
+										{
+											this.SetTarget( null );
+										}
+										else
 										if ( pathfinding_result.attack_target.is( sdCrystal ) )
 										{
-											if ( false ) // TODO
-											{
-												this._held_entity = pathfinding_result.attack_target;
-											}
-
 											this.SetTarget( null );
 										}
 										else
@@ -514,6 +653,28 @@ class sdGuanako extends sdEntity
 											bullet_obj.sy = dy;
 											//bullet_obj.x += bullet_obj.sx * 3;
 											//bullet_obj.y += bullet_obj.sy * 3;
+											
+											/*if ( di > 1 )
+											if ( this.crystal )
+											while ( bullet_obj.DoesOverlapWith( this.crystal ) )
+											{
+												bullet_obj.x += bullet_obj.sx;
+												bullet_obj.y += bullet_obj.sy;
+											}*/
+											bullet_obj._skip_crystals = true;
+											bullet_obj._extra_filtering_method = ( from_entity, bullet )=>
+											{
+												if ( from_entity.is( sdGuanako ) && from_entity.hea >= from_entity.hmax )
+												return false; // Go right through
+											
+												if ( from_entity.is( sdGuanakoStructure ) )
+												return false; // Go right through
+											
+												if ( from_entity.is( sdCrystal ) )
+												return false; // Go right through
+											
+												return true; // Collide
+											};
 
 											bullet_obj.sx *= 12;
 											bullet_obj.sy *= 12;
@@ -559,6 +720,63 @@ class sdGuanako extends sdEntity
 			}
 		}
 		
+		if ( this.crystal )
+		{
+			if ( this.crystal._is_being_removed )
+			this.DropCrystal();
+			else
+			{
+				this.crystal.sx = this.sx;
+				this.crystal.sy = this.sy;
+				this.crystal.x = this.x - this.side * 5;
+				this.crystal.y = this.y;
+				
+				this._happiness += GSPEED;
+				
+				if ( sdWorld.is_server )
+				if ( this.action_id !== sdGuanako.ACTION_SLEEP )
+				if ( this._happiness > 30 * 5 )
+				{
+					if ( this._home && this._home._is_being_removed )
+					this._home = null;
+					
+					if ( this._home )
+					{
+						if ( !this._current_target || this._current_target.is( sdBlock ) || this._current_target._is_being_removed )
+						if ( sdGuanako.IsFirstCrystalBetter( this.crystal, this._home.crystal ) )
+						{
+							this.SetTarget( this._home );
+							this._happiness = 0;
+						}
+					}
+					else
+					{
+						let xx0 = Math.round( this.x / 8 ) * 8;
+						let yy0 = Math.round( this.y / 8 ) * 8;
+
+						both:
+						for ( let u = -4; u <= 4; u++ )
+						for ( let v = -4; v <= 4; v++ )
+						{
+							let xx = xx0 + u * 8;
+							let yy = yy0 + v * 8;
+							if ( !sdWorld.CheckWallExistsBox( xx - 15, yy - 23, xx + 15, yy - 1, this ) )
+							if ( sdWorld.CheckWallExistsBox( xx - 15, yy - 23 + 8, xx + 15, yy - 1 + 8, this ) && ( sdWorld.last_hit_entity && sdWorld.last_hit_entity.is( sdBlock ) ) ) // Don't build on top of other building, only on ground
+							{
+								this._home = sdEntity.Create( sdGuanakoStructure, { x:xx, y:yy } );
+								this._home._owner_guanako = this;
+								
+								break both;
+							}
+						}
+						
+						this._happiness = 0;
+					}
+					
+				}
+			}
+		}
+		
 		if ( !this._stands || this._phys_last_rest_on )
 		this.sy += sdWorld.gravity * GSPEED;
 	
@@ -584,6 +802,7 @@ class sdGuanako extends sdEntity
 		
 		//if ( !sdShop.isDrawing )
 		//ctx.sd_hue_rotation = this.hue;
+		
 	   
 		let xx = 0;
 		let yy = 0;
@@ -637,6 +856,25 @@ class sdGuanako extends sdEntity
 	
 		if ( xx > 11 )
 		xx = 11;
+	
+		if ( this.crystal )
+		{
+			ctx.save();
+			{
+				if ( sdGuanako.crystal_frame_offset[ xx ] )
+				{
+					ctx.translate( this.crystal.x - this.x + sdGuanako.crystal_frame_offset[ xx ].x * this.side, this.crystal.y - this.y + sdGuanako.crystal_frame_offset[ xx ].y );
+					ctx.rotate( sdGuanako.crystal_frame_offset[ xx ].a * this.side );
+				}
+				else
+				{
+					ctx.translate( this.crystal.x - this.x, this.crystal.y - this.y );
+				}
+				
+				this.crystal.DrawWithStatusEffects( ctx, true );
+			}
+			ctx.restore();
+		}
 	
 		ctx.scale( -1 * this.side, 1 );
 	

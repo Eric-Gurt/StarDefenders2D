@@ -594,13 +594,13 @@ class sdFactionskin extends sdEntity
 			"helmet40":true,
 			"body25":true,
 			"legs25":true,
-			"voice10":true};
+			"voice13":true};
 
 			character_entity.matter = 800;
 			character_entity.matter_max = 800;
 
-			character_entity.hea = 7000;
-			character_entity.hmax = 7000;
+			character_entity.hea = 1000;
+			character_entity.hmax = 1000;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 
@@ -613,7 +613,7 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-			character_entity.s = 250;
+			character_entity.s = 150;
 			character_entity._jetpack_power = 4;
 		}
 
@@ -902,6 +902,8 @@ class sdFactionskin extends sdEntity
 		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( character_settings );
 		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( character_settings );
 		character_entity.title = character_settings.hero_name;
+		
+		character_entity.onSkinChanged();
 	}
 }
 //sdFactions.init_class();

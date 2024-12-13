@@ -45,7 +45,7 @@ class sdOctopus extends sdEntity
 	get hitbox_y2() { return 6; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this.death_anim === 0; }
+	{ return ( this.death_anim === 0 || this.driver0 || this.driver1 || this.driver2 ); }
 	
 	IsVehicle()
 	{
@@ -305,16 +305,21 @@ class sdOctopus extends sdEntity
 				{
 					if ( sdWorld.is_server )
 					{
-						if ( from_entity.scale < 250 )
-						if ( !from_entity._shield_ent )
-						if ( this.AddDriver( from_entity, true ) )
+						if ( from_entity.s < 150 )
 						{
+							if ( !from_entity._shield_ent )
+							{
+								if ( this.AddDriver( from_entity, true ) )
+								{
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 
+		if ( this._hea > 0 )
 		this._hea = Math.min( this._hmax, this._hea + 25 );
 
 		if ( will_play_damage_effect_and_sound )
@@ -339,6 +344,8 @@ class sdOctopus extends sdEntity
 			{
 				if ( !this.driver0 && !this.driver1 && !this.driver2 )
 				this.death_anim += GSPEED;
+				else
+				this.death_anim = Math.min( this.death_anim + GSPEED, sdOctopus.death_duration );	
 			}
 			else
 			this.remove();
@@ -482,7 +489,8 @@ class sdOctopus extends sdEntity
 			let will_damage = true;
 			let will_play_damage_effect_and_sound = true;
 
-			if ( this.type === sdOctopus.TYPE_GUN_TAKER && this.tenta_target && this.tenta_target.is( sdGun ) && this.tenta_target._held_by && this.tenta_target._held_by.IsPlayerClass() && !this.tenta_target._held_by._is_being_removed )
+			if ( this.type === sdOctopus.TYPE_GUN_TAKER && this._hea > 0 && 
+				 this.tenta_target && this.tenta_target.is( sdGun ) && this.tenta_target._held_by && this.tenta_target._held_by.IsPlayerClass() && !this.tenta_target._held_by._is_being_removed )
 			{
 				let from_entity = this.tenta_target;
 
@@ -570,7 +578,6 @@ class sdOctopus extends sdEntity
 					this.GenericOctoAttack( from_entity, will_play_damage_effect_and_sound );
 
 					this.tenta_target = null;
-
 				}
 			}
 		}

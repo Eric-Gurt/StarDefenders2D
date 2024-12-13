@@ -483,15 +483,35 @@ class sdServerConfigFull extends sdServerConfigShort
 			let intro_offset = 0;
 			let intro_to_speak = [];
 
-			switch ( ~~( Math.random() * 4 ) )
+			switch ( ~~( Math.random() * 6 ) )
 			{
 				case 0: intro_to_speak.push( 'Welcome to Star Defenders!' ); break;
 				case 1: intro_to_speak.push( 'Welcome to Star Defenders, [' + character_entity.title + ']!' ); break;
 				case 2: intro_to_speak.push( 'Hi.' ); break;
-				case 3: intro_to_speak.push( 'Hello.' ); break;
+				case 3: intro_to_speak.push( 'Hi, [' + character_entity.title + ']!' ); break;
+				case 4: intro_to_speak.push( 'Hello.' ); break;
+				case 5: intro_to_speak.push( 'Nice to see you, [' + character_entity.title + ']!' ); break;
+				case 6: intro_to_speak.push( 'Glad you\'ve decided to join the expedition, [' + character_entity.title + '].' ); break;
 			}
 			
-			switch ( ~~( Math.random() * 16 ) ) // There should eventually be an sdContextMenu option for instructors and move the messages titled 'guides' there as options so players can learn about game mechanics and have the instructor mention that they can open ContextMenu on him to acccess the guides here instead along with basic quotes. - Ghost581
+			// Let's go with less text for a while. Telling players about rescue teleports is way too confusing. Move extra replies to sdCharacter.RegisterTalkIfNear
+			intro_to_speak.push( ...[
+					'Press B key to open build menu.',
+					'You can drag objects with grappling hook.',
+					'Once you\'ve got grappling hook upgrade - press C key or press Mouse Wheel to drag items.',
+					'Look for crystals to get Matter. Matter is a primary resource here.',
+					'Press Enter to talk to other players.'
+			] );
+				
+			switch ( ~~( Math.random() * 4 ) )
+			{
+				case 0: intro_to_speak.push( 'Best of luck to you.' ); break;
+				case 1: intro_to_speak.push( 'I\'ll stick around for a bit.' ); break;
+				case 2: intro_to_speak.push( 'And that concludes my intro speech.' ); break;
+				case 3: intro_to_speak.push( 'I hope I didn\'t miss anything.' ); break;
+			}
+			
+			/*switch ( ~~( Math.random() * 16 ) ) // There should eventually be an sdContextMenu option for instructors and move the messages titled 'guides' there as options so players can learn about game mechanics and have the instructor mention that they can open ContextMenu on him to acccess the guides here instead along with basic quotes. - Ghost581
 			{
 				
 				case 0: intro_to_speak.push( ...[
@@ -677,7 +697,7 @@ class sdServerConfigFull extends sdServerConfigShort
 					'Oh, and they can also press and hold V to give their own matter to Players and Objects.',
 					'Cool, huh?'
 				] ); break;
-			}
+			}*/
 				
 			let my_character_entity = character_entity;
 			
@@ -776,11 +796,14 @@ class sdServerConfigFull extends sdServerConfigShort
 				{
 					clearInterval( instructor_interval );
 					
-					sdWorld.SendEffect({ x:instructor_entity.x + (instructor_entity.hitbox_x1+instructor_entity.hitbox_x2)/2, y:instructor_entity.y + (instructor_entity.hitbox_y1+instructor_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
-					
-					sdSound.PlaySound({ name:'teleport', x:instructor_entity.x, y:instructor_entity.y, volume:0.5 });
-						
-					instructor_entity.remove();
+					if ( !instructor_entity._is_being_removed )
+					{
+						sdWorld.SendEffect({ x:instructor_entity.x + (instructor_entity.hitbox_x1+instructor_entity.hitbox_x2)/2, y:instructor_entity.y + (instructor_entity.hitbox_y1+instructor_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+
+						sdSound.PlaySound({ name:'teleport', x:instructor_entity.x, y:instructor_entity.y, volume:0.5 });
+
+						instructor_entity.remove();
+					}
 				}
 				
 			}, 5500 );

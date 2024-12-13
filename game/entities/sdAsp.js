@@ -18,6 +18,10 @@ class sdAsp extends sdEntity
 	static init_class()
 	{
 		sdAsp.img_asp = sdWorld.CreateImageFromFile( 'sdAsp' );
+		
+		sdAsp.TIER_ORGANIC = 1;
+		sdAsp.TIER_CRYSTAL = 2;
+		sdAsp.TIER_ANTI = 3;
 
 		/*
 		sdAsp.img_asp_idle = sdWorld.CreateImageFromFile( 'asp_idle' );
@@ -50,6 +54,15 @@ class sdAsp extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }
 	
+	get _tier()
+	{
+		throw new Error( 'Outdated property' ); 
+	}
+	set _tier( v )
+	{
+		throw new Error( 'Outdated property' ); 
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -57,13 +70,16 @@ class sdAsp extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this._tier = params._tier || params.tier || 1; // Used to determine its' HP and damage
+		this.tier = params.tier || params.tier || 1; // Used to determine its' HP and damage
 		
-		if ( this._tier === 1 )
+		if ( this.tier === 1 )
 		this._hmax = 80;
 		else
-		if ( this._tier === 2 ) // Crystal asps were meant to have 2x HP due to turning into crystal shards on death.
+		if ( this.tier === 2 ) // Crystal asps were meant to have 2x HP due to turning into crystal shards on death.
 		this._hmax = 160;
+		else
+		if ( this.tier === 3 ) // Anti-crystal asps
+		this._hmax = 160 * 2;
 		else
 		this._hmax = 10;
 	
@@ -90,6 +106,10 @@ class sdAsp extends sdEntity
 		this._hibernation_check_timer = 30;
 		
 		this._unlimited_range = params.unlimited_range || false; // Unlimited attack range? Reserved for SD tasks.
+		
+		this._attack_through_walls = params.attack_through_walls || false;
+		
+		this._anti_time_left = 30 * 60 * 3 * 0.25;
 		
 		sdAsp.asps_tot++;
 		
@@ -126,7 +146,7 @@ class sdAsp extends sdEntity
 	}
 	GetBleedEffect()
 	{
-		if ( this._tier === 1 )
+		if ( this.tier === 1 )
 		return sdEffect.TYPE_BLOOD_GREEN;
 	
 		return sdEffect.TYPE_WALL_HIT;
@@ -137,7 +157,7 @@ class sdAsp extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
-		if ( this._tier === 1 )
+		if ( this.tier === 1 )
 		return this.filter;
 	
 		return '';
@@ -160,7 +180,7 @@ class sdAsp extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
-			if ( this._tier === 2 )
+			if ( this.tier === 2 )
 			{
 				if ( this._crystal_worth > 0 )
 				sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: 1.2, volume:0.5 });
@@ -170,9 +190,12 @@ class sdAsp extends sdEntity
 			
 			//sdSound.PlaySound({ name:'asp_death', x:this.x, y:this.y, volume: 0.5 });
 
+			if ( this.tier === 3 )
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
+			else
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 
-			if ( dmg >= this._hmax * 0.5 && this._tier === 1 ) // Instagib, gibs asp into 2 parts ( if your weapon deals enough damage )
+			if ( dmg >= this._hmax * 0.5 && this.tier === 1 ) // Instagib, gibs asp into 2 parts ( if your weapon deals enough damage )
 			{
 				sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_ASP_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this );
 				sdWorld.SpawnGib( this.x - ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_ASP_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 1 );
@@ -182,13 +205,13 @@ class sdAsp extends sdEntity
 		else
 		{
 			if ( was_alive )
-			if ( this._tier === 2 )
+			if ( this.tier === 2 )
 			if ( this._crystal_worth > 0 )
 			sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: 1.7, volume:0.3 });
 		}
 		
-		//if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Asps, unintentional - Booraz
-		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= -10 && this._tier === 2 ) ) // Tier 2 will not break on fall
+		//if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= 0 && this.tier === 2 ) ) // used to be only " ||this.tier === 2 " which resulted in instant death for Crystal Asps, unintentional - Booraz
+		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= -10 && this.tier === 2 ) ) // Tier 2 will not break on fall
 		this.remove();
 	}
 	get mass() { return 300; }
@@ -202,7 +225,7 @@ class sdAsp extends sdEntity
 	}
 	Impact( vel ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
 	{
-		if ( this._tier === 2 && this._hea <= 0 )
+		if ( this.tier === 2 && this._hea <= 0 )
 		this.DamageWithEffect( Math.max( 10, vel - 3 ) * 15 );
 		else
 		if ( vel > 6 ) // For new mass-based model
@@ -216,6 +239,19 @@ class sdAsp extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this.tier === sdAsp.TIER_ANTI )
+		{
+			GSPEED *= 0.25;
+			
+			this._anti_time_left -= GSPEED;
+			
+			if ( this._anti_time_left <= 0 )
+			{
+				if ( this._hea > 0 )
+				this._hea = 0;
+			}
+		}
+		
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
 		if ( this._hea <= 0 )
@@ -383,7 +419,7 @@ class sdAsp extends sdEntity
 				let projectiles = 1;
 				let spread_per_projectile = 0;
 				
-				if ( this._tier === 2 )
+				if ( this.tier === 2 || this.tier === 3 )
 				if ( this._crystal_worth !== 160 ) // Lost effect ones likely
 				{
 					offset = -0.15;
@@ -398,7 +434,7 @@ class sdAsp extends sdEntity
 					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+					if ( this._attack_through_walls || sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
 						let dx = xx - this.x;
 						let dy = yy - this.y;
@@ -448,8 +484,40 @@ class sdAsp extends sdEntity
 
 							bullet_obj._damage = 15;
 							bullet_obj.color = '#00ff00';
-
 							bullet_obj.model = 'ball_g';
+							
+							if ( this.tier === 3 )
+							{
+								bullet_obj.sx *= 0.25;
+								bullet_obj.sy *= 0.25;
+								bullet_obj.time_left /= 0.25;
+								bullet_obj._damage *= 1.5; // /= 0.25;
+								bullet_obj.color = '#000000';
+								bullet_obj.model = 'ball_anti';
+								bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+								{
+									if ( target_entity )
+									{
+										if ( typeof target_entity._matter !== 'undefined' )
+										target_entity._matter = Math.max( 0, target_entity._matter - 300 );
+									
+										if ( typeof target_entity.matter !== 'undefined' )
+										target_entity.matter = Math.max( 0, target_entity.matter - 300 );
+									}
+								};
+								
+								bullet_obj._extra_filtering_method = ( hit_entity, bullet )=>
+								{
+									if ( from_entity.driver_of )
+									if ( hit_entity === from_entity.driver_of )
+									return true; // Only hit destination targets
+									
+									if ( hit_entity === from_entity )
+									return true; // Only hit destination targets
+
+									return false; // Go right through everything including walls
+								};
+							}
 
 							sdEntity.entities.push( bullet_obj );
 						}
@@ -485,12 +553,12 @@ class sdAsp extends sdEntity
 	}
 	get title()
 	{
-		return ( this._tier === 2 ) ? "Crystal Asp" : 'Asp';
+		return ( this.tier === 3 ) ? "Anti-crystal Asp" : ( this.tier === 2 ) ? "Crystal Asp" : 'Asp';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, this.title ); // This won't work. _tier is not synced
+		sdEntity.Tooltip( ctx, this.title ); // This won't work. tier is not synced
 	}
 	Draw( ctx, attached )
 	{		
@@ -568,7 +636,7 @@ class sdAsp extends sdEntity
 		{
 			let a,s,x,y,k;
 			
-			if ( this._tier === 2 )
+			if ( this.tier === 2 || this.tier === 3 )
 			{
 				if ( this._crystal_worth > 0 )
 				{
@@ -601,7 +669,7 @@ class sdAsp extends sdEntity
 				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
-				if ( this._tier !== 2 )
+				if ( this.tier === 1 )
 				{
 					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
 					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });

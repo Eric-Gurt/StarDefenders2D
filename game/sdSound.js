@@ -404,8 +404,9 @@ class sdSound
 	{
 		let di = sdWorld.Dist2D( sdWorld.camera.x, sdWorld.camera.y, x, y );
 		
-		//return Math.max( 0.2, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
-		return Math.max( 0.05, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
+		//return Math.max( 0.05, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
+		
+		return Math.max( 0.01, 200 / ( 200 + di ) );
 	}
 	static CreateSoundChannel( for_entity )
 	{

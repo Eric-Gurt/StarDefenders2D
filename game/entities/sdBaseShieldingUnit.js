@@ -28,6 +28,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBG from './sdBG.js';
 import sdBSUTurret from './sdBSUTurret.js';
+import sdMatterAmplifier from './sdMatterAmplifier.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -1317,6 +1318,8 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 				sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume:4, pitch: 0.2 });
+				
+				let protected_entities_copy = this._protected_entities.slice();
 
 				let that = this;
 				for ( var i = 0; i < 20; i++ )
@@ -1341,7 +1344,24 @@ class sdBaseShieldingUnit extends sdEntity
 							that.sx -= Math.sin( an ) * d * r * 0.005;
 							that.sy -= Math.cos( an ) * d * r * 0.005;
 
-							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
+							//sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
+
+							if ( protected_entities_copy.length > 0 )
+							{
+								let net_id = protected_entities_copy[ ~~( Math.random() * protected_entities_copy.length ) ];
+								let e = sdEntity.entities_by_net_id_cache_map.get( net_id );
+								
+								if ( e )
+								if ( !e._is_being_removed )
+								{
+									if ( Math.random() < 0.5 )
+									sdBaseShieldingUnit.Zap( that, e, '#ff3333' );
+									else
+									sdBaseShieldingUnit.Zap( that, e, '#ffff33' );
+								
+									e.DamageWithEffect( 500, that );
+								}
+							}
 
 							sdWorld.SendEffect({ 
 								x: that.x + Math.sin( an ) * d, 
@@ -1389,6 +1409,13 @@ class sdBaseShieldingUnit extends sdEntity
 						
 						if ( pitch > 0 )
 						sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch: pitch });
+					}
+					
+					let amps = this.FindObjectsInACableNetwork( null, sdMatterAmplifier );
+					for ( let i = 0; i < amps.length; i++ )
+					if ( amps[ i ].crystal )
+					{
+						amps[ i ].crystal._last_amplification_until = sdWorld.time + 1000;
 					}
 				}
 				else
@@ -1501,12 +1528,14 @@ class sdBaseShieldingUnit extends sdEntity
 									this.matter_crystal -= ( unit._matter_drain - this._matter_drain );
 								}
 							}
-							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							//sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 							this._attack_timer = 30 / this._speed_boost;
 							this.attack_anim = 20;
 								
-							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * 1, pitch:3 + ( this._speed_boost - 1 ) / 100 * 6 });
-							sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * 1, pitch:3 + ( unit._speed_boost - 1 ) / 100 * 6 });
+							//sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * 1, pitch:3 + ( this._speed_boost - 1 ) / 100 * 6 });
+							//sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * 1, pitch:3 + ( unit._speed_boost - 1 ) / 100 * 6 });
+							
+							sdBaseShieldingUnit.Zap( this, unit, '#f9e853' );
 							
 							if ( unit.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 							unit.ShareValueIfHadntRecently();
@@ -1524,7 +1553,7 @@ class sdBaseShieldingUnit extends sdEntity
 						let my_matter_scaled = this.matter * my_scale; // 10 times more if charged
 						let their_matter_scaled = unit.matter * their_scale; // 10 times more if charged
 						
-						let least_matter = Math.min( my_matter_scaled, their_matter_scaled, 500 );
+						let least_matter = Math.min( my_matter_scaled, their_matter_scaled, 500 * this._speed_boost );
 						
 						let intensity = Math.min( 1, 10 - distance / range * 10 ); // Further sheilds are - less matter is wasted by both, 10% of soft waste
 						least_matter *= intensity;
@@ -1536,8 +1565,8 @@ class sdBaseShieldingUnit extends sdEntity
 							this.matter -= least_matter / my_scale;
 							unit.matter -= least_matter / their_scale;
 							
-							//this._speed_boost = Math.min( 100, this._speed_boost + 0.002 );
-							//unit._speed_boost = Math.min( 100, unit._speed_boost + 0.002 );
+							this._speed_boost = Math.min( 4, this._speed_boost + 0.01 );
+							unit._speed_boost = Math.min( 4, unit._speed_boost + 0.01 );
 							
 							{
 								let cameras = this.GetConnectedCameras();
@@ -1550,7 +1579,7 @@ class sdBaseShieldingUnit extends sdEntity
 								cameras[ i ].Trigger( sdCamera.DETECT_BSU_ATTACKS );
 							}
 
-							this._attack_timer = 60 / this._speed_boost;
+							this._attack_timer = 60 / this._speed_boost * ( 0.99 + Math.random() * 0.02 );
 							//unit._attack_timer = 60;
 
 							this.attack_anim = 20;
@@ -1562,13 +1591,15 @@ class sdBaseShieldingUnit extends sdEntity
 							this.WakeUpMatterSources();
 							unit.WakeUpMatterSources();
 
-							if ( intensity < 1 )
-							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f90000' });
-							else
-							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-
-							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 + ( this._speed_boost - 1 ) / 100 * 6 });
-							sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * intensity, pitch:3 + ( unit._speed_boost - 1 ) / 100 * 6 });
+							//if ( intensity < 1 )
+							//sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f90000' });
+							//else
+							//sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+						
+							let c = ( intensity < 1 ) ? '#34d52c' : '#007eff';
+						
+							sdBaseShieldingUnit.Zap( this, unit, c );
+							
 						}
 					}
 				}
@@ -1629,6 +1660,20 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.hea >= this.hmax && !this.enabled && this._phys_sleep <= 0 )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
+	
+	static Zap( that, unit, c )
+	{
+		sdCrystal.Zap( that, unit, c );
+		sdWorld.SendEffect({ x:that.x, y:that.y, type:sdEffect.TYPE_GLOW_HIT, color:c, scale:2, radius:10 });
+		sdWorld.SendEffect({ x:unit.x, y:unit.y, type:sdEffect.TYPE_GLOW_HIT, color:c, scale:2, radius:10 });
+
+		//sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 + ( this._speed_boost - 1 ) / 100 * 6 });
+		//sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * intensity, pitch:3 + ( unit._speed_boost - 1 ) / 100 * 6 });
+
+		sdSound.PlaySound({ name:'bsu_attack', x:that.x, y:that.y, volume:0.5, pitch:1 });
+		sdSound.PlaySound({ name:'bsu_attack', x:unit.x, y:unit.y, volume:0.5, pitch:1 });
+	}
+
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )

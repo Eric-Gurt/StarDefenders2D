@@ -402,6 +402,9 @@ class sdBlock extends sdEntity
 				{
 					this._last_damage = sdWorld.time;
 					sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+					
+					//if ( initiator )
+					//sdWorld.SendEffect({ x:initiator.x, y:initiator.y, type:sdEffect.TYPE_SHIELD });
 				}
 			}
 			
@@ -1053,7 +1056,21 @@ class sdBlock extends sdEntity
 	}
 	GetBleedEffect()
 	{
-		return ( this.material === sdBlock.MATERIAL_FLESH ) ? sdEffect.TYPE_BLOOD : sdEffect.TYPE_WALL_HIT;
+		if ( this.material === sdBlock.MATERIAL_FLESH )
+		return sdEffect.TYPE_BLOOD;
+	
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		return sdEffect.TYPE_SHIELD;
+	
+		if ( this.material === sdBlock.MATERIAL_SAND || 
+			 this.material === sdBlock.MATERIAL_GROUND || 
+			 this.material === sdBlock.MATERIAL_ROCK ||
+			 this.material === sdBlock.MATERIAL_CORRUPTION || 
+			 this.material === sdBlock.MATERIAL_SNOW ||
+			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+		return sdEffect.TYPE_DIRT_HIT;
+	
+		return sdEffect.TYPE_WALL_HIT;
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }

@@ -118,7 +118,7 @@ class sdFactionTools extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	static SpawnCharacter( type, relative_to=null ) // If relative_to is not specified - it will create daft object that has all needed properties
+	static SpawnCharacter( type, relative_to=null, play_spawn_effect=false ) // If relative_to is not specified - it will create daft object that has all needed properties
 	{
 		let xx = 0;
 		let yy = 0;
@@ -145,7 +145,8 @@ class sdFactionTools extends sdEntity
 					{
 						Object.assign( this, params );
 					} 
-					ApplyStatusEffect(){} 
+					ApplyStatusEffect(){}
+					onSkinChanged(){}
 				};
 		
 			ENTITIES_ARRAY = { 
@@ -667,8 +668,18 @@ class sdFactionTools extends sdEntity
 		
 		if ( relative_to )
 		{
-			sdSound.PlaySound({ name:teleport_sound, x:xx, y:yy, pitch: 1, volume:teleport_volume });
-			sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:teleport_effect_filter });
+			if ( play_spawn_effect )
+			{
+				sdSound.PlaySound({ name:teleport_sound, x:xx, y:yy, pitch: 1, volume:teleport_volume });
+				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:teleport_effect_filter });
+			}
+			
+			// Trigger weapon pick-up
+			if ( gun_entity )
+			{
+				character_entity.onMovementInRange( gun_entity );
+				gun_entity.onMovementInRange( character_entity );
+			}
 			
 			if ( logic )
 			logic();
@@ -685,7 +696,7 @@ class sdFactionTools extends sdEntity
 
 		if ( this.hea < 95 )
 		{
-			sdFactionTools.SpawnCharacter( this.type, this );
+			sdFactionTools.SpawnCharacter( this.type, this, true );
 
 			this.remove();
 		}

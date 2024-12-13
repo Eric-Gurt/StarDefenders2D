@@ -739,7 +739,6 @@ class sdShop
 				
 				//sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', _ai_team: 1, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 10, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 4, _category:'Development tests' });
@@ -748,11 +747,13 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 10, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 12, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 13, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 14, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 15, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 16, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests', _ai_team: 0, unlimited_range: true });
 				sdShop.options.push({ _class: 'sdDrone', type: 18, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 11, _ai_team: -1, _category:'Development tests' });
@@ -794,6 +795,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdGuanakoStructure', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdVeloxMiner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDropPod', type: 0, _category:'Development tests' });
@@ -927,7 +929,7 @@ class sdShop
 			{
 				max_level: 1,
 				matter_cost: 75,
-				description: 'Allows you to use the hook with C button or middle mouse button.',
+				description: 'Allows you to use the hook (to carry items and crystals around) with C button or middle mouse button.',
 				action: ( character, level_purchased )=>
 				{
 					character._hook_allowed = true;

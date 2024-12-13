@@ -53,7 +53,7 @@ class sdShurgTurret extends sdEntity
 
 		this.type = params.type || 0;
 
-		this.hmax = 800;
+		this.hmax = 700;
 		this.hea = this.hmax;
 		this._regen_timeout = 0; // Regen timeout;
 		this._notify_players = 0;
@@ -145,6 +145,8 @@ class sdShurgTurret extends sdEntity
 			//this.remove();
 		}
 		
+		if ( this.hea < -this.hmax * 0.75 )
+		this.remove();
 	}
 	
 	get mass() { return 800; }
@@ -274,7 +276,9 @@ class sdShurgTurret extends sdEntity
 
 								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
-								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume: 0.4, pitch: 2 });
+								//sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume: 0.4, pitch: 2 });
+								sdSound.PlaySound({ name:'shurg_turret_attack', x:this.x, y:this.y, volume: 1.3, pitch: 1 });
+								
 							}	
 						}
 						else

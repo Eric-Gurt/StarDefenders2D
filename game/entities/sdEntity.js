@@ -120,6 +120,9 @@ class sdEntity
 	}
 	static Create( class_ptr, params={ x:0, y:0 } ) // Does UpdateHashPosition with onMovementInRange call
 	{
+		if ( !sdWorld.is_server )
+		return null;
+		
 		let ent = new class_ptr( params );
 		sdEntity.entities.push( ent );
 		sdWorld.UpdateHashPosition( ent, false, true );

@@ -47,7 +47,7 @@ class sdOverlord extends sdEntity
 		
 		this._speak_id = -1;
 		
-		this.hmax = 3000;
+		this.hmax = 2000;
 		this.hea = this.hmax;
 		
 		this._regen_timeout = 0;

@@ -149,14 +149,14 @@ class sdLandScanner extends sdEntity
 			//this.sx = 0;
 			//this.sy = 0;
 			if ( this.charge < 100 )
-			this.charge = Math.min( 100, this.charge + GSPEED * 0.5 );
+			this.charge = Math.min( 100, this.charge + GSPEED * 1 );
 
 			this._next_beep -= GSPEED;
 			if ( this._next_beep < 0 )
 			{
-				this._next_beep = 20;
+				this._next_beep = 30;
 				//sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:5 });
-				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:6 * ( 1 + this.charge / 100 ) });
+				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:6 * ( 1 + this.charge / 300 ) });
 			}
 
 			if ( this.charge >= 100 )

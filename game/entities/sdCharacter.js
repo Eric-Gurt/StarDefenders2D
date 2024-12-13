@@ -327,6 +327,7 @@ class sdCharacter extends sdEntity
 			str;
 		*/
 		
+		// voide_presets
 		sdCharacter.voice_sound_effects = {
 			
 			// Council
@@ -379,6 +380,14 @@ class sdCharacter extends sdEntity
 			// Fully silent
 			'silence':
 			{
+			},
+	
+			'swordbot':
+			{
+				volume: 1.5,
+		
+				death: [ 'sword_bot_death' ],
+				alert: [ 'sword_bot_alert' ]
 			},
 	
 			// Tzyrg
@@ -1059,9 +1068,33 @@ THING is cosmic mic drop!`;
 		
 		if ( this._ignored_stability_damage > 33 )
 		{
-			this.stability = Math.max( -100, this.stability - this._ignored_stability_damage );
+			this.stability = Math.max( -100, this.stability - this._ignored_stability_damage / ( this.hmax / 250 ) );
 			this._ignored_stability_damage = 0;
 		}
+	}
+	
+	GetStepSound()
+	{
+		//if ( this.GetBleedEffect() === sdEffect.TYPE_WALL_HIT )
+		if ( this.bleed_effect === sdEffect.TYPE_WALL_HIT )
+		return 'player_step_robot';
+		else
+		return 'player_step';
+	}
+	GetStepSoundVolume()
+	{
+		if ( this.bleed_effect === sdEffect.TYPE_WALL_HIT )
+		return 0.5 * ( this.s / 100 );
+		else
+		return 1 * ( this.s / 100 );
+	}
+	GetStepSoundPitch()
+	{
+		return 1 / ( 1 * 0.5 + 0.5 * ( this.s / 100 ) );
+	}
+	onSkinChanged()
+	{
+		this.bleed_effect = this.GetBleedEffect();
 	}
 	
 	constructor( params )
@@ -1242,7 +1275,7 @@ THING is cosmic mic drop!`;
 		this._matter_regeneration = 0; // Through upgrade
 		//this._recoil_mult = 1; // Through upgrade
 		//this._air_upgrade = 1; // Underwater breath capacity upgrade
-		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
+		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool // this._level // this.level
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this._stability_recovery_multiplier = 1; // How fast does the character recover after stability damage?
@@ -1358,6 +1391,8 @@ THING is cosmic mic drop!`;
 		this._camera_zoom = sdWorld.default_zoom;
 		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
+
+		this.bleed_effect = this.GetBleedEffect(); // Clients need it in order to play proper walk sound
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
@@ -4774,7 +4809,7 @@ THING is cosmic mic drop!`;
 							if ( sdWorld.time > this._fall_sound_time + 100 ) // Flood will cause world snapshots to be delayed
 							{
 								this._fall_sound_time = sdWorld.time;
-								sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5 });
+								sdSound.PlaySound({ name:this.GetStepSound(), x:this.x, y:this.y, volume:0.5 * this.GetStepSoundVolume(), pitch:this.GetStepSoundPitch() });
 							}
 						}
 					}
@@ -4862,13 +4897,13 @@ THING is cosmic mic drop!`;
 						let old_walk = this._anim_walk;
 						this._anim_walk += Math.abs( this.sx ) * 0.2 / walk_speed_scale * GSPEED;
 
-						if ( old_walk < 5 && this._anim_walk >= 5 )
+						if ( ( old_walk < 0.5 && this._anim_walk >= 0.5 ) )//|| ( old_walk < 0.666 && this._anim_walk >= 0.666 ) )
 						if ( !this.ghosting )
 						if ( this._crouch_intens < 0.5 )
-						sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.25, _server_allowed:true });
+						sdSound.PlaySound({ name:this.GetStepSound(), x:this.x, y:this.y, volume:0.25 * this.GetStepSoundVolume(), _server_allowed:true, pitch:this.GetStepSoundPitch() });
 
 						if ( this._anim_walk > 10 )
-						this._anim_walk = 0;
+						this._anim_walk -= 10;
 					}
 				}
 			}
@@ -4894,16 +4929,21 @@ THING is cosmic mic drop!`;
 				}
 				else
 				{
-					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
-					this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
+					//this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
+					//this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
 
 					if ( this.flying )
 					{
 					}
 					else
-					if ( !this.driver_of )
-					this.sx += this.act_x * 0.15 * GSPEED;
-					//this.sx += this.act_x * 0.2 * GSPEED;
+					{
+						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
+						this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
+					
+						if ( !this.driver_of )
+						this.sx += this.act_x * 0.15 * GSPEED;
+						//this.sx += this.act_x * 0.2 * GSPEED;
+					}
 
 
 					this.sy += sdWorld.gravity * GSPEED;
@@ -6778,6 +6818,98 @@ THING is cosmic mic drop!`;
 		return 200; // Hack
 	}
 	
+	static RegisterTalkIfNear( character, voice, phrase )
+	{
+		let prepare = true;
+		
+		for ( let i = 0; i < sdCharacter.characters.length; i++ )
+		{
+			let other = sdCharacter.characters[ i ];
+			
+			if ( other.hea > 0 )
+			if ( other._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
+			if ( sdWorld.inDist2D_Boolean( other.x, other.y, character.x, character.y, 100 ) )
+			{
+				if ( prepare )
+				{
+					phrase = ' ' + phrase.toLowerCase() + ' ';
+					prepare = false;
+				}
+				
+				let React = ( substring )=>
+				{
+					return ( phrase.indexOf( substring ) !== -1 );
+				};
+				
+				let Reply = ( s )=>
+				{
+					setTimeout( ()=>
+					{
+						if ( typeof s === 'string' )
+						other.Say( s, false );
+						else
+						other.Say( s[ ~~( Math.random() * s.length ) ], false );
+					}, 1000 );
+				};
+				
+				if ( React( ' hi ' ) || React( 'hello' ) || React( ' hey ' ) || React( ' sup ' ) || React( ' good day ' ) )
+				{
+					Reply( [ 'Hi, [' + character.title + '].', 'Hello, [' + character.title + '].', 'How are you today, [' + character.title + ']?' ] );
+				}
+				else
+				if ( React( 'what should i do' ) )
+				{
+					Reply( [ 'That is a great question. Press B key if you need to open build menu.' ] );
+				}
+				else
+				if ( React( 'where do i get crystal' ) )
+				{
+					Reply( [ 'In ground.' ] );
+				}
+				else
+				if ( React( 'jetpack' ) || React( 'fly' ) )
+				{
+					Reply( [ 'You can buy jetpack in upgrade category of build menu. You can open it with B key.' ] );
+				}
+				else
+				if ( React( 'drag crystals' ) || React( 'drag items' ) )
+				{
+					Reply( [ 'You can drag items with a grappling hook. You can get it in upgrade category of build menu. You can open it with B key.' ] );
+				}
+				else
+				if ( React( 'doesnt work' ) )
+				{
+					Reply( [ 'You need to use cable management tool (press 7) to connect base equipment with matter amplifiers. Matter amplifiers is where crystals can be put into.' ] );
+				}
+				else
+				if ( React( 'fuck you' ) || React( 'fuck off' ) || React( 'get lost' ) || React( 'disappear' ) || React( 'go away' ) || React( 'shut up' ) || React( 'shut yo' ) || React( 'vanish' ) || React( 'i dont need you' ) || React( 'not talking to you' ) )
+				{
+					Reply( 'So mean.' );
+					
+					setTimeout( ()=>
+					{
+						let instructor_entity = other;
+						
+						sdWorld.SendEffect({ x:instructor_entity.x + (instructor_entity.hitbox_x1+instructor_entity.hitbox_x2)/2, y:instructor_entity.y + (instructor_entity.hitbox_y1+instructor_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+
+						sdSound.PlaySound({ name:'teleport', x:instructor_entity.x, y:instructor_entity.y, volume:0.5 });
+
+						instructor_entity.remove();
+						instructor_entity._broken = false;
+						
+					}, 3000 );
+					
+					return;
+				}
+				else
+				{
+					Reply( '..?' );
+					return;
+				}
+			}
+		}
+	}
+	
 	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false, translate=true )
 	{
 		if ( to_self )
@@ -6830,6 +6962,10 @@ THING is cosmic mic drop!`;
 				{
 					if ( !params.text_censored )
 					sdMimic.RegisterTalkIfNear( this, this._voice, t );
+				
+					if ( this._my_hash )
+					if ( !simulate_sound )
+					sdCharacter.RegisterTalkIfNear( this, this._voice, t );
 
 					sdWorld.SendEffect( params );
 				}

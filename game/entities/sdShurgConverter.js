@@ -253,9 +253,9 @@ class sdShurgConverter extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-
 		{
 			sdEntity.TooltipUntranslated( ctx, T("Shurg Converter")+ " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" , 0, -24 );
+			sdEntity.Tooltip( ctx, 'Depletes oxygen within range', 0, -24 + 10, '#ff0000' );
 			this.DrawHealthBar( ctx );
 		}
 	}

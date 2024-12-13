@@ -1,5 +1,5 @@
 
-/* global Infinity */
+/* global Infinity, sdWeather */
 
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
@@ -20,6 +20,7 @@ import sdOverlord from './sdOverlord.js';
 import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
+import sdWeather from './sdWeather.js';
 //import sdPlayerSpectator from './sdPlayerSpectator.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 
@@ -205,6 +206,8 @@ class sdCube extends sdEntity
 				this.kind === sdCube.KIND_PINK ? 100 : 
 				200;
 		this.hea = this.hmax;
+		
+		this._isCube = ( this.kind !== sdCube.KIND_MATTER_STEALER );
 		
 		this._boss_death_ping_timer = 0;
 		this._boss_death_pings_left = 0;
@@ -417,6 +420,93 @@ class sdCube extends sdEntity
 			
 			this._boss_death_ping_timer = 0;
 			this._boss_death_pings_left = 10;
+			
+			if ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_ANCIENT )
+			{
+				setTimeout( ()=>
+				{
+					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, [ 'sdCube' ] );
+					
+					let to_spawn = ( this.kind === sdCube.KIND_WHITE ) ? 8 : 4;
+					
+					if ( this.kind === sdCube.KIND_ANCIENT )
+					to_spawn = 1;
+					
+					for ( let i = 0; i < cubes.length; i++ )
+					{
+						let c = cubes[ i ];
+						
+						if ( c._isCube )
+						{
+							if ( cubes[ i ].hea > 0 )
+							to_spawn -= 1;
+							else
+							{
+								if ( this.kind === sdCube.KIND_ANCIENT )
+								to_spawn -= 0.25;
+								else
+								to_spawn -= 0.5;
+							}
+						}
+					}
+					
+					if ( Math.random() < 0.5 )
+					{
+						to_spawn /= 2;
+						to_spawn = ~~to_spawn;
+					}
+					
+					if ( this.matter < 10 )
+					{
+						to_spawn /= 2;
+						to_spawn = ~~to_spawn;
+					}
+						
+					while ( to_spawn > 0 )
+					{
+						//to_spawn = Math.ceil( to_spawn );
+						to_spawn--;
+						
+						setTimeout( ()=>
+						{
+							let kinds;
+							
+							if ( this.kind === sdCube.KIND_ANCIENT )
+							{
+								kinds = [ sdCube.KIND_ANCIENT ];
+							}
+							else
+							{
+								kinds = [ sdCube.KIND_CYAN, sdCube.KIND_PINK, sdCube.KIND_BLUE ];
+
+								if ( this.kind === sdCube.KIND_WHITE )
+								{
+									kinds.push( sdCube.KIND_YELLOW );
+									
+									if ( Math.random() < 0.01 )
+									kinds.push( sdCube.KIND_ANCIENT );
+								}
+							}
+
+							sdWeather.SimpleSpawner({
+
+								count: 1,
+								class: sdCube,
+								params: { kind: kinds[ ~~( Math.random() * kinds.length ) ] },
+								aerial: true,
+								near_entity: this,
+								group_radius: 100,
+
+								allow_near_player: true,
+								spawn_effect: true
+
+							});
+						
+						}, to_spawn * 100 );
+					}
+				},
+				200 );
+			}
 		}
 		
 		if ( this.hea <= explode_on_hea && was_existing )
@@ -446,6 +536,16 @@ class sdCube extends sdEntity
 			}
 			else
 			{
+				if ( this.kind === sdCube.KIND_WHITE )
+				sdSound.PlaySound({ name:'cube_death', pitch: 0.4, x:this.x, y:this.y, volume:2.5 });
+				else
+				if ( this.kind === sdCube.KIND_YELLOW )
+				sdSound.PlaySound({ name:'cube_death', pitch: 0.5, x:this.x, y:this.y, volume:2.5 });
+				else
+				if ( this.kind === sdCube.KIND_PINK )
+				sdSound.PlaySound({ name:'cube_death', pitch: 1.2, x:this.x, y:this.y, volume:1 });
+				else
+				sdSound.PlaySound({ name:'cube_death', pitch: 1, x:this.x, y:this.y, volume:1 });
 
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -813,16 +913,22 @@ class sdCube extends sdEntity
 	
 		GSPEED *= GSPEED_MULT;
 		
-		if ( this.regen_timeout <= 0 )
+		if ( sdWorld.is_server )
 		{
-			if ( this.hea < this.hmax )
+			if ( this.regen_timeout <= 0 )
 			{
-				this.hea = Math.min( this.hea + GSPEED, this.hmax );
+				if ( this.hea < this.hmax )
+				{
+					if ( this.kind === sdCube.KIND_ANCIENT )
+					this.hea = Math.min( this.hea + GSPEED * 3, this.hmax );
+					else
+					this.hea = Math.min( this.hea + GSPEED, this.hmax );
+				}
 			}
-		}
-		else
-		{
-			this.regen_timeout = Math.max( this.regen_timeout - GSPEED, 0 );
+			else
+			{
+				this.regen_timeout = Math.max( this.regen_timeout - GSPEED, 0 );
+			}
 		}
 		
 		if ( sdWorld.time > this._invisible_until || this.hea <= 0 )
@@ -1417,14 +1523,24 @@ class sdCube extends sdEntity
 			//yy = 5; // Reserved for ancient shotgun cube
 		}
 		
-		if ( this.armor > 1000 )
+		/*if ( this.armor > 1000 )
 		ctx.filter = 'drop-shadow(0px 0px 2px #ffaaaa) drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
 		else
 		if ( this.armor > 500 )
 		ctx.filter = 'drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
 		else
 		if ( this.armor > 0 )
-		ctx.filter = 'drop-shadow(0px 0px 2px #007eff)';
+		ctx.filter = 'drop-shadow(0px 0px 2px #007eff)';*/
+		
+		/*if ( this.armor > 1000 )
+		ctx.filter = 'drop-shadow(0px 0px 2px #ffaaaa) drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
+		else
+		if ( this.armor > 500 )
+		ctx.filter = 'drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
+		else*/
+		if ( this.armor > 0 )
+		ctx.filter = 'drop-shadow(-1px 0px 0px #ffffff) drop-shadow(1px 0px 0px #ffffff) drop-shadow(0px -1px 0px #ffffff) drop-shadow(0px 1px 0px #ffffff)' + 
+					'drop-shadow(0px 0px 1px #7ebeff)';
 		
 		if ( this.hea > 0 )
 		{

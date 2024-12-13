@@ -38,6 +38,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdAsteroid from './sdAsteroid.js';
+import sdFactionTools from './sdFactionTools.js';
 
 import sdCube from './sdCube.js';
 import sdBlock from './sdBlock.js';
@@ -302,6 +303,10 @@ class sdWeather extends sdEntity
 		return ( prop === '_potential_invasion_events' || prop === '_daily_events' || prop === '_daily_weather_events' || prop === '_daily_sd_task_events' || prop === '_wanderer_models' );
 	}
 	
+	IsTargetable( by_entity=null, ignore_safe_areas=false )
+	{
+		return false; // Ignore bullets
+	}
 	GetSunIntensity()
 	{
 		return -Math.cos( this.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
@@ -420,7 +425,7 @@ class sdWeather extends sdEntity
 			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
 			let is_already_enabled = false;
-			let weather_event_count = Math.min( allowed_event_ids.length, ~~(Math.random() * 2 ) ); // Up to 2 events, can also be 0
+			let weather_event_count = Math.min( allowed_event_ids.length, ~~( ( 1 - Math.pow( Math.random(), 2 ) ) * 4 ) ); // Up to 2 events, can also be 0
 			let time = 1000;
 			while ( weather_event_count > 0 && time > 0 )
 			{
@@ -567,6 +572,8 @@ class sdWeather extends sdEntity
 	
 		let instances = params.count[ 0 ] + ~~( Math.random() * ( params.count[ 1 ] - params.count[ 0 ] ) );
 		
+		let check_player_distance = ( params.allow_near_player ) ? false : true;
+		
 		while ( instances > 0 )
 		{
 			let spawn_params = params.params ? params.params : { x:0, y:0 };
@@ -644,6 +651,7 @@ class sdWeather extends sdEntity
 						{
 							let proper_distnace = true;
 
+							if ( check_player_distance )
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
 							{
@@ -660,6 +668,12 @@ class sdWeather extends sdEntity
 								dog.x = x;
 								dog.y = y;
 								sdWorld.UpdateHashPosition( dog, false ); // Prevent inersection with other ones
+								
+								if ( params.spawn_effect )
+								{
+									sdSound.PlaySound({ name:'teleport', x:dog.x, y:dog.y, volume:0.1, pitch:0.75 });
+									sdWorld.SendEffect({ x:dog.x, y:dog.y, type:sdEffect.TYPE_TELEPORT });
+								}
 								
 								if ( params.group_radius > 0 )
 								{
@@ -1681,7 +1695,10 @@ class sdWeather extends sdEntity
 				class: sdSpider,
 				params: { _ai_team: 2, type: spider_type },
 				near_entity: near_ent,
-				group_radius: group_rad
+				group_radius: group_rad,
+				
+				allow_near_player: true,
+				spawn_effect: true
 
 			});
 			
@@ -1702,7 +1719,10 @@ class sdWeather extends sdEntity
 				near_entity: near_ent,
 				group_radius: group_rad,
 				unlimited_range: inf_range,
-				target: target_ent
+				target: target_ent,
+				
+				allow_near_player: true,
+				spawn_effect: true
 
 			});
 			
@@ -1743,7 +1763,10 @@ class sdWeather extends sdEntity
 						aerial: true,
 						store_ents: character_ents,
 						near_entity: near_ent,
-						group_radius: group_rad
+						group_radius: group_rad,
+				
+						allow_near_player: true,
+						spawn_effect: true
 
 					});
 					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
@@ -3018,20 +3041,33 @@ class sdWeather extends sdEntity
 			while ( instances < instances_tot && ais < 1 ) // Capped to 1 on map, but will try to spawn it multiple times if it fails
 			{
 
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE, s:250 });
+				/*let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE, s:250 });
 
-				sdEntity.entities.push( character_entity );
+				sdEntity.entities.push( character_entity );*/
+				let [ character_entity, gun ] = sdFactionTools.SpawnCharacter( sdFactionTools.FT_FSB, { x:0,y:0 } );
 
 				{
 					if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
 					{
 						character_entity.remove();
 						character_entity._broken = false;
+						
+						if ( gun )
+						{
+							gun.remove();
+							gun._broken = false;
+						}
+						
 						break;
 					}
 					else
 					{
+						if ( gun )
 						{
+							gun.x = character_entity.x;
+							gun.y = character_entity.y;
+						}
+						/*{
 
 							//sdWorld.UpdateHashPosition( ent, false );
 							let falkok_settings;
@@ -3069,7 +3105,8 @@ class sdWeather extends sdEntity
 							character_entity._jetpack_power = 4;
 
 							break;
-						}
+						}*/
+						break;
 					}
 				}
 
@@ -3736,7 +3773,7 @@ class sdWeather extends sdEntity
 
 					count: [ 1, 1 ],
 					class: sdDrone,
-					params: { type: 17, _ai_team: 0, unlimited_range: true },
+					params: { type: sdDrone.DRONE_SD_BG, _ai_team: 0, unlimited_range: true },
 					aerial: true,
 					store_ents: ents,
 					near_entity: near_ent,

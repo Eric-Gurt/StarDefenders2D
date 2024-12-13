@@ -9,6 +9,7 @@ import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
+import sdStorage from './sdStorage.js';
 import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
 import sdSpider from './sdSpider.js';
@@ -134,7 +135,7 @@ class sdDrone extends sdEntity
 			this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : 
 			this.type === sdDrone.DRONE_FALKOK ? 130 : 
 			this.type === sdDrone.DRONE_FALKOK_RAIL ? 320 : 
-			this.type === sdDrone.DRONE_CUT_DROID ? 2000 : 
+			this.type === sdDrone.DRONE_CUT_DROID ? 1200 : 
 			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
 			this.type === sdDrone.DRONE_COUNCIL_ATTACK ? 150 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
@@ -149,15 +150,19 @@ class sdDrone extends sdEntity
 		this.death_anim = 0;
 		
 		// Targetting
-		this._current_target = params.target || null;
+		this._current_target = null;//params.target || null;
 		this._pathfinding = null;
 		
 		// Aiming
 		this._look_x = this.x;
 		this._look_y = this.y;
 		
-		if ( this._current_target ) 
-		this.SetTarget( this._current_target ); 
+		//if ( this._current_target ) 
+		this.SetTarget( params.target || null ); 
+	
+		this._consumed_entity_snapshots = null; // SD-BG can take crystals and give them to players
+		if ( this.type === sdDrone.DRONE_SD_BG )
+		this._consumed_entity_snapshots = [];
 	
 		//
 		
@@ -221,6 +226,7 @@ class sdDrone extends sdEntity
 	ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === '_is_minion_of' ) return true;
+		if ( prop === '_consumed_entity_snapshots' ) return true;
 
 		return false;
 	}
@@ -277,7 +283,95 @@ class sdDrone extends sdEntity
 				}
 			}
 		}
+	}
+	CrystalCollectionLogic( from_entity )
+	{
+		if ( sdWorld.is_server )
+		if ( this.type === sdDrone.DRONE_SD_BG )
+		if ( this._attack_timer <= 0 )
+		if ( from_entity.is( sdCrystal ) )
+		if ( this._consumed_entity_snapshots )
+		if ( this._consumed_entity_snapshots.length < 4 )
+		{
+			this._consumed_entity_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+			from_entity.remove();
+			from_entity._broken = false;
 
+			sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:this.x, y:this.y, volume:0.5, pitch:0.3 });
+
+			this._attack_timer = 30;
+		}
+	}
+	onMovementInRange( from_entity )
+	{
+		this.CrystalCollectionLogic( from_entity );
+	}
+	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	{
+		if ( character._ai_team === this._ai_team )
+		{
+			if ( this._consumed_entity_snapshots )
+			if ( this._consumed_entity_snapshots.length > 0 )
+			if ( this._attack_timer <= 0 )
+			{
+				let dx = character.x - this.x;
+				let dy = character.y - this.y;
+				
+				if ( sdWorld.inDist2D_Boolean( 0,0, dx,dy, 80 ) )
+				{
+					this._attack_timer = 30;
+					
+					let snapshot = this._consumed_entity_snapshots.pop();
+					try
+					{
+						let ent = sdEntity.GetObjectFromSnapshot( snapshot );
+
+						if ( Math.abs( dx ) > Math.abs( dy ) )
+						{
+							if ( dx > 0 )
+							ent.x = this.x + this._hitbox_x2 - ent._hitbox_x1;
+							else
+							ent.x = this.x + this._hitbox_x1 - ent._hitbox_x2;
+
+							ent.y = this.y;
+						}
+						else
+						{
+							if ( dy > 0 )
+							ent.y = this.y + this._hitbox_y2 - ent._hitbox_y1;
+							else
+							ent.y = this.y + this._hitbox_y1 - ent._hitbox_y2;
+
+							ent.x = this.x;
+						}
+						
+						dx = character.x - ent.x;
+						dy = character.y - ent.y;
+						
+						ent.sx = dx * 0.05 + this.sx;
+						ent.sy = dy * 0.05 + this.sy - Math.abs( dx ) * 0.05;
+						sdEntity.entities.push( ent );
+
+						sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+						
+						if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
+						{
+							ent.remove();
+							ent._broken = false;
+							this._consumed_entity_snapshots.unshift( snapshot );
+						}
+						else
+						{
+							sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:this.x, y:this.y, volume:0.5, pitch:0.35 });
+						}
+					}
+					catch ( e )
+					{
+						trace( 'Drone can\'t drop crystal', snapshot );
+					}
+				}
+			}
+		}
 	}
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -1028,7 +1122,7 @@ class sdDrone extends sdEntity
 			if ( sdWorld.is_server )
 			if ( this._current_target )
 			{
-				// Target aiming so players can dodge
+				// Target aiming so players can dodge // Alternative aiming logic is used for attacking objects in a way
 				this._look_x = sdWorld.MorphWithTimeScale( this._look_x, this._current_target.x + ( ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 ), 0.95, GSPEED );
 				this._look_y = sdWorld.MorphWithTimeScale( this._look_y, this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 ), 0.95, GSPEED );
 				
@@ -1161,12 +1255,35 @@ class sdDrone extends sdEntity
 				
 					if ( pathfinding_result && pathfinding_result.attack_target )
 					{
+						let attack = true;
+						
+						if ( this._ai_team === 0 ) // Star Defenders-friendly
+						{
+							if ( pathfinding_result.attack_target.is( sdCrystal ) ||
+								 pathfinding_result.attack_target.is( sdStorage ) || 
+								 ( pathfinding_result.attack_target.is( sdCharacter ) && pathfinding_result.attack_target._my_hash ) )
+							{
+								// Friendly drones that kill new players are a kind of fun we can't to afford
+								attack = false;
+								
+								this.CrystalCollectionLogic( pathfinding_result.attack_target );
+							}
+						}
+						
+						if ( attack )
 						nears.push( { ent: pathfinding_result.attack_target, rank: 0, ignore_line_of_sight: true } ); // Not a priority usually
 					}
 
 					for ( var i = 0; i < nears.length; i++ )
 					{
 						from_entity = nears[ i ].ent;
+						
+						if ( pathfinding_result )
+						if ( from_entity === pathfinding_result.attack_target )
+						{
+							this._look_x = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+							this._look_y = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+						}
 
 						let xx = this._look_x;
 						let yy = this._look_y;
@@ -1191,7 +1308,7 @@ class sdDrone extends sdEntity
 							}
 
 							this.side = ( dx > 0 ) ? 1 : -1;
-							if ( this.type !== 6 )
+							if ( this.type !== sdDrone.DRONE_COUNCIL )
 							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 
 							//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
@@ -1221,7 +1338,8 @@ class sdDrone extends sdEntity
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 								this._attack_timer = 7;
 
-								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
+								//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
+								sdSound.PlaySound({ name:'falkok_drone_fire', x:this.x, y:this.y, volume:1.5, pitch:1 });
 							}
 							else
 							if ( this.type === sdDrone.DRONE_ERTHAL ) // Erthal drones
@@ -1384,8 +1502,8 @@ class sdDrone extends sdEntity
 														}
 													}
 												}
-											}
-									}
+											};
+									};
 									sdEntity.entities.push( obj );
 									this._alt_attack_timer = 240;
 									this._attack_timer = 30;
@@ -1425,13 +1543,13 @@ class sdDrone extends sdEntity
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
 								{
-									if ( entities[ i ].GetClass() === 'sdCharacter' && ( this._attack_timer <= 0 ) ) // Is it a character?
+									if ( entities[ i ].is( sdCharacter ) && ( this._attack_timer <= 0 ) ) // Is it a character?
 									{
 										if ( entities[ i ]._ai_team === 4 ) // Does it belong to Sarronian faction?
 										{
 											if ( entities[ i ].hea < entities[ i ].hmax ) // Is it missing health?
 											{
-												if ( entities[ i ].GetClass() === 'sdCharacter' && !entities[ i ].hea <= 1 ) // Don't target dead allies.
+												if ( entities[ i ].is( sdCharacter ) && !entities[ i ].hea <= 1 ) // Don't target dead allies.
 												entities[ i ].hea = Math.min( entities[ i ].hea + 40, entities[ i ].hmax ); // If humanoid heal for 40
 
 												att_anim = true;
@@ -1665,7 +1783,7 @@ class sdDrone extends sdEntity
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
 								{
-									if ( entities[ i ].GetClass() === 'sdCharacter' ) // Is it a character?
+									if ( entities[ i ].is( sdCharacter ) ) // Is it a character?
 									{
 										if ( entities[ i ]._ai_team === 3 ) // Does it belong to Council faction?
 										{

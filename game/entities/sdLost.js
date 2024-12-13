@@ -53,7 +53,7 @@ class sdLost extends sdEntity
 	{
 		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
 		
-		if ( ( ent._hard_collision && !ent.is( sdCrystal ) && !( ent.is( sdAsp ) && ent._tier === 2 ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
+		if ( ( ent._hard_collision && !ent.is( sdCrystal ) && !( ent.is( sdAsp ) && ( ent.tier === 2 || ent.tier === 3 ) ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
 			 ( !ent._hard_collision && ( ent.is( sdFaceCrab ) || ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD && ent.class !== sdGun.CLASS_SCORE_SHARD ) || is_dead ) ) ) // Not for BG entities
 		if ( ent._is_bg_entity === 0 ) // Not for BG entities
 		if ( ent.IsTargetable() )
@@ -102,7 +102,7 @@ class sdLost extends sdEntity
 				if ( ent.is( sdMatterAmplifier ) )
 				ent.DropCrystal();
 			
-				if ( ent.is( sdAsp ) && ent._tier === 1 )
+				if ( ent.is( sdAsp ) && ent.tier === 1 )
 				{
 					ent.remove();
 					ent._broken = false;

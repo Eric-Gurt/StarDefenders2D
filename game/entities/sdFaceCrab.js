@@ -87,7 +87,7 @@ class sdFaceCrab extends sdEntity
 	{
 		if ( this.attached_to )
 		if ( by_entity )
-		if ( !this.attached_to.IsPlayerClass() || ( sdWorld.time % 5 > 0 ) ) // Decreased hit chance for players, no hit chance for creatures
+		if ( !this.attached_to.IsPlayerClass() || ( sdWorld.time % 2 > 0 ) ) // Decreased hit chance for players, no hit chance for creatures
 		{
 			if ( by_entity.is( sdBullet ) )
 			{

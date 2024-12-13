@@ -229,6 +229,8 @@ class sdBullet extends sdEntity
 
 		this._emp = false; // EMP effect, used for turrets to set them to "sleep mode"
 		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
+		
+		//this._skip_crystals = false;
 
 		this._temperature_addition = 0; // Set enemies on fire?
 
@@ -260,6 +262,8 @@ class sdBullet extends sdEntity
 		this._homing_mult = 0; // How fast/strong does it home towards target?
 
 		this._first_frame = true; // Bad approach but early removal isn't good either. Also impossible to know if projectile is hook this early so far
+		
+		this._extra_filtering_method = null;
 
 		// Defining this in method that is not called on this object and passed as collision filtering thing
 		//this.BouncyCollisionFiltering = this.BouncyCollisionFiltering.bind( this ); Bad, snapshot will enumerate it
@@ -457,6 +461,13 @@ class sdBullet extends sdEntity
 
 		if ( !from_entity.PrecieseHitDetection( this.x, this.y, this ) )
 		return false;
+	
+		//if ( this._skip_crystals )
+		//if ( from_entity.is( sdCrystal ) )
+		//return false;
+
+		if ( this._extra_filtering_method )
+		return this._extra_filtering_method( from_entity, this );
 
 		return true;
 	}
@@ -474,6 +485,9 @@ class sdBullet extends sdEntity
 
 		if ( this._owner2 === from_entity )
 		return false;
+
+		if ( this._extra_filtering_method )
+		return this._extra_filtering_method( from_entity, this );
 
 		return true;
 	}
@@ -907,12 +921,8 @@ class sdBullet extends sdEntity
 								let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 
 								let critical_hit_mult = this.GetCriticalHitMult();
-
-								if ( !this._wave )
-								{
-									if ( !this._soft )
-									sdWorld.SendEffect({ x:this.x, y:this.y, type:( limb_mult === 1 ? from_entity.GetBleedEffect() : from_entity.GetBleedEffectDamageMultiplier() ) });
-								}
+								
+								let eff = ( limb_mult === 1 ? from_entity.GetBleedEffect() : from_entity.GetBleedEffectDamageMultiplier() );
 
 								let dmg = this._damage * critical_hit_mult;// * dmg_mult;
 
@@ -990,6 +1000,65 @@ class sdBullet extends sdEntity
 									if ( from_entity.is( sdCrystal ) )
 									if ( typeof this._owner._nature_damage !== 'undefined' )
 									this._owner._nature_damage += dmg;
+								}
+								
+								
+
+								if ( !this._wave )
+								{
+									if ( !this._soft )
+									{
+										let partial_damage = false;
+										
+										if ( dmg > 0 )
+										if ( old_hea - ( from_entity.hea || from_entity._hea || 0 ) < dmg * 0.99 )
+										partial_damage = true;
+										
+										if ( eff === sdEffect.TYPE_SHIELD || partial_damage )
+										{
+											let dist_x1 = Math.abs( from_entity.x + from_entity._hitbox_x1 - this.x );
+											let dist_x2 = Math.abs( from_entity.x + from_entity._hitbox_x2 - this.x );
+											let dist_y1 = Math.abs( from_entity.y + from_entity._hitbox_y1 - this.y );
+											let dist_y2 = Math.abs( from_entity.y + from_entity._hitbox_y2 - this.y );
+											
+											let xx = this.x;
+											let yy = this.y;
+											let r = 0;
+											
+											if ( Math.min( dist_x1, dist_x2 ) < Math.min( dist_y1, dist_y2 ) )
+											{
+												if ( dist_x1 < dist_x2 )
+												{
+													xx = from_entity.x + from_entity._hitbox_x1;
+													r = - Math.PI / 2;
+												}
+												else
+												{
+													xx = from_entity.x + from_entity._hitbox_x2;
+													r = Math.PI / 2;
+												}
+											}
+											else
+											{
+												if ( dist_y1 < dist_y2 )
+												yy = from_entity.y + from_entity._hitbox_y1;
+												else
+												yy = from_entity.y + from_entity._hitbox_y2;
+											}
+											
+											sdWorld.SendEffect({ 
+												x:xx, 
+												y:yy, 
+												type:sdEffect.TYPE_SHIELD,
+												rotation: r });
+										}
+										
+										if ( eff !== sdEffect.TYPE_SHIELD )
+										sdWorld.SendEffect({ 
+											x:this.x, 
+											y:this.y, 
+											type:eff });
+									}
 								}
 							}
 							else

@@ -1491,7 +1491,7 @@ class sdWorld
 			params.attachment = [ params.attachment.GetClass(), params.attachment._net_id ];
 		}
 		
-		if ( params.type === sdEffect.TYPE_EXPLOSION )
+		if ( params.type === sdEffect.TYPE_EXPLOSION || params.type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
 			/*let targets = sdWorld.GetAnythingNear( params.x, params.y, params.radius );
 			
@@ -4092,7 +4092,7 @@ class sdWorld
 		if ( player_description['voice6'] ) // Falkok voice
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#006480', false ); // hue +73 deg
 		
-		if ( player_description['voice7'] ) // Robot voice
+		if ( player_description['voice7'] || player_description['voice13'] ) // Robot voice / Sword bot
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
 		
 		if ( player_description['voice8'] ) // Council voice
@@ -4293,6 +4293,11 @@ class sdWorld
 			_voice.pitch = 60;
 			_voice.speed = 120;
 		}
+		if ( player_description['voice13'] )
+		{
+			_voice.variant = 'swordbot';
+			_voice.pitch = 0;
+		}
 		
 		return _voice;
 	}
@@ -4301,18 +4306,20 @@ class sdWorld
 	{
 		if ( character_entity.skin_allowed )
 		{
-		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
-		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
+			character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
+			character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 
-		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
-		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
-		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+			character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
+			character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
+			character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
 		}
 
 		character_entity.title = player_settings.hero_name;
 		character_entity.title_censored = ( typeof sdModeration !== 'undefined' && socket ) ? sdModeration.IsPhraseBad( character_entity.title, socket ) : false;
 		
 		character_entity._allow_self_talk = ( player_settings.selftalk1 ) || false;
+		
+		character_entity.onSkinChanged();
 	}
 	
 	static RequirePassword( message_and_color )

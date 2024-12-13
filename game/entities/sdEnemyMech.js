@@ -66,7 +66,8 @@ class sdEnemyMech extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 15000; // Was 6000 but even 12000 is easy
+		//this._hmax = 15000; // Was 6000 but even 12000 is easy
+		this._hmax = 6000; // EG: It feels like a sponge boss unfortunately. Maybe it needs to become more complex mechanics-wise and much more rare in order to have high hitpoints. Meanwhile I'm raising his damage instead
 		this.hea = this._hmax;
 
 		this._ai_team = 5;
@@ -108,6 +109,7 @@ class sdEnemyMech extends sdEntity
 		this.lmg_an = 0; // Rotate angle for LMG firing
 		
 		this._last_seen_player = 0;
+		this._last_patience_warning = 0;
 
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 		
@@ -275,16 +277,6 @@ class sdEnemyMech extends sdEntity
 		// Also import sdBubbleShield if it's not imported
 		if ( sdBubbleShield.DidShieldProtectFromDamage( this, dmg, initiator ) )
 		return;
-	
-		if ( initiator )
-		{
-			if ( initiator.is( sdCharacter ) )
-			if ( initiator._ai_team === 0 ) // Only target players
-			this._current_target = initiator;
-
-			if ( !initiator.is( sdEnemyMech ) )
-			this._follow_target = initiator;
-		}
 
 
 
@@ -299,11 +291,14 @@ class sdEnemyMech extends sdEntity
 		
 		this.hea -= dmg;
 		
+		let hurt_sound = false;
+		
 		if ( this.hea > 0 )
 		{
 			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch: 0.7 });
+				hurt_sound = true;
 			}
 			
 			if ( sdWorld.time > this._last_damage + 50 )
@@ -314,6 +309,30 @@ class sdEnemyMech extends sdEntity
 			
 			//if ( this.hea <= 400 )
 			//sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
+		}
+	
+		if ( initiator )
+		{
+			if ( initiator.is( sdCharacter ) )
+			if ( initiator._ai_team !== this._ai_team ) // Only target non-teammates
+			{
+				if ( initiator._my_hash && initiator.build_tool_level < 10 && !hurt_sound )
+				{
+					// Do not attack new players back unless they deal enough damage to Mech
+					
+					if ( this._last_patience_warning < sdWorld.time - 1000 * 5 ) // Once per 5 seconds
+					{
+						sdSound.PlaySound({ name:'enemy_mech_warning', x:this.x, y:this.y, volume:2 });
+
+						this._last_patience_warning = sdWorld.time;
+					}
+				}
+				else
+				this._current_target = initiator;
+			}
+
+			if ( !initiator.is( sdEnemyMech ) )
+			this._follow_target = initiator;
 		}
 		
 		this._regen_timeout = Math.max( this._regen_timeout, 30 * 60 );
@@ -709,7 +728,8 @@ class sdEnemyMech extends sdEntity
 
 						//bullet_obj._rail = true;
 
-						bullet_obj._damage = 25;
+						//bullet_obj._damage = 25;
+						bullet_obj._damage = 75;
 						bullet_obj.color = '#ffaa00';
 
 						sdEntity.entities.push( bullet_obj );

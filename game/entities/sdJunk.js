@@ -124,9 +124,9 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
-		this.hmax = 25000;
+		this.hmax = 10000;
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
-		this.hmax = 50000;
+		this.hmax = 30000;
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large anti-crystal
 		this.hmax = 1000;
 		else
@@ -1088,11 +1088,11 @@ class sdJunk extends sdEntity
 				else
 				{
 					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
-					this._spawn_ent_in_delay *= 1.1; // 1.25 seemed way too weak
+					this._spawn_ent_in_delay *= 1.03; // 1.25 seemed way too weak. And so did 1.1
 					sdWeather.only_instance.ExecuteEvent({
-						event: 11,
+						event: sdWeather.EVENT_ERTHALS,
 						near_entity: this,
-						group_radius: 3000
+						group_radius: ( Math.random() < 0.5 ) ? 400 : 3000
 					}); // Execute Erthal spawn event
 					
 					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )
@@ -1253,7 +1253,8 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 			{
-				ctx.drawImageFilterCache( sdJunk.img_erthal_beacon, - 32, - 32, 64, 64 );
+				let frame = Math.min( 2, Math.floor( ( 1 - ( this.hea / this.hmax ) ) * 3 ) );
+				ctx.drawImageFilterCache( sdJunk.img_erthal_beacon, frame*64,0,64,64, - 32, - 32, 64, 64 );
 			}
 			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward / Advanced matter container
 			{

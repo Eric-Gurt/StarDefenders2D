@@ -97,13 +97,20 @@ class sdAsteroid extends sdEntity
 
 		
 		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
-                this.scale = ( this.type === sdAsteroid.TYPE_MISSILE ) ? 100 : Math.max( 0.8, Math.random() * 2 ) * 100; // Scale / size of the asteroid
+		this.scale = ( this.type === sdAsteroid.TYPE_MISSILE ) ? 100 : Math.max( 0.8, Math.random() * 2 ) * 100; // Scale / size of the asteroid
 
 		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;
-		this.sy = ( this.type === sdAsteroid.TYPE_MISSILE ) ? 32 : 10;
+		this.sy = 10;
+		
+		if ( this.type === sdAsteroid.TYPE_MISSILE )
+		{
+			// Velocity was 32 originally. But missiles are just killing new players too often, they probably can't be that fast and that deadly
+			this.sx *= 0.5;
+			//this.sy *= 1.5;
+		}
 		
 		// Check for flesh asteroids to only fleshify near this area
 		this._land_x = 0;
@@ -283,6 +290,9 @@ class sdAsteroid extends sdEntity
 					
 					let v = sdWeather.only_instance.TraceDamagePossibleHere( c.x, c.y, Infinity, false, true ) ? 1 : 0.2;
 					
+					if ( this.type === sdAsteroid.TYPE_MISSILE )
+					sdSound.PlaySound({ name:'missile_incoming', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v, pitch:1 }, [ c._socket ] );
+					else
 					sdSound.PlaySound({ name:'asteroid', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v, pitch:1 / ( ( this.scale + 100 ) / 200 ) }, [ c._socket ] );
 				}
 			}

@@ -62,7 +62,7 @@ class sdShurgManualTurret extends sdEntity
 
 		//this.type = params.type || 0;
 		
-		this.hmax = 1000;
+		this.hmax = 400; // Maybe it doesn't feel like 1000 hp entity compared to other health amounts
 		this.hea = this.hmax;
 		
 		this.guns = ( params.guns !== undefined ) ? params.guns : 1;

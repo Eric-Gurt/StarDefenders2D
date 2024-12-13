@@ -1922,14 +1922,14 @@ class sdRenderer
 
 					ctx.fillStyle = '#ffffff';
 					ctx.textAlign = 'center';
-					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 100 + 50 ) * scale, sdRenderer.screen_height - 15 );
+					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 15 );
 
 					if ( s.key.charAt( 0 ) === '-' )
 					ctx.fillStyle = '#ff6666';
 					else
 					ctx.fillStyle = '#ffff00';
 				
-					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 100 + 50 ) * scale, sdRenderer.screen_height - 28 );
+					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 28 );
 				}
 			}
 			ctx.globalAlpha = 1;

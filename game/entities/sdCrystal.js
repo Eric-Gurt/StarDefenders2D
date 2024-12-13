@@ -14,6 +14,10 @@ import sdGrass from './sdGrass.js';
 import sdGuanako from './sdGuanako.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCharacter from './sdCharacter.js';
+import sdTimer from './sdTimer.js';
+import sdLost from './sdLost.js';
+import sdWeather from './sdWeather.js';
+import sdAsp from './sdAsp.js';
 
 
 class sdCrystal extends sdEntity
@@ -217,7 +221,7 @@ class sdCrystal extends sdEntity
 						if ( !e2.is_very_depleted )
 						{
 							e2.speciality = 1;
-							sdCrystal.Zap( e, e2, '#aafffff' );
+							sdCrystal.Zap( e, e2, '#aaffff' );
 						}
 					
 						friends++;
@@ -607,7 +611,91 @@ class sdCrystal extends sdEntity
 				return true;
 			}
 		};
-		
+		sdCrystal.spaciality_table[ 10240 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Indifferent ' + base_title.toLowerCase();
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'brightness(0.5)saturate(0.1)contrast(2)hue-rotate(60deg)';
+			},
+			
+			AlterTimeScale: ( e, GSPEED_scaled )=>
+			{
+				return 0.01;
+			},
+			
+			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				e._hea = Math.min( e._hmax, e._hea + dmg * 0.99 );
+			}
+		};
+		sdCrystal.spaciality_table[ 20480 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return base_title + ' of emptiness';
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				return ctx_filter + 'sepia(1)saturate(4)hue-rotate(-40deg)brightness(0.7)contrast(2)';
+			},
+			
+			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				e._hea = Math.min( e._hmax, e._hea + dmg * 0.5 );
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+				if ( e.matter > 100 )
+				{
+					e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
+					
+					if ( e._private_props.zap_timer > 60 )
+					{
+						e._private_props.zap_timer -= 60 * ( 0.5 + Math.random() * 0.5 );
+						
+						if ( e._anything_near )
+						{
+							e.matter -= 100;
+					
+							//let play_sound = 0;
+							
+							sdWorld.SendEffect({ 
+								x:e.x, 
+								y:e.y, 
+								radius: e.is_big ? 60 : 30,
+								damage_scale: 0, // Just a decoration effect
+								type:sdEffect.TYPE_EXPLOSION, 
+								owner:e,
+								color:'#ffff66' 
+							});
+
+							for ( let i = 0; i < e._anything_near.length; i++ )
+							{
+								let e2 = e._anything_near[ i ];
+
+								if ( e2.IsTargetable( e ) )
+								{
+									sdLost.ApplyAffection( e2, 100, null, sdLost.FILTER_GOLDEN );
+								}
+							}
+							
+							sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:e.x, y:e.y, volume: 0.5, pitch: e.is_big?0.5:1 });
+						
+							//if ( play_sound )
+							//sdSound.PlaySound({ name:'drone_explosion', x:e.x, y:e.y, volume:1, pitch: 0.3 });
+					
+						}
+					}
+				}
+			}
+		};
 		sdCrystal.spaciality_table[ 40960 ] = {
 			
 			AlterTitle: ( e, base_title )=>{
@@ -676,6 +764,86 @@ class sdCrystal extends sdEntity
 				}
 			}
 		};
+		sdCrystal.spaciality_table[ 81920 ] = {
+			
+			AlterTitle: ( e, base_title )=>{
+				return 'Anti-asp hive ' + base_title.toLowerCase();
+			},
+			
+			GetFilterAltering: ( e, ctx_filter )=>
+			{
+				//return ctx_filter + 'brightness(0.5)';
+				return 'hue-rotate(180deg)brightness(0.4)contrast(3)drop-shadow(0px 0px 2px #000000)drop-shadow(0px 0px 5px #ff0000)drop-shadow(0px 0px 2px #000000)';
+			},
+			
+			/*AlterTimeScale: ( e, GSPEED_scaled )=>
+			{
+				return 0.1;
+			},*/
+			
+			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				e._hea = Math.min( e._hmax, e._hea + dmg * 0.85 );
+				
+				if ( e._hea <= 0 && was_alive )
+				{
+					sdWorld.SendEffect({ 
+						x:e.x, 
+						y:e.y, 
+						radius:80, 
+						damage_scale: 0,
+						type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
+						owner:initiator,
+						color:'#000000' 
+					});
+				}
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+				if ( e.matter > 100 )
+				{
+					e._private_props.dupe_timer = ( e._private_props.dupe_timer || 0 ) + GSPEED;
+					if ( e._private_props.dupe_timer_max === undefined )
+					e._private_props.dupe_timer_max = 20;
+				
+					//if ( e._private_props.spawns_left === undefined )
+					//e._private_props.spawns_left = 10;
+					
+					if ( e._private_props.dupe_timer > e._private_props.dupe_timer_max )
+					{
+						e._private_props.dupe_timer = 0;
+						
+						//if ( e._private_props.spawns_left > 0 )
+						{
+							//e._private_props.spawns_left--;
+							
+							let spawns = Math.min( 3, e.matter / 100 )
+							
+							if ( spawns > 0 )
+							{
+								e.matter -= spawns * 100;
+								
+								sdWeather.SimpleSpawner({
+
+									count: [ spawns, spawns ],
+									class: sdAsp,
+									params: { tier: sdAsp.TIER_ANTI, filter: 'saturate(0)brightness(0.5)contrast(2)', crystal_worth: 81920, attack_through_walls:true },
+									aerial: true,
+
+									near_entity: e,
+									group_radius: 20,
+
+									allow_near_player: true
+								});
+							}
+						}
+					}
+				}
+			}
+		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -691,7 +859,7 @@ class sdCrystal extends sdEntity
 	
 	get hard_collision() // For world geometry where players can walk
 	//{ return this.held_by !== null ? false : true; }
-	{ return true; }
+	{ return ( !this.held_by || !this.held_by.CrystalHasHardCollision || this.held_by.CrystalHasHardCollision( this ) ); }
 	
 	/* Causes client-side falling through unsynced ground, probably bad thing to do and it won't be complex entity after sdSnapPack is added
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
@@ -887,6 +1055,8 @@ class sdCrystal extends sdEntity
 			
 		this._time_amplification = 0;
 		
+		this._last_amplification_until = 0; // Overcharge mode for matter-based BSUs whenever they are in beeping state
+		
 		this._being_sawed_time = 0; // By saw. If broken near this time - clusters break into 4 smaller crystals instead
 
 		this.held_by = null; // For amplifiers
@@ -1034,7 +1204,7 @@ class sdCrystal extends sdEntity
 		let xx = e2.x + ( e2.hitbox_x1 + e2.hitbox_x2 ) / 2;
 		let yy = e2.y + ( e2.hitbox_y1 + e2.hitbox_y2 ) / 2;
 
-		let di = sdWorld.Dist2D_Vector( xx - e.x, yy - e.y )
+		let di = sdWorld.Dist2D_Vector( xx - e.x, yy - e.y );
 
 		let p = [];
 
@@ -1109,7 +1279,16 @@ class sdCrystal extends sdEntity
 		
 		let was_alive = ( this._hea > 0 );
 		
+		//if ( isNaN( dmg ) )
+		//throw new Error();
+		
+		//if ( isNaN( this._hea ) )
+		//throw new Error();
+		
 		this._hea -= dmg;
+		
+		//if ( isNaN( this._hea ) )
+		//throw new Error();
 				
 		if ( this.speciality > 0 )
 		{
@@ -1286,6 +1465,19 @@ class sdCrystal extends sdEntity
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
+	
+	HeldByLogic( GSPEED )
+	{
+		// Usually all crystals can regenerate when they are in some amplifiers
+
+		if ( this._hea < this._hmax )
+		this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
+
+		if ( sdWorld.server_config.base_degradation )
+		if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue > 0 )
+		if ( this.held_by.is( sdMatterAmplifier ) )
+		this.matter_regen = sdWorld.MorphWithTimeScale( this.matter_regen, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue, GSPEED * this.held_by.multiplier/8 / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week on highest tier
+	}
 	onThinkFrozen( GSPEED )
 	{
 		let methods = null;
@@ -1295,6 +1487,9 @@ class sdCrystal extends sdEntity
 		if ( methods && methods.onThinkFrozen && methods.onThinkFrozen( this, GSPEED ) )
 		return;
 	
+		if ( this.held_by )
+		this.HeldByLogic( GSPEED );
+		else
 		super.onThinkFrozen( GSPEED );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -1310,19 +1505,12 @@ class sdCrystal extends sdEntity
 		
 		if ( methods && methods.AlterTimeScale )
 		GSPEED_scaled = methods.AlterTimeScale( this, GSPEED_scaled );
+	
+		if ( sdWorld.time < this._last_amplification_until )
+		GSPEED_scaled *= 10000;
 		
 		if ( this.held_by )
-		{
-			// Usually all crystals can regenerate when they are in some amplifiers
-			
-			if ( this._hea < this._hmax )
-			this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
-		
-			if ( sdWorld.server_config.base_degradation )
-			if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue > 0 )
-			if ( this.held_by.is( sdMatterAmplifier ) )
-			this.matter_regen = sdWorld.MorphWithTimeScale( this.matter_regen, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue, GSPEED * this.held_by.multiplier/8 / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week on highest tier
-		}
+		this.HeldByLogic( GSPEED_scaled );
 		else
 		{
 			
@@ -1624,20 +1812,53 @@ class sdCrystal extends sdEntity
 		
 		this._DefaultDraw( ctx, attached );
 	}
-	_DefaultDraw( ctx, attached )
+	SetCrystalFilter( ctx, attached, crystal_hue_filter )
 	{
 		let filter_brightness_effect = sdCrystal.DoNothing;
-		
-		ctx.apply_shading = false;
 		
 		if ( attached )
 		if ( this.held_by )
 		if ( this.held_by.ModifyHeldCrystalFilter )
 		filter_brightness_effect = ( f )=>{ return this.held_by.ModifyHeldCrystalFilter( f ) };
 		
+		let f = crystal_hue_filter;
+
+		if ( this.speciality > 0 )
+		{
+			let tier = this.GetTier() * 40;
+			let methods = sdCrystal.spaciality_table[ tier ];
+			if ( methods && methods.GetFilterAltering )
+			{
+				f = methods.GetFilterAltering( this, f );
+			}
+		}
+
+		if ( this.is_very_depleted )
+		f += 'saturate(0.15) hue-rotate(-20deg)';
+		else
+		if ( this.is_depleted )
+		f += 'saturate(0.5) hue-rotate(-20deg)';
+		else
+		if ( this.is_overcharged )
+		f += 'saturate(2) brightness(1.5)';
+
+		ctx.filter = filter_brightness_effect( f );
+	}
+	_DefaultDraw( ctx, attached )
+	{
+		//let filter_brightness_effect = sdCrystal.DoNothing;
+		
+		ctx.apply_shading = false;
+		
+		/*if ( attached )
+		if ( this.held_by )
+		if ( this.held_by.ModifyHeldCrystalFilter )
+		filter_brightness_effect = ( f )=>{ return this.held_by.ModifyHeldCrystalFilter( f ) };*/
+		
 		const setFilter = ( crystal_hue_filter )=>
 		{
-			let f = crystal_hue_filter;
+			this.SetCrystalFilter( ctx, attached, crystal_hue_filter );
+			/*let f = crystal_hue_filter;
 			
 			
 			if ( this.speciality > 0 )
@@ -1660,7 +1881,7 @@ class sdCrystal extends sdEntity
 			if ( this.is_overcharged )
 			f += 'saturate(2) brightness(1.5)';
 
-			ctx.filter = filter_brightness_effect( f );
+			ctx.filter = filter_brightness_effect( f );*/
 		};
 		
 		//for ( let test = 0; test < 3; test++ )

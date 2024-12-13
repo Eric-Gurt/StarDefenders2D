@@ -813,7 +813,7 @@ class sdCouncilIncinerator extends sdEntity
 
 
 							//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
-							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:2, pitch: 1.5 });
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:1, pitch: 1.5 });
 
 							break;
 						}
@@ -860,7 +860,7 @@ class sdCouncilIncinerator extends sdEntity
 
 
 							//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
-							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:2, pitch: 1.5 });
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:1, pitch: 1.5 });
 
 							break;
 						}

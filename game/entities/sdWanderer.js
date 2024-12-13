@@ -42,6 +42,11 @@ class sdWanderer extends sdEntity
 	get hitbox_x2() { return 0; }
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return 0; }
+	
+	IsTargetable( by_entity=null, ignore_safe_areas=false )
+	{
+		return false; // Ignore bullets
+	}
 
 	get hard_collision()
 	{ return false; }
