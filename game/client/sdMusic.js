@@ -7,6 +7,8 @@
 		sdMusic.situational_songs[ 0 ].play();
 
 
+	TODO: Add all these songs once again on credits screen, when that will become a thing.
+
 */
 /* global sdSound, sdWorld, sdRenderer, sdEntity */
 
