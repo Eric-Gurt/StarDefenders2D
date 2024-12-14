@@ -742,12 +742,14 @@ class sdGun extends sdEntity
 			return Infinity;
 		}
 		
+		let mult = ( this.extra[ 20 ] ) ? 0.75 : 1; // Cube fusion core merging reduces weapon matter cost by 25%
+		
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
-		return sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
+		return mult * sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
 	
 		//let dmg_mult = 1;
 		
-		return sdGun.GetProjectileCost( projectile_properties, this._count, this._temperature_addition );
+		return mult * sdGun.GetProjectileCost( projectile_properties, this._count, this._temperature_addition );
 	}
 	
 	static GetProjectileCost( projectile_properties, _count=1, _temperature_addition=0 )

@@ -114,6 +114,30 @@ class sdWeaponMerger extends sdEntity
 			}
 		}
 		else
+		if ( this.item1.class === sdGun.CLASS_CUBE_FUSION_CORE ) // Cube fusion core
+		{
+			if ( !this.item0.extra[ 20 ] || this.item0.extra[ 20 ] === 0 ) // Maybe prevent wasting cores this way?
+			{
+				this.item2.remove(); // Remove merger core
+			
+				this.item0.extra[ 20 ] = 1; // Add "has cube fusion core" stat to the weapon
+			
+				this.item1.remove(); // Also destroy the item on the right
+		
+				this.item1 = null; // Needed? Not sure.
+		
+				this.item2 = this.item0; // Move gun to the middle
+		
+				this.item0 = null;
+		
+				this.matter = 0;
+				
+				sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				sdWorld.SendEffect({ x:this.x + 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+			}
+		}
+		else
 		{
 			this.item2.remove();
 			let dps_proportions = this.item1._max_dps / this.item0._max_dps; // Basically DPS of the right item should be measured / divided by one on the left
@@ -154,6 +178,9 @@ class sdWeaponMerger extends sdEntity
 		if ( weapon.class === sdGun.CLASS_EXALTED_CORE )
 		return true;
 	
+		if ( weapon.class === sdGun.CLASS_CUBE_FUSION_CORE )
+		return true;
+	
 	
 		return false;
 		
@@ -161,7 +188,7 @@ class sdWeaponMerger extends sdEntity
 	
 	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
 	{
-		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE )
+		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE )
 		return true;
 	
 		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
