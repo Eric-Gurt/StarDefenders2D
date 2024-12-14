@@ -8,7 +8,7 @@
 	HandleWorldLogic
 
 */
-/* global sdShop, THREE, globalThis, sdServerToServerProtocol, sdMobileKeyboard, fs */
+/* global sdShop, THREE, globalThis, sdServerToServerProtocol, sdMobileKeyboard, fs, sdMusic */
 
 // sdShop is global on client-side
 
@@ -1326,6 +1326,52 @@ class sdWorld
 				player_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_LEVEL_UP, is_level_up: 1, level:player_entity.build_tool_level });
 				//sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:player_entity.x, y:player_entity.y, volume:4 });
 				sdSound.PlaySound({ name:'level_up', x:player_entity.x, y:player_entity.y, volume:1 });
+				
+				if ( player_entity.build_tool_level <= 5 || player_entity.build_tool_level % 10 === 0 || Math.random() < 0.33 )
+				setTimeout( ()=>
+				{
+					player_entity.Say( sdWorld.AnyOf([ 
+						'Great! I know how to build more stuff.',
+						'And just by doing that I\'ve leveled up.',
+						'My pet robot would have been proud.',
+						'I\'m so damn skilled now.',
+						
+						// Google Gemini time. I haven't read these much
+						"Alright, let's see what this new level brings.",
+						"Another notch on the belt.", "Time to push the boundaries further.",
+						"Higher level, higher stakes.", "Let's see what chaos I can unleash this time.",
+						"The universe just got a little more interesting.",
+						"More power, more responsibility. And maybe a little more destruction.",
+						"Level up means new challenges. Bring 'em on!",
+						"The galaxy trembles in anticipation of my next move.",
+						"Time to upgrade my arsenal and wreak some havoc.",
+						"Higher level, higher chance of survival. For now, at least.",
+						"This makes the universe just a little bit more afraid of me.",
+						"New abilities, new possibilities. Let the games begin!",
+						"I just got a little bit more beautiful.",
+						"Higher level, higher stakes. Let's see if I can handle it.",
+						"The galaxy is mine for the taking. One level at a time.",
+						"Time to push the limits of what's possible. And what's impossible.",
+						"Level up! Time to show them what I'm made of.",
+						"Higher level, higher rewards. And higher risks.",
+						"Time to conquer new worlds. And maybe a few enemies along the way.",
+						"Level up! Time to ascend to new heights of power.",
+						"Level up! Time to ascend to new heights of power and glory.",
+						"Higher level, higher chance of survival. But also a higher chance of destruction.",
+						"Time to explore new frontiers. And maybe leave a few scars along the way.",
+						"Level up! Time to unleash my true potential.",
+						"The universe just got a little more fascinating.",
+						"Higher level, higher responsibility. But also higher rewards.",
+						"Time to rewrite the rules. And break a few along the way.",
+						"Level up! Time to become the legend I was meant to be.",
+						"Level up! Time to become the hero of my own story.",
+						"Level up! Time to become the villain of my own story.",
+						"Time to explore the unknown. And maybe conquer it along the way.",
+						"Time to explore the unknown. And maybe change the fate of the universe.",
+						"Higher level, higher rewards. But also higher consequences.",
+						"Time to explore new worlds. And maybe conquer them all."
+					]) );
+				}, 3000 );
 
 				if ( player_entity.build_tool_level % 10 === 0 )
 				if ( player_entity._socket )
@@ -1346,7 +1392,8 @@ class sdWorld
 			{
 				let xx = x - radius + Math.random() * radius * 2;
 				let yy = y - radius + Math.random() * radius * 2;
-				let ent = new sdGun({ class:shard_class_id, x: xx, y: yy });
+				
+				let ent = sdEntity.Create( sdGun, { class:shard_class_id, x: xx, y: yy } );
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
 				
@@ -1356,7 +1403,7 @@ class sdWorld
 			
 				ent._ignore_collisions_with = ignore_collisions_with;
 				ent.follow = follow;
-				sdEntity.entities.push( ent );
+				//sdEntity.entities.push( ent );
 				
 				ent.tilt = Math.random() * Math.PI * 2 * sdGun.tilt_scale;
 				
@@ -4835,9 +4882,18 @@ class sdWorld
 
 				//sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
 				sdRenderer.InitVisuals();
+				
+				sdRenderer.shading = player_settings['shading1'] ? true : false;
 
-				sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
+				sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 				window.onresize();
+				
+				let music_was_enabled = sdMusic.enabled;
+				sdMusic.enabled = player_settings['music1'] ? true : false;
+				if ( !sdMusic.enabled && music_was_enabled )
+				sdMusic.Stop();
+				if ( sdMusic.enabled )
+				sdMusic.UpdateVolume();
 
 				sdSound.SetVolumeScale( parseFloat( player_settings['volume'] ) / 100 ); // BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
 

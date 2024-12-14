@@ -253,6 +253,23 @@ class sdConveyor extends sdEntity
 			}
 			else
 			{
+				/*let from_entity = another_entity;
+				
+				// Fix for player not sliding after the first belt
+				if ( this._right_belt && this._right_belt.DoesOverlapWith( from_entity, 3 ) )
+				{
+					let ind_in_right = this._right_belt._transported_entities.indexOf( from_entity );
+					if ( ind_in_right !== -1 )
+					this._right_belt._transported_entities.splice( ind_in_right, 1 );
+				}
+					
+				if ( this._left_belt && this._right_belt.DoesOverlapWith( from_entity, 3 ) )
+				{
+					let ind_in_left = this._left_belt._transported_entities.indexOf( from_entity );
+					if ( ind_in_left !== -1 )
+					this._left_belt._transported_entities.splice( ind_in_left, 1 );
+				}*/
+				
 				this._transported_entities.splice( i, 1 );
 				i--;
 				continue;
@@ -274,7 +291,6 @@ class sdConveyor extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		//if ( sdWorld.is_server )
 		if ( from_entity._is_bg_entity === this._is_bg_entity )
 		{
 			if ( typeof from_entity.sx !== 'undefined' )
@@ -289,38 +305,14 @@ class sdConveyor extends sdEntity
 					{
 						let ind_in_right = this._right_belt._transported_entities.indexOf( from_entity );
 						if ( ind_in_right !== -1 )
-						{
-                           /* if ( this.dir > 0 )
-                            {
-                                //console.log('Ownership change refused due to wrong direction at onMovementInRange');
-                                return;
-                            }*/
-							
-							this._right_belt._transported_entities.splice( ind_in_right, 1 );
-							/*
-							if ( this._right_belt.y > this.y )
-							if ( from_entity.CanMoveWithoutOverlap( from_entity.x, this.y + this._hitbox_y1 - from_entity._hitbox_y2 - 1 ) )
-							from_entity.y = this.y + this._hitbox_y1 - from_entity._hitbox_y2 - 1;*/
-						}
+						this._right_belt._transported_entities.splice( ind_in_right, 1 );
 					}
 					
 					if ( this._left_belt )
 					{
 						let ind_in_left = this._left_belt._transported_entities.indexOf( from_entity );
 						if ( ind_in_left !== -1 )
-						{
-                           /* if ( this.dir < 0 )
-                            {
-                                //console.log('Ownership change refused due to wrong direction at onMovementInRange');
-                                return;
-                            }*/
-							
-							this._left_belt._transported_entities.splice( ind_in_left, 1 );
-							/*
-							if ( this._left_belt.y > this.y )
-							if ( from_entity.CanMoveWithoutOverlap( from_entity.x, this.y + this._hitbox_y1 - from_entity._hitbox_y2 - 1 ) )
-							from_entity.y = this.y + this._hitbox_y1 - from_entity._hitbox_y2 - 1;*/
-						}
+						this._left_belt._transported_entities.splice( ind_in_left, 1 );
 					}
 
 					this._transported_entities.push( from_entity );

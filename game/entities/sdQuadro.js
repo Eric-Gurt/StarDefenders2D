@@ -831,7 +831,7 @@ class sdQuadro extends sdEntity
 			ctx.drawImageFilterCache( sdQuadro.img_quadro, alive_offset,32,32,32, - 16+7, - 16+6, 32,32 );
 		}
 	}
-	/*getRequiredEntities()
+	/*getRequiredEntities( observer_character )
 	{
 		let r = [];
 		if ( this.part === 0 )

@@ -561,6 +561,13 @@ class sdGun extends sdEntity
 		
 		return false;
 	}
+	getRequiredEntities( observer_character )
+	{
+		if ( this._held_by )
+		return [ this._held_by ];
+		else
+		return [];
+	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		if ( this._held_by === null )
@@ -1638,7 +1645,19 @@ class sdGun extends sdEntity
 				if ( this._held_by === null )
 				ctx.rotate( this.tilt / sdGun.tilt_scale );
 
-				//if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_PHASERCANNON_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE || this.class === sdGun.CLASS_BURST_PISTOL || this.class === sdGun.CLASS_GAUSS_RIFLE || this.class === sdGun.CLASS_ZAPPER || this.class === sdGun.CLASS_KIVORTEC_AVRS_P09 ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
+				if ( has_class.is_sword )
+				{
+					//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
+					if ( this._held_by === null && !this.dangerous && !sdShop.isDrawing )
+					image = has_class.image_no_matter;
+				}
+				else
+				{
+					if ( this.ammo_left === 0 )
+					if ( has_class.image_no_matter )
+					image = has_class.image_no_matter;
+				}
+
 				if ( has_class.has_images )
 				{
 					let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
@@ -1652,28 +1671,7 @@ class sdGun extends sdEntity
 					if ( this.reload_time_left > 0 )
 					image = has_class.image2[ odd ];
 				}
-
-				if ( has_class.is_sword )
-				{
-					//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
-					if ( this._held_by === null && !this.dangerous && !sdShop.isDrawing )
-					image = has_class.image_no_matter;
-				}
-				/*
-				if ( this.class === sdGun.CLASS_SWORD )
-				{
-					//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
-					if ( this._held_by === null && !this.dangerous )
-					image = has_class.image_no_matter;
-				}
-
-				if ( this.class === sdGun.CLASS_SABER )
-				{
-					//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
-					if ( this._held_by === null && !this.dangerous )
-					image = has_class.image_no_matter;
-				}*/
-
+				
 				if ( this.ttl >= 0 && this.ttl < 30 )
 				ctx.globalAlpha = 0.5;
 
@@ -1685,32 +1683,9 @@ class sdGun extends sdEntity
 				if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 				{
 					let v = this.extra / sdWorld.crystal_shard_value * 40;
-					/*if ( v > 40 )
-					ctx.filter = 'hue-rotate(' + ( v - 40 ) + 'deg)';*/
 
 					ctx.filter = sdWorld.GetCrystalHue( v );
 				}
-
-				/*if ( this.class === sdGun.CLASS_TRIPLE_RAIL || 
-					 this.class === sdGun.CLASS_RAIL_PISTOL || 
-					 this.class === sdGun.CLASS_RAIL_SHOTGUN || 
-					 this.class === sdGun.CLASS_CUBE_SHARD || 
-					 this.class === sdGun.CLASS_HEALING_RAY || 
-					 this.class === sdGun.CLASS_LOST_CONVERTER ) // Cube weaponry, looked up color wheel since sdFilter is not worth it
-				{
-					if ( this.extra === 1 )
-					{
-						ctx.filter = 'hue-rotate(-120deg) saturate(100) brightness(1.5)'; // yellow
-					}
-					if ( this.extra === 2 )
-					{
-						ctx.filter = 'saturate(0) brightness(1.5)'; // white color
-					}
-					if ( this.extra === 3 )
-					{
-						ctx.filter = 'hue-rotate(120deg)  saturate(100)'; // pink
-					}
-				}*/
 
 				if ( this.class === sdGun.CLASS_BUILDTOOL_UPG )
 				{

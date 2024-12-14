@@ -197,13 +197,18 @@ class sdLiquidAbsorber extends sdEntity
 			this._update_version++;
 		}
 	}
+	
+	get title()
+	{
+		return "Liquid absorber";
+	}
 
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this._hea <= 0 )
 		return;
 	
-		sdEntity.TooltipUntranslated( ctx, T("Liquid absorber") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -6 );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -6 );
 
 		
 		this.DrawConnections( ctx );

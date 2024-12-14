@@ -1455,10 +1455,25 @@ class sdCube extends sdEntity
 	{
 		if ( this.kind === sdCube.KIND_MATTER_STEALER )
 		return "Matter stealer";
-		else
+	
 		if ( this.kind === sdCube.KIND_ANCIENT )
 		return "Ancient Cube";
-		else
+	
+		if ( this.kind === sdCube.KIND_WHITE )
+		return "White cube";
+	
+		if ( this.kind === sdCube.KIND_YELLOW )
+		return "Yellow cube";
+	
+		if ( this.kind === sdCube.KIND_PINK )
+		return "Ressurector cube";
+	
+		if ( this.kind === sdCube.KIND_GREEN )
+		return "Cloak cube";
+	
+		if ( this.kind === sdCube.KIND_BLUE )
+		return "Shielder cube";
+	
 		return "Cube";
 	}
 	

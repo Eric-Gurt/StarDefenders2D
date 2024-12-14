@@ -417,7 +417,8 @@ class sdOctopus extends sdEntity
 	
 			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
+				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || 
+					 sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
 				this._current_target = null;
 				else
 				{
@@ -737,6 +738,9 @@ class sdOctopus extends sdEntity
 		let xx = 0;
 		let yy = 0;
 		
+		//sdRenderer.service_mesage_until = sdWorld.time + 3000;
+		//sdRenderer.service_mesage = 'this.tenta_tim: ' + Math.round( this.tenta_tim );
+		
 		if ( this.tenta_tim > 0 )
 		{
 			let sprites = [
@@ -753,7 +757,7 @@ class sdOctopus extends sdEntity
 			
 			let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
 			
-			if ( di < 200 )
+			if ( di < this.GetRange() + 64 + 100 )
 			{
 			    ctx.save();
 				{

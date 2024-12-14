@@ -40,6 +40,9 @@ class sdBG extends sdEntity
 	}
 	get title()
 	{
+		if ( this.material === sdBG.MATERIAL_GROUND )
+		return 'Background dirt';	
+			
 		if ( this.texture_id === sdBG.TEXTURE_GLOWING )
 		return 'Background light';
 	

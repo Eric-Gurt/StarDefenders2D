@@ -169,6 +169,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this._enabled_shields_in_network_count = 0; // Used to scale score/time-based shield decrease to scale appropriately
 		
+		this._last_tick_score = sdWorld.time; // Score BSU-s would not count time spend in an offline server, essentially making them ignore placement limitations if server is idling at least half of the time. This fixes it
+		
 		//this.filter = params.filter || 'none';
 
 		//this._repair_timer = 0;
@@ -298,7 +300,9 @@ class sdBaseShieldingUnit extends sdEntity
 		
 			for ( let i = 0; i < friendly_shields.length; i++ )
 			{
-				if ( friendly_shields[ i ].type !== this.type || friendly_shields[ i ]._is_being_removed )
+				if ( friendly_shields[ i ].type !== this.type || 
+					 friendly_shields[ i ]._is_being_removed || 
+					 !sdBaseShieldingUnit.EnableNoScoreBSUArea( friendly_shields[ i ], false ) )
 				{
 					friendly_shields.splice( i, 1 );
 					i--;
@@ -337,6 +341,7 @@ class sdBaseShieldingUnit extends sdEntity
 			for ( let i = 0; i < friendly_shields.length; i++ )
 			{
 				friendly_shields[ i ].matter_crystal = sum_matter;
+				
 				
 				friendly_shields[ i ]._last_value_share = sdWorld.time;
 				
@@ -1028,6 +1033,9 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		GSPEED *= time_scale;
 		
+		let GSPEED_offline_compensated = Math.max( 0, sdWorld.time - this._last_tick_score ) / 1000 * 30;
+		this._last_tick_score = sdWorld.time;
+		
 		if ( this._revenge_reload > 0 )
 		this._revenge_reload = Math.max( 0, this._revenge_reload - GSPEED );
 	
@@ -1459,7 +1467,9 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				//if ( this._enabled_shields_in_network_count > 0 )
 				//this.matter_crystal = Math.max( 0, this.matter_crystal - GSPEED / this._enabled_shields_in_network_count * 100 / ( 30 * 60 * 60 * 24 ) ); // 100 per day
-				this.matter_crystal = Math.max( 0, this.matter_crystal - GSPEED * 500 / ( 30 * 60 * 60 * 24 ) ); // 100 per day, more BSUs - less time so it can't be used to build huge bases
+				//this.matter_crystal = Math.max( 0, this.matter_crystal - GSPEED * 500 / ( 30 * 60 * 60 * 24 ) ); // 100 per day, more BSUs - less time so it can't be used to build huge bases
+				
+				this.matter_crystal = Math.max( 0, this.matter_crystal - GSPEED_offline_compensated * 500 / ( 30 * 60 * 60 * 24 ) );
 			}
 		}
 
@@ -1920,7 +1930,9 @@ class sdBaseShieldingUnit extends sdEntity
 					{
 						this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
 							
-						if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_SCORE_TIMED ) !== -1 ) )
+						if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && 
+							( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || 
+							  sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_SCORE_TIMED ) !== -1 ) )
 						{	
 							if ( this.matter_crystal >= 1 )
 							{
@@ -2199,7 +2211,7 @@ class sdBaseShieldingUnit extends sdEntity
 					this.AddContextOption( 'Charge for 1 more day ( 500 score )', 'PROLONG_BY_DAY', [ 1 ] );
 					this.AddContextOption( 'Charge for 2 more days ( '+sdBaseShieldingUnit.score_timed_max_capacity+' score )', 'PROLONG_BY_DAY', [ 7 ] );
 					
-					this.AddContextOption( 'Destroy and score to connected base shield units', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
+					this.AddContextOption( 'Destroy and give score to connected base shield units', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
 				}
 				else
 				if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )

@@ -52,6 +52,7 @@ class sdEntity
 		sdEntity.SCORE_REWARD_CHALLENGING_MOB = 5;
 		sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB = 10;
 		sdEntity.SCORE_REWARD_BOSS = 30;
+		sdEntity.SCORE_REWARD_BOSS_OVERPOWERED = 60;
 		//sdEntity.SCORE_REWARD_COMMON_TASK_ITEM = 3;
 		//sdEntity.SCORE_REWARD_UNCOMMON_TASK_ITEM = 15;
 		sdEntity.SCORE_REWARD_TEDIOUS_TASK = 20;
@@ -118,7 +119,7 @@ class sdEntity
 		
 		sdEntity.default_driver_position_offset = { x:0, y:0 };
 	}
-	static Create( class_ptr, params={ x:0, y:0 } ) // Does UpdateHashPosition with onMovementInRange call
+	static Create( class_ptr, params={ x:0, y:0 } ) // Does UpdateHashPosition with onMovementInRange call. Not doing UpdateHashPosition is how objects may appear on top of sdDeepSleep and cause memory leaks 
 	{
 		if ( !sdWorld.is_server )
 		return null;
@@ -815,7 +816,7 @@ class sdEntity
 	{
 	}
 	
-	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
 		return []; 
 	}

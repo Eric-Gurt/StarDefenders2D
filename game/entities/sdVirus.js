@@ -162,8 +162,12 @@ class sdVirus extends sdEntity
 				this._current_target = character;
 				
 				this._last_target_change = sdWorld.time;
-
-				sdSound.PlaySound({ name:'virus_alert', x:this.x, y:this.y, volume: 0.5, pitch: 1 * sdVirus.normal_max_health / this.hmax });
+				
+				// Some randomness because it is too loud when big virus explodes
+				setTimeout( ()=>
+				{
+					sdSound.PlaySound({ name:'virus_alert', x:this.x, y:this.y, volume: 0.5, pitch: 1 * sdVirus.normal_max_health / this.hmax });
+				}, Math.random() * 500 );
 			}
 		}
 	}

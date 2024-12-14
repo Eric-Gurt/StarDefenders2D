@@ -695,10 +695,15 @@ class sdSetrDestroyer extends sdEntity
 						let dx = ( targets[ i ].sx || 0 );
 						let dy = ( targets[ i ].sy || 0 );
 
-						let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
+						//let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
+						
+						let an = Math.atan2( 
+								targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y - dy * 3, 
+								targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x - dx * 3 
+						) + ( Math.random() * 2 - 1 ) * 0.1;
 
-						this.look_x = targets[ i ].x + ( dx * 3 );
-						this.look_y = targets[ i ].y + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
+						this.look_x = targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 + ( dx * 3 );
+						this.look_y = targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
@@ -792,10 +797,15 @@ class sdSetrDestroyer extends sdEntity
 		return false;
 	}
 	
+	get title()
+	{
+		return 'Setr Destroyer';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Setr Destroyer", 0, -30 );
+		sdEntity.Tooltip( ctx, this.title, 0, -30 );
 		
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}

@@ -73,6 +73,9 @@ class sdTurret extends sdEntity
 
 		sdTurret.img_turret5 = sdWorld.CreateImageFromFile( 'turret5' );
 		sdTurret.img_turret5_fire = sdWorld.CreateImageFromFile( 'turret5_fire' );
+
+		sdTurret.img_turret6 = sdWorld.CreateImageFromFile( 'turret6' );
+		sdTurret.img_turret6_fire = sdWorld.CreateImageFromFile( 'turret6_fire' );
 		
 		sdTurret.targetable_classes = new WeakSet( [ 
 			sdCharacter, 
@@ -116,6 +119,7 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_RAPID_LASER = 2;
 		sdTurret.KIND_SNIPER = 3;
 		sdTurret.KIND_FREEZER = 4;
+		sdTurret.KIND_ZAP = 5;
 		
 		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
 		
@@ -135,17 +139,19 @@ class sdTurret extends sdEntity
 	get title()
 	{
 		if ( this.kind === sdTurret.KIND_LASER )
-		return T('Automatic laser turret');
+		return ('Automatic laser turret');
 		if ( this.kind === sdTurret.KIND_ROCKET )
-		return T('Automatic missile turret');
+		return ('Automatic missile turret');
 		if ( this.kind === sdTurret.KIND_RAPID_LASER )
-		return T('Automatic rapid laser turret');
+		return ('Automatic rapid laser turret');
 		if ( this.kind === sdTurret.KIND_SNIPER )
-		return T('Automatic sniper turret');
+		return ('Automatic sniper turret');
 		if ( this.kind === sdTurret.KIND_FREEZER )
-		return T('Automatic freezing turret');
+		return ('Automatic freezing turret');
+		if ( this.kind === sdTurret.KIND_ZAP )
+		return ('Automatic zapper turret');
 
-		return T('Automatic turret');
+		return ('Automatic turret');
 	}
 	get description()
 	{
@@ -258,7 +264,9 @@ class sdTurret extends sdEntity
 						
 		const range = this.GetTurretRange();
 		
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, range ) )
+		let [ cx, cy ] = e.GetClosestPointWithinCollision( this.x, this.y );
+		
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, cx, cy, range ) )
 		if ( targetable_classes.has( e.constructor ) )
 		if ( 
 				( !e._is_being_removed ) &&
@@ -355,6 +363,9 @@ class sdTurret extends sdEntity
 	
 		if ( this.kind === sdTurret.KIND_SNIPER )
 		dmg = 85;
+	
+		if ( this.kind === sdTurret.KIND_ZAP )
+		dmg = 100;
 	
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		{
@@ -487,6 +498,11 @@ class sdTurret extends sdEntity
 				if ( ( this._target !== null || this.auto_attack >= 0 ) && this.disabled === false )
 				{
 					let vel = ( this.kind === sdTurret.KIND_SNIPER ) ? 30 : 15;
+					
+					if ( this.kind === sdTurret.KIND_ZAP )
+					{
+						vel = 10;
+					}
 
 					if ( this.auto_attack >= 0 )
 					{
@@ -502,6 +518,7 @@ class sdTurret extends sdEntity
 								this.auto_attack = this._auto_attack_reference.variation;
 							}
 						}
+						
 						this.an = ( -Math.PI / 2 + this.auto_attack / 8 * Math.PI * 2 ) * 100;
 					}
 					else
@@ -511,7 +528,14 @@ class sdTurret extends sdEntity
 						if ( this.kind === sdTurret.KIND_ROCKET )
 						vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
 
-						this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
+						if ( this.kind === sdTurret.KIND_ZAP )
+						this.an = Math.atan2( 
+							this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 - this.y, 
+							this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 - this.x ) * 100;
+						else
+						this.an = Math.atan2( 
+							this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 + this._target.sy * di / vel - this.y, 
+							this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 + this._target.sx * di / vel - this.x ) * 100;
 					}
 
 					if ( this.fire_timer <= 0 )
@@ -530,6 +554,9 @@ class sdTurret extends sdEntity
 					
 						if ( this.kind === sdTurret.KIND_FREEZER )
 						sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+
+						if ( this.kind === sdTurret.KIND_ZAP )
+						sdSound.PlaySound({ name:'bsu_attack', x:this.x, y:this.y, volume:0.75, pitch: 1 / ( 1 + this.lvl / 3 ) });
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -553,7 +580,29 @@ class sdTurret extends sdEntity
 							bullet_obj._damage = 15;
 							bullet_obj.color = '#ff0000';
 						}
+						if ( this.kind === sdTurret.KIND_ZAP )
+						{
+							bullet_obj._damage = 100;
+							bullet_obj.color = '#ffffff';
+							bullet_obj._rail = true;
+							bullet_obj._rail_zap = true;
+							
+							bullet_obj.time_left = this.GetTurretRange() / vel;
+							
+							let px = Math.cos( this.an / 100 );
+							let py = Math.sin( this.an / 100 );
+							
+							bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+							{
+								if ( typeof target_entity._matter !== 'undefined' )
+								target_entity._matter = Math.max( 0, target_entity._matter - 300 );
 
+								if ( typeof target_entity.matter !== 'undefined' )
+								target_entity.matter = Math.max( 0, target_entity.matter - 300 );
+								
+								target_entity.Impulse( px * 800, py * 800 );
+							};
+						}
 						if ( this.kind === sdTurret.KIND_SNIPER )
 						{
 							bullet_obj._damage = 85;
@@ -661,6 +710,10 @@ class sdTurret extends sdEntity
 		return sdGun.classes[ sdGun.CLASS_SNIPER ].reload_time;
 		if ( this.kind === sdTurret.KIND_FREEZER )
 		return 30;
+		if ( this.kind === sdTurret.KIND_ZAP )
+		return 20;
+	
+		return 30;
 	}
 	GetSize()
 	{
@@ -668,23 +721,28 @@ class sdTurret extends sdEntity
 		return 3;
 		if ( this.kind === sdTurret.KIND_ROCKET || this.kind === sdTurret.KIND_FREEZER )
 		return 6;
-		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
+		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_ZAP )
 		return 4;
+	
+		return 2;
 	}
 	GetTurretRange()
 	{
 		//if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
 		if ( this.kind === sdTurret.KIND_SNIPER )
 		return 450;
-		else
+		
+		if ( this.kind === sdTurret.KIND_ZAP )
+		return 120;
+		
 		return 300 + this.lvl * 50; // 450 when upgraded
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.type === 0 )
-		sdEntity.TooltipUntranslated( ctx, this.title + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )' );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )' );
 		else
-		sdEntity.TooltipUntranslated( ctx, this.title );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) );
 
 		//this.DrawConnections( ctx );
 	}
@@ -695,13 +753,23 @@ class sdTurret extends sdEntity
 		
 		let com_near = this.GetComWiredCache();
 		
+		let dimmed = false;
+		
 		if ( !sdShop.isDrawing )
 		if ( this.disabled || this.matter < this.GetShootCost() || ( !com_near && this.type === 0 && this.auto_attack === -1 ) )
 		{
 			ctx.filter = 'brightness(0.1)';
 			not_firing_now = true;
+			
+			dimmed = true;
 		}
 		
+		if ( this.kind === sdTurret.KIND_ZAP )
+		{
+			if ( !dimmed )
+			ctx.apply_shading = false;
+		}
+		else
 		ctx.rotate( this.an / 100 );
 		
 		if ( !not_firing_now )
@@ -721,6 +789,9 @@ class sdTurret extends sdEntity
 	
 		if ( this.kind === sdTurret.KIND_FREEZER )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret5 : sdTurret.img_turret5_fire, -16, -16, 32,32 );
+	
+		if ( this.kind === sdTurret.KIND_ZAP )
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret6 : sdTurret.img_turret6_fire, -16, -16, 32,32 );
 	
 		ctx.filter = 'none';
 		
@@ -745,6 +816,9 @@ class sdTurret extends sdEntity
 
 		if ( this.kind === sdTurret.KIND_FREEZER )
 		return ~~( 100 * sdWorld.damage_to_matter + 600 );
+
+		if ( this.kind === sdTurret.KIND_ZAP )
+		return ~~( 100 * sdWorld.damage_to_matter + 1000 );
 	}
 	onRemove()
 	{

@@ -266,6 +266,10 @@ class sdGib extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED ); // Note: Such hibernation will casue weapon to logically appear behind carrier. It means that carrier now should handle position logic
 		}*/
 	}
+	get title()
+	{
+		return 'Gib';
+	}
 	Draw( ctx, attached )
 	{
 		let image;

@@ -4,7 +4,7 @@
 	sdWorld.SendEffect({ x: , y: , type:sdEffect.TYPE_WALL_HIT });
 
 */
-/* global THREE */
+/* global THREE, sdMusic */
 
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
@@ -622,6 +622,10 @@ class sdEffect extends sdEntity
 		this._hue = params.hue || 0;
 		this._filter = params.filter || '';
 		
+		this._silences_music = ( this._text && params.voice && !params.no_ef );
+		if ( this._silences_music )
+		sdMusic.SpeakStart();
+		
 		if ( this._text )
 		if ( params.voice )
 		{
@@ -629,6 +633,7 @@ class sdEffect extends sdEntity
 			{
 				this.remove();
 			}
+			
 
 			let spoken = this._text;
 
@@ -1255,6 +1260,9 @@ class sdEffect extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._silences_music )
+		sdMusic.SpeakStop();
+	
 		sdEffect.effect_counters[ this._type ]--;
 	}
 }

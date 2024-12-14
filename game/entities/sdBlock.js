@@ -328,6 +328,9 @@ class sdBlock extends sdEntity
 		if ( mat === sdBlock.MATERIAL_SNOW )
 		return 'Snow';
 	
+		if ( mat === sdBlock.MATERIAL_CORRUPTION )
+		return 'Corruption';
+	
 		return 'Ground';
 	}
 	
@@ -447,11 +450,19 @@ class sdBlock extends sdEntity
 
 				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				{
-					sdWorld.DropShards( this.x, this.y, 0, 0, 
-						10,
-						Math.pow( 2, this.p ),
-						8
-					); // Spawn some shards
+					if ( this._contains_class === 'sdCrystal' )
+					{
+						sdEntity.Create( sdCrystal, { x:this.x+this.width/2, y:this.y+this.height/2, type:sdCrystal.TYPE_CRYSTAL, matter_max:Math.pow( 2, this.p )*40 } );
+						this._contains_class = null;
+					}
+					else
+					{
+						sdWorld.DropShards( this.x, this.y, 0, 0, 
+							10,
+							Math.pow( 2, this.p ),
+							8
+						); // Spawn some shards
+					}
 				}
 				if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL ) // Ancient walls chain explode, they explode for more than 200 damage
 				{
@@ -905,7 +916,7 @@ class sdBlock extends sdEntity
 		if ( !this.IsDamageAllowedByAdmins() )
 		return null;
 	
-		let ent2 = new sdBlock({ 
+		let ent2 = sdEntity.Create( sdBlock, { 
 			x: this.x, 
 			y: this.y,
 			width:this.width, 
@@ -930,7 +941,7 @@ class sdBlock extends sdEntity
 		if ( this._contains_class === 'sdCrystal.deep' ) // Is there a worm spawn inside this block?
 		ent2._contains_class = 'sdCrystal.deep_corrupted'; // Corrupt the worm aswell
 
-		sdEntity.entities.push( ent2 );
+		//sdEntity.entities.push( ent2 );
 
 		ent2._hmax = this._hmax * 1.5;
 		ent2._hea = this._hea * 1.5;
@@ -942,15 +953,27 @@ class sdBlock extends sdEntity
 		if ( !this.IsDamageAllowedByAdmins() )
 		return null;
 	
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, hue:this.hue,br:this.br,filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
+		let ent2 = sdEntity.Create( sdBlock, { x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, 
+			hue:this.hue,br:this.br,filter:this.filter,
+			//rank: Math.round( Math.random() * 6 ) 
+			rank: 1 + Math.floor( Math.pow( Math.random(), 1.5 ) * 11 )
+		});
+		// Don't allow orange and anticrystal shards due to their glow effect overriding the block.
 
 		this.remove();
 		this._broken = false;
+		
+		
+		if ( Math.random() < 0.9 || ent2.width < 16 || ent2.height < 16 )
+		{
+		}
+		else
+		ent2._contains_class = 'sdCrystal'; // For Guanakos
 
 		//if ( this._contains_class === 'sdSandWorm' ) // Is there a worm spawn inside this block?
 		//ent2._contains_class = 'sdSandWorm.crystallized'; // Potential crystal worm later?
 
-		sdEntity.entities.push( ent2 );
+		//sdEntity.entities.push( ent2 );
 		
 		ent2._hmax = this._hmax * 0.5;
 		ent2._hea = this._hea * 0.5;
@@ -969,11 +992,7 @@ class sdBlock extends sdEntity
 		}
 	
 		let bri = 100 - ( Math.random() * 100 / 5 );
-		let ent2 = new sdBlock({ 
-			/*x: this.x, 
-			y: this.y, 
-			width:this.width, 
-			height:this.height, */
+		let ent2 = sdEntity.Create( sdBlock, { 
 			x: this.x + this._hitbox_x1, 
 			y: this.y + this._hitbox_y1, 
 			width: this._hitbox_x2 - this._hitbox_x1, 
@@ -1003,13 +1022,13 @@ class sdBlock extends sdEntity
 			spawn_y += 1 + this.height / 2;
 			if ( side === 3 )
 			spawn_x += 1 + this.width / 2;
-			let grabber = new sdFleshGrabber({ 
+			let grabber = sdEntity.Create( sdFleshGrabber, { 
 				x: spawn_x, 
 				y: spawn_y, 
 				_attached_to: ent2,
 				side: side
 			});
-			sdEntity.entities.push( grabber );
+			//sdEntity.entities.push( grabber );
 
 			/*if ( !grabber.CanMoveWithoutOverlap( grabber.x, grabber.y, 0 ) )
 			{
@@ -1035,7 +1054,7 @@ class sdBlock extends sdEntity
 			}, 5000 + Math.random() * 30000 );
 		}
 
-		sdEntity.entities.push( ent2 );
+		//sdEntity.entities.push( ent2 );
 		
 		ent2._hmax = 480; // Fixed health values regardless how deep it is
 		ent2._hea = 480;
@@ -1509,8 +1528,19 @@ class sdBlock extends sdEntity
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
 				
-				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ) );
-				ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ), 0.2 );
+
+				let old_scale = ctx.camera_relative_world_scale;
+				ctx.camera_relative_world_scale *= 0.999;
+				{
+					let old_mode = ctx.volumetric_mode;
+					ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+					{
+						ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+					}
+					ctx.volumetric_mode = old_mode;
+				}
+				ctx.camera_relative_world_scale = old_scale;
 			}
 		}
 		else
@@ -1690,6 +1720,7 @@ class sdBlock extends sdEntity
 					if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
 					{
 						sdEntity.entities.push( new_bg );
+						sdWorld.UpdateHashPosition( new_bg, false, true );
 					}
 					else
 					{

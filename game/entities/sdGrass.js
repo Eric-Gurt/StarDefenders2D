@@ -1,4 +1,6 @@
 
+/* global FakeCanvasContext */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -31,6 +33,7 @@ class sdGrass extends sdEntity
 		sdGrass.VARIATION_TREE_BARREN = 5;
 		sdGrass.VARIATION_TREE_LARGE = 6;
 		sdGrass.VARIATION_TREE_LARGE_BARREN = 7;
+		sdGrass.VARIATION_NEW_YEAR_TREE = 8;
 		
 		sdGrass.crops = [];
 		sdGrass.crops[ sdGrass.VARIATION_LOW_GRASS ] = { x:1, y:0, w:16, h:31 }; // Same y and h for all grass sprites so wind effect would not tear them apart
@@ -41,6 +44,7 @@ class sdGrass extends sdEntity
 		sdGrass.crops[ sdGrass.VARIATION_TREE_BARREN ] = { x:72, y:36, w:21, h:27, half_width_collision_override:7 };
 		sdGrass.crops[ sdGrass.VARIATION_TREE_LARGE ] = { x:96, y:0, w:46, h:54, half_width_collision_override:10 };
 		sdGrass.crops[ sdGrass.VARIATION_TREE_LARGE_BARREN ] = { x:96, y:63, w:46, h:54, half_width_collision_override:10 };
+		sdGrass.crops[ sdGrass.VARIATION_NEW_YEAR_TREE ] = { x:1, y:32, w:17, h:42, half_width_collision_override:10 };
 		
 		sdGrass.heights = [ 8, 14, 27 ]; // by variation. Also determines how much regen it will give
 		
@@ -55,6 +59,7 @@ class sdGrass extends sdEntity
 	get title()
 	{
 		return	this.variation === sdGrass.VARIATION_BUSH ? "Bush" : 
+				this.variation === sdGrass.VARIATION_NEW_YEAR_TREE ? "New Year Tree" : 
 				this.variation === sdGrass.VARIATION_TREE ? 'Tree' : 
 				this.variation === sdGrass.VARIATION_TREE_BARREN ? 'Barren tree' : 
 				this.variation === sdGrass.VARIATION_TREE_LARGE ? 'Tree' :
@@ -102,7 +107,11 @@ class sdGrass extends sdEntity
 	
 	DrawIn3D()
 	{
-		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
+		if ( this.variation === sdGrass.VARIATION_TREE || 
+			 this.variation === sdGrass.VARIATION_TREE_BARREN || 
+			 this.variation === sdGrass.VARIATION_TREE_LARGE || 
+			 this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN || 
+			 this.variation === sdGrass.VARIATION_NEW_YEAR_TREE )
 		return FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER;
 		//return FakeCanvasContext.DRAW_IN_3D_FLAT; 
 	
@@ -370,63 +379,20 @@ class sdGrass extends sdEntity
 	
 	DrawFG( ctx, attached )
 	{
-		//var w = 16;
-		//var h = 16;
-		
-		/*if ( sdWorld.my_entity )
-		{
-			if ( sdWorld.my_entity.look_x >= this.x )
-			if ( sdWorld.my_entity.look_x < this.x + 16 )
-			if ( sdWorld.my_entity.look_y >= this.y + this._hitbox_y1 )
-			if ( sdWorld.my_entity.look_y < this.y + 16 )
-			ctx.globalAlpha = 0.15;
-		}*/
 		
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
-		//if ( this.hue !== 0 )
-		//{
-			// Less cache usage by making .hue as something GPU understands, so we don't have as many versions of same images
-			//if ( sdRenderer.visual_settings === 4 )
-			ctx.sd_hue_rotation = this.hue;
-			//else
-			//ctx.filter = 'hue-rotate('+this.hue+'deg)' + ctx.filter;
-		//}
-		
-		//if ( this.br / 100 !== 1 )
-		//{
-			//if ( sdRenderer.visual_settings === 4 )
-			//{
-				ctx.sd_color_mult_r = this.br / 100;
-				ctx.sd_color_mult_g = this.br / 100;
-				ctx.sd_color_mult_b = this.br / 100;
-			//}
-			//else
-			//{
-			//	ctx.filter = 'brightness('+this.br+'%)';
-			//}
-		//}
+		ctx.sd_hue_rotation = this.hue;
+
+		ctx.sd_color_mult_r = this.br / 100;
+		ctx.sd_color_mult_g = this.br / 100;
+		ctx.sd_color_mult_b = this.br / 100;
 		
 		if ( this.snowed )
 		{
 			ctx.filter += 'saturate(0.05) brightness(2)';
 		}
 		
-		/*if ( this.variation === 0 )
-		{
-			ctx.drawImageFilterCache( sdGrass.img_grass, 0, 0, w,h, 0, 0, w, h );
-		}
-		else
-		if ( this.variation === 1 )
-		{
-			ctx.drawImageFilterCache( sdGrass.img_grass2, 0, 0, w,h, 0, 0, w, h );
-		}
-		else
-		if ( this.variation === 2 )
-		{
-			h = 32;
-			ctx.drawImageFilterCache( sdGrass.img_grass3, 0, 0, w,h, 0, -16, w, h );
-		}*/
 		let c = sdGrass.crops[ this.variation ];
 		
 		if ( c.half_width_collision_override )
@@ -445,8 +411,6 @@ class sdGrass extends sdEntity
 		{
 			ctx.save();
 			{
-				//ctx.volumetric_mode = this.crystal.DrawIn3D(); // Not restored
-				//ctx.object_offset = [ 0, -10, 0 ];
 				ctx.translate( this.crystal.x - this.x, this.crystal.y - this.y );
 				this.crystal.DrawWithStatusEffects( ctx, true );
 			}
@@ -598,7 +562,8 @@ class sdGrass extends sdEntity
 			}
 			else
 			if ( from_entity.is( sdCrystal ) )
-			if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+			if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB || 
+				 from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 			if ( this.variation < sdGrass.heights.length )
 			{
 				let coefficient = ( sdGrass.heights[ this.variation ] / 27 );

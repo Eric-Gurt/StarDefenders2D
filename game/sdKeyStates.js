@@ -1,4 +1,6 @@
 
+/* global sdMusic */
+
 import sdWorld from './sdWorld.js';
 
 class sdKeyStates
@@ -80,6 +82,14 @@ class sdKeyStates
 	
 		if ( value === 1 )
 		{
+			if ( !sdWorld.is_server )
+			if ( this === sdWorld.my_key_states )
+			if ( sdWorld.my_key_states )
+			if ( this.key_states[ key ] !== 1 )
+			{
+				sdMusic.onKeyDown( key );
+			}
+			
 			this.key_states[ key ] = 1;
 			this.one_taps[ key ] = sdWorld.frame;
 		}

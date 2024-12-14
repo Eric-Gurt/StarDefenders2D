@@ -925,15 +925,24 @@ class sdOverlord extends sdEntity
 
 		this._relations_to_classes[ class_name ] += v;
 	}
+	
+	get title()
+	{
+		if ( this.state_hp <= 1 )
+		return 'Overlord';
+	
+		return 'Defeated overlord';
+	}
+
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.state_hp <= 1 )
 		{
-			sdEntity.Tooltip( ctx, "Overlord" );
+			sdEntity.Tooltip( ctx, this.title );
 			this.DrawHealthBar( ctx, undefined, 10 );
 		}
 		else
-		sdEntity.Tooltip( ctx, "Defeated overlord" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

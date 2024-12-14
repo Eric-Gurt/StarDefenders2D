@@ -428,7 +428,10 @@ class sdRoach extends sdEntity
 			}
 		}
 	}
-	
+	get title()
+	{
+		return 'Roach';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.nick.length > 0 )

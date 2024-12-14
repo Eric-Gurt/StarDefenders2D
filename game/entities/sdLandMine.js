@@ -113,10 +113,14 @@ class sdLandMine extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
 	}
+	get title()
+	{
+		return 'Land mine';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea > 0 )
-		sdEntity.Tooltip( ctx, "Land mine" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

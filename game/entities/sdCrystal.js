@@ -834,7 +834,7 @@ class sdCrystal extends sdEntity
 									aerial: true,
 
 									near_entity: e,
-									group_radius: 20,
+									group_radius: 16,
 
 									allow_near_player: true
 								});
@@ -928,7 +928,7 @@ class sdCrystal extends sdEntity
 		throw new Error('Obsolete, use this.held_by instead');
 	}*/
 	
-	/*getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	/*getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
 		if ( this.held_by )
 		return [ this.held_by ]; 
@@ -1199,9 +1199,42 @@ class sdCrystal extends sdEntity
 		return sdCrystal.ignored_classes_array;
 	}
 	
+	static ZapLine( xx, yy, ex, ey, color )
+	{
+		let di = sdWorld.Dist2D_Vector( xx - ex, yy - ey );
+
+		let p = [];
+
+		p.push({
+			x: ex,
+			y: ey 
+		});
+
+		for ( let i = 0; i < 2; i++ )
+		{
+			let morph = ( i + 1 ) / 3;
+
+			let an = Math.random() * Math.PI * 2;
+			let r = di * 0.333 / 2;
+
+			p.push({
+				x: xx * morph + ex * ( 1 - morph ) + Math.sin( an ) * r,
+				y: yy * morph + ey * ( 1 - morph ) + Math.cos( an ) * r 
+			});
+		}
+
+		p.push({
+			x: xx,
+			y: yy 
+		});
+
+		for ( let i = 0; i < p.length-1; i++ )
+		sdWorld.SendEffect({ x:p[i].x, y:p[i].y, x2:p[i+1].x, y2:p[i+1].y, type:sdEffect.TYPE_BEAM, color:color });
+	}
 	static Zap( e, e2, color )
 	{
-		let xx = e2.x + ( e2.hitbox_x1 + e2.hitbox_x2 ) / 2;
+		sdCrystal.ZapLine( e2.x + ( e2.hitbox_x1 + e2.hitbox_x2 ) / 2, e2.y + ( e2.hitbox_y1 + e2.hitbox_y2 ) / 2, e.x, e.y, color );
+		/*let xx = e2.x + ( e2.hitbox_x1 + e2.hitbox_x2 ) / 2;
 		let yy = e2.y + ( e2.hitbox_y1 + e2.hitbox_y2 ) / 2;
 
 		let di = sdWorld.Dist2D_Vector( xx - e.x, yy - e.y );
@@ -1232,7 +1265,7 @@ class sdCrystal extends sdEntity
 		});
 
 		for ( let i = 0; i < p.length-1; i++ )
-		sdWorld.SendEffect({ x:p[i].x, y:p[i].y, x2:p[i+1].x, y2:p[i+1].y, type:sdEffect.TYPE_BEAM, color:color });
+		sdWorld.SendEffect({ x:p[i].x, y:p[i].y, x2:p[i+1].x, y2:p[i+1].y, type:sdEffect.TYPE_BEAM, color:color });*/
 	}
 				
 	Damage( dmg, initiator=null )

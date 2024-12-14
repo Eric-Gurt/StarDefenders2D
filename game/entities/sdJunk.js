@@ -34,8 +34,9 @@ class sdJunk extends sdEntity
 		sdJunk.img_crystal_map_drainer_empty = sdWorld.CreateImageFromFile( 'crystal_cluster3_empty' ); // Sprite by HastySnow / LazyRain
 		sdJunk.img_crystal_map_drainer = sdWorld.CreateImageFromFile( 'crystal_cluster3' ); // Sprite by HastySnow / LazyRain
 
-		sdJunk.img_council_bomb = sdWorld.CreateImageFromFile( 'council_bomb' );
-		sdJunk.img_council_bomb2 = sdWorld.CreateImageFromFile( 'council_bomb2' );
+		//sdJunk.img_council_bomb = sdWorld.CreateImageFromFile( 'council_bomb' );
+		//sdJunk.img_council_bomb2 = sdWorld.CreateImageFromFile( 'council_bomb2' );
+		sdJunk.img_council_bomb3 = sdWorld.CreateImageFromFile( 'council_bomb3' );
 
 		sdJunk.img_erthal_beacon = sdWorld.CreateImageFromFile( 'erthal_distress_beacon2' );
 
@@ -477,52 +478,66 @@ class sdJunk extends sdEntity
 				let y = this.y;
 				//let sx = this.sx;
 				//let sy = this.sy;
+				
+				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
+				{
+					sdSound.PlaySound({ name:'council_beacon_destruction', x:this.x, y:this.y, volume:4 });
+					
+					sdWorld.SendEffect({ 
+						x: this.x, 
+						y: this.y, 
+						radius: 200, 
+						damage_scale: 0, 
+						type: sdEffect.TYPE_EXPLOSION,
+						color:'#fff000'
+					});
+				}
 
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-				let gun;
-				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-				gun.extra = this.type === sdJunk.TYPE_COUNCIL_BOMB ? 2 : 1;
+					let gun;
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+					gun.extra = this.type === sdJunk.TYPE_COUNCIL_BOMB ? 2 : 1;
 
-				//gun.sx = sx;
-				//gun.sy = sy;
-				sdEntity.entities.push( gun );
+					//gun.sx = sx;
+					//gun.sy = sy;
+					sdEntity.entities.push( gun );
 
 				}, 500 );
 				
 				if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && Math.random() < 0.25 ) // 25% chance for energy cell drop
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-				let gun2;
-				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ERTHAL_ENERGY_CELL });
+					let gun2;
+					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ERTHAL_ENERGY_CELL });
 
-				//gun.sx = sx;
-				//gun.sy = sy;
-				sdEntity.entities.push( gun2 );
+					//gun.sx = sx;
+					//gun.sy = sy;
+					sdEntity.entities.push( gun2 );
 
 				}, 500 );
 
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Council Immolator
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-				let gun2;
-				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
+					let gun2;
+					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
-				//gun.sx = sx;
-				//gun.sy = sy;
-				sdEntity.entities.push( gun2 );
+					//gun.sx = sx;
+					//gun.sy = sy;
+					sdEntity.entities.push( gun2 );
 
 				}, 500 );
 				
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.02 ) // 2% chance for Exalted core
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-				let gun2;
-				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
+					let gun2;
+					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
 
-				//gun.sx = sx;
-				//gun.sy = sy;
-				sdEntity.entities.push( gun2 );
+					//gun.sx = sx;
+					//gun.sy = sy;
+					sdEntity.entities.push( gun2 );
 
 				}, 500 );
 			}
@@ -1150,44 +1165,80 @@ class sdJunk extends sdEntity
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
-	
-	DrawHUD( ctx, attached ) // foreground layer
+	get title()
 	{
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
-		sdEntity.Tooltip( ctx, "Unstable cube corpse" );
+		return "Unstable cube corpse";
 	
 		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY )
-		sdEntity.Tooltip( ctx, "Alien battery" );
+		return "Alien battery";
 	
 		if ( this.type === sdJunk.TYPE_LOST_CONTAINER )
-		sdEntity.Tooltip( ctx, "Lost particle container" );
+		return "Lost particle container";
 	
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		{
-			sdEntity.Tooltip( ctx, "Planetary matter drainer", 0, -8 );
+			return "Planetary matter drainer";
+		}
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
+		{
+			return "Council bomb";
+		}
+		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
+		{
+			return "Erthal distress beacon";
+		}
+
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+		{
+			return "Advanced matter container";
+		}
+
+		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+		return "Cryo-substance barrel";
+
+		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
+		return "Strange artifact";
+	
+		return 'Unknown entity';
+	}
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
+		sdEntity.Tooltip( ctx, this.title );
+	
+		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY )
+		sdEntity.Tooltip( ctx, this.title );
+	
+		if ( this.type === sdJunk.TYPE_LOST_CONTAINER )
+		sdEntity.Tooltip( ctx, this.title );
+	
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
+		{
+			sdEntity.Tooltip( ctx, this.title, 0, -8 );
 			this.DrawHealthBar( ctx );
 		}
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
-			sdEntity.TooltipUntranslated( ctx, T("Council bomb")+" (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -32 );
+			sdEntity.TooltipUntranslated( ctx, T( this.title )+" (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -32 );
 			this.DrawHealthBar( ctx );
 		}
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		{
-			sdEntity.Tooltip( ctx, "Erthal distress beacon", 0, -24 );
+			sdEntity.Tooltip( ctx, this.title, 0, -24 );
 			this.DrawHealthBar( ctx );
 		}
 
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
-			sdEntity.TooltipUntranslated( ctx, T("Advanced matter container") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+			sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		}
 
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
-		sdEntity.Tooltip( ctx, "Cryo-substance barrel" );
+		sdEntity.Tooltip( ctx, this.title );
 
 		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
-		sdEntity.Tooltip( ctx, "Strange artifact" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{
@@ -1236,20 +1287,30 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 			{
+				let frame = Math.min( 2, Math.floor( ( 1 - ( this.hea / this.hmax ) ) * 3 ) );
+				
+				ctx.drawImageFilterCache( sdJunk.img_council_bomb3, 0, frame*96, 64, 96, - 32, - 48, 64, 96 );
+				
 				if ( this.detonation_in % this._rate < this._rate / 2 )
 				{
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 0, 0, 64, 96, - 32, - 48, 64, 96 );
-					ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
-					ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 64, 0, 64, 96, - 32, - 48, 64, 96 );
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb3, 64*2, frame*96, 64, 96, - 32, - 48, 64, 96 );
+				
+					//ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 0, 0, 64, 96, - 32, - 48, 64, 96 );
+					//ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
+					//ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
+					//ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 64, 0, 64, 96, - 32, - 48, 64, 96 );
+					
 				}
 				else
 				{
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 0, 0, 64, 96, - 32, - 48, 64, 96 );
-					ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
-					ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 96, - 32, - 48, 64, 96 );
+					//ctx.drawImageFilterCache( sdJunk.img_council_bomb, 0, 0, 64, 96, - 32, - 48, 64, 96 );
+					//ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
+					//ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
+					//ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 96, - 32, - 48, 64, 96 );
 				}
+				ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
+				ctx.filter = 'drop-shadow(0px 0px 8px #FFF000) saturate( 0.25 )';
+				ctx.drawImageFilterCache( sdJunk.img_council_bomb3, 64*1, frame*96, 64, 96, - 32, - 48, 64, 96 );
 			}
 			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 			{

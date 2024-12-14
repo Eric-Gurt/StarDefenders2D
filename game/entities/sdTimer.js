@@ -18,11 +18,19 @@ class sdTimer
 	{
 		sdTimer.sorted_timeouts = [];
 		
+		sdTimer.force_timer_insertion_delay_array_persistent = [];
+		sdTimer.force_timer_insertion_delay_array = null;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
 	static InsertExistingTimer( timer )
 	{
+		if ( sdTimer.force_timer_insertion_delay_array )
+		{
+			sdTimer.force_timer_insertion_delay_array.push( timer );
+			return;
+		}
 		let expire_on = timer.expire_on;
 		
 		let insert_at = 0;
@@ -141,9 +149,18 @@ class sdTimer
 		let i = 0;
 		let del = 0;
 		
+		let last_expire_on = 0;
+		
+		sdTimer.force_timer_insertion_delay_array = sdTimer.force_timer_insertion_delay_array_persistent;
+		
 		while ( i < sdTimer.sorted_timeouts.length )
 		{
 			let timer = sdTimer.sorted_timeouts[ i++ ];
+			
+			if ( timer.expire_on < last_expire_on )
+			debugger;
+		
+			last_expire_on = timer.expire_on;
 			
 			if ( sdWorld.time >= timer.expire_on )
 			{
@@ -159,6 +176,15 @@ class sdTimer
 		
 		if ( del > 0 )
 		sdTimer.sorted_timeouts.splice( 0, del );
+		
+		sdTimer.force_timer_insertion_delay_array = null;
+		if ( sdTimer.force_timer_insertion_delay_array_persistent.length > 0 )
+		{
+			for ( let i = 0; i < sdTimer.force_timer_insertion_delay_array_persistent.length; i++ )
+			sdTimer.InsertExistingTimer( sdTimer.force_timer_insertion_delay_array_persistent[ i ] );
+		
+			sdTimer.force_timer_insertion_delay_array_persistent.length = 0;
+		}
 	}
 	
 	constructor( f, expire_on )

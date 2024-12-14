@@ -1,5 +1,5 @@
 
-/* global FakeCanvasContext, userAgent, globalThis, Infinity, sdMatterAmplifier, sdCrystal, Coloris, BROWSER_GECKO */
+/* global FakeCanvasContext, userAgent, globalThis, Infinity, sdMatterAmplifier, sdCrystal, Coloris, BROWSER_GECKO, sdMusic */
 
 import sdWorld from '../sdWorld.js';
 import sdShop from '../client/sdShop.js';
@@ -96,7 +96,7 @@ class sdRenderer
 		
 		//sdRenderer._visual_settings = 0;
 		sdRenderer.visual_settings = 0; // 0; // Still used at some parts of code
-	
+		sdRenderer.shading = true; // New approach, affects shading and line of sight stuff
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
 		
@@ -760,6 +760,10 @@ class sdRenderer
 		sdRenderer.canvas.style.cursor = 'none';
 		//else
 		//sdRenderer.canvas.style.cursor = '';
+	}
+	static GetVisibleEntities()
+	{
+		return ( sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities );
 	}
 	static Render( frame )
 	{
@@ -1871,8 +1875,7 @@ class sdRenderer
 				}
 			}
 			
-			if ( sdWorld.my_entity )
-			if ( sdRenderer.show_key_hints > 0 )
+			if ( sdWorld.my_entity && sdRenderer.show_key_hints > 0 )
 			{
 				ctx.globalAlpha = Math.min( 1, sdRenderer.show_key_hints );
 				sdRenderer.show_key_hints -= sdWorld.GSPEED * 0.1;
@@ -1932,6 +1935,12 @@ class sdRenderer
 					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 28 );
 				}
 			}
+			else
+			{
+				
+			}
+			
+			
 			ctx.globalAlpha = 1;
 			
 			ctx.fillStyle = '#ff0000';
@@ -2036,6 +2045,32 @@ class sdRenderer
 
 			if ( sdContextMenu.open )
 			sdContextMenu.Draw( ctx );
+		}
+		
+		if ( sdMusic.current_song )
+		{
+			let raise = 0;
+			
+			if ( sdWorld.my_entity && sdRenderer.show_key_hints > 0 )
+			raise = Math.min( 1, sdRenderer.show_key_hints ) * 40;
+			
+			ctx.font = "12px Verdana";
+
+			let t = 'Track: ' + sdMusic.current_song.title;
+
+			let text_size = ctx.measureText( t );
+
+			ctx.fillStyle = '#000000';
+			ctx.globalAlpha = 0.15;
+			ctx.fillRect( sdRenderer.screen_width - text_size.width - 30, sdRenderer.screen_height - 40 - raise, text_size.width + 20, 30 );
+			ctx.globalAlpha = 0.7;
+
+			ctx.fillStyle = '#ffffff';
+		
+			ctx.textAlign = 'left';
+			ctx.fillText( t, sdRenderer.screen_width - text_size.width + 10 - 30, sdRenderer.screen_height - 21 - raise );
+			
+			ctx.globalAlpha = 1;
 		}
 
 		if ( !sdRenderer.UseCrosshair() )

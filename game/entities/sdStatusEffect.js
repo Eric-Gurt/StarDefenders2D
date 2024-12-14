@@ -510,6 +510,7 @@ class sdStatusEffect extends sdEntity
 						}
 				
 						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment
+						status_entity._update_version++;
 					}
 				}
 				
@@ -1649,6 +1650,8 @@ class sdStatusEffect extends sdEntity
 	constructor( params )
 	{
 		super( params );
+		
+		//traceOnce( 'Status effect created at: ' + globalThis.getStackTrace() );
 		
 		this.type = params.type || 0;
 		let status_type = sdStatusEffect.types[ this.type ];

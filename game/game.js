@@ -731,6 +731,8 @@ let enf_once = true;
 	globalThis.sdGun = sdGun;
 	globalThis.sdBullet = sdBullet;
 	globalThis.sdWeather = sdWeather;*/
+
+	globalThis.manually_disconnected = false;
 	
 	globalThis.sdWorld = sdWorld;
 	globalThis.socket = socket;
@@ -894,19 +896,23 @@ let enf_once = true;
 
 			if ( sdWorld.my_entity )
 			{
-				sdWorld.my_entity.Say( sdWorld.GetAny([
-					'Disconnected.'
-					//'Connection has been lost... Can you believe that?',
-					//'No connection to server',
-					//'Connection to server has gone'
-				]), true, true );
-				
-				setTimeout( ()=>{
-					
-					//if ( !globalThis.connection_established )
+				if ( globalThis.manually_disconnected )
+				{
+					globalThis.manually_disconnected = false;
 					sdWorld.Stop();
-				
-				}, 4000 );
+				}
+				else
+				{
+					sdWorld.my_entity.Say( sdWorld.GetAny([
+						'Disconnected.'
+					]), true, true );
+
+					setTimeout( ()=>{
+
+						sdWorld.Stop();
+
+					}, 2000 );
+				}
 			}
 
 			//alert('Connection was lost');
@@ -1978,7 +1984,7 @@ let enf_once = true;
 			else
 			{
 				sdWorld.hovered_entity = sdWorld.my_entity;
-				sdContextMenu.Open();
+				sdContextMenu.Open( true );
 			}
 			
 			e.preventDefault();

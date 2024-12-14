@@ -562,6 +562,7 @@ class sdSuperTexture
 		uv_dataView.setFloat32( offset_4_2 + 4, v1, true );
 		
 		//if ( sdRenderer.ctx.apply_shading ) // 39 ms
+		if ( sdRenderer.shading )
 		if ( apply_shading ) // 2 ms
 		if ( sdAtlasMaterial.brightness_cache_buffer_dataView !== null ) // 46 ms
 		{
@@ -2089,6 +2090,7 @@ class sdAtlasMaterial
 		
 		if ( sdAtlasMaterial.brightness_cache_buffer_width !== w ||
 			 sdAtlasMaterial.brightness_cache_buffer_height !== h )
+		if ( sdRenderer.shading )
 		{
 			sdAtlasMaterial.brightness_cache_buffer = new ArrayBuffer( w * h * sdAtlasMaterial.brightness_cache_buffer_group_size );
 			sdAtlasMaterial.brightness_cache_buffer_dataView = new DataView( sdAtlasMaterial.brightness_cache_buffer );

@@ -195,7 +195,7 @@ class sdCable extends sdEntity
 		sdCable.cables.push( this );
 	}
 	
-	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
 		if ( this.p && this.c && !this.p._is_being_removed && !this.c._is_being_removed )
 		return [ this.p, this.c ]; 
@@ -855,9 +855,13 @@ class sdCable extends sdEntity
 
 		ctx.filter = 'none';
 	}
+	get title()
+	{
+		return 'Cable';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, 'Cable' );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	
 	ScheduleNetworkEntitiesUpdate()

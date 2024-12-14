@@ -1819,10 +1819,13 @@ class sdGunClass
 					//character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
 					
 					
-					if ( Math.random() > 0.5 )
+					/*if ( Math.random() > 0.5 )
 					character.Say( "I can use this Cube shard to store matter inside it" );
 					else
-					character.Say( "Cube shard! These store matter pretty well" );
+					character.Say( "Cube shard! These store matter pretty well" );*/
+				
+					character.Say( "Matter capacity has been upgraded" );
+					
 					gun.remove(); 
 				}
 
@@ -1952,7 +1955,7 @@ class sdGunClass
 				{
 					if ( gun.extra === -123 )
 					{
-						character.Say( "Score" );
+						//character.Say( "Score" );
 						//character._score += 100000;
 						character.GiveScore( sdEntity.SCORE_REWARD_ADMIN_CRATE, gun );
 						gun.remove(); 
@@ -1963,10 +1966,10 @@ class sdGunClass
 					else
 					if ( gun.extra === 0 )
 					{
-						if ( Math.random() > 0.5 )
+						/*if ( Math.random() > 0.5 )
 						character.Say( "This will be useful" );
 						else
-						character.Say( "This is definitely gonna help me");
+						character.Say( "This is definitely gonna help me");*/
 					
 						character.GiveScore( sdEntity.SCORE_REWARD_TEDIOUS_TASK, gun );
 						
@@ -1978,10 +1981,10 @@ class sdGunClass
 					else
 					if ( gun.extra === 1 )
 					{
-						if ( Math.random() > 0.5 )
+						/*if ( Math.random() > 0.5 )
 						character.Say( "This will be useful" );
 						else
-						character.Say( "This is definitely gonna help me");
+						character.Say( "This is definitely gonna help me");*/
 					
 						character.GiveScore( sdEntity.SCORE_REWARD_TEDIOUS_TASK, gun );
 						
@@ -1993,10 +1996,10 @@ class sdGunClass
 					else
 					if ( gun.extra === 2 )
 					{
-						if ( Math.random() > 0.5 )
+						/*if ( Math.random() > 0.5 )
 						character.Say( "This will be useful" );
 						else
-						character.Say( "This is definitely gonna help me");
+						character.Say( "This is definitely gonna help me");*/
 					
 						character.GiveScore( sdEntity.SCORE_REWARD_TEDIOUS_TASK, gun );
 						
@@ -9154,6 +9157,89 @@ class sdGunClass
 				return false; 
 			}
 		};
+		
+		
+		
+		sdGun.classes[ sdGun.CLASS_DRINK = 140 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'can' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'can_empty' ),
+			image0: [ sdWorld.CreateImageFromFile( 'can_firing' ), sdWorld.CreateImageFromFile( 'can_firing' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'can_firing' ), sdWorld.CreateImageFromFile( 'can_firing' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'can_firing' ), sdWorld.CreateImageFromFile( 'can_firing' ) ],
+			has_images: true,
+			//image_firing: sdWorld.CreateImageFromFile( 'can_firing' ),
+			//image_no_matter: sdWorld.CreateImageFromFile( 'can' ),
+			title: 'Drink',
+			slot: 7,
+			reload_time: 75,
+			muzzle_x: null,
+			ammo_capacity: 1,
+			count: 0,
+			matter_cost: 10,
+			projectile_velocity: 16,
+			spawnable: true,
+			category: 'Other',
+			//is_sword: true,
+			GetAmmoCost: ()=>
+			{
+				return 10;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				sdSound.PlaySound({ name:'can_drink', x:gun.x, y:gun.y, volume:1, pitch:1 });
+				
+				let owner = gun._held_by;
+				
+				setTimeout( ()=>
+				{
+					if ( gun._held_by )
+					{
+						if ( gun._held_by !== owner )
+						return;
+					}
+					else
+					{
+						gun.x = owner.x;
+						gun.y = owner.y;
+					}
+					
+					if ( owner && !gun._is_being_removed )
+					if ( owner.IsPlayerClass() )
+					owner.Damage( -20, null );
+				
+				}, 1267 );
+				
+				setTimeout( ()=>
+				{
+					if ( gun._held_by )
+					{
+						if ( gun._held_by !== owner )
+						return;
+					}
+					else
+					{
+						gun.x = owner.x;
+						gun.y = owner.y;
+					}
+				
+					if ( owner && !gun._is_being_removed )
+					if ( owner.IsPlayerClass() )
+					owner.Damage( -20, null );
+					
+				}, 2169 );
+				
+				/*setTimeout( ()=>
+				{
+					gun.remove();
+				}, 2700 );*/
+				
+				
+				return true;
+			},
+			projectile_properties: { _damage: 0 }
+		};
+		
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

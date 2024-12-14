@@ -291,7 +291,7 @@ class sdAsteroid extends sdEntity
 					let v = sdWeather.only_instance.TraceDamagePossibleHere( c.x, c.y, Infinity, false, true ) ? 1 : 0.2;
 					
 					if ( this.type === sdAsteroid.TYPE_MISSILE )
-					sdSound.PlaySound({ name:'missile_incoming', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v, pitch:1 }, [ c._socket ] );
+					sdSound.PlaySound({ name:'missile_incoming', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v*2, pitch:1 }, [ c._socket ] );
 					else
 					sdSound.PlaySound({ name:'asteroid', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v, pitch:1 / ( ( this.scale + 100 ) / 200 ) }, [ c._socket ] );
 				}

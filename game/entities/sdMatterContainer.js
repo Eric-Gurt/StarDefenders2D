@@ -92,9 +92,13 @@ class sdMatterContainer extends sdEntity
 			this._update_version++;
 		}
 	}
+	get title()
+	{
+		return 'Matter container';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T("Matter container") + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
 	{

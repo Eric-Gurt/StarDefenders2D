@@ -1112,24 +1112,30 @@ class sdSandWorm extends sdEntity
 		return true;
 
 	}
+	get title()
+	{
+		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM )
+		return "Worm";
+
+		if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
+		return "Spiky Worm";
+
+		if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+		return "Corrupted Worm";
+
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		return "Council Mecha Worm";
+
+		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+		return "Crystal Hunting Worm";
+
+		return 'Worm';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 && ( !this._in_surface || this._in_water ) )
 		{
-			if ( this.kind === sdSandWorm.KIND_NORMAL_WORM )
-			sdEntity.Tooltip( ctx, "Worm" );
-
-			if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
-			sdEntity.Tooltip( ctx, "Spiky Worm" );
-
-			if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
-			sdEntity.Tooltip( ctx, "Corrupted Worm" );
-
-			if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
-			sdEntity.Tooltip( ctx, "Council Mecha Worm" );
-		
-			if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
-			sdEntity.Tooltip( ctx, "Crystal Hunting Worm" );
+			sdEntity.Tooltip( ctx, this.title );
 		}
 	}
 	Draw( ctx, attached )

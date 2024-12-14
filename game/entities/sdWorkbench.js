@@ -95,7 +95,7 @@ class sdWorkbench extends sdEntity
 	}
 	UpgradeWorkbench( force=false )
 	{
-		if ( this.level < 7 )
+		if ( this.level < 8 )
 		if ( this.metal_shards === this.metal_shards_max || force )
 		{
 			this.metal_shards = 0;
@@ -109,6 +109,10 @@ class sdWorkbench extends sdEntity
 		
 			return true;
 		}
+		
+		if ( force )
+		sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+		
 		return false;
 	}
 	onThink( GSPEED ) // Class-specific, if needed

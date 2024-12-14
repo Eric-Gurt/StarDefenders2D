@@ -1,4 +1,6 @@
 
+/* global sdMusic */
+
 import sdWorld from './sdWorld.js';
 import sdEntity from './entities/sdEntity.js';
 import sdWeather from './entities/sdWeather.js';
@@ -23,17 +25,19 @@ class sdSound
 		
 		if ( !sdWorld.is_server )
 		{
+			sdSound.volume_scale_inactive_window = 0.1;
 
 			sdSound.volume = 0.1; // non-relative
 			sdSound.volume_speech = 0.1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
 			sdSound.volume_ambient = 0.075; // non-relative
+			sdSound.volume_music = 0.1;
 
 			sdSound.SetVolumeScale = ( v )=>{
 
 				sdSound.volume = v * 1; // non-relative
 				sdSound.volume_speech = v * 1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
 				sdSound.volume_ambient = v * 0.75; // non-relative
-
+				sdSound.volume_music = v * 0.5; // non-relative
 			};
 
 			//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -59,7 +63,10 @@ class sdSound
 				Object.defineProperty( sdSound[ var_name ], 'volume', 
 				{ 
 					set: function ( x ) 
-					{ 
+					{
+						if ( document.hidden )
+						x *= sdSound.volume_scale_inactive_window;
+					
 						sdSound[ var_name + '_howl' ].volume( x, sdSound[ var_name + '_sound_id' ] );
 					},
 					get: function()
@@ -105,6 +112,8 @@ class sdSound
 			MakeLoopAmbient( 'anti_crystal_ambient', './audio/anti_crystal_ambient.wav' );
 			MakeLoopAmbient( 'water_loop', './audio/water.wav' );
 			MakeLoopAmbient( 'antigravity', './audio/antigravity.wav' );
+			MakeLoopAmbient( 'fire_big', './audio/fire_big.wav' );
+			MakeLoopAmbient( 'fire_small', './audio/fire_small.wav' );
 
 
 			sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -140,8 +149,10 @@ class sdSound
 			sdSound.allowed = true;
 			
 			adConfig({
-				sound: 'on',
+				sound: 'on'
 			});
+			
+			sdMusic.init_class();
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -247,6 +258,7 @@ class sdSound
 		let count_anti_crystal_ambient = 0;
 		let count_water_loop = 0;
 		let count_antigravity = 0;
+		let count_fire = 0;
 		
 		// Singleplayer entities array is huge and will damage performance there otherwise
 		const entities_array = sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities;
@@ -352,9 +364,25 @@ class sdSound
 					if ( e.matter_max === sdCrystal.anticrystal_value )
 					count_anti_crystal_ambient += 0.1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
+				case 'sdEffect':
+				{
+					if ( e._type === sdEffect.TYPE_FIRE )
+					count_fire += 0.05 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+				}
 				break;
 			}
 		}
+		
+		let count_fire_big = 0;
+		let count_fire_small = 0;
+
+		if ( count_fire > 0.9 )
+		count_fire = 0.9;
+		
+		let morph = Math.min( 1, count_fire / 0.2 );
+		
+		count_fire_big = count_fire * morph;
+		count_fire_small = count_fire * ( 1 - morph );
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
 		sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
@@ -370,6 +398,12 @@ class sdSound
 		
 		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
 		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.fire_big_volume_last = sdWorld.MorphWithTimeScale( sdSound.fire_big_volume_last, count_fire_big, 0.8, GSPEED );
+		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.fire_big_volume_last = sdWorld.MorphWithTimeScale( sdSound.fire_big_volume_last, count_fire_small, 0.8, GSPEED );
+		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * sdSound.volume_ambient );
 		
 		if ( sdWorld.my_entity )
 		{
@@ -535,7 +569,8 @@ class sdSound
 				sdSound.sounds_played_at_frame++;
 				if ( sdSound.sounds_played_at_frame > 10 )
 				{
-					console.log('Too many sounds played within short timespan. Is limit correct?');
+					//console.log('Too many sounds played within short timespan. Is limit correct?', name, globalThis.getStackTrace() );
+					console.log('Too many sounds played within short timespan. Is limit correct?' );
 					return;
 				}
 				
@@ -548,6 +583,9 @@ class sdSound
 				clone.play();*/
 				
 				let howl = sdSound.sounds[ name ];
+				
+				if ( document.hidden )
+				v *= sdSound.volume_scale_inactive_window;
 				
 				howl.volume( v );
 				howl.rate( rate );

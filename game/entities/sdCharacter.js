@@ -1069,6 +1069,16 @@ THING is cosmic mic drop!`;
 		if ( this._ignored_stability_damage > 33 )
 		{
 			this.stability = Math.max( -100, this.stability - this._ignored_stability_damage / ( this.hmax / 250 ) );
+			
+			if ( this._ai )
+			{
+				// Push aiming of AI characters whenever they take damage
+				let r = Math.min( 50, this._ignored_stability_damage / ( this.hmax / 250 ) * 5 );
+				let an = Math.random() * Math.PI * 2;
+				this.look_x += Math.sin( an ) * r;
+				this.look_y += Math.cos( an ) * r;
+			}
+			
 			this._ignored_stability_damage = 0;
 		}
 	}
@@ -1174,6 +1184,11 @@ THING is cosmic mic drop!`;
 		this._ai_stay_distance = params._ai_stay_distance || 128; // Max distance AI can stray from entity it follows/protects.
 		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
 		this._ai_allow_weapon_switch = true; // Allow switching weapons if AI has multiple of them
+		this._ai_post_alert_fire_prevention_until = 0; // Applied if target is a real player. Prevents case when spawned mobs instantly attack player
+		// PB:FttP/PB2-like relative movement suggestions to restore line of sight:
+		this._ai_dive_suggestion_x = 0;
+		this._ai_dive_suggestion_y = 0;
+		this._ai_dive_suggestion_rethink_in = 0;
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -1221,6 +1236,8 @@ THING is cosmic mic drop!`;
 		this._armor_absorb_perc = 0; // Armor absorption percentage
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
 		this._armor_repair_amount = 0; // Armor repair speed
+		
+		this.mobility = 100; // Used to slow-down hostile AIs
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -1828,6 +1845,16 @@ THING is cosmic mic drop!`;
 		return ( this._key_states.GetKey('KeyX') || !this.IsDamageAllowedByAdmins() ) ? sdCharacter.ignored_classes_when_holding_x : sdCharacter.ignored_classes_when_not_holding_x;
 	}
 	
+	getRequiredEntities( observer_character )
+	{
+		let arr = [];
+		
+		for ( let i = 0; i < this._inventory.length; i++ )
+		if ( this._inventory[ i ] )
+		arr.push( this._inventory[ i ] );
+		
+		return arr;
+	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		if ( !this.ghosting )
@@ -2423,7 +2450,7 @@ THING is cosmic mic drop!`;
 					'I\'m out',
 					'Saved',
 					'I have too much to lose!',
-					'Not the last time',
+					'Mistakes do not define us. What defines us is how many rescue teleports we have.',
 					'Still kicking',
 					from_ent ? 'I won\'t miss you, '+from_ent.GetClass() : 'I won\'t miss that',
 					'Imagine dying',
@@ -3013,6 +3040,13 @@ THING is cosmic mic drop!`;
 				this.Say( result.substring( 1 ), false, false, true, true );
 			}
 		}
+		
+		if ( closest )
+		if ( closest.IsPlayerClass() )
+		if ( closest._my_hash )
+		{
+			this._ai_post_alert_fire_prevention_until = sdWorld.time + 800; // 250 ms is average human reaction time and 250 ms is a worst case ping scenario. And some extra to finish alert sound playing
+		}
 
 		/*if ( this._voice.variant === 'whisperf' )
 		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
@@ -3099,6 +3133,8 @@ THING is cosmic mic drop!`;
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		let ai_will_fire = false;
 	
 		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
 		{
@@ -3348,7 +3384,8 @@ THING is cosmic mic drop!`;
 				this._key_states.SetKey( 'KeyW', 0 );
 				this._key_states.SetKey( 'KeyS', 0 );
 
-				this._key_states.SetKey( 'Mouse1', 0 );
+				//this._key_states.SetKey( 'Mouse1', 0 );
+				//ai_will_fire = false;
 
 				/*if ( this.driver_of )
 				{
@@ -3370,7 +3407,8 @@ THING is cosmic mic drop!`;
 
 				if ( this._ai_stay_near_entity ) // Is there an entity AI should stay near?
 				{
-					if ( !this._ai_stay_near_entity._is_being_removed && !sdWorld.inDist2D_Boolean( this.x, this.y, this._ai_stay_near_entity.x, this._ai_stay_near_entity.y, this._ai_stay_distance ) ) // Is the AI too far away from the entity?
+					if ( !this._ai_stay_near_entity._is_being_removed && 
+						 !sdWorld.inDist2D_Boolean( this.x, this.y, this._ai_stay_near_entity.x, this._ai_stay_near_entity.y, this._ai_stay_distance ) ) // Is the AI too far away from the entity?
 					{
 						// Move towards entity
 						if ( this.x > this._ai_stay_near_entity.x )
@@ -3412,13 +3450,102 @@ THING is cosmic mic drop!`;
 					this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
 					
 					let check_from = ( this.driver_of ) ? this.driver_of : this;
+					let projectile_offset = ( this.driver_of ) ? { x:0, y:0 } : this.GetBulletSpawnOffset();
 
-					let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
-					if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
-					should_fire = false;
-					if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
-					should_fire = false;
-					if ( !sdWorld.CheckLineOfSight( check_from.x, check_from.y, this.look_x, this.look_y, check_from ) )
+					let should_fire = false; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
+					
+					/*if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 || // Don't shoot if you're not looking near or at the target
+						 this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 )
+					should_fire = false;*/
+					
+					
+					let CheckIfFirePositionAppropriate = ( projectile_spawn_x, projectile_spawn_y, look_x, look_y, check_from )=>
+					{
+						let should_fire = true;
+						
+						if ( !sdWorld.CheckLineOfSight( projectile_spawn_x, projectile_spawn_y, look_x, look_y, check_from ) )
+						if ( sdWorld.last_hit_entity )
+						{
+							let cur_target = sdWorld.last_hit_entity;
+							if ( typeof cur_target._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
+							{
+								if ( cur_target._ai_team === this._ai_team ) // Is this part of a friendly faction?
+								should_fire = false; // Don't target
+							}
+							if ( !sdWorld.CheckLineOfSight( projectile_spawn_x, projectile_spawn_y, look_x, look_y, check_from, sdCom.com_visibility_ignored_classes ) )
+							should_fire = false; // Don't attack through walls
+
+							if ( this._ai.target === cur_target ) // But attack if the target is directly looked at ( even walls in digging scenario )
+							should_fire = true;
+						}
+						
+						return should_fire;
+					};
+			
+					let allow_random_movements = true;
+					
+					if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 || // Don't shoot if you're not looking near or at the target
+						 this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 )
+					{
+					}
+					else
+					{
+						if ( CheckIfFirePositionAppropriate( 
+								check_from.x + projectile_offset.x, 
+								check_from.y + projectile_offset.y, this.look_x, this.look_y, check_from ) )
+						{
+							should_fire = true;
+							
+							// Mark current attack position as good enough if line of sight happens to be broken later due to random movements
+							this._ai_dive_suggestion_x = check_from.x;
+							this._ai_dive_suggestion_y = check_from.y;
+						}
+						else
+						{
+							if ( sdWorld.time > this._ai_dive_suggestion_rethink_in )
+							{
+								this._ai_dive_suggestion_rethink_in = sdWorld.time + 1;//+ 100 + Math.random() * 200;
+								this._ai_dive_suggestion_x = check_from.x - 100 + Math.random() * 100;
+								this._ai_dive_suggestion_y = check_from.y - 100 + Math.random() * 100;
+								
+								if ( sdWorld.CheckLineOfSight( check_from.x, check_from.y, this._ai_dive_suggestion_x, this._ai_dive_suggestion_y, check_from, sdCom.com_visibility_ignored_classes ) )
+								{
+									// Can go there
+								}
+								else
+								{
+									// Can't go there
+									this._ai_dive_suggestion_x = 0;
+									this._ai_dive_suggestion_y = 0;
+								}
+							}
+							
+							if ( this._ai_dive_suggestion_x !== 0 || this._ai_dive_suggestion_y !== 0 )
+							if ( CheckIfFirePositionAppropriate( 
+								this._ai_dive_suggestion_x + projectile_offset.x, 
+								this._ai_dive_suggestion_y + projectile_offset.y, this.look_x, this.look_y, check_from ) )
+							{
+								if ( this._ai_dive_suggestion_x < check_from.x )
+								this._key_states.SetKey( 'KeyA', 1 );
+							
+								if ( this._ai_dive_suggestion_x > check_from.x )
+								this._key_states.SetKey( 'KeyD', 1 );
+							
+								if ( this._ai_dive_suggestion_y < check_from.y )
+								this._key_states.SetKey( 'KeyW', 1 );
+							
+								// Don't actually crouch
+								
+								allow_random_movements = false;
+								
+								//sdWorld.SendEffect({ x:this._ai_dive_suggestion_x, y:this._ai_dive_suggestion_y, type:sdEffect.TYPE_TELEPORT });
+								
+								this._ai_dive_suggestion_rethink_in = sdWorld.time + 2000; // Don't rethink suggestion position for a while since it seems to be a good suggestion
+							}
+						}
+					}
+					
+					/*if ( !sdWorld.CheckLineOfSight( projectile_spawn_x, projectile_spawn_y, this.look_x, this.look_y, check_from ) )
 					if ( sdWorld.last_hit_entity )
 					{
 						let cur_target = sdWorld.last_hit_entity;
@@ -3427,25 +3554,35 @@ THING is cosmic mic drop!`;
 							if ( cur_target._ai_team === this._ai_team ) // Is this part of a friendly faction?
 							should_fire = false; // Don't target
 						}
-						if ( !sdWorld.CheckLineOfSight( check_from.x, check_from.y, this.look_x, this.look_y, check_from, sdCom.com_visibility_ignored_classes ) )
+						if ( !sdWorld.CheckLineOfSight( projectile_spawn_x, projectile_spawn_y, this.look_x, this.look_y, check_from, sdCom.com_visibility_ignored_classes ) )
 						should_fire = false; // Don't attack through walls
 						
 						if ( this._ai.target === cur_target ) // But attack if the target is directly looked at ( even walls in digging scenario )
 						should_fire = true;
 					}
+					
+					debugger; // Finish diving logic that uses _ai_dive_suggestion_x/y
+					if ( !should_fire )
+					{
+						
+					}*/
+					
 					if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
 					{
-						if ( Math.random() < 0.3 )
-						this._key_states.SetKey( 'KeyA', 1 );
+						if ( allow_random_movements )
+						{
+							if ( Math.random() < 0.3 )
+							this._key_states.SetKey( 'KeyA', 1 );
 
-						if ( Math.random() < 0.3 )
-						this._key_states.SetKey( 'KeyD', 1 );
+							if ( Math.random() < 0.3 )
+							this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 2.5 && this._jetpack_allowed && this.matter > 30 ) )
-						this._key_states.SetKey( 'KeyW', 1 );
+							if ( Math.random() < 0.2 || ( this.sy > 2.5 && this._jetpack_allowed && this.matter > 30 ) )
+							this._key_states.SetKey( 'KeyW', 1 );
 
-						if ( Math.random() < 0.4 )
-						this._key_states.SetKey( 'KeyS', 1 );
+							if ( Math.random() < 0.4 )
+							this._key_states.SetKey( 'KeyS', 1 );
+						}
 					}
 
 					if ( this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE )
@@ -3456,10 +3593,10 @@ THING is cosmic mic drop!`;
 						if ( this.x < closest.x - 32 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) || ( this.y > closest.y + Math.random() * 64 ) )
+						if ( ( allow_random_movements && Math.random() < 0.2 ) || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) || ( this.y > closest.y + Math.random() * 64 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
-						if ( Math.random() < 0.4 )
+						if ( ( allow_random_movements && Math.random() < 0.4 ) )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
 
@@ -3471,16 +3608,17 @@ THING is cosmic mic drop!`;
 						if ( this.x > closest.x && this.x < ( closest.x + 250 ) )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
+						if ( ( allow_random_movements && Math.random() < 0.2 ) || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
-						if ( Math.random() < 0.1 )
+						if ( ( allow_random_movements && Math.random() < 0.1 ) )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
 
-					if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
+					if ( Math.random() < 0.05 && should_fire === true ) // Shoot the walls occasionally, when target is not in sight but was detected previously
 					{
-						this._key_states.SetKey( 'Mouse1', 1 );
+						//this._key_states.SetKey( 'Mouse1', 1 );
+						ai_will_fire = true;
 					}
 					else
 					if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
@@ -3488,6 +3626,7 @@ THING is cosmic mic drop!`;
 
 						//if ( !this._ai.target.is( sdBlock ) ) // Check line of sight if not targeting blocks
 						{
+							/*
 							//if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							//if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
 							// I think it already checks in "let should_fire" part.
@@ -3495,6 +3634,8 @@ THING is cosmic mic drop!`;
 						
 							if ( this._ai.target.IsVehicle() )
 							this._key_states.SetKey( 'Mouse1', 1 );
+							*/
+							ai_will_fire = true;
 						}
 					}
 				}
@@ -3520,7 +3661,8 @@ THING is cosmic mic drop!`;
 						// Try to go through walls of any kinds
 						if ( sdWorld.last_hit_entity )
 						//if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < 0.01 ) )
-						if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < ( 0.01 * this._ai_level ) ) )
+						if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || 
+							 sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < ( 0.01 * this._ai_level ) ) )
 						{
 							closest = sdWorld.last_hit_entity;
 
@@ -3543,14 +3685,22 @@ THING is cosmic mic drop!`;
 				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this.x + this._ai.direction * 400, 0.9, GSPEED );
 				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this.y + Math.sin( sdWorld.time / 2000 * Math.PI ) * 50, 0.9, GSPEED );
 
-				this._key_states.SetKey( 'Mouse1', 0 );
+				//this._key_states.SetKey( 'Mouse1', 0 );
+				//ai_will_fire = false;
 			}
+			
+			//sdWorld.SendEffect({ x:this.look_x, y:this.look_y, type:sdEffect.TYPE_TELEPORT });
 		}
 		else
 		if ( this._ai_enabled === sdCharacter.AI_MODEL_INSTRUCTOR )
 		{
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
+		
+		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until )
+		this._key_states.SetKey( 'Mouse1', 1 );
+		else
+		this._key_states.SetKey( 'Mouse1', 0 );
 	}
 	AIVehicleLogic() // For piloting some vehicles
 	{
@@ -3612,7 +3762,7 @@ THING is cosmic mic drop!`;
 			}
 		}
 	}
-	GetBulletSpawnOffset()
+	GetBulletSpawnOffset() // GetProjectileSpawnOffset() // Should return new Object
 	{
 		// Anything else is no longer good with new ragdoll structure
 		//return { x:0, y:Math.max( sdCharacter.bullet_y_spawn_offset, ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) };
@@ -3940,7 +4090,12 @@ THING is cosmic mic drop!`;
 			if ( this._ai_enabled > 0 )
 			{
 				if ( !this._ai )
-				this._ai = {};
+				{
+					this._ai = {};
+					
+					if ( this._ai_team !== 0 )
+					this.mobility = 33;
+				}
 
 				this.AILogic( GSPEED );
 			}
@@ -4160,10 +4315,10 @@ THING is cosmic mic drop!`;
 		//let new_y = this.y + this.sy * GSPEED;
 		
 		let speed_scale = 1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
-		
 		speed_scale *= Math.max( 0.1, this.stability / 100 );
 		
 		let walk_speed_scale = speed_scale;
+		walk_speed_scale *= ( this.mobility / 100 )
 		
 		//let leg_height;
 		//let new_leg_height;
@@ -4480,6 +4635,7 @@ THING is cosmic mic drop!`;
 						// Sets sdWorld.last_hit_entity;
 
 						this._stands_on = sdWorld.last_hit_entity;
+						this._stands_on.onMovementInRange( this );
 
 						still_stands = true;
 					}
@@ -4728,20 +4884,37 @@ THING is cosmic mic drop!`;
 		
 		// But can breathe in vehicles
 		if ( !can_breathe )
-		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
-		can_breathe = true;
+		{
+			if ( 
+				 ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || 
+				 this.FindObjectsInACableNetwork( (e)=>{ return ( e.hea > 0 ); }, sdHover ).length > 0
+			)
+			can_breathe = true;
+		}
 	
 		// And near BSUs
 		if ( !can_breathe )
-		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
 		{
-			let e = sdBaseShieldingUnit.all_shield_units[ i ];
-			if ( e.enabled )
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, sdBaseShieldingUnit.protect_distance ) )
+			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
 			{
-				can_breathe = true;
-				break;
+				let e = sdBaseShieldingUnit.all_shield_units[ i ];
+				if ( e.enabled )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, sdBaseShieldingUnit.protect_distance ) )
+				{
+					can_breathe = true;
+					break;
+				}
 			}
+			if ( !can_breathe )
+			if ( this.FindObjectsInACableNetwork( (e)=>{ return ( e.enabled ); }, sdBaseShieldingUnit ).length > 0 )
+			can_breathe = true;
+		}
+		
+		// And on top of RTPs
+		if ( !can_breathe )
+		if ( ( this.stands && this._stands_on && this._stands_on.is( sdRescueTeleport ) ) || this.FindObjectsInACableNetwork( null, sdRescueTeleport ).length > 0 )
+		{
+			can_breathe = true;
 		}
 		
 		let out_of_bounds = false;
@@ -4897,7 +5070,8 @@ THING is cosmic mic drop!`;
 						let old_walk = this._anim_walk;
 						this._anim_walk += Math.abs( this.sx ) * 0.2 / walk_speed_scale * GSPEED;
 
-						if ( ( old_walk < 0.5 && this._anim_walk >= 0.5 ) )//|| ( old_walk < 0.666 && this._anim_walk >= 0.666 ) )
+						//if ( ( old_walk < 0.5 && this._anim_walk >= 0.5 ) )//|| ( old_walk < 0.666 && this._anim_walk >= 0.666 ) )
+						if ( ( old_walk < 3.333 && this._anim_walk >= 3.333 ) || ( old_walk < 6.666 && this._anim_walk >= 6.666 ) )
 						if ( !this.ghosting )
 						if ( this._crouch_intens < 0.5 )
 						sdSound.PlaySound({ name:this.GetStepSound(), x:this.x, y:this.y, volume:0.25 * this.GetStepSoundVolume(), _server_allowed:true, pitch:this.GetStepSoundPitch() });
@@ -5411,6 +5585,22 @@ THING is cosmic mic drop!`;
 			if ( this.air < sdCharacter.air_max )
 			{
 				show_air = true;
+				
+				ctx.font = "5.5px Verdana";
+				
+				let critical = ( this.air < sdCharacter.air_max / 2 );
+				
+				let t = critical ? 'No oxygen' : 'Low oxygen';
+				
+				ctx.fillStyle = '#000000';
+				ctx.fillText( t, 0, -raise - 5 - 10 + 0.5, 50 );
+				
+				if ( critical )
+				ctx.fillStyle = ( sdWorld.time % 4000 < 2000 ) ? '#ff0000' : '#ff6666';
+				else
+				ctx.fillStyle = ( sdWorld.time % 4000 < 2000 ) ? '#ffff00' : '#ffff66';
+			
+				ctx.fillText( t, 0, -raise - 5 - 10, 50 );
 			}
 			
 			let snap_frame = ( ~~( this.death_anim / 10 ) ) * 10 / 20;
@@ -6477,7 +6667,7 @@ THING is cosmic mic drop!`;
 
 								this._ai_team = 0;
 								this._ai_enabled = 0;
-								this._ai = 0;
+								this._ai = null;
 
 								this._socket = executer_socket;
 								executer_socket.character = this;
@@ -6700,8 +6890,8 @@ THING is cosmic mic drop!`;
 
 					if ( this !== sdWorld.my_entity )
 					{
-					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
-					this.AddContextOption( 'Replace as player ( AI only, delete self-owned )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
+						this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
+						this.AddContextOption( 'Replace as player ( AI only, delete self-owned )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 					}
 				}
 
@@ -6739,6 +6929,12 @@ THING is cosmic mic drop!`;
 						}
 						else
 						{
+							this.AddClientSideActionContextOption( 'Game settings & character customization', ()=>
+							{
+								globalThis.manually_disconnected = true;
+								globalThis.socket.disconnect();
+							});
+							
 							this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
 							{
 								if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )

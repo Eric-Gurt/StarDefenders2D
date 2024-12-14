@@ -236,26 +236,26 @@ class sdFactionSpawner extends sdEntity
 		if ( from_entity.is( sdDrone ) || from_entity.is( sdCharacter ) )
 		if ( this._ai_team === from_entity._ai_team )
 		{
-				if ( from_entity.is( sdCharacter ) )
-				from_entity._ai.target = null;
-				
-				if ( from_entity.is ( sdDrone ) )
-				from_entity.SetTarget( null );
-			
+			if ( from_entity.is( sdCharacter ) )
+			if ( from_entity._ai )
+			from_entity._ai.target = null;
+
+			if ( from_entity.is ( sdDrone ) )
+			from_entity.SetTarget( null );
 		}
-		
-		
-		
 	}
-	
-	DrawHUD( ctx, attached ) // foreground layer
+	get title()
 	{
 		if ( this.type === sdFactionSpawner.FALKOK_SPAWNER )
-		sdEntity.Tooltip( ctx, "Falkonian teleporter" );
+		return "Falkonian teleporter";
 	
 		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
-		sdEntity.Tooltip( ctx, "Tzyrg constructor" );
-	
+		return "Tzyrg constructor";
+	}
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		if ( this.type === sdFactionSpawner.TZYRG_SPAWNER )
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{

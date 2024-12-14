@@ -51,7 +51,7 @@ class sdMatterAmplifier extends sdEntity
 	RequireSpawnAlign()
 	{ return true; }
 	
-	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
 		if ( this.crystal )
 		return [ this.crystal ]; 

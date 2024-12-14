@@ -173,27 +173,31 @@ class sdStorageTank extends sdEntity
 		if ( this.type === sdStorageTank.TYPE_PORTABLE )
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
-	DrawHUD( ctx, attached ) // foreground layer
+
+	get title()
 	{
 		let t = 'Empty';
 
-		if ( this.liquid.type === sdWater.TYPE_ANTIMATTER )
-		t = 'Antimatter';
-		else
-		if ( this.liquid.type === sdWater.TYPE_ESSENCE )
-		t = 'Liquid Essence';
-		else
-		if ( this.liquid.type === sdWater.TYPE_TOXIC_GAS )
-		t = 'Toxic gas';
-		else
-		if ( this.liquid.type === sdWater.TYPE_LAVA )
-		t = 'Lava';
-		else
-		if ( this.liquid.type === sdWater.TYPE_ACID )
-		t = 'Acid';
-		else
-		if ( this.liquid.type === sdWater.TYPE_WATER )
-		t = 'Water';
+		if ( this.liquid )
+		{
+			if ( this.liquid.type === sdWater.TYPE_ANTIMATTER )
+			t = 'Antimatter';
+			else
+			if ( this.liquid.type === sdWater.TYPE_ESSENCE )
+			t = 'Liquid Essence';
+			else
+			if ( this.liquid.type === sdWater.TYPE_TOXIC_GAS )
+			t = 'Toxic gas';
+			else
+			if ( this.liquid.type === sdWater.TYPE_LAVA )
+			t = 'Lava';
+			else
+			if ( this.liquid.type === sdWater.TYPE_ACID )
+			t = 'Acid';
+			else
+			if ( this.liquid.type === sdWater.TYPE_WATER )
+			t = 'Water';
+		}
 
 		if ( this.type === sdStorageTank.TYPE_PORTABLE )
 		{
@@ -202,8 +206,17 @@ class sdStorageTank extends sdEntity
 			else
 			t = 'Portable ' + t.toLowerCase();
 		}
+		
+		t += ' storage tank';
+		
+		return t;
+	}
+	
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		let t = this.title;
 
-		sdEntity.TooltipUntranslated( ctx, T(t + ' tank') + ' ( ' + Math.round(this.liquid.amount) + ' / ' + (this.liquid.max) + ' )', 0, ( this.liquid.extra > 0 ? -20 : -10 ) );
+		sdEntity.TooltipUntranslated( ctx, T( t ) + ' ( ' + Math.round(this.liquid.amount) + ' / ' + (this.liquid.max) + ' )', 0, ( this.liquid.extra > 0 ? -20 : -10 ) );
 
 		if ( this.liquid.extra > 0 )
 		{
@@ -302,17 +315,6 @@ class sdStorageTank extends sdEntity
 				}
 			}
 		}
-	}
-
-	get title()
-	{
-		if ( this.type === sdStorageTank.TYPE_PORTABLE )
-		return T('Portable storage tank');
-
-		if ( this.type === sdStorageTank.TYPE_LARGE )
-		return T('Storage tank');
-
-		return 'undefined';
 	}
 
 	MeasureMatterCost()

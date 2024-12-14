@@ -709,7 +709,10 @@ class sdEnemyMech extends sdEntity
 
 						//this.attack_anim = 15;
 
-						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.05;
+						let an = Math.atan2( 
+								targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y, 
+								targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x 
+						) + ( Math.random() * 2 - 1 ) * 0.05;
 
 						this.lmg_an = an * 100;
 
@@ -787,7 +790,10 @@ class sdEnemyMech extends sdEntity
 
 						this._rocket_attack_timer = 6;
 
-						let an = Math.atan2( targets[ i ].y - ( this.y + 16 ), targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
+						let an = Math.atan2( 
+								targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y, 
+								targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x 
+						) + ( Math.random() * 2 - 1 ) * 0.1;
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;

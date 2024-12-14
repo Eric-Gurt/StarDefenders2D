@@ -219,6 +219,7 @@
 	<script src="client/sdTranslationManager.js" type="module"></script>
 	<script src="client/sdMobileKeyboard.js" type="module"></script>
 	<script src="game.js" type="module"></script>
+	<script src="client/sdMusic.js"></script>
 	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
 	</div>
 	<div id="settings_container" style="
@@ -440,21 +441,8 @@
 		<label for="hints2">Yes</label>
 	    </div>
 	    
-	    <div class="set_block" tabindex="1">
+	    <!--<div class="set_block" tabindex="1">
 		<span class="sdtitle">Resolution downscaling</span><br>
-		<!--<input type="checkbox" id="visuals1" value="no">
-		<label for="visuals1">2D (old, unoptimized)</label>
-		<br>
-		<input type="checkbox" id="visuals2" value="yes" checked>
-		<label for="visuals2">3D (GPU accelerated)</label>
-		<br>
-		<input type="checkbox" id="visuals3" value="yes">
-		<label for="visuals3">3D+ (GPU accelerated)</label>
-		<br>
-		<input type="checkbox" id="visuals4" value="yes">
-		<label for="visuals4">experimental: 3D++ (GPU accelerated and optimized)</label>
-		<br>
-		<br>-->
 		<input type="checkbox" id="density1" value="no">
 		<label for="density1">100%</label>
 		<br>
@@ -464,7 +452,7 @@
 		<input type="checkbox" id="density3" value="no">
 		<label for="density3">25%</label>
 		
-	    </div>
+	    </div>-->
 	    
 	    <div class="set_block" tabindex="1" mycondition="entity2">
 		<span class="sdtitle">Drone model</span><br>
@@ -675,6 +663,24 @@
 		<br>
 		<input type="checkbox" id="selftalk2" value="0">
 		<label for="selftalk2">No (important hints will be compeltely disabled)</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Music</span><br>
+		<input type="checkbox" id="music1" value="1" checked>
+		<label for="music1">Enabled</label>
+		<br>
+		<input type="checkbox" id="music2" value="0">
+		<label for="music2">Disabled</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Shading</span><br>
+		<input type="checkbox" id="shading1" value="1" checked>
+		<label for="shading1">On</label>
+		<br>
+		<input type="checkbox" id="shading2" value="0">
+		<label for="shading2">Off</label>
 	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
@@ -1228,7 +1234,7 @@
 		JustOne( 'hints', last_changed_el );
 		JustOne( 'bugs', last_changed_el );
 		//JustOne( 'visuals', last_changed_el );
-		JustOne( 'density', last_changed_el );
+		//JustOne( 'density', last_changed_el );
 		JustOne( 'helmet', last_changed_el );
 		JustOne( 'drone_helmet', last_changed_el );
 		JustOne( 'camera', last_changed_el );
@@ -1238,6 +1244,8 @@
 		JustOne( 'entity', last_changed_el );
 		JustOne( 'censorship', last_changed_el );
 		JustOne( 'selftalk', last_changed_el );
+		JustOne( 'music', last_changed_el );
+		JustOne( 'shading', last_changed_el );
 		
 		for ( let i = 0; i < conditional_elements.length; i++ )
 		{

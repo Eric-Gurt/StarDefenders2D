@@ -309,7 +309,9 @@ class sdWater extends sdEntity
 			{
 				let v = Math.max( this._volume, another._volume ) * 16;
 				
-				let ent = new sdBlock({ 
+				v = Math.ceil( v ); // Players would slide and teleport due to rounding errors
+				
+				let ent = sdEntity.Create( sdBlock, { 
 					x: another.x, 
 					y: another.y + 16 - v, 
 					width: 16, 
@@ -324,7 +326,7 @@ class sdWater extends sdEntity
 				let hp_mult = 6;
 				ent._hea *= hp_mult;
 				ent._hmax *= hp_mult;
-				sdEntity.entities.push( ent );
+				//sdEntity.entities.push( ent );
 
 				this.remove();
 				another.remove();

@@ -7,6 +7,7 @@ import sdCrystal from './sdCrystal.js';
 import sdBullet from './sdBullet.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdGun from './sdGun.js';
+import sdTimer from './sdTimer.js';
 
 class sdCrystalCombiner extends sdEntity
 {
@@ -14,17 +15,19 @@ class sdCrystalCombiner extends sdEntity
 	{
 		sdCrystalCombiner.img_crystal_combiner = sdWorld.CreateImageFromFile( 'crystal_combiner' ); // Image by LazyRain
 		sdCrystalCombiner.img_crystal_combiner2 = sdWorld.CreateImageFromFile( 'crystal_combiner2' );
-		sdCrystalCombiner.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
-		sdCrystalCombiner.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
+		sdCrystalCombiner.img_crystal_combiner3 = sdWorld.CreateImageFromFile( 'crystal_combiner3' );
+		//sdCrystalCombiner.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
+		//sdCrystalCombiner.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
 
 		sdCrystalCombiner.TYPE_DEFAULT = 0; // Regular crystal combiner
 		sdCrystalCombiner.TYPE_IMPROVED = 1; // Improved version, from workbench
+		sdCrystalCombiner.TYPE_AUTOMATED = 2; // Upside-down version and combines automatically
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -18; }
 	get hitbox_x2() { return 18; }
-	get hitbox_y1() { return 7; }
-	get hitbox_y2() { return 14; }
+	get hitbox_y1() { return ( this.type === sdCrystalCombiner.TYPE_AUTOMATED ) ? -8 : 7; }
+	get hitbox_y2() { return ( this.type === sdCrystalCombiner.TYPE_AUTOMATED ) ? -2 : 14; }
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
@@ -38,7 +41,7 @@ class sdCrystalCombiner extends sdEntity
 	RequireSpawnAlign()
 	{ return true; }
 	
-	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
 		if ( this.crystal0 && this.crystal1 )
 		return [ this.crystal0, this.crystal1 ]; 
@@ -86,6 +89,8 @@ class sdCrystalCombiner extends sdEntity
 		this._hmax = 600 * 4;
 		this.hea = this._hmax;
 		
+		this.fire_detected = 0;
+		
 		this._ignore_pickup_tim = 0;
 		
 		this._regen_timeout = 0;
@@ -105,6 +110,15 @@ class sdCrystalCombiner extends sdEntity
 		
 		
 		this.hea -= dmg;
+		
+		if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+		if ( this.hea < this._hmax * 0.333 )
+		if ( !this.fire_detected )
+		{
+			this.fire_detected = 1;
+			
+			sdSound.PlaySound({ name:'fire_detected', x:this.x, y:this.y, volume:1 });
+		}
 		
 		if ( this.hea <= 0 )
 		this.remove();
@@ -142,7 +156,12 @@ class sdCrystalCombiner extends sdEntity
 				ent.x = this.x + 8;
 				else
 				ent.x = this.x - 8;
-				ent.y = this.y + 7 - ent._hitbox_y2 - 0.1; // 7 instead of this._hitbox_y1 because we need final y1
+			
+				/*if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+				ent.y = this.y + this._hitbox_y2 - ent._hitbox_y1 + 0.1;
+				else
+				ent.y = this.y + 7 - ent._hitbox_y2 - 0.1;*/
+				ent.y = this.GetYFor( ent );
 				
 				ent.matter_max = snapshot.matter_max / snapshot.crystals;
 				ent.matter = snapshot.matter / snapshot.crystals;
@@ -204,6 +223,14 @@ class sdCrystalCombiner extends sdEntity
 			{
 				this.hea = Math.min( this.hea + GSPEED, this._hmax );
 				can_hibernate = false;
+				
+				if ( this.hea >= this._hmax )
+				if ( this.fire_detected )
+				{
+					this.fire_detected = 0;
+					
+					sdSound.PlaySound({ name:'fire_gone', x:this.x, y:this.y, volume:1 });
+				}
 			}
 		}
 		
@@ -222,11 +249,16 @@ class sdCrystalCombiner extends sdEntity
 			//if ( this.prog > X )
 			//GSPEED *= 0.2;
 			
-			this.prog += GSPEED * ( 1 + this.type );
-			
-			if ( sdWorld.is_server )
-			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
-			
+			if ( this.fire_detected )
+			{
+			}
+			else
+			{
+				this.prog += GSPEED * ( 1 + this.type );
+
+				if ( sdWorld.is_server )
+				this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
+			}
 			
 			if ( sdWorld.is_server && this.prog < X && ( !this.crystal0 || !this.crystal1 ) )
 			{
@@ -252,6 +284,55 @@ class sdCrystalCombiner extends sdEntity
 						//this.CombineCrystalsEnd();
 						if ( this.crystal0 )
 						this.DropCrystal( this.crystal0 );
+					
+						// Try to get sleeping crystals on top
+						/*if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+						{
+							if ( !this.CanMoveWithoutOverlap( this.x, this.y - 1 ) )
+							{
+								if ( sdWorld.last_hit_entity )
+								{
+									this.onMovementInRange( sdWorld.last_hit_entity );
+								}
+							}
+						*/
+						
+						//trace( 'Combining ended' );
+					   
+						//this.ManageTrackedPhysWakeup();
+						
+						let tries = 10; // Try for 1 second
+						
+						sdTimer.ExecuteWithDelay( ( timer )=>{
+
+							if ( this._is_being_removed || ( this.crystal0 && this.crystal1 ) )
+							{
+								//trace( 'We already have crystals' );
+								return;
+							}
+
+							this.ManageTrackedPhysWakeup();
+							
+							if ( !this.CanMoveWithoutOverlap( this.x, this.y - 1 ) )
+							if ( sdWorld.last_hit_entity )
+							{
+								sdWorld.last_hit_entity.ManageTrackedPhysWakeup();
+								this.onMovementInRange( sdWorld.last_hit_entity );
+							}
+							
+							//if ( this._phys_entities_on_top && this._phys_entities_on_top.length > 0 )
+							//{
+								if ( tries-- > 0 )
+								{
+									timer.ScheduleAgain( 100 );
+								}
+								//else
+								//trace( 'Out of tries' );
+							//}
+							//else
+							//trace( 'Nothing rests of top, stopping lookup' );
+
+						}, 100 );
 					}
 					else
 					{
@@ -272,7 +353,8 @@ class sdCrystalCombiner extends sdEntity
 			can_hibernate = false;
 			
 			this.crystal0.x = this.x - 24 + 16 + merge_intens;
-			this.crystal0.y = this.y + 7 - this.crystal0._hitbox_y2;
+			//this.crystal0.y = this.y + 7 - this.crystal0._hitbox_y2;
+			this.crystal0.y = this.GetYFor( this.crystal0 );
 			this.crystal0.sx = 0;
 			this.crystal0.sy = 0;
 		}
@@ -281,7 +363,8 @@ class sdCrystalCombiner extends sdEntity
 			can_hibernate = false;
 			
 			this.crystal1.x = this.x - 8 + 16 - merge_intens;
-			this.crystal1.y = this.y + 7 - this.crystal1._hitbox_y2;
+			//this.crystal1.y = this.y + 7 - this.crystal1._hitbox_y2;
+			this.crystal1.y = this.GetYFor( this.crystal1 );
 			this.crystal1.sx = 0;
 			this.crystal1.sy = 0;
 		}
@@ -330,20 +413,25 @@ class sdCrystalCombiner extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
 	}
+	get title()
+	{
+		if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
+		return "Crystal combiner";
+		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+		return "Improved crystal combiner";
+		if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+		return "Automatic crystal combiner";
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		let t;
-		if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
-		t = "Crystal combiner";
-		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
-		t = "Improved crystal combiner";
+		let t = this.title;
 		
 		if ( this.prog === 0 )
 		sdEntity.Tooltip( ctx, t );
 		else
 		sdEntity.TooltipUntranslated( ctx, T( t ) + " ( " + T("combining") + " "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
 	
-		this.DrawHealthBar( ctx, '#FF0000', 30 );
+		this.DrawHealthBar( ctx, '#FF0000', 28 + ( this._hitbox_y1 - 7 ) );
 	}
 	Draw( ctx, attached )
 	{
@@ -352,15 +440,15 @@ class sdCrystalCombiner extends sdEntity
 		
 		const offset_y = 2;
 
-//		ctx.globalAlpha = 1;
-//			ctx.filter = 'none';
 
-		//ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
-		if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
+		/*if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
 		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
 
 		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
 		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner2, - 32, - 16, 64,32 );
+
+		if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner3, - 32, - 16, 64,32 );*/
 
 		//if ( this.crystals > 0 )
 		if ( this.crystal0 || this.crystal1 )
@@ -443,6 +531,9 @@ class sdCrystalCombiner extends sdEntity
 
 		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
 		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner2, - 32, - 16, 64,32 );
+
+		if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner3, - 32, - 16, 64,32 );
 	}
 	ModifyHeldCrystalFilter( old_filter )
 	{
@@ -506,37 +597,36 @@ class sdCrystalCombiner extends sdEntity
 		}
 	}
 	
+	GetYFor( crystal )
+	{
+		if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+		return this.y + this._hitbox_y2 - crystal._hitbox_y1 + 0.1;
+		else
+		return this.y + 7 - crystal._hitbox_y2 - 0.1;
+	}
+	
 	CombineCrystalsEnd()
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
-		//if ( this.crystals !== 2 )
 		if ( !this.crystal0 || !this.crystal1 )
 		return;
 	
-		//if ( this.matter_max > 0 )
 		{
-			/*let ent = new sdCrystal({  });
-
-			ent.x = this.x;
-			ent.y = this.y + 7 - ent._hitbox_y2 - 0.1; // 7 instead of this._hitbox_y1 because we need final y1
-
-			ent.matter_max = this.matter_max;
-			ent.matter = this.matter;
-			ent.matter_regen = ( this.crystal1_matter_regen + this.crystal2_matter_regen ) / 2;
-			ent._damagable_in = 0;*/
-			
 			let ent = this.crystal0;
 			
 			ent.x = this.x;
-			ent.y = this.y + 7 - ent._hitbox_y2;
+			//ent.y = this.y + 7 - ent._hitbox_y2;
+			ent.y = this.GetYFor( ent );
 			
 			ent.matter_max = this.crystal0.matter_max + this.crystal1.matter_max;
 			ent.matter = this.crystal0.matter + this.crystal1.matter;
 			ent.matter_regen = ( this.crystal0.matter_regen + this.crystal1.matter_regen ) / 2;
 			
-			if ( Math.random() < 0.9 ) // 10% to keep speciality
+			if ( ( this.crystal0.speciality > 0 || this.crystal1.speciality > 0 ) && Math.random() < 0.2 ) // 20% to keep speciality
+			ent.speciality = 1;
+			else
 			ent.speciality = 0;
 			
 			if ( ent.is_anticrystal )
@@ -551,58 +641,13 @@ class sdCrystalCombiner extends sdEntity
 			ent.type = sdCrystal.TYPE_CRYSTAL_ARTIFICIAL;
 			ent._hea = ent._hmax = sdCrystal.hitpoints_artificial;
 			
-			//this.DropCrystal( this.crystal0 );
-			
 			let c = this.crystal1;
 			c.remove();
 			c._broken = false;
 
-			//sdEntity.entities.push( ent );
-			//sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
-
-			//this.matter_max = 0;
-			//this.matter = 0;
-			
-			// Update hitbox size (won't happen for static entities because their _last_x/y never change)
-			//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
-
 			this._ignore_pickup_tim = 30;
 
 			this._update_version++;
-			//this.crystals = 0;
-
-			/*let that = this;
-
-			// Wait for hook target to finalize
-			setTimeout( ()=>
-			{
-				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				{
-					let s = sdWorld.sockets[ i ];
-					
-					if ( s.character )
-					{
-						if ( s.character.is( sdWorld.entity_classes.sdPlayerDrone ) )
-						{
-							if ( s.character.grabbed === that )
-							{
-								s.character.grabbed = ent;
-							}
-						}
-						else
-						if ( s.character.hook_x !== 0 || s.character.hook_y !== 0 )
-						if ( s.character.hook_relative_to === that )
-						{
-							s.character.hook_relative_to = ent;
-							//s.character.hook_x = ent.x;
-							//s.character.hook_y = ent.y;
-							s.character.hook_relative_x = 0;
-							s.character.hook_relative_y = 0;
-							//debugger;
-						}
-					}
-				}
-			}, 50 );*/
 		}
 	}
 
@@ -678,19 +723,11 @@ class sdCrystalCombiner extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		// Uncomment this if but still happens. Normally .onMovementInRange should never be called if one of entities is already being removed. Previously this was a problem at sdEntity physic simulation logic
-		//if ( from_entity._is_being_removed )
-		//return;
-	
-		//if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value && from_entity._held_by === null && from_entity.type === 1 )
-		//if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value && from_entity.held_by === null && from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 )
 		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && !from_entity.is_anticrystal && from_entity.held_by === null && from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 )
 		{
 			if ( from_entity.held_by === null )
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
-				//console.log( 'vel ',sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ));
-
 				// Prevent catching pulled crystals
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				{
@@ -712,7 +749,6 @@ class sdCrystalCombiner extends sdEntity
 					}
 				}
 
-				//if ( this.crystals < 2 )
 				if ( !this.crystal0 || !this.crystal1 )
 				{
 					if ( this.crystal0 )
@@ -731,12 +767,12 @@ class sdCrystalCombiner extends sdEntity
 				
 					let can_put_left = ( !this.crystal0 && from_entity.CanMoveWithoutOverlap( 
 							this.x - 24 + 16, 
-							this.y + 7 - from_entity._hitbox_y2, 
+							this.GetYFor( from_entity ), 
 							0 ) );
 					
 					let can_put_right = ( !this.crystal1 && from_entity.CanMoveWithoutOverlap( 
 							this.x - 8 + 16, 
-							this.y + 7 - from_entity._hitbox_y2, 
+							this.GetYFor( from_entity ), 
 							0 ) );
 							
 					let di0 = Math.abs( ( this.x - 24 + 16 ) - from_entity.x );
@@ -773,36 +809,8 @@ class sdCrystalCombiner extends sdEntity
 					from_entity.held_by = this;
 					this._update_version++;
 					
-					/*let crystal_add = 0;
-					if ( this.crystals === 1 )
-					if ( this.matter_max === from_entity.matter_max )
-					{
-						this.matter_max += from_entity.matter_max;
-						this.matter += from_entity.matter;
-						this.crystal2_matter_regen = from_entity.matter_regen;
-						crystal_add = 1;
-					}
-					//if ( this.crystals === 0 && from_entity.matter_max < 5120 ) // Can't put orange crystals into the combiner
-					if ( this.crystals === 0 && from_entity.matter_max < 10240 ) // Orange crystals can be put but they will cause anti crysytal
-					{
-						this.matter_max = from_entity.matter_max;
-						this.matter = from_entity.matter;
-						this.crystal1_matter_regen = from_entity.matter_regen;
-						crystal_add = 1;
-					}
-					// Update hitbox size (won't happen for static entities because their _last_x/y never change)
-					//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
-					if ( crystal_add === 1 ) // Prevent destroying crystals that don't match the first one in the crystal combiner
-					{
-						//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
-						//from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
-						from_entity.remove();
-						//from_entity._remove();
-
-						this._update_version++;
-						this._ignore_pickup_tim = 1; // Why 30? Makes it slower to put 2 crystals at once
-						this.crystals++;
-					}*/
+					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+					this.CombineCrystals();
 				}
 			}
 		}

@@ -19,8 +19,10 @@ class sdContextMenu
 		
 		sdContextMenu.current_target = null;
 		sdContextMenu.potential_option = null;
+		
+		sdContextMenu.centerd = false;
 	}
-	static Open()
+	static Open( centered=false )
 	{
 		if ( sdWorld.hovered_entity )
 		{
@@ -174,6 +176,8 @@ class sdContextMenu
 					sdContextMenu.potential_option = null; // Needed to prevent it clicking onto color picker when it tries to be closed
 					sdContextMenu.x = sdWorld.mouse_screen_x;
 					sdContextMenu.y = sdWorld.mouse_screen_y;
+					
+					sdContextMenu.centerd = centered;
 				}
 
 				sdRenderer.UpdateCursor();
@@ -222,10 +226,17 @@ class sdContextMenu
 		{
 			//let width = 180;
 			let width = 400;
+			let height = sdContextMenu.options.length * 30 + 60;
 			
-			if ( sdContextMenu.y + sdContextMenu.options.length * 30 + 60 > sdRenderer.screen_height )
+			if ( sdContextMenu.centerd )
 			{
-				sdContextMenu.y = sdRenderer.screen_height - sdContextMenu.options.length * 30 - 60;
+				sdContextMenu.x = sdRenderer.screen_width / 2 - width / 2;
+				sdContextMenu.y = sdRenderer.screen_height / 2 - height / 2;
+			}
+			
+			if ( sdContextMenu.y + height > sdRenderer.screen_height )
+			{
+				sdContextMenu.y = sdRenderer.screen_height - height;
 			}
 			if ( sdContextMenu.x + width > sdRenderer.screen_width )
 			{

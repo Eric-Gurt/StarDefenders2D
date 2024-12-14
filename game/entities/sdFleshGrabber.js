@@ -269,6 +269,10 @@ class sdFleshGrabber extends sdEntity
 		if ( !this._current_target && !( this._tenta_target && this.tenta_tim > 0 ) )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
+	get title()
+	{
+		return 'Flesh grabber';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )

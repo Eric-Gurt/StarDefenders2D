@@ -21,7 +21,7 @@
 		sdWorld.entity_classes.sdWeather.only_instance._daily_events = sdWorld.server_config.GetAllowedWorldEvents();
 
 
-	Stop all events:
+	Stop all events (you can add this to watch in your DevTools in order to have some moments of peace while debugging):
 
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
 		sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
@@ -592,19 +592,23 @@ class sdWeather extends sdEntity
 			{
 				let x,y,i;
 				let tr = 1000;
+				let tr_tot = tr;
 				do
 				{
 					let place_onto = sdEntity.GetRandomEntity(); // Can be null if random entity is being removed
+					
+					if ( near_entity )
+					if ( tr > tr_tot - 100 )
+					{
+						place_onto = near_entity;
+					}
 					
 					// Give up if there is no entities in world at all
 					if ( sdEntity.entities.length === 0 )
 					if ( tr > 0 )
 					tr = 0;
 					
-					if ( place_onto )
-					if ( place_onto.is( sdBlock ) )
-					if ( place_onto.DoesRegenerate() )
-					if ( place_onto._natural )
+					if ( ( place_onto && place_onto.is( sdBlock ) && place_onto.DoesRegenerate() && place_onto._natural ) || ( near_entity && place_onto === near_entity ) )
 					{
 						// Old approach triggers sdDeepSleep way too much and spawns entities where they would not matter all that much
 						//x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
@@ -615,8 +619,16 @@ class sdWeather extends sdEntity
 							let morph = Math.random();
 							let morph2 = Math.random();
 							
-							x = place_onto.x + ( place_onto._hitbox_x1 - aerial_radius ) * morph + ( place_onto._hitbox_x2 + aerial_radius ) * ( 1 - morph );
-							y = place_onto.y + ( place_onto._hitbox_y1 - aerial_radius ) * morph2 + ( place_onto._hitbox_y2 ) * ( 1 - morph2 );
+							if ( near_entity && place_onto === near_entity )
+							{
+								x = place_onto.x + ( place_onto._hitbox_x1 - params.group_radius ) * morph + ( place_onto._hitbox_x2 + params.group_radius ) * ( 1 - morph );
+								y = place_onto.y + ( place_onto._hitbox_y1 - params.group_radius ) * morph2 + ( place_onto._hitbox_y2 + params.group_radius ) * ( 1 - morph2 );
+							}
+							else
+							{
+								x = place_onto.x + ( place_onto._hitbox_x1 - aerial_radius ) * morph + ( place_onto._hitbox_x2 + aerial_radius ) * ( 1 - morph );
+								y = place_onto.y + ( place_onto._hitbox_y1 - aerial_radius ) * morph2 + ( place_onto._hitbox_y2 ) * ( 1 - morph2 );
+							}
 						}
 						else
 						{
@@ -2457,7 +2469,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CRYSTAL_BLOCKS ) // Put crystal shards in a 30 blocks
 		{
-			for ( let j = 0; j < 30; j++ )
+			for ( let j = 0; j < 10; j++ ) // EG: 10 shards now but these may occasionally have crystals, and generally be of higher tier maybe too
 			{
 				for ( let tr = 0; tr < 100; tr++ )
 				{

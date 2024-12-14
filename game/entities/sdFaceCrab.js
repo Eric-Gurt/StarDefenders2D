@@ -353,6 +353,13 @@ class sdFaceCrab extends sdEntity
 				{
 					this._last_bite = sdWorld.time;
 					
+					let on_rtp = false;
+					
+					if ( from_entity.is( sdCharacter ) && from_entity.stands && from_entity._stands_on && from_entity._stands_on.is( sdRescueTeleport ) )
+					{
+						on_rtp = true;
+					}
+					else
 					from_entity.DamageWithEffect( 15, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + ( 7 ) );
@@ -385,6 +392,15 @@ class sdFaceCrab extends sdEntity
 						{
 							if ( from_entity.is( sdCharacter ) )
 							{
+								if ( on_rtp )
+								{
+									from_entity.Say( [ 
+										'I have a face crab on my head',
+										'This thing followed me onto rescue teleport',
+										'I need to do something with that thing on my head'
+									][ ~~( Math.random() * 3 ) ] );
+								}
+								else
 								from_entity.Say( [ 
 									'Aaaaa it is on my face!',
 									'Aaaaa!',

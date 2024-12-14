@@ -37,8 +37,10 @@ class sdZektaronDreadnought extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 
-	get hitbox_x1() { return this.hea > 0 ? -86 : -44; }
-	get hitbox_x2() { return this.hea > 0 ? 86 : 44; }
+	//get hitbox_x1() { return this.hea > 0 ? -86 : -44; }
+	//get hitbox_x2() { return this.hea > 0 ? 86 : 44; }
+	get hitbox_x1() { return -86; }
+	get hitbox_x2() { return 86 ; }
 	get hitbox_y1() { return -30; }
 	get hitbox_y2() { return 28; }
 	
@@ -60,7 +62,7 @@ class sdZektaronDreadnought extends sdEntity
 		this._ai_team = 4;
 		this.tilt = 0;
 		
-		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
+		this._time_until_full_remove = 30 * 15 + Math.random() * 30 * 5; // 15-20 seconds to get removed
 		
 		this._current_target = null; // Now used in case of players engaging without meeting CanAttackEnt conditions
 		this._follow_target = null;
@@ -94,6 +96,7 @@ class sdZektaronDreadnought extends sdEntity
 		
 		sdZektaronDreadnought.dreadnought_counter++;
 		
+		this.fell = 0;
 		
 		this._last_seen_player = 0;
 
@@ -414,12 +417,23 @@ class sdZektaronDreadnought extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{	
-			sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 , pitch:2 });
+			//sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 , pitch:2 });
 			
-			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
+			//sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 			//this.death_anim = 1;
 			
-			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
+			sdSound.PlaySound({ name:'zektaron_death', x:this.x, y:this.y, volume:4 });
+			
+			sdWorld.SendEffect({ 
+				x: this.x, 
+				y: this.y, 
+				radius: 200, 
+				damage_scale: 0, 
+				type: sdEffect.TYPE_EXPLOSION,
+				color:'#900000'
+			});
+			
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS_OVERPOWERED );
 
 			// sdWorld.SpawnGib( this.x - 30, this.y + 11, this.sx  - Math.random() * 1, this.sy + Math.random() * 1 , 2, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 0 ); - Might add gibs later for the boss
 			// sdWorld.SpawnGib( this.x - 30, this.y - 11, this.sx  - Math.random() * 1, this.sy - Math.random() * 1 , 2, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 1 );
@@ -427,11 +441,11 @@ class sdZektaronDreadnought extends sdEntity
 			// sdWorld.SpawnGib( this.x + 30, this.y - 11, this.sx  + Math.random() * 1, this.sy - Math.random() * 1 , 2, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 3 );
 		
 			let that = this;
-			for ( var i = 0; i < 20; i++ )
+			for ( var i = 1; i < 20; i++ )
 			{
 				let an = Math.random() * Math.PI * 2;
-				let d = ( i === 0 ) ? 0 : Math.random() * 20;
-				let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
+				let d = Math.random() * 20;
+				let r = ( 50 + Math.random() * 100 );
 
 				setTimeout( ()=>
 				{
@@ -445,15 +459,15 @@ class sdZektaronDreadnought extends sdEntity
 						var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
 						var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 
-						that.sx -= Math.sin( an ) * d * r * 0.005;
-						that.sy -= Math.cos( an ) * d * r * 0.005;
+						//that.sx -= Math.sin( an ) * d * r * 0.005;
+						//that.sy -= Math.cos( an ) * d * r * 0.005;
 
 						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
 						sdWorld.SendEffect({ 
 							x: that.x + Math.sin( an ) * d, 
 							y: that.y + Math.cos( an ) * d, 
 							radius: r, 
-							damage_scale: 1, 
+							damage_scale: 0.2, 
 							type: sdEffect.TYPE_EXPLOSION,
 							owner: that,
 							can_hit_owner: true,
@@ -462,13 +476,64 @@ class sdZektaronDreadnought extends sdEntity
 					}
 				}, i * 150 );
 			}
+			
+			let r = Math.random();
+			let shards = 6 + Math.round( Math.random() * 6);
+
+			if ( r < 0.20 ) // 20% chance for it to drop a weapon
+			{
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let random_value = Math.random();
+
+					let gun;
+
+					let x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+					let y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+					if ( random_value > 0.125 ) // 12.5% chance for the Hardlight Spear to replace Focus Beam
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_FOCUS_BEAM });
+					else
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR });
+
+					gun.sx = sx;
+					gun.sy = sy;
+					sdEntity.entities.push( gun );
+
+				}, 500 );
+			}
+			while ( shards > 0 )
+			{
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let gun;
+
+					let x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+					let y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+
+					gun.sx = sx + Math.random() - Math.random();
+					gun.sy = sy + Math.random() - Math.random();
+					sdEntity.entities.push( gun );
+
+				}, 500 );
+				shards--;
+			}
 		}
 			
-		//if ( this.hea < -this._hmax / 80 * 100 )
-		//this.remove();
+		if ( this.hea < -5000 )
+		this.remove();
 	}
 	
-	get mass() { return 1200; }
+	//get mass() { return 1200; }
+	get mass() { return 4200; }
 	Impulse( x, y )
 	{
 		this.sx += x / ( this.mass );
@@ -491,63 +556,14 @@ class sdZektaronDreadnought extends sdEntity
 			if ( sdWorld.is_server )
 			{
 				if ( this.hea <= 0 )
-				this._time_until_full_remove -= GSPEED;
-
-				if ( this._time_until_full_remove <= 0 )
 				{
-					let r = Math.random();
-					let shards = 6 + Math.round( Math.random() * 6);
-			
-					if ( r < 0.20 ) // 20% chance for it to drop a weapon
+					this._time_until_full_remove -= GSPEED;
+
+					if ( this._time_until_full_remove <= 0 )
 					{
-						let x = this.x;
-						let y = this.y;
-						let sx = this.sx;
-						let sy = this.sy;
-
-						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-
-							let random_value = Math.random();
-
-							let gun;
-
-							{
-								if ( random_value > 0.125 ) // 12.5% chance for the Hardlight Spear to replace Focus Beam
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_FOCUS_BEAM });
-								else
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR });
-							}
-
-							gun.sx = sx;
-							gun.sy = sy;
-							sdEntity.entities.push( gun );
-
-						}, 500 );
+						this.remove();
+						return;
 					}
-					while ( shards > 0 )
-					{
-						let x = this.x;
-						let y = this.y;
-						let sx = this.sx;
-						let sy = this.sy;
-
-						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-
-							let random_value = Math.random();
-
-							let gun;
-
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
-
-							gun.sx = sx + Math.random() - Math.random();
-							gun.sy = sy + Math.random() - Math.random();
-							sdEntity.entities.push( gun );
-
-						}, 500 );
-						shards--;
-					}
-					this.remove();
-					return;
 				}
 			}
 		}
@@ -984,6 +1000,14 @@ class sdZektaronDreadnought extends sdEntity
 		}
 			
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		
+		if ( this.hea <= 0 )
+		if ( !this.fell )
+		if ( !this.CanMoveWithoutOverlap( this.x, this.y + 16 ) )
+		{
+			sdSound.PlaySound({ name:'zektaron_crash', x:this.x, y:this.y, volume:4 });
+			this.fell = 1;
+		}
 	}
 	
 	static IsTargetFriendly( ent ) // It targets players and turrets regardless
@@ -991,19 +1015,33 @@ class sdZektaronDreadnought extends sdEntity
 	
 		return false;
 	}
-	
+	get title()
+	{
+		return 'Zektaron Dreadnought';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Zektaron Dreadnought", 0, -30 );
+		sdEntity.Tooltip( ctx, this.title, 0, -30 );
 		
 		this.DrawHealthBar( ctx, undefined, 20 );
 	}
 	Draw( ctx, attached )
 	{
-	
 		ctx.rotate( this.tilt / 100 );
-		let xx = this.hea <= 0;
+		
+		let xx;
+
+		if ( this.hea > this._hmax * 0.333 )
+		xx = 0;
+		else
+		if ( this.hea > 0 )
+		xx = 1;
+		else
+		if ( this.fell )
+		xx = 3;
+		else
+		xx = 2;
 
 		if ( sdShop.isDrawing === true )
 		{
@@ -1012,18 +1050,14 @@ class sdZektaronDreadnought extends sdEntity
 		else
 		if ( this.hea > 0 )
 		{
-			ctx.globalAlpha = 1;
 			ctx.drawImageFilterCache( sdZektaronDreadnought.img_dreadnought, xx * 224, 0, 224, 128, - 112, - 48, 224, 128 );
+			
+			
+			ctx.globalAlpha = ( sdWorld.time % 4000 < 2000 ) ? 0.5 : 1;
 			ctx.drawImageFilterCache( sdZektaronDreadnought.img_glow, -102 + this.hitbox_x2, -48 - this.hitbox_y1 + 32, 32, 32 ); // Weakpoint image
-
-			/*			ctx.drawImageFilterCache( sdZektaronDreadnought.img_dreadnought, xx * 224, 0, 224, 128, - 112, - 48, 224, 128 );
-			ctx.globalAlpha = 0.5;
-			ctx.drawImageFilterCache( sdZektaronDreadnought.img_glow, -102 + this.hitbox_x2, -48 - this.hitbox_y1 + 32, 32, 32 ); // Weakpoint image
-			ctx.globalAlpha = 1;*/
 		}
 		else
 		{
-			ctx.globalAlpha = 0.2;
 			ctx.drawImageFilterCache( sdZektaronDreadnought.img_dreadnought, xx * 224, 0, 224, 128, - 112, - 48, 224, 128 );
 		}
 

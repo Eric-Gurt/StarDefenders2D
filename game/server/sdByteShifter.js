@@ -505,7 +505,7 @@ class sdByteShifter
 
 								if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )
 								{
-									let ents = ent.getRequiredEntities();
+									let ents = ent.getRequiredEntities( socket.character );
 									for ( let i = 0; i < ents.length; i++ )
 									AddEntity( ents[ i ], true );
 								}
