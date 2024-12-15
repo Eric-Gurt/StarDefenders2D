@@ -204,6 +204,8 @@ class sdWeather extends sdEntity
 		this.x = 0;
 		this.y = 0;
 		
+		this._chill = 0; // Disables weather logic completely
+		
 		this._next_grass_seed = 0;
 		
 		if ( sdWeather.only_instance )
@@ -3918,7 +3920,8 @@ class sdWeather extends sdEntity
 			this.x2 = sdWorld.world_bounds.x2;
 			this.y2 = sdWorld.world_bounds.y2;
 			
-			//return; // Hack
+			if ( this._chill )
+			return;
 			
 			this._next_wanderer_spawn -= GSPEED;
 			
@@ -4020,13 +4023,6 @@ class sdWeather extends sdEntity
 				
 				if ( proper_distnace )
 				{
-					/*let ent = new sdAsteroid({ 
-						x:xx, 
-						y:sdWorld.world_bounds.y1 + 16, // 1 was too high, asteroids would self destruct
-					});
-					sdEntity.entities.push( ent );
-					sdWorld.UpdateHashPosition( ent, false );*/
-					
 					sdEntity.Create( sdAsteroid, { x:xx, y:sdWorld.world_bounds.y1 + 16 } );
 				}
 
@@ -4060,14 +4056,6 @@ class sdWeather extends sdEntity
 				
 				if ( proper_distnace )
 				{
-					/*let missile = new sdAsteroid({ 
-						x:xx, 
-						y:sdWorld.world_bounds.y1 + 16, // 1 was too high, asteroids would self destruct
-						type:sdAsteroid.TYPE_MISSILE
-					});
-					sdEntity.entities.push( missile );
-					sdWorld.UpdateHashPosition( missile, false );*/
-					
 					sdEntity.Create( sdAsteroid, { x:xx, y:sdWorld.world_bounds.y1 + 16, type:sdAsteroid.TYPE_MISSILE } );
 				}
 
@@ -4265,7 +4253,7 @@ class sdWeather extends sdEntity
 									}
 								}
 								else
-								if ( Math.random() < 0.01 )
+								//if ( Math.random() < 0.1 )
 								{
 									if ( !this.matter_rain )
 									{
@@ -4273,7 +4261,12 @@ class sdWeather extends sdEntity
 										sdEntity.entities.push( water );
 										sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 										*/
-										sdEntity.Create( sdWater, { x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER } );
+										sdEntity.Create( sdWater, { 
+											x:xx, 
+											y:Math.floor(e.y/16)*16 - 16, 
+											type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER,
+											volume: 0.25 
+										} );
 									}
 								}
 							}

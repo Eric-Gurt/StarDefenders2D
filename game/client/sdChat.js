@@ -184,9 +184,7 @@ class sdChat
 			let insert = ( e.key.length === 1 ) ? e.key : '';
 
 			if ( sdChat.text.length + insert.length < sdChat.max_characters )
-			{
-				sdChat.text += insert;
-			}
+			sdChat.text += insert;
 		}
 	}
 	static KeyUp( e )

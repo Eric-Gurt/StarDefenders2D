@@ -639,6 +639,18 @@ class sdEffect extends sdEntity
 
 			if ( spoken === 'ty' )
 			spoken = 'thank you';
+		
+			if ( spoken === 'thx' )
+			spoken = 'thanks';
+		
+			if ( spoken === 'fr' )
+			spoken = 'for real';
+		
+			if ( spoken === 'fr fr' )
+			spoken = 'for real for real';
+		
+			if ( spoken === 'ong' )
+			spoken = 'on god';
 
 			if ( spoken === 'ikr' )
 			spoken = 'i know right';

@@ -123,6 +123,8 @@ class sdBaseShieldingUnit extends sdEntity
 		this._revenge_turret_x = 0; // Local coordinates relative to parent
 		this._revenge_turret_y = 0;
 		
+		this.revenge_turrets_enabled = true;
+		
 		this._dmg_to_report = 0;
 		
 		this._speed_boost = 1;
@@ -399,10 +401,11 @@ class sdBaseShieldingUnit extends sdEntity
 			
 			this.matter_crystal = Math.max( 0, this.matter_crystal - crystal_damage );
 
-			if ( this.matter_crystal >= 50000 )
+			if ( this.matter_crystal >= 50000 && this.revenge_turrets_enabled )
 			{
 				if ( initiator )
 				if ( !initiator._is_being_removed )
+				if ( initiator._shielded !== this )
 				{
 					if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this.x, this.y, sdBaseShieldingUnit.protect_distance * ( initiator.IsPlayerClass() ? 1 : 0.5 ) - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
 					{
@@ -504,10 +507,10 @@ class sdBaseShieldingUnit extends sdEntity
 								this._revenge_turret_parent = best_ent;
 								this._revenge_turret_x = best_x;
 								this._revenge_turret_y = best_y;
-								this._revenge_turret = new sdBSUTurret({ x:best_ent.x + best_x, y:best_ent.y + best_y, bsu:this });
+								this._revenge_turret = sdEntity.Create( sdBSUTurret, { x:best_ent.x + best_x, y:best_ent.y + best_y, bsu:this } );
 								this._revenge_turret.dx = best_dx;
 								this._revenge_turret.dy = best_dy;
-								sdEntity.entities.push( this._revenge_turret );
+								//sdEntity.entities.push( this._revenge_turret );
 								
 								this._revenge_animation_progress = 0;
 							}
@@ -2101,22 +2104,12 @@ class sdBaseShieldingUnit extends sdEntity
 					executer_socket.SDServiceMessage( 'Shield must be connected to other shields of a same type with a cable' );
 				}
 
-				/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-				if ( command_name === 'CAPACITY_CONSUMER' )
+				if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+				if ( command_name === 'TOGGLE_REVENGE_TURRETS' )
 				{
-					let cap = parseInt( parameters_array[ 0 ] );
-					
-					if ( cap === 4000000 )
-					{
-						if ( this.matter_crystal > cap )
-						executer_socket.SDServiceMessage( 'Base shielding unit still has matter capacity over target capacity' );
-						
-						this.matter_crystal_max = Math.max( cap, this.matter_crystal );
-						
-						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
-					}
-				}*/
-				//Not sure if Crystal-based BSU should have extended matter capacity, I don't know - Booraz149
+					this.revenge_turrets_enabled = !this.revenge_turrets_enabled;
+					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+				}
 			}
 			else
 			executer_socket.SDServiceMessage( 'Base shielding unit is too far' );
@@ -2226,6 +2219,11 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 				{
 					this.AddContextOption( 'Destroy and give matter to connected base shield units', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
+					
+					if ( this.revenge_turrets_enabled )
+					this.AddContextOption( 'Disable revenge turrets (50k+ value shields only)', 'TOGGLE_REVENGE_TURRETS', [] );
+					else
+					this.AddContextOption( 'Enable revenge turrets (50k+ value shields only)', 'TOGGLE_REVENGE_TURRETS', [] );
 				}
 			}
 		}

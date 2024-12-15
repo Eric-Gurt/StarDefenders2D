@@ -13,9 +13,13 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
+import sdWeather from '../entities/sdWeather.js';
 import sdWater from '../entities/sdWater.js';
 import sdRescueTeleport from '../entities/sdRescueTeleport.js';
 import sdDeepSleep from '../entities/sdDeepSleep.js';
+import sdEffect from '../entities/sdEffect.js';
+import sdBloodDecal from '../entities/sdBloodDecal.js';
+import sdCrystal from '../entities/sdCrystal.js';
 
 //import { spawn } from 'child_process';
 let spawn = globalThis.child_process_spawn;
@@ -39,7 +43,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -649,6 +653,7 @@ class sdModeration
 
 						socket.character.InstallUpgrade( 'upgrade_jetpack' );
 						socket.character.InstallUpgrade( 'upgrade_hook' );
+						socket.character.InstallUpgrade( 'upgrade_hook' );
 						socket.character.InstallUpgrade( 'upgrade_invisibility' );
 						socket.character.InstallUpgrade( 'upgrade_grenades' );
 
@@ -678,6 +683,77 @@ class sdModeration
 			}
 			else
 			socket.SDServiceMessage( 'Server: No active character.' );
+		}
+		else
+		if ( parts[ 0 ] === 'chill' || parts[ 0 ] === 'peace' || parts[ 0 ] === 'peaceful' || parts[ 0 ] === 'stopevents' || parts[ 0 ] === 'pauseevents' )
+		{
+			if ( parts[ 1 ] === '1' )
+			{
+				if ( sdWeather.only_instance._chill === parseInt( parts[ 1 ] ) )
+				{
+					socket.SDServiceMessage( 'Server: Events are already paused.' );
+				}
+				else
+				{
+					socket.SDServiceMessage( 'Server: Events have been paused and potential enemies remvoed.' );
+					sdWeather.only_instance._chill = parseInt( parts[ 1 ] );
+				}
+					
+				for ( let i = 0; i < sdEntity.active_entities.length; i++ )
+				{
+					let e = sdEntity.active_entities[ i ];
+
+					if ( e.IsPlayerClass() && e._my_hash )
+					continue;
+
+					if ( e.is( sdCrystal ) )
+					continue;
+
+					if ( e.is( sdBloodDecal ) )
+					{
+						e.remove();
+						e._broken = false;
+						continue;
+					}
+
+					if ( e._ai_team !== undefined )
+					if ( e._ai_team !== 0 || e.IsPlayerClass() && !e._my_hash )
+					{
+						e.remove();
+						e._broken = false;
+						continue;
+					}
+
+					if ( typeof e._current_target !== 'undefined' || typeof e._pathfinding !== 'undefined'  )
+					{
+						e.remove();
+						e._broken = false;
+						continue;
+					}
+
+					if ( e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+					{
+						e.remove();
+						e._broken = false;
+						continue;
+					}
+				}
+			}
+			else
+			if ( parts[ 1 ] === '0' )
+			{
+				if ( sdWeather.only_instance._chill === parseInt( parts[ 1 ] ) )
+				{
+					socket.SDServiceMessage( 'Server: Events are already resumed.' );
+				}
+				else
+				{
+					socket.SDServiceMessage( 'Server: Events have been resumed.' );
+					sdWeather.only_instance._chill = parseInt( parts[ 1 ] );
+				}
+			}
+			else
+			socket.SDServiceMessage( 'Type /chill 1 or /chill 0' );
 		}
 		else
 		if ( parts[ 0 ] === 'remove' || parts[ 0 ] === 'break' )

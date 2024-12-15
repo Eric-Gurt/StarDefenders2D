@@ -1,5 +1,7 @@
 
 
+/* global sdChat */
+
 import sdWorld from '../sdWorld.js';
 
 
@@ -25,6 +27,21 @@ import sdContextMenu from './sdContextMenu.js';
 
 class sdShop
 {
+	static Open()
+	{
+		if ( !sdShop.open )
+		{
+			sdShop.open = true;
+			sdShop.search_phrase = '';
+			sdShop.block_search_input_until = sdWorld.time + 50;
+			sdShop.search_anim_morph = 0;
+			sdShop.last_render = sdWorld.time;
+		}
+	}
+	static Close()
+	{
+		sdShop.open = false;
+	}
 	static init_class()
 	{
 		console.log('sdShop class initiated');
@@ -45,6 +62,12 @@ class sdShop
 		sdShop.isDrawing = false;
 		
 		sdShop.potential_selection = -1;
+		sdShop.search_phrase = '';
+		sdShop.search_anim_morph = 0;
+		sdShop.block_search_input_until = 0;
+		sdShop.full_item_description_cache = new WeakMap(); // obj -> [ a, b, c ]
+		
+		sdShop.last_render = 0;
 		
 		// Used for image for hidden items
 		sdShop.item_low_level = { 
@@ -932,9 +955,9 @@ class sdShop
 			},*/
 			upgrade_hook:
 			{
-				max_level: 1,
+				max_level: 2,
 				matter_cost: 75,
-				description: 'Allows you to use the hook (to carry items and crystals around) with C button or middle mouse button.',
+				description: 'Allows you to use the hook (to carry items and crystals around) with C button or Mouse Wheel click. Level 2 hook\'s length can be changed by holding Right Mouse button.',
 				action: ( character, level_purchased )=>
 				{
 					character._hook_allowed = true;
@@ -1192,9 +1215,13 @@ class sdShop
 		
 		if ( !sdWorld.my_entity )
 		{
-			sdShop.open = false;
+			//sdShop.open = false;
+			sdShop.Close();
 			return;
 		}
+		
+		let GSPEED = ( sdWorld.time - sdShop.last_render ) / 1000 * 30;
+		sdShop.last_render = sdWorld.time;
 		
 		let old_active_build_settings = sdWorld.my_entity._build_params;
 			
@@ -1224,15 +1251,90 @@ class sdShop
 
 			let xx = 40;
 			let yy = 40 + sdShop.scroll_y;
+			
+			// Search box
+			{
+				ctx.globalAlpha = 0.4 + sdShop.search_anim_morph * 0.6;
+				ctx.fillStyle = '#aaffaa';
+				ctx.font = "11px Verdana";
+				ctx.textAlign = 'left';
+				
+				if ( sdShop.search_phrase.length > 0 )
+				ctx.fillText( T('Find') + ': ' + sdShop.search_phrase, xx, yy ); // 'Find: '
+				else
+				ctx.fillText( T('Type anything to use search'), xx, yy );
+			
+				yy += 20;// * sdShop.search_anim_morph;
+				ctx.globalAlpha = 1;
+				
+				if ( sdShop.search_phrase.length > 0 && sdShop.search_anim_morph < 1 )
+				{
+					sdShop.search_anim_morph = Math.min( 1, sdShop.search_anim_morph + GSPEED * 0.5 );
+				}
+				else
+				if ( sdShop.search_phrase.length === 0 && sdShop.search_anim_morph > 0 )
+				{
+					sdShop.search_anim_morph = Math.max( 0, sdShop.search_anim_morph - GSPEED * 0.5 );
+				}
+			}
+			
+			let search_phrase_lower_case = sdShop.search_phrase.toLowerCase();
 
 			sdShop.potential_selection = -1;
 			//let skip = 0; // Skip current_shop_options.push if an item is not unlocked yet
 			let current_shop_options = [];
 			for ( var i = 0; i < sdShop.options.length; i++ )
 			{
-				if ( sdShop.options[ i ]._godmode_only !== true || ( sdWorld.my_entity && sdWorld.my_entity._god ) )
-				if ( sdShop.options[ i ]._category === sdShop.current_category || 
-					 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
+				let matches = false;
+				
+				if ( search_phrase_lower_case.length > 0 )
+				{
+					if ( sdShop.options[ i ]._opens_category === undefined )
+					{
+						let category = sdShop.options[ i ]._category;
+						
+						matches = false;
+						
+						for ( let i2 = 0; i2 < sdShop.options.length; i2++ )
+						if ( sdShop.options[ i2 ]._opens_category === category )
+						{
+							if ( sdShop.options[ i2 ]._godmode_only !== true || ( sdWorld.my_entity && sdWorld.my_entity._god ) )
+							matches = true;
+
+							break;
+						}
+						
+						// Filter by title/description
+						if ( matches )
+						{
+							let [ item_title, description, how_to_build_hint ] = sdShop.GetFullItemDescription( i );
+							
+							matches = false;
+							
+							if ( search_phrase_lower_case === 'rtp' )
+							search_phrase_lower_case = 'rescue ';
+							
+							if ( search_phrase_lower_case === 'bsu' )
+							search_phrase_lower_case = 'base shielding unit';
+							
+							if ( item_title !== undefined && item_title.toLowerCase().indexOf( search_phrase_lower_case ) !== -1 )
+							matches = true;
+							//else
+							//if ( description !== undefined && description.toLowerCase().indexOf( search_phrase_lower_case ) !== -1 )
+							//matches = true;
+						}
+					}
+				}
+				else
+				{
+					if ( sdShop.options[ i ]._godmode_only !== true || ( sdWorld.my_entity && sdWorld.my_entity._god ) )
+					if ( sdShop.options[ i ]._category === sdShop.current_category || 
+						 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
+					matches = true;
+				}
+				
+				
+				if ( matches )
 				{
 					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
 					{
@@ -1572,114 +1674,9 @@ class sdShop
 		
 		if ( sdShop.potential_selection !== -1 )	
 		{
-			const capitalize = (s) => {
-				if (typeof s !== 'string') return '';
-				return s.charAt(0).toUpperCase() + s.slice(1);
-			};
-
+			let [ item_title, description, how_to_build_hint ] = sdShop.GetFullItemDescription( sdShop.potential_selection );
+			
 			ctx.font = "12px Verdana";
-			
-			let simple_obj = Object.assign( {}, sdShop.options[ sdShop.potential_selection ] );
-			delete simple_obj._cache;
-			delete simple_obj.image_obj;
-			
-			let item_title = null;
-			let description = null; // Secondary description, used for upgrades
-			let how_to_build_hint = 'No description for shop item #'+sdShop.potential_selection; //T('No description for ') + JSON.stringify( simple_obj );
-			
-			if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
-			{
-				if ( sdShop.options[ sdShop.potential_selection ]._opens_category === 'root' )
-				how_to_build_hint = T('Click to leave this category');
-				else
-				how_to_build_hint = T('Click to enter category')+' "' + sdShop.options[ sdShop.potential_selection ]._opens_category + '"';
-			}
-			else
-			{
-				let pseudo_entity = sdShop.options[ sdShop.potential_selection ];
-				
-				pseudo_entity = Object.assign( {}, pseudo_entity ); // Clone so title property can be set
-				
-				if ( pseudo_entity.dummy_item )
-				{
-					item_title = T( 'Unavailable item' );
-					how_to_build_hint = 'Item is unavailable yet';
-					description = capitalize( pseudo_entity.description );
-				}
-				else
-				if ( pseudo_entity._class !== null )
-				{
-					//let c = sdWorld.ClassNameToProperName( pseudo_entity._class, pseudo_entity );
-					
-					let descr_obj = Object.getOwnPropertyDescriptors( sdWorld.entity_classes[ pseudo_entity._class ].prototype );
-
-					for ( let prop in descr_obj )
-					Object.defineProperty( pseudo_entity, prop, descr_obj[ prop ] );
-
-					item_title = pseudo_entity.title;
-
-					description = pseudo_entity.description;
-
-					
-					/*try
-					{
-						let title = sdWorld.entity_classes[ pseudo_entity._class ].prototype.title;
-						
-						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
-						c = title;
-					}catch(e){};
-					try
-					{
-						let title = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ pseudo_entity._class ].prototype, 'title' ).get.call( pseudo_entity );
-						
-						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
-						c = title;
-					}catch(e){};
-					
-					item_title = c;*/
-					
-					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as a build object. Then click to place this object in world.');
-					
-					//pseudo_entity.title = c; // Storages' description won't know the title otherwise
-					
-					/*try
-					{
-						if ( sdWorld.entity_classes[ pseudo_entity._class ].prototype.description !== undefined )
-						description = sdWorld.entity_classes[ pseudo_entity._class ].prototype.description;
-					}catch(e){};
-					try
-					{
-						description = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ pseudo_entity._class ].prototype, 'description' ).get.call( pseudo_entity );
-					}catch(e){};
-					
-					if ( description === null )
-					if ( sdCable.attacheable_entities.indexOf( pseudo_entity._class ) !== -1 )
-					{
-						description = 'This entity can be connected to other entities via cable management tool (slot 7).';
-					}*/
-				}
-				else
-				if ( pseudo_entity.upgrade_name )
-				{
-					item_title = T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') ));
-					
-					
-					// Oh man, here I go butchering the code again :( - Booraz149
-					
-					let max_level = sdShop.upgrades[ pseudo_entity.upgrade_name ].max_level;
-					let cur_level = ( sdWorld.my_entity._upgrade_counters[ pseudo_entity.upgrade_name ] || 0 );
-					let min_station_level = ( sdShop.upgrades[ pseudo_entity.upgrade_name ].min_upgrade_station_level || 0 )
-					
-					
-					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as an upgrade. Then click anywhere to purchase upgrade.');
-					
-					if ( ( cur_level >= max_level ) && ( sdWorld.my_entity.GetUpgradeStationLevel() < min_station_level ) )
-					how_to_build_hint = T('To further')+' "' + item_title + '" '+T(', you need a level ')+ min_station_level +T(' upgrade station.');
-				
-					description = capitalize( pseudo_entity.description );
-				}
-				
-			}
 			
 			let width = 0;/*Math.max( 
 				ctx.measureText( item_title || '' ).width,
@@ -1777,13 +1774,138 @@ class sdShop
 		sdWorld.my_entity._build_params = old_active_build_settings;
 		sdShop.isDrawing = false;
 	}
+				
+	static GetFullItemDescription( shop_item_id )
+	{
+		let shop_item = sdShop.options[ shop_item_id ];
+		
+		let cached = sdShop.full_item_description_cache.get( shop_item );
+		
+		if ( cached === undefined )
+		{
+			const capitalize = (s) => {
+				if (typeof s !== 'string') return '';
+				return s.charAt(0).toUpperCase() + s.slice(1);
+			};
+
+			let simple_obj = Object.assign( {}, shop_item );
+			delete simple_obj._cache;
+			delete simple_obj.image_obj;
+
+			let item_title = null;
+			let description = null; // Secondary description, used for upgrades
+			let how_to_build_hint = 'No description for shop item #'+shop_item_id; //T('No description for ') + JSON.stringify( simple_obj );
+
+			if ( shop_item._opens_category )
+			{
+				if ( shop_item._opens_category === 'root' )
+				how_to_build_hint = T('Click to leave this category');
+				else
+				how_to_build_hint = T('Click to enter category')+' "' + shop_item._opens_category + '"';
+			}
+			else
+			{
+				let pseudo_entity = shop_item;
+
+				pseudo_entity = Object.assign( {}, pseudo_entity ); // Clone so title property can be set
+
+				if ( pseudo_entity.dummy_item )
+				{
+					item_title = T( 'Unavailable item' );
+					how_to_build_hint = 'Item is unavailable yet';
+					description = capitalize( pseudo_entity.description );
+				}
+				else
+				if ( pseudo_entity._class !== null )
+				{
+					let descr_obj = Object.getOwnPropertyDescriptors( sdWorld.entity_classes[ pseudo_entity._class ].prototype );
+
+					for ( let prop in descr_obj )
+					Object.defineProperty( pseudo_entity, prop, descr_obj[ prop ] );
+
+					item_title = pseudo_entity.title;
+
+					description = pseudo_entity.description;
+
+					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as a build object. Then click to place this object in world.');
+				}
+				else
+				if ( pseudo_entity.upgrade_name )
+				{
+					item_title = T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') ));
+
+					// Oh man, here I go butchering the code again :( - Booraz149
+
+					let max_level = sdShop.upgrades[ pseudo_entity.upgrade_name ].max_level;
+					let cur_level = ( sdWorld.my_entity._upgrade_counters[ pseudo_entity.upgrade_name ] || 0 );
+					let min_station_level = ( sdShop.upgrades[ pseudo_entity.upgrade_name ].min_upgrade_station_level || 0 )
+
+					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as an upgrade. Then click anywhere to purchase upgrade.');
+
+					if ( ( cur_level >= max_level ) && ( sdWorld.my_entity.GetUpgradeStationLevel() < min_station_level ) )
+					how_to_build_hint = T('To further')+' "' + item_title + '" '+T(', you need a level ')+ min_station_level +T(' upgrade station.');
+
+					description = capitalize( pseudo_entity.description );
+				}
+			}
+			
+			cached = [ item_title, description, how_to_build_hint ];
+			sdShop.full_item_description_cache.set( shop_item, cached );
+		}
+		return cached;
+	}
+
+	static async KeyDown( e )
+	{
+		if ( e.key === 'BrowserBack' )
+		{
+			sdShop.current_category = 'root';
+			e.preventDefault();
+			return true;
+		}
+		else
+		if ( !sdChat.open )
+		{
+			if ( e.key === 'Backspace' )
+			{
+				sdShop.search_phrase = sdShop.search_phrase.slice( 0, sdShop.search_phrase.length - 1 );
+				e.preventDefault();
+				return true;
+			}
+			else
+			if ( e.code === 'KeyX' )
+			return true;
+			else
+			if ( e.code === 'KeyZ' )
+			return true;
+			else
+			if ( e.code === 'KeyE' )
+			return true;
+			else
+			if ( e.code === 'KeyC' )
+			return true;
+		}
+	}
+	static KeyPress( e )
+	{
+		if ( sdWorld.time > sdShop.block_search_input_until )
+		if ( e.key.length === 1 )
+		{
+			let insert = ( e.key.length === 1 ) ? e.key : '';
+
+			if ( sdShop.search_phrase.length + insert.length < 100 )
+			sdShop.search_phrase += insert;
+		}
+	}
+		
 	static MouseDown( e )
 	{
 		if ( sdShop.open )
 		{
 			if ( !sdWorld.my_entity )
 			{
-				sdShop.open = false;
+				//sdShop.open = false;
+				sdShop.Close();
 				return false;
 			}
 			
@@ -1813,7 +1935,8 @@ class sdShop
 			
 			if ( selected )
 			{
-				sdShop.open = false;
+				//sdShop.open = false;
+				sdShop.Close();
 				//sdRenderer.UpdateCursor();
 			}
 			return true; // Block input
@@ -1827,7 +1950,8 @@ class sdShop
 			if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] )
 			if ( sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ].is_build_gun )
 			{
-				sdShop.open = true;
+				//sdShop.open = true;
+				sdShop.Open();
 				//sdRenderer.UpdateCursor();
 				return true; // Block input
 			}

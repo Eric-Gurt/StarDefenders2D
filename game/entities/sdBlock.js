@@ -743,6 +743,10 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
 		if ( !this._last_damage )
 		this._last_damage = 0;
+
+		// Copy [ 2 / 2 ]
+		if ( this._natural )
+		sdBlock.natural_blocks_total++;
 	}
 	onBuilt()
 	{
@@ -769,6 +773,7 @@ class sdBlock extends sdEntity
 		
 		this._natural = ( params.natural === true ); // Strictly to distinguish player-build entities
 		
+		// Copy [ 1 / 2 ]
 		if ( this._natural )
 		sdBlock.natural_blocks_total++;
 		
@@ -1698,7 +1703,11 @@ class sdBlock extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._natural )
-		sdBlock.natural_blocks_total--;
+		{
+			sdBlock.natural_blocks_total--;
+			if ( sdBlock.natural_blocks_total < 0 ) // Well, this isn't right...
+			sdBlock.natural_blocks_total = 0;
+		}
 	
 		if ( sdWorld.is_server )
 		{

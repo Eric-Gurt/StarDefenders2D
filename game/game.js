@@ -1979,7 +1979,8 @@ let enf_once = true;
 			else
 			if ( sdShop.open )
 			{
-				sdShop.open = false;
+				//sdShop.open = false;
+				sdShop.Close();
 			}
 			else
 			{
@@ -1993,12 +1994,15 @@ let enf_once = true;
 	
 		if ( sdShop.open )
 		{
+			if ( await sdShop.KeyDown( e ) )
+			return false;
+			/*
 			if ( e.key === 'BrowserBack' )
 			{
 				sdShop.current_category = 'root';
 				e.preventDefault();
 				return false;
-			}
+			}*/
 		}
 		
 		if ( await sdChat.KeyDown( e ) )
@@ -2056,7 +2060,8 @@ let enf_once = true;
 				sdWorld.my_inputs_and_gspeeds.push( [ 1, 'Digit9' ] );
 				sdWorld.my_inputs_and_gspeeds.push( [ 0, 'Digit9' ] );
 				
-				sdShop.open = true;
+				//sdShop.open = true;
+				sdShop.Open();
 				//sdRenderer.UpdateCursor();
 			}
 			return;
@@ -2087,6 +2092,11 @@ let enf_once = true;
 		if ( !IsGameFocused() )
 		return true;
 	
+		if ( !sdChat.open )
+		{
+			sdShop.KeyPress( e );
+		}
+		
 		sdChat.KeyPress( e );
 	};
 	window.onkeyup = ( e )=>

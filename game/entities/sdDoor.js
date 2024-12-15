@@ -60,7 +60,7 @@ class sdDoor extends sdEntity
 			sdWorld.CreateImageFromFile( 'metal_d_reinforced4' )
 		];
 		
-		sdDoor.ignored_entity_classes = [ 'sdBlock' ];
+		sdDoor.ignored_entity_classes = [ 'sdBlock', 'sdBaseShieldingUnit' ];
 		sdDoor.ignored_entity_classes_travel = [];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn

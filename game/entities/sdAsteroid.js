@@ -259,10 +259,28 @@ class sdAsteroid extends sdEntity
 			
 			this._an += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
 			
-			if ( this.type !== sdAsteroid.TYPE_MISSILE && this._time_to_despawn < 0 )
+			if ( sdWorld.is_server )
+			if ( this._time_to_despawn < 0 )
 			{
-				this.remove();
-				this._broken = false;
+				if ( this.type === sdAsteroid.TYPE_MISSILE )
+				{
+					if ( this.CanMoveWithoutOverlap( this.x, this.y, 0.1 ) ) // Spawned at the top of a map in some protected wall or something like that. Just remove these
+					{
+						// Otherwise stop them from being active at least
+						this._time_to_despawn = 90;
+						this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+					}
+					else
+					{
+						this.remove();
+						this._broken = false;
+					}
+				}
+				else
+				{
+					this.remove();
+					this._broken = false;
+				}
 			}
 		}
 		else

@@ -1852,6 +1852,9 @@ THING is cosmic mic drop!`;
 		for ( let i = 0; i < this._inventory.length; i++ )
 		if ( this._inventory[ i ] )
 		arr.push( this._inventory[ i ] );
+
+		if ( this.driver_of )
+		arr.push( this.driver_of );
 		
 		return arr;
 	}
@@ -4490,8 +4493,31 @@ THING is cosmic mic drop!`;
 
 			if ( this.hook_len === -1 )
 			this.hook_len = cur_di;
+		
+			let max_length = 8.5 * 16;
+		
+			if ( this._upgrade_counters.upgrade_hook > 1 )
+			if ( this._key_states.GetKey( 'Mouse3' ) )
+			{
+				//let off = this.GetBulletSpawnOffset();
+				let target_di = sdWorld.Dist2D( this.look_x, this.look_y, this.x, from_y );
+				
+				if ( target_di < 4 )
+				target_di = 4;
+			
+				if ( target_di > max_length )
+				target_di = max_length;
+			
+				let speed = 2;
+				
+				if ( this.hook_len < target_di )
+				this.hook_len = Math.min( target_di, this.hook_len + GSPEED * speed );
+				else
+				if ( this.hook_len > target_di )
+				this.hook_len = Math.max( target_di, this.hook_len - GSPEED * speed );
+			}
 
-			if ( cur_di > this.hook_len + 128 )
+			if ( cur_di > this.hook_len + 128 || this.hook_len > max_length + 16 )
 			{
 				//hook_x = 0;
 				//hook_y = 0;

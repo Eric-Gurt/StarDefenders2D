@@ -1,4 +1,6 @@
 
+/* global sdShop */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -73,10 +75,10 @@ class sdHover extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
-	get hitbox_x1() { return this.type === 3 ? -10 : this.type === 2 ? -27 : -26 }
-	get hitbox_x2() { return this.type === 3 ? 10 : this.type === 2 ? 27 : 26 }
-	get hitbox_y1() { return this.type === 3 ? -4 : this.type === 2 ? -12 : -9 }
-	get hitbox_y2() { return this.type === 3 ? 6 : this.type === 2 ? 12 : 10 }
+	get hitbox_x1() { return this.type === 3 ? -10 : this.type === 2 ? -27 : -26; }
+	get hitbox_x2() { return this.type === 3 ? 10 : this.type === 2 ? 27 : 26; }
+	get hitbox_y1() { return this.type === 3 ? -4 : this.type === 2 ? -12 : -9; }
+	get hitbox_y2() { return this.type === 3 ? 6 : this.type === 2 ? 12 : 10; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -100,6 +102,17 @@ class sdHover extends sdEntity
 		return false;
 
 		return true;
+	}
+	
+	getRequiredEntities()
+	{
+		let arr = [];
+		
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		if ( this[ 'driver' + i ] )
+		arr.push( this[ 'driver' + i ] );
+		
+		return arr;
 	}
 	
 	Impact( vel ) // fall damage basically
