@@ -32,10 +32,11 @@ class sdShop
 		if ( !sdShop.open )
 		{
 			sdShop.open = true;
-			sdShop.search_phrase = '';
+			//sdShop.search_phrase = '';
 			sdShop.block_search_input_until = sdWorld.time + 50;
 			sdShop.search_anim_morph = 0;
 			sdShop.last_render = sdWorld.time;
+			//sdShop.search_active = false;
 		}
 	}
 	static Close()
@@ -62,10 +63,12 @@ class sdShop
 		sdShop.isDrawing = false;
 		
 		sdShop.potential_selection = -1;
+		sdShop.potential_selection_search_box = -2;
 		sdShop.search_phrase = '';
 		sdShop.search_anim_morph = 0;
 		sdShop.block_search_input_until = 0;
 		sdShop.full_item_description_cache = new WeakMap(); // obj -> [ a, b, c ]
+		sdShop.search_active = false;
 		
 		sdShop.last_render = 0;
 		
@@ -1252,35 +1255,44 @@ class sdShop
 			let xx = 40;
 			let yy = 40 + sdShop.scroll_y;
 			
+			sdShop.potential_selection = -1;
+			
 			// Search box
 			{
+				yy += 20;
 				ctx.globalAlpha = 0.4 + sdShop.search_anim_morph * 0.6;
 				ctx.fillStyle = '#aaffaa';
 				ctx.font = "11px Verdana";
 				ctx.textAlign = 'left';
 				
-				if ( sdShop.search_phrase.length > 0 )
-				ctx.fillText( T('Find') + ': ' + sdShop.search_phrase, xx, yy ); // 'Find: '
-				else
-				ctx.fillText( T('Type anything to use search'), xx, yy );
-			
-				yy += 20;// * sdShop.search_anim_morph;
-				ctx.globalAlpha = 1;
+				if ( sdWorld.mouse_screen_x >= xx - 20 )
+				if ( sdWorld.mouse_screen_x < sdRenderer.screen_width - 20 )
+				if ( sdWorld.mouse_screen_y >= yy - 20 )
+				if ( sdWorld.mouse_screen_y < yy + 20 )
+				{
+					sdShop.potential_selection = sdShop.potential_selection_search_box;
+				}
 				
-				if ( sdShop.search_phrase.length > 0 && sdShop.search_anim_morph < 1 )
-				{
-					sdShop.search_anim_morph = Math.min( 1, sdShop.search_anim_morph + GSPEED * 0.5 );
-				}
+				//if ( sdShop.search_phrase.length > 0 )
+				if ( sdShop.search_active )
+				ctx.fillText( T('Type what to find (press Esc to cancel search)') + ': ' + sdShop.search_phrase + ( ( sdWorld.time - sdChat.blink_offset ) % 1000 < 500 ? '_' : '' ), xx, yy ); // 'Find: '
 				else
-				if ( sdShop.search_phrase.length === 0 && sdShop.search_anim_morph > 0 )
-				{
-					sdShop.search_anim_morph = Math.max( 0, sdShop.search_anim_morph - GSPEED * 0.5 );
-				}
+				ctx.fillText( T('Click here to search'), xx, yy );
+				
+				let hovered = ( sdShop.search_active || sdShop.potential_selection === sdShop.potential_selection_search_box );
+				
+				if ( hovered && sdShop.search_anim_morph < 1 )
+				sdShop.search_anim_morph = Math.min( 1, sdShop.search_anim_morph + GSPEED * 0.5 );
+				else
+				if ( !hovered && sdShop.search_anim_morph > 0 )
+				sdShop.search_anim_morph = Math.max( 0, sdShop.search_anim_morph - GSPEED * 0.5 );
+				
+				ctx.globalAlpha = 1;
+				yy += 40;// * sdShop.search_anim_morph;
 			}
 			
 			let search_phrase_lower_case = sdShop.search_phrase.toLowerCase();
 
-			sdShop.potential_selection = -1;
 			//let skip = 0; // Skip current_shop_options.push if an item is not unlocked yet
 			let current_shop_options = [];
 			for ( var i = 0; i < sdShop.options.length; i++ )
@@ -1289,6 +1301,9 @@ class sdShop
 				
 				if ( search_phrase_lower_case.length > 0 )
 				{
+					if ( sdShop.options[ i ]._opens_category === 'root' )
+					matches = true;
+					else
 					if ( sdShop.options[ i ]._opens_category === undefined )
 					{
 						let category = sdShop.options[ i ]._category;
@@ -1672,7 +1687,7 @@ class sdShop
 		}
 		ctx.restore();
 		
-		if ( sdShop.potential_selection !== -1 )	
+		if ( sdShop.potential_selection >= 0 )	
 		{
 			let [ item_title, description, how_to_build_hint ] = sdShop.GetFullItemDescription( sdShop.potential_selection );
 			
@@ -1799,7 +1814,12 @@ class sdShop
 			if ( shop_item._opens_category )
 			{
 				if ( shop_item._opens_category === 'root' )
-				how_to_build_hint = T('Click to leave this category');
+				{
+					if ( sdShop.search_active )
+					how_to_build_hint = T('Click to cancel search');
+					else
+					how_to_build_hint = T('Click to leave this category');
+				}
 				else
 				how_to_build_hint = T('Click to enter category')+' "' + shop_item._opens_category + '"';
 			}
@@ -1864,6 +1884,7 @@ class sdShop
 			return true;
 		}
 		else
+		if ( sdShop.search_active )
 		if ( !sdChat.open )
 		{
 			if ( e.key === 'Backspace' )
@@ -1873,7 +1894,7 @@ class sdShop
 				return true;
 			}
 			else
-			if ( e.code === 'KeyX' )
+			/*if ( e.code === 'KeyX' )
 			return true;
 			else
 			if ( e.code === 'KeyZ' )
@@ -1883,12 +1904,16 @@ class sdShop
 			return true;
 			else
 			if ( e.code === 'KeyC' )
+			return true;*/
+					
 			return true;
 		}
 	}
 	static KeyPress( e )
 	{
+		if ( sdShop.open )
 		if ( sdWorld.time > sdShop.block_search_input_until )
+		if ( sdShop.search_active )
 		if ( e.key.length === 1 )
 		{
 			let insert = ( e.key.length === 1 ) ? e.key : '';
@@ -1919,10 +1944,24 @@ class sdShop
 					sdWorld.my_entity._build_params = null;
 				}
 				else
+				if ( sdShop.potential_selection === sdShop.potential_selection_search_box )
+				{
+					sdShop.search_active = true;
+					sdChat.blink_offset = sdWorld.time;
+					return true;
+				}
+				else
 				{
 					if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
 					{
 						sdShop.current_category = sdShop.options[ sdShop.potential_selection ]._opens_category;
+						
+						if ( sdShop.current_category === 'root' )
+						{
+							sdShop.search_active = false;
+							sdShop.search_phrase = '';
+						}
+						
 						selected = false;
 					}
 					else

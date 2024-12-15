@@ -1979,7 +1979,12 @@ let enf_once = true;
 			else
 			if ( sdShop.open )
 			{
-				//sdShop.open = false;
+				if ( sdShop.search_active )
+				{
+					sdShop.search_active = false;
+					sdShop.search_phrase = '';
+				}
+				else
 				sdShop.Close();
 			}
 			else
