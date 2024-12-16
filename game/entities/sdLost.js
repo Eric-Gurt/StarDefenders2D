@@ -37,7 +37,7 @@ class sdLost extends sdEntity
 			'none',
 			'saturate(8) contrast(2) brightness(0.2) sepia(1) saturate(20) hue-rotate(-17deg) brightness(0.7)', // Glassed gives a red hue
 			'saturate(8) contrast(0.6) brightness(0.2) sepia(1) saturate(8) hue-rotate(-20deg) brightness(0.8)',
-			'saturate(0) brightness(0.05)'
+			'saturate(0) brightness(0.5) contrast(2)'
 		];
 		
 		sdLost.FILTER_GOLDEN = 0;
