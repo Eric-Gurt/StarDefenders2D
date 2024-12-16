@@ -1414,8 +1414,9 @@ class sdStatusEffect extends sdEntity
 
 							e.sx = -e.sx;
 							e.sy = -e.sy;
+							e.time_left *= 2;
 
-							e.Damage( 20 ) // Prevent bullet from being endlessly reflected between 2 entities with this effect
+							e.Damage( 20 ); // Prevent bullet from being endlessly reflected between 2 entities with this effect
 
 							sdLost.ApplyAffection( status_entity.for, 2.5, null, sdLost.FILTER_VOID );
 							//e.remove();
