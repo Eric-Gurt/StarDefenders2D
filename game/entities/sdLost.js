@@ -394,7 +394,7 @@ class sdLost extends sdEntity
 		if ( this.f === sdLost.FILTER_VOID )
 		return sdEffect.TYPE_BLOOD_GREEN;
 	
-		return sdEffect.TYPE_BLOOD;
+		return sdEffect.TYPE_WALL_HIT;
 	}
 
 	GetBleedEffectFilter()
