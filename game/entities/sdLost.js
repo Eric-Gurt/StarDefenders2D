@@ -23,6 +23,7 @@ import sdSandWorm from './sdSandWorm.js';
 import sdFaceCrab from './sdFaceCrab.js';
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdStorage from './sdStorage.js';
+import sdEffect from './sdEffect.js';
 
 class sdLost extends sdEntity
 {
