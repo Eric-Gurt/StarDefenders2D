@@ -9260,6 +9260,59 @@ class sdGunClass
 			projectile_properties: { _damage: 0 }
 		};
 
+		let void_target_reaction = ( bullet, target_entity )=>
+		{	
+			if ( target_entity.is( sdLost ) )
+			{
+				target_entity.DamageWithEffect( 0, bullet._owner );
+			}
+			else
+			{
+				sdWorld.SendEffect({ 
+					x: bullet.x, 
+					y: bullet.y, 
+					radius: 16,
+					damage_scale: 0, // Just a decoration effect
+					type: sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
+					owner: this,
+					color: '#000000'
+				});
+
+				sdLost.ApplyAffection( target_entity, 60, bullet, sdLost.FILTER_VOID );
+			}
+		};
+
+		sdGun.classes[ sdGun.CLASS_CUBE_VOID_CAPACITOR = 142 ] = 
+        	{ 
+			image: sdWorld.CreateImageFromFile( 'cube_void_capacitor' ),
+			sound: 'cube_attack',
+			sound_volume: 1.5,
+			sound_pitch: 0.5,
+			title: 'Cube void capacitor',
+			slot: 4,
+			reload_time: 8,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0,
+            		spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{	
+				return 60;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					{
+						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
+					}
+				}
+			},
+			projectile_properties: { _rail: true,_rail_circled: true,color:'#000000',_damage: 0, time_left: 30,_custom_target_reaction_protected:void_target_reaction,_custom_target_reaction:void_target_reaction },			
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

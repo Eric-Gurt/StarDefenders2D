@@ -56,6 +56,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_SHIELD = 22;
 		sdEffect.TYPE_DIRT_HIT = 23;
 		sdEffect.TYPE_EXPLOSION_NON_ADDITIVE = 24;
+		sdEffect.TYPE_VOID_FIRE = 25;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -333,6 +334,17 @@ class sdEffect extends sdEntity
 			spritesheet: true,
 			apply_shading: false,
 			camera_relative_world_scale: 0.9
+		};
+
+		sdEffect.types[ sdEffect.TYPE_VOID_FIRE ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_void_fire' ) ],
+			duration: 8,
+			random_flip: true,
+			random_rotation: false,
+			speed: 6 / 30,
+			random_speed_percentage: 0.2,
+			spritesheet: true,
+			apply_shading: false
 		};
 	
 		sdEffect.translit_result_assumed_language = null;

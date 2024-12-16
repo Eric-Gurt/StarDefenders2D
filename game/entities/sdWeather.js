@@ -167,6 +167,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MISSILES =				event_counter++; // 53
 		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
+		sdWeather.EVENT_CUBE_BOSS =	event_counter++; // 56
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -3909,6 +3910,23 @@ class sdWeather extends sdEntity
 			});
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_CUBE_BOSS )
+		{
+			sdWeather.SimpleSpawner({
+
+				count: [ 1, 1 ],
+				class: sdCube,
+				params: { kind: sdCube.KIND_RED },
+				
+				aerial: true,
+				aerial_radius: 800,
+				
+				near_entity: near_ent,
+				group_radius: group_rad
+				
+
+			});
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
