@@ -1366,6 +1366,98 @@ class sdStatusEffect extends sdEntity
 				//ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 		};
+
+		sdStatusEffect.types[ sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES = 12 ] = 
+		{
+			remove_if_for_removed: true,
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._ttl = params.ttl;
+				status_entity._next_spawn = 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity._ttl = params.ttl;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				let attack_entities = sdWorld.GetAnythingNear( status_entity.x, status_entity.y, 64 );
+	
+				if ( attack_entities.length > 0 )
+				for ( let i = 0; i < attack_entities.length; i++ )
+				{
+					let e = attack_entities[ i ];
+					if ( !e._is_being_removed )
+					{
+						if ( e.GetClass() === 'sdBullet' && e._owner !== status_entity.for ) 
+						{
+							sdCrystal.Zap( status_entity, e, '#ffffff' );
+							sdSound.PlaySound({ name:'cube_attack', x:e.x, y:e.y, volume:0.5, pitch:2 });
+							sdWorld.SendEffect({ x:e.x , y:e.y , type:sdEffect.TYPE_SHIELD });
+
+							e._owner = status_entity.for;
+
+							e.sx = -e.sx;
+							e.sy = -e.sy;
+
+							e.Damage( 20 ) // Prevent bullet from being endlessly reflected between 2 entities with this effect
+
+							sdLost.ApplyAffection( status_entity.for, 2.5, null, sdLost.FILTER_VOID );
+							//e.remove();
+						}
+					}
+				}
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				{
+					status_entity._next_spawn -= GSPEED;
+
+					if ( status_entity._next_spawn <= 0 )
+					{
+						status_entity._next_spawn = 10;
+
+						const range = Math.max( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1, status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) / 2;
+						const y_offset = 0;
+
+						let a = Math.random() * Math.PI * 2;
+
+						let r = Math.pow( Math.random(), 0.5 ) * range;
+
+						let xx = status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2 + Math.sin( a ) * r;
+						let yy = status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2 + Math.cos( a ) * r;
+
+						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_VOID_FIRE, sx: 0, sy: -0.5 });
+						sdEntity.entities.push( ent );
+					}
+				}
+
+				if ( status_entity._ttl > 0 )
+				{
+					status_entity._ttl -= GSPEED;
+
+					if ( status_entity._ttl <= 0 ) status_entity.remove()
+				}
+			},
+
+			onBeforeRemove: ( status_entity )=>
+			{
+			}
+		};
+
 		
 
 		sdStatusEffect.status_effects = [];
