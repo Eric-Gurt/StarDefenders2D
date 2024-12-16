@@ -509,7 +509,7 @@ class sdCube extends sdEntity
 								{
 									kinds.push( sdCube.KIND_YELLOW );
 
-									if ( Math.random() < 0.5 )
+									// if ( Math.random() < 0.5 )
 									kinds.push( sdCube.KIND_WHITE );
 									
 									if ( Math.random() < 0.01 )
