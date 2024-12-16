@@ -453,7 +453,7 @@ class sdCube extends sdEntity
 				{
 					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, [ 'sdCube' ] );
 					
-					let to_spawn = this.kind === sdCube.KIND_RED ? 16 : this.kind === sdCube.KIND_WHITE ? 8 : 4;
+					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 8 : 4;
 					
 					if ( this.kind === sdCube.KIND_ANCIENT )
 					to_spawn = 1;
@@ -507,6 +507,9 @@ class sdCube extends sdEntity
 
 								if ( this.kind === sdCube.KIND_RED )
 								{
+									kinds.push( sdCube.KIND_YELLOW );
+
+									if ( Math.random() < 0.5 )
 									kinds.push( sdCube.KIND_WHITE );
 									
 									if ( Math.random() < 0.01 )
@@ -600,6 +603,9 @@ class sdCube extends sdEntity
 				//if ( initiator )
 				//if ( typeof initiator._score !== 'undefined' )
 				{
+					if ( this.kind === sdCube.KIND_RED )
+					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS_OVERPOWERED );
+					else
 					if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE )
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 					else
@@ -614,7 +620,7 @@ class sdCube extends sdEntity
 					// sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, 
 					// side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
 					
-					let scale = this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100;
+					let scale = this.kind === sdCube.KIND_RED ? 400 : this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100;
 					let image_id = 0;
 					
 					let offset = 3 * scale / 100;
@@ -1441,13 +1447,13 @@ class sdCube extends sdEntity
 							{
 								this.FireDirectionalBeams( true );
 
-								if ( this._phase === 1 )
+								if ( this._phase === 1 && this.hea <= this.hmax / 2 )
 								this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
 							}
 
 							if ( this._charged_shots <= 0 )
 							{
-								this._charged_shots = this.kind === sdCube.KIND_RED ? 30 : this.kind === sdCube.KIND_WHITE ? 5 : 3;
+								this._charged_shots = this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 5 : 3;
 								this._attack_timer = 45 * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
 							}
 
