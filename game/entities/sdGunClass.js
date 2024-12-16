@@ -9260,6 +9260,28 @@ class sdGunClass
 			projectile_properties: { _damage: 0 }
 		};
 
+		let void_target_reaction = ( bullet, target_entity )=>
+		{	
+			if ( target_entity.is( sdLost ) )
+			{
+				target_entity.DamageWithEffect( 0, bullet._owner );
+			}
+			else
+			{
+				sdWorld.SendEffect({ 
+					x: bullet.x, 
+					y: bullet.y, 
+					radius: 16,
+					damage_scale: 0, // Just a decoration effect
+					type: sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
+					owner: this,
+					color: '#000000'
+				});
+
+				sdLost.ApplyAffection( target_entity, 60, bullet, sdLost.FILTER_VOID );
+			}
+		};
+
 		sdGun.classes[ sdGun.CLASS_CUBE_VOID_CAPACITOR = 142 ] = 
         	{ 
 			image: sdWorld.CreateImageFromFile( 'cube_void_capacitor' ),
