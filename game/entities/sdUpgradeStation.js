@@ -201,7 +201,6 @@ class sdUpgradeStation extends sdEntity
 		this._cooldown = 0;
 		this.matter_max = 5500;
 		this.matter = 100;
-		this.delay = 0;
 		this.level = 1;
 		
 		this._armor_protection_level = 0;
