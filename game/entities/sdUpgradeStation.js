@@ -16,7 +16,8 @@ class sdUpgradeStation extends sdEntity
 	static init_class()
 	{
 		sdUpgradeStation.img_us = sdWorld.CreateImageFromFile( 'upgrade_station' ); // Re-skin by Flora
-		
+		sdUpgradeStation.img_us_disabled = sdWorld.CreateImageFromFile( 'upgrade_station_disabled' ); // Re-skin by Flora
+
 		sdUpgradeStation.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
 		sdUpgradeStation.MAX_STATION_LEVEL = 9;
@@ -36,7 +37,7 @@ class sdUpgradeStation extends sdEntity
 	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	{ return false; }
 	
 	IsVehicle()
 	{
@@ -58,8 +59,6 @@ class sdUpgradeStation extends sdEntity
 		if ( this.hea > 0 )
 		{
 			this.hea -= dmg;
-			
-			this._update_version++;
 
 			if ( this.hea <= 0 )
 			{
@@ -92,7 +91,6 @@ class sdUpgradeStation extends sdEntity
 			}
 		}
 		this.matter -= 5000;
-		this._update_version++;
 		sdWorld.UpdateHashPosition( this, false );
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -108,7 +106,6 @@ class sdUpgradeStation extends sdEntity
 			this.matter_max = 5000 + ( 500 * this.level );
 			//this.matter -= 5000;
 			this.WakeUpMatterSources();
-			this._update_version++;
 			sdWorld.UpdateHashPosition( this, false );
 			
 			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
@@ -189,14 +186,14 @@ class sdUpgradeStation extends sdEntity
 		this._cooldown = 900; // 30 second cooldown so it does not get spammed.
 		this.matter -= 500;
 		this.WakeUpMatterSources();
-		this._update_version++;
 		sdWorld.UpdateHashPosition( this, false );
 	}
 	constructor( params )
 	{
 		super( params );
 		
-		//this._is_cable_priority = true;
+		this.sx = 0;
+		this.sy = 0;
 		
 		this.hmax = 5000 * 2;
 		this.hea = this.hmax;
@@ -208,6 +205,13 @@ class sdUpgradeStation extends sdEntity
 		this.level = 1;
 		
 		this._armor_protection_level = 0;
+
+		this.hologram = true;
+		this._hologram_timer = 0;
+	}
+	get mass()
+	{
+		return 60;
 	}
 	onBuilt()
 	{
@@ -222,11 +226,16 @@ class sdUpgradeStation extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		//this._armor_protection_level = 0; // Never has protection unless full health reached
-			
+
+		if ( this._hologram_timer > 0 )
+		this._hologram_timer -= GSPEED;
+
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
+
 		if ( this._cooldown > 0 )
 		this._cooldown -= GSPEED;
+
 		else
 		{
 			if ( this.hea < this.hmax )
@@ -235,12 +244,38 @@ class sdUpgradeStation extends sdEntity
 				
 				//if ( sdWorld.is_server )
 				//this.hea = this.hmax; // Hack
-				
-				this._update_version++;
 			}
 			if ( this.level > 1 )
 			this._armor_protection_level = 4; // If upgraded at least once - it can be only destroyed with big explosions
 		}
+
+		if ( this._hologram_timer <= 0 ) // A bit messy perhaps?
+		{
+			let ents = sdWorld.GetAnythingNear( this.x, this.y, 16 );
+			let is_found = false;
+	
+			if ( ents.length > 0 )
+			for ( let i = 0; i < ents.length; i++ )
+			{
+				if ( !is_found ) 
+				{
+					let e = ents[ i ];
+					if ( !e._is_being_removed )
+					{
+						if ( e.IsPlayerClass() ) 
+						{
+							this.hologram = true;
+							is_found = true;
+							this._hologram_timer = 50;
+						}
+						else
+						this.hologram = false;
+					}
+				}
+			}	
+		}
+		this.sy += sdWorld.gravity * GSPEED;
+		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
 	}
 	onMovementInRange( from_entity )
@@ -254,7 +289,6 @@ class sdUpgradeStation extends sdEntity
 			
 			//sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 			
-			//this._update_version++;
 			from_entity.remove();
 		}
 	}
@@ -264,7 +298,10 @@ class sdUpgradeStation extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.hologram ) // Shop fake entity
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 32, 32,64 );
+		else
+		ctx.drawImageFilterCache( sdUpgradeStation.img_us_disabled, -16, -16 - 32, 32,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
