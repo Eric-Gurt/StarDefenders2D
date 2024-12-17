@@ -2597,7 +2597,7 @@ class sdWeather extends sdEntity
 						//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
 						character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 						character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
-						character_entity._allow_despawn = false;
+						character_entity.allow_despawn = false;
 						character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
 						//character_entity._ai.next_action = 1;
 						if ( hostile )
