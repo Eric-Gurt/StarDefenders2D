@@ -298,7 +298,7 @@ class sdUpgradeStation extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.hologram ) // Shop fake entity
+		if ( this.hologram )
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 32, 32,64 );
 		else
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us_disabled, -16, -16 - 32, 32,64 );
