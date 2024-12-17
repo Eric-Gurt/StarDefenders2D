@@ -49,6 +49,7 @@ class sdCube extends sdEntity
 		sdCube.alive_huge_cube_counter = 0; // 1
 		sdCube.alive_white_cube_counter = 0; // 2
 		sdCube.alive_pink_cube_counter = 0; // 3
+		sdCube.alive_red_cube_counter = 0; // 1
 		
 		sdCube.death_duration = 10;
 		sdCube.post_death_ttl = 90;
@@ -143,17 +144,20 @@ class sdCube extends sdEntity
 	
 	static GetMaxAllowedCubesOfKind( kind ) // kind of 0 will return total maximum number
 	{
-		if ( kind === 0 )
+		if ( kind === sdCube.KIND_CYAN )
 		return Math.max( 20, Math.min( sdWorld.GetPlayingPlayersCount() * 5, 40 ) );
 	
-		if ( kind === 1 ) // yellow
+		if ( kind === sdCube.KIND_YELLOW ) // yellow
 		return sdWorld.GetPlayingPlayersCount() * 1.5;
 	
-		if ( kind === 2 ) // white
+		if ( kind === sdCube_KIND_WHITE ) // white
 		return 1;
 	
-		if ( kind === 3 ) // pink
+		if ( kind === sdCube.KIND_PINK ) // pink
 		return 2;
+
+		if ( kind === sdCube.KIND_RED ) // red
+		return 1;
 	
 		debugger; // Limit is not set for this kind
 		return 1; 
@@ -273,6 +277,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_PINK )
 		sdCube.alive_pink_cube_counter++;
+
+		if ( this.kind === sdCube.KIND_RED )
+		sdCube.alive_red_cube_counter++;
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -1718,6 +1725,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_PINK )
 		sdCube.alive_pink_cube_counter--;
+
+		if ( this.kind === sdCube.KIND_RED )
+		sdCube.alive_red_cube_counter--;
 	}
 	onRemove() // Class-specific, if needed
 	{
