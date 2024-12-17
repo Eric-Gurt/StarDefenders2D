@@ -150,7 +150,7 @@ class sdCube extends sdEntity
 		if ( kind === sdCube.KIND_YELLOW ) // yellow
 		return sdWorld.GetPlayingPlayersCount() * 1.5;
 	
-		if ( kind === sdCube_KIND_WHITE ) // white
+		if ( kind === sdCube.KIND_WHITE ) // white
 		return 1;
 	
 		if ( kind === sdCube.KIND_PINK ) // pink
