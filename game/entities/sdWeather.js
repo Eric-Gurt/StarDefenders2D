@@ -2131,7 +2131,7 @@ class sdWeather extends sdEntity
 				//let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 				
 				let drone_type = ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
-						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
+						: ( Math.random() < 0.30 ) ? 13 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
 						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/;
 						
 				let drones = 0;
