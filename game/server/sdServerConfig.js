@@ -343,7 +343,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		
 		// Spawn starter items based off what player wants to spawn with
-		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL ];
+		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_ARMOR_STARTER ];
 		
 		if ( player_settings.start_with1 )
 		guns.unshift( sdGun.CLASS_SWORD );

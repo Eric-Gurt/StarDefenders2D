@@ -3913,6 +3913,8 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CUBE_BOSS )
 		{
+
+			if ( sdCube.alive_red_cube_counter < sdCube.GetMaxAllowedCubesOfKind( sdCube.KIND_RED ) )
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 1 ],
@@ -3924,8 +3926,6 @@ class sdWeather extends sdEntity
 				
 				near_entity: near_ent,
 				group_radius: group_rad
-				
-
 			});
 		}
 	}

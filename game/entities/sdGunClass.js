@@ -9313,6 +9313,29 @@ class sdGunClass
 			projectile_properties: { _rail: true,_rail_circled: true,color:'#000000',_damage: 0, time_left: 30,_custom_target_reaction_protected:void_target_reaction,_custom_target_reaction:void_target_reaction },			
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
+
+		sdGun.classes[ sdGun.CLASS_ARMOR_STARTER = 143 ] = // Sprite and concept by Booraz
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_starter' ),
+			title: 'SD-00 Starter Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 100,
+			has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
+			{ 
+				if ( character.ApplyArmor({ armor: 100, _armor_absorb_perc: 0.2, armor_speed_reduction: 0 }) )
+				gun.remove();
+
+				return false; 
+			} 
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
