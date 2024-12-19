@@ -1182,7 +1182,7 @@ THING is cosmic mic drop!`;
 		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
 		this._ai_stay_near_entity = null; // Should AI stay near an entity/protect it?
 		this._ai_stay_distance = params._ai_stay_distance || 128; // Max distance AI can stray from entity it follows/protects.
-		this.allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
+		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
 		this._ai_allow_weapon_switch = true; // Allow switching weapons if AI has multiple of them
 		this._ai_post_alert_fire_prevention_until = 0; // Applied if target is a real player. Prevents case when spawned mobs instantly attack player
 		// PB:FttP/PB2-like relative movement suggestions to restore line of sight:
@@ -4071,9 +4071,10 @@ THING is cosmic mic drop!`;
 			if ( this.death_anim < 90 )
 			this.death_anim += GSPEED;
 			else
+			if ( sdWorld.is_server ) // From local testing, didn't seem to despawn Extract task SD's - Booraz
 			{
 				
-				if ( !this.allow_despawn )
+				if ( !this._allow_despawn )
 				{
 					// Some AI characters for tasks
 				}
