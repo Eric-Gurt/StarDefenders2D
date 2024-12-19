@@ -227,7 +227,7 @@ class sdCouncilMachine extends sdEntity
 					}, 500 );
 				}
 				let r = Math.random();
-				if ( r < 0.02 ) // 2% chance to drop Exalted core on task completion
+				if ( r < 0.03 ) // 3% chance to drop Exalted core on task completion
 				{
 					let x = this.x;
 					let y = this.y;

@@ -446,7 +446,7 @@ class sdCouncilIncinerator extends sdEntity
 						}, 500 );
 					}
 					r = Math.random(); // Reroll RNG
-					if ( r < 0.02 ) // 2% chance to drop Exalted core
+					if ( r < 0.03 ) // 3% chance to drop Exalted core
 					{
 						let x = this.x;
 						let y = this.y;
