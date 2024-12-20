@@ -166,7 +166,6 @@ class sdSandWorm extends sdEntity
 		
 		this._last_found_target = 0; // When has it last time found a target? Used for Crystal Hunting Worm.
 		
-		this._ai_team = this.kind ===  sdSandWorm.KIND_COUNCIL_WORM ? 3: -1;
 		
 		this._hibernation_check_timer = 30;
 		
@@ -713,6 +712,7 @@ class sdSandWorm extends sdEntity
 
 					ent.scale = ent_scale;
 					ent.kind = this.kind;
+					ent._ai_team = this._ai_team;
 
 					ent.model = 2;
 
@@ -1030,6 +1030,7 @@ class sdSandWorm extends sdEntity
 							if ( this._current_target.is( sdSandWorm ) || ( this._current_target.is( sdCharacter ) && !this.HasEnoughMatter( this._current_target ) ) )
 							this._current_target = null;
 						
+							if ( this._current_target )
 							if ( ( this._current_target.is( sdCharacter ) || this._current_target.is( sdDrone ) ) && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Prevent targetting council humanoids if council worm is in question
 							{
 								if ( this._ai_team === this._current_target._ai_team )
