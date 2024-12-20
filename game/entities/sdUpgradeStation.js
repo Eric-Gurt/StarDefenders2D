@@ -279,16 +279,19 @@ class sdUpgradeStation extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( !from_entity._is_being_removed )
-		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class === sdGun.CLASS_UPGRADE_STATION_CHIPSET )
-		if ( this.level < sdUpgradeStation.MAX_STATION_LEVEL )
+		if ( sdWorld.is_server )
 		{
-			this.UpgradeStation();
-			
-			//sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
-			
-			from_entity.remove();
+			if ( !from_entity._is_being_removed )
+			if ( from_entity.is( sdGun ) )
+			if ( from_entity.class === sdGun.CLASS_UPGRADE_STATION_CHIPSET )
+			if ( this.level < sdUpgradeStation.MAX_STATION_LEVEL )
+			{
+				this.UpgradeStation();
+				
+				//sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+				
+				from_entity.remove();
+			}
 		}
 	}
 	get title()
