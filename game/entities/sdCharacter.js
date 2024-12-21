@@ -4071,6 +4071,7 @@ THING is cosmic mic drop!`;
 			if ( this.death_anim < 90 )
 			this.death_anim += GSPEED;
 			else
+			if ( sdWorld.is_server ) // From local testing, didn't seem to despawn Extract task SD's - Booraz
 			{
 				
 				if ( !this._allow_despawn )
@@ -5580,6 +5581,7 @@ THING is cosmic mic drop!`;
 		{
 			return this._potential_vehicle.level;
 		}
+
 		
 		return 0;
 	}

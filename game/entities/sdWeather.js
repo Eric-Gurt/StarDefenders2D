@@ -167,6 +167,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MISSILES =				event_counter++; // 53
 		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
+		sdWeather.EVENT_CUBE_BOSS =	event_counter++; // 56
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2130,7 +2131,7 @@ class sdWeather extends sdEntity
 				//let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 				
 				let drone_type = ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
-						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
+						: ( Math.random() < 0.30 ) ? 13 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
 						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/;
 						
 				let drones = 0;
@@ -3909,6 +3910,23 @@ class sdWeather extends sdEntity
 			});
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_CUBE_BOSS )
+		{
+
+			if ( sdCube.alive_red_cube_counter < sdCube.GetMaxAllowedCubesOfKind( sdCube.KIND_RED ) )
+			sdWeather.SimpleSpawner({
+
+				count: [ 1, 1 ],
+				class: sdCube,
+				params: { kind: sdCube.KIND_RED },
+				
+				aerial: true,
+				aerial_radius: 800,
+				
+				near_entity: near_ent,
+				group_radius: group_rad
+			});
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

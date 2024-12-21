@@ -529,7 +529,7 @@ class sdJunk extends sdEntity
 
 				}, 500 );
 				
-				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.02 ) // 2% chance for Exalted core
+				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.03 ) // 3% chance for Exalted core
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun2;

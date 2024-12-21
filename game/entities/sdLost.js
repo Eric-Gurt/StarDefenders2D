@@ -23,6 +23,7 @@ import sdSandWorm from './sdSandWorm.js';
 import sdFaceCrab from './sdFaceCrab.js';
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdStorage from './sdStorage.js';
+import sdEffect from './sdEffect.js';
 
 class sdLost extends sdEntity
 {
@@ -35,7 +36,8 @@ class sdLost extends sdEntity
 			'saturate(0) brightness(2.5)',
 			'none',
 			'saturate(8) contrast(2) brightness(0.2) sepia(1) saturate(20) hue-rotate(-17deg) brightness(0.7)', // Glassed gives a red hue
-			'saturate(8) contrast(0.6) brightness(0.2) sepia(1) saturate(8) hue-rotate(-20deg) brightness(0.8)'
+			'saturate(8) contrast(0.6) brightness(0.2) sepia(1) saturate(8) hue-rotate(-20deg) brightness(0.8)',
+			'saturate(0) brightness(0.5) contrast(2)'
 		];
 		
 		sdLost.FILTER_GOLDEN = 0;
@@ -43,6 +45,7 @@ class sdLost extends sdEntity
 		sdLost.FILTER_NONE = 2;
 		sdLost.FILTER_GLASSED = 3;
 		sdLost.FILTER_RED = 4;
+		sdLost.FILTER_VOID = 5;
 
 		sdWorld.static_think_methods.push( sdLost.StaticThink );
 		
@@ -344,7 +347,7 @@ class sdLost extends sdEntity
 		{
 			if ( was_alive )
 			{
-				if ( this.f === sdLost.FILTER_GOLDEN || this.f === sdLost.FILTER_GLASSED )
+				if ( this.f === sdLost.FILTER_GOLDEN || this.f === sdLost.FILTER_GLASSED || this.f === sdLost.FILTER_VOID )
 				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5 });
 					
 				if ( this.f === sdLost.FILTER_GOLDEN )
@@ -372,7 +375,7 @@ class sdLost extends sdEntity
 			{
 				this._last_damage = sdWorld.time;
 				
-				if ( this.f === sdLost.FILTER_GOLDEN || this.f === sdLost.FILTER_GLASSED )
+				if ( this.f === sdLost.FILTER_GOLDEN || this.f === sdLost.FILTER_GLASSED || this.f === sdLost.FILTER_VOID )
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 			}
 		}
@@ -386,11 +389,30 @@ class sdLost extends sdEntity
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
 	}
+	GetBleedEffect()
+	{
+		if ( this.f === sdLost.FILTER_VOID )
+		return sdEffect.TYPE_BLOOD_GREEN;
 	
+		return sdEffect.TYPE_WALL_HIT;
+	}
+
+	GetBleedEffectFilter()
+	{
+		if ( this.f === sdLost.FILTER_VOID )
+		return 'saturate(0) brightness(0)';
+
+		return '';
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		this._update_version++;
-		
+
+		if ( this.f === sdLost.FILTER_VOID )
+		{
+			GSPEED *= 0.25;
+		}
+
 		if ( !this.s )
 		{
 			if ( sdWorld.is_server || this.awake )
@@ -436,14 +458,18 @@ class sdLost extends sdEntity
 	{
 		if ( this.t )
 		{
-			if ( this.f === 0 )
+			if ( this.f === sdLost.FILTER_GOLDEN )
 			sdEntity.Tooltip( ctx, 'Lost ' + this.t );
 			else
-			if ( this.f === 1 )
+			if ( this.f === sdLost.FILTER_WHITE )
 			sdEntity.Tooltip( ctx, 'Empty ' + this.t );
 			else
-			if ( this.f === 3 )
+			if ( this.f === sdLost.FILTER_GLASSED )
 			sdEntity.Tooltip( ctx, 'Glassed ' + this.t );
+			else
+			if ( this.f === sdLost.FILTER_VOID )
+			sdEntity.Tooltip( ctx, 'Void ' + this.t );
+
 			else
 			sdEntity.Tooltip( ctx, this.t );
 		}

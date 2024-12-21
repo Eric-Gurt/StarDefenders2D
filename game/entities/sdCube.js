@@ -23,6 +23,7 @@ import sdCharacter from './sdCharacter.js';
 import sdWeather from './sdWeather.js';
 //import sdPlayerSpectator from './sdPlayerSpectator.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 
 import sdPathFinding from '../ai/sdPathFinding.js';
@@ -48,6 +49,7 @@ class sdCube extends sdEntity
 		sdCube.alive_huge_cube_counter = 0; // 1
 		sdCube.alive_white_cube_counter = 0; // 2
 		sdCube.alive_pink_cube_counter = 0; // 3
+		sdCube.alive_red_cube_counter = 0; // 1
 		
 		sdCube.death_duration = 10;
 		sdCube.post_death_ttl = 90;
@@ -62,6 +64,7 @@ class sdCube extends sdEntity
 		sdCube.KIND_BLUE = 5; // Gives shields to other cubes
 		sdCube.KIND_MATTER_STEALER = 6; // Not a cube, but a mater consumer from the anti-crystal event
 		sdCube.KIND_ANCIENT = 7; // Orange-ish? cube which acts like cyan, but it's beams deal lost damage
+		sdCube.KIND_RED = 8; // Boss
 		
 		sdCube.hitbox_scale_per_kind = [
 			1,
@@ -73,7 +76,7 @@ class sdCube extends sdEntity
 			1,
 			// Just in case to prevent bugs from newer versions:
 			1,
-			1,
+			4,
 			1,
 			1,
 			1,
@@ -102,6 +105,9 @@ class sdCube extends sdEntity
 		
 		sdCube.ancient_filter = sdWorld.CreateSDFilter();
 		sdWorld.ReplaceColorInSDFilter_v2( sdCube.ancient_filter, '#00fff6', '#d6981e' );
+
+		sdCube.red_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.red_filter, '#00fff6', '#400000' );
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -138,17 +144,20 @@ class sdCube extends sdEntity
 	
 	static GetMaxAllowedCubesOfKind( kind ) // kind of 0 will return total maximum number
 	{
-		if ( kind === 0 )
+		if ( kind === sdCube.KIND_CYAN )
 		return Math.max( 20, Math.min( sdWorld.GetPlayingPlayersCount() * 5, 40 ) );
 	
-		if ( kind === 1 ) // yellow
+		if ( kind === sdCube.KIND_YELLOW ) // yellow
 		return sdWorld.GetPlayingPlayersCount() * 1.5;
 	
-		if ( kind === 2 ) // white
+		if ( kind === sdCube.KIND_WHITE ) // white
 		return 1;
 	
-		if ( kind === 3 ) // pink
+		if ( kind === sdCube.KIND_PINK ) // pink
 		return 2;
+
+		if ( kind === sdCube.KIND_RED ) // red
+		return 1;
 	
 		debugger; // Limit is not set for this kind
 		return 1; 
@@ -200,6 +209,7 @@ class sdCube extends sdEntity
 		//this.is_pink = ( this.kind === sdCube.KIND_PINK ) ? true : false;
 		
 		this.hmax = 
+				this.kind === sdCube.KIND_RED ? 10000 : 
 				this.kind === sdCube.KIND_WHITE ? 1600 : 
 				this.kind === sdCube.KIND_YELLOW ? 800 : 
 				this.kind === sdCube.KIND_MATTER_STEALER ? 1200 : 
@@ -244,10 +254,12 @@ class sdCube extends sdEntity
 		
 		this._current_target = null; // Mostly related to following
 		this._pathfinding = null;
-		
+
+		this._phase = 0;
+
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = (this.kind === sdCube.KIND_WHITE ? 6 : this.kind === sdCube.KIND_YELLOW ? 4 : 1 ) * 160;
+		this.matter_max = ( this.kind === sdCube.KIND_RED ? 16 : this.kind === sdCube.KIND_WHITE ? 6 : this.kind === sdCube.KIND_YELLOW ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
 		
 		this._time_amplification = 0;
@@ -265,6 +277,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_PINK )
 		sdCube.alive_pink_cube_counter++;
+
+		if ( this.kind === sdCube.KIND_RED )
+		sdCube.alive_red_cube_counter++;
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -333,10 +348,25 @@ class sdCube extends sdEntity
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.huge_filter.s;
 		}
+		if ( this.kind === sdCube.KIND_GREEN )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.green_filter.s;
+		}
+		if ( this.kind === sdCube.KIND_BLUE )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.blue_filter.s;
+		}
 		if ( this.kind === sdCube.KIND_ANCIENT )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.ancient_filter.s;
+		}
+		if ( this.kind === sdCube.KIND_RED )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.red_filter.s;
 		}
 	}
 	
@@ -360,7 +390,7 @@ class sdCube extends sdEntity
 	
 		//dmg = Math.abs( dmg );
 		
-		let explode_on_hea = ( this.kind === sdCube.KIND_WHITE ? -2000 : -1000 );
+		let explode_on_hea = ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? -2000 : -1000 );
 		
 		if ( this.kind === sdCube.KIND_MATTER_STEALER )
 		explode_on_hea = 0;
@@ -407,27 +437,30 @@ class sdCube extends sdEntity
 			}
 		}
 		
-		if ( this.hea <= 0 && was_alive )
+		if ( this.kind === sdCube.KIND_RED && this.hea < this.hmax / 2 && this._phase === 0 || this.hea <= 0 && was_alive ) // Enter second phase
 		{
-			this.regen_timeout = 30 * 15; // Stay dead for at least 15 seconds
+			if ( this.hea <= 0 )
+			{
+				this.regen_timeout = 30 * 15; // Stay dead for at least 15 seconds
 			
-			this._alert_intensity = 0;
+				this._alert_intensity = 0;
 			
-			if ( this.kind === sdCube.KIND_MATTER_STEALER )
-			sdSound.PlaySound({ name:'red_railgun', pitch: 0.5, x:this.x, y:this.y, volume:1.5 });
-			else
-			sdSound.PlaySound({ name:'cube_offline', pitch: (this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE) ? 0.5 : 1, x:this.x, y:this.y, volume:1.5 });
+				if ( this.kind === sdCube.KIND_MATTER_STEALER )
+				sdSound.PlaySound({ name:'red_railgun', pitch: 0.5, x:this.x, y:this.y, volume:1.5 });
+				else
+				sdSound.PlaySound({ name:'cube_offline', pitch: ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE ) ? 0.5 : 1, x:this.x, y:this.y, volume:1.5 });
 			
-			this._boss_death_ping_timer = 0;
-			this._boss_death_pings_left = 10;
+				this._boss_death_ping_timer = 0;
+				this._boss_death_pings_left = 10;
+			}
 			
-			if ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_ANCIENT )
+			if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_ANCIENT )
 			{
 				setTimeout( ()=>
 				{
 					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, [ 'sdCube' ] );
 					
-					let to_spawn = ( this.kind === sdCube.KIND_WHITE ) ? 8 : 4;
+					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 8 : 4;
 					
 					if ( this.kind === sdCube.KIND_ANCIENT )
 					to_spawn = 1;
@@ -479,6 +512,19 @@ class sdCube extends sdEntity
 							{
 								kinds = [ sdCube.KIND_CYAN, sdCube.KIND_PINK, sdCube.KIND_BLUE ];
 
+								if ( this.kind === sdCube.KIND_RED )
+								{
+									kinds.push( sdCube.KIND_YELLOW );
+
+									// if ( Math.random() < 0.5 )
+									kinds.push( sdCube.KIND_WHITE );
+									
+									if ( Math.random() < 0.01 )
+									kinds.push( sdCube.KIND_GREEN );
+
+									this._phase = 1;
+								}
+
 								if ( this.kind === sdCube.KIND_WHITE )
 								{
 									kinds.push( sdCube.KIND_YELLOW );
@@ -486,6 +532,7 @@ class sdCube extends sdEntity
 									if ( Math.random() < 0.01 )
 									kinds.push( sdCube.KIND_ANCIENT );
 								}
+
 							}
 
 							sdWeather.SimpleSpawner({
@@ -536,6 +583,9 @@ class sdCube extends sdEntity
 			}
 			else
 			{
+				if ( this.kind === sdCube.KIND_RED )
+				sdSound.PlaySound({ name:'cube_death', pitch: 0.3, x:this.x, y:this.y, volume:2.5 });
+				else
 				if ( this.kind === sdCube.KIND_WHITE )
 				sdSound.PlaySound({ name:'cube_death', pitch: 0.4, x:this.x, y:this.y, volume:2.5 });
 				else
@@ -552,14 +602,17 @@ class sdCube extends sdEntity
 					y:this.y, 
 					radius:70, // 80 was too much?
 					damage_scale: 4.5, // 5 was too deadly on relatively far range
-					type:sdEffect.TYPE_EXPLOSION, 
+					type:this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 					owner:this,
-					color:'#33FFFF' 
+					color:this.kind === sdCube.KIND_RED ? '#000000' : '#33FFFF' 
 				});
 
 				//if ( initiator )
 				//if ( typeof initiator._score !== 'undefined' )
 				{
+					if ( this.kind === sdCube.KIND_RED )
+					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS_OVERPOWERED );
+					else
 					if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE )
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 					else
@@ -574,7 +627,7 @@ class sdCube extends sdEntity
 					// sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, 
 					// side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
 					
-					let scale = this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100;
+					let scale = this.kind === sdCube.KIND_RED ? 400 : this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100;
 					let image_id = 0;
 					
 					let offset = 3 * scale / 100;
@@ -592,8 +645,7 @@ class sdCube extends sdEntity
 
 				//console.log( 'CLASS_TRIPLE_RAIL drop chances: ' + r + ' < ' + ( this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 0.25 );
 
-				//if ( r < ( this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 0.5 ) // 0.25 was not enough for some rather strange reason (something like 1 drop out of 55 cube kills that wasn't even noticed by anyone)
-				if ( r < ( this.kind === sdCube.KIND_WHITE ? 0.55 : this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
+				if ( r < ( this.kind === sdCube.KIND_RED ? 0.9 : this.kind === sdCube.KIND_WHITE ? 0.55 : this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
 				{
 					//if ( r < ( this.kind === sdCube.KIND_WHITE ? 0.55 : this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 1 ) // 2x chance of triple rail to drop, only when triple rail does not drop
 					// We actually can get a case when sum of both chances becomes something like 0.4 + ( 1 - 0.4 ) * 0.4 = 0.64 chance of dropping anything from big cubes, maybe it could be too high and thus value of guns could become not so valuable
@@ -606,10 +658,10 @@ class sdCube extends sdEntity
 						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 							let random_value = Math.random();
-
 							let gun;
 
 							const probability_lost_converter = 0.075;
+							const probability_void_capacitor = 0.08; // This cube is already rare enough
 							const probability_shotgun = 0.1;
 							const probability_triple_rail = 0.233;
 							const probability_teleporter = 0.233;
@@ -622,6 +674,9 @@ class sdCube extends sdEntity
 							else
 							if ( this.kind === sdCube.KIND_WHITE ) // white
 							total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail + probability_teleporter;
+							else
+							if ( this.kind === sdCube.KIND_RED ) // crimson
+							total_drop_probability += probability_void_capacitor + probability_shotgun + probability_triple_rail;
 							else
 							if ( this.kind === sdCube.KIND_ANCIENT ) // ancient
 							total_drop_probability += probability_lost_triple_rail;
@@ -654,6 +709,18 @@ class sdCube extends sdEntity
 									else
 									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
 								}
+								else
+								if ( this.kind === sdCube.KIND_RED ) // Higher drop rates
+								{
+									if ( random_value < probability_void_capacitor )
+									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_VOID_CAPACITOR });
+									else
+									if ( random_value < probability_void_capacitor + probability_shotgun )
+									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
+									else
+									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+								}
+								else
 								if ( this.kind === sdCube.KIND_ANCIENT )
 								{
 									if ( random_value < probability_lost_triple_rail )
@@ -686,7 +753,7 @@ class sdCube extends sdEntity
 
 				r = Math.random(); // Cube shard and cube fusion core dropping roll
 
-				if ( r < ( this.kind === sdCube.KIND_WHITE ? 0.85 : this.kind === sdCube.KIND_YELLOW ? 0.7 : 0.25 ) * 0.6 ) // Higher chance just for some time at least?
+				if ( r < ( this.kind === sdCube.KIND_RED || sdCube.KIND_WHITE ? 0.85 : this.kind === sdCube.KIND_YELLOW ? 0.7 : 0.25 ) * 0.6 ) // Higher chance just for some time at least?
 				{
 					let x = this.x;
 					let y = this.y;
@@ -696,7 +763,7 @@ class sdCube extends sdEntity
 					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 						let gun;
-						let fusion_core_odds = ( this.kind === sdCube.KIND_WHITE ? 0.055 : this.kind === sdCube.KIND_YELLOW ? 0.045 : this.kind === sdCube.KIND_PINK ? 0 : 0.035 ); // Pinks are too small for fusion cores
+						let fusion_core_odds = ( this.kind === sdCube.KIND_RED ? 0.1 : this.kind === sdCube.KIND_WHITE ? 0.055 : this.kind === sdCube.KIND_YELLOW ? 0.045 : this.kind === sdCube.KIND_PINK ? 0 : 0.035 ); // Pinks are too small for fusion cores
 						if ( Math.random() < fusion_core_odds )
 						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_FUSION_CORE });
 						else
@@ -715,7 +782,7 @@ class sdCube extends sdEntity
 				
 				
 
-				if ( this.kind === sdCube.KIND_WHITE || ( this.kind === sdCube.KIND_YELLOW && Math.random() < 0.5 ) )
+				if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || ( this.kind === sdCube.KIND_YELLOW && Math.random() < 0.5 ) )
 				{
 					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
@@ -738,7 +805,7 @@ class sdCube extends sdEntity
 		//this.remove();
 	}
 	
-	get mass() { return this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW ? 30*4 : 30; }
+	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW ? 30*4 : 30; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -754,7 +821,7 @@ class sdCube extends sdEntity
 			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
-	FireDirectionalBeams() // Fire 4 rail beams in 4 different directions - up, down, left and right
+	FireDirectionalBeams( is_void ) // Fire 4 rail beams in 4 different directions - up, down, left and right
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -773,12 +840,12 @@ class sdCube extends sdEntity
 					y: bullet.y, 
 					radius: 16,
 					damage_scale: 0, // Just a decoration effect
-					type: sdEffect.TYPE_EXPLOSION, 
+					type: is_void ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 					owner: this,
-					color: '#aaaaaa'
+					color: is_void ? '#000000' : '#aaaaaa'
 				});
 
-				sdLost.ApplyAffection( target_entity, 10, bullet, sdLost.FILTER_WHITE );
+				sdLost.ApplyAffection( target_entity, is_void ? 30 : 10, bullet, is_void ? sdLost.FILTER_VOID : sdLost.FILTER_WHITE );
 			}
 		};
 
@@ -793,10 +860,11 @@ class sdCube extends sdEntity
 					bullet_obj1.sx *= 16;
 					bullet_obj1.sy *= 16;
 						
-					bullet_obj1.time_left = 30;
+					bullet_obj1.time_left = 20;
 
 					bullet_obj1._rail = true;
-					bullet_obj1.color = '#888888';
+					if ( is_void ) bullet_obj1._rail_circled = true;
+					bullet_obj1.color = is_void ? '#000000' : '#888888';
 
 					bullet_obj1._damage = 1;
 
@@ -814,10 +882,11 @@ class sdCube extends sdEntity
 					bullet_obj2.sx *= 16;
 					bullet_obj2.sy *= 16;
 						
-					bullet_obj2.time_left = 30;
+					bullet_obj2.time_left = 20;
 
 					bullet_obj2._rail = true;
-					bullet_obj2.color = '#888888';
+					if ( is_void ) bullet_obj2._rail_circled = true;
+					bullet_obj2.color = is_void ? '#000000' : '#888888';
 
 					bullet_obj2._damage = 1;
 
@@ -835,10 +904,11 @@ class sdCube extends sdEntity
 					bullet_obj3.sx *= 16;
 					bullet_obj3.sy *= 16;
 						
-					bullet_obj3.time_left = 30;
+					bullet_obj3.time_left = 20;
 
-					bullet_obj3._rail = true;
-					bullet_obj3.color = '#888888';
+					bullet_obj3._rail = true
+					if ( is_void ) bullet_obj3._rail_circled = true;
+					bullet_obj3.color = is_void ? '#000000' : '#888888';
 
 					bullet_obj3._damage = 1;
 
@@ -856,10 +926,11 @@ class sdCube extends sdEntity
 					bullet_obj4.sx *= 16;
 					bullet_obj4.sy *= 16;
 						
-					bullet_obj4.time_left = 30;
+					bullet_obj4.time_left = 20;
 
 					bullet_obj4._rail = true;
-					bullet_obj4.color = '#888888';	
+					if ( is_void ) bullet_obj4._rail_circled = true;
+					bullet_obj4.color = is_void ? '#000000' : '#888888';
 
 					bullet_obj4._damage = 1;
 
@@ -954,7 +1025,7 @@ class sdCube extends sdEntity
 			if ( this.death_anim < sdCube.death_duration + sdCube.post_death_ttl )
 			this.death_anim += GSPEED;
 			
-			if ( this.kind === sdCube.KIND_WHITE ) // Bosses
+			if ( this.kind === sdCube.KIND_RED ||this.kind === sdCube.KIND_WHITE ) // Bosses
 			if ( this._boss_death_pings_left > 0 )
 			{
 				this._boss_death_ping_timer += GSPEED;
@@ -980,9 +1051,9 @@ class sdCube extends sdEntity
 									y:this.y, 
 									radius:32 * t + 32,
 									damage_scale: 0, // Just a decoration effect
-									type:sdEffect.TYPE_EXPLOSION, 
+									type: this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 									owner:this,
-									color:'#aaaaaa' 
+									color:this.kind === sdCube.KIND_RED ? '#000000': '#aaaaaa' 
 								});
 
 								let nears = sdWorld.GetAnythingNear( this.x, this.y, 32 * t + 32 );
@@ -993,6 +1064,12 @@ class sdCube extends sdEntity
 									{
 									}
 									else
+									if ( this.kind === sdCube.KIND_RED )
+									{
+										if ( nears[i].IsPlayerClass() || nears[i].GetClass() === 'sdCube' )
+										nears[i].ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 24 });
+									}
+									else if ( this.kind === sdCube.KIND_WHITE ) 
 									{
 										// Normally won't lost guns since they have high HP
 										sdLost.ApplyAffection( nears[ i ], 200 / 5, null, sdLost.FILTER_WHITE );
@@ -1294,7 +1371,7 @@ class sdCube extends sdEntity
 
 							bullet_obj._damage = 15;
 							
-							if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE )
+							if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
 							{
 								bullet_obj._damage = 18;
 							}
@@ -1363,7 +1440,7 @@ class sdCube extends sdEntity
 							}
 							else
 							{
-								sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
+								sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
 							}
 
 							sdEntity.entities.push( bullet_obj );
@@ -1371,12 +1448,20 @@ class sdCube extends sdEntity
 							this._charged_shots--;
 
 							if ( this.kind === sdCube.KIND_WHITE )
-							this.FireDirectionalBeams();
+							this.FireDirectionalBeams( false );
+
+							if ( this.kind === sdCube.KIND_RED )
+							{
+								this.FireDirectionalBeams( true );
+
+								if ( this._phase === 1 && this.hea <= this.hmax / 2 )
+								this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
+							}
 
 							if ( this._charged_shots <= 0 )
 							{
-								this._charged_shots = ( this.kind === sdCube.KIND_WHITE ) ? 5 : 3;
-								this._attack_timer = 45;
+								this._charged_shots = this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 5 : 3;
+								this._attack_timer = 45 * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
 							}
 
 						}
@@ -1478,15 +1563,18 @@ class sdCube extends sdEntity
 	
 		if ( this.kind === sdCube.KIND_BLUE )
 		return "Shielder cube";
+
+		if ( this.kind === sdCube.KIND_RED )
+		return "Crimson cube";
 	
 		return "Cube";
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		sdEntity.Tooltip( ctx, this.title, 0, this.kind === sdCube.KIND_RED ? -10 : 0 );
 		
-		if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_MATTER_STEALER )
+		if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_MATTER_STEALER )
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )
@@ -1541,6 +1629,12 @@ class sdCube extends sdEntity
 			ctx.scale( scale, scale );
 			ctx.sd_filter = sdCube.ancient_filter;
 			//yy = 5; // Reserved for ancient shotgun cube
+		}
+		if ( this.kind === sdCube.KIND_RED )
+		{
+			ctx.scale( scale / 2, scale / 2 );
+			ctx.sd_filter = sdCube.red_filter;
+			yy = 6
 		}
 		
 		/*if ( this.armor > 1000 )
@@ -1631,6 +1725,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_PINK )
 		sdCube.alive_pink_cube_counter--;
+
+		if ( this.kind === sdCube.KIND_RED )
+		sdCube.alive_red_cube_counter--;
 	}
 	onRemove() // Class-specific, if needed
 	{
