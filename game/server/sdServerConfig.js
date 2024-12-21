@@ -1316,13 +1316,34 @@ class sdServerConfigFull extends sdServerConfigShort
 				break;
 			}
 			
+			
+			let lrtp_nearby = false;
+			for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+			{
+				let s = sdLongRangeTeleport.long_range_teleports[ i ];
+
+				if ( s.is_server_teleport )
+				if ( sdWorld.inDist2D_Boolean( x, y, s.x, s.y, sdBaseShieldingUnit.protect_distance ) )
+				{
+					lrtp_nearby = true;
+					break;
+				}
+			}
+			
 			let bsu_nearby = false;
+			if ( !lrtp_nearby )
 			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
 			{
 				let e = sdBaseShieldingUnit.all_shield_units[ i ];
 				if ( e.enabled )
 				if ( sdWorld.inDist2D_Boolean( x, y, e.x, e.y, sdBaseShieldingUnit.protect_distance ) )
 				{
+					if ( e.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE && e.MeasureProtectionPercentage() < 0.9 )
+					{
+						// Ignore these
+						continue;
+					}
+					
 					bsu_nearby = true;
 					break;
 				}
@@ -1405,11 +1426,20 @@ class sdServerConfigFull extends sdServerConfigShort
 			tr++;
 			if ( tr > max_tr )
 			{
-				character_entity.x = x;
-				character_entity.y = y;
+				//character_entity.x = x;
+				//character_entity.y = y;
 				
-				//character_entity.x = 0;
-				//character_entity.y = -128;
+				// Otherwise just spawn in the center and damage items in there
+				character_entity.x = x;
+				character_entity.y = y1 + 64;
+				
+				let ents = sdWorld.GetAnythingNear( character_entity.x, character_entity.y, 64 );
+				for ( let i = 0; i < ents.length; i++ )
+				{
+					if ( ents[ i ]._shielded )
+					ents[ i ].remove();
+				}
+				
 				break;
 			}
 		} while( true );
