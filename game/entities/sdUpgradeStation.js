@@ -203,6 +203,9 @@ class sdUpgradeStation extends sdEntity
 		this.matter = 100;
 		this.level = 1;
 		
+		this.armor_to_build = sdGun.CLASS_ARMOR_STARTER; // Standard armor defined at start, so players can know it can spawn armor now.
+		this._armor_cooldown = 0; // Cooldown for armor spawning
+		
 		this._armor_protection_level = 0;
 
 		this.hologram = true;
@@ -234,6 +237,9 @@ class sdUpgradeStation extends sdEntity
 
 		if ( this._cooldown > 0 )
 		this._cooldown -= GSPEED;
+	
+		if ( this._armor_cooldown > 0 )
+		this._armor_cooldown -= GSPEED;
 
 		else
 		{
@@ -282,15 +288,49 @@ class sdUpgradeStation extends sdEntity
 		if ( sdWorld.is_server )
 		{
 			if ( !from_entity._is_being_removed )
-			if ( from_entity.is( sdGun ) )
-			if ( from_entity.class === sdGun.CLASS_UPGRADE_STATION_CHIPSET )
-			if ( this.level < sdUpgradeStation.MAX_STATION_LEVEL )
 			{
-				this.UpgradeStation();
-				
-				//sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
-				
-				from_entity.remove();
+				if ( from_entity.is( sdGun ) )
+				{
+					if ( from_entity.class === sdGun.CLASS_UPGRADE_STATION_CHIPSET )
+					if ( this.level < sdUpgradeStation.MAX_STATION_LEVEL )
+					{
+						this.UpgradeStation();
+						
+						//sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						
+						from_entity.remove();
+					}
+					
+					/*if ( from_entity.class === sdGun.CLASS_LVL1_LIGHT_ARMOR || from_entity.class === sdGun.CLASS_LVL1_MEDIUM_ARMOR || from_entity.class === sdGun.CLASS_LVL1_HEAVY_ARMOR ||
+						 from_entity.class === sdGun.CLASS_LVL2_LIGHT_ARMOR || from_entity.class === sdGun.CLASS_LVL2_MEDIUM_ARMOR || from_entity.class === sdGun.CLASS_LVL2_HEAVY_ARMOR ||
+						 from_entity.class === sdGun.CLASS_LVL3_LIGHT_ARMOR || from_entity.class === sdGun.CLASS_LVL3_MEDIUM_ARMOR || from_entity.class === sdGun.CLASS_LVL3_HEAVY_ARMOR ||
+						 from_entity.class === sdGun.CLASS_ARMOR_STARTER ) */
+						 
+					// Maybe I should just add "is_armor:true" inside sdGunClass for those - Booraz
+						 
+					if ( sdGun.classes[ from_entity.class ].armor_properties ) // Better?
+					{
+						if ( sdGun.classes[ from_entity.class ].spawnable !== false ) // Make sure players can build it
+						{
+							this.armor_to_build = from_entity.class;
+							from_entity.remove();
+							sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						}
+					}
+				}
+				// Armor auto-building
+				if ( from_entity.is( sdCharacter ) && this.armor_to_build !== -1 && this._armor_cooldown <= 0 )
+				{
+					if ( this.matter >= sdGun.classes[ this.armor_to_build ].matter_cost ) // Enough matter?
+					{
+						if ( from_entity.ApplyArmor( sdGun.classes[ this.armor_to_build ].armor_properties ) ) // If armor is applied
+						{
+							this.matter -= sdGun.classes[ this.armor_to_build ].matter_cost; // Reduce matter as the equalivent of building it
+							this._armor_cooldown = 30; // 1 second cooldown
+							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+						}
+					}
+				}
 			}
 		}
 	}
@@ -301,9 +341,14 @@ class sdUpgradeStation extends sdEntity
 	Draw( ctx, attached )
 	{
 		if ( this.hologram )
-		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 32, 32,64 );
+		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 31, 32,64 );
 		else
-		ctx.drawImageFilterCache( sdUpgradeStation.img_us_disabled, -16, -16 - 32, 32,64 );
+		ctx.drawImageFilterCache( sdUpgradeStation.img_us_disabled, -16, -16 - 31, 32,64 );
+	
+		if ( this.armor_to_build !== -1 )
+		{
+			ctx.drawImageFilterCache( sdGun.classes[ this.armor_to_build ].image, - 16, -8, 32,32 );
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -370,6 +415,21 @@ class sdUpgradeStation extends sdEntity
 					return;
 				}
 			}
+			if ( command_name === 'REMOVE_AUTOBUILD' )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				{
+					if ( this.armor_to_build !== -1 )
+					this.armor_to_build = -1;
+					else
+					executer_socket.SDServiceMessage( 'Auto-build option already removed' );
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Upgrade station is too far' );
+					return;
+				}
+			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -384,6 +444,9 @@ class sdUpgradeStation extends sdEntity
 		
 			//if ( exectuter_character._god )
 			this.AddContextOption( 'Get basic equipment (500 matter cost)', 'UPGRADE_GET_EQUIP', [] );
+		
+			if ( this.armor_to_build !== -1 )
+			this.AddContextOption( 'Remove current auto-build armor (' + sdGun.classes[ this.armor_to_build ].title +')' , 'REMOVE_AUTOBUILD', [] );
 		}
 	}
 }
