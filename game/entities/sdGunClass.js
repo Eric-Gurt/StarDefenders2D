@@ -1836,7 +1836,6 @@ class sdGunClass
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
 					//sdSound.PlaySound({ name:'gun_railgun', x:gun.x, y:gun.y, pitch: 0.5 });
 				
-					// Let's "fake" penetration by spawning 5 projectiles at max combo
 				
 					let matter_cost = gun.GetBulletCost();
 					

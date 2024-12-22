@@ -675,8 +675,8 @@ class sdBullet extends sdEntity
 		return false;
 
 		if ( !this._wave )
-		if ( !this._hook )
 		if ( !this._rail )
+		if ( !this._hook )
 		if ( this._damage > 0 )
 		{
 			if ( this.penetrating )
