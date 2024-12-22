@@ -1827,6 +1827,12 @@ class sdGunClass
 								}
 							}
 							gun._combo_timer = 5;
+							
+							if ( gun._max_dps < ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ) && gun.extra[ ID_DAMAGE_VALUE ] <= 62 ) // TEMPORARY PATCH: REMOVE later
+							{
+								gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); 
+								gun.extra[ ID_DAMAGE_VALUE ] = 62;
+							}
 						}
 					}
 					return false;
