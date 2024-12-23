@@ -660,7 +660,7 @@ class sdDropPod extends sdEntity
 				{
 					if ( this.metal_shards === this.metal_shards_max )
 					{	
-						if ( this.level === 0 ? Math.random() > 0.175 : Math.random() > 0.225 )// 17.5% chance to fail, 22.5% on level 2.
+						if ( this.level === 0 ? Math.random() > 0.15 : Math.random() > 0.2 )// 15% chance to fail, 20% on level 2.
 						{
 							this.Progress();
 							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
@@ -683,7 +683,7 @@ class sdDropPod extends sdEntity
 							if ( this.level === 0 )
 							this.metal_shards_max += 2; // Failing makes it a bit harder to get in. Gets harder if failed on higher levels.
 							else
-							this.metal_shards_max += 3; // Failing makes it a bit harder to get in. More punishing on higher levels.
+							this.metal_shards_max -= 3; // Failing makes it a bit easier to get in.
 							sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1, pitch:0.44 });
 
 							if ( Math.random() > 0.8 )
