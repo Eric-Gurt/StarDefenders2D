@@ -1745,11 +1745,12 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_CANNON = 21 ] = { // sprite by Booraz149
 			image: sdWorld.CreateImageFromFile( 'rail_cannon' ),
+			image_charging: sdWorld.CreateImageFromFile( 'rail_cannon_charging' ),
 			sound: 'gun_railgun',
 			sound_pitch: 0.5,
 			title: 'Velox Rail Cannon',
 			slot: 4,
-			reload_time: 20,
+			reload_time: 18,
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			count: 1,
@@ -1763,8 +1764,14 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
+				obj._damage *= 1 + ( gun._combo / 45 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
+				
+				if ( gun._combo === 360 ) // Full charge?
+				obj.penetrating = true; // Allow penetration
+				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+			
 			
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
@@ -1773,7 +1780,6 @@ class sdGunClass
 				
 				return obj;
 			},
-
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
 				if ( !gun.extra )
@@ -1785,7 +1791,69 @@ class sdGunClass
 					//gun.extra[ ID_SLOT ] = 1;
 					gun.extra[ ID_DAMAGE_VALUE ] = 62; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
+					gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds
 				}
+			},
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				let mult = ( gun.extra[ 20 ] ) ? 0.75 : 1; // Cube fusion core merging reduces weapon matter cost by 25%
+				
+				return mult * sdGun.GetProjectileCost( gun.GetProjectileProperties(), gun._count, gun._temperature_addition ); // I kinda want it to keep it's matter cost as is
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					{
+						if ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by._auto_shoot_in <= 0 ) // Build up damage when holding the Button
+						{
+							if ( gun._combo === 20 ) // Started charging?
+							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
+							
+							gun._held_by._auto_shoot_in = 2;
+							if ( gun._combo < 360 ) // Does not scale infinitely, only to about 3 seconds
+							{
+								gun._combo++;
+								if ( gun._combo === 360 ) // Max charge?
+								{
+									sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 }); // Let the player know it's max charge
+								}
+							}
+							gun._combo_timer = 5;
+							
+							if ( gun._max_dps < ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ) && gun.extra[ ID_DAMAGE_VALUE ] <= 62 ) // TEMPORARY PATCH: REMOVE later
+							{
+								gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); 
+								gun.extra[ ID_DAMAGE_VALUE ] = 62;
+							}
+						}
+					}
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					//sdSound.PlaySound({ name:'gun_railgun', x:gun.x, y:gun.y, pitch: 0.5 });
+				
+				
+					let matter_cost = gun.GetBulletCost();
+					
+					if ( gun._held_by.matter >= matter_cost )
+					if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
+					{
+						//gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
+						gun._held_by.matter -= matter_cost;
+						gun._combo_timer = 1;
+					}
+				}
+				return true;
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30 ) )
 		};
@@ -2070,10 +2138,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 150,
 			min_workbench_level: 1,
+			armor_properties: { armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor({ armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 				/*
 				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.3 ) * 130 )
@@ -2104,10 +2173,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 250,
 			min_workbench_level: 1,
+			armor_properties: { armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
@@ -2138,10 +2208,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 350,
 			min_workbench_level: 1,
+			armor_properties: { armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 )
@@ -2961,10 +3032,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 275,
 			min_workbench_level: 2,
+			armor_properties: { armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 )
@@ -2995,10 +3067,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 375,
 			min_workbench_level: 2,
+			armor_properties: { armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 )
@@ -3029,10 +3102,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 475,
 			min_workbench_level: 2,
+			armor_properties: { armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 )
@@ -3414,10 +3488,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 400,
 			min_workbench_level: 6,
+			armor_properties: { armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 )
@@ -3448,10 +3523,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 500,
 			min_workbench_level: 6,
+			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 )
@@ -3482,10 +3558,11 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 600,
 			min_workbench_level: 6,
+			armor_properties: { armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor({ armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 )
@@ -4749,10 +4826,11 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			spawnable: false,
+			armor_properties: { armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }) )
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
@@ -7298,6 +7376,7 @@ class sdGunClass
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 			
+			
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
 				
@@ -9313,6 +9392,30 @@ class sdGunClass
 			projectile_properties: { _rail: true,_rail_circled: true,color:'#000000',_damage: 0, time_left: 30,_custom_target_reaction_protected:void_target_reaction,_custom_target_reaction:void_target_reaction },			
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
+
+		sdGun.classes[ sdGun.CLASS_ARMOR_STARTER = 143 ] = // Sprite and concept by Booraz
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_starter' ),
+			title: 'SD-00 Starter Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 100,
+			armor_properties: { armor: 100, _armor_absorb_perc: 0.2, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
+			has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
+			{ 
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				gun.remove();
+
+				return false; 
+			} 
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

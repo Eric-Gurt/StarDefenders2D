@@ -173,6 +173,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this._last_tick_score = sdWorld.time; // Score BSU-s would not count time spend in an offline server, essentially making them ignore placement limitations if server is idling at least half of the time. This fixes it
 		
+		//this._age = 0; // Goes up when enabled, goes down when disabled. Time continues to be tracked in private storage as well
+		
 		//this.filter = params.filter || 'none';
 
 		//this._repair_timer = 0;
@@ -190,6 +192,11 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		sdBaseShieldingUnit.all_shield_units.push( this );
 	}
+	/*onBeforeLongRangeTeleport( lrtp )
+	{
+		this.SetShieldState( false, null );
+		this._age = 0;
+	}*/
 	onSnapshotApplied()
 	{
 		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
@@ -1153,6 +1160,8 @@ class sdBaseShieldingUnit extends sdEntity
 			//if ( this.matter >= 320 )
 			if ( this.charge < 100 )
 			this.charge = Math.min( 100, this.charge + GSPEED * 0.25 );
+	
+			//this._age += GSPEED_offline_compensated;
 		}
 		else
 		{
@@ -1162,6 +1171,8 @@ class sdBaseShieldingUnit extends sdEntity
 			
 			if ( this.charge > 0 )
 			this.charge = Math.max( 0, this.charge - GSPEED * 0.25 );
+		
+			//this._age -= Math.max( 0, GSPEED_offline_compensated );
 		}
 		
 		if ( sdWorld.time > this.charge_blocked_until )

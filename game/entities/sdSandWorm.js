@@ -10,6 +10,7 @@ import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
 import sdBG from './sdBG.js';
 import sdCharacter from './sdCharacter.js';
+import sdDrone from './sdDrone.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
 import sdRift from './sdRift.js';
@@ -164,6 +165,7 @@ class sdSandWorm extends sdEntity
 		this._last_attack = sdWorld.time;
 		
 		this._last_found_target = 0; // When has it last time found a target? Used for Crystal Hunting Worm.
+		
 		
 		this._hibernation_check_timer = 30;
 		
@@ -421,7 +423,7 @@ class sdSandWorm extends sdEntity
 
 				}, 500 );
 				
-				if ( this === head_entity && ( ( this.scale >= 1 && Math.random() < 0.02 ) || ( this.scale < 1 && Math.random() < 0.002 ) ) ) // 2% chance for Exalted core, 0.2% if smaller worm
+				if ( this === head_entity && ( ( this.scale >= 1 && Math.random() < 0.03 ) || ( this.scale < 1 && Math.random() < 0.003 ) ) ) // 3% chance for Exalted core, 0.3% if smaller worm
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 				let gun;
@@ -710,6 +712,7 @@ class sdSandWorm extends sdEntity
 
 					ent.scale = ent_scale;
 					ent.kind = this.kind;
+					ent._ai_team = this._ai_team;
 
 					ent.model = 2;
 
@@ -1026,6 +1029,13 @@ class sdSandWorm extends sdEntity
 							
 							if ( this._current_target.is( sdSandWorm ) || ( this._current_target.is( sdCharacter ) && !this.HasEnoughMatter( this._current_target ) ) )
 							this._current_target = null;
+						
+							if ( this._current_target )
+							if ( ( this._current_target.is( sdCharacter ) || this._current_target.is( sdDrone ) ) && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Prevent targetting council humanoids if council worm is in question
+							{
+								if ( this._ai_team === this._current_target._ai_team )
+								this._current_target = null;
+							}
 						
 							if ( this._last_found_target > 250 ) // Over 250 attempts without finding a crystal to eat
 							{
