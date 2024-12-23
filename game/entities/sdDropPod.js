@@ -348,7 +348,7 @@ class sdDropPod extends sdEntity
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RIFLE }) );
 				}
-				else // 15%
+				else // 25%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_SMG }) );
 				}
