@@ -319,16 +319,16 @@ class sdDropPod extends sdEntity
 			if ( Math.random() < 0.4 ) // Random power weapon given to Star Defenders, 40% chance
 			{
 				let rng = Math.random(); // Value between 0 and 1 at the moment.
-				if ( rng < 0.375 ) // 37.5%
+				if ( rng < 0.3 ) // 30%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_AVRS }) );
 				}
 				else
-				if ( rng < 0.75 ) // 37.5%
+				if ( rng < 0.55 ) // 25%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RAILCANNON }) );
 				}
-				else // 30%
+				else // 45%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MMG }) );
 				}
@@ -336,19 +336,19 @@ class sdDropPod extends sdEntity
 			else // Random regular weapon given to Star Defenders, 60% chance
 			{
 				let rng = Math.random(); // Value between 0 and 1 at the moment.
-				if ( rng < 0.20 ) // 20%
+				if ( rng < 0.15 ) // 15%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_HANDCANNON }) );
 				}
-				else if ( rng < 0.40 ) // 20%
+				else if ( rng < 0.40 ) // 25%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MISSILE_LAUNCHER }) );
 				}
-				else if ( rng < 0.70 ) // 30%
+				else if ( rng < 0.75 ) // 35%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RIFLE }) );
 				}
-				else // 30%
+				else // 15%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_SMG }) );
 				}
