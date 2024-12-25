@@ -176,7 +176,9 @@ class sdCharacter extends sdEntity
 			{ file:'helmets/helmet_architect', name:'Architect' }, //  by LordBored, index = 123
 			{ file:'helmets/helmet_architect2', name:'Architect Alt1' }, //  by LordBored, index = 124
 			{ file:'helmets/helmet_architect3', name:'Architect Alt2' }, //  by LordBored, index = 125
-			
+			{ file:'helmets/helmet_pumpkin', name:'Pumpkin' }, //  by Gashadokuro, index = 126
+                        { file:'helmets/helmet_face', name:'Face' } //  by Gashadokuro, index = 127
+
 			// Add new values at the end
 			// Note: Commas -> , are important since this is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 			// Note: Never insert values in the middle as it will cause existing skins to break
