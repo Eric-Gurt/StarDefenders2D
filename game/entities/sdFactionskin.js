@@ -110,11 +110,13 @@ class sdFactionskin extends sdEntity
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 
-			character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+			character_entity._matter_regeneration = 3; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+			character_entity._ai_enabled = ( Math.random() < 0.5 ) ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_AERIAL; // 50% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_PHOENIX_FALKOK ) // Phoenix Falkok
@@ -144,11 +146,13 @@ class sdFactionskin extends sdEntity
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 										
-			character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+			character_entity._matter_regeneration = 3; // At least some ammo regen
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+			character_entity._ai_enabled = ( Math.random() < 0.5 ) ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_AERIAL; // 50% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_ERTHAL ) // Erthal
@@ -221,6 +225,8 @@ class sdFactionskin extends sdEntity
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 			PLAY_SOUND_METHOD({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 			character_entity._ai.next_action = 5;
+			character_entity._ai_enabled = ( Math.random() < 0.25 ) ? sdCharacter.AI_MODEL_AGGRESSIVE : sdCharacter.AI_MODEL_AERIAL; // 25% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 
 			SEND_EFFECT_METHOD({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 		}
@@ -260,6 +266,8 @@ class sdFactionskin extends sdEntity
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 			PLAY_SOUND_METHOD({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 			character_entity._ai.next_action = 5;
+			character_entity._ai_enabled = ( Math.random() < 0.25 ) ? sdCharacter.AI_MODEL_AGGRESSIVE : sdCharacter.AI_MODEL_AERIAL; // 25% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 
 			SEND_EFFECT_METHOD({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 		}
@@ -367,6 +375,8 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 5; // AI team 5 is for Velox faction
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+			character_entity._ai_enabled = ( Math.random() < 0.5 ) ? sdCharacter.AI_MODEL_DISTANT : sdCharacter.AI_MODEL_AERIAL; // 50% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_VELOX_RIFLE ) // Velox Soldier Combat Rifle Class
@@ -402,6 +412,8 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 5; // AI team 5 is for Velox faction
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+			character_entity._ai_enabled = ( Math.random() < 0.5 ) ? sdCharacter.AI_MODEL_DISTANT : sdCharacter.AI_MODEL_AERIAL; // 50% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_VELOX_DEVASTATOR ) // Velox Devastator
@@ -438,6 +450,8 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 5; // AI team 5 is for Velox faction
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+			character_entity._ai_enabled = ( Math.random() < 0.5 ) ? sdCharacter.AI_MODEL_DISTANT : sdCharacter.AI_MODEL_AERIAL; // 50% chance for aerial behaviour
+			character_entity._init_ai_model = character_entity._ai_enabled;
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_SETR ) // Setr Soldier
@@ -615,6 +629,8 @@ class sdFactionskin extends sdEntity
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 			character_entity.s = 150;
 			character_entity._jetpack_power = 4;
+			character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE; // Make sure it's aggressive
+			character_entity._init_ai_model = character_entity._ai_enabled;
 		}
 
 		if ( skin_class === sdFactionskin.SKIN_STAR_DEFENDER_RESCUE ) // Rescue Star Defender, the Green one, no task spawns
