@@ -7155,9 +7155,15 @@ THING is cosmic mic drop!`;
 			attachment_x: 0,
 			attachment_y: -raise,
 			text:t,
-			text_censored: ( typeof sdModeration === 'undefined' ) ? 0 : sdModeration.IsPhraseBad( t, this._socket ),
+			text_censored: undefined,
 			voice:this._voice,
 			no_ef:simulate_sound
+		};
+		
+		let RequireCensorshipTest = ()=>
+		{
+			if ( params.text_censored === undefined )
+			params.text_censored = ( typeof sdModeration === 'undefined' ) ? 0 : sdModeration.IsPhraseBad( t, this._socket );
 		};
 		
 		if ( translate )
@@ -7169,6 +7175,8 @@ THING is cosmic mic drop!`;
 			{
 				if ( !ignore_rate_limit )
 				this._say_allowed_in = sdWorld.time + t.length * 50;
+			
+				RequireCensorshipTest();
 				
 				if ( to_self )
 				{
@@ -7199,6 +7207,8 @@ THING is cosmic mic drop!`;
 		{
 			if ( force_client_side )
 			{
+				RequireCensorshipTest();
+				
 				let ef = new sdEffect( params );
 				sdEntity.entities.push( ef );
 			}
