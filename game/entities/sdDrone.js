@@ -1279,7 +1279,7 @@ class sdDrone extends sdEntity
 						from_entity = nears[ i ].ent;
 						
 						if ( pathfinding_result )
-						if ( from_entity === pathfinding_result.attack_target )
+						if ( from_entity === pathfinding_result.attack_target && from_entity !== this._current_target )
 						{
 							this._look_x = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 							this._look_y = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;

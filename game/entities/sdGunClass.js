@@ -1745,11 +1745,12 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_CANNON = 21 ] = { // sprite by Booraz149
 			image: sdWorld.CreateImageFromFile( 'rail_cannon' ),
+			image_charging: sdWorld.CreateImageFromFile( 'rail_cannon_charging' ),
 			sound: 'gun_railgun',
 			sound_pitch: 0.5,
 			title: 'Velox Rail Cannon',
 			slot: 4,
-			reload_time: 20,
+			reload_time: 18,
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			count: 1,
@@ -1763,8 +1764,14 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
+				obj._damage *= 1 + ( gun._combo / 45 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
+				
+				if ( gun._combo === 360 ) // Full charge?
+				obj.penetrating = true; // Allow penetration
+				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+			
 			
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
@@ -1773,7 +1780,6 @@ class sdGunClass
 				
 				return obj;
 			},
-
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
 				if ( !gun.extra )
@@ -1785,7 +1791,69 @@ class sdGunClass
 					//gun.extra[ ID_SLOT ] = 1;
 					gun.extra[ ID_DAMAGE_VALUE ] = 62; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
+					gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds
 				}
+			},
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				let mult = ( gun.extra[ 20 ] ) ? 0.75 : 1; // Cube fusion core merging reduces weapon matter cost by 25%
+				
+				return mult * sdGun.GetProjectileCost( gun.GetProjectileProperties(), gun._count, gun._temperature_addition ); // I kinda want it to keep it's matter cost as is
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					{
+						if ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by._auto_shoot_in <= 0 ) // Build up damage when holding the Button
+						{
+							if ( gun._combo === 20 ) // Started charging?
+							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
+							
+							gun._held_by._auto_shoot_in = 2;
+							if ( gun._combo < 360 ) // Does not scale infinitely, only to about 3 seconds
+							{
+								gun._combo++;
+								if ( gun._combo === 360 ) // Max charge?
+								{
+									sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 }); // Let the player know it's max charge
+								}
+							}
+							gun._combo_timer = 5;
+							
+							if ( gun._max_dps < ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ) && gun.extra[ ID_DAMAGE_VALUE ] <= 62 ) // TEMPORARY PATCH: REMOVE later
+							{
+								gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); 
+								gun.extra[ ID_DAMAGE_VALUE ] = 62;
+							}
+						}
+					}
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					//sdSound.PlaySound({ name:'gun_railgun', x:gun.x, y:gun.y, pitch: 0.5 });
+				
+				
+					let matter_cost = gun.GetBulletCost();
+					
+					if ( gun._held_by.matter >= matter_cost )
+					if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
+					{
+						//gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
+						gun._held_by.matter -= matter_cost;
+						gun._combo_timer = 1;
+					}
+				}
+				return true;
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30 ) )
 		};
@@ -7307,6 +7375,7 @@ class sdGunClass
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+			
 			
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%

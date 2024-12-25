@@ -600,7 +600,7 @@ class sdBullet extends sdEntity
 						this._damage = this._damage / vel * vel2;
 
 						if ( !sdWorld.is_server )
-						if ( sdWorld.last_hit_entity === null || !this.CanBounceOff( sdWorld.last_hit_entity ) )
+						if ( sdWorld.last_hit_entity === null || ( !this.CanBounceOff( sdWorld.last_hit_entity ) && !this.WillRailPenetrate( sdWorld.last_hit_entity ) ) )
 						{
 							this.RemoveBullet();
 						
@@ -686,6 +686,22 @@ class sdBullet extends sdEntity
 		}
 
 		return false;
+	}
+	
+	WillRailPenetrate( from_entity )
+	{
+		if ( !this.penetrating || !this._rail )
+		return false;
+	
+		if ( this._damage > 5 ) // Larger damage threshold since it can penetrate way better 
+		{
+			if ( from_entity.is( sdBlock ) || from_entity.is( sdDoor ) )
+			return ( from_entity._shielded === null ); // Disallow shielded units to be penetrated
+			
+			return true;
+		}
+		
+		return false;	
 	}
 
 	GetCollisionMode()
@@ -883,7 +899,7 @@ class sdBullet extends sdEntity
 					//let dmg_mult = 1;
 
 
-					if ( this.CanBounceOff( from_entity ) )
+					if ( this.CanBounceOff( from_entity ) || ( this._rail && this.WillRailPenetrate( from_entity ) ) ) // Allow some rails to penetrate
 					{
 						if ( this.penetrating )
 						{
@@ -1130,8 +1146,8 @@ class sdBullet extends sdEntity
 						if ( this.penetrating )
 						{
 							this._damage *= 0.5;
-							this.sx *= 0.5;
-							this.sy *= 0.5;
+							this.sx *= this._rail ? 0.95 : 0.5;
+							this.sy *= this._rail ? 0.95 : 0.5;
 
 							//console.log( 'vel = '+sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 
