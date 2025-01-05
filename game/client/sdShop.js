@@ -1162,6 +1162,18 @@ class sdShop
 				{
 					character._armor_repair_mult = 1 + ( 0.1 * level_purchased ); // 50% increased speed at max level
 				}
+			},
+			upgrade_sword_throw_strength:
+			{
+				max_level: 5,
+				matter_cost: 125,
+				max_with_upgrade_station_level: 10,
+				min_upgrade_station_level: 10,
+				description: 'Increases power of your sword throws.',
+				action: ( character, level_purchased )=>
+				{
+					character._sword_throw_mult = 1 + ( 0.2 * level_purchased ); // 3x damage mult at max level
+				}
 			}
 
 		};
