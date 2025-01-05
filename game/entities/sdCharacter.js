@@ -1301,6 +1301,7 @@ THING is cosmic mic drop!`;
 		this._ghost_cost_multiplier = 1; // Through upgrade
 		this._shield_cost_multiplier = 1; // Through upgrade
 		this._armor_repair_mult = 1; // Through upgrade
+		this._sword_throw_mult = 1; // Through upgrade
 		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;

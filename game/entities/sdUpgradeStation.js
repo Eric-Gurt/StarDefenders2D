@@ -20,7 +20,7 @@ class sdUpgradeStation extends sdEntity
 
 		sdUpgradeStation.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
-		sdUpgradeStation.MAX_STATION_LEVEL = 9;
+		sdUpgradeStation.MAX_STATION_LEVEL = 10;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}

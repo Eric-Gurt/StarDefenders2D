@@ -6594,7 +6594,7 @@ class sdGunClass
 			{
 				gun._max_dps = ( 30 / 7.5 ) * 300; // Should be 1200 DPS on max combo. On par with upgraded FMMG, and upgraded Zektaron Focus Beam.
 			},
-			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: 'transparent'},
+			projectile_properties: { _rail: true, time_left: 0, _damage: 100, color: 'transparent'},
 			upgrades: AddRecolorsFromColorAndCost( [], '#dcdcdc', 20 )
 		};
 

@@ -302,17 +302,34 @@ class sdGun extends sdEntity
 
 						let mult = 1;
 
-						if ( from_entity.IsPlayerClass() )
+						/*if ( from_entity.IsPlayerClass() )
 						{
-							mult = 1.5;
+							mult = 1.5; // We now have sword throw upgrade
 
 							mult *= from_entity.GetHitDamageMultiplier( this.x, this.y );
 						}
+						*/
+						
+						mult *= from_entity.GetHitDamageMultiplier( this.x, this.y ); // Make weakpoints count
+						
+						if ( this._dangerous_from )
+						{
+							if ( this._dangerous_from.IsPlayerClass() )
+							mult *= this._dangerous_from._sword_throw_mult; // Multiply by sword throw upgrade
+						}
+					
+						if ( this.extra[ 7 ] ) // Has weapon damage multiplier / can be upgraded at weapon bench?
+						mult *= this.extra[ 7 ]; // Apply it
+						
+						let damage = projectile_properties._damage || 1; // Let's start off with this.
+						if ( this.extra[ 17 ] ) // Weapon has "damage" value defined?
+						damage = this.extra[ 17 ]; // Use that value instead, however both projectile_properties._damage and ID_DAMAGE_VALUE should be the same in sdGunClass.
+						// Maybe if we allow weapon merging for swords could make it interesting?
 
 						//if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
 						//from_entity.DamageWithEffect( projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
 						//else
-						from_entity.DamageWithEffect( projectile_properties._damage, this._dangerous_from );
+						from_entity.DamageWithEffect( damage * mult, this._dangerous_from );
 
 						this.DamageWithEffect( 1 );
 
