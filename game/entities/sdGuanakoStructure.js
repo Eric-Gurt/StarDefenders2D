@@ -140,7 +140,10 @@ class sdGuanakoStructure extends sdEntity
 			this._update_version++;
 		}
 	}
-	
+	get shielded() // Makes it protect crystal from Octopus attack
+	{
+		return true;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -241,6 +244,9 @@ class sdGuanakoStructure extends sdEntity
 				this._guanakos_inside++;
 				
 				sdTimer.ExecuteWithDelay( ( timer )=>{
+					
+					if ( this.hea <= 0 )
+					return;
 
 					if ( this._last_highest_crystal_tier < this._current_highest_crystal_tier )
 					{
@@ -289,6 +295,8 @@ class sdGuanakoStructure extends sdEntity
 		this._owner_guanako._home = this;
 		this._owner_guanako.sx = -2 + Math.random() * 4;
 		this._owner_guanako.sy = -1;
+		
+		this._owner_guanako.y -= this._owner_guanako.hitbox_y2;
 	}
 
 	Draw( ctx, attached )

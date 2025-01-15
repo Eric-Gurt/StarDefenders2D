@@ -15,6 +15,8 @@
 
 
 
+/* global Infinity, globalThis */
+
 import sdWorld from '../sdWorld.js';
 import sdCom from '../entities/sdCom.js';
 import sdWater from '../entities/sdWater.js';
@@ -236,7 +238,7 @@ class sdPathFinding
 						this.traveler.y + this.traveler._hitbox_y1 + dy * 16 + 1, 
 						this.traveler.x + this.traveler._hitbox_x2 + dx * 16 - 1, 
 						this.traveler.y + this.traveler._hitbox_y2 + dy * 16 - 1, 
-						this.traveler, null, null, null ) ) // Attack anything really - there can be even crystals on a way
+						this.traveler, null, null, null ) ) // Attack anything really - there can be even crystals in a way
 				{
 					best_is_wall = sdWorld.last_hit_entity;
 				}

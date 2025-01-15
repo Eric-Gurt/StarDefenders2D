@@ -64,7 +64,13 @@ class sdGuanako extends sdEntity
 	get hitbox_y2() { return 8; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this.action_id !== sdGuanako.ACTION_DIES; }
+	{ return ( sdWorld.time > this._collisions_disabled_until && this.action_id !== sdGuanako.ACTION_DIES ); }
+	
+	onPhysicallyStuck() // Requires _hard_collision OR DoStuckCheck() to return true. Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
+	{
+		this._collisions_disabled_until = sdWorld.time + 5000;
+		return false;
+	}
 	
 	GetIgnoredEntityClasses()
 	{
@@ -134,6 +140,8 @@ class sdGuanako extends sdEntity
 		this._home = null;
 		
 		this._has_score = true;
+		
+		this._collisions_disabled_until = 0;
 		
 		this.action_id = sdGuanako.ACTION_IDLE;
 		this.action_time = 0; // Grows until reaches duration of current action, then action changes
@@ -373,6 +381,8 @@ class sdGuanako extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		this.DropCrystal();
+		
 		if ( sdWorld.is_server )
 		if ( this._broken )
 		{
@@ -722,7 +732,7 @@ class sdGuanako extends sdEntity
 		
 		if ( this.crystal )
 		{
-			if ( this.crystal._is_being_removed )
+			if ( this.crystal._is_being_removed || this.hea <= 0 )
 			this.DropCrystal();
 			else
 			{
