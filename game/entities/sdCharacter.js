@@ -493,6 +493,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_TEAMMATE = 4;
 		sdCharacter.AI_MODEL_AGGRESSIVE = 5; // Has the AI aggressively charge their target.
 		sdCharacter.AI_MODEL_DISTANT = 6; // // Has the AI try to retreat from their target and maintain distance between them.
+		sdCharacter.AI_MODEL_AERIAL = 7; // // Has the AI fly all the time, even without a target. Does keep certain height above surface.
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		
@@ -1300,6 +1301,7 @@ THING is cosmic mic drop!`;
 		this._ghost_cost_multiplier = 1; // Through upgrade
 		this._shield_cost_multiplier = 1; // Through upgrade
 		this._armor_repair_mult = 1; // Through upgrade
+		this._sword_throw_mult = 1; // Through upgrade
 		
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
@@ -3139,7 +3141,7 @@ THING is cosmic mic drop!`;
 	
 		let ai_will_fire = false;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT || this._ai_enabled === sdCharacter.AI_MODEL_AERIAL )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 5; // At 30 they get shot down before they can even react
@@ -3167,7 +3169,7 @@ THING is cosmic mic drop!`;
 				this.PlayAIAlertedSound( this._ai.target );
 			}
 
-			if ( this._ai.target && this._ai_enabled !== sdCharacter.AI_MODEL_TEAMMATE )
+			if ( this._ai.target && this._ai_enabled !== sdCharacter.AI_MODEL_TEAMMATE && this._ai_enabled !== sdCharacter.AI_MODEL_AERIAL )
 			{
 				this._ai_enabled = this.GetBehaviourAgainstTarget(); // Set their fighting behaviour appropriately when they fight specific enemies
 			}
@@ -3435,7 +3437,7 @@ THING is cosmic mic drop!`;
 					{
 						if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y, 200 ) ) // Is the player close enough to the teammate?
 						{
-							this._ai_stay_near_entity = sdCharacter.characters[ i ]; // Follow the players ( useful for "Rescue Star Defender" tasks
+							this._ai_stay_near_entity = sdWorld.sockets[ i ].character; // Follow the players ( useful for "Rescue Star Defender" tasks
 							this._ai_stay_distance = 96;
 							break;
 						}
@@ -3617,6 +3619,39 @@ THING is cosmic mic drop!`;
 						if ( ( allow_random_movements && Math.random() < 0.1 ) )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
+					
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_AERIAL )
+					{
+						//if ( allow_random_movements )
+						{
+							if ( Math.random() < 0.3 )
+							this._key_states.SetKey( 'KeyA', 1 );
+
+							if ( Math.random() < 0.3 )
+							this._key_states.SetKey( 'KeyD', 1 );
+
+							if ( sdWorld.CheckLineOfSight( this.x, this.y + this._hitbox_y2, this.x, this.y + this._hitbox_y2 + 128, this, null, sdCom.com_visibility_unignored_classes ) ) // Too far above?
+							{
+								this._key_states.SetKey( 'KeyW', 0 );
+								//this._key_states.SetKey( 'KeyS', 1 ); // Go down a little, unless below conditions tell otherwise
+							}
+							else
+							if ( this.sy > -4.5 )
+							{
+								this._key_states.SetKey( 'KeyW', 1 );
+								this._key_states.SetKey( 'KeyS', 0 );
+							}
+									
+							if ( this.sy > 1.5 ) // Prevents fall damage?
+							{
+								this._key_states.SetKey( 'KeyW', 1 );
+								this._key_states.SetKey( 'KeyS', 0 );
+							}
+							
+							//if ( Math.random() < 0.4 )
+							//this._key_states.SetKey( 'KeyS', 1 );
+						}
+					}
 
 					if ( Math.random() < 0.05 && should_fire === true ) // Shoot the walls occasionally, when target is not in sight but was detected previously
 					{
@@ -3644,6 +3679,39 @@ THING is cosmic mic drop!`;
 				}
 				else
 				{
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_AERIAL ) // Also enabled when idle/without a target
+					{
+						//if ( allow_random_movements )
+						{
+							if ( Math.random() < 0.3 )
+							this._key_states.SetKey( 'KeyA', 1 );
+
+							if ( Math.random() < 0.3 )
+							this._key_states.SetKey( 'KeyD', 1 );
+
+							if ( sdWorld.CheckLineOfSight( this.x, this.y + this._hitbox_y2, this.x, this.y + this._hitbox_y2 + 128, this, null, sdCom.com_visibility_unignored_classes ) ) // Too far above?
+							{
+								this._key_states.SetKey( 'KeyW', 0 );
+								//this._key_states.SetKey( 'KeyS', 1 ); // Go down a little, unless below conditions tell otherwise
+							}
+							else
+							if ( this.sy > -4 )
+							{
+								this._key_states.SetKey( 'KeyW', 1 );
+								this._key_states.SetKey( 'KeyS', 0 );
+							}
+									
+							if ( this.sy > 1.5 ) // Prevents fall damage?
+							{
+								this._key_states.SetKey( 'KeyW', 1 );
+								this._key_states.SetKey( 'KeyS', 0 );
+							}
+
+							//if ( Math.random() < 0.4 )
+							//this._key_states.SetKey( 'KeyS', 1 );
+						}
+					}
+					
 					if ( this._ai.direction > 0 )
 					this._key_states.SetKey( 'KeyD', ( Math.random() < 0.5 ) ? 1 : 0 );
 					else
