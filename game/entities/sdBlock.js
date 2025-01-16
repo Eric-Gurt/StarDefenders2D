@@ -377,7 +377,7 @@ class sdBlock extends sdEntity
 		let ent = this;
 		if ( IsCompatible( ent ) )
 		{
-			ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			//ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			ents_to_merge.push( this );
 			
 		}
@@ -398,7 +398,7 @@ class sdBlock extends sdEntity
 			{
 				if ( IsCompatible( ent ) )
 				{
-					ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					//ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					ents_to_merge.push( ent );
 				}
 				else
@@ -433,7 +433,7 @@ class sdBlock extends sdEntity
 				{
 					if ( IsCompatible( ent ) )
 					{
-						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						//ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						ents_to_merge.push( ent ); // Top left should be 0 in the array
 						
 						if ( i === 0 ) // We pushed the top left one into the array as the first one?
@@ -1647,10 +1647,11 @@ class sdBlock extends sdEntity
 	
 	Draw( ctx, attached )
 	{
+		
 		var w = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 16 : this.width;
 		var h = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 16 : this.height;
 		
-		for ( let i = 0; i < (this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 4 : 1 ); i++ )
+		for ( let i = 0; i < ( this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 4 : 1 ); i++ )
 		{
 			// Hopefully this won't mess up regular blocks - Booraz
 			let filter = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? this.additional_properties[ i * 4 ] : this.filter;
