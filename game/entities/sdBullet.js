@@ -409,9 +409,6 @@ class sdBullet extends sdEntity
 	{
 		//if ( from_entity.is( sdWorld.entity_classes.sdFaceCrab ) )
 		//debugger;
-	
-		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-		return false;
 
 		if ( this._hook )
 		{
@@ -744,12 +741,6 @@ class sdBullet extends sdEntity
 
 		if ( this._last_target === from_entity )
 		return; // Prevent bouncing bullets to deal multiple damage when they stuck in something?
-	
-		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-		{
-			from_entity.UnmergeBlocks();
-			return;
-		}
 
 		if ( !from_entity.PrecieseHitDetection( this.x, this.y, this ) )
 		return;

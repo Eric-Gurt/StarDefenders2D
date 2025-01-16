@@ -143,7 +143,6 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_SNOW = 14; // Same as sand just does not regenerate plants on itself
 		sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND = 15; // Marks area within preset that won't be touched by preset logic, could be used to mark certain location as more or less suitable for preset spawn
 		sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR = 16; // Forcefully removed air blocks for loaded presets
-		sdBlock.MATERIAL_STORED_2X2_BLOCKS = 17; // 4 16x16 blocks stored into a large 32x32 block. Experimental as server config change at the moment.
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -352,190 +351,6 @@ class sdBlock extends sdEntity
 		return null;
 	}
 	
-	AttemptBlockMerging() // Not to be confused with AttemptBlockBurying() from some mobs
-	{
-		// This function attempts to merge 4 16x16 blocks into a single 32x32 block
-		if ( !sdWorld.server_config.enable_block_merging )
-		return false;
-	
-		function IsCompatible( ent ){
-			if ( !ent._is_being_removed && ent._plants === null && ent._hea === ent._hmax && 
-			( ent.material === sdBlock.MATERIAL_GROUND || ent.material === sdBlock.MATERIAL_SNOW ||
-			ent.material === sdBlock.MATERIAL_SAND || ent.material === sdBlock.MATERIAL_ROCK ) )
-			return true;
-			else
-			return false;
-		}
-	
-		let can_merge = true;
-		let i;
-		
-		let from_left = false;
-		
-		let ents_to_merge = [];
-		
-		let ent = this;
-		if ( IsCompatible( ent ) )
-		{
-			//ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			ents_to_merge.push( this );
-			
-		}
-		else // Unfitting from the start?
-		{
-			return false;
-			
-		}
-		for ( i = 0; i < 3; i++ ) // Right -> bottom right scenario
-		{
-			if ( i === 0 )
-			ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y ); // Check right
-			if ( i === 1 )
-			ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 ); // Check bottom
-			if ( i === 2 )
-			ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y + 16 ); // Check bottom right
-			if ( ent )
-			{
-				if ( IsCompatible( ent ) )
-				{
-					//ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-					ents_to_merge.push( ent );
-				}
-				else
-				{
-					can_merge = false; // Not allowed 
-					break;
-				}
-			}
-			else
-			{
-				can_merge = false; // Not allowed 
-				break;
-			}
-		}
-		if ( !can_merge ) // Not a suitable merge was found?
-		{
-			can_merge = true; // Retry but on opposite side
-			from_left = true;
-			ents_to_merge = []; // Reset ents to merge
-			//ent = this;
-			//ents_to_merge.push( ent ); // And put back the block we're going with
-			
-			for ( i = 0; i < 3; i++ ) // Left -> bottom left scenario
-			{
-				if ( i === 0 )
-				ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y ); // Check left
-				if ( i === 1 )
-				ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 ); // Check bottom
-				if ( i === 2 )
-				ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y + 16 ); // Check bottom left
-				if ( ent )
-				{
-					if ( IsCompatible( ent ) )
-					{
-						//ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-						ents_to_merge.push( ent ); // Top left should be 0 in the array
-						
-						if ( i === 0 ) // We pushed the top left one into the array as the first one?
-						{
-							ent = this;
-							ents_to_merge.push( ent ); // And put back the block we're going with to the right of it so it becomes 2nd element in array
-						}
-					}
-					else
-					{
-						can_merge = false; // Not allowed 
-						break;
-					}
-				}
-				else
-				{
-					can_merge = false; // Not allowed 
-					break;
-				}
-			}
-		}
-		if ( can_merge )
-		{
-			/*  Defenitely not sure if ideal approach, but maybe it works? - Booraz
-			*/
-			let properties = [];
-			let contained_classes = [];
-			let contained_params = [];
-			let hidden_values = [];
-			for ( i = 0; i < 4; i++ )
-			{
-				properties.push( ents_to_merge[ i ].filter );
-				properties.push( ents_to_merge[ i ].hue );
-				properties.push( ents_to_merge[ i ].br );
-				properties.push( ents_to_merge[ i ].material );
-				contained_classes.push( ents_to_merge[ i ]._contains_class );
-				contained_params.push( ents_to_merge[ i ]._contains_class_params );
-				hidden_values.push( ents_to_merge[ i ]._hmax );
-				ents_to_merge[ i ].remove();
-				ents_to_merge[ i ]._broken = false;
-			}
-			
-			let block = sdEntity.Create( sdBlock, { 
-				x: this.x - ( from_left ? 16 : 0 ),
-				y: this.y,
-				width: 32, 
-				height: 32, 
-				material:sdBlock.MATERIAL_STORED_2X2_BLOCKS, 
-				additional_properties: properties,
-				contains_class: contained_classes,
-				contains_class_params: contained_params,
-				hidden_properties: hidden_values
-				//rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined,
-				//natural: true 
-			});
-			//console.log( block._contains_class );
-			//console.log( block._contains_class_params );
-			return true;
-		}
-		return false;
-	}
-	UnmergeBlocks(){
-		if ( this.material !== sdBlock.MATERIAL_STORED_2X2_BLOCKS || this._is_being_removed )
-		return;
-	
-	
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-		
-		for ( let i = 0; i < 4; i++ )
-		{
-			let xx = this.x;
-			let yy = this.y;
-			
-			if ( i === 1 || i === 3 )
-			xx += 16;
-			if ( i > 1 )
-			yy += 16;
-			let block = sdEntity.Create( sdBlock, { 
-				x: xx,
-				y: yy,
-				width: 16, 
-				height: 16,
-				filter: this.additional_properties[ 4 * i ],
-				hue: this.additional_properties[ 1 + ( 4 * i ) ],
-				br: this.additional_properties[ 2 + ( 4 * i ) ],
-				material: this.additional_properties[ 3 + ( 4 * i ) ],
-				regen_timeout: 60,
-				contains_class: this._contains_class[ i ],
-				contains_class_params: this._contains_class_params[ i ]
-				//rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined,
-				//natural: true 
-			});
-			
-			block._hmax = this._hidden_properties[ i ]; // Revert max health of blocks
-			block._hea = block._hmax - 1;
-			block._update_version++;
-		}
-		this.remove();
-		this._broken = false;
-		
-	}
-	
 	get hard_collision()
 	{ return this.material !== sdBlock.MATERIAL_SHARP && this.material !== sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR; }
 	
@@ -574,12 +389,6 @@ class sdBlock extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
-	
-		if ( this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-		{
-			this.UnmergeBlocks();
-			return;
-		}
 
 		// Uses health scale instead now
 		if ( affects_armor )
@@ -669,7 +478,7 @@ class sdBlock extends sdEntity
 				}
 				
 				{
-					if ( this._contains_class && typeof this._contains_class === 'string' )
+					if ( this._contains_class )
 					{
 						//this._contains_class = 'sdSandWorm'; // Hack
 					
@@ -934,12 +743,6 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
 		if ( !this._last_damage )
 		this._last_damage = 0;
-	
-		if ( sdWorld.server_config.enable_block_merging && this._hea === this._hmax )
-		this._hea = this._hmax - 1;
-	
-		if ( sdWorld.server_config.enable_block_merging === false && this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-		this.UnmergeBlocks();
 
 		// Copy [ 2 / 2 ]
 		if ( this._natural )
@@ -1001,10 +804,7 @@ class sdBlock extends sdEntity
 		}*/
 		
 		this._hea = this._hmax;
-		this._regen_timeout = params.regen_timeout || 0;
-		
-		if ( sdWorld.server_config.enable_block_merging ) // Enable block merging?
-		this._hea = this._hmax - 1; // By not having max health it will check for merging nearby blocks
+		this._regen_timeout = 0;
 		
 		
 		this._contains_class = params.contains_class || null;
@@ -1015,9 +815,6 @@ class sdBlock extends sdEntity
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;
 		this.filter = params.filter || '';
-		
-		this.additional_properties = params.additional_properties || []; // For merged blocks to store materials of blocks, for example.
-		this._hidden_properties = params.hidden_properties || []; // Also for merged blocks, but for non public values.
 		
 		this._plants = params.plants || null; // Array of _net_id-s actually
 		
@@ -1066,16 +863,10 @@ class sdBlock extends sdEntity
 			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_ANCIENT_WALL_PROPERTIES }); // Give ancient blocks matter emmission
 		}
 		
-		if ( this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-		{
-			this._contains_class = params.contains_class || [];
-			this._contains_class_params = params.contains_class_params || []; // Parameters that are passed to this._contains_class entity
-		}
-		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
-		//this.reinforced_frame = 0; // Not used anymore
-		//this.HandleReinforceUpdate();
+		this.reinforced_frame = 0;
+		this.HandleReinforceUpdate();
 		
 		if ( params.skip_hiberstate_and_hash_update )
 		{
@@ -1092,7 +883,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_contains_class' || prop === '_shielded' || prop === '_owner' || prop === 'additional_properties' );
+		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' );
 	}
 	ValidatePlants( must_include=null ) // foliage / grass
 	{
@@ -1329,7 +1120,7 @@ class sdBlock extends sdEntity
 		if ( this.destruction_frame !== old_destruction_frame )
 		this._update_version++;
 	}
-	/*HandleReinforceUpdate()
+	HandleReinforceUpdate()
 	{
 		let old_reinforced_frame = this.reinforced_frame;
 		
@@ -1350,7 +1141,7 @@ class sdBlock extends sdEntity
 		
 		if ( this.reinforced_frame !== old_reinforced_frame )
 		this._update_version++;
-	}*/
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		//Reset reinforced levels
@@ -1519,15 +1310,7 @@ class sdBlock extends sdEntity
 		}
 		else
 		if ( this._hea === this._hmax )
-		if ( sdWorld.is_server )
-		{
-			if ( this.AttemptBlockMerging() )
-			{
-				
-			}
-			else
-			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
-		}
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 	
 	static GetGroundObjectAt( nx, ny ) // for corruption
@@ -1647,304 +1430,274 @@ class sdBlock extends sdEntity
 	
 	Draw( ctx, attached )
 	{
+		var w = this.width;
+		var h = this.height;
 		
-		var w = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 16 : this.width;
-		var h = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 16 : this.height;
+		ctx.filter = this.filter;
+
+		let old_volumetric_mode = ctx.volumetric_mode;
 		
-		for ( let i = 0; i < ( this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? 4 : 1 ); i++ )
+		if ( this.hue !== 0 )
 		{
-			// Hopefully this won't mess up regular blocks - Booraz
-			let filter = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? this.additional_properties[ i * 4 ] : this.filter;
-			let hue = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? this.additional_properties[ 1 + ( i * 4 ) ] : this.hue;
-			let brightness = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? this.additional_properties[ 2 + ( i * 4 ) ] : this.br;
-			
-			if ( i === 1 && this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-			ctx.translate( 16, 0 );
-			if ( i === 2 && this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-			ctx.translate( -16, 16 );
-			if ( i === 3 && this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-			ctx.translate( 16, 0 );
-			
-			ctx.filter = filter;
-
-			let old_volumetric_mode = ctx.volumetric_mode;
-			
-			
-			if ( hue !== 0 )
+			// Less cache usage by making .hue as something GPU understands, so we don't have as many versions of same images
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate('+this.hue+'deg)' + ctx.filter;
+		}
+		
+		if ( this.br / 100 !== 1 )
+		{
+			if ( sdRenderer.visual_settings === 4 )
 			{
-				// Less cache usage by making .hue as something GPU understands, so we don't have as many versions of same images
+				ctx.sd_color_mult_r = this.br / 100;
+				ctx.sd_color_mult_g = this.br / 100;
+				ctx.sd_color_mult_b = this.br / 100;
+			}
+			else
+			{
+				ctx.filter = 'brightness('+this.br+'%)';
+			}
+		}
+		
+		/*let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
+		if ( lumes > 0 )
+		{
+			if ( sdRenderer.visual_settings === 4 )
+			{
+				ctx.sd_color_mult_r *= (1+lumes);
+				ctx.sd_color_mult_g *= (1+lumes);
+				ctx.sd_color_mult_b *= (1+lumes);
+			}
+			else
+			ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
+		}*/
+
+		
+		
+		//ctx.filter = 'hsl(120,100%,25%)';
+		
+		if ( this.material === sdBlock.MATERIAL_GROUND ||
+			 this.material === sdBlock.MATERIAL_ROCK ||
+			 this.material === sdBlock.MATERIAL_SAND ||
+			 this.material === sdBlock.MATERIAL_SNOW ||
+			 this.material === sdBlock.MATERIAL_CORRUPTION || 
+			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
+			 this.material === sdBlock.MATERIAL_ANCIENT_WALL )
+		{
+			let texture = sdBlock.img_ground88;
+			let texture_size = 256;
+			
+			if ( this.material === sdBlock.MATERIAL_ROCK )
+			{
+				texture = sdBlock.img_rock;
+				texture_size = 32;
+			}
+
+			if ( this.material === sdBlock.MATERIAL_SAND || this.material === sdBlock.MATERIAL_SNOW )
+			{
+				texture = sdBlock.img_sand;
+				texture_size = 128;
+			}
+			if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL )
+			{
+				texture = sdBlock.img_ancient_wall;
+				texture_size = 128;
+			}
+			
+			ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w,h, 0,0, w,h );
+			
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
+			
+			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
+			{
 				if ( sdRenderer.visual_settings === 4 )
-				ctx.sd_hue_rotation = hue;
+				{
+					ctx.filter = 'saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
+					ctx.sd_hue_rotation = ( this.p - sdBlock.max_corruption_rank )*(15);
+					ctx.sd_color_mult_r = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
+					ctx.sd_color_mult_g = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
+					ctx.sd_color_mult_b = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
+				}
 				else
-				ctx.filter = 'hue-rotate('+hue+'deg)' + ctx.filter;
-			}
+				ctx.filter = 'hue-rotate('+( this.p - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.p / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
 			
-			if ( brightness / 100 !== 1 )
-			{
-				if ( sdRenderer.visual_settings === 4 )
-				{
-					ctx.sd_color_mult_r = brightness / 100;
-					ctx.sd_color_mult_g = brightness / 100;
-					ctx.sd_color_mult_b = brightness / 100;
-				}
-				else
-				{
-					ctx.filter = 'brightness('+brightness+'%)';
-				}
+				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
-			
-			/*let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
-			if ( lumes > 0 )
-			{
-				if ( sdRenderer.visual_settings === 4 )
-				{
-					ctx.sd_color_mult_r *= (1+lumes);
-					ctx.sd_color_mult_g *= (1+lumes);
-					ctx.sd_color_mult_b *= (1+lumes);
-				}
-				else
-				ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
-			}*/
-
-			
-			
-			//ctx.filter = 'hsl(120,100%,25%)';
-			
-			let mat = this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS ? this.additional_properties[ 3 + ( i * 4 ) ] : this.material;
-			
-			if ( mat === sdBlock.MATERIAL_GROUND ||
-				 mat === sdBlock.MATERIAL_ROCK ||
-				 mat === sdBlock.MATERIAL_SAND ||
-				 mat === sdBlock.MATERIAL_SNOW ||
-				 mat === sdBlock.MATERIAL_CORRUPTION || 
-				 mat === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
-				 mat === sdBlock.MATERIAL_ANCIENT_WALL )
-			{
-				let texture = sdBlock.img_ground88;
-				let texture_size = 256;
-				
-				let xx = 0; // For merged blocks
-				let yy = 0; // For merged blocks
-				
-				if ( i === 1 || i === 3 )
-				xx = 16;
-				if ( i > 1 )
-				yy = 16;
-				
-				if ( mat === sdBlock.MATERIAL_ROCK )
-				{
-					texture = sdBlock.img_rock;
-					texture_size = 32;
-				}
-
-				if ( mat === sdBlock.MATERIAL_SAND || mat === sdBlock.MATERIAL_SNOW )
-				{
-					texture = sdBlock.img_sand;
-					texture_size = 128;
-				}
-				if ( mat === sdBlock.MATERIAL_ANCIENT_WALL )
-				{
-					texture = sdBlock.img_ancient_wall;
-					texture_size = 128;
-				}
-				
-				ctx.drawImageFilterCache( texture, ( this.x + xx ) - Math.floor( ( this.x + xx ) / texture_size ) * texture_size, ( this.y + yy ) - Math.floor( ( this.y + yy ) / texture_size ) * texture_size, w,h, 0,0, w,h );
-				
-				ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
-				
-				if ( mat === sdBlock.MATERIAL_CORRUPTION )
-				{
-					if ( sdRenderer.visual_settings === 4 )
-					{
-						ctx.filter = 'saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
-						ctx.sd_hue_rotation = ( this.p - sdBlock.max_corruption_rank )*(15);
-						ctx.sd_color_mult_r = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
-						ctx.sd_color_mult_g = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
-						ctx.sd_color_mult_b = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
-					}
-					else
-					ctx.filter = 'hue-rotate('+( this.p - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.p / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
-				
-					ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
-				}
-				if ( mat === sdBlock.MATERIAL_CRYSTAL_SHARDS )
-				{
-					ctx.apply_shading = false;
-					
-					ctx.sd_hue_rotation = 0;
-					ctx.sd_color_mult_r = 1;
-					ctx.sd_color_mult_g = 1;
-					ctx.sd_color_mult_b = 1;
-					
-					ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ), 0.2 );
-
-					let old_scale = ctx.camera_relative_world_scale;
-					ctx.camera_relative_world_scale *= 0.999;
-					{
-						let old_mode = ctx.volumetric_mode;
-						ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
-						{
-							ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
-						}
-						ctx.volumetric_mode = old_mode;
-					}
-					ctx.camera_relative_world_scale = old_scale;
-				}
-			}
-			else
-			if ( mat === sdBlock.MATERIAL_FLESH )
-			{
-				//ctx.filter = 'none';
-				ctx.drawImageFilterCache( sdBlock.img_flesh, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
-			}
-			else
-			if ( mat === sdBlock.MATERIAL_WALL ||
-				 mat === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || // We probably no longer need 2 kinds of these if we could just switch texture
-				 mat === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
-			{
-				let img = sdBlock.textures[ this.texture_id ][ w + 'x' + h ];
-				if ( img )
-				ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
-				else
-				{
-					ctx.fillStyle = '#ff0000';
-					ctx.fillRect( 0,0,w,h );
-				}
-				//ctx.drawImageFilterCache( sdBlock.img_wall_2x2, 0, 0, w,h, 0,0, w,h );
-				
-				/*if ( w === 32 && h === 32 )
-				ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 32 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_wall21, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 32 )
-				ctx.drawImageFilterCache( sdBlock.img_wall12, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_wall11, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 8 )
-				ctx.drawImageFilterCache( sdBlock.img_wall05, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 8 && h === 16 )
-				{
-					//ctx.drawImageFilterCache( sdBlock.img_wall_vertical_test, 0, 0, w,h, 0,0, w,h );
-					ctx.drawImageFilterCache( sdBlock.img_wall_vertical_test, 0, 0, 8,8, 0,0, 8,8 );
-				}
-				else
-				ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );*/
-			
-			
-			}
-			/*else
-			if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
-			{
-				if ( w === 32 && h === 32 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 32 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl1_wall21, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 32 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl1_wall12, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl1_wall11, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 8 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl1_wall05, 0, 0, w,h, 0,0, w,h );
-				else
-				ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
-			}
-			else
-			if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
-			{
-				if ( w === 32 && h === 32 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 32 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl2_wall21, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 32 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl2_wall12, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl2_wall11, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 8 )
-				ctx.drawImageFilterCache( sdBlock.img_lvl2_wall05, 0, 0, w,h, 0,0, w,h );
-				else
-				ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
-			}*/
-			else
-			if ( mat === sdBlock.MATERIAL_SHARP )
-			{
-				if ( this.texture_id === 0 )
-				ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp2_inactive : sdBlock.img_sharp2, 0, 0, w,h, 0,0, w,h );
-				else
-				//if ( this.texture_id === 1 )
-				ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp3_inactive : sdBlock.img_sharp3, 0, 0, w,h, 0,0, w,h );
-			}
-			else
-			if ( mat === sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND )
-			{
-				ctx.drawImageFilterCache( sdBlock.img_preset_ground, 0, 0, w,h, 0,0, w,h );
-			}
-			else
-			if ( mat === sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR )
-			{
-				ctx.drawImageFilterCache( sdBlock.img_preset_air, 0, 0, w,h, 0,0, w,h );
-			}
-			else
-			if ( mat === sdBlock.MATERIAL_BUGGED_CHUNK )
+			if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
 				ctx.apply_shading = false;
 				
-				if ( sdWorld.time % 2000 < 1000 )
-				ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#ff0000' : '#aa0000';
-				else
-				ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#aa0000' : '#660000';
-			
-				ctx.fillRect( 0,0,w,h );
+				ctx.sd_hue_rotation = 0;
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+				
+				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ), 0.2 );
+
+				let old_scale = ctx.camera_relative_world_scale;
+				ctx.camera_relative_world_scale *= 0.999;
+				{
+					let old_mode = ctx.volumetric_mode;
+					ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+					{
+						ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+					}
+					ctx.volumetric_mode = old_mode;
+				}
+				ctx.camera_relative_world_scale = old_scale;
 			}
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_FLESH )
+		{
+			//ctx.filter = 'none';
+			ctx.drawImageFilterCache( sdBlock.img_flesh, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_WALL ||
+			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || // We probably no longer need 2 kinds of these if we could just switch texture
+			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		{
+			let img = sdBlock.textures[ this.texture_id ][ w + 'x' + h ];
+			if ( img )
+			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
 			else
 			{
-				if ( w === 16 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 16 && h === 8 )
-				ctx.drawImageFilterCache( sdBlock.img_trapshield05, 0, 0, w,h, 0,0, w,h );
-				else
-				if ( w === 8 && h === 16 )
-				ctx.drawImageFilterCache( sdBlock.img_trapshield50, 0, 0, w,h, 0,0, w,h );
-				else
-				ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
+				ctx.fillStyle = '#ff0000';
+				ctx.fillRect( 0,0,w,h );
 			}
+			//ctx.drawImageFilterCache( sdBlock.img_wall_2x2, 0, 0, w,h, 0,0, w,h );
 			
-		
-			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
-			
-				
-			//if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
-			//ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
-		
-			ctx.filter = 'none';
-			ctx.sd_hue_rotation = 0;
-			ctx.sd_color_mult_r = 1;
-			ctx.sd_color_mult_g = 1;
-			ctx.sd_color_mult_b = 1;
-			
-			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
+			/*if ( w === 32 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 32 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_wall21, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_wall12, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_wall11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_wall05, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 8 && h === 16 )
 			{
-				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+				//ctx.drawImageFilterCache( sdBlock.img_wall_vertical_test, 0, 0, w,h, 0,0, w,h );
+				ctx.drawImageFilterCache( sdBlock.img_wall_vertical_test, 0, 0, 8,8, 0,0, 8,8 );
 			}
-			
-			ctx.volumetric_mode = old_volumetric_mode;
-			
-			if ( i === 3 && this.material === sdBlock.MATERIAL_STORED_2X2_BLOCKS )
-			ctx.translate( -16, -16 );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );*/
+		
+		
 		}
+		/*else
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		{
+			if ( w === 32 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 32 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall21, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall12, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall05, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		{
+			if ( w === 32 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 32 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall21, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall12, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall05, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
+		}*/
+		else
+		if ( this.material === sdBlock.MATERIAL_SHARP )
+		{
+			if ( this.texture_id === 0 )
+			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp2_inactive : sdBlock.img_sharp2, 0, 0, w,h, 0,0, w,h );
+			else
+			//if ( this.texture_id === 1 )
+			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp3_inactive : sdBlock.img_sharp3, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND )
+		{
+			ctx.drawImageFilterCache( sdBlock.img_preset_ground, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR )
+		{
+			ctx.drawImageFilterCache( sdBlock.img_preset_air, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+		{
+			ctx.apply_shading = false;
+			
+			if ( sdWorld.time % 2000 < 1000 )
+			ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#ff0000' : '#aa0000';
+			else
+			ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#aa0000' : '#660000';
+		
+			ctx.fillRect( 0,0,w,h );
+		}
+		else
+		{
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_trapshield05, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 8 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_trapshield50, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
+		}
+		
+	
+		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
+		
+			
+		if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
+		ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
+	
+		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
+		ctx.sd_color_mult_r = 1;
+		ctx.sd_color_mult_g = 1;
+		ctx.sd_color_mult_b = 1;
+		
+		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
+		{
+			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+		}
+		
+		ctx.volumetric_mode = old_volumetric_mode;
 	}
 	
 	onRemove() // Class-specific, if needed
