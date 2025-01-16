@@ -462,6 +462,7 @@ class sdBlock extends sdEntity
 			let properties = [];
 			let contained_classes = [];
 			let contained_params = [];
+			let hidden_values = [];
 			for ( i = 0; i < 4; i++ )
 			{
 				properties.push( ents_to_merge[ i ].filter );
@@ -470,6 +471,7 @@ class sdBlock extends sdEntity
 				properties.push( ents_to_merge[ i ].material );
 				contained_classes.push( ents_to_merge[ i ]._contains_class );
 				contained_params.push( ents_to_merge[ i ]._contains_class_params );
+				hidden_values.push( ents_to_merge[ i ]._hmax );
 				ents_to_merge[ i ].remove();
 				ents_to_merge[ i ]._broken = false;
 			}
@@ -482,12 +484,13 @@ class sdBlock extends sdEntity
 				material:sdBlock.MATERIAL_STORED_2X2_BLOCKS, 
 				additional_properties: properties,
 				contains_class: contained_classes,
-				contains_class_params: contained_params
+				contains_class_params: contained_params,
+				hidden_properties: hidden_values
 				//rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined,
 				//natural: true 
 			});
-			console.log( block._contains_class );
-			console.log( block._contains_class_params );
+			//console.log( block._contains_class );
+			//console.log( block._contains_class_params );
 			return true;
 		}
 		return false;
@@ -523,6 +526,10 @@ class sdBlock extends sdEntity
 				//rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined,
 				//natural: true 
 			});
+			
+			block._hmax = this._hidden_properties[ i ]; // Revert max health of blocks
+			block._hea = block._hmax - 1;
+			block._update_version++;
 		}
 		this.remove();
 		this._broken = false;
@@ -1010,6 +1017,7 @@ class sdBlock extends sdEntity
 		this.filter = params.filter || '';
 		
 		this.additional_properties = params.additional_properties || []; // For merged blocks to store materials of blocks, for example.
+		this._hidden_properties = params.hidden_properties || []; // Also for merged blocks, but for non public values.
 		
 		this._plants = params.plants || null; // Array of _net_id-s actually
 		
