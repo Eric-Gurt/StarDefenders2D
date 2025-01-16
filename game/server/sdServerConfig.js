@@ -40,6 +40,8 @@ class sdServerConfigShort
 	static enable_bounds_move = true;
 	static aggressive_hibernation = true; // Offscreen groups of entities (sometimes whole bases) will be put to sleep until something tries to access these areas
 	
+	static enable_block_merging = false; // Experimental change, merges 4 16x16 natural blocks into a single 32x32 block.
+	
 	static apply_censorship = true; // Censorship file is not included
 	
 	static backup_interval_seconds = 60 * 30; // 30 minutes
