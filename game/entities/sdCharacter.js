@@ -4126,8 +4126,13 @@ THING is cosmic mic drop!`;
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 
 		if ( this.hook_projectile )
-		if ( this.hook_projectile._is_being_removed )
-		this.hook_projectile = null;
+		{
+			let di = sdWorld.Dist2D( this.hook_projectile.x, this.hook_projectile.y, this.x, this.y );
+			if ( di > 1000 ) this.hook_projectile.remove(); // Prevent use of teleports
+
+			if ( this.hook_projectile._is_being_removed )
+			this.hook_projectile = null;
+		}
 		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
 		{
@@ -4507,6 +4512,7 @@ THING is cosmic mic drop!`;
 						bullet_obj._owner = this;
 						let an = this.GetLookAngle();
 						let vel = 16;
+
 						bullet_obj.sx = Math.sin( an ) * vel;
 						bullet_obj.sy = Math.cos( an ) * vel;
 
