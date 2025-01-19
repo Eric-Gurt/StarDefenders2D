@@ -71,6 +71,8 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._move_dir_timer = 0;
 		
+		this._last_drone_spawn = 0;
+
 		this._attack_timer = 0;
 		this._rocket_attack_timer = 0;
 		this._projectile_attack_timer = 0; // 2nd phase attack timer
@@ -131,7 +133,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj1.sx *= 11;
 					bullet_obj1.sy *= 11;
 
-					bullet_obj1.explosion_radius = 10; 
+					bullet_obj1.explosion_radius = 8; 
 					bullet_obj1.model = 'ball';
 					bullet_obj1._damage= 5;
 					bullet_obj1.color ='#0000c8';
@@ -149,7 +151,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj2.sx *= 11;
 					bullet_obj2.sy *= 11;
 
-					bullet_obj2.explosion_radius = 10; 
+					bullet_obj2.explosion_radius = 8; 
 					bullet_obj2.model = 'ball';
 					bullet_obj2._damage= 5;
 					bullet_obj2.color ='#0000c8';
@@ -166,7 +168,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj3.sx *= 11;
 					bullet_obj3.sy *= 11;
 
-					bullet_obj3.explosion_radius = 10; 
+					bullet_obj3.explosion_radius = 8; 
 					bullet_obj3.model = 'ball';
 					bullet_obj3._damage= 5;
 					bullet_obj3.color ='#0000c8';
@@ -184,7 +186,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj4.sx *= 11;
 					bullet_obj4.sy *= 11;
 
-					bullet_obj4.explosion_radius = 10; 
+					bullet_obj4.explosion_radius = 8; 
 					bullet_obj4.model = 'ball';
 					bullet_obj4._damage= 5;
 					bullet_obj4.color ='#0000c8';
@@ -274,8 +276,11 @@ class sdSetrDestroyer extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
+			if ( this._last_drone_spawn < sdWorld.time - 1000 * 10 ) // Prevent drone spamming when damage is dealt rapidly
 			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
 			{
+				this._last_drone_spawn = sdWorld.time;
+
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
 
 				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR, _ai_team: this._ai_team }); // We do a little trolling
@@ -642,7 +647,7 @@ class sdSetrDestroyer extends sdEntity
 						if ( this.hea < ( this._hmax / 2 ) )
 						{
 							this.FireDirectionalProjectiles();
-							this._projectile_attack_timer = 4.5;
+							this._projectile_attack_timer = 15;
 						}
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
@@ -697,13 +702,22 @@ class sdSetrDestroyer extends sdEntity
 
 						//let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
 						
-						let an = Math.atan2( 
-								targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y - dy * 3, 
-								targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x - dx * 3 
-						) + ( Math.random() * 2 - 1 ) * 0.1;
+						if ( this._rockets === 1 )
+						{
+							this.look_x = targets[ i ].GetCenterX() + ( dx * 4 );
+							this.look_y = targets[ i ].GetCenterY() + ( dy * 4 ); // Homing coordinates are updated only on first shot so players can still dodge them
+						}
+						else
+						{
+							this.look_x = ( this.x + targets[ i ].GetCenterX() ) / 2;
+							this.look_y = ( this.y + targets[ i ].GetCenterY() ) / 2;
+						}
 
-						this.look_x = targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 + ( dx * 3 );
-						this.look_y = targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 + ( dy * 3 ); // Homing coordinates are updated only when firing so players can still dodge them
+						let an = Math.atan2( 
+								this.look_y - this.y - dy * 4, 
+								this.look_x - this.x - dx * 4 
+						) + ( Math.random() * 2 - 1 ) * 0.2;
+
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
@@ -711,17 +725,25 @@ class sdSetrDestroyer extends sdEntity
 						//bullet_obj.x += bullet_obj.sx * 5;
 						//bullet_obj.y += bullet_obj.sy * 5;
 
-						bullet_obj.sx *= 15;
-						bullet_obj.sy *= 15;
+						bullet_obj.sx *= 12;
+						bullet_obj.sy *= 12;
 					
 						bullet_obj.model = 'rocket_proj';
 
-						bullet_obj._damage = 10 * 2;
+						bullet_obj._damage = 10 * 1;
 						bullet_obj.explosion_radius = 10 * 1.5;
 						bullet_obj.color = '#7acaff';
-						bullet_obj._homing = true;
-						bullet_obj._homing_mult = 0.04;
-						bullet_obj.ac = 0.12;
+
+						setTimeout(()=>{ // Allow rockets to spread out and avoid direct gunfire
+							if ( bullet_obj._is_being_removed )
+							return;
+
+							bullet_obj._homing = true;
+							bullet_obj._homing_mult = 0.04;
+							bullet_obj.ac = 0.022;
+						}, this._rockets * 100 );
+
+						bullet_obj.time_left = 30 * 3;
 
 						sdEntity.entities.push( bullet_obj );
 
@@ -730,7 +752,7 @@ class sdSetrDestroyer extends sdEntity
 						if ( this._rockets <= 0 )
 						{
 							this._rockets = 6;
-							this._rocket_attack_timer = 30;
+							this._rocket_attack_timer = 45;
 						}
 
 						//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });

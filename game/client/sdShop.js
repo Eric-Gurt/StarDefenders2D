@@ -410,6 +410,9 @@ class sdShop
 
 			if ( sdWorld.server_config.allow_rescue_teleports )
 			{
+				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_RESPAWN_POINT ) !== -1 )
+				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_RESPAWN_POINT, _category:'Base equipment'});
+
 				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_SHORT_RANGE ) !== -1 )
 				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment'});
 			
@@ -418,9 +421,6 @@ class sdShop
 			
 				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_CLONER ) !== -1 )
 				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_CLONER, _category:'Base equipment', _min_build_tool_level: 20 });
-			
-				if ( sdWorld.server_config.allowed_rescue_teleports !== null && sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_RESPAWN_POINT ) !== -1 )
-				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_RESPAWN_POINT, _category:'Base equipment'});
 			}
 			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null )
 			{

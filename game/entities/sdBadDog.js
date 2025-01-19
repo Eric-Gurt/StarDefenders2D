@@ -705,7 +705,7 @@ class sdBadDog extends sdEntity
 						from_entity.flying = false;*/
 							
 						from_entity.flying = false;
-						from_entity.DamageStability( 100 );
+						from_entity.DamageStability( 50 );
 						from_entity._in_air_timer = 0;
 					}
 					

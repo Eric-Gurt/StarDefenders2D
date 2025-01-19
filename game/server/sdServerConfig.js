@@ -323,6 +323,9 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		// Player just fully respawned. Best moment to give him guns for example. Alternatively onReconnect can be called
 		sdWorld.server_config.GiveStarterRespawnItems( character_entity, player_settings, skip_arrival_sequence );
+
+		character_entity.InstallUpgrade( 'upgrade_jetpack' );
+		character_entity.InstallUpgrade( 'upgrade_hook' );
 	}
 	static GiveStarterRespawnItems( character_entity, player_settings, skip_arrival_sequence )
 	{
@@ -345,7 +348,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		
 		// Spawn starter items based off what player wants to spawn with
-		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_ARMOR_STARTER ];
+		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_ARMOR_STARTER, sdGun.CLASS_RIFLE ];
 		
 		if ( player_settings.start_with1 )
 		guns.unshift( sdGun.CLASS_SWORD );

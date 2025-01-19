@@ -1014,24 +1014,26 @@ class sdBlock extends sdEntity
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
 
-		if ( Math.random() < 0.5 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
+		if ( this.width >= 16 && this.height >= 16 && Math.random() < 0.15 ) // Now acts as the block itself so it can attack in any direction
 		{
-			let side = Math.round( Math.random() * 3 );
+			//let side = Math.round( Math.random() * 3 );
 			let spawn_x = this.x + ( this.width / 2 );
 			let spawn_y = this.y + ( this.height / 2 );
-			if ( side === 0 )
+			let an = Math.random() * Math.PI * 2;
+			/*if ( side === 0 )
 			spawn_y -= 1 + this.height / 2;
 			if ( side === 1 )
 			spawn_x -= 1 + this.width / 2;
 			if ( side === 2 )
 			spawn_y += 1 + this.height / 2;
 			if ( side === 3 )
-			spawn_x += 1 + this.width / 2;
+			spawn_x += 1 + this.width / 2;*/
 			let grabber = sdEntity.Create( sdFleshGrabber, { 
 				x: spawn_x, 
 				y: spawn_y, 
 				_attached_to: ent2,
-				side: side
+				an: an
+				//side: side
 			});
 			//sdEntity.entities.push( grabber );
 

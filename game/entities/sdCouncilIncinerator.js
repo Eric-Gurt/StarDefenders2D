@@ -23,6 +23,7 @@ class sdCouncilIncinerator extends sdEntity
 	static init_class()
 	{
 		sdCouncilIncinerator.img_incinerator = sdWorld.CreateImageFromFile( 'sdCouncilIncinerator' );
+		sdEnemyMech.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 
 		
 		sdCouncilIncinerator.incinerator_counter = 0;
@@ -31,6 +32,8 @@ class sdCouncilIncinerator extends sdEntity
 		sdCouncilIncinerator.post_death_ttl = 120;
 		
 		sdCouncilIncinerator.attack_range = 425;
+		
+		sdCouncilIncinerator.incinerate_attack_range = 164;
 		
 		sdCouncilIncinerator.reusable_vision_blocking_entities_array = [ this.name ];
 	
@@ -83,6 +86,7 @@ class sdCouncilIncinerator extends sdEntity
 		this._incinerate_attack_timer = 30 * 30;
 		this._next_drone_spawn = 90; // Drones will stay near the incinerator and repair it
 		this._current_minions_count = 0; // Minion counter
+		this._max_drone_spawns = 12;
 		
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
@@ -224,7 +228,7 @@ class sdCouncilIncinerator extends sdEntity
 		return false;
 	}
 	IncinerationAttack(){
-		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, 192 );
+		let attack_entities = sdWorld.GetAnythingNear( this.x, this.y, sdCouncilIncinerator.incinerate_attack_range );
 	
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )
@@ -246,13 +250,13 @@ class sdCouncilIncinerator extends sdEntity
 									let temp = 300;
 									
 									if ( typeof e.hea !== 'undefined' )
-									temp = e.hea * 25; // Scale temperature with health
+									temp = e.hea * 15; // Scale temperature with health
 									if ( typeof e._hea !== 'undefined' )
-									temp = e._hea * 25; // Scale temperature with health
+									temp = e._hea * 15; // Scale temperature with health
 								
 									e.DamageWithEffect( 10, this );
 									e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:temp, initiator: this }); // Set enemy on fire
-									sdWorld.SendEffect({ x:this.x, y:this.y, x2:e.x, y2:e.y , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
+									//sdWorld.SendEffect({ x:this.x, y:this.y, x2:e.x, y2:e.y , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
 									//this.incinerator_attack_anim = 30;
 								}
 							}
@@ -273,7 +277,25 @@ class sdCouncilIncinerator extends sdEntity
 			color:'#ff0000'
 		});
 	}
-	Damage( dmg, initiator=null )
+	GetBleedEffectDamageMultiplier()
+	{
+		return sdEffect.TYPE_GLOW_HIT;
+	}
+	GetHitDamageMultiplier( x, y )
+	{
+		if ( this.hea > 0 )
+		{
+			var an = this.tilt / 100;
+			let di_to_head = sdWorld.Dist2D( x, y, this.x + Math.cos( an ) * this._hitbox_x2, this.y + Math.sin( an ) * this.hitbox_x2 );
+			// let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
+
+			if ( di_to_head < 8 )
+			return 4;
+		}
+
+		return 1;
+	}
+	Damage( dmg, initiator=null, headshot=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -286,7 +308,7 @@ class sdCouncilIncinerator extends sdEntity
 			if ( initiator._ai_team === 0 ) // Only target players
 			this._current_target = initiator;
 
-			if ( initiator.GetClass() !== 'sdCouncilIncinerator' )
+			if ( initiator.GetClass() !== 'sdCouncilIncinerator' && ( !initiator._ai_team || initiator._ai_team !== this._ai_team ) )
 			this._follow_target = initiator;
 		}
 
@@ -330,6 +352,12 @@ class sdCouncilIncinerator extends sdEntity
 			{
 				this._last_damage = sdWorld.time;
 				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:Math.min( 1, dmg / 200 ) });
+
+				if ( headshot )
+				{
+					let an = this.tilt / 100 + ( Math.PI / 2 * ( Math.random() < 0.5 ) ? 1 : -1 );
+					this.Impulse( Math.cos( an ) * this.mass * 4, Math.sin( an ) * this.mass * 4 );
+				}
 			}
 			
 			//if ( this.hea <= 400 )
@@ -520,8 +548,11 @@ class sdCouncilIncinerator extends sdEntity
 				this._next_drone_spawn -= GSPEED;
 				else
 				if ( this._current_minions_count < 3 )
+				if ( this._max_drone_spawns > 0 )
+				if ( this.hea < this._hmax / 2 )
 				{	
 					this._next_drone_spawn = 300 + ( Math.random() * 150 ); // 10 - 15 seconds
+					this._max_drone_spawns--;
 					
 					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: sdDrone.DRONE_COUNCIL, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 					sdEntity.entities.push( drone );
@@ -613,11 +644,14 @@ class sdCouncilIncinerator extends sdEntity
 						
 						if ( closest_di_real < sdCouncilIncinerator.attack_range ) // close enough to dodge obstacles
 						{
-							let an = Math.random() * Math.PI * 2;
-
-							this._move_dir_x = Math.cos( an );
-							this._move_dir_y = Math.sin( an );
-							this._move_dir_speed_scale = 1;
+							if ( this._incinerate_attack_timer > 30 * 3 )
+							{
+								let an = Math.random() * Math.PI * 2;
+	
+								this._move_dir_x = Math.cos( an );
+								this._move_dir_y = Math.sin( an );
+								this._move_dir_speed_scale = 4;
+							}
 
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
@@ -691,7 +725,7 @@ class sdCouncilIncinerator extends sdEntity
 				this._move_dir_timer -= GSPEED;
 			}
 		
-			let v = 0.05;
+			let v = 0.1;
 				
 			if ( 
 					this.y > sdWorld.world_bounds.y1 + 200 &&
@@ -718,13 +752,21 @@ class sdCouncilIncinerator extends sdEntity
 				
 				this.tilt += GSPEED;
 				
-				if ( this._incinerate_attack_timer <= 0 )
+				if ( this._incinerate_attack_timer <= 30 * 3 )
 				{
-					this.incinerator_attack_anim = 90; //
+					if ( this._incinerate_attack_timer <= 0 ||
+						 sdWorld.inDist2D_Boolean( this.x, this.y, this._follow_target.x, this._follow_target.y, sdCouncilIncinerator.incinerate_attack_range * 0.75 ) )
+					{
+						this.incinerator_attack_anim = 90; //
+						sdSound.PlaySound({ name:'crystal_combiner_start', x:this.x, y:this.y, volume:2, pitch:2 });
+					}
+
+					if ( this._incinerate_attack_timer <= 0 || this.incinerator_attack_anim > 0 )
 					this._incinerate_attack_timer = 30 * 30; // 30 seconds
-					sdSound.PlaySound({ name:'crystal_combiner_start', x:this.x, y:this.y, volume:2, pitch:2 });
 				}
-				else
+
+				if ( this._follow_target && this.CanAttackEnt( this._follow_target ) && ( this._follow_target.hea || this._follow_target._hea || 0 ) > 0 &&
+					 ( this._follow_target.IsPlayerClass() || ( this._follow_target.hmax || this._follow_target._hmax || 0 ) >= this._hmax / 10 ) )
 				this._incinerate_attack_timer -= GSPEED;
 			
 				if ( this.incinerator_attack_anim > 0 )
@@ -738,7 +780,8 @@ class sdCouncilIncinerator extends sdEntity
 				this.incinerator_attack_anim -= GSPEED;
 			
 				// Move around
-				{
+				// This overrides previous movement code, preventing it from approaching targets to use its close-range attack
+				/*{
 					let an_desired;
 					if ( this._move_dir_timer <= 0 )
 					//if ( !this._follow_target )
@@ -755,12 +798,12 @@ class sdCouncilIncinerator extends sdEntity
 				
 					this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 					this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
-				}
+				}*/
 			
 				
-				if ( this.tilt > 3600 )
-				this.tilt -= 3600;
-				if ( this._attack_timer <= 0 )
+				if ( this.tilt > Math.PI * 2 * 100 )
+				this.tilt -= Math.PI * 2 * 100;
+				if ( this._attack_timer <= 0 && this._incinerate_attack_timer > 0 && this.incinerator_attack_anim <= 0 )
 				{
 					this._attack_timer = 3;
 
@@ -888,6 +931,29 @@ class sdCouncilIncinerator extends sdEntity
 					//if ( this.hea < this._hmax / 2 )
 				}
 			}
+			else
+			{
+				if ( this.incinerator_attack_anim > 0 )
+				{
+					let warning = this.incinerator_attack_anim > 30;
+
+					for ( let i = 0; i < ( warning ? 4 : 16 ); i++ )
+					{
+						let an = Math.random() * Math.PI * 2;
+	
+						let xx = this.x + Math.cos( an ) * Math.random() * sdCouncilIncinerator.incinerate_attack_range;
+						let yy = this.y + Math.sin( an ) * Math.random() * sdCouncilIncinerator.incinerate_attack_range;
+	
+						let ent;
+						if ( warning )
+						ent = new sdEffect({ x:xx, y:yy, sy: -1 - Math.random() * 1, scale: 1 + Math.random(), type:sdEffect.TYPE_GLOW_HIT, color:'#666666' });
+						else
+						ent = new sdEffect({ x:xx, y:yy, sx:( Math.random() * 2 - 1 ) * 1, sy:( Math.random() * 2 - 1 ) * 1, type:sdEffect.TYPE_FIRE });
+
+						sdEntity.entities.push( ent );
+					}
+				}
+			}
 		
 		
 			this.PhysWakeUp();
@@ -921,6 +987,17 @@ class sdCouncilIncinerator extends sdEntity
 		let xx = this.hea > 0 ? 4 : 6;
 		ctx.rotate( this.tilt / 100 );
 		ctx.drawImageFilterCache( sdCouncilIncinerator.img_incinerator, xx * 48, 0, 48, 48, - 24, - 24, 48, 48);
+		
+		if ( this.hea > 0 )
+		{
+			ctx.blend_mode = THREE.AdditiveBlending;
+			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+
+			ctx.drawImageFilterCache( sdEnemyMech.img_glow, -16 + this.hitbox_x2, -16, 32, 32 );
+
+			ctx.blend_mode = THREE.NormalBlending;
+			ctx.globalAlpha = 1;
+		}
 		
 		ctx.rotate( - this.tilt / 100 );
 		xx = this.hea > 0 ? 0 : 5;

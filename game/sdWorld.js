@@ -127,7 +127,7 @@ class sdWorld
 		sdWorld.last_slowest_class = 'nothing';
 		
 		sdWorld.target_scale = 2; // Current one, this one depends on screen size
-		sdWorld.default_zoom = 2;
+		sdWorld.default_zoom = 1.5;
 		sdWorld.current_zoom = sdWorld.default_zoom; // Synced from server, for example when player is in vehicle or steering wheel
 		
 		
@@ -2297,6 +2297,21 @@ class sdWorld
 		return to;
 
 		return current;
+	}
+	static RotateAngle( current, to, speed, _GSPEED, fixed_speed=true ) // Wraps properly around PI/-PI
+	{
+		const TAU = Math.PI * 2;
+
+		current = current % TAU;
+		to = to % TAU;
+
+		let difference = ( to - current ) % TAU;
+		difference = ( difference * 2 ) % TAU - difference;
+		let abs_difference = Math.abs( difference );
+
+		speed = speed * ( fixed_speed ? 1 : abs_difference * 2 / Math.PI ) * _GSPEED;
+
+		return current + Math.min( Math.max( speed, abs_difference - Math.PI ), abs_difference ) * ( difference > 0 ? 1 : -1 );
 	}
 	
 	static FastestMethod( THAT, prototype, CURRENT_METHOD, ALTERNATIVE_METHODS, args ) // Because JS performance is quite unreliable across different hardware and versions of Node.JS
