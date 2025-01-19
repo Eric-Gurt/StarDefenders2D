@@ -5778,7 +5778,7 @@ class sdEntity
 
 			dmg = hp_old - Math.max( 0, this.hea || this._hea || 0 );
 			if ( dmg !== 0 )
-			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_DAMAGED, by: initiator, dmg: dmg });
+			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_DAMAGED, by: initiator, dmg: dmg, crit:headshot });
 		}
 		else
 		{

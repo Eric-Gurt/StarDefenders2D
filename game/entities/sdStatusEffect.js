@@ -45,6 +45,7 @@ class sdStatusEffect extends sdEntity
 				status_entity._last_merges = 0;
 				
 				status_entity.dmg = params.dmg || 0;
+				status_entity.crit = params.crit || false;
 				
 				status_entity._observers = new WeakSet(); // Damage initiators
 				
@@ -55,6 +56,9 @@ class sdStatusEffect extends sdEntity
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
+				if ( status_entity.crit !== params.crit )
+				return false;
+
 				status_entity.dmg += params.dmg || 0;
 
 				status_entity.merges++;
@@ -126,7 +130,7 @@ class sdStatusEffect extends sdEntity
 				return;
 			
 				ctx.textAlign = 'center';
-				ctx.font = "5px Verdana";
+				ctx.font = ( status_entity.crit ? "7" : "5" ) + "px Verdana";
 				
 				/*for ( let sh = 0; sh < 1; sh++ )
 				for ( let x = -1; x <= 1; x++ )
@@ -167,7 +171,7 @@ class sdStatusEffect extends sdEntity
 					ctx.apply_shading = false;
 
 					if ( status_entity.dmg > 0 )
-					ctx.fillText( Math.floor( status_entity.dmg ) + '', xx, yy );
+					ctx.fillText( Math.floor( status_entity.dmg ) + ( status_entity.crit ? ' CRIT' : '' ), xx, yy );
 					else
 					ctx.fillText( '+' + Math.abs( Math.floor( status_entity.dmg ) ) + '', xx, yy ); 
 

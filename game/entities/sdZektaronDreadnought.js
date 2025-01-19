@@ -1053,8 +1053,14 @@ class sdZektaronDreadnought extends sdEntity
 			ctx.drawImageFilterCache( sdZektaronDreadnought.img_dreadnought, xx * 224, 0, 224, 128, - 112, - 48, 224, 128 );
 			
 			
-			ctx.globalAlpha = ( sdWorld.time % 4000 < 2000 ) ? 0.5 : 1;
+			ctx.blend_mode = THREE.AdditiveBlending;
+			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+
+			//ctx.globalAlpha = ( sdWorld.time % 4000 < 2000 ) ? 0.5 : 1;
 			ctx.drawImageFilterCache( sdZektaronDreadnought.img_glow, -102 + this.hitbox_x2, -48 - this.hitbox_y1 + 32, 32, 32 ); // Weakpoint image
+
+			ctx.blend_mode = THREE.NormalBlending;
+			ctx.globalAlpha = 1;
 		}
 		else
 		{
