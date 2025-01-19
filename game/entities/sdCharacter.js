@@ -4125,7 +4125,7 @@ THING is cosmic mic drop!`;
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 
-		if ( this.hook_projectile )
+		if ( sdWorld.is_server && this.hook_projectile )
 		{
 			let di = sdWorld.Dist2D( this.hook_projectile.x, this.hook_projectile.y, this.x, this.y );
 			if ( di > 1000 ) this.hook_projectile.remove(); // Prevent use of teleports
