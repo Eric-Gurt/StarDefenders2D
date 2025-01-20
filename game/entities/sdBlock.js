@@ -757,7 +757,7 @@ class sdBlock extends sdEntity
 			if ( sdWorld.server_config.enable_block_merging )
 			{
 				if ( this._hea === this._hmax )
-				if ( this._merged === false )
+				if ( this._merged === false && this.SupportsMerging() ) // SupportsMerging does not work in constructor
 				{
 					this._hea = this._hmax - 0.1;
 				}
@@ -921,6 +921,7 @@ class sdBlock extends sdEntity
 				this._broken = false;
 			}
 		}
+		// Not sure if the merging stuff above is checked properly since it's in the constructor...
 		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
@@ -1277,6 +1278,16 @@ class sdBlock extends sdEntity
 		//this._update_version++;
 		return blocks;
 	}
+	SupportsMerging()
+	{
+		//console.log( this.material );
+		//console.log( sdBlock.MATERIAL_GROUND + ',' + sdBlock.MATERIAL_ROCK + ',' + sdBlock.MATERIAL_SAND + ',' + sdBlock.MATERIAL_SNOW );
+		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_ROCK ||
+		this.material === sdBlock.MATERIAL_SAND || this.material === sdBlock.MATERIAL_SNOW )
+		return true;
+		
+		return false;
+	}
 	AttemptBlockMerging()
 	{
 		if ( this._merged )
@@ -1315,7 +1326,7 @@ class sdBlock extends sdEntity
 			//if ( ent._merged || ent2._merged )
 			//return false;
 		
-			if ( ( ent._plants === null && ent2._plants === null ) && ( ent.material === sdBlock.MATERIAL_GROUND || ent.material === sdBlock.MATERIAL_SAND || ent.material === sdBlock.MATERIAL_ROCK || ent.material === sdBlock.MATERIAL_SNOW ) )
+			if ( ( ent._plants === null && ent2._plants === null ) && ( ent.SupportsMerging() ) )
 			{
 				if ( ent.material === ent2.material && ent.filter === ent2.filter && ent.hue === ent2.hue && ent.br === ent2.br )
 				return true;
@@ -1473,6 +1484,8 @@ class sdBlock extends sdEntity
 			this._update_version++;
 			
 			sdWorld.UpdateHashPosition( this, true ); // Bullets pass through walls higher than 64 without this?
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			
 			
 			//console.log( this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
