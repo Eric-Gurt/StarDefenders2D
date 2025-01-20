@@ -677,7 +677,7 @@ class sdCube extends sdEntity
 							if ( this.kind === sdCube.KIND_WHITE ) // white
 							total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail + probability_teleporter;
 							else
-							if ( this.kind === sdCube.KIND_RED ) // crimson
+							if ( this.kind === sdCube.KIND_RED ) // nexus
 							total_drop_probability += probability_void_capacitor + probability_shotgun + probability_triple_rail;
 							else
 							if ( this.kind === sdCube.KIND_ANCIENT ) // ancient
@@ -1567,7 +1567,7 @@ class sdCube extends sdEntity
 		return "Shielder cube";
 
 		if ( this.kind === sdCube.KIND_RED )
-		return "Crimson cube";
+		return "Nexus cube";
 	
 		return "Cube";
 	}
