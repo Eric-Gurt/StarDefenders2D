@@ -15,6 +15,7 @@ class sdLandMine extends sdEntity
 
 		sdLandMine.VARIATION_BASIC = 0;
 		sdLandMine.VARIATION_JUMPER = 1;
+		sdLandMine.VARIATION_BANANA = 2;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -65,11 +66,14 @@ class sdLandMine extends sdEntity
 	}
 	GetIgnoredEntityClasses()
 	{
-		return this.activated ? [ 'sdCharacter' ] : [ ];
+		return ( this.activated || this.variation === sdLandMine.VARIATION_BANANA ) ? [ 'sdCharacter' ] : [ ];
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		if ( observer_character === this._owner )
+		return true;
+
+		if ( this.variation === sdLandMine.VARIATION_BANANA )
 		return true;
 
 		if ( observer_character )
@@ -96,18 +100,32 @@ class sdLandMine extends sdEntity
 		if ( from_entity.mass > 25 )
 		if ( from_entity.y <= this.y )
 		{
-			this.activated = true;
-			sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.5, pitch: ( this.variation === sdLandMine.VARIATION_JUMPER ) ? 0.5 : 1.5 });
-			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-			this.Damage( this.hea + 1 );
-			}, ( this.variation === sdLandMine.VARIATION_JUMPER ) ? 350 : 150 );
-
-			if ( this.variation === sdLandMine.VARIATION_JUMPER )
+			if ( this.variation === sdLandMine.VARIATION_BASIC || this.variation === sdLandMine.VARIATION_JUMPER )
 			{
+				this.activated = true;
+
+				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.5, pitch: ( this.variation === sdLandMine.VARIATION_JUMPER ) ? 0.5 : 1.5 });
+				setTimeout(()=>{
+				this.Damage( this.hea + 1 );
+				}, ( this.variation === sdLandMine.VARIATION_JUMPER ) ? 350 : 150 );
+
+				if ( this.variation === sdLandMine.VARIATION_JUMPER )
+				{
 				this.sy -= 6;
+				}
+			}
+			if ( this.variation === sdLandMine.VARIATION_BANANA )
+			{
+				if ( from_entity.IsPlayerClass() )
+				{
+					this.activated = true;
+					from_entity.DamageStability( 1000 );
+					setTimeout(()=>{
+					this.Damage( this.hea + 1 );
+					}, 1000 );
+				}	
 			}
 		}
-
 	}
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return true; }
@@ -125,6 +143,7 @@ class sdLandMine extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.variation !== sdLandMine.VARIATION_BANANA )
 		if ( this.hea > 0 )
 		sdEntity.Tooltip( ctx, this.title );
 	}
@@ -142,6 +161,9 @@ class sdLandMine extends sdEntity
 		if ( this.variation === sdLandMine.VARIATION_JUMPER )
 		yy = 1;
 
+		if ( this.variation === sdLandMine.VARIATION_BANANA )
+		yy = 2;
+
 		ctx.filter = this.filter;
 		ctx.drawImageFilterCache( sdLandMine.img_landmine, 32 * xx, 32 * yy, 32,32, -16, -16, 32,32 );
 		ctx.filter = 'none';
@@ -153,6 +175,7 @@ class sdLandMine extends sdEntity
 		this._owner = null;
 		
 		// Explosion
+		if ( this.variation !== sdLandMine.VARIATION_BANANA )
 		if ( this._broken )
 		{
 			sdWorld.SendEffect({ 
