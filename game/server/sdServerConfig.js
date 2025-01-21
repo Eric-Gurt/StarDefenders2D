@@ -1228,7 +1228,10 @@ class sdServerConfigFull extends sdServerConfigShort
 				{
 					//console.log( i +',' +  sdEntity.entities.length );
 					if ( ent._merged === false && ent.SupportsMerging() )
-					ent._hea = ent._hmax - 0.1;
+					{
+						ent._hea = ent._hmax - 0.1;
+						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this
+					}
 				}
 			}
 		}
