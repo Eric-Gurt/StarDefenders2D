@@ -760,6 +760,7 @@ class sdBlock extends sdEntity
 				if ( this._merged === false && this.SupportsMerging() ) // SupportsMerging does not work in constructor
 				{
 					this._hea = this._hmax - 0.1;
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attmpt merge without this
 				}
 			}
 			else
@@ -1283,6 +1284,12 @@ class sdBlock extends sdEntity
 	{
 		//console.log( this.material );
 		//console.log( sdBlock.MATERIAL_GROUND + ',' + sdBlock.MATERIAL_ROCK + ',' + sdBlock.MATERIAL_SAND + ',' + sdBlock.MATERIAL_SNOW );
+		if ( this.width !== 16 ) // Maybe let's keep vertical lines only for now.
+		return false;
+			
+		if ( this.height < 16 || this.height % 16 !== 0 ) // Merge only blocks that can be divided by 16, and are at least 16 units
+		return false;
+		
 		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_ROCK ||
 		this.material === sdBlock.MATERIAL_SAND || this.material === sdBlock.MATERIAL_SNOW )
 		return true;
@@ -1307,6 +1314,8 @@ class sdBlock extends sdEntity
 			and merging always catches both top and bottom scenarios
 		*/
 		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
 		let i = 1;
 		let ent;
 		
@@ -1316,12 +1325,6 @@ class sdBlock extends sdEntity
 			return false;
 		
 			if ( ent._hea <= ent._hmax - 1 || ent2._hea <= ent2._hmax - 1 ) // Make sure all are (near) maxed HP. Though even destruction_frame === 0 could work too.
-			return false;
-			
-			if ( ent.width !== 16 || ent2.width !== 16 ) // Maybe let's keep vertical lines only for now.
-			return false;
-			
-			if ( ent.height < 16 || ent2.height < 16 )
 			return false;
 			
 			//if ( ent._merged || ent2._merged )
