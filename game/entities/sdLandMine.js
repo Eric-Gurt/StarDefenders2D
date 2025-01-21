@@ -65,7 +65,7 @@ class sdLandMine extends sdEntity
 	}
 	GetIgnoredEntityClasses()
 	{
-		return [ 'sdCharacter' ];
+		return this.activated ? [ 'sdCharacter' ] : [ ];
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
