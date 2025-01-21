@@ -517,8 +517,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
-		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption' ];
-		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption' ];
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
 
 		sdCharacter.max_level = 60;
 		
