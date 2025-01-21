@@ -900,7 +900,7 @@ class sdBlock extends sdEntity
 			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_ANCIENT_WALL_PROPERTIES }); // Give ancient blocks matter emmission
 		}
 		
-		if ( sdWorld.server_config.enable_block_merging )
+		/*if ( sdWorld.server_config.enable_block_merging )
 		{
 			if ( this._hea === this._hmax )
 			if ( this._merged === false )
@@ -920,8 +920,9 @@ class sdBlock extends sdEntity
 				this.remove(); // Otherwise remove faulty block
 				this._broken = false;
 			}
-		}
+		}*/
 		// Not sure if the merging stuff above is checked properly since it's in the constructor...
+		// Should be working inside sdServerConfig.js now
 		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
@@ -1237,7 +1238,7 @@ class sdBlock extends sdEntity
 			}
 			if ( this._contains_class_params )
 			{
-				if ( this._contains_class[ i ] ) // Not a string?
+				if ( this._contains_class_params[ i ] ) // Not a string?
 				{
 					contained_params = this._contains_class_params[ i ];
 				}
@@ -1488,7 +1489,7 @@ class sdBlock extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			
 			
-			//console.log( this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
+			console.log( this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
 			//console.log( this._contains_class );
 			//console.log( this._contains_class_params );
 			//console.log( 'Health of blocks:' + this._additional_properties );
@@ -1794,7 +1795,7 @@ class sdBlock extends sdEntity
 			{
 				if ( sdWorld.server_config.enable_block_merging === true && this._merged === false && this.AttemptBlockMerging() && this._regen_timeout <= 0 )
 				{
-					
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP ); // Enter hibernation either way
 				}
 				else
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
