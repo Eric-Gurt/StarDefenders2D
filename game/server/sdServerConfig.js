@@ -40,7 +40,7 @@ class sdServerConfigShort
 	static enable_bounds_move = true;
 	static aggressive_hibernation = true; // Offscreen groups of entities (sometimes whole bases) will be put to sleep until something tries to access these areas
 	
-	static enable_block_merging = false; // Experimental change, merges 4 16x16 natural blocks into a single 32x32 block.
+	static enable_block_merging = false; // Experimental change, merges blocks into a single vertical column.
 	
 	static apply_censorship = true; // Censorship file is not included
 	
@@ -1216,6 +1216,22 @@ class sdServerConfigFull extends sdServerConfigShort
 			}
 
 		}, world_edge_think_rate );
+		
+		// Merge unmerged blocks if server config option is enabled
+		if ( sdWorld.server_config.enable_block_merging )
+		{
+			console.log( 'Running block merging patch...' );
+			for ( let i = 0; i < sdEntity.entities.length; i++ )
+			{
+				let ent = sdEntity.entities[ i ];
+				if ( ent.is( sdBlock ) )
+				{
+					//console.log( i +',' +  sdEntity.entities.length );
+					if ( ent._merged === false && ent.SupportsMerging() )
+					ent._hea = ent._hmax - 0.1;
+				}
+			}
+		}
 	}
 	static PlayerSpawnPointSeeker( character_entity, socket )
 	{
