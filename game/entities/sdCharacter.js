@@ -4133,6 +4133,7 @@ THING is cosmic mic drop!`;
 
 			if ( this._hook_projectile._is_being_removed )
 			this._hook_projectile = null;
+			this.hook_projectile_net_id = null;
 		}
 		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
