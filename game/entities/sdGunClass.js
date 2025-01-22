@@ -7617,16 +7617,16 @@ class sdGunClass
 			sound_pitch: 1.5,
 			title: 'Cryogun',
 			slot: 8,
-			reload_time: 20,
+			reload_time: 9,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_velocity: 16,
 			spawnable: false,
-			projectile_properties: { _damage: 1, model: 'ball', _temperature_addition: -100 },
+			projectile_properties: { _damage: 1, model: 'ball', _temperature_addition: -15 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model: 'ball', _temperature_addition: -100 };
+				let obj = { model: 'ball', _temperature_addition: -15 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];

@@ -4056,7 +4056,7 @@ class sdWeather extends sdEntity
 
 
 			this._missile_timer += GSPEED;
-			if ( this._missile_timer > 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 ) )
+			if ( this._missile_timer > 4 * 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 ) )
 			{
 				let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 				
