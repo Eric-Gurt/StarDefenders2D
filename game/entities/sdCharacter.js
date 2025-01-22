@@ -1283,7 +1283,8 @@ THING is cosmic mic drop!`;
 		this.hook_relative_x = 0;
 		this.hook_relative_y = 0;
 
-		this.hook_projectile = null;
+		this._hook_projectile = null;
+		this.hook_projectile_net_id = null;
 
 		this._jetpack_power = 1; // Through upgrade
 		
@@ -4125,13 +4126,13 @@ THING is cosmic mic drop!`;
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 
-		if ( sdWorld.is_server && this.hook_projectile )
+		if ( sdWorld.is_server && this._hook_projectile )
 		{
-			let di = sdWorld.Dist2D( this.hook_projectile.x, this.hook_projectile.y, this.x, this.y );
-			if ( di > 1000 ) this.hook_projectile.remove(); // Prevent use of teleports
+			let di = sdWorld.Dist2D( this._hook_projectile.x, this._hook_projectile.y, this.x, this.y );
+			if ( di > 1000 ) this._hook_projectile.remove(); // Prevent use of teleports
 
-			if ( this.hook_projectile._is_being_removed )
-			this.hook_projectile = null;
+			if ( this._hook_projectile._is_being_removed )
+			this._hook_projectile = null;
 		}
 		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
@@ -4528,12 +4529,13 @@ THING is cosmic mic drop!`;
 						bullet_obj._affected_by_gravity = true;
 						bullet_obj.gravity_scale = 2;
 						
-						if ( this.hook_projectile )
-						if ( !this.hook_projectile._is_being_removed )
-						this.hook_projectile.remove()
+						if ( this._hook_projectile )
+						if ( !this._hook_projectile._is_being_removed )
+						this._hook_projectile.remove()
 						sdEntity.entities.push( bullet_obj );
-
-						this.hook_projectile = bullet_obj;
+console.log(bullet_obj)
+						this._hook_projectile = bullet_obj;
+						this.hook_projectile_net_id = bullet_obj._net_id;
 					}
 					else
 					{
@@ -6273,7 +6275,7 @@ THING is cosmic mic drop!`;
 		const char_filter = ctx.filter;
 		
 		if ( !attached )
-		if ( this.hook_relative_to || this.hook_projectile )
+		if ( this.hook_relative_to || this.hook_projectile_net_id )
 		{
 			//if ( this.hook_relative_to )
 			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
@@ -6285,17 +6287,19 @@ THING is cosmic mic drop!`;
 			if ( this.hook_relative_to )
 			ctx.lineTo( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
 			else
-			ctx.lineTo( this.hook_projectile.x - this.x, this.hook_projectile.y - this.y );
+			{
+				let hook_ent = sdEntity.entities_by_net_id_cache_map.get( this.hook_projectile_net_id );
+				if ( hook_ent )
+				ctx.lineTo( hook_ent.x - this.x, hook_ent.y - this.y );
+			}
 			ctx.stroke();
-
 			if ( this.hook_relative_to )
 			{
 				ctx.save();
 
 				ctx.translate( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
-				ctx.scale( 1, -1 );
 
-				ctx.rotate( -( Math.atan2( this.hook_relative_to.y + this.hook_relative_y - this.y ,this.hook_relative_to.x + this.hook_relative_x - this.x ) ) );
+				ctx.rotate( ( Math.atan2( this.hook_relative_to.y + this.hook_relative_y - this.y ,this.hook_relative_to.x + this.hook_relative_x - this.x ) ) );
 
 				ctx.drawImageFilterCache( sdCharacter.img_grapple_hook, - 16, - 16, 32,32 );
 
