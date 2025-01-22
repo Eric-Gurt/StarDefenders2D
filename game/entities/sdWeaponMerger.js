@@ -48,6 +48,9 @@ class sdWeaponMerger extends sdEntity
 		this.matter = 0;
 		this._matter_max = sdWeaponMerger.max_matter;
 		this._regen_timeout = 0;
+		
+		this.power0 = -1; // Displays power of left slot weapon
+		this.power1 = -1; // Displays power of right slot weapon
 
 		//this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		
@@ -221,10 +224,20 @@ class sdWeaponMerger extends sdEntity
 			}
 		}
 		if ( this.item0 )
-		this.item0.UpdateHeldPosition();
+		{
+			this.item0.UpdateHeldPosition();
+			this.power0 = Math.round( this.item0._max_dps );
+		}
+		else
+		this.power0 = -1;
 	
 		if ( this.item1 )
-		this.item1.UpdateHeldPosition();
+		{
+			this.item1.UpdateHeldPosition();
+			this.power1 = Math.round( this.item1._max_dps );
+		}
+		else
+		this.power1 = -1;
 	
 		if ( this.item2 )
 		this.item2.UpdateHeldPosition();
@@ -268,6 +281,8 @@ class sdWeaponMerger extends sdEntity
 			ctx.save();
 			ctx.translate( -16, -1 );
 			this.item0.Draw( ctx, true );
+			if ( this.power0 !== -1 )
+			sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power0, -5, -10, '#ffffff' );
 			ctx.restore();
 		}
 		if ( this.item1 )
@@ -275,6 +290,8 @@ class sdWeaponMerger extends sdEntity
 			ctx.save();
 			ctx.translate( 16, -1 );
 			this.item1.Draw( ctx, true );
+			if ( this.power1 !== -1 )
+			sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1, 5, -10, '#ffffff' );
 			ctx.restore();
 		}
 		if ( this.item2 )
