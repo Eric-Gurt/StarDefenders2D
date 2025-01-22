@@ -110,11 +110,11 @@ class sdBullet extends sdEntity
 	}
 
 	ThinkUntilRemoved()
-	{ return this._rail || this._hook || this._wave; }
+	{ return this._rail || this._wave; }
 
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( this._rail || this._hook || this._wave )
+		if ( this._rail || this._wave )
 		return false;
 
 		if ( this.color === 'transparent' )

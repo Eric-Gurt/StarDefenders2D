@@ -9416,6 +9416,38 @@ class sdGunClass
 			} 
 		};
 
+		sdGun.classes[ sdGun.CLASS_BANANA = 144 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'banana' ),
+			title: 'Banana',
+			slot: 7,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 10,
+			projectile_velocity: 16,
+			spawnable: true,
+			category: 'Other',
+			GetAmmoCost: ()=>
+			{
+				return 0;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				sdSound.PlaySound({ name:'popcorn', x:gun.x, y:gun.y, volume:0.3 + Math.random() * 0.2, pitch:1.5 + Math.sin( gun._net_id ) * 0.2 });
+
+				let peel = new sdLandMine({ x:gun.x, y:gun.y, variation:2 });
+
+				if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_BANANA ].slot ] )
+				gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_BANANA ].slot ].remove();
+				
+				return true;
+			},
+			projectile_properties: { _damage: 0 }
+		};
+
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

@@ -501,6 +501,7 @@ class sdCharacter extends sdEntity
 		
 		
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack_sheet' ); // Sprite sheet by Molis
+		sdCharacter.img_grapple_hook = sdWorld.CreateImageFromFile( 'grapple_hook' );
 
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
@@ -516,8 +517,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
-		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
-		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
 
 		sdCharacter.max_level = 60;
 		
@@ -1281,6 +1282,9 @@ THING is cosmic mic drop!`;
 		
 		this.hook_relative_x = 0;
 		this.hook_relative_y = 0;
+
+		this._hook_projectile = null;
+		this.hook_projectile_net_id = -1;
 
 		this._jetpack_power = 1; // Through upgrade
 		
@@ -4121,6 +4125,18 @@ THING is cosmic mic drop!`;
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+
+		if ( sdWorld.is_server && this._hook_projectile )
+		{
+			let di = sdWorld.Dist2D( this._hook_projectile.x, this._hook_projectile.y, this.x, this.y );
+			if ( di > 1000 ) this._hook_projectile.remove(); // Prevent use of teleports
+
+			if ( this._hook_projectile._is_being_removed )
+			{
+				this._hook_projectile = null;
+				this.hook_projectile_net_id = -1;
+			}
+		}
 		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
 		{
@@ -4500,6 +4516,7 @@ THING is cosmic mic drop!`;
 						bullet_obj._owner = this;
 						let an = this.GetLookAngle();
 						let vel = 16;
+
 						bullet_obj.sx = Math.sin( an ) * vel;
 						bullet_obj.sy = Math.cos( an ) * vel;
 
@@ -4510,9 +4527,19 @@ THING is cosmic mic drop!`;
 
 						bullet_obj._hook = true;
 						bullet_obj._damage = 0;
-						bullet_obj.time_left = 8.5;
+						bullet_obj.time_left = 20;
+						bullet_obj.model = 'grapple_hook'
+						bullet_obj._affected_by_gravity = true;
+						bullet_obj.gravity_scale = 2;
+						
+						if ( this._hook_projectile )
+						if ( !this._hook_projectile._is_being_removed )
+						this._hook_projectile.remove();
 
 						sdEntity.entities.push( bullet_obj );
+
+						this._hook_projectile = bullet_obj;
+						this.hook_projectile_net_id = bullet_obj._net_id;
 					}
 					else
 					{
@@ -4563,7 +4590,7 @@ THING is cosmic mic drop!`;
 			if ( this.hook_len === -1 )
 			this.hook_len = cur_di;
 		
-			let max_length = 8.5 * 16;
+			let max_length = 8.5 * 48;
 		
 			if ( this._upgrade_counters.upgrade_hook > 1 )
 			if ( this._key_states.GetKey( 'Mouse3' ) )
@@ -6252,16 +6279,36 @@ THING is cosmic mic drop!`;
 		const char_filter = ctx.filter;
 		
 		if ( !attached )
-		if ( this.hook_relative_to )
+		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
 		{
+			//if ( this.hook_relative_to )
 			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
-			
+
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = '#c0c0c0';
 			ctx.beginPath();
 			ctx.moveTo( 0,from_y - this.y );
+			if ( this.hook_relative_to )
 			ctx.lineTo( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
+			else
+			{
+				let hook_ent = sdEntity.entities_by_net_id_cache_map.get( this.hook_projectile_net_id );
+				if ( hook_ent )
+				ctx.lineTo( hook_ent.x - this.x, hook_ent.y - this.y );
+			}
 			ctx.stroke();
+			if ( this.hook_relative_to )
+			{
+				ctx.save();
+
+				ctx.translate( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
+
+				ctx.rotate( ( Math.atan2( this.hook_relative_to.y + this.hook_relative_y - this.y ,this.hook_relative_to.x + this.hook_relative_x - this.x ) ) );
+
+				ctx.drawImageFilterCache( sdCharacter.img_grapple_hook, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
 		}
 		
 		if ( this._ragdoll )

@@ -261,6 +261,8 @@ class sdCube extends sdEntity
 		
 		this.matter_max = ( this.kind === sdCube.KIND_RED ? 16 : this.kind === sdCube.KIND_WHITE ? 6 : this.kind === sdCube.KIND_YELLOW ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
+
+		this._dmg_threshold = ( this.kind === sdCube.KIND_RED ? 900 : this.kind === sdCube.KIND_WHITE ? 600 : this.kind === sdCube.KIND_YELLOW ? 300 : 60 )
 		
 		this._time_amplification = 0;
 		
@@ -384,7 +386,7 @@ class sdCube extends sdEntity
 			
 			if ( initiator.IsPlayerClass() )
 			{
-				initiator._nature_damage += dmg;
+				initiator._nature_damage += dmg * 8; // No mercy if a cube is attacked
 			}
 		}
 	
@@ -675,7 +677,7 @@ class sdCube extends sdEntity
 							if ( this.kind === sdCube.KIND_WHITE ) // white
 							total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail + probability_teleporter;
 							else
-							if ( this.kind === sdCube.KIND_RED ) // crimson
+							if ( this.kind === sdCube.KIND_RED ) // nexus
 							total_drop_probability += probability_void_capacitor + probability_shotgun + probability_triple_rail;
 							else
 							if ( this.kind === sdCube.KIND_ANCIENT ) // ancient
@@ -1519,10 +1521,10 @@ class sdCube extends sdEntity
 			if ( cube.kind === sdCube.KIND_MATTER_STEALER )
 			return false;
 		}
-		
-		//if ( ent.GetClass() === 'sdCharacter' )
-		if ( ent.IsPlayerClass() || ent.GetClass() === 'sdDrone' || ent.GetClass() === 'sdSpider' || ent.GetClass() === 'sdOverlord')
-		if ( ent._nature_damage >= ent._player_damage + 60 )
+
+		if ( ent.IsPlayerClass() || ent.GetClass() === 'sdSpider' || ent.GetClass() === 'sdOverlord' )
+		if ( ent._nature_damage >= ent._player_damage + ( cube ? cube._dmg_threshold : 60 ) )
+
 		return false;
 
 		if ( ent.GetClass() === 'sdTurret' )
@@ -1534,7 +1536,7 @@ class sdCube extends sdEntity
 		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
 		return false;
 		
-		if ( ent.GetClass() === 'sdBot' )
+		if ( ent.GetClass() === 'sdBot' || ent.GetClass() === 'sdDrone' )
 		return false;
 
 
@@ -1565,7 +1567,7 @@ class sdCube extends sdEntity
 		return "Shielder cube";
 
 		if ( this.kind === sdCube.KIND_RED )
-		return "Crimson cube";
+		return "Nexus cube";
 	
 		return "Cube";
 	}
