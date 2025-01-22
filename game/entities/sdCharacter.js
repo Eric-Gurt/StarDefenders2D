@@ -1284,7 +1284,7 @@ THING is cosmic mic drop!`;
 		this.hook_relative_y = 0;
 
 		this._hook_projectile = null;
-		this.hook_projectile_net_id = null;
+		this.hook_projectile_net_id = -1;
 
 		this._jetpack_power = 1; // Through upgrade
 		
@@ -4132,8 +4132,10 @@ THING is cosmic mic drop!`;
 			if ( di > 1000 ) this._hook_projectile.remove(); // Prevent use of teleports
 
 			if ( this._hook_projectile._is_being_removed )
-			this._hook_projectile = null;
-			this.hook_projectile_net_id = null;
+			{
+				this._hook_projectile = null;
+				this.hook_projectile_net_id = -1;
+			}
 		}
 		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
@@ -4532,9 +4534,10 @@ THING is cosmic mic drop!`;
 						
 						if ( this._hook_projectile )
 						if ( !this._hook_projectile._is_being_removed )
-						this._hook_projectile.remove()
+						this._hook_projectile.remove();
+
 						sdEntity.entities.push( bullet_obj );
-console.log(bullet_obj)
+
 						this._hook_projectile = bullet_obj;
 						this.hook_projectile_net_id = bullet_obj._net_id;
 					}
@@ -6276,7 +6279,7 @@ console.log(bullet_obj)
 		const char_filter = ctx.filter;
 		
 		if ( !attached )
-		if ( this.hook_relative_to || this.hook_projectile_net_id )
+		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
 		{
 			//if ( this.hook_relative_to )
 			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
