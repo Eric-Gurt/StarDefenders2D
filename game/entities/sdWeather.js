@@ -4410,6 +4410,12 @@ class sdWeather extends sdEntity
 								else
 								if ( place_near.is( sdBG ) && place_near._natural )
 								{
+									if ( place_near._merged ) // Merged backgrounds?
+									{
+										let bgs = place_near.UnmergeBackgrounds(); // Unmerge
+										if ( bgs.length > 0 )
+										place_near = bgs[ Math.floor( Math.random() * bgs.length ) ]; // Select random background
+									}
 									x = Math.floor( place_near.x / 16 ) * 16;
 									y = Math.floor( place_near.y / 16 ) * 16;
 								}
@@ -4562,7 +4568,15 @@ class sdWeather extends sdEntity
 											}
 											else
 											{
+												if ( sdWorld.last_hit_entity._merged === false )
 												bg_nature_ent = sdWorld.last_hit_entity;
+												else
+												{
+													sdWorld.last_hit_entity.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
+													if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+													if ( sdWorld.last_hit_entity )
+													bg_nature_ent = sdWorld.last_hit_entity;
+												}
 											}
 										}
 

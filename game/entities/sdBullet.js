@@ -763,6 +763,30 @@ class sdBullet extends sdEntity
 			else
 			return;
 		}
+		// BG shooting works normally even without this, so disabled for now.
+		/*if ( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 )
+		{
+			// Essentially the backgrounds split themselves, returning an array of the new spawned backgrounds
+			let ents = from_entity.UnmergeBackgrounds();
+			if ( ents.length > 0 ) 
+			{
+				// And we need to determine which block to damage, which is the closest one.
+				let closest = sdWorld.Dist2D( this.x, this.y, ents[ 0 ].x + ( ents[ 0 ].width / 2 ), ents[ 0 ].y + ( ents[ 0 ].height / 2 ) );
+				from_entity = ents[ 0 ];
+				for ( let i = 0; i < ents.length; i++ )
+				{
+					let distance = sdWorld.Dist2D( this.x, this.y, ents[ i ].x + ( ents[ i ].width / 2 ), ents[ i ].y + ( ents[ i ].height / 2 ) );
+					if ( distance < closest )
+					{
+						closest = distance;
+						from_entity = ents[ i ];
+					}
+				}
+			}
+			else
+			return;
+		}*/
+		
 		if ( this._last_target === from_entity )
 		return; // Prevent bouncing bullets to deal multiple damage when they stuck in something?
 

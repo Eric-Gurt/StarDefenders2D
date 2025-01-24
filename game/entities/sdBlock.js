@@ -1327,6 +1327,9 @@ class sdBlock extends sdEntity
 			if ( ent._hea <= ent._hmax - 1 || ent2._hea <= ent2._hmax - 1 ) // Make sure all are (near) maxed HP. Though even destruction_frame === 0 could work too.
 			return false;
 			
+			//if ( ent._natural !== ent2._natural )
+			//return false;
+			
 			//if ( ent._merged || ent2._merged )
 			//return false;
 		
@@ -1348,10 +1351,16 @@ class sdBlock extends sdEntity
 		
 		// Attempt vertical merging - go down ( check below )
 		while( true ){
-			ent = sdBlock.GetGroundObjectAt( this.x, this.y + ( 16 * i ) );
+			ent = sdBlock.GetGroundObjectAt( this.x + 8, this.y + 8 + ( 16 * i ), false );
 			
 			if ( IsCompatible( ent, this ) )
-			ents_to_merge_below.push( ent );
+			{
+				// Limit to 16 entity merges.
+				if ( ( this.height + ( 16 * i ) + ( ent.height - 16 ) ) <= 256 )
+				ents_to_merge_below.push( ent );
+				else
+				break;
+			}
 			else
 			break;
 			
@@ -1364,10 +1373,16 @@ class sdBlock extends sdEntity
 		
 		// Attempt vertical merging - go up ( check above )
 		while( true ){
-			ent = sdBlock.GetGroundObjectAt( this.x, this.y - ( 16 * i ) );
+			ent = sdBlock.GetGroundObjectAt( this.x + 8, this.y + 8 - ( 16 * i ), false );
 			
 			if ( IsCompatible( ent, this ) )
-			ents_to_merge_above.push( ent );
+			{
+				// Limit to 16 entity merges.
+				if ( ( this.height + ( 16 * i ) + ( ent.height - 16 ) ) <= 256 )
+				ents_to_merge_above.push( ent );
+				else
+				break;
+			}
 			else
 			break;
 			
@@ -1492,7 +1507,7 @@ class sdBlock extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			
 			
-			console.log( this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
+			console.log( 'Block: ' + this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
 			//console.log( this._contains_class );
 			//console.log( this._contains_class_params );
 			//console.log( 'Health of blocks:' + this._additional_properties );
@@ -1806,7 +1821,7 @@ class sdBlock extends sdEntity
 		}
 	}
 	
-	static GetGroundObjectAt( nx, ny ) // for corruption
+	static GetGroundObjectAt( nx, ny, strict = true ) // for corruption
 	{
 		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
@@ -1814,10 +1829,19 @@ class sdBlock extends sdEntity
 	
 		let arr_under = sdWorld.RequireHashPosition( nx, ny ).arr;
 		
+		if ( strict )
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
 			if ( arr_under[ i ] instanceof sdBlock )
 			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			if ( !arr_under[ i ]._is_being_removed )
+			return arr_under[ i ];
+		}
+		else
+		for ( var i = 0; i < arr_under.length; i++ )
+		{
+			if ( arr_under[ i ] instanceof sdBlock )
+			if ( nx >= arr_under[ i ].x && ny >= arr_under[ i ].y && nx <= ( arr_under[ i ].x + arr_under[ i ].width ) && ny <= ( arr_under[ i ].y + arr_under[ i ].height ) )
 			if ( !arr_under[ i ]._is_being_removed )
 			return arr_under[ i ];
 		}
