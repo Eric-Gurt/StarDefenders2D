@@ -22,6 +22,7 @@ import sdCrystal from './sdCrystal.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdStorageTank from './sdStorageTank.js';
 import sdEssenceExtractor from './sdEssenceExtractor.js';
+import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
