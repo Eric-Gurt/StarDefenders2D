@@ -43,6 +43,8 @@ class sdServerConfigShort
 	static enable_block_merging = false; // Experimental change, merges blocks into a single vertical column.
 	static enable_background_merging = false; // Experimental change, merges backgrounds into a single vertical column.
 	
+	static forced_play_area = false; // Force a play/no oxygen area like in open world support, even without open worlds enabled. (open_world_max_distance coordinates)
+	
 	static apply_censorship = true; // Censorship file is not included
 	
 	static backup_interval_seconds = 60 * 30; // 30 minutes
