@@ -1712,10 +1712,37 @@ class sdBlock extends sdEntity
 						//if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
 						if ( ent._natural && ent.material !== sdBlock.MATERIAL_CORRUPTION && this.p >= 1 )
 						{
-							ent.Corrupt( this );
+							if ( ent._merged === false )
+							{
+								ent.Corrupt( this );
+								corrupt_done = true;
+								break;
+							}
+							else
+							{
+								ent.UnmergeBlocks(); // Unmerge blocks
+								ent = null; // Begin again
+								// Not ideal, but if it works...
+								if ( dir === 0 )
+								ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+					
+								if ( dir === 1 )
+								ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+					
+								if ( dir === 2 )
+								ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+					
+								if ( dir === 3 )
+								ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
 							
-							corrupt_done = true;
-							break;
+								if ( ent )
+								{
+									ent.Corrupt( this );
+									corrupt_done = true;
+									break;
+								}
+							}
+							//if ( ent._merged === false )
 						}
 						/*else
 						{
@@ -1794,9 +1821,40 @@ class sdBlock extends sdEntity
 						//if ( this.p >= 1 )
 						//if ( ent.material !== sdBlock.MATERIAL_FLESH )
 						//{
-							ent.Fleshify( this );
-							corrupt_done = true;
-							break;
+							if ( ent._merged === false )
+							{
+								ent.Fleshify( this );
+								corrupt_done = true;
+								break;
+							}
+							else
+							{
+								ent.UnmergeBlocks(); // Unmerge and re-do
+								sdWorld.last_hit_entity = null;
+								sdWorld.CheckWallExistsBox( 
+										this.x + xx * 16, 
+										this.y + yy * 16, 
+										this.x + this._hitbox_x2 + xx * 16, 
+										this.y + this._hitbox_y2 + yy * 16, 
+										null, 
+										null, 
+										null, 
+										( e )=>
+										{
+											return (
+													( e.is( sdBlock ) && ( e.IsDefaultGround() || !e._natural ) ) ||
+													e.is( sdDoor )
+											);
+										}
+								);
+								ent = sdWorld.last_hit_entity;
+								if ( ent )
+								{
+									ent.Fleshify( this );
+									corrupt_done = true;
+									break;
+								}
+							}
 						//}
 					}
 				}

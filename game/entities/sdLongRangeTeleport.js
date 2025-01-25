@@ -456,6 +456,14 @@ class sdLongRangeTeleport extends sdEntity
 			{
 				return false;
 			}
+			
+			// Disable teleporting items which have a "Protect" task on them
+			for ( let i = 0; i < sdTask.tasks.length; i++ )
+			{
+				let task = sdTask.tasks[ i ];
+				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_PROTECT_ENTITY ] )
+				return false;
+			}
 
 
 			if ( use_task_filter )
