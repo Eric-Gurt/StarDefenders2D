@@ -226,7 +226,7 @@ class sdBaseShieldingUnit extends sdEntity
 	IsOutOfBounds()
 	{
 		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
-		if ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation )
+		if ( ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation ) || sdWorld.server_config.forced_play_area )
 		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
