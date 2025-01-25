@@ -167,13 +167,13 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'cracks3' )
 		];
 
-		sdBlock.metal_reinforces = [ 
+		/*sdBlock.metal_reinforces = [ 
 			null,
 			sdWorld.CreateImageFromFile( 'metal_reinforced1' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced2' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced3' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced4' )
-		];
+		];*/
 		
 		sdBlock.max_corruption_rank = 12; // 12
 		sdBlock.max_flesh_rank = 6; // 6
@@ -927,8 +927,8 @@ class sdBlock extends sdEntity
 		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
-		this.reinforced_frame = 0;
-		this.HandleReinforceUpdate();
+		//this.reinforced_frame = 0;
+		//this.HandleReinforceUpdate();
 		
 		if ( params.skip_hiberstate_and_hash_update )
 		{
@@ -1182,7 +1182,7 @@ class sdBlock extends sdEntity
 		if ( this.destruction_frame !== old_destruction_frame )
 		this._update_version++;
 	}
-	HandleReinforceUpdate()
+	/*HandleReinforceUpdate()
 	{
 		let old_reinforced_frame = this.reinforced_frame;
 		
@@ -1203,7 +1203,7 @@ class sdBlock extends sdEntity
 		
 		if ( this.reinforced_frame !== old_reinforced_frame )
 		this._update_version++;
-	}
+	}*/
 	UnmergeBlocks()
 	{
 		if ( !sdWorld.is_server )
@@ -2221,8 +2221,8 @@ class sdBlock extends sdEntity
 		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 		
 			
-		if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
-		ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
+		//if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
+		//ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
 	
 		ctx.filter = 'none';
 		ctx.sd_hue_rotation = 0;
