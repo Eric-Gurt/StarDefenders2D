@@ -1821,7 +1821,7 @@ class sdBlock extends sdEntity
 						//if ( this.p >= 1 )
 						//if ( ent.material !== sdBlock.MATERIAL_FLESH )
 						//{
-							if ( ent._merged === false )
+							if ( ( ent.is( sdBlock ) && ent._merged === false ) || ent.is( sdDoor ) )
 							{
 								ent.Fleshify( this );
 								corrupt_done = true;

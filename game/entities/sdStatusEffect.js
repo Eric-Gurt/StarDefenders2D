@@ -14,6 +14,8 @@ import sdWeather from './sdWeather.js';
 import sdCrystal from './sdCrystal.js';
 import sdLost from './sdLost.js';
 import sdCom from './sdCom.js';
+import sdBG from './sdBG.js';
+import sdBlock from './sdBlock.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -471,6 +473,35 @@ class sdStatusEffect extends sdEntity
 									
 									//if ( e.IsBGEntity() === 1 )
 									//strength = 0.1;
+									
+									// Merged blocks scenario
+									if ( e.is( sdBlock ) || e.is( sdBG ) )
+									if ( e._merged )
+									{
+										let ents;
+										if ( e.is( sdBlock ) )
+										ents = e.UnmergeBlocks();
+										if ( e.is( sdBG ) )
+										ents = e.UnmergeBackgrounds();
+										// Set closest block/BG as entity to apply status effect
+										if ( ents.length > 0 )
+										{
+											let closest = ents[ 0 ];
+											let closest_di = sdWorld.Dist2D( status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2, status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2, ents[ 0 ].x + ents[ 0 ].width / 2, ents[ 0 ].y + ents[ 0 ].height / 2 );
+											for ( let j = 0; j < ents.length; j++ )
+											{
+												let di = sdWorld.Dist2D( status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2, status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2, ents[ j ].x + ents[ j ].width / 2, ents[ j ].y + ents[ j ].height / 2 );
+												if ( di < closest_di )
+												{
+													closest = ents[ j ];
+													closest_di = di;
+												}
+											}
+											e = closest;
+										}
+										else
+										strength = 0;
+									}
 									
 									if ( strength > 0 )
 									{
