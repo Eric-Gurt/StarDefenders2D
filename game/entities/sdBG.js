@@ -489,7 +489,7 @@ class sdBG extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			
 			
-			console.log( 'BG: ' + this.x + ', ' + this.y + ', width:' + this.width + ', height:' + this.height );
+			//console.log( 'BG: ' + this.x + ', ' + this.y + ', width:' + this.width + ', height:' + this.height );
 			
 			//this._hmax = 1;
 			//this._hea = 1;

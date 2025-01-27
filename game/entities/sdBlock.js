@@ -1507,7 +1507,7 @@ class sdBlock extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			
 			
-			console.log( 'Block: ' + this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
+			//console.log( 'Block: ' + this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
 			//console.log( this._contains_class );
 			//console.log( this._contains_class_params );
 			//console.log( 'Health of blocks:' + this._additional_properties );
