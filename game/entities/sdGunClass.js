@@ -9447,7 +9447,33 @@ class sdGunClass
 			},
 			projectile_properties: { _damage: 0 }
 		};
-
+		
+		sdGun.classes[ sdGun.CLASS_UNSTABLE_CORE = 145 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'unstable_core' ),
+			sound: 'gun_defibrillator',
+			title: 'Unstable core',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Can be merged with weapons to alter power', 'Power determined at weapon merging bench' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				// Unstable core has randomized power/dps
+					gun._max_dps = Math.max( 250, ( 100 + Math.random() * 560 ) * ( Math.random() < 0.8 ? 0.9 : 1 ) );
+					// In rare scenarios, it can be stronger than some endgame weapons, reaching up to 660 DPS. (Still lose 5% on merging though)
+					console.log( gun._max_dps );
+			}
+		};
 
 		// Add new gun classes above this line //
 		

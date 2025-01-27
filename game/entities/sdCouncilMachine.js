@@ -57,9 +57,11 @@ class sdCouncilMachine extends sdEntity
 		this._spawn_timer = 60; // Spawn Council timer
 		this._regen_timeout = 0; // Regen timeout;
 		
+		this._one_time_spawn = params.one_time_spawn || false; // For beam projector so the rewards are weaker since only one spawns
+		
 		this._ai_team = 3;
 
-
+		if ( this._one_time_spawn === false )
 		sdCouncilMachine.ents++;
 
 	}
@@ -152,7 +154,7 @@ class sdCouncilMachine extends sdEntity
 		if ( this.hea <= 0 && was_alive )
 		{
 			let spawned_ent = false;
-			if ( sdCouncilMachine.ents_left > 0 )
+			if ( sdCouncilMachine.ents_left > 0 && this._one_time_spawn === false )
 			{
 				sdCouncilMachine.ents_left--;
 				let instances = 0;
@@ -205,7 +207,12 @@ class sdCouncilMachine extends sdEntity
 				{
 					let task = sdTask.tasks[ i ];
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
-					task._difficulty = 0.18;
+					{
+						if ( this._one_time_spawn === false )
+						task._difficulty = 0.18;
+						else
+						task._difficulty = 0.05; // Beam projector scenario
+					}
 				}
 
 				{
@@ -227,7 +234,7 @@ class sdCouncilMachine extends sdEntity
 					}, 500 );
 				}
 				let r = Math.random();
-				if ( r < 0.03 ) // 3% chance to drop Exalted core on task completion
+				if ( ( r < 0.03 && this._one_time_spawn === false ) || ( r < 0.005 && this._one_time_spawn ) ) // 3% chance to drop Exalted core on task completion (0.5% if from beam projector)
 				{
 					let x = this.x;
 					let y = this.y;
@@ -329,10 +336,16 @@ class sdCouncilMachine extends sdEntity
 						desc = 'There is not many of them left, be quick now and destroy the remaining machines!';
 						else
 						desc = 'We located the last remaining Council portal machine. Get rid of it before they invade us, quickly!';
+					
+						if ( this._one_time_spawn === true )
+						desc = 'The Council is attempting to invade near the dark matter beam projector. Destroy the device!';
 
 						let diff = 0.001; // 0 sets it to 0.1 since it doesn't count as a parameter? It gets set to 0 when damaged enough before being destroyed if not the last one, just in case.
 						if ( sdCouncilMachine.ents_left === 0 )
 						diff = 0.18; // Only last machine counts towards task points when destroyed, so the task is 100% complete
+					
+						if ( this._one_time_spawn )
+						diff = 0.05;
 
 						sdTask.MakeSureCharacterHasTask({ 
 							similarity_hash:'DESTROY-'+this._net_id, 
@@ -631,6 +644,7 @@ class sdCouncilMachine extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._one_time_spawn === false )
 		sdCouncilMachine.ents--;
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );

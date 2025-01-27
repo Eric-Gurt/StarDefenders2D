@@ -609,7 +609,7 @@ class sdCouncilIncinerator extends sdEntity
 
 						this._move_dir_x = Math.cos( an_desired );
 						this._move_dir_y = Math.sin( an_desired );
-						this._move_dir_speed_scale = 10;
+						this._move_dir_speed_scale = ( this.hea < this.hmax / 2 ) ? 10 : 5;
 						
 						if ( closest_di_real < sdCouncilIncinerator.attack_range ) // close enough to dodge obstacles
 						{
@@ -617,7 +617,7 @@ class sdCouncilIncinerator extends sdEntity
 
 							this._move_dir_x = Math.cos( an );
 							this._move_dir_y = Math.sin( an );
-							this._move_dir_speed_scale = 1;
+							this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 1 : 0.5;
 
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
@@ -637,7 +637,7 @@ class sdCouncilIncinerator extends sdEntity
 
 											this._move_dir_x = Math.cos( a1 );
 											this._move_dir_y = Math.sin( a1 );
-											this._move_dir_speed_scale = 8;
+											this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 8 : 4;
 
 											this._move_dir_timer = r1 * 5;
 
@@ -659,7 +659,7 @@ class sdCouncilIncinerator extends sdEntity
 
 													this._move_dir_x = Math.cos( a1 );
 													this._move_dir_y = Math.sin( a1 );
-													this._move_dir_speed_scale = 8;
+													this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 8 : 4;
 
 													this._move_dir_timer = r1 * 5;
 													
@@ -684,7 +684,7 @@ class sdCouncilIncinerator extends sdEntity
 
 						this._move_dir_x = Math.cos( an );
 						this._move_dir_y = Math.sin( an );
-						this._move_dir_speed_scale = 1;
+						this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 1 : 0.5;
 					}
 				}
 				else
@@ -692,6 +692,8 @@ class sdCouncilIncinerator extends sdEntity
 			}
 		
 			let v = 0.05;
+			if ( this.incinerator_attack_anim > 0 ) // Slow down the entity during incinerator attack
+			v *= ( this.incinerator_attack_anim / 90 );
 				
 			if ( 
 					this.y > sdWorld.world_bounds.y1 + 200 &&
@@ -746,12 +748,15 @@ class sdCouncilIncinerator extends sdEntity
 						an_desired = Math.random() * Math.PI * 2;
 						this._move_dir_x = Math.cos( an_desired );
 						this._move_dir_y = Math.sin( an_desired );
-						this._move_dir_speed_scale = 4;
+						this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 4 : 2;
 						
 						this._move_dir_timer = 10 + ( Math.random() * 20 );
 					}
 
 					let v = 0.1;
+					
+					if ( this.incinerator_attack_anim > 0 ) // Slow down the entity during incinerator attack
+					v *= ( this.incinerator_attack_anim / 90 );
 				
 					this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 					this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;

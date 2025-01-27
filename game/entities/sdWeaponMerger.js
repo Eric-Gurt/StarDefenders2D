@@ -151,8 +151,22 @@ class sdWeaponMerger extends sdEntity
 			Also there was a problem where merged gun power could be transfered onto other without any disadvantage, as long as you had merger cores and matter.
 			So yeah, 2 birds with 1 stone - Booraz149
 			*/
+			
+			// Unstable core scenario - multiply based off weapon slots for balance
+			let mult = 1;
+			if ( this.item1.class === sdGun.CLASS_UNSTABLE_CORE ) // Adjust multiplier/power depending on weapon slot
+			{
+				if ( sdGun.classes[ this.item0.class ].slot === 3 || sdGun.classes[ this.item0.class ].slot === 4 )
+				mult = 0.5;
+				if ( sdGun.classes[ this.item0.class ].slot === 1 )
+				mult = 0.35;
+			}
+		
+			dps_proportions *= mult;
+			
 			this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
 			this.item0._max_dps *= dps_proportions; // Even out max DPS
+			
 		
 			//console.log( sdGun.classes[ this.item1.class ].title + ' power transferred to ' + sdGun.classes[ this.item0.class ].title );
 			//console.log( this.item1._max_dps + ' -> ' + this.item0._max_dps );
@@ -184,6 +198,9 @@ class sdWeaponMerger extends sdEntity
 		if ( weapon.class === sdGun.CLASS_CUBE_FUSION_CORE )
 		return true;
 	
+		if ( weapon.class === sdGun.CLASS_UNSTABLE_CORE )
+		return true;
+	
 	
 		return false;
 		
@@ -191,7 +208,7 @@ class sdWeaponMerger extends sdEntity
 	
 	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
 	{
-		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE )
+		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE )
 		return true;
 	
 		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
@@ -214,6 +231,7 @@ class sdWeaponMerger extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+	
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -226,6 +244,7 @@ class sdWeaponMerger extends sdEntity
 		if ( this.item0 )
 		{
 			this.item0.UpdateHeldPosition();
+			if ( sdWorld.is_server )
 			this.power0 = Math.round( this.item0._max_dps );
 		}
 		else
@@ -234,6 +253,7 @@ class sdWeaponMerger extends sdEntity
 		if ( this.item1 )
 		{
 			this.item1.UpdateHeldPosition();
+			if ( sdWorld.is_server )
 			this.power1 = Math.round( this.item1._max_dps );
 		}
 		else
@@ -291,7 +311,25 @@ class sdWeaponMerger extends sdEntity
 			ctx.translate( 16, -1 );
 			this.item1.Draw( ctx, true );
 			if ( this.power1 !== -1 )
-			sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1, 5, -10, '#ffffff' );
+			{
+				if ( this.item1.class !== sdGun.CLASS_UNSTABLE_CORE )
+				sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1, 5, -10, '#ffffff' );
+				else
+				{
+					if ( !this.item0 )
+					sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + '???', 5, -10, '#ffffff' );
+					else
+					{
+						let mult = 1;
+						if ( sdGun.classes[ this.item0.class ].slot === 3 || sdGun.classes[ this.item0.class ].slot === 4 )
+						mult = 0.5;
+						if ( sdGun.classes[ this.item0.class ].slot === 1 )
+						mult = 0.35;
+						sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1 * mult, 5, -10, '#ffffff' );
+					}
+					
+				}
+			}
 			ctx.restore();
 		}
 		if ( this.item2 )
