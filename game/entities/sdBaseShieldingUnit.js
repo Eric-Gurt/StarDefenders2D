@@ -1513,7 +1513,7 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let unit = units[ i ];
 				
-				let mult = Math.max( 1, ( 1 + friendly_shields.length ) ); // Divide matter drain by cabled BSU amounts
+				//let mult = 1;//Math.max( 1, ( 1 + friendly_shields.length ) ); // Divide matter drain by cabled BSU amounts
 				
 				//console.log( ( 1 + friendly_shields.length ) );
 				
@@ -1526,10 +1526,10 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					{
-						if ( unit.matter_crystal > ( 80 / mult ) ) // Not really needed since the units turn off below 800 matter
+						if ( unit.matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
 						{
-							unit.matter_crystal -= ( 80 / mult );
-							this.matter_crystal -= ( 80 / mult );
+							unit.matter_crystal -= 80;
+							this.matter_crystal -= 80;
 							
 							//this._speed_boost = Math.min( 100, this._speed_boost + 0.002 );
 							//unit._speed_boost = Math.min( 100, unit._speed_boost + 0.002 );
@@ -1590,8 +1590,8 @@ class sdBaseShieldingUnit extends sdEntity
 						{
 							//trace( 'my matter damage: '+(least_matter / my_scale),', their matter damage: '+(least_matter / their_scale) );
 
-							this.matter -= ( ( least_matter / my_scale ) / mult );
-							unit.matter -= ( ( least_matter / their_scale ) / mult );
+							this.matter -= ( least_matter / my_scale );
+							unit.matter -= ( least_matter / their_scale );
 							
 							this._speed_boost = Math.min( 4, this._speed_boost + 0.01 );
 							unit._speed_boost = Math.min( 4, unit._speed_boost + 0.01 );
