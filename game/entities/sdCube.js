@@ -1350,6 +1350,14 @@ class sdCube extends sdEntity
 							
 							this._attack_timer = 30 * 6;
 							
+							targ.ApplyStatusEffect({ 
+								type: sdStatusEffect.TYPE_ATTACK_INDICATOR, 
+								ttl: 2200 / 1000 * 30, 
+								attacker: this, 
+								range: 16 * 30, 
+								color:'#fff000' 
+							});
+							
 							//sdSound.PlaySound({ name:'supercharge_combined2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
 							sdSound.PlaySound({ name:'supercharge_combined2_part1', pitch: 1, x:this.x, y:this.y, volume:1.5 });
 						}

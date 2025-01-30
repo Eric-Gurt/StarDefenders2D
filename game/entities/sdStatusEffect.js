@@ -27,6 +27,7 @@ class sdStatusEffect extends sdEntity
 		
 		sdStatusEffect.img_level_up = sdWorld.CreateImageFromFile( 'level_up' );
 		sdStatusEffect.img_bubble_shield = sdWorld.CreateImageFromFile( 'bubble_shield' );
+		sdStatusEffect.img_attack_indicator_beam = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
 		
 		sdStatusEffect.types = [];
 		
@@ -1491,6 +1492,97 @@ class sdStatusEffect extends sdEntity
 
 			onBeforeRemove: ( status_entity )=>
 			{
+			}
+		};
+
+		sdStatusEffect.types[ sdStatusEffect.TYPE_ATTACK_INDICATOR = 13 ] = 
+		{
+			// Applied to the target instead of the attacker so that targeted players can see it even when the attacking entity is not visible
+
+			remove_if_for_removed: true,
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._attacker = params.attacker || null;
+
+				status_entity.ttl = params.ttl || 30;
+				status_entity.range = params.range || 10;
+				status_entity.sd_filter = ( params.color ? sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#ffffff', params.color ) : null );
+
+				status_entity.x2 = 0;
+				status_entity.y2 = 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( status_entity._attacker )
+				{
+					let ent = status_entity._attacker;
+
+					if ( ent._is_being_removed || ( ent.hea || ent._hea || 0 ) <= 0 || ent._frozen > 0 )
+					return true;
+
+					status_entity.x2 = status_entity._attacker.GetCenterX();
+					status_entity.y2 = status_entity._attacker.GetCenterY();
+				}
+				else
+				if ( sdWorld.is_server )
+				return true;
+
+				status_entity.ttl -= GSPEED;
+
+				return ( status_entity.ttl <= 0 );
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				if ( status_entity.sd_filter )
+				ctx.sd_filter = status_entity.sd_filter;
+
+				ctx.blend_mode = THREE.AdditiveBlending;
+
+				ctx.globalAlpha = ( status_entity.ttl < 30 && status_entity.ttl % 10 > 5 ) ? 0 : 0.5;
+
+				let range = status_entity.range;
+
+				let xx = status_entity.x;
+				let yy = status_entity.y;
+
+				let di = sdWorld.Dist2D( xx, yy, status_entity.x2, status_entity.y2 );
+
+				/*let point = sdWorld.TraceRayPoint( status_entity.x2, status_entity.y2, xx, yy, status_entity.for, null, sdCom.com_vision_blocking_classes );
+				if ( point )
+				{
+					xx = point.x;
+					yy = point.y;
+
+					range = sdWorld.Dist2D( xx, yy, status_entity.x2, status_entity.y2 );
+				}*/
+				
+				ctx.rotate( Math.atan2( status_entity.y2 - status_entity.y, status_entity.x2 - status_entity.x ) );
+				ctx.translate( di - range, 0 );
+
+				ctx.drawImageFilterCache( sdStatusEffect.img_attack_indicator_beam, range,-8, -range,16 );
+
+				ctx.sd_filter = null;
+				ctx.blend_mode = THREE.NormalBlending;
+				ctx.globalAlpha = 1;
 			}
 		};
 
