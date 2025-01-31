@@ -93,6 +93,9 @@ class sdWeaponMerger extends sdEntity
 		if ( !this.item0 || !this.item1 || !this.item2 ) // If any of the items is somehow missing
 		return; // Just in case
 		
+		if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE && this.item1.class !== sdGun.CLASS_UNSTABLE_CORE )
+		return; // Disable unstable core (left) and gun (right)
+		
 		if ( this.item1.class === sdGun.CLASS_EXALTED_CORE ) // Exalted core scenario
 		{
 			if ( !this.item0.extra[ 19 ] || this.item0.extra[ 19 ] === 0 ) // Maybe prevent wasting cores this way?
@@ -160,14 +163,30 @@ class sdWeaponMerger extends sdEntity
 				mult = 0.5;
 				if ( sdGun.classes[ this.item0.class ].slot === 1 )
 				mult = 0.35;
+			
+				// Unstable core + unstable core scenario
+				// Take stronger core's power and add 15% value of the weaker, capping at 600 power
+				if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE )
+				{
+					if ( this.item0._max_dps < this.item1._max_dps ) // Less power than the other core?
+					{
+						let bonus = this.item0._max_dps * 0.2;
+						this.item0._max_dps = this.item1._max_dps + bonus; // Max power of other core + 20% of own
+					}
+					else
+					this.item0._max_dps += this.item1._max_dps * 0.2; // Just add 20% of the other core
+				
+					this.item0._max_dps = Math.min( 600, this.item0._max_dps ); // Cap the power
+				}
 			}
 		
 			dps_proportions *= mult;
 			
-			this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
-			this.item0._max_dps *= dps_proportions; // Even out max DPS
-			
-		
+			if ( this.item0.class !== sdGun.CLASS_UNSTABLE_CORE )
+			{
+				this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
+				this.item0._max_dps *= dps_proportions; // Even out max DPS
+			}
 			//console.log( sdGun.classes[ this.item1.class ].title + ' power transferred to ' + sdGun.classes[ this.item0.class ].title );
 			//console.log( this.item1._max_dps + ' -> ' + this.item0._max_dps );
 		
@@ -465,6 +484,11 @@ class sdWeaponMerger extends sdEntity
 					if ( from_entity.class === sdGun.CLASS_MERGER_CORE ) // Merger core
 					free_slot = 2; // Slot 3 item goes in the middle
 					
+					if ( from_entity.class === sdGun.CLASS_UNSTABLE_CORE && free_slot === 0 ) // Allow unstable cores on the left aswell
+					{
+						
+					}
+					else
 					if ( this.IgnoresSlot( from_entity ) ) // Exalted core scenario
 					{
 						if ( !this.item1 ) // Right slot not taken?
