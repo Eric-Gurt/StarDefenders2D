@@ -1449,8 +1449,15 @@ class sdLongRangeTeleport extends sdEntity
 												}
 											}
 											
+											if ( parameters_array[ 0 ].toLowerCase() === 'recovered weapon' )
+											{
+												executer_socket.SDServiceMessage( 'Invalid storage name' );
+												return;
+											}
+											
 											this._remote_supported_entity_classes = classes;
 											let snapshots = this.ExtractEntitiesOnTop( collected_entities_array, false, exectuter_character );
+											
 										
 											if ( collected_entities_array.length === 0 )
 											executer_socket.SDServiceMessage( 'Nothing was saved' );

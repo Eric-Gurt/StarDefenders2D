@@ -2388,11 +2388,32 @@ THING is cosmic mic drop!`;
 					this.DropWeapons();
 				}
 				
+				// After dropping the weapons, it should have only one weapon remaining if player should LRTP one to mothership
+				// In the case of "Lost damage", it will save one weapon before removing them all anyway
+				if ( sdWorld.server_config.keep_favourite_weapon_on_death && !this._ai_enabled )
+				{
+					// Attempt saving the weapon to LRTP, instead of dropping it
+					let slot = this.GetFavouriteEquippedSlot();
+					if ( this._inventory[ slot ] )
+					{
+						this._inventory[ slot ].ttl = sdGun.disowned_guns_ttl;
+						this._inventory[ slot ]._held_by = null;
+						this._inventory[ slot ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+									
+						if ( this.AttemptWeaponSaving( this._inventory[ slot ] ) )
+						this._inventory[ slot ].remove();
+						// else
+						this._inventory[ slot ] = null;
+						// If it doesn't save the weapon, it will probably just end up being dropped
+					}
+				}
+				
 				if ( best_t.IsVehicle() )
 				best_t.AddDriver( this, true );
 			
 				best_t.onRescued( this );
 			}
+			
 			
 			sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>
 			{
@@ -2473,6 +2494,103 @@ THING is cosmic mic drop!`;
 			return true;
 		}
 		return false;
+	}
+	GetFavouriteEquippedSlot()
+	{
+		// Finds/returns value of the slot of a weapon that is the best option to save into storage before dying/cloner/etc
+		if ( !this._ai_enabled ) //  Make sure it only attempts for players
+		{
+			let weapon_to_keep = -1;
+			let max_dps = 0;
+			let biometry = -1;
+			for ( var i = 0; i < this._inventory.length; i++ ) // Determine which weapon to keep by checking biometry, DPS
+			{
+				if ( this._inventory[ i ] )
+				{
+					if ( this._inventory[ i ].IsGunRecoverable() && this._inventory[ i ].biometry_lock === this.biometry ) // Make sure it is not a "Lost effect damage" weapon
+					if ( max_dps === 0 || max_dps < this._inventory[ i ]._max_dps )
+					{
+						max_dps = this._inventory[ i ]._max_dps || 1;
+						weapon_to_keep = i;
+						biometry = this._inventory[ i ].biometry_lock;
+					}
+				}
+			}
+			if ( biometry === -1 ) // No weapon with biometry equal to player was found? Try saving weapon without biometry and max DPS then
+			for ( i = 0; i < this._inventory.length; i++ ) // Determine which weapon to keep
+			{
+				if ( this._inventory[ i ] )
+				{
+					if ( this._inventory[ i ].IsGunRecoverable() && this._inventory[ i ].biometry_lock === -1 ) // Make sure it is not a "Lost effect damage" weapon
+					if ( max_dps === 0 || max_dps < this._inventory[ i ]._max_dps )
+					{
+						max_dps = this._inventory[ i ]._max_dps || 1;
+						weapon_to_keep = i;
+					}
+				}
+			}
+			return weapon_to_keep;
+		}
+		else
+		return -1;
+	}
+	AttemptWeaponSaving( gun = null )
+	{
+		if ( !sdWorld.is_server )
+		return false;
+	
+		if ( !gun )
+		return false;
+	
+		if ( !gun.IsGunRecoverable() ) // Just in case
+		return false;
+		
+		gun.biometry_lock = -1; // Reset biometry, since it only saves weapons without biometry or same as dying player
+	
+		let saved_weapon = false;
+	
+		let current_frame = globalThis.GetFrame();
+		let snapshot = [];
+		console.log( gun.title );
+		snapshot.push( gun.GetSnapshot( current_frame, true ) );
+		//console.log( gun );			
+		//if ( collected_entities_array.length === 0 )
+		//executer_socket.SDServiceMessage( 'Nothing was saved' );
+		//else
+		if ( snapshot.length > 0 )
+		{
+			sdDatabase.Exec( 
+				[ 
+					[ 'DBManageSavedItems', this._my_hash, 'SAVE', 'Recovered weapon', snapshot, gun.x, gun.y + 12, true ] 
+				], 
+				( responses )=>
+				{
+					// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+					for ( let i = 0; i < responses.length; i++ )
+					{
+						let response = responses[ i ];
+															
+						if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+						{
+							console.log( 'Failed' );
+							//executer_socket.SDServiceMessage( response[ 1 ] );
+							//this.InsertEntitiesOnTop( snapshot, this_x, this_y );
+						}
+						else
+						if ( response[ 0 ] === 'SUCCESS' )
+						{
+							saved_weapon = true;
+							console.log( 'Success' );
+							//executer_socket.SDServiceMessage( 'Success!' );
+							//executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
+						}
+					}
+				},
+				'localhost'
+			);
+		}
+		
+		return saved_weapon;
 	}
 	
 	RemoveArmor()
@@ -5433,7 +5551,24 @@ THING is cosmic mic drop!`;
 		if ( this.driver_of )
 		this.driver_of.ExcludeDriver( this );
 		
-		//
+		// Check if server allows keeping one weapon
+		if ( sdWorld.server_config.keep_favourite_weapon_on_death && !this._ai_enabled )
+		{
+			// Attempt saving the weapon to LRTP
+			let slot = this.GetFavouriteEquippedSlot();
+			if ( this._inventory[ slot ] )
+			{
+				this._inventory[ slot ].ttl = sdGun.disowned_guns_ttl;
+				this._inventory[ slot ]._held_by = null;
+				this._inventory[ slot ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+				if ( this.AttemptWeaponSaving( this._inventory[ slot ] ) )
+				this._inventory[ slot ].remove();
+				// else
+				this._inventory[ slot ] = null;
+				// If it doesn't save the weapon, it will probably just end up being dropped
+			}
+		}
 		// Actually remove instead if player was deleted
 		if ( this._broken )
 		this.DropWeapons();
@@ -5471,8 +5606,21 @@ THING is cosmic mic drop!`;
 	
 	DropWeapons()
 	{
-		for ( var i = 0; i < this._inventory.length; i++ )
-		this.DropWeapon( i );
+		if ( sdWorld.server_config.keep_favourite_weapon_on_death === false || this._ai_enabled )
+		{
+			for ( var i = 0; i < this._inventory.length; i++ )
+			this.DropWeapon( i );
+		}
+		else
+		{
+			let weapon_to_keep = this.GetFavouriteEquippedSlot();
+			for ( i = 0; i < this._inventory.length; i++ )
+			{
+				if ( i !== weapon_to_keep )
+				this.DropWeapon( i );
+			}
+			
+		}
 	}
 	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
 	{
