@@ -43,6 +43,8 @@ class sdServerConfigShort
 	static enable_block_merging = false; // Experimental change, merges blocks into a single vertical column.
 	static enable_background_merging = false; // Experimental change, merges backgrounds into a single vertical column.
 	
+	static keep_favourite_weapon_on_death = false; // Teleports one weapon from a dead player into mothersip storage to be reclaimed.
+	
 	static forced_play_area = false; // Force a play/no oxygen area like in open world support, even without open worlds enabled. (open_world_max_distance coordinates)
 	
 	static apply_censorship = true; // Censorship file is not included
