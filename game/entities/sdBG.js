@@ -412,7 +412,6 @@ class sdBG extends sdEntity
 			let contained_decals = [];
 			//this.width = 16;
 			//this.height = 16 + ( 16 * ents_to_merge.length );
-			let total_height_increase = 0;
 			
 			let height_increase = 0;
 			if ( ents_to_merge_above.length > 0 )
@@ -428,7 +427,6 @@ class sdBG extends sdEntity
 			
 			this.height += height_increase; // Increase height by total height of merged blocks
 			
-			total_height_increase += height_increase;
 			
 			
 			contained_decals.push( this._decals );
@@ -450,7 +448,6 @@ class sdBG extends sdEntity
 				
 			}
 			this.height += height_increase; // Increase height by total height of merged blocks
-			total_height_increase += height_increase;
 			// No Y change since we just merged below the block
 			
 			this._merged = true;

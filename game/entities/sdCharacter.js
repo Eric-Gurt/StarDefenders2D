@@ -2400,7 +2400,7 @@ THING is cosmic mic drop!`;
 						this._inventory[ slot ]._held_by = null;
 						this._inventory[ slot ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 									
-						if ( this.AttemptWeaponSaving( this._inventory[ slot ] ) )
+						if ( this.AttemptWeaponSaving( this._inventory[ slot ] ) || lost_effect )
 						this._inventory[ slot ].remove();
 						// else
 						this._inventory[ slot ] = null;
