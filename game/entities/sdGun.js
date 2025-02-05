@@ -239,6 +239,13 @@ class sdGun extends sdEntity
 
 				if ( from_entity.is( sdRift ) ) // Ignore portals
 				return;
+				
+				if ( from_entity.is( sdStorage ) ) // Don't damage storage crates
+				{
+					this.dangerous = false;
+					this._dangerous_from = null;
+					return;
+				}
 
 				const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
 

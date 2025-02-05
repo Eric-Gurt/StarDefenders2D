@@ -5568,96 +5568,35 @@ class sdEntity
 		else
 		sdEntity.entities.splice( id, 1 );
 	}
-	static BulkRemoveEntitiesFromEntitiesArray( arr ) // Entities should be already _is_being_removed
-	{
-		if ( arr.length <= 0 )
-		return;
-	
-		// Partial removal approach
-		let t = Date.now();
-		let t2 = t;
-		
-		let pos = 0;
-		
-		let at_least = Math.ceil( arr.length * 0.01 );
-		
-		while ( pos < arr.length && ( t2 - t < 1 || pos < at_least ) )
-		{
-			let id = sdEntity.entities.lastIndexOf( arr[ pos ] );
-			if ( id !== -1 )
-			sdEntity.entities.splice( id, 1 );
+	static BulkRemoveEntitiesFromEntitiesArray( arr, force_all=false ) // Entities should be already _is_being_removed. force_all is true in sdDeepSleep
+    {
+        if ( arr.length <= 0 )
+        return;
+    
+        // Partial removal approach
+        let t = force_all ? 0 : Date.now();
+        let t2 = t;
+        
+        let pos = 0;
+        
+        let at_least = force_all ? arr.length : Math.ceil( arr.length * 0.01 );
+        
+        while ( pos < arr.length && ( t2 - t < 1 || pos < at_least ) )
+        {
+            let id = sdEntity.entities.lastIndexOf( arr[ pos ] );
+            if ( id !== -1 )
+            sdEntity.entities.splice( id, 1 );
 
-			pos++;
+            pos++;
 
-			t2 = Date.now();
-		}
-		
-		if ( pos === arr.length )
-		arr.length = 0;
-		else
-		arr.splice( 0, pos );
-	
-		/*if ( arr.length <= 5 )
-		{
-			for ( let i = 0; i < arr.length; i++ )
-			{
-				let id = sdEntity.entities.lastIndexOf( arr[ i ] );
-				if ( id !== -1 )
-				sdEntity.entities.splice( id, 1 );
-			}
-		}
-		else
-		{
-			let arr_set = new Set();
-			for ( let i = 0; i < arr.length; i++ )
-			arr_set.add( arr[ i ] );
-
-			for ( let i = 0; i < arr.length; i++ )
-			{
-				let id = sdEntity.entities.lastIndexOf( arr[ i ] );
-				if ( id !== -1 )
-				{
-					let delete_from = id;
-					let delete_count = 1;
-
-					while ( delete_from - 1 >= 0 && arr_set.has( sdEntity.entities[ delete_from - 1 ] ) )
-					{
-						delete_from--;
-						delete_count++;
-					}
-
-					while ( delete_from + delete_count < sdEntity.entities.length && arr_set.has( sdEntity.entities[ delete_from + delete_count ] ) )
-					{
-						delete_count++;
-					}
-
-					if ( delete_count === 1 )
-					{
-					}
-					else
-					{
-						// Delete arr entities that are within extended range for deletion
-						for ( let i2 = 0; i2 < delete_count; i2++ )
-						{
-							let e = sdEntity.entities[ delete_from + i2 ];
-
-							let pos = arr.indexOf( e, i + 1 ); // Skin previous as they will be skipped anyway
-							if ( pos !== -1 )
-							arr.splice( pos, 1 );
-						}
-					}
-					sdEntity.entities.splice( delete_from, delete_count );
-				}
-			}
-		}*/
-	
-		/*for ( let i = 0; i < arr.length; i++ )
-		{
-			let id = sdEntity.entities.lastIndexOf( arr[ i ] );
-			if ( id !== -1 )
-			sdEntity.entities.splice( id, 1 );
-		}*/
-	}
+            t2 = force_all ? 0 : Date.now();
+        }
+        
+        if ( pos === arr.length )
+        arr.length = 0;
+        else
+        arr.splice( 0, pos );
+    }
 	
 	
 	

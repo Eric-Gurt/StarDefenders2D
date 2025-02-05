@@ -1620,7 +1620,7 @@ class sdDeepSleep extends sdEntity
 						sdLongRangeTeleport.teleported_items.add( e );
 					}
 				}
-				sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
+				sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude, true );
 
 				//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
 				//scheduled_sleep_areas_to_cancel[ i ].remove();
