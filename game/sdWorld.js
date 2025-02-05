@@ -3197,7 +3197,7 @@ class sdWorld
 				}
 			}
 
-			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
+			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude, false );
 
 			// Check for improperly removed entities. It fill falsely react to chained removals, for example in case of sdBG -> sdBloodDecal
 			/*if ( sdWorld.is_server || sdWorld.is_singleplayer )
