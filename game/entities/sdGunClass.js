@@ -7624,10 +7624,10 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 16,
 			spawnable: false,
-			projectile_properties: { _damage: 1, model: 'ball', _temperature_addition: -15 },
+			projectile_properties: { _damage: 1, model: 'ball', _temperature_addition: -1 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model: 'ball', _temperature_addition: -15 };
+				let obj = { model: 'ball', _temperature_addition: -1 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];

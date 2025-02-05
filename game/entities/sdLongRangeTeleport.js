@@ -714,7 +714,7 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 2; i++ ) // Task rewards now drop 2 items. Kind of painful to recieve only one item when you can get 15K worth of crystals - Booraz149
 			{
 				let gun, rng;
-				rng = Math.random() * 1; // With more gun rewards, these values will change
+				rng = Math.random() * 0.9; // With more gun rewards, these values will change
 				//With each new gun, add 0.1 to rng multiplier
 				if ( rng < 0.1 )
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
@@ -738,9 +738,6 @@ class sdLongRangeTeleport extends sdEntity
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
 				else
 				if ( rng < 0.8 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CRYOGUN });
-				else
-				if ( rng < 0.9 )
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
 				else
 				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_PLASMA_RIFLE });
