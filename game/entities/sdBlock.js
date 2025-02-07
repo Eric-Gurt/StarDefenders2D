@@ -167,13 +167,13 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'cracks3' )
 		];
 
-		sdBlock.metal_reinforces = [ 
+		/*sdBlock.metal_reinforces = [ 
 			null,
 			sdWorld.CreateImageFromFile( 'metal_reinforced1' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced2' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced3' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced4' )
-		];
+		];*/
 		
 		sdBlock.max_corruption_rank = 12; // 12
 		sdBlock.max_flesh_rank = 6; // 6
@@ -185,14 +185,14 @@ class sdBlock extends sdEntity
 	
 	DoesRegenerate()
 	{
-		return ( 
+		return ( this._merged === false && ( 
 				this.material === sdBlock.MATERIAL_GROUND || 
 				this.material === sdBlock.MATERIAL_ROCK || 
 				this.material === sdBlock.MATERIAL_SAND ||
 				this.material === sdBlock.MATERIAL_CORRUPTION ||
 				this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
 				this.material === sdBlock.MATERIAL_FLESH 
-		);
+		) );
 	}
 	DoesRegenerateButDoesntDamage()
 	{
@@ -389,6 +389,14 @@ class sdBlock extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		if ( this._merged )
+		{
+			if ( this.UnmergeBlocks().length > 0 ) // Unmerged blocks?
+			return;
+			
+			// TODO: Deal damage to the block closest to initiator after unmerging
+		}
 
 		// Uses health scale instead now
 		if ( affects_armor )
@@ -478,7 +486,7 @@ class sdBlock extends sdEntity
 				}
 				
 				{
-					if ( this._contains_class )
+					if ( this._contains_class && typeof this._contains_class === 'string' )
 					{
 						//this._contains_class = 'sdSandWorm'; // Hack
 					
@@ -743,6 +751,32 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
 		if ( !this._last_damage )
 		this._last_damage = 0;
+	
+		if ( sdWorld.is_server )
+		{
+			if ( sdWorld.server_config.enable_block_merging )
+			{
+				if ( this._hea === this._hmax )
+				if ( this._merged === false && this.SupportsMerging() ) // SupportsMerging does not work in constructor
+				{
+					this._hea = this._hmax - 0.1;
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attmpt merge without this
+				}
+			}
+			else
+			if ( this._merged )
+			{
+				if ( this.UnmergeBlocks().length > 0 ) // Unmerged successfully?
+				{
+					
+				}
+				else
+				{
+					this.remove(); // Otherwise remove faulty block
+					this._broken = false;
+				}
+			}
+		}
 
 		// Copy [ 2 / 2 ]
 		if ( this._natural )
@@ -808,7 +842,7 @@ class sdBlock extends sdEntity
 		
 		
 		this._contains_class = params.contains_class || null;
-		this._contains_class_params = null; // Parameters that are passed to this._contains_class entity
+		this._contains_class_params = params.contains_class_params || null; // Parameters that are passed to this._contains_class entity
 		//this._hidden_crystal = params.hidden_crystal || false;
 		//this._hidden_virus = params.hidden_virus || false;
 		
@@ -822,8 +856,12 @@ class sdBlock extends sdEntity
 		this.p = 0; // Material property value. In case of spike it is an animation, in case of corruption it is a rank
 		this._next_attack = 0; // Only used by Corruption
 		this._next_spread = -1; // Only used by Corruption
+		
+		this._merged = false; // Has this block merged with any other blocks?
 
 		this._ai_team === params._ai_team || 0; // For faction outposts, so AI doesn't attack their own bases
+		
+		this._additional_properties = params.additional_properties || null; // Used in storing health for merged blocks
 		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
@@ -863,10 +901,34 @@ class sdBlock extends sdEntity
 			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_ANCIENT_WALL_PROPERTIES }); // Give ancient blocks matter emmission
 		}
 		
+		/*if ( sdWorld.server_config.enable_block_merging )
+		{
+			if ( this._hea === this._hmax )
+			if ( this._merged === false )
+			{
+				this._hea = this._hmax - 0.1;
+			}
+		}
+		else
+		if ( this._merged )
+		{
+			if ( this.UnmergeBlocks().length > 0 ) // Unmerged successfully?
+			{
+				
+			}
+			else
+			{
+				this.remove(); // Otherwise remove faulty block
+				this._broken = false;
+			}
+		}*/
+		// Not sure if the merging stuff above is checked properly since it's in the constructor...
+		// Should be working inside sdServerConfig.js now
+		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
-		this.reinforced_frame = 0;
-		this.HandleReinforceUpdate();
+		//this.reinforced_frame = 0;
+		//this.HandleReinforceUpdate();
 		
 		if ( params.skip_hiberstate_and_hash_update )
 		{
@@ -883,7 +945,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' );
+		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' || prop === '_contains_class' || prop === '_additional_properties' );
 	}
 	ValidatePlants( must_include=null ) // foliage / grass
 	{
@@ -1122,7 +1184,7 @@ class sdBlock extends sdEntity
 		if ( this.destruction_frame !== old_destruction_frame )
 		this._update_version++;
 	}
-	HandleReinforceUpdate()
+	/*HandleReinforceUpdate()
 	{
 		let old_reinforced_frame = this.reinforced_frame;
 		
@@ -1143,6 +1205,442 @@ class sdBlock extends sdEntity
 		
 		if ( this.reinforced_frame !== old_reinforced_frame )
 		this._update_version++;
+	}*/
+	UnmergeBlocks()
+	{
+		if ( !sdWorld.is_server )
+		return [];
+	
+		if ( !this._merged )
+		return [];
+	
+	
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
+		// Have to recreate all blocks so bullets behave properly - Booraz
+		
+		// Seems like I also need to return an array of the newly created blocks so bullets 100% don't hit the blocks in the back.
+		
+		let blocks = [];
+		
+		for ( let i = 0; i < Math.round( this.height / 16 ); i++ )
+		{
+			let xx = this.x;
+			let yy = this.y;
+			yy += 16 * i;
+		
+			let contained_class = null;
+			let contained_params = null;
+			
+			if ( this._contains_class )
+			{
+				if ( typeof this._contains_class !== 'string' && this._contains_class[ i ] ) // Not a string?
+				{
+					contained_class = this._contains_class[ i ];
+				}
+			}
+			if ( this._contains_class_params )
+			{
+				if ( this._contains_class_params[ i ] ) // Not a string?
+				{
+					contained_params = this._contains_class_params[ i ];
+				}
+			}
+		
+			let ent = sdEntity.Create( sdBlock, { 
+				x: xx, 
+				y: yy,
+				width:16, 
+				height:16, 
+				material:this.material, 
+				hue:this.hue,
+				br:this.br,
+				filter:this.filter, 
+				natural: this._natural,
+				contains_class: contained_class,
+				contains_class_params: contained_params
+			});
+			ent._regen_timeout = 60;
+			if ( this._additional_properties )
+			if ( this._additional_properties[ i ] )
+			ent._hmax = this._additional_properties[ i ];
+			else
+			ent._hmax = this._hmax;
+		
+			ent._hea = ent._hmax - 0.1;
+		
+			blocks.push( ent );
+		}
+		//this._regen_timeout = 60; // Without regen timeout they will attempt to re-apply merging
+		//if ( this._hea === this._hmax )
+		//this._hea = this._hmax - 0.1;
+		//this._merged = false;
+		this.remove();
+		this._broken = false;
+	
+	
+		//this._update_version++;
+		return blocks;
+	}
+	SupportsMerging()
+	{
+		//console.log( this.material );
+		//console.log( sdBlock.MATERIAL_GROUND + ',' + sdBlock.MATERIAL_ROCK + ',' + sdBlock.MATERIAL_SAND + ',' + sdBlock.MATERIAL_SNOW );
+		if ( this.width !== 16 ) // Maybe let's keep vertical lines only for now.
+		return false;
+			
+		if ( this.height < 16 || this.height % 16 !== 0 ) // Merge only blocks that can be divided by 16, and are at least 16 units
+		return false;
+		
+		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_ROCK ||
+		this.material === sdBlock.MATERIAL_SAND || this.material === sdBlock.MATERIAL_SNOW )
+		return true;
+		
+		return false;
+	}
+	AttemptBlockMerging()
+	{
+		if ( this._merged )
+		return false;
+	
+		if ( this._is_being_removed || !this )
+		return false;
+	
+		let ents_to_merge_above = [];
+		let ents_to_merge_below = [];
+		
+		/* Currently how merging works:
+			We check for blocks above and below which are suitable for merging,
+			after that we merge the above ones first - and shift the block on top
+			after that, we merge the below ones - done this way so unmerging is consistent
+			and merging always catches both top and bottom scenarios
+		*/
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
+		let i = 1;
+		let ent;
+		
+		function IsCompatible( ent, ent2 )
+		{
+			if ( !ent || ent._is_being_removed || !ent2 || ent2._is_being_removed )
+			return false;
+		
+			if ( ent._hea <= ent._hmax - 1 || ent2._hea <= ent2._hmax - 1 ) // Make sure all are (near) maxed HP. Though even destruction_frame === 0 could work too.
+			return false;
+			
+			//if ( ent._natural !== ent2._natural )
+			//return false;
+			
+			//if ( ent._merged || ent2._merged )
+			//return false;
+		
+			if ( ( ent._plants === null && ent2._plants === null ) && ( ent.SupportsMerging() ) )
+			{
+				if ( ent.material === ent2.material && ent.filter === ent2.filter && ent.hue === ent2.hue && ent.br === ent2.br )
+				return true;
+				else
+				return false;
+				
+			}
+			else
+			return false;
+		}
+		
+		if ( !IsCompatible( this, this ) )
+		return false;
+		
+		
+		// Attempt vertical merging - go down ( check below )
+		while( true ){
+			ent = sdBlock.GetGroundObjectAt( this.x + 8, this.y + 8 + ( 16 * i ), false );
+			
+			if ( IsCompatible( ent, this ) )
+			{
+				// Limit to 16 entity merges.
+				if ( ( this.height + ( 16 * i ) + ( ent.height - 16 ) ) <= 256 )
+				ents_to_merge_below.push( ent );
+				else
+				break;
+			}
+			else
+			break;
+			
+			if ( ent ) // Just in case
+			i += Math.round( ent.height / 16 );
+			else
+			break;
+		}
+		i = 1;
+		
+		// Attempt vertical merging - go up ( check above )
+		while( true ){
+			ent = sdBlock.GetGroundObjectAt( this.x + 8, this.y + 8 - ( 16 * i ), false );
+			
+			if ( IsCompatible( ent, this ) )
+			{
+				// Limit to 16 entity merges.
+				if ( ( this.height + ( 16 * i ) + ( ent.height - 16 ) ) <= 256 )
+				ents_to_merge_above.push( ent );
+				else
+				break;
+			}
+			else
+			break;
+			
+			if ( ent ) // Just in case
+			i += Math.round( ent.height / 16 );
+			else
+			break;
+		}
+		//console.log( "Above: " + ents_to_merge_above.length );
+		//console.log( "Below: " + ents_to_merge_below.length );
+		
+		if ( ents_to_merge_above.length > 0 || ents_to_merge_below.length > 0 ) // Any merge possible?
+		{
+			let contained_classes = []; // contains class
+			
+			let contained_params = []; // contans class params
+			
+			let additional_props = []; // Contains only block health for now.
+			//this.width = 16;
+			//this.height = 16 + ( 16 * ents_to_merge.length );
+			
+			
+			let height_increase = 0;
+			if ( ents_to_merge_above.length > 0 )
+			for( i = 0; i < ents_to_merge_above.length; i++ )
+			{
+				
+				if ( typeof ents_to_merge_above[ i ]._contains_class === 'string' ) // String?
+				contained_classes.push( ents_to_merge_above[ i ]._contains_class ); // Just add into the array
+				else
+				if ( ents_to_merge_above[ i ]._contains_class ) // Make sure we have something in there. It's probably an array.
+				{
+					for ( let j = 0; j < ents_to_merge_above[ i ]._contains_class.length; j++ )
+					contained_classes.push( ents_to_merge_above[ i ]._contains_class[ j ] ); // Add individually into the array
+				}
+				else // Null? Probably still needed for unmerging.
+				contained_classes.push( ents_to_merge_above[ i ]._contains_class ); // Just add into the array
+				
+				contained_params.concat( ents_to_merge_above[ i ]._contains_class_params );
+				
+				// We need to check if params are an array
+				if ( ents_to_merge_above[ i ]._contains_class_params instanceof Array ) // Make sure we have something in there. It's probably an array.
+				{
+					//contained_params.push( ...ents_to_merge_above[ i ]._contains_class_params ); // Not sure if this would work... Maybe better manually?
+					for ( let j = 0; j < ents_to_merge_above[ i ]._contains_class_params.length; j++ )
+					contained_params.push( ents_to_merge_above[ i ]._contains_class_params[ j ] ); // Add individually into the array
+				}
+				else // Object or null? Probably still needed for unmerging.
+				contained_params.push( ents_to_merge_above[ i ]._contains_class_params ); // Just add into the array
+				
+				additional_props.push( ents_to_merge_above[ i ]._hmax );
+					
+			
+				height_increase += ents_to_merge_above[ i ].height;
+				//if ( from_above ) // Are we merging from above?
+				//this.y -= ents_to_merge[ i ].height; // Move merged block up
+				
+				ents_to_merge_above[ i ].remove();
+				ents_to_merge_above[ i ]._broken = false;
+				
+			}
+			
+			this.height += height_increase; // Increase height by total height of merged blocks
+			this.y -= height_increase; // Move merged block up
+			
+			contained_classes.push( this._contains_class ); // Make sure we merge contained classes properly
+			contained_params.push( this._contains_class_params );
+			additional_props.push( this._hmax );
+			
+			height_increase = 0; // Reset height increase
+			
+			if ( ents_to_merge_below.length > 0 )
+			for( i = 0; i < ents_to_merge_below.length; i++ )
+			{
+				
+				if ( typeof ents_to_merge_below[ i ]._contains_class === 'string' ) // String?
+					contained_classes.push( ents_to_merge_below[ i ]._contains_class ); // Just add into the array
+				else
+				if ( ents_to_merge_below[ i ]._contains_class ) // Make sure we have something in there. It's probably an array.
+				{
+					for ( let j = 0; j < ents_to_merge_below[ i ]._contains_class.length; j++ )
+					contained_classes.push( ents_to_merge_below[ i ]._contains_class[ j ] ); // Add individually into the array
+				}
+				else // Null? Probably still needed for unmerging.
+				contained_classes.push( ents_to_merge_below[ i ]._contains_class ); // Just add into the array
+				
+				
+				// We need to check if params are an array
+				if ( ents_to_merge_below[ i ]._contains_class_params instanceof Array ) // Make sure we have something in there. It's probably an array.
+				{
+					//contained_params.push( ...ents_to_merge_below[ i ]._contains_class_params ); // Not sure if this would work... Maybe better manually?
+					for ( let j = 0; j < ents_to_merge_below[ i ]._contains_class_params.length; j++ )
+					contained_params.push( ents_to_merge_below[ i ]._contains_class_params[ j ] ); // Add individually into the array
+				}
+				else // Object or null? Probably still needed for unmerging.
+				contained_params.push( ents_to_merge_below[ i ]._contains_class_params ); // Just add into the array
+				
+				additional_props.push( ents_to_merge_below[ i ]._hmax );
+			
+				height_increase += ents_to_merge_below[ i ].height;
+				//if ( from_above ) // Are we merging from above?
+				//this.y -= ents_to_merge[ i ].height; // Move merged block up
+				
+				ents_to_merge_below[ i ].remove();
+				ents_to_merge_below[ i ]._broken = false;
+				
+			}
+			this.height += height_increase; // Increase height by total height of merged blocks
+			// No Y change since we just merged below the block
+			
+			this._merged = true;
+			this._contains_class = contained_classes;
+			this._contains_class_params = contained_params;
+			this._additional_properties = additional_props;
+			
+			//this.UpdateHitbox(); // Not sure if needed.
+			
+			this._update_version++;
+			
+			sdWorld.UpdateHashPosition( this, true ); // Bullets pass through walls higher than 64 without this?
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			
+			
+			//console.log( 'Block: ' + this.x + ',' + this.y + ', width:' + this.width + ', height:' + this.height );
+			//console.log( this._contains_class );
+			//console.log( this._contains_class_params );
+			//console.log( 'Health of blocks:' + this._additional_properties );
+			
+			//this._hmax = 1;
+			//this._hea = 1;
+			return true;
+		}
+		
+		// Old 2x2 merge
+		/*for ( i = 0; i < 3; i++ ) // Right -> bottom right scenario
+		{
+			if ( i === 0 )
+			ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+			if ( i === 1 )
+			ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+			if ( i === 2 )
+			ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y + 16 );
+		
+			if ( IsCompatible( ent, this ) )
+			ents_to_merge.push( ent );
+			else
+			{
+				can_merge = false;
+				break;
+			}
+		}
+		if ( !can_merge ) // Attempt left side scenario
+		{
+			ents_to_merge = [];
+			from_left = true;
+			can_merge = true;
+			for ( i = 0; i < 3; i++ ) // Left -> bottom left scenario
+			{
+				if ( i === 0 )
+				ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+				if ( i === 1 )
+				ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+				if ( i === 2 )
+				ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y + 16 );
+			
+				if ( IsCompatible( ent, this ) )
+				ents_to_merge.push( ent );
+				else
+				{
+					can_merge = false;
+					break;
+				}
+			}
+		}
+		if ( !can_merge ) // Attempt top scenario
+		{
+			ents_to_merge = [];
+			from_left = false;
+			can_merge = true;
+			from_above = true;
+			for ( i = 0; i < 3; i++ ) // Right -> top right scenario
+			{
+				if ( i === 0 )
+				ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+				if ( i === 1 )
+				ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
+				if ( i === 2 )
+				ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y - 16 );
+			
+				if ( IsCompatible( ent, this ) )
+				ents_to_merge.push( ent );
+				else
+				{
+					can_merge = false;
+					break;
+				}
+			}
+		}
+		if ( !can_merge ) // Attempt left side scenario
+		{
+			ents_to_merge = [];
+			from_left = true;
+			can_merge = true;
+			for ( i = 0; i < 3; i++ ) // Left -> top left scenario
+			{
+				if ( i === 0 )
+				ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+				if ( i === 1 )
+				ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
+				if ( i === 2 )
+				ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y - 16 );
+			
+				if ( IsCompatible( ent, this ) )
+				ents_to_merge.push( ent );
+				else
+				{
+					can_merge = false;
+					break;
+				}
+			}
+		}
+		//console.log( can_merge );
+		if ( can_merge )
+		{
+			let contained_classes = [];
+			contained_classes.push( this._contains_class );
+			this.width = 32;
+			this.height = 32;
+			
+			if ( from_left )
+			this.x = this.x - 16;
+		
+			if ( from_above )
+			this.y = this.y - 16;
+			
+			this._update_version++;
+			
+			for( i = 0; i < 3; i++ )
+			{
+				contained_classes.push( ents_to_merge[ i ]._contains_class );
+				ents_to_merge[ i ].remove();
+				ents_to_merge[ i ]._broken = false;
+			}
+			
+			this._merged = true;
+			this._contains_class = contained_classes;
+			console.log( this.x + ',' + this.y );
+			console.log( this._contains_class );
+			
+			//this._hmax = 1;
+			//this._hea = 1;
+			return true;
+		}
+		*/
+		return false;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -1216,10 +1714,37 @@ class sdBlock extends sdEntity
 						//if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
 						if ( ent._natural && ent.material !== sdBlock.MATERIAL_CORRUPTION && this.p >= 1 )
 						{
-							ent.Corrupt( this );
+							if ( ent._merged === false )
+							{
+								ent.Corrupt( this );
+								corrupt_done = true;
+								break;
+							}
+							else
+							{
+								ent.UnmergeBlocks(); // Unmerge blocks
+								ent = null; // Begin again
+								// Not ideal, but if it works...
+								if ( dir === 0 )
+								ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+					
+								if ( dir === 1 )
+								ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+					
+								if ( dir === 2 )
+								ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+					
+								if ( dir === 3 )
+								ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
 							
-							corrupt_done = true;
-							break;
+								if ( ent )
+								{
+									ent.Corrupt( this );
+									corrupt_done = true;
+									break;
+								}
+							}
+							//if ( ent._merged === false )
 						}
 						/*else
 						{
@@ -1298,9 +1823,40 @@ class sdBlock extends sdEntity
 						//if ( this.p >= 1 )
 						//if ( ent.material !== sdBlock.MATERIAL_FLESH )
 						//{
-							ent.Fleshify( this );
-							corrupt_done = true;
-							break;
+							if ( ( ent.is( sdBlock ) && ent._merged === false ) || ent.is( sdDoor ) )
+							{
+								ent.Fleshify( this );
+								corrupt_done = true;
+								break;
+							}
+							else
+							{
+								ent.UnmergeBlocks(); // Unmerge and re-do
+								sdWorld.last_hit_entity = null;
+								sdWorld.CheckWallExistsBox( 
+										this.x + xx * 16, 
+										this.y + yy * 16, 
+										this.x + this._hitbox_x2 + xx * 16, 
+										this.y + this._hitbox_y2 + yy * 16, 
+										null, 
+										null, 
+										null, 
+										( e )=>
+										{
+											return (
+													( e.is( sdBlock ) && ( e.IsDefaultGround() || !e._natural ) ) ||
+													e.is( sdDoor )
+											);
+										}
+								);
+								ent = sdWorld.last_hit_entity;
+								if ( ent )
+								{
+									ent.Fleshify( this );
+									corrupt_done = true;
+									break;
+								}
+							}
 						//}
 					}
 				}
@@ -1312,10 +1868,20 @@ class sdBlock extends sdEntity
 		}
 		else
 		if ( this._hea === this._hmax )
-		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		{
+			if ( sdWorld.is_server )
+			{
+				if ( sdWorld.server_config.enable_block_merging === true && this._merged === false && this.AttemptBlockMerging() && this._regen_timeout <= 0 )
+				{
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP ); // Enter hibernation either way
+				}
+				else
+				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			}
+		}
 	}
 	
-	static GetGroundObjectAt( nx, ny ) // for corruption
+	static GetGroundObjectAt( nx, ny, strict = true ) // for corruption
 	{
 		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
@@ -1323,10 +1889,19 @@ class sdBlock extends sdEntity
 	
 		let arr_under = sdWorld.RequireHashPosition( nx, ny ).arr;
 		
+		if ( strict )
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
 			if ( arr_under[ i ] instanceof sdBlock )
 			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			if ( !arr_under[ i ]._is_being_removed )
+			return arr_under[ i ];
+		}
+		else
+		for ( var i = 0; i < arr_under.length; i++ )
+		{
+			if ( arr_under[ i ] instanceof sdBlock )
+			if ( nx >= arr_under[ i ].x && ny >= arr_under[ i ].y && nx <= ( arr_under[ i ].x + arr_under[ i ].width ) && ny <= ( arr_under[ i ].y + arr_under[ i ].height ) )
 			if ( !arr_under[ i ]._is_being_removed )
 			return arr_under[ i ];
 		}
@@ -1506,7 +2081,28 @@ class sdBlock extends sdEntity
 				texture = sdBlock.img_ancient_wall;
 				texture_size = 128;
 			}
-			
+			/*if ( w === 32 && h === 32 ) // Merged blocks scenario
+			{
+				ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w/2,h/2, 0,0, w/2,h/2 );
+				ctx.translate( 16, 0 );
+				ctx.drawImageFilterCache( texture, ( this.x + 16 ) - Math.floor( ( this.x + 16 ) / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w/2,h/2, 0,0, w/2,h/2 );
+				ctx.translate( -16, 16 );
+				ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, ( this.y + 16 ) - Math.floor( ( this.y + 16 ) / texture_size ) * texture_size, w/2,h/2, 0,0, w/2,h/2 );
+				ctx.translate( 16, 0 );
+				ctx.drawImageFilterCache( texture, ( this.x + 16 ) - Math.floor( ( this.x + 16 ) / texture_size ) * texture_size, ( this.y + 16 ) - Math.floor( ( this.y + 16 ) / texture_size ) * texture_size, w/2,h/2, 0,0, w/2,h/2 );
+				ctx.translate( -16, -16 );
+			}*/
+			if ( h > 16 ) // Vertical merged blocks scenario
+			{
+				ctx.save();
+				for ( let i = 0; i < Math.round( h / 16 ); i++ )
+				{
+					ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, ( this.y + 16 * i ) - Math.floor( ( this.y + 16 * i ) / texture_size ) * texture_size, 16,16, 0,0, 16,16 );
+					ctx.translate( 0, 16 );
+				}
+				ctx.restore();
+			}
+			else
 			ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w,h, 0,0, w,h );
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
@@ -1685,8 +2281,8 @@ class sdBlock extends sdEntity
 		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 		
 			
-		if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
-		ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
+		//if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
+		//ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
 	
 		ctx.filter = 'none';
 		ctx.sd_hue_rotation = 0;

@@ -147,6 +147,7 @@ class sdEnemyMech extends sdEntity
 	static BossLikeTargetScan_Filter( e ) // Preventing dynamic function creation. Though maybe that isn't better than looking up global objects and properties
 	{
 		if ( sdCom.com_faction_attack_classes.indexOf( e.GetClass() ) !== -1 )
+		if ( ( e.hea || e._hea || 0 ) > 0 || e.is( sdCube ) )
 		{
 			let boss_entity = sdEnemyMech.current_boss;
 			
@@ -907,8 +908,12 @@ class sdEnemyMech extends sdEntity
 
 		if ( this.hea > 0 )
 		{
-			ctx.globalAlpha = 0.5;
+			ctx.blend_mode = THREE.AdditiveBlending;
+			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+
 			ctx.drawImageFilterCache( sdEnemyMech.img_glow, - 16 + this.hitbox_x2, - 16 + this.hitbox_y1 + 15, 32, 32 );
+
+			ctx.blend_mode = THREE.NormalBlending;
 			ctx.globalAlpha = 1;
 		}
 

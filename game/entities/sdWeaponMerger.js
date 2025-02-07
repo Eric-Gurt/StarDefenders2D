@@ -48,6 +48,9 @@ class sdWeaponMerger extends sdEntity
 		this.matter = 0;
 		this._matter_max = sdWeaponMerger.max_matter;
 		this._regen_timeout = 0;
+		
+		this.power0 = -1; // Displays power of left slot weapon
+		this.power1 = -1; // Displays power of right slot weapon
 
 		//this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		
@@ -89,6 +92,9 @@ class sdWeaponMerger extends sdEntity
 	
 		if ( !this.item0 || !this.item1 || !this.item2 ) // If any of the items is somehow missing
 		return; // Just in case
+		
+		if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE && this.item1.class !== sdGun.CLASS_UNSTABLE_CORE )
+		return; // Disable unstable core (left) and gun (right)
 		
 		if ( this.item1.class === sdGun.CLASS_EXALTED_CORE ) // Exalted core scenario
 		{
@@ -148,9 +154,39 @@ class sdWeaponMerger extends sdEntity
 			Also there was a problem where merged gun power could be transfered onto other without any disadvantage, as long as you had merger cores and matter.
 			So yeah, 2 birds with 1 stone - Booraz149
 			*/
-			this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
-			this.item0._max_dps *= dps_proportions; // Even out max DPS
+			
+			// Unstable core scenario - multiply based off weapon slots for balance
+			let mult = 1;
+			if ( this.item1.class === sdGun.CLASS_UNSTABLE_CORE ) // Adjust multiplier/power depending on weapon slot
+			{
+				if ( sdGun.classes[ this.item0.class ].slot === 3 || sdGun.classes[ this.item0.class ].slot === 4 )
+				mult = 0.5;
+				if ( sdGun.classes[ this.item0.class ].slot === 1 )
+				mult = 0.35;
+			
+				// Unstable core + unstable core scenario
+				// Take stronger core's power and add 15% value of the weaker, capping at 600 power
+				if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE )
+				{
+					if ( this.item0._max_dps < this.item1._max_dps ) // Less power than the other core?
+					{
+						let bonus = this.item0._max_dps * 0.2;
+						this.item0._max_dps = this.item1._max_dps + bonus; // Max power of other core + 20% of own
+					}
+					else
+					this.item0._max_dps += this.item1._max_dps * 0.2; // Just add 20% of the other core
+				
+					this.item0._max_dps = Math.min( 600, this.item0._max_dps ); // Cap the power
+				}
+			}
 		
+			dps_proportions *= mult;
+			
+			if ( this.item0.class !== sdGun.CLASS_UNSTABLE_CORE )
+			{
+				this.item0.extra[ 17 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
+				this.item0._max_dps *= dps_proportions; // Even out max DPS
+			}
 			//console.log( sdGun.classes[ this.item1.class ].title + ' power transferred to ' + sdGun.classes[ this.item0.class ].title );
 			//console.log( this.item1._max_dps + ' -> ' + this.item0._max_dps );
 		
@@ -181,6 +217,9 @@ class sdWeaponMerger extends sdEntity
 		if ( weapon.class === sdGun.CLASS_CUBE_FUSION_CORE )
 		return true;
 	
+		if ( weapon.class === sdGun.CLASS_UNSTABLE_CORE )
+		return true;
+	
 	
 		return false;
 		
@@ -188,7 +227,7 @@ class sdWeaponMerger extends sdEntity
 	
 	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
 	{
-		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE )
+		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE )
 		return true;
 	
 		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
@@ -211,6 +250,7 @@ class sdWeaponMerger extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+	
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -221,10 +261,22 @@ class sdWeaponMerger extends sdEntity
 			}
 		}
 		if ( this.item0 )
-		this.item0.UpdateHeldPosition();
+		{
+			this.item0.UpdateHeldPosition();
+			if ( sdWorld.is_server )
+			this.power0 = Math.round( this.item0._max_dps );
+		}
+		else
+		this.power0 = -1;
 	
 		if ( this.item1 )
-		this.item1.UpdateHeldPosition();
+		{
+			this.item1.UpdateHeldPosition();
+			if ( sdWorld.is_server )
+			this.power1 = Math.round( this.item1._max_dps );
+		}
+		else
+		this.power1 = -1;
 	
 		if ( this.item2 )
 		this.item2.UpdateHeldPosition();
@@ -268,6 +320,8 @@ class sdWeaponMerger extends sdEntity
 			ctx.save();
 			ctx.translate( -16, -1 );
 			this.item0.Draw( ctx, true );
+			if ( this.power0 !== -1 )
+			sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power0, -5, -10, '#ffffff' );
 			ctx.restore();
 		}
 		if ( this.item1 )
@@ -275,6 +329,26 @@ class sdWeaponMerger extends sdEntity
 			ctx.save();
 			ctx.translate( 16, -1 );
 			this.item1.Draw( ctx, true );
+			if ( this.power1 !== -1 )
+			{
+				if ( this.item1.class !== sdGun.CLASS_UNSTABLE_CORE )
+				sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1, 5, -10, '#ffffff' );
+				else
+				{
+					if ( !this.item0 )
+					sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + '???', 5, -10, '#ffffff' );
+					else
+					{
+						let mult = 1;
+						if ( sdGun.classes[ this.item0.class ].slot === 3 || sdGun.classes[ this.item0.class ].slot === 4 )
+						mult = 0.5;
+						if ( sdGun.classes[ this.item0.class ].slot === 1 )
+						mult = 0.35;
+						sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1 * mult, 5, -10, '#ffffff' );
+					}
+					
+				}
+			}
 			ctx.restore();
 		}
 		if ( this.item2 )
@@ -410,6 +484,11 @@ class sdWeaponMerger extends sdEntity
 					if ( from_entity.class === sdGun.CLASS_MERGER_CORE ) // Merger core
 					free_slot = 2; // Slot 3 item goes in the middle
 					
+					if ( from_entity.class === sdGun.CLASS_UNSTABLE_CORE && free_slot === 0 ) // Allow unstable cores on the left aswell
+					{
+						
+					}
+					else
 					if ( this.IgnoresSlot( from_entity ) ) // Exalted core scenario
 					{
 						if ( !this.item1 ) // Right slot not taken?

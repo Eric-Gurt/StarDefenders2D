@@ -1067,7 +1067,7 @@ class sdDatabase
 		
 		if ( operation === 'SAVE' )
 		{
-			if ( items.length >= 10 )
+			if ( ( items.length >= 10 && sdWorld.server_config.keep_favourite_weapon_on_death === false ) || ( sdWorld.server_config.keep_favourite_weapon_on_death && items.length >= 10 && group_title!== 'Recovered weapon' ) )
 			{
 				responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Too many item groups' ]);
 				return responses;
