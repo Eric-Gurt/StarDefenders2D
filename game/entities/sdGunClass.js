@@ -1767,12 +1767,13 @@ class sdGunClass
 				
 				obj._damage *= 1 + ( gun._combo / 45 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
 				
-				if ( gun._combo === 360 ) // Full charge?
-				obj.penetrating = true; // Allow penetration
+				if ( gun._combo >= 360 ) // Full charge?
+				{
+					obj.penetrating = true; // Allow penetration
+				}
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
-			
 			
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
@@ -1815,8 +1816,11 @@ class sdGunClass
 					{
 						if ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by._auto_shoot_in <= 0 ) // Build up damage when holding the Button
 						{
-							if ( gun._combo === 20 ) // Started charging?
+							if ( gun._combo === 20 || ( gun._combo === 360 && gun._combo_timer < 5 ) ) // Started charging?
 							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
+							
+							if ( gun._combo === 360 && gun._combo_timer < 5 ) // Case for charging shot after full charge, starts at 50% charge
+							gun._combo = 180; // Previous full charge is rewarded by having next shot half-charged
 							
 							gun._held_by._auto_shoot_in = 2;
 							if ( gun._combo < 360 ) // Does not scale infinitely, only to about 3 seconds
@@ -1827,13 +1831,7 @@ class sdGunClass
 									sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 }); // Let the player know it's max charge
 								}
 							}
-							gun._combo_timer = 5;
-							
-							if ( gun._max_dps < ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ) && gun.extra[ ID_DAMAGE_VALUE ] <= 62 ) // TEMPORARY PATCH: REMOVE later
-							{
-								gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); 
-								gun.extra[ ID_DAMAGE_VALUE ] = 62;
-							}
+							gun._combo_timer = 10; // Lower value conflicts with max combo and next shot logic
 						}
 					}
 					return false;
@@ -1849,9 +1847,11 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
 					{
-						//gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
+						if ( gun._combo !== 360 )
 						gun._combo_timer = 1;
+						else
+						gun._combo_timer = 21; // This way combo is kept and next shot sets it to 180
 					}
 				}
 				return true;
