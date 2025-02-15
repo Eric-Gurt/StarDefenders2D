@@ -170,6 +170,20 @@ class sdGun extends sdEntity
 		return GSPEED;
 	}
 	
+	IsGunRecoverable()
+	{
+		if ( sdWorld.server_config.keep_favourite_weapon_on_death === false ) // Needed for weapon bench scenario
+		return false;
+		
+		// Don't allow guns which deal lost damage to be recoverable via LRTP after dying
+		if ( this.class === sdGun.CLASS_LOST_CONVERTER || this.class === sdGun.CLASS_CUBE_SPEAR || this.class === sdGun.CLASS_CUBE_SPEAR ||
+			this.class === sdGun.CLASS_ZEKTARON_HARDLIGHT_SPEAR || this.class === sdGun.CLASS_ANCIENT_TRIPLE_RAIL ||
+			this.class === sdGun.CLASS_CUBE_VOID_CAPACITOR )
+		return false;
+		
+		return true;
+	}
+	
 	onMovementInRange( from_entity )
 	{
 		// Just so we don't have to apply extra accuracy for sdGun-s and sdCharacter-s when they are too far from connected players...
@@ -228,6 +242,13 @@ class sdGun extends sdEntity
 
 				if ( from_entity.is( sdRift ) ) // Ignore portals
 				return;
+				
+				if ( from_entity.is( sdStorage ) ) // Don't damage storage crates
+				{
+					this.dangerous = false;
+					this._dangerous_from = null;
+					return;
+				}
 
 				const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
 

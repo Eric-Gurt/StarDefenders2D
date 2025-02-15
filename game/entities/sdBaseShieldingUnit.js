@@ -226,7 +226,7 @@ class sdBaseShieldingUnit extends sdEntity
 	IsOutOfBounds()
 	{
 		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
-		if ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation )
+		if ( ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation ) || sdWorld.server_config.forced_play_area )
 		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
@@ -1513,6 +1513,10 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let unit = units[ i ];
 				
+				//let mult = 1;//Math.max( 1, ( 1 + friendly_shields.length ) ); // Divide matter drain by cabled BSU amounts
+				
+				//console.log( ( 1 + friendly_shields.length ) );
+				
 				let distance = sdWorld.Dist2D( this.x, this.y, unit.x, unit.y );
 				
 				if ( ( distance < range ) ) // Only attack close range shields can be attacked
@@ -1586,8 +1590,8 @@ class sdBaseShieldingUnit extends sdEntity
 						{
 							//trace( 'my matter damage: '+(least_matter / my_scale),', their matter damage: '+(least_matter / their_scale) );
 
-							this.matter -= least_matter / my_scale;
-							unit.matter -= least_matter / their_scale;
+							this.matter -= ( least_matter / my_scale );
+							unit.matter -= ( least_matter / their_scale );
 							
 							this._speed_boost = Math.min( 4, this._speed_boost + 0.01 );
 							unit._speed_boost = Math.min( 4, unit._speed_boost + 0.01 );

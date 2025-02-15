@@ -594,7 +594,7 @@ class sdGuanako extends sdEntity
 								if ( e )
 								if ( e.IsVisible( this ) )
 								if ( e.is( sdCrystal ) ||
-									 ( e.is( sdBlock ) && ( e._contains_class && e._contains_class.substring( 0, 'sdCrystal'.length ) === 'sdCrystal' ) ) )
+									 ( e.is( sdBlock ) && ( e._contains_class && typeof e._contains_class === 'string' && e._contains_class.substring( 0, 'sdCrystal'.length ) === 'sdCrystal' ) ) )
 								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, 1000 ) )
 								{
 									this.SetTarget( e );

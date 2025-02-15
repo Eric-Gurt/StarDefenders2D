@@ -111,11 +111,11 @@ class sdBullet extends sdEntity
 	}
 
 	ThinkUntilRemoved()
-	{ return this._rail || this._hook || this._wave; }
+	{ return this._rail || this._wave; }
 
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( this._rail || this._hook || this._wave )
+		if ( this._rail || this._wave )
 		return false;
 
 		if ( this.color === 'transparent' )
@@ -457,6 +457,9 @@ class sdBullet extends sdEntity
 				return false;
 			}
 		}
+		
+		if ( from_entity.is( sdBlock ) && from_entity._merged )
+		return false;
 
 		if ( this._admin_picker )
 		return from_entity.IsHittableWithAdminTools();
@@ -742,7 +745,52 @@ class sdBullet extends sdEntity
 		/*if ( this._hook )
 		if ( from_entity._class === 'sdCharacter' || from_entity._class === 'sdGun' )
 		debugger;*/
-
+		if ( from_entity.is( sdBlock ) && from_entity._merged )
+		{
+			// Essentially the blocks split themselves, returning an array of the new spawned blocks
+			let ents = from_entity.UnmergeBlocks();
+			if ( ents.length > 0 ) 
+			{
+				// And we need to determine which block to damage, which is the closest one.
+				let closest = sdWorld.Dist2D( this.x, this.y, ents[ 0 ].x + ( ents[ 0 ].width / 2 ), ents[ 0 ].y + ( ents[ 0 ].height / 2 ) );
+				from_entity = ents[ 0 ];
+				for ( let i = 0; i < ents.length; i++ )
+				{
+					let distance = sdWorld.Dist2D( this.x, this.y, ents[ i ].x + ( ents[ i ].width / 2 ), ents[ i ].y + ( ents[ i ].height / 2 ) );
+					if ( distance < closest )
+					{
+						closest = distance;
+						from_entity = ents[ i ];
+					}
+				}
+			}
+			else
+			return;
+		}
+		// BG shooting works normally even without this, so disabled for now.
+		/*if ( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 )
+		{
+			// Essentially the backgrounds split themselves, returning an array of the new spawned backgrounds
+			let ents = from_entity.UnmergeBackgrounds();
+			if ( ents.length > 0 ) 
+			{
+				// And we need to determine which block to damage, which is the closest one.
+				let closest = sdWorld.Dist2D( this.x, this.y, ents[ 0 ].x + ( ents[ 0 ].width / 2 ), ents[ 0 ].y + ( ents[ 0 ].height / 2 ) );
+				from_entity = ents[ 0 ];
+				for ( let i = 0; i < ents.length; i++ )
+				{
+					let distance = sdWorld.Dist2D( this.x, this.y, ents[ i ].x + ( ents[ i ].width / 2 ), ents[ i ].y + ( ents[ i ].height / 2 ) );
+					if ( distance < closest )
+					{
+						closest = distance;
+						from_entity = ents[ i ];
+					}
+				}
+			}
+			else
+			return;
+		}*/
+		
 		if ( this._last_target === from_entity )
 		return; // Prevent bouncing bullets to deal multiple damage when they stuck in something?
 

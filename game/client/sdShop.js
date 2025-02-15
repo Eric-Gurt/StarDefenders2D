@@ -583,7 +583,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:10 });
 			sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:15 });
 			sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:20 });
-			sdShop.options.push({ _class: 'sdLandMine', _category:'Equipment' });
+			sdShop.options.push({ _class: 'sdLandMine',variation:0, _category:'Equipment' });
+			sdShop.options.push({ _class: 'sdLandMine', variation:1, _category:'Equipment', _min_build_tool_level:10 });
 
 			//if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
 			{

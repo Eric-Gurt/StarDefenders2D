@@ -15,6 +15,8 @@ import sdCrystal from './sdCrystal.js';
 import sdLost from './sdLost.js';
 import sdCom from './sdCom.js';
 import sdCable from './sdCable.js';
+import sdBG from './sdBG.js';
+import sdBlock from './sdBlock.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -26,6 +28,7 @@ class sdStatusEffect extends sdEntity
 		
 		sdStatusEffect.img_level_up = sdWorld.CreateImageFromFile( 'level_up' );
 		sdStatusEffect.img_bubble_shield = sdWorld.CreateImageFromFile( 'bubble_shield' );
+		sdStatusEffect.img_attack_indicator_beam = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
 		
 		sdStatusEffect.types = [];
 		
@@ -46,6 +49,7 @@ class sdStatusEffect extends sdEntity
 				status_entity._last_merges = 0;
 				
 				status_entity.dmg = params.dmg || 0;
+				status_entity.crit = params.crit || false;
 				
 				status_entity._observers = new WeakSet(); // Damage initiators
 				
@@ -56,6 +60,9 @@ class sdStatusEffect extends sdEntity
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
+				if ( status_entity.crit !== params.crit )
+				return false;
+
 				status_entity.dmg += params.dmg || 0;
 
 				status_entity.merges++;
@@ -127,7 +134,7 @@ class sdStatusEffect extends sdEntity
 				return;
 			
 				ctx.textAlign = 'center';
-				ctx.font = "5px Verdana";
+				ctx.font = ( status_entity.crit ? "7" : "5" ) + "px Verdana";
 				
 				/*for ( let sh = 0; sh < 1; sh++ )
 				for ( let x = -1; x <= 1; x++ )
@@ -168,7 +175,7 @@ class sdStatusEffect extends sdEntity
 					ctx.apply_shading = false;
 
 					if ( status_entity.dmg > 0 )
-					ctx.fillText( Math.floor( status_entity.dmg ) + '', xx, yy );
+					ctx.fillText( Math.floor( status_entity.dmg ) + ( status_entity.crit ? ' CRIT' : '' ), xx, yy );
 					else
 					ctx.fillText( '+' + Math.abs( Math.floor( status_entity.dmg ) ) + '', xx, yy ); 
 
@@ -468,6 +475,35 @@ class sdStatusEffect extends sdEntity
 									
 									//if ( e.IsBGEntity() === 1 )
 									//strength = 0.1;
+									
+									// Merged blocks scenario
+									if ( e.is( sdBlock ) || e.is( sdBG ) )
+									if ( e._merged )
+									{
+										let ents;
+										if ( e.is( sdBlock ) )
+										ents = e.UnmergeBlocks();
+										if ( e.is( sdBG ) )
+										ents = e.UnmergeBackgrounds();
+										// Set closest block/BG as entity to apply status effect
+										if ( ents.length > 0 )
+										{
+											let closest = ents[ 0 ];
+											let closest_di = sdWorld.Dist2D( status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2, status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2, ents[ 0 ].x + ents[ 0 ].width / 2, ents[ 0 ].y + ents[ 0 ].height / 2 );
+											for ( let j = 0; j < ents.length; j++ )
+											{
+												let di = sdWorld.Dist2D( status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2, status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2, ents[ j ].x + ents[ j ].width / 2, ents[ j ].y + ents[ j ].height / 2 );
+												if ( di < closest_di )
+												{
+													closest = ents[ j ];
+													closest_di = di;
+												}
+											}
+											e = closest;
+										}
+										else
+										strength = 0;
+									}
 									
 									if ( strength > 0 )
 									{
@@ -1467,6 +1503,97 @@ class sdStatusEffect extends sdEntity
 
 			onBeforeRemove: ( status_entity )=>
 			{
+			}
+		};
+
+		sdStatusEffect.types[ sdStatusEffect.TYPE_ATTACK_INDICATOR = 13 ] = 
+		{
+			// Applied to the target instead of the attacker so that targeted players can see it even when the attacking entity is not visible
+
+			remove_if_for_removed: true,
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._attacker = params.attacker || null;
+
+				status_entity.ttl = params.ttl || 30;
+				status_entity.range = params.range || 10;
+				status_entity.sd_filter = ( params.color ? sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#ffffff', params.color ) : null );
+
+				status_entity.x2 = 0;
+				status_entity.y2 = 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( status_entity._attacker )
+				{
+					let ent = status_entity._attacker;
+
+					if ( ent._is_being_removed || ( ent.hea || ent._hea || 0 ) <= 0 || ent._frozen > 0 )
+					return true;
+
+					status_entity.x2 = status_entity._attacker.GetCenterX();
+					status_entity.y2 = status_entity._attacker.GetCenterY();
+				}
+				else
+				if ( sdWorld.is_server )
+				return true;
+
+				status_entity.ttl -= GSPEED;
+
+				return ( status_entity.ttl <= 0 );
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				if ( status_entity.sd_filter )
+				ctx.sd_filter = status_entity.sd_filter;
+
+				ctx.blend_mode = THREE.AdditiveBlending;
+
+				ctx.globalAlpha = ( status_entity.ttl < 30 && status_entity.ttl % 10 > 5 ) ? 0 : 0.5;
+
+				let range = status_entity.range;
+
+				let xx = status_entity.x;
+				let yy = status_entity.y;
+
+				let di = sdWorld.Dist2D( xx, yy, status_entity.x2, status_entity.y2 );
+
+				/*let point = sdWorld.TraceRayPoint( status_entity.x2, status_entity.y2, xx, yy, status_entity.for, null, sdCom.com_vision_blocking_classes );
+				if ( point )
+				{
+					xx = point.x;
+					yy = point.y;
+
+					range = sdWorld.Dist2D( xx, yy, status_entity.x2, status_entity.y2 );
+				}*/
+				
+				ctx.rotate( Math.atan2( status_entity.y2 - status_entity.y, status_entity.x2 - status_entity.x ) );
+				ctx.translate( di - range, 0 );
+
+				ctx.drawImageFilterCache( sdStatusEffect.img_attack_indicator_beam, range,-8, -range,16 );
+
+				ctx.sd_filter = null;
+				ctx.blend_mode = THREE.NormalBlending;
+				ctx.globalAlpha = 1;
 			}
 		};
 

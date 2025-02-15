@@ -544,6 +544,7 @@ class sdCharacter extends sdEntity
 		
 		
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack_sheet' ); // Sprite sheet by Molis
+		sdCharacter.img_grapple_hook = sdWorld.CreateImageFromFile( 'grapple_hook' );
 
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
@@ -559,14 +560,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
-		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
-		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation' ];
-		/*
-		if ( !sdWorld.is_server )
-		{
-			sdCharacter.ignored_classes_when_holding_x.push( 'sdBone' );
-			sdCharacter.ignored_classes_when_not_holding_x.push( 'sdBone' );
-		}*/
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
 
 		sdCharacter.max_level = 60;
 		
@@ -1342,6 +1337,9 @@ THING is cosmic mic drop!`;
 		
 		this.hook_relative_x = 0;
 		this.hook_relative_y = 0;
+
+		this._hook_projectile = null;
+		this.hook_projectile_net_id = -1;
 
 		this._jetpack_power = 1; // Through upgrade
 		
@@ -2452,11 +2450,32 @@ THING is cosmic mic drop!`;
 					this.DropWeapons();
 				}
 				
+				// After dropping the weapons, it should have only one weapon remaining if player should LRTP one to mothership
+				// In the case of "Lost damage", it will save one weapon before removing them all anyway
+				if ( sdWorld.server_config.keep_favourite_weapon_on_death && !this._ai_enabled )
+				{
+					// Attempt saving the weapon to LRTP, instead of dropping it
+					let slot = this.GetFavouriteEquippedSlot();
+					if ( this._inventory[ slot ] )
+					{
+						this._inventory[ slot ].ttl = sdGun.disowned_guns_ttl;
+						this._inventory[ slot ]._held_by = null;
+						this._inventory[ slot ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+									
+						if ( this.AttemptWeaponSaving( this._inventory[ slot ] ) || lost_effect )
+						this._inventory[ slot ].remove();
+						// else
+						this._inventory[ slot ] = null;
+						// If it doesn't save the weapon, it will probably just end up being dropped
+					}
+				}
+				
 				if ( best_t.IsVehicle() )
 				best_t.AddDriver( this, true );
 			
 				best_t.onRescued( this );
 			}
+			
 			
 			sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>
 			{
@@ -2537,6 +2556,103 @@ THING is cosmic mic drop!`;
 			return true;
 		}
 		return false;
+	}
+	GetFavouriteEquippedSlot()
+	{
+		// Finds/returns value of the slot of a weapon that is the best option to save into storage before dying/cloner/etc
+		if ( !this._ai_enabled ) //  Make sure it only attempts for players
+		{
+			let weapon_to_keep = -1;
+			let max_dps = 0;
+			let biometry = -1;
+			for ( var i = 0; i < this._inventory.length; i++ ) // Determine which weapon to keep by checking biometry, DPS
+			{
+				if ( this._inventory[ i ] )
+				{
+					if ( this._inventory[ i ].IsGunRecoverable() && this._inventory[ i ].biometry_lock === this.biometry ) // Make sure it is not a "Lost effect damage" weapon
+					if ( max_dps === 0 || max_dps < this._inventory[ i ]._max_dps )
+					{
+						max_dps = this._inventory[ i ]._max_dps || 1;
+						weapon_to_keep = i;
+						biometry = this._inventory[ i ].biometry_lock;
+					}
+				}
+			}
+			if ( biometry === -1 ) // No weapon with biometry equal to player was found? Try saving weapon without biometry and max DPS then
+			for ( i = 0; i < this._inventory.length; i++ ) // Determine which weapon to keep
+			{
+				if ( this._inventory[ i ] )
+				{
+					if ( this._inventory[ i ].IsGunRecoverable() && this._inventory[ i ].biometry_lock === -1 ) // Make sure it is not a "Lost effect damage" weapon
+					if ( max_dps === 0 || max_dps < this._inventory[ i ]._max_dps )
+					{
+						max_dps = this._inventory[ i ]._max_dps || 1;
+						weapon_to_keep = i;
+					}
+				}
+			}
+			return weapon_to_keep;
+		}
+		else
+		return -1;
+	}
+	AttemptWeaponSaving( gun = null )
+	{
+		if ( !sdWorld.is_server )
+		return false;
+	
+		if ( !gun )
+		return false;
+	
+		if ( !gun.IsGunRecoverable() ) // Just in case
+		return false;
+		
+		gun.biometry_lock = -1; // Reset biometry, since it only saves weapons without biometry or same as dying player
+	
+		let saved_weapon = false;
+	
+		let current_frame = globalThis.GetFrame();
+		let snapshot = [];
+		console.log( gun.title );
+		snapshot.push( gun.GetSnapshot( current_frame, true ) );
+		//console.log( gun );			
+		//if ( collected_entities_array.length === 0 )
+		//executer_socket.SDServiceMessage( 'Nothing was saved' );
+		//else
+		if ( snapshot.length > 0 )
+		{
+			sdDatabase.Exec( 
+				[ 
+					[ 'DBManageSavedItems', this._my_hash, 'SAVE', 'Recovered weapon', snapshot, gun.x, gun.y + 12, true ] 
+				], 
+				( responses )=>
+				{
+					// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+					for ( let i = 0; i < responses.length; i++ )
+					{
+						let response = responses[ i ];
+															
+						if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+						{
+							console.log( 'Failed' );
+							//executer_socket.SDServiceMessage( response[ 1 ] );
+							//this.InsertEntitiesOnTop( snapshot, this_x, this_y );
+						}
+						else
+						if ( response[ 0 ] === 'SUCCESS' )
+						{
+							saved_weapon = true;
+							console.log( 'Success' );
+							//executer_socket.SDServiceMessage( 'Success!' );
+							//executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
+						}
+					}
+				},
+				'localhost'
+			);
+		}
+		
+		return saved_weapon;
 	}
 	
 	RemoveArmor()
@@ -4323,7 +4439,7 @@ THING is cosmic mic drop!`;
 	IsOutOfBounds()
 	{
 		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
-		if ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation )
+		if ( ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation ) || sdWorld.server_config.forced_play_area )
 		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
@@ -4378,6 +4494,18 @@ THING is cosmic mic drop!`;
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+
+		if ( sdWorld.is_server && this._hook_projectile )
+		{
+			let di = sdWorld.Dist2D( this._hook_projectile.x, this._hook_projectile.y, this.x, this.y );
+			if ( di > 1000 ) this._hook_projectile.remove(); // Prevent use of teleports
+
+			if ( this._hook_projectile._is_being_removed )
+			{
+				this._hook_projectile = null;
+				this.hook_projectile_net_id = -1;
+			}
+		}
 		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
 		{
@@ -4767,6 +4895,7 @@ THING is cosmic mic drop!`;
 						bullet_obj._owner = this;
 						let an = this.GetLookAngle();
 						let vel = 16;
+
 						bullet_obj.sx = Math.sin( an ) * vel;
 						bullet_obj.sy = Math.cos( an ) * vel;
 
@@ -4777,9 +4906,19 @@ THING is cosmic mic drop!`;
 
 						bullet_obj._hook = true;
 						bullet_obj._damage = 0;
-						bullet_obj.time_left = 8.5;
+						bullet_obj.time_left = 20;
+						bullet_obj.model = 'grapple_hook'
+						bullet_obj._affected_by_gravity = true;
+						bullet_obj.gravity_scale = 2;
+						
+						if ( this._hook_projectile )
+						if ( !this._hook_projectile._is_being_removed )
+						this._hook_projectile.remove();
 
 						sdEntity.entities.push( bullet_obj );
+
+						this._hook_projectile = bullet_obj;
+						this.hook_projectile_net_id = bullet_obj._net_id;
 					}
 					else
 					{
@@ -4830,7 +4969,7 @@ THING is cosmic mic drop!`;
 			if ( this.hook_len === -1 )
 			this.hook_len = cur_di;
 		
-			let max_length = 8.5 * 16;
+			let max_length = 8.5 * 48;
 		
 			if ( this._upgrade_counters.upgrade_hook > 1 )
 			if ( this._key_states.GetKey( 'Mouse3' ) )
@@ -5692,7 +5831,24 @@ THING is cosmic mic drop!`;
 		if ( this.driver_of )
 		this.driver_of.ExcludeDriver( this );
 		
-		//
+		// Check if server allows keeping one weapon
+		if ( sdWorld.server_config.keep_favourite_weapon_on_death && !this._ai_enabled )
+		{
+			// Attempt saving the weapon to LRTP
+			let slot = this.GetFavouriteEquippedSlot();
+			if ( this._inventory[ slot ] )
+			{
+				this._inventory[ slot ].ttl = sdGun.disowned_guns_ttl;
+				this._inventory[ slot ]._held_by = null;
+				this._inventory[ slot ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+				if ( this.AttemptWeaponSaving( this._inventory[ slot ] ) )
+				this._inventory[ slot ].remove();
+				// else
+				this._inventory[ slot ] = null;
+				// If it doesn't save the weapon, it will probably just end up being dropped
+			}
+		}
 		// Actually remove instead if player was deleted
 		if ( this._broken )
 		this.DropWeapons();
@@ -5730,8 +5886,21 @@ THING is cosmic mic drop!`;
 	
 	DropWeapons()
 	{
-		for ( var i = 0; i < this._inventory.length; i++ )
-		this.DropWeapon( i );
+		if ( sdWorld.server_config.keep_favourite_weapon_on_death === false || this._ai_enabled )
+		{
+			for ( var i = 0; i < this._inventory.length; i++ )
+			this.DropWeapon( i );
+		}
+		else
+		{
+			let weapon_to_keep = this.GetFavouriteEquippedSlot();
+			for ( i = 0; i < this._inventory.length; i++ )
+			{
+				if ( i !== weapon_to_keep )
+				this.DropWeapon( i );
+			}
+			
+		}
 	}
 	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
 	{
@@ -6266,6 +6435,11 @@ THING is cosmic mic drop!`;
 							else
 							if ( fake_ent._is_bg_entity === 1 && obstacle.is( sdBG ) && ( !obstacle._shielded || obstacle._shielded._is_being_removed ) )
 							{
+								if ( obstacle._merged ) // Merged backgrounds?
+								{
+									obstacle.UnmergeBackgrounds(); // Unmerge first
+									return sdCharacter.GeneralCheckBuildObjectPossibilityNow( build_params, initiator, fake_ent, allow_erase ); // Try again
+								}
 								if ( allow_erase )
 								{
 									sdCharacter.last_build_deny_reason = null;
@@ -6558,16 +6732,36 @@ THING is cosmic mic drop!`;
 		const char_filter = ctx.filter;
 		
 		if ( !attached )
-		if ( this.hook_relative_to )
+		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
 		{
+			//if ( this.hook_relative_to )
 			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
-			
+
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = '#c0c0c0';
 			ctx.beginPath();
 			ctx.moveTo( 0,from_y - this.y );
+			if ( this.hook_relative_to )
 			ctx.lineTo( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
+			else
+			{
+				let hook_ent = sdEntity.entities_by_net_id_cache_map.get( this.hook_projectile_net_id );
+				if ( hook_ent )
+				ctx.lineTo( hook_ent.x - this.x, hook_ent.y - this.y );
+			}
 			ctx.stroke();
+			if ( this.hook_relative_to )
+			{
+				ctx.save();
+
+				ctx.translate( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
+
+				ctx.rotate( ( Math.atan2( this.hook_relative_to.y + this.hook_relative_y - this.y ,this.hook_relative_to.x + this.hook_relative_x - this.x ) ) );
+
+				ctx.drawImageFilterCache( sdCharacter.img_grapple_hook, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
 		}
 		
 		if ( this._ragdoll )

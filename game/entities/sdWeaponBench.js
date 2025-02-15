@@ -467,6 +467,80 @@ class sdWeaponBench extends sdEntity
 							executer_socket.SDServiceMessage( 'Not enough matter' );
 						}
 					}
+					else
+					if ( command_name === 'SET_BIOMETRY' ) // For non custom guns and for non "Lost damage" guns
+					{
+						if ( this.item0 )
+						{
+							let matter_cost = 500;
+							let player_has_weapon_with_biometry = false;
+							if ( !this.item0.IsGunRecoverable() ) // Just in case
+							executer_socket.SDServiceMessage( 'This weapon cannot have retrieval.' );
+							else
+							if ( exectuter_character.matter >= ( matter_cost ) )
+							{
+
+								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+								exectuter_character.matter -= matter_cost;
+
+								if ( this.item0.biometry_lock === -1 )
+								this.item0.biometry_lock = exectuter_character.biometry;
+								else
+								this.item0.biometry_lock = -1;
+							
+								for ( let i = 0; i < exectuter_character._inventory.length; i++ )
+								{
+									if ( exectuter_character._inventory[ i ] )
+									{
+										if ( exectuter_character._inventory[ i ].biometry_lock === exectuter_character.biometry )
+										{
+											player_has_weapon_with_biometry = true;
+											break;
+										}
+									}
+								}
+								if ( this.item0.biometry_lock !== -1 )
+								{
+									if ( !player_has_weapon_with_biometry )
+									{
+										exectuter_character.Say( [ 
+							'In case of my demise, someone is in for a surprise.', 
+							'It should automatically teleport back to the Mothership if forcefully removed.', 
+							'This weapon will automatically recall into the Mothership if I disappear whilst having it.',
+							'I guess this now has extended warranty, heh.',
+							'If I forcefully lose possession of this item, it will recall into the Mothership.',
+							'As long as only one item prioritizes retrieval, it will always be that one.'
+						][ ~~( Math.random() * 5 ) ] );
+						
+										executer_socket.SDServiceMessage( 'This weapon will be teleported to the Mothership storage on death.' );
+									}
+									else
+									{
+										exectuter_character.Say( [ 
+							'I already have a weapon to prioritize saving.', 
+							'Having multiple of these will not work.', 
+							'I can only save one weapon, in case of death.',
+							'They will not save more than one weapon with this feature.',
+							'I can\'t save multiple weapons on death. I should pick only one.'
+						][ ~~( Math.random() * 4 ) ] );
+										executer_socket.SDServiceMessage( 'Equipping multiple priority retrieval weapons will save a stronger one.' );
+									}
+								}
+								else
+									{
+									exectuter_character.Say( [ 
+						'Priority retrieval disabled for this item.', 
+						'It will no longer attempt retrieval to Mothership on death, if equipped'
+					][ ~~( Math.random() * 1 ) ] );
+									executer_socket.SDServiceMessage( 'Priority retrieval disabled for this weapon.' );
+								}
+								this._update_version++;
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+					}
 				}
 				else
 				{
@@ -495,6 +569,9 @@ class sdWeaponBench extends sdEntity
 				//if ( this._current_category_stack.length === 0 )
 				if ( this.upgraded_dur === false )
 				this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ], false );
+			
+				if ( this.item0.IsGunRecoverable() && this.item0.class !== sdGun.CLASS_CUSTOM_RIFLE )
+				this.AddContextOption( 'Prioritize weapon retrieval on death ('+ 500 +' matter)', 'SET_BIOMETRY', [ ], false );
 				
 				if ( this._current_category_stack.length > 0 )
 				this.AddClientSideActionContextOption( 'Go back...', ()=>
