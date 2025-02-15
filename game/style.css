@@ -7,7 +7,10 @@
     src: url('/assets/fonts/Oswald-Light.ttf') format('truetype');
 }
 
-
+img
+{
+    pointer-events: none; /* Thanks, Microsoft Edge */
+}
 
 
 
