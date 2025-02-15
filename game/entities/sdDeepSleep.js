@@ -230,7 +230,7 @@ class sdDeepSleep extends sdEntity
 	}
 	static GlobalThink( GSPEED )
 	{
-		if ( sdWorld.paused )
+		if ( sdWorld.paused && sdWorld.is_singleplayer )
 		return;
 	
 		if ( sdDeepSleep.debug_pause_any_deep_sleep_logic )

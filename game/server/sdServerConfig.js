@@ -1952,7 +1952,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		setInterval( ()=>{
 
 			if ( sdWorld.world_has_unsaved_changes )
-			if ( !sdWorld.paused )
+			if ( !sdWorld.paused || !sdWorld.is_singleplayer )
 			{
 				sdWorld.world_has_unsaved_changes = false;
 
