@@ -390,6 +390,8 @@ class sdGunClass
 							if ( initiator )
 							if ( initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
 						}
 					} 
 				} 
@@ -412,6 +414,8 @@ class sdGunClass
 							if ( initiator )
 							if ( initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
 						}
 					} 
 				} 
@@ -434,6 +438,8 @@ class sdGunClass
 							if ( initiator )
 							if ( initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
 						}
 					} 
 				} 
@@ -457,6 +463,8 @@ class sdGunClass
 							if ( initiator )
 							if ( initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
 						}
 					} 
 				} 
@@ -611,6 +619,8 @@ class sdGunClass
 							if ( initiator )
 							if ( initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
 						}
 					} 
 				} 
@@ -633,6 +643,8 @@ class sdGunClass
 							if ( initiator )
 							if ( initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
 						}
 					} 
 				} 
@@ -832,7 +844,7 @@ class sdGunClass
 			title: 'Shotgun',
 			slot: 3,
 			reload_time: 20,
-			muzzle_x: 9,
+			muzzle_x: 7,
 			ammo_capacity: 8,
 			count: 5,
 			spread: 0.1,
@@ -885,7 +897,7 @@ class sdGunClass
 			title: 'Railgun',
 			slot: 4,
 			reload_time: 30,
-			muzzle_x: 9,
+			muzzle_x: 6,
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
@@ -1074,6 +1086,7 @@ class sdGunClass
 			sound: 'gun_buildtool2',
 			title: 'Build tool',
 			slot: 9,
+			has_description: [ 'Used for building. Press B to open build menu' ],
 			reload_time: 15,
 			muzzle_x: null,
 			ammo_capacity: -1,
@@ -1734,11 +1747,14 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [
 					{ 
 						title: 'Upgrade to v2',
-						cost: 300,
-						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_SHOTGUN2;
-										gun.extra[ ID_DAMAGE_VALUE ] = 20 * 1.2;
-										gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
-										}
+						cost: 1500,
+						action: ( gun, initiator=null )=>
+						{
+							gun.class = sdGun.CLASS_RAIL_SHOTGUN2;
+							gun.ResetInheritedGunClassProperties();
+							//gun.extra[ ID_DAMAGE_VALUE ] = 20 * 2;
+							//gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
+						}
 					}
 				] ) )
 		};		
@@ -1751,7 +1767,7 @@ class sdGunClass
 			title: 'Velox Rail Cannon',
 			slot: 4,
 			reload_time: 18,
-			muzzle_x: 7,
+			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_properties: { _rail: true, _rail_circled: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
@@ -1881,8 +1897,10 @@ class sdGunClass
 				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
 				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
 				{
+					sdSound.PlaySound({ name:'cube_shard', x:character.x, y:character.y, volume:1, pitch:1 }, [ character._socket ] );
 					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
 					character.onScoreChange();
+					
 					
 					//character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
 					//character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
@@ -2233,7 +2251,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_SHOTGUN_MK2 = 29 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'shotgun_mk2' ),
-			sound: 'gun_shotgun',
+			sound: 'gun_shotgun_mk2',
 			sound_volume: 1,
 			title: 'Shotgun MK2',
 			slot: 3,
@@ -2243,8 +2261,8 @@ class sdGunClass
 			count: 3,
 			spread: 0.1,
 			matter_cost: 90,
-			burst: 3, // Burst fire count
-			burst_reload: 30, // Burst fire reload, needed when giving burst fire
+			//burst: 3, // Burst fire count // EG: Having 2 cooldown (reload and burst cooldown) feels like a downgrade
+			//burst_reload: 30, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 6,
 			projectile_properties: { _damage: 25 },
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -2910,7 +2928,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 300,
-			has_description: [ 'Used to connect base equipment together' ],
+			has_description: [ 'Used to wire base equipment together' ],
 			projectile_velocity: 16,
 			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
 				_custom_target_reaction_protected: cable_reaction_method,
@@ -4660,22 +4678,23 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_SHOTGUN2 = 76 ] = { // Image by LazyRain
 			image: sdWorld.CreateImageFromFile( 'rail_shotgun2' ),
-			sound: 'cube_attack',
-			sound_pitch: 0.4 * 0.8,
+			sound: 'cube_attackB',
+			sound_pitch: 1,
 			sound_volume: 2,
 			title: 'Cube-shotgun v2',
 			slot: 3,
 			reload_time: 20,
 			muzzle_x: 6,
 			ammo_capacity: -1,
-			spread: 0.15,
-			count: 5,
+			spread: 0.1,
+			count: 7,
+			self_recoil_scale: 0.1,
 			projectile_properties: { _rail: true, _damage: 20 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#62c8f2' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.7 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -5064,9 +5083,33 @@ class sdGunClass
 				
 				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa',
 			},
-			
+			projectile_properties_dynamic: ( gun )=>{
+				
+				let obj = { 
+					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa',
+				};
+				
+				if ( gun._held_by )
+				{
+					let m = Math.min( 20, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
+					obj.explosion_radius *= m;
+					gun._reload_time = 5 * ( 1 + m ) / 2;
+				}
+				
+				return obj;
+			},
+			onMade: ( gun, params )=>
+			{
+				gun.extra = 0;
+			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
+				let m = Math.min( 20, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
+				gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
+				
+				if ( gun.extra === 1 )
+				return true;
+			
 				for ( let i = 0; i < sdOverlord.overlords.length; i++ )
 				{
 					if ( sdWorld.inDist2D_Boolean( gun.x, gun.y, sdOverlord.overlords[ i ].x, sdOverlord.overlords[ i ].y, 250 ) )
@@ -5080,7 +5123,31 @@ class sdGunClass
 				}
 				
 				return false;
-			}
+			},
+			upgrades:
+				[
+					{ 
+						title: 'Unlock overlord blaster',
+						cost: 1000,
+						action: ( gun, initiator=null )=>{ 
+							//gun.class = sdGun.CLASS_TRIPLE_RAIL2;
+							//gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
+							//gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
+							if ( gun.extra === 0 )
+							{
+								gun.extra = 1;
+								//initiator.Say( '' );
+								return true;
+							}
+							
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Weapon is already unlocked.' );
+					
+							return false;
+						}
+					}
+				]
 		};
 
 		sdGun.classes[ sdGun.CLASS_TOPS_DMR = 83 ] = 
@@ -6138,6 +6205,7 @@ class sdGunClass
 				if ( !gun.follow._is_being_removed )
 				{
 					const magnet_time = 30 * 60 * 1 - 2 * 30;
+					
 					if ( gun.ttl < magnet_time ) // Start following after 5 seconds
 					{
 						let dx = gun.follow.x + ( gun.follow._hitbox_x1 + gun.follow._hitbox_x2 ) / 2 - gun.x;
@@ -8955,6 +9023,7 @@ class sdGunClass
 				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
 				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
 				{
+					sdSound.PlaySound({ name:'cube_shard', x:character.x, y:character.y, volume:1, pitch:1 }, [ character._socket ] );
 					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
 					character.onScoreChange();
 					

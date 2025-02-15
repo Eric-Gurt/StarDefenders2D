@@ -53,7 +53,7 @@ class sdShurgTurret extends sdEntity
 
 		this.type = params.type || 0;
 
-		this.hmax = 700;
+		this.hmax = 550;
 		this.hea = this.hmax;
 		this._regen_timeout = 0; // Regen timeout;
 		this._notify_players = 0;
@@ -109,13 +109,14 @@ class sdShurgTurret extends sdEntity
 			let that = this;
 			for ( var i = 0; i < 6; i++ )
 			{
+				let i_copy = i;
 				let an = Math.random() * Math.PI * 2;
 				let d = ( i === 0 ) ? 0 : Math.random() * 20;
 				let r = ( i === 0 ) ? 30 : ( 6 + Math.random() * 12 );
 
 				setTimeout( ()=>
 				{
-					if ( !that._is_being_removed || i === 0 )
+					if ( !that._is_being_removed || i_copy === 0 )
 					{
 						var a = Math.random() * 2 * Math.PI;
 						var s = Math.random() * 10;
@@ -145,7 +146,7 @@ class sdShurgTurret extends sdEntity
 			//this.remove();
 		}
 		
-		if ( this.hea < -this.hmax * 0.75 )
+		if ( this.hea < -this.hmax * 0.6 )
 		this.remove();
 	}
 	

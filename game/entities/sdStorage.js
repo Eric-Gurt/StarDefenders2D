@@ -50,17 +50,43 @@ class sdStorage extends sdEntity
 	}
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this.held_by !== null ? false : true; }
+	{ return true; }
 
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Crates are not targetable when stored, same for crystals and guns
 	{
 		if ( !super.IsTargetable( by_entity, ignore_safe_areas ) )
 		return false;
 		
-		return ( this.held_by === null );
+		return true;
 	}
 	
-	
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		if ( save_as_much_as_possible || observer_entity === null )
+		return super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+		
+		
+		let hide_contents = false;
+		
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, observer_entity.x, observer_entity.y, sdStorage.access_range ) )
+		{
+		}
+		else
+		{
+			current_frame -= 100; // Make it so frame is different for case of obfuscation. Otherwise 1 out of 2 players seeing this entity might get wrong mixed snapshots
+			hide_contents = true;
+		}
+		
+		let snapshot = super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+		
+		if ( hide_contents )
+		{
+			snapshot.stored_names = [];
+			snapshot.is_armable = [];
+		}
+		
+		return snapshot;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -128,8 +154,8 @@ class sdStorage extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this.held_by !== null )
-		return;
+		//if ( this.held_by !== null )
+		//return;
 	
 		dmg = Math.abs( dmg );
 		
@@ -160,21 +186,11 @@ class sdStorage extends sdEntity
 	
 	IsVisible( observer_character ) // Can be used to hide storage crates that are held by cargo storage crates
 	{
-		if ( this.held_by === null )
 		return true;
-		else
-		{
-			if ( this.held_by.is( sdStorage ) )
-			{
-				if ( observer_character )
-				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
-				return true;
-			}
-		}
 		
 		return false;
 	}
-	UpdateHeldPosition()
+	/*UpdateHeldPosition()
 	{
 		if ( this.held_by ) // Should not happen but just in case
 		{
@@ -199,7 +215,7 @@ class sdStorage extends sdEntity
 			if ( this.x !== old_x || this.y !== old_y )
 			sdWorld.UpdateHashPosition( this, false, false );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -214,9 +230,11 @@ class sdStorage extends sdEntity
 		
 		if ( sdWorld.is_server || this.awake )
 		{
-			this.sy += sdWorld.gravity * GSPEED;
-
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+			if ( !this.held_by )
+			{
+				this.sy += sdWorld.gravity * GSPEED;
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+			}
 		}
 		
 		// Patch: Old to new storage method (TODO: Remove this code after June 2022)
@@ -309,12 +327,23 @@ class sdStorage extends sdEntity
 		return `${ this.title } can be used to store and safely transport crystals as well as various types of barrels. These can be made trapped using items put into them. Can store 24 items.`;
 
 	}
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
+	}
+	/*IsCarriable( by_entity ) // In hands
+	{
+		return !this.is_big;
+	}*/
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.held_by === null )
-		{
-			sdEntity.Tooltip( ctx, this.title );
-		}
+		sdEntity.Tooltip( ctx, this.title );
+
+		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
 	{
@@ -327,7 +356,7 @@ class sdStorage extends sdEntity
 			yy = Math.floor( sdWorld.time / 1000 + ( this._net_id || 0 ) ) % 3;
 		}
 
-		if ( this.held_by === null )
+		if ( this.held_by === null || attached )
 		{
 			ctx.filter = this.filter;
 			if ( this.type === sdStorage.TYPE_GUNS )
@@ -932,7 +961,7 @@ class sdStorage extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdStorage.access_range ) )
 		{
-			if ( this.held_by === null )
+			//if ( this.held_by === null )
 			{
 				let items = this.GetItems();
 

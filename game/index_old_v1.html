@@ -1,0 +1,564 @@
+<html>
+    <head>
+	<title>Star Defenders: Unite to Battle Alien Creatures in a Free Multiplayer Sandbox Game</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<meta name="title" content="Star Defenders: Unite to Battle Alien Creatures in a Free Multiplayer Sandbox Game">
+	<meta name="description" content="Embark on an interstellar adventure in Star Defenders, a fast-paced multiplayer sandbox game. Join forces with friends to combat alien creatures from mysterious dimensions. Explore and contribute to project's open source nature, host your server, and experience thrilling real-time gameplay. Get ready for an expedition like no other, with a touch of TTS and creative fun. Play for free now!">
+	<meta name="keywords" content="Star Defenders, game, multiplayer, sandbox, alien creatures, friends, real-time, fast-paced, interstellar, space expedition, free-to-play, open-source, server hosting, TTS, text-to-speech, HTML5, WebGL, creative gameplay, side-scrolling, 2 players, no installation game">
+	<meta name="robots" content="index, follow">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="language" content="English">
+	<meta name="revisit-after" content="30 days">
+	<link rel="stylesheet" href="style_old_v1.css">
+
+	<link rel="icon" href="favicon.png" type="image/png">
+
+	<script src="client/sdUserAgent.js"></script>
+    </head>
+    <body>
+	<script src="client/sdErrorReporter.js"></script>
+	<!--
+ 
+	    This is a test of new in-line code for HTML files (these still could end up being cached by browsers when it is not needed though):
+ 
+	    <? 
+		print_html = false; // Prevent following HTML snippet to be printed right away - we will use it as a variable for a string
+		let piece_of_text = ?>:: 1 2 3 4 5 6 7 8 9 10 ::
+:: 11 12 13 14 15 16 17 ::
+
+<?
+		// Print string value 3 times
+		for ( let i = 0; i < 3; i++ )
+		print( piece_of_text );
+ 
+		print_html = true;
+	    ?>
+	-->
+	<!--<script async
+	    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<? print( sdWorld.server_config.adsense_client ) ?>"
+	    crossorigin="anonymous">
+	</script>-->
+	<!--data-adbreak-test="on"-->
+	<!--data-ad-frequency-hint="900s"-->
+	<script>
+	    window.adsbygoogle = window.adsbygoogle || [];
+	    const adBreak = adConfig = function(o) {adsbygoogle.push(o);}
+	    adConfig({preloadAdBreaks: 'on'});
+	</script>
+	<script src="https://player.twitch.tv/js/embed/v1.js"></script>
+	<div id="twitch_player_div"></div>
+	<div id="youtube_player_div"></div>
+	<script src="client/sdTheatreAPIs.js"></script>
+
+	<input id="ingame_color_picker" tabindex=-1 type="text" data-coloris style="
+	    position: fixed;
+	    left: 0;
+	    top: 0;
+	    overflow: hidden;
+	    width: 0;
+	    height: 0;
+	    padding: 0;
+	    margin: 0;
+	">
+	<link rel="stylesheet" href="libs/coloris/coloris.min.css"/>
+	<script src="libs/coloris/coloris.min.js"></script>
+	<script src="libs/localforage.nopromises.min.js"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.17.0/ace.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="socketio/socketio.new.js"></script>
+	<script src="libs/three.js"></script>
+	<script src="libs/three-examples/BufferGeometryUtils.js"></script>
+	<script src="libs/three-examples/MeshLine.js"></script>
+	<script type="text/javascript" src="mespeak/mespeak.js"></script>
+	<script src="libs/howler.js.min.js"></script>
+	<script src="libs/acorn.cjs"></script>
+	<script src="client/sdTranslationManager.js" type="module"></script>
+	<script src="client/sdMobileKeyboard.js" type="module"></script>
+	<script src="game.js" type="module"></script>
+	<script src="client/sdMusic.js"></script>
+	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
+	</div>
+	<div id="settings_container" style="
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		margin-left: -300px;
+		margin-top: -325px;
+		display: block;
+		background-color: black;
+		width: 600px;
+		height: 680px;
+		color: white;
+		padding: 20px;
+		box-sizing: border-box;">
+	    <div style="
+    position: absolute;
+    right: 20px;
+    top: -50px;
+    font-size: 30px;
+    color: #2f2f2f;
+    text-align: right;
+    "><span style="color:#ffffff5e" id="game_title_text">...</span><br>
+	    <div style="font-size:12px;color:#355a52;">v0.9</div></div>
+	    
+	    <div style="
+		 position: absolute;
+    left: calc( 100% + 20px );
+    top: calc( -75px - 10px );
+    width: 300px;
+    bottom: 0;
+    box-sizing: border-box;
+    background-color: black;
+    padding: 20px;
+    overflow-y: auto;
+    ">
+		<span class="sdtitle">What's new?:</span><br>
+		<div class="sdgroup">
+		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on GitHub</a>
+		</div>
+		<br><br>
+		<span class="sdtitle">Other servers:</span>
+		<div class="sdgroup">
+		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
+		    
+		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Small main server</div></a>
+		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>High difficulty main server<br>Hosted by Coolbuddy.com</div></a>
+		    <!--<a class="server serverB" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>Default config main server<br>Hosted by Coolbuddy.com</div></a>-->
+		    
+		    
+		    
+		    <a class="server serverC" href="https://stardefenders.io:3000">stardefenders.io:3000<div>Canada, Quebec<br>Ultrawide server<br>Hosted by mrmcshroom</div></a>
+		    <a class="server serverC" href="https://stardefenders.io:3001">stardefenders.io:3001<div>Canada, Quebec<br>Easy server<br>Hosted by mrmcshroom</div></a>
+		    <a class="server serverC" href="https://stardefenders.io:3002">stardefenders.io:3002<div>Canada, Quebec<br>Paceful server<br>Hosted by mrmcshroom</div></a>
+		    <a class="server serverC" href="https://stardefenders.io:4000">stardefenders.io:4000<div>Canada, Quebec<br>Hosted by mrmcshroom, managed by Booraz</div></a>
+		    <a class="server serverF" href="https://prosuwanted.ru:3000">prosuwanted.ru:3000<div>Russia, St Petersburg<br>Hosted by prosuWANTED2001</div></a>
+		    <!--<a class="server serverD" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>Peaceful server<br>Managed by nas333</div></a>-->
+		    <a class="server serverD" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>Peaceful server<br>Managed by AverageSD</div></a>
+		    <!--<a class="server serverD" href="https://stardefenders.glitch.me">stardefenders.glitch.me<div>United States, Virginia<br>Hosted by nas333</div></a>-->
+		</div>
+	    </div>
+	    
+	    <div style="
+		position: absolute;
+		right: calc( 100% + 20px );
+		top: calc( -75px - 10px );
+		width: 300px;
+		height: 75px;
+		box-sizing: border-box;
+		background-color: black;
+		padding: 20px;
+		">
+		<span class="sdtitle">Language</span><span id="langs_container"></span>
+		<div class="sdgroup">Some translations can be missing</div>
+	    </div>
+	    <div style="position: absolute; right: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
+		box-sizing: border-box; background-color: black;
+		padding: 20px;">
+		<span class="sdtitle">About Star Defenders:</span><br>
+		<div class="sdgroup">
+		    Star Defenders is a sandbox-based 2D game with slightly different approach than regular game in same genre would have.<br>
+		    <br>
+		    Tell your friends about it if you like what we do here!<br>
+		    <br>
+		    Game idea and development started by <a href="https://www.gevanni.com" target="_blank">Eric Gurt</a>, though there is much more people involved now - more on GitHub where you can also <a href="https://github.com/Eric-Gurt/StarDefenders2D">participate in development</a>.<br>
+		    <br>
+		    Or even <a href="https://github.com/Eric-Gurt/StarDefenders2D/archive/main.zip">host your own Star Defenders 2D server</a><br>(future versions could be cross-connected with main server and redirect players from one server to another eventually, maybe server browser will be a thing soon too. <a href="https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/How%20to%20start%20own%20server.txt">Check this file if you'll need more help</a>).<br>
+		    <br>
+		    This game is free to play and open source now. But we would be really happy if you will be able to host your own server and maybe even lead the more active development for the project. Feel free to discuss it at this <a href="https://discord.gg/rX4xEc2Y9E" target="_blank">Discord server</a> (we have much more now).<br>
+		    <br>
+		    This game requires at least Windows 10 (with Edge or Chrome browser for best experience). It can somewhat run on Android tablets/phones. It used to work on iPad too, maybe it still does, maybe it works even better now.<br>
+		    <br>
+		    If game freezes when tab is inactive - disable "<span style="color:#c1c1c1">Calculate window occlusion on Windows</span>" and "<span style="color:#c1c1c1">Enable sleeping tabs</span>" (optionally) by visiting "<span style="color:#c1c1c1">chrome://flags</span>".
+		</div>
+		<br>
+		<span class="sdtitle">Links:</span><br>
+		<div class="sdgroup">
+		    <a href="https://www.gevanni.com/projects/StarDefenders2D/star-defenders-notificator-win.zip">Download Star Defenders notificator</a>
+		</div>
+	    </div>
+		
+	    <div style="height:100px"></div>
+	    
+	    <span class="sdtitle">Your name:</span><br>
+	    <input type="text" id="hero_name" size="30" maxlength="30" value="Star Defender">
+	    <br>
+	    <br>
+	    <span class="sdtitle">Appearance:</span><br>
+	    <div style="    
+		    display: flex;
+		    width: 100%;">
+		<div style=" width: 50%;">
+		    <input type="color" id="color_bright" value="#c0c0c0">
+		    <label for="color_bright" mycondition="entity1">Helmet (bright)</label>
+		    <label for="color_bright" mycondition="entity2">Body</label>
+		    <br>
+
+		    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
+		    <label for="color_dark" mycondition="entity1">Helmet (dark)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_visor" value="#ff0000">
+		    <label for="color_visor" mycondition="entity1">Visor</label>
+		    <label for="color_visor" mycondition="entity2">Glowing parts</label>
+		    <br>
+
+		    <!--<input type="color" id="color_splashy" value="#800000">
+		    <label for="color_splashy">Splashy stuff</label>
+		    <br>-->
+
+		    <input type="color" id="color_bright3" value="#c0c0c0" mycondition="entity1">
+		    <label for="color_bright3" mycondition="entity1">Jetpack (bright)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_dark3" value="#808080" mycondition="entity1">
+		    <label for="color_dark3" mycondition="entity1">Jetpack/armor plates (dark)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_suit" value="#000080" mycondition="entity1">
+		    <label for="color_suit" mycondition="entity1">Upper suit color</label>
+		    <br mycondition="entity1">
+
+		</div>
+		<div style=" width: 50%;">
+		
+		    <input type="color" id="color_suit2" value="#000080">
+		    <label for="color_suit2" mycondition="entity1">Lower suit color</label>
+		    <label for="color_suit2" mycondition="entity2">Details</label>
+		    <br>
+
+		    <input type="color" id="color_dark2" value="#808080" mycondition="entity1">
+		    <label for="color_dark2" mycondition="entity1">Lower suit armor plates</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_shoes" value="#000000" mycondition="entity1">
+		    <label for="color_shoes" mycondition="entity1">Shoes</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_skin" value="#808000" mycondition="entity1">
+		    <label for="color_skin" mycondition="entity1">Gloves &amp; neck color</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_extra1" value="#0000ff" mycondition="entity1">
+		    <label for="color_extra1" mycondition="entity1">Extra 1</label>
+		    <br mycondition="entity1">
+
+		</div>
+	    </div>
+	    
+	    
+	    
+	    
+	    <br>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Play as</span><br>
+		<input type="checkbox" id="entity1" value="1">
+		<label for="entity1">Humanoid</label>
+		<br>
+		<input type="checkbox" id="entity2" value="1">
+		<label for="entity2">Drone</label>
+		<br>
+		<input type="checkbox" id="entity3" value="1">
+		<label for="entity3">Overlord</label>
+		<br>
+		<input type="checkbox" id="entity4" value="1">
+		<label for="entity4">StreamLogger(?)</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity1">
+		<span class="sdtitle">Melee weapon</span><br>
+		<input type="checkbox" id="start_with1" value="sword_and_buildtool" checked>
+		<label for="start_with1">Sword</label>
+		<br>
+		<input type="checkbox" id="start_with2" value="shovel_and_buildtool">
+		<label for="start_with2">Shovel</label>
+	    </div>
+	    
+	    <!--
+	    <div class="set_block" tabindex="1">
+		Send microphone input as chat messages:<br>
+		<input type="checkbox" id="voice_chat1" value="no" checked>
+		<label for="voice_chat1">No</label>
+		<br>
+		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
+		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
+	    </div>
+	    -->
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity1">
+		<span class="sdtitle">Assign instructor on start</span><br>
+		<input type="checkbox" id="hints1" value="no">
+		<label for="hints1">No</label>
+		<br>
+		<input type="checkbox" id="hints2" value="yes" checked>
+		<label for="hints2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity2">
+		<span class="sdtitle">Drone model</span><br>
+		<input type="checkbox" id="drone_helmet1" value="1">
+		<label for="drone_helmet1">Erthal</label>
+		<br>
+		<input type="checkbox" id="drone_helmet2" value="1">
+		<label for="drone_helmet2">Container</label><!-- by Booraz -->
+		<br>
+		<input type="checkbox" id="drone_helmet3" value="1">
+		<label for="drone_helmet3">Armored</label><!-- by GPU -->
+		<br>
+		<input type="checkbox" id="drone_helmet4" value="1">
+		<label for="drone_helmet4">Slider</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet5" value="1">
+		<label for="drone_helmet5">Oculus</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet6" value="1">
+		<label for="drone_helmet6">Drake</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet7" value="1">
+		<label for="drone_helmet7">Rover</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet8" value="1">
+		<label for="drone_helmet8">Junky</label><!-- art by Booraz, idea by EG -->
+		<br>
+		<input type="checkbox" id="drone_helmet9" value="1">
+		<label for="drone_helmet9">Harrier</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet10" value="1">
+		<label for="drone_helmet10">Spirit</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet11" value="1">
+		<label for="drone_helmet11">Ray</label><!-- by Silk1, edited by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet12" value="1">
+		<label for="drone_helmet12">Vulture</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet13" value="1">
+		<label for="drone_helmet13">Tracer</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet14" value="1">
+		<label for="drone_helmet14">Latch</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet15" value="1">
+		<label for="drone_helmet15">Transport</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet16" value="1">
+		<label for="drone_helmet16">Haunt</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet17" value="1">
+		<label for="drone_helmet17">Gothic</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet18" value="1">
+		<label for="drone_helmet18">Raven</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet19" value="1">
+		<label for="drone_helmet19">Conservator</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet20" value="1">
+		<label for="drone_helmet20">Blaze</label><!-- by GPU -->
+		<br>
+		<input type="checkbox" id="drone_helmet21" value="1">
+		<label for="drone_helmet21">Explorer</label><!-- by GPU -->
+		<br>
+		<input type="checkbox" id="drone_helmet22" value="1">
+		<label for="drone_helmet22">Hunter</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet23" value="1">
+		<label for="drone_helmet23">Asp</label>
+        <br>
+		<input type="checkbox" id="drone_helmet24" value="1">
+		<label for="drone_helmet24">Blight</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet25" value="1">
+		<label for="drone_helmet25">Droid</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet26" value="1">
+		<label for="drone_helmet26">Falkok</label>
+        <br>
+		<input type="checkbox" id="drone_helmet27" value="1">
+		<label for="drone_helmet27">Float</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet28" value="1">
+		<label for="drone_helmet28">Future</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet29" value="1">
+		<label for="drone_helmet29">Shrimp</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet30" value="1">
+		<label for="drone_helmet30">Synergy</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet31" value="1">
+		<label for="drone_helmet31">Vector</label><!-- by GPU -->
+        <br>
+		<input type="checkbox" id="drone_helmet32" value="1">
+		<label for="drone_helmet32">Archaic</label><!-- by LordBored -->
+        <br>
+		<input type="checkbox" id="drone_helmet33" value="1">
+		<label for="drone_helmet33">Blades</label><!-- by LordBored -->
+		<br>
+		<input type="checkbox" id="drone_helmet34" value="1">
+		<label for="drone_helmet34">Constellation</label><!-- by LordBored, re-added on request, originally named Raven -->
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_helmets_here">
+		<span class="sdtitle">Helmet</span><br>
+		<!-- Helmets list is now stored at sdCharacter -->
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_bodies_here">
+		<span class="sdtitle">Body model</span><br>
+		<!-- Skin list (same for bodies, argms and legs) is now stored at sdCharacter -->
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_legs_here">
+		<span class="sdtitle">Legs model</span><br>
+		<!-- Skin list (same for bodies, argms and legs) is now stored at sdCharacter -->
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Show debug info</span><br>
+		<input type="checkbox" id="bugs1" value="no" checked>
+		<label for="bugs1">No</label>
+		<br>
+		<input type="checkbox" id="bugs2" value="yes">
+		<label for="bugs2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" mycondition="entity1 || entity2">
+		<span class="sdtitle">Character's voice (eSpeak)</span><br>
+		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
+		<label for="voice1">Lowest pitch</label>
+		<br>
+		<input type="checkbox" id="voice2" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice2">Low pitch</label>
+		<br>
+		<input type="checkbox" id="voice3" value="high" onclick="globalThis.TestVoice(this)" checked>
+		<label for="voice3">Default</label>
+		<br>
+		<input type="checkbox" id="voice4" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice4">High pitch</label>
+		<br>
+		<input type="checkbox" id="voice5" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice5">Highest pitch</label>
+		<br>
+		<input type="checkbox" id="voice6" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice6">Falkok</label>
+		<br>
+		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice7">Robotic</label>
+		<br>
+		<input type="checkbox" id="voice8" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice8">Council</label>
+		<br>
+		<input type="checkbox" id="voice9" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice9">Setr</label>
+		<br>
+		<input type="checkbox" id="voice10" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice10">Silence</label>
+		<br>
+		<input type="checkbox" id="voice11" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice11">Erthal</label>
+		<br>
+		<input type="checkbox" id="voice12" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice12">Tzyrg</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Camera</span><br>
+		<input type="checkbox" id="camera1" value="low" checked>
+		<label for="camera1">Soft</label>
+		<br>
+		<input type="checkbox" id="camera2" value="high">
+		<label for="camera2">Fast</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Volume</span><br>
+		<input id="volume" type="range" min="0" max="100" step="0.1">
+		<!--<input type="checkbox" id="volume1" value="1">
+		<label for="volume1">40%</label>
+		<br>
+		<input type="checkbox" id="volume2" value="1">
+		<label for="volume2">25%</label>
+		<br>
+		<input type="checkbox" id="volume3" value="1" checked>
+		<label for="volume3">10%</label>-->
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Censorship</span><br>
+		<input type="checkbox" id="censorship3" value="2">
+		<label for="censorship3">Yes and hide videos</label>
+		<br>
+		<input type="checkbox" id="censorship1" value="1" checked>
+		<label for="censorship1">Yes</label>
+		<br>
+		<input type="checkbox" id="censorship2" value="0">
+		<label for="censorship2">No</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Allow self-talk</span><br>
+		<input type="checkbox" id="selftalk1" value="1" checked>
+		<label for="selftalk1">Yes (these includes hints)</label>
+		<br>
+		<input type="checkbox" id="selftalk2" value="0">
+		<label for="selftalk2">No (important hints will be compeltely disabled)</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Music</span><br>
+		<input type="checkbox" id="music1" value="1" checked>
+		<label for="music1">Enabled</label>
+		<br>
+		<input type="checkbox" id="music2" value="0">
+		<label for="music2">Disabled</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Shading</span><br>
+		<input type="checkbox" id="shading1" value="1" checked>
+		<label for="shading1">On</label>
+		<br>
+		<input type="checkbox" id="shading2" value="0">
+		<label for="shading2">Off</label>
+	    </div>
+	    <!--
+	    <div class="set_block" tabindex="1" style="width: 485px">
+		<span class="sdtitle">Other Star Defenders servers</span><br>
+	    </div>
+	    -->
+	    <div style="position:absolute;left:20px;bottom:20px">
+		
+	    <input id="my_hash" type="hidden">
+	    <input id="last_local_time_start" type="hidden">
+	    
+	    
+	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.PlayAdAndStart( globalThis.GetPlayerSettings(), this );" value="Play with other players"> 
+	    <input type="button" style="background-color:#333333; width: 300px;" id="start_offline_btn" onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );" value="Play offline (still very unreliable)"> 
+	    <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
+	    
+	    </div>
+	    
+	    <canvas style="position: absolute;right: 40px;top: 40px;" id="skin_preview" width="128" height="128"></canvas>
+
+	</div>
+	    
+	<div class="password_screen" style="display:none">
+	    <div class="prompt_box">
+		<div id="password_screen_message">Password is required</div>
+		<input type="password" id="password" size="90" maxlength="90" value="">
+		<input type="button" style="width: 100px;" onclick="
+			document.querySelector('.password_screen').style.display = 'none';
+			document.getElementById('start_btn').click();
+		" value="Accept">
+
+		<input type="button" style="width: 100px;" onclick="
+			document.querySelector('.password_screen').style.display = 'none';
+		" value="Cancel">
+	    </div>
+	</div>
+	
+	<script src="client/sdStartupScreen_v1.js"></script>
+    </body>
+</html>

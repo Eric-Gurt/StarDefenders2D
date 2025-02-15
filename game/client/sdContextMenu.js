@@ -17,6 +17,10 @@ class sdContextMenu
 		sdContextMenu.x = 0;
 		sdContextMenu.y = 0;
 		
+		sdContextMenu.current_scroll = 0;
+		sdContextMenu.max_scroll = 0;
+		sdContextMenu.scroll_y_target = 0;
+		
 		sdContextMenu.current_target = null;
 		sdContextMenu.potential_option = null;
 		
@@ -179,6 +183,8 @@ class sdContextMenu
 					
 					sdContextMenu.centerd = centered;
 				}
+				
+				sdContextMenu.UpdatePositionAndScroll();
 
 				sdRenderer.UpdateCursor();
 			}
@@ -220,28 +226,92 @@ class sdContextMenu
 		
 		return false;
 	}
+	static MouseWheel( e )
+	{
+		if ( !sdContextMenu.open )
+		return;
+	
+		/*let old_scroll = sdContextMenu.current_scroll;
+		sdContextMenu.current_scroll -= e.deltaY;
+		if ( sdContextMenu.current_scroll > sdContextMenu.max_scroll )
+		sdContextMenu.current_scroll = sdContextMenu.max_scroll;
+		if ( sdContextMenu.current_scroll < 0 )
+		sdContextMenu.current_scroll = 0;
+	
+		sdContextMenu.y += sdContextMenu.current_scroll - old_scroll;*/
+		
+		sdContextMenu.scroll_y_target -= e.deltaY;
+	}
+	static UpdatePositionAndScroll()
+	{
+		let width = 400;
+		let height = sdContextMenu.options.length * 30 + 60;
+			
+		if ( sdContextMenu.centerd )
+		{
+			sdContextMenu.x = sdRenderer.screen_width / 2 - width / 2;
+			sdContextMenu.y = sdRenderer.screen_height / 2 - height / 2;
+		}
+
+		sdContextMenu.current_scroll = 0;
+		sdContextMenu.max_scroll = 0;
+		sdContextMenu.scroll_y_target = 0;
+		if ( sdContextMenu.y + height > sdRenderer.screen_height )
+		{
+			sdContextMenu.y = sdRenderer.screen_height - height;
+
+			if ( sdContextMenu.y < 30 )
+			sdContextMenu.max_scroll = 30 - sdContextMenu.y;
+		}
+
+
+		if ( sdContextMenu.x + width > sdRenderer.screen_width )
+		{
+			sdContextMenu.x = sdRenderer.screen_width - width;
+		}
+	}
 	static Draw( ctx )
 	{
 		ctx.save();
 		{
-			//let width = 180;
 			let width = 400;
-			let height = sdContextMenu.options.length * 30 + 60;
 			
-			if ( sdContextMenu.centerd )
+			{
+				if ( sdContextMenu.scroll_y_target > sdContextMenu.max_scroll )
+				sdContextMenu.scroll_y_target = sdContextMenu.max_scroll;
+				if ( sdContextMenu.scroll_y_target < 0 )
+				sdContextMenu.scroll_y_target = 0;
+			
+				let old_scroll = sdContextMenu.current_scroll;
+				sdContextMenu.current_scroll = sdWorld.MorphWithTimeScale( sdContextMenu.current_scroll, sdContextMenu.scroll_y_target, 0.5, 1 );
+
+				sdContextMenu.y += sdContextMenu.current_scroll - old_scroll;
+			}
+			//let height = sdContextMenu.options.length * 30 + 60;
+			
+			/*if ( sdContextMenu.centerd )
 			{
 				sdContextMenu.x = sdRenderer.screen_width / 2 - width / 2;
 				sdContextMenu.y = sdRenderer.screen_height / 2 - height / 2;
 			}
 			
+			sdContextMenu.current_scroll = 0;
+			sdContextMenu.max_scroll = 0;
 			if ( sdContextMenu.y + height > sdRenderer.screen_height )
 			{
 				sdContextMenu.y = sdRenderer.screen_height - height;
+				
+				if ( sdContextMenu.y < 10 )
+				{
+					sdContextMenu.max_scroll = 10 - sdContextMenu.y;
+				}
 			}
+		
+		
 			if ( sdContextMenu.x + width > sdRenderer.screen_width )
 			{
 				sdContextMenu.x = sdRenderer.screen_width - width;
-			}
+			}*/
 			
 			ctx.translate( sdContextMenu.x, sdContextMenu.y );
 

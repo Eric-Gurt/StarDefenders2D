@@ -495,7 +495,7 @@ class sdDropPod extends sdEntity
 				else
 				if ( !this._greet_player ) // If no player was greeted
 				{
-					this._greet_timer = 60;
+					this._greet_timer = 600;
 					let player_to_greet = null;
 					let potential_dialogue;
 					for ( let i = 0; i < sdWorld.sockets.length; i++ )

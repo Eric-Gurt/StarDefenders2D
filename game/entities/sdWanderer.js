@@ -58,7 +58,7 @@ class sdWanderer extends sdEntity
 	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return false; }
+	{ return true; }
 	
 	Damage( dmg, initiator=null ) // Not that much useful since it cannot be damaged by anything but matter it contains.
 	{
@@ -80,11 +80,14 @@ class sdWanderer extends sdEntity
 		
 		this.side = params.side || 1;
 		
-		this._move_x = ( this.x < ( ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ) ? 0.03 : -0.03; // Move from one border to another
+		this.move_x = ( this.x < ( ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ) ? 0.03 : -0.03; // Move from one border to another
 		this._move_y = 0 * ( 1 + this.layer );
 		
-		this._move_x *= Math.max( 1, Math.random() * 4 * ( 1 + this.layer ) );
-		//this._move_x = 1;
+		this.move_x *= Math.max( 1, Math.random() * 4 * ( 1 + this.layer ) );
+		
+		this.move_x *= 1000; // Rounding errors during sync
+		
+		//this.move_x = 1;
 		
 		//this._set_spawn = false; // Set it's coords to world borders when spawned
 		
@@ -101,13 +104,16 @@ class sdWanderer extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.x += this.move_x / 1000; // Rounding errors during sync
+		this.y += this._move_y;
+		
 		if ( sdWorld.is_server )
 		{
 			//this.time_left -= GSPEED;
 			
 			/*if ( !this._set_spawn )
 			{
-				if ( this._move_x < 0 )
+				if ( this.move_x < 0 )
 				this.x = sdWorld.world_bounds.x2 + 64; // From right to left
 				else
 				this.x = sdWorld.world_bounds.x1 - 64; // From left to right
@@ -115,12 +121,9 @@ class sdWanderer extends sdEntity
 				this._set_spawn = true;
 			}*/
 			
-			this.x += this._move_x;
-			this.y += this._move_y;
-			
 			if ( this.model !== sdWanderer.MODEL_CUBE )
 			{
-				if ( this._move_x > 0 )
+				if ( this.move_x > 0 )
 				this.side = -1;
 				else
 				this.side = 1;
@@ -128,33 +131,33 @@ class sdWanderer extends sdEntity
 			
 			/*if ( this.x > sdWorld.world_bounds.x2 )
 			{
-				if ( this._move_x > 0 )
-				this._move_x = 8;
+				if ( this.move_x > 0 )
+				this.move_x = 8;
 				else
-				this._move_x = -8;
+				this.move_x = -8;
 			}
 			else
 			if ( this.x < sdWorld.world_bounds.x1 )
 			{
-				if ( this._move_x > 0 )
-				this._move_x = 8;
+				if ( this.move_x > 0 )
+				this.move_x = 8;
 				else
-				this._move_x = -8;
+				this.move_x = -8;
 			}
 			else
 			{
-				if ( this._move_x > 0 )
-				this._move_x = 2;
+				if ( this.move_x > 0 )
+				this.move_x = 2;
 				else
-				this._move_x = -2;
+				this.move_x = -2;
 			}*/
 		
 			
 			//if ( this.time_left <= 0 )
-			if ( this._move_x > 0 && this.x > sdWorld.world_bounds.x2 + ( 1600 * 8 ) - ( 1600 * this.layer ) )
+			if ( this.move_x > 0 && this.x > sdWorld.world_bounds.x2 + ( 1600 * 8 ) - ( 1600 * this.layer ) )
 			this.remove();
 		
-			if ( this._move_x <= 0 && this.x < sdWorld.world_bounds.x1 - ( 1600 * 8 ) + ( 1600 * this.layer ) )
+			if ( this.move_x <= 0 && this.x < sdWorld.world_bounds.x1 - ( 1600 * 8 ) + ( 1600 * this.layer ) )
 			this.remove();
 		}
 	}

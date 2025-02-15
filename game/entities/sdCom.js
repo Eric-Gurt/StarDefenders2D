@@ -11,6 +11,7 @@ import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCable from './sdCable.js';
 import sdDoor from './sdDoor.js';
+import sdCharacter from './sdCharacter.js';
 
 
 class sdCom extends sdEntity
@@ -123,6 +124,8 @@ class sdCom extends sdEntity
 		this._regen_timeout = 0;
 
 		this.subscribers = []; // works with _net_ids but should use biometry now
+		this.subscribers_names = []; // Player names
+		this.subscribers_names_censored = [];
 		this._cc_id = 0; // Not used as part of regular game
 		
 		this.through_walls = 0;
@@ -147,6 +150,26 @@ class sdCom extends sdEntity
 		if ( prop === '_hacker' ) return true;
 
 		return false;
+	}
+	onSnapshotApplied()
+	{
+		if ( this.subscribers_names.length === 0 && this.subscribers.length > 0 )
+		{
+			for ( let i = 0; i < this.subscribers.length; i++ )
+			{
+				this.subscribers_names[ i ] = sdCom.GetNameFor( this.subscribers[ i ] );
+				this.subscribers_names_censored[ i ] = ( typeof sdModeration !== 'undefined' && sdModeration.IsPhraseBad( this.subscribers_names[ i ], null ) ) ? 1 : 0;
+			}
+		}
+	}
+	static GetNameFor( biometry_or_class )
+	{
+		if ( typeof biometry_or_class === 'number' )
+		for ( let i = 0; i < sdCharacter.characters.length; i++ )
+		if ( sdCharacter.characters[ i ].biometry === biometry_or_class )
+		return sdCharacter.characters[ i ].title;
+		
+		return '';
 	}
 	onBuilt()
 	{
@@ -176,16 +199,24 @@ class sdCom extends sdEntity
 							//this.remove();
 							return;
 						}
+						
+						let title = sdCom.GetNameFor( subs[ i ] );
+						
 						this.subscribers.push( subs[ i ] );
+						this.subscribers_names.push( title );
+						this.subscribers_names_censored[ i ] = ( typeof sdModeration !== 'undefined' && sdModeration.IsPhraseBad( title, null ) ) ? 1 : 0;
 						this._update_version++;
 					}
 				}
 				else
 				if ( append1_or_remove0_or_inherit_back2 === 0 )
 				{
-					if ( this.subscribers.indexOf( subs[ i ] ) !== -1 )
+					let id = this.subscribers.indexOf( subs[ i ] );
+					if ( id !== -1 )
 					{
-						this.subscribers.splice( this.subscribers.indexOf( subs[ i ] ), 1 );
+						this.subscribers.splice( id, 1 );
+						this.subscribers_names.splice( id, 1 );
+						this.subscribers_names_censored.splice( id, 1 );
 						this._update_version++;
 					}
 				}
@@ -613,13 +644,47 @@ class sdCom extends sdEntity
 					if ( this.subscribers.indexOf( 'sdBot' ) === -1 )
 					this.AddContextOption( 'Subscribe bots', 'COM_SUB', [ 'sdBot' ] );
 
+					if ( this.subscribers.indexOf( 'sdJunk' ) === -1 )
+					this.AddContextOption( 'Subscribe dug out junk', 'COM_SUB', [ 'sdJunk' ] );
+
 					if ( this.subscribers.indexOf( '*' ) === -1 )
 					this.AddContextOption( 'Subscribe everything (for doors & teleports only)', 'COM_SUB', [ '*' ] );
 
 					for ( var i = 0; i < this.subscribers.length; i++ )
 					{
 						let net_id_or_biometry = this.subscribers[ i ];
-						this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
+						
+						let title;
+							
+						if ( typeof net_id_or_biometry === 'number' )
+						{
+							let postfix = '';
+							
+							if ( sdWorld.my_entity && net_id_or_biometry === sdWorld.my_entity.biometry )
+							postfix = ' ( me )';
+							else
+							{
+								for ( let i = 0; i < sdCharacter.characters.length; i++ )
+								if ( sdCharacter.characters[ i ].biometry === net_id_or_biometry )
+								{
+									if ( sdCharacter.characters[ i ].hea > 0 )
+									postfix = ' ( nearby )';
+									else
+									postfix = ' ( nearby, unconcious )';
+								
+									break;
+								}
+							}
+							
+							if ( sdWorld.client_side_censorship && this.subscribers_names_censored[ i ] )
+							title = 'Censored Defender' + postfix;
+							else
+							title = this.subscribers_names[ i ] + postfix;
+						}
+						else
+						title = sdEntity.GuessEntityName( net_id_or_biometry );
+						
+						this.AddContextOptionNoTranslation( T('Kick ') + title, 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
 					}
 
 					if ( this.through_walls )

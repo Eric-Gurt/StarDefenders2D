@@ -143,7 +143,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_AMPHIDS =				event_counter++; // 29
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
 		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
-		sdWeather.EVENT_FLESH_DIRT =			event_counter++; // 32
+		sdWeather.EVENT_FLESH_DIRT =			event_counter++; // 32 Empty, only asteroids can fleshify now
 		sdWeather.EVENT_COUNCIL_PORTAL =		event_counter++; // 33
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
@@ -167,7 +167,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MISSILES =				event_counter++; // 53
 		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
-		sdWeather.EVENT_CUBE_BOSS =	event_counter++; // 56
+		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
+		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -251,6 +252,7 @@ class sdWeather extends sdEntity
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
+		this._quake_screen_shake_since = 0;
 		this._quake_temporary_not_regen_near = []; // Prevent too much ground being regenerated in same place during event
 		
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
@@ -317,7 +319,7 @@ class sdWeather extends sdEntity
 	IsWeatherEvent( n ) // Determines if event is a weather one. Put future weather events here
 	{
 		if ( n === sdWeather.EVENT_ACID_RAIN || n === sdWeather.EVENT_ASTEROIDS || n === sdWeather.EVENT_QUAKE ||
-		n === sdWeather.EVENT_WATER_RAIN || n === sdWeather.EVENT_SNOW ||n === sdWeather.EVENT_MATTER_RAIN ||
+		n === sdWeather.EVENT_WATER_RAIN || n === sdWeather.EVENT_SNOW || n === sdWeather.EVENT_MATTER_RAIN ||
 		n === sdWeather.EVENT_DIRTY_AIR || n === sdWeather.EVENT_EM_ANOMALIES )
 		return true;
 		
@@ -325,10 +327,12 @@ class sdWeather extends sdEntity
 	}
 	IsSDEvent( n ) // Determines if event is a SD one. Put future SD task related events here.
 	{
-		if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
+		// EG: Do we really want players to deal with same events every day? We probably do not
+		/*if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
 			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
 			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION || n === sdWeather.EVENT_COUNCIL_BOMB ||
-			n === sdWeather.EVENT_COUNCIL_PORTAL || n === sdWeather.EVENT_MOTHERSHIP_CONTAINER )
+			n === sdWeather.EVENT_COUNCIL_PORTAL || n === sdWeather.EVENT_MOTHERSHIP_CONTAINER || n === sdWeather.EVENT_TASK_ASSIGNMENT )*/
+		if ( n === sdWeather.EVENT_TASK_ASSIGNMENT )
 		return true;
 		
 		return false;
@@ -408,7 +412,7 @@ class sdWeather extends sdEntity
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
 		if ( allowed_event_ids.indexOf( sdWeather.EVENT_QUAKE ) !== -1 && sdWorld.server_config.ForceEarthquakesIfPossible() ) // Only if allowed
-		this._daily_weather_events = [ sdWeather.EVENT_QUAKE ]; // Always enable earthquakes so ground can regenerate
+		this._daily_weather_events.push( sdWeather.EVENT_QUAKE ); // Always enable earthquakes so ground can regenerate
 
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -458,10 +462,11 @@ class sdWeather extends sdEntity
 		this._daily_sd_task_events = [];
 		
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
+	
+		if ( allowed_event_ids.indexOf( sdWeather.EVENT_TASK_ASSIGNMENT ) !== -1 ) // Only if allowed
+		this._daily_sd_task_events.push( sdWeather.EVENT_TASK_ASSIGNMENT ); // Always enable EVENT_TASK_ASSIGNMENT
 
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
-				
-		// allowed_event_ids = [ 8 ]; // Hack
 				
 		for ( let d = 0; d < allowed_event_ids.length; d++ )
 		if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
@@ -2810,7 +2815,12 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CRYSTALS_MATTER ) // Task which tells players to deliver "X" amount of max matter worth of crystals.
 		{
-			let player_count = sdWorld.GetPlayingPlayersCount();
+			let player_count = Math.max( 1, sdWorld.GetPlayingPlayersCount() );
+			
+			let value_required = 5120 + ( 1280 * player_count );
+			
+			let difficulty = value_required / ( 5120 * 3 ) * 1.2 / player_count; // 20% profit for doing task if converted into crystal rewards
+			
 			for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
 			{
 				sdTask.MakeSureCharacterHasTask({ 
@@ -2819,9 +2829,8 @@ class sdWeather extends sdEntity
 					//target: 'sdCrystal',
 					lrtp_class_proprty_value_array: [ 'sdCrystal' ],
 					mission: sdTask.MISSION_LRTP_EXTRACTION,
-					difficulty: 0.2,
-					//lrtp_ents_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
-					lrtp_matter_capacity_needed: 5120 + ( 1280 * player_count ), // 6300 matter requirement for 1 player, although progress counts for all players I think
+					difficulty: difficulty,
+					lrtp_matter_capacity_needed: value_required, // 6300 matter requirement for 1 player, although progress counts for all players I think
 					title: 'Teleport crystals',
 					time_left: 30 * 60 * 15,
 					for_all_players: true, // This task lets everyone contribute towards it's completion
@@ -2977,7 +2986,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_FLESH_DIRT ) // Ground fleshify start from random block
 		{
-			for ( let tr = 0; tr < 100; tr++ )
+			/*for ( let tr = 0; tr < 100; tr++ )
 			{
 				let i = Math.floor( Math.random() * sdEntity.entities.length );
 				
@@ -2996,7 +3005,7 @@ class sdWeather extends sdEntity
 				{
 					break;
 				}
-			}
+			}*/
 		}
 		if ( r === sdWeather.EVENT_COUNCIL_PORTAL ) // Spawn a Council portal machine anywhere on the map outside player views which summons a portal in 15 minutes or more, depending on player count.
 		{
@@ -3515,43 +3524,9 @@ class sdWeather extends sdEntity
 
 					//sdEntity.entities.push( converter );
 					
-					let converter = [];
+					sdShurgConverter.DoSequentualSpawn( true );
 					
-					sdWeather.SimpleSpawner({
-						
-						count: [ 1, 1 ],
-						class: sdShurgConverter,
-						store_ents: converter,
-						aerial: true,
-						aerial_radius: 128
-						
-					})
 					
-					if ( converter.length > 0 ) // Successful spawn?
-					{
-						sdShurgConverter.ents_left = 2; // 3 converters to destroy
-
-						sdWeather.SimpleSpawner({
-				
-						count: [ 2, 2 ],
-						class: sdShurgTurret,
-						aerial:true,
-						aerial_radius: 128,
-						group_radius: 800,
-						near_entity: converter[ 0 ]
-			
-						});
-						sdWeather.SimpleSpawner({
-
-						count: [ 3, 3 ],
-						class: sdShurgTurret,
-						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
-						group_radius: 400,
-						near_entity: converter[ 0 ],
-						aerial: true
-			
-						});
-					}
 
 					//instances++;
 				}
@@ -3928,6 +3903,284 @@ class sdWeather extends sdEntity
 				group_radius: group_rad
 			});
 		}
+		if ( r === sdWeather.EVENT_TASK_ASSIGNMENT )
+		{
+			if ( sdWorld.online_characters.length > 0 )
+			for ( let i = 0; i < 3; i++ )
+			{
+				let character = sdWorld.online_characters[ ~~( Math.random() * sdWorld.online_characters.length ) ];
+				
+				let tasks_total = 0;
+				
+				sdTask.PerformActionOnTasksOf( character, ( task )=>{ tasks_total++; } );
+				
+				if ( tasks_total < 5 )
+				sdWeather.GivePlayerTask( character );
+			}
+		}
+	}
+	static GivePlayerTask( initiator ) // AssignTasks // GiveTasks
+	{
+		//if ( initiator.cc_id === this._net_id ) // Only if you're part of the team // Maybe it is not needed for now
+		{
+			let task_count = 1; // Up to 3 tasks at once, unlimited time ( was 1 task, 20 minutes )
+			for ( let i = 0; i < task_count; i++ )
+			{
+				let num_ents = 1;
+				let difficulty_per_entity = 1;
+				
+				let template = { 
+					similarity_hash:'EXTRACT-X', 
+					executer: initiator,
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: 0,// ( 0.167 * 1 ), // Is set later
+					title: 'Extract X',
+					time_left: -1,
+					lrtp_ents_needed: 1,
+					lrtp_class_proprty_value_array: [ 'sdCrystal' ],
+					description: 'Extract X by using a long range teleporter.'
+				};
+				
+				let task_options = [];
+				
+				task_options.push(()=>
+				{
+					num_ents = 10 + Math.round( Math.random() * 20 );
+					
+					difficulty_per_entity *= 0.05;
+					
+					template.title = 'Extract natural crystals';
+					//template.description = 'Extract natural crystals by using a long range teleporter.';
+					template.description = sdWorld.AnyOf(
+					[
+						`The natural crystals are highly crucial for stabilizing the dimensional rifts. Use the long-range teleporter to extract them so they can be used where they are needed.`,
+						`These natural crystals hold the key to a cure for the Crimson Rot. Use the long-range teleporter to extract them and save countless lives.`,
+						`A rival faction is also aware of these potent natural crystals. Use the long-range teleporter to secure them. The more we'll have - the less they'll get.`,
+						`Energy sources on Mothership are getting low. It is only a matter of time before these natural crystals will become our last hope. Use the long-range teleporter to retrieve them.`,
+						`Some of these natural crystals react to certain frequencies. Use the long-range teleporter, but be careful not to trigger an unforeseen reaction during extraction.`,
+						`Some of recent natural crystals are covered in strange symbols. Use the long-range teleporter to extract them and we'll try to decipher the message they hold.`,
+						`We could really use any natural crystals that are located in your area. Use the long-range teleporter to extract them, but be prepared for extreme conditions.`,
+						`The long-range teleporter is still experimental. Use it to extract some natural crystals - it is one of ways we could calibrate it.`,
+						`Your scientific expertise is needed. These natural crystals exhibit unique properties. Use the long-range teleporter to extract them for study and analysis.`,
+						`Hey, it appears somebody would really like to buy natural crystals of any kind. Do you think you could send some by using long-range teleporter?`,
+						`These natural crystals are powerful, but their extraction could harm the local ecosystem. Use the long-range teleporter, but consider the consequences of your actions.`,
+						`Form 37B is required for the extraction of natural crystals. Please use the long-range teleporter, ensuring all safety protocols are followed and the correct paperwork is filed.`,
+						`You'll never guess what they are using these crystals for nowadays. Could you fine some and send using long-range teleporter?`
+					]);
+					
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_natural', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 5 + Math.round( Math.random() * 5 );
+					
+					difficulty_per_entity *= 0.1;
+					
+					template.title = 'Extract natural large crystals';
+					//template.description = 'Extract natural large crystals by using a long range teleporter.';
+					template.description = sdWorld.AnyOf(
+					[
+						`These natural large crystals resonate with a unique energy signature. Use the long-range teleporter to extract them so we can study their potential applications.`,
+						`These are some of the largest natural crystals ever discovered. Their unique formation makes them incredibly valuable. Use the long-range teleporter hovers to carefully extract them.`,
+						`These natural large crystals are still growing. Use the long-range teleporter to extract samples and understand the process, which might hold the key to push human science further.`,
+						`These natural large crystals are exceptionally pure. Use the long-range teleporter to extract them. Their clarity is essential for a delicate rituals of Guanakos we keep on the Mothership.`,
+						`These natural large crystals were used by a lost civilization. Use the long-range teleporter to extract them and perhaps uncover secrets of their past.`,
+						`According to our alien friends, these natural large crystals are connected to the dream realm. Use the long-range teleporter to extract them, but beware of the influence they might exert.`,
+						`These natural large crystals seem to pulse with life. Use the long-range teleporter to extract them, but approach with caution – they may be more than just minerals.`,
+						`Use the long-range teleporter with hovers and extreme precision to avoid destabilizing natural large crystals during extraction. The larger the better.`,
+						`Extract the shimmering, natural large crystals using the long-range teleporter. Many citizens of our space cities deem their otherworldly glow mesmerizing.`,
+						`Use the long-range teleporter to extract the massive crystalline structures. Their intricate geometry defies natural explanation and must be studied.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_big', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 2 );
+					
+					difficulty_per_entity *= 0.3;
+					
+					template.title = 'Extract Mitosis crystals';
+					//template.description = 'Extract natural large crystals by using a long range teleporter.';
+					template.description = sdWorld.AnyOf(
+					[
+						`Could you get us Mitosis crystals using a long range teleporter? We need to study whether they hold they key to unlimited matter.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'speciality', 1, 'spaciality_tier', 40 ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 1;
+					
+					difficulty_per_entity *= 1;
+					
+					template.title = 'Extract artificial 40 matter capacity crystal';
+					template.description = sdWorld.AnyOf(
+					[
+						`Do you think you could get us an artificial 40 matter capacity crystal? Send us one by using a long range teleporter.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_natural', false, 'matter_max', 40 ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 1;
+					
+					difficulty_per_entity *= 3;
+					
+					template.title = 'Extract anti-crystal';
+					template.description = sdWorld.AnyOf(
+					[
+						`We need an anti-crystal. Send us one by using a long range teleporter.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_anticrystal', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 1;
+					
+					difficulty_per_entity *= 6;
+					
+					template.title = 'Extract soul taking crystal';
+					//template.description = 'Extract natural large crystals by using a long range teleporter.';
+					template.description = sdWorld.AnyOf(
+					[
+						`Could you get us soul taking crystal using a long range teleporter? Be very careful, they kill Star Defenders way too often.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'speciality', 1, 'spaciality_tier', 2560 ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 2 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract slugs';
+					template.description = 'Extract slugs to the mothership by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdSlug', 'is_alive', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 2 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract alien batteries';
+					template.description = 'Extract alien batteries to the mothership by using a long range teleporter, so we can study them.';
+					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', 1 ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 2 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract lost particle containers';
+					template.description = 'Extract lost particle containers to the mothership, so we can see how we can utilize them.';
+					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', 2 ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 4 + Math.round( Math.random() * 4 );
+					
+					difficulty_per_entity *= 0.1;
+					
+					template.title = 'Extract crab crystals';
+					template.description = 'Extract crab crystals by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_crab', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract cube shards';
+					template.description = 'Extract cube shards by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdGun', 'class', sdGun.CLASS_CUBE_SHARD ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract metal shards';
+					template.description = 'Extract metal shards by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdGun', 'class', sdGun.CLASS_METAL_SHARD ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 1 );
+					
+					difficulty_per_entity *= 0.3;
+					
+					template.title = 'Extract Cubes';
+					template.description = 'Extract Cubes by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdCube' ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 2 );
+					
+					difficulty_per_entity *= 0.3;
+					
+					template.title = 'Extract Virus entities';
+					//template.description = 'Extract Virus entities by using a long range teleporter.';
+					template.description = sdWorld.AnyOf(
+					[
+						`A large Virus entity has been detected. These creatures can split into multiple, dangerous smaller forms. Use the long-range teleporter to extract some of them for anti-virus studying.`,
+						`Large Virus entities pose a significant threat due to their ability to multiply. Extract this specimen using the long-range teleporter before it splits and infests the area.`,
+						`Virus entities are known to 'split and conquer.' These specimens must be extracted via long-range teleporter and their whole sworm studied.`,
+						`We need a sample of the Virus entity's goo. Use the long-range teleporter to extract these specimens for research.`,
+						`This Virus entity is a unique biological specimen. Use the long-range teleporter to extract it for study and analysis.`,
+						`Virus entities thrive in liquid environments. This one needs to be extracted using the long-range teleporter before it contaminates the water supply.`,
+						`The genetic material of the Virus entity could be valuable. Extract a few specimens using the long-range teleporter for genetic analysis.`,
+						`These Virus entities exhibits unusual characteristics. Use the long-range teleporter to extract it – it may be a new strain.`,
+						`Understanding Virus biology is crucial for our defense. Extract this entity using the long-range teleporter for research purposes.`,
+						`Virus entity extraction requires Level 3 Biohazard Clearance. Use the long-range teleporter following established protocol.`,
+						`Warning: Virus entity may be gooey. Use long-range teleporter with extreme caution. Wear protective gear.`,
+						`Virus entities are a perfect practive material. Send some of them using long-range teleporter for a reward.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdVirus', 'is_alive', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 1;
+					
+					difficulty_per_entity *= 1;
+					
+					template.title = 'Extract Octopus';
+					//template.description = 'Extract Virus entities by using a long range teleporter.';
+					template.description = sdWorld.AnyOf(
+					[
+						`We registed multiple Octopuses being burrowed in your area. Its long tentacle poses a significant threat. Use the long-range teleporter to extract one of them carefully, avoiding its grasp.`,
+						`Octopus creatures are known to swallow weapons whole. Use the long-range teleporter to extract one of them before it consumes any more Star Defender tech.`,
+						`Beware! Octopuses can swallow Star Defenders. A particularly large specimen needs to be extracted. Use the long-range teleporter, but prioritize Star Defender safety during the process.`,
+						`We need to understand Octopus biology. Use the long-range teleporter to extract a live specimen for research.`,
+						`Octopus tentacle material has unique properties. Extract an Octopus using the long-range teleporter for study, which may lead to new defensive technologies.`,
+						`These Octopus aliens exhibit unusual behaviors. Use the long-range teleporter to extract one of them for analysis.`,
+						`What are the Octopuses doing here? Extract this specimen using the long-range teleporter. Studying it may reveal their intentions.`,
+						`Use the long-range teleporter to extract the tentacled horror that lurks beneath the surface.`,
+						`This Octopus appears to be a living bio-weapon. Use the long-range teleporter to extract it with extreme caution.`,
+						`The alien menace known as the Octopus must be contained. Use the long-range teleporter to extract it.`,
+						`Oh, I see you are doing great. How about another Octopus? It is just what we need. Use the long-range teleporter and try not to get eaten.`
+					]);
+					template.lrtp_class_proprty_value_array = [ 'sdOctopus', 'is_alive', true ];
+				});
+				/*
+				task_options.push(()=>
+				{
+				});
+				*/
+				
+				sdWorld.AnyOf( task_options )();
+				
+				template.similarity_hash = 'EXTRACT-' + template.lrtp_class_proprty_value_array.join('-'); // Prevent overriding - it will cause lrtp_class_proprty_value_array and title/desciption mismatch
+				template.difficulty = difficulty_per_entity * num_ents;
+				template.lrtp_ents_needed = num_ents;
+
+				sdTask.MakeSureCharacterHasTask( template );
+			}
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -4056,7 +4309,7 @@ class sdWeather extends sdEntity
 
 
 			this._missile_timer += GSPEED;
-			if ( this._missile_timer > 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 ) )
+			if ( this._missile_timer > 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 8000 ) )
 			{
 				let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 				
@@ -4258,15 +4511,22 @@ class sdWeather extends sdEntity
 										}
 										else
 										{
-											// Spawn snow?
-											/*let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
-											snow_block._hea = snow_block._hmax = 10;
+											if ( e.material === sdBlock.MATERIAL_SNOW )
+											{
+												// Do not spawn extra snow on top of 16x16 snow blocks
+											}
+											else
+											{
+												// Spawn snow?
+												/*let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
+												snow_block._hea = snow_block._hmax = 10;
 
-											sdEntity.entities.push( snow_block );
-											sdWorld.UpdateHashPosition( snow_block, false );*/
-											
-											let snow_block = sdEntity.Create( sdBlock, { x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 } );
-											snow_block._hea = snow_block._hmax = 10;
+												sdEntity.entities.push( snow_block );
+												sdWorld.UpdateHashPosition( snow_block, false );*/
+
+												let snow_block = sdEntity.Create( sdBlock, { x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 } );
+												snow_block._hea = snow_block._hmax = 10;
+											}
 										}
 									}
 								}
@@ -4900,10 +5160,11 @@ class sdWeather extends sdEntity
 			ctx.filter = 'none';
 		}
 	}
-	/*onBeforeRemove()
+	onBeforeRemove()
 	{
-		debugger;
-	}*/
+		if ( sdWeather.only_instance === this )
+		sdWeather.only_instance = null;
+	}
 	onRemove() // Class-specific, if needed
 	{
 		if ( sdWeather.only_instance === this )

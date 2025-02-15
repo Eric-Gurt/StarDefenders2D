@@ -35,7 +35,7 @@ class sdTask extends sdEntity
 		
 		sdTask.completed_tasks_count = 0; // Whenever someone completes a task, this increases value by 1. Used to spawn SD Item pods
 		
-		sdTask.reward_claim_task_amount = 0.5; // was 1
+		//sdTask.reward_claim_task_amount = 0.5; // was 1 // EG: Let's not have too many multipliers all over the project
 		
 		sdTask.missions = [];
 		
@@ -193,7 +193,7 @@ class sdTask extends sdEntity
 				return 'Claim rewards';
 			},
 			GetDefaultDescription: ( task )=>{
-				return 'Your good performance has been noticed by the mothership. Claim rewards they are willing to send through a long range teleporter.';
+				return 'Your good performance has been noticed by the Mothership. Claim rewards they are willing to send through a long range teleporter.';
 			},
 			GetDefaultTimeLeft: ( task )=>
 			{
@@ -202,7 +202,7 @@ class sdTask extends sdEntity
 			
 			completion_condition: ( task )=>
 			{
-				if ( task._executer._task_reward_counter < sdTask.reward_claim_task_amount )
+				if ( task._executer._task_reward_counter < 1 ) //sdTask.reward_claim_task_amount )
 				return true;
 				else
 				return false;
@@ -529,6 +529,7 @@ class sdTask extends sdEntity
 		};
 		
 		sdTask.tasks = [];
+		sdTask.sort_tasks = false;
 	}
 	
 	static WakeUpTasksFor( character )
@@ -542,12 +543,19 @@ class sdTask extends sdEntity
 	}
 	static PerformActionOnTasksOf( character, callback )
 	{
+		let tasks = [];
 		for ( let i = 0; i < sdTask.tasks.length; i++ )
 		{
-			if ( sdTask.tasks[ i ]._executer === character )
-			if ( !sdTask.tasks[ i ]._is_being_removed )
-			callback( sdTask.tasks[ i ] );
+			let task = sdTask.tasks[ i ];
+				
+			if ( task._executer === character )
+			if ( !task._is_being_removed )
+			tasks.push( task );
 		}
+		
+		for ( let i = 0; i < tasks.length; i++ )
+		if ( !tasks[ i ]._is_being_removed )
+		callback( tasks[ i ] );
 	}
 	
 	static GetTaskDifficultyScaler() // Prevent players connecting all of their accounts to give claim reward per each socket
@@ -653,7 +661,7 @@ class sdTask extends sdEntity
 	
 	SetBasicProgress( current, total )
 	{
-		this.progress = '( ' + current + ' / ' + total + ' )';
+		this.progress = '( ' + current + ' / ' + total + '; '+Math.round((this._difficulty*100*1000)/1000)+'% rewards )';
 		this._update_version++;
 	}
 	
@@ -667,7 +675,7 @@ class sdTask extends sdEntity
 		//this._is_global = params.is_global || false; // All players can execute it
 
 
-		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
+		this._difficulty = Math.ceil( ( params.difficulty || 0 ) * 1000 ) / 1000; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
 		
 		this._allow_task_hibernation = params.allow_hibernation || true; // Comment below, set "false" only for long tasks like the mothership container
 		/*
@@ -750,6 +758,7 @@ class sdTask extends sdEntity
 		//this.appearance = params.appearance;
 		
 		sdTask.tasks.push( this );
+		sdTask.sort_tasks = true;
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 0; }
@@ -887,7 +896,7 @@ class sdTask extends sdEntity
 								executer: executer,
 								mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
 								title: 'You\'ve completed "' + title + '"',
-								description: Math.floor( ( difficulty / sdTask.reward_claim_task_amount ) * 100 ) +'% progress towards task rewards'
+								description: Math.floor( ( difficulty ) * 100 ) +'% progress towards task rewards'
 							});
 
 							if ( executer._socket )
@@ -950,6 +959,16 @@ class sdTask extends sdEntity
 		{
 			if ( this._allow_task_hibernation )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		}
+	}
+	
+	static GlobalThink( GSPEED )
+	{
+		if ( sdTask.sort_tasks )
+		{
+			sdTask.sort_tasks = false;
+			
+			sdTask.tasks.sort( (a,b)=>b._difficulty-a._difficulty );
 		}
 	}
 	

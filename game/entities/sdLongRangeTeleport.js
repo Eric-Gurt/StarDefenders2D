@@ -1199,7 +1199,7 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							if ( this.matter >= this._matter_max )
 							{
-								let claim_cost = ( command_name === 'CLAIM_REWARD_AD' ) ? 0 : sdTask.reward_claim_task_amount;
+								let claim_cost = ( command_name === 'CLAIM_REWARD_AD' ) ? 0 : 1;
 								
 								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{

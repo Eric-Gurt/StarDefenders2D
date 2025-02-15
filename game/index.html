@@ -1,3 +1,8 @@
+<?
+
+    let discord_url = 'https://discord.gg/rX4xEc2Y9E';
+
+?>
 <html>
     <head>
 	<title>Star Defenders: Unite to Battle Alien Creatures in a Free Multiplayer Sandbox Game</title>
@@ -18,182 +23,11 @@
     </head>
     <body>
 	<script src="client/sdErrorReporter.js"></script>
-	<!--
- 
-	    This is a test of new in-line code for HTML files (these still could end up being cached by browsers when it is not needed though):
- 
-	    <? 
-		print_html = false; // Prevent following HTML snippet to be printed right away - we will use it as a variable for a string
-		let piece_of_text = ?>:: 1 2 3 4 5 6 7 8 9 10 ::
-:: 11 12 13 14 15 16 17 ::
-
-<?
-		// Print string value 3 times
-		for ( let i = 0; i < 3; i++ )
-		print( piece_of_text );
- 
-		print_html = true;
-	    ?>
-	-->
-	<!--<script async
-	    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<? print( sdWorld.server_config.adsense_client ) ?>"
-	    crossorigin="anonymous">
-	</script>-->
-	<!--data-adbreak-test="on"-->
-	<!--data-ad-frequency-hint="900s"-->
-	<script>
-	    window.adsbygoogle = window.adsbygoogle || [];
-	    const adBreak = adConfig = function(o) {adsbygoogle.push(o);}
-	    adConfig({preloadAdBreaks: 'on'});
-	</script>
 	<script src="https://player.twitch.tv/js/embed/v1.js"></script>
 	<div id="twitch_player_div"></div>
 	<div id="youtube_player_div"></div>
-	<script>
+	<script src="client/sdTheatreAPIs.js"></script>
 
-
-	    
-	    globalThis.twitch_player_div = document.getElementById( 'twitch_player_div' );
-	    globalThis.youtube_player_div = document.getElementById( 'youtube_player_div' );
-	    {
-		let twitch_player = null;
-		let youtube_player = null;
-		
-		let twitch_player_load_callback = null;
-		let youtube_player_load_callback = null;
-		
-		let twitch_loaded = false;
-		let youtube_loaded = false;
-		
-		let player_volume = 0.01;
-		
-		globalThis.SetPlayerVolume = ( v )=>
-		{
-		    if ( v !== player_volume )
-		    {
-			player_volume = v;
-
-			if ( twitch_loaded )
-			twitch_player.setVolume( v );
-		    
-			if ( youtube_loaded )
-			youtube_player.setVolume( v * 100 );
-		    }
-		};
-		globalThis.RequireTwitchPlayerAndDo = ( cb )=>
-		{
-		    if ( twitch_loaded )
-		    {
-			cb( twitch_player );
-		    }
-		    else
-		    {
-			twitch_player_load_callback = cb;
-
-			if ( !twitch_player )
-			{
-			    twitch_player = new Twitch.Player( "twitch_player_div", {
-				width: 600, // 128 / 64 * 300, // 400,
-				height: 300, // 64 / 64 * 300,
-
-				video: '1031472157', // Plazma Burst 2 in 46:08 by xCape
-
-				//parent: [ window.location.href.split('/').slice( 2, 3 ).join('/') ], ports don't work
-				parent: [ window.location.hostname ],
-				muted: true
-			    });
-
-			    let next = ()=>
-			    {
-				next = ()=>{};
-				
-				twitch_player.disableCaptions();
-				twitch_player.setVolume( player_volume );
-				twitch_player.setMuted( false );
-
-				twitch_loaded = true;
-
-				//twitch_player.setChannel( 'monstercat' );
-				if ( twitch_player_load_callback )
-				{
-				    twitch_player_load_callback( twitch_player );
-				    twitch_player_load_callback = null;
-				}
-			    };
-			    let error = ()=>
-			    {
-			    };
-			    twitch_player.addEventListener( Twitch.Player.READY, next );
-			    twitch_player.addEventListener( Twitch.Player.ERROR, error );
-			}
-		    }
-		};
-		globalThis.RequireYoutubePlayerAndDo = ( cb )=>
-		{
-		    if ( youtube_loaded )
-		    {
-			cb( youtube_player );
-		    }
-		    else
-		    {
-			// Load the IFrame Player API code asynchronously.
-			var tag = document.createElement('script');
-			tag.src = "https://www.youtube.com/player_api";
-			var firstScriptTag = document.getElementsByTagName('script')[0];
-			firstScriptTag.parentNode.insertBefore( tag, firstScriptTag );
-
-			// Replace the 'ytplayer' element with an <iframe> and
-			// YouTube player after the API code downloads.
-			globalThis.onYouTubePlayerAPIReady = ()=>
-			{
-			    youtube_player = new YT.Player( 'youtube_player_div', 
-			    {
-				width: '600',
-				height: '300',
-				videoId: 'null', // 'M7lc1UVf-VE',
-				autoplay: '0',
-				controls: '0',
-				disablekb: '1',
-				enablejsapi: '1',
-				modestbranding: '1',
-				origin: window.location.hostname,
-				events: {
-				    'onReady': onPlayerReady
-				    //'onStateChange': onPlayerStateChange
-				  }
-
-			    });
-			    
-			    function onPlayerReady()
-			    {
-				globalThis.youtube_player_div = document.getElementById( 'youtube_player_div' );
-				
-				youtube_player.mute();
-				youtube_player.setVolume( player_volume );
-
-				youtube_loaded = true;
-
-				if ( youtube_player_load_callback )
-				{
-				    youtube_player_load_callback( youtube_player );
-				    youtube_player_load_callback = null;
-				}
-			    }
-			};
-		    }
-		};
-	    }
-	</script>
-	<!--<input type="color" id="ingame_color_picker" tabindex=-1 style="
-	    position: fixed;
-	    left: 0;
-	    top: 0;
-	    overflow: hidden;
-	    width: 0;
-	    height: 0;
-	    padding: 0;
-	    margin: 0;
-	">-->
 	<input id="ingame_color_picker" tabindex=-1 type="text" data-coloris style="
 	    position: fixed;
 	    left: 0;
@@ -220,487 +54,378 @@
 	<script src="client/sdMobileKeyboard.js" type="module"></script>
 	<script src="game.js" type="module"></script>
 	<script src="client/sdMusic.js"></script>
-	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
-	</div>
-	<div id="settings_container" style="
-		position: fixed;
-		top: 50%;
-		left: 50%;
-		margin-left: -300px;
-		margin-top: -325px;
-		display: block;
-		background-color: black;
-		width: 600px;
-		height: 680px;
-		color: white;
-		padding: 20px;
-		box-sizing: border-box;">
-	    <div style="
-    position: absolute;
-    right: 20px;
-    top: -50px;
-    font-size: 30px;
-    color: #2f2f2f;
-    text-align: right;
-    "><span style="color:#ffffff5e" id="game_title_text">...</span><br>
-	    <div style="font-size:12px;color:#355a52;">v0.9</div></div>
+	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0"></div>
+	
 	    
-	    <div style="
-		 position: absolute;
-    left: calc( 100% + 20px );
-    top: calc( -75px - 10px );
-    width: 300px;
-    bottom: 0;
-    box-sizing: border-box;
-    background-color: black;
-    padding: 20px;
-    overflow-y: auto;
-    ">
-		<span class="sdtitle">What's new?:</span><br>
-		<div class="sdgroup">
-		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on GitHub</a>
-		</div>
-		<br><br>
-		<span class="sdtitle">Other servers:</span>
-		<div class="sdgroup">
-		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
+	<div id="page">
+	    <div id="page_background"></div>
+	    <div id="bg_stars"></div>
+	    <div id="page_foreground"></div>
+	    <div id="menu_defender" precached="CnsKCWxldCB2YWx1ZXNfdG9fcHJvdGVjdCA9IFsgCgkJJ3NkUmVuZGVyZXIuRHJhd0xpbmVPZlNpZ2h0U2hhZGluZycsIAoJCSd3aW5kb3cub253aGVlbCcsIAoJCSdzZFdvcmxkLkZpbHRlclZpc2lvbkJsb2NraW5nJywKCQknc2RTdG9yYWdlLmFjY2Vzc19yYW5nZScsCgkJJ3NkQ3ViZS5wcm90b3R5cGUuRHJhd0hVRCcsCgkJJ3NkQ3J5c3RhbC5wcm90b3R5cGUuRHJhd0hVRCcsCgkJJ3NkUmVuZGVyZXIuUmVuZGVyJwoJXTsKCglsZXQgcHJvdGVjdGVkX2Z1bmN0aW9uX2NhbGxzID0gWwoJCSdkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyJywKCQknZG9jdW1lbnQucmVtb3ZlRXZlbnRMaXN0ZW5lcicsCgkJJ2dsb2JhbFRoaXMuc2V0SW50ZXJ2YWwnLAoJCSdnbG9iYWxUaGlzLnNldFRpbWVvdXQnLAoJXTsKCglsZXQgU3RhY2tUZXN0ID0gKCk9PgoJewoJCWxldCBzdGFja190cmFjZSA9IGdldFN0YWNrVHJhY2UoKTsKCgkJaWYgKCBzdGFja190cmFjZS5pbmRleE9mKCcgICAgYXQgPGFub255bW91cz4nKSAhPT0gLTEgKQoJCXdpbmRvdy5sb2NhdGlvbi5yZWxvYWQoKTsKCX07CgoJbGV0IHZhbHVlc190b19wcm90ZWN0X3Jlc3VsdHMgPSBbXTsKCWxldCB0ZXN0X2lkID0gMDsKCglmb3IgKCBsZXQgaSA9IDA7IGkgPCB2YWx1ZXNfdG9fcHJvdGVjdC5sZW5ndGg7IGkrKyApCgl7CgkJbGV0IGN1cnJlbnRfdmFsdWU7CgkJZXZhbCggJ2N1cnJlbnRfdmFsdWUgPSAnICsgdmFsdWVzX3RvX3Byb3RlY3RbIGkgXSArICc7JyApOwoJCXZhbHVlc190b19wcm90ZWN0X3Jlc3VsdHNbIGkgXSA9IGN1cnJlbnRfdmFsdWU7Cgl9CgoKCXNldEludGVydmFsKCAoKT0+Cgl7CgkJbGV0IGN1cnJlbnRfdmFsdWU7CgkJZXZhbCggJ2N1cnJlbnRfdmFsdWUgPSAnICsgdmFsdWVzX3RvX3Byb3RlY3RbIHRlc3RfaWQgXSArICc7JyApOwoKCQlpZiAoIHZhbHVlc190b19wcm90ZWN0X3Jlc3VsdHNbIHRlc3RfaWQgXSAhPT0gY3VycmVudF92YWx1ZSApCgkJd2luZG93LmxvY2F0aW9uLnJlbG9hZCgpOwoKCQl0ZXN0X2lkID0gKCB0ZXN0X2lkICsgMSApICUgdmFsdWVzX3RvX3Byb3RlY3QubGVuZ3RoOwoKCX0sIDIwMCApOwoKCWZvciAoIGxldCBpID0gMDsgaSA8IHByb3RlY3RlZF9mdW5jdGlvbl9jYWxscy5sZW5ndGg7IGkrKyApCgl7CgkJbGV0IG9sZF9mdW5jdGlvbjsKCQlsZXQgcHJvdGVjdGVkX3ZhbHVlID0gcHJvdGVjdGVkX2Z1bmN0aW9uX2NhbGxzWyBpIF07CgoJCWV2YWwoICdvbGRfZnVuY3Rpb24gPSAnICsgcHJvdGVjdGVkX3ZhbHVlICsgJzsnICk7CgoJCXZhciBuZXdfZnVuY3Rpb24gPSBmdW5jdGlvbiAoIC4uLmFyZ3MgKQoJCXsKCQkJLy90cmFjZSggcHJvdGVjdGVkX3ZhbHVlLCBhcmdzICk7CgkJCVN0YWNrVGVzdCgpOwoKCQkJcmV0dXJuIG9sZF9mdW5jdGlvbiggLi4uYXJncyApOwoJCX07CgoJCWxldCBkb2MgPSBwcm90ZWN0ZWRfdmFsdWUuc3BsaXQoICcuJyApOwoJCWRvYy5wb3AoKTsKCQlkb2MgPSBkb2Muam9pbiggJy4nICk7CgoJCS8vZXZhbCggcHJvdGVjdGVkX2Z1bmN0aW9uX2NhbGxzWyBpIF0gKyAnID0gbmV3X2Z1bmN0aW9uOycgKTsKCQlldmFsKCBwcm90ZWN0ZWRfdmFsdWUgKyAnID0gbmV3X2Z1bmN0aW9uLmJpbmQoICcgKyBkb2MgKyAnICk7JyApOwoJfQoKfQ==">
+	    	<div id="menu_defender_blink"></div>
+		<div id="sd_quote"><?
 		    
-		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Small main server</div></a>
-		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>High difficulty main server<br>Hosted by Coolbuddy.com</div></a>
-		    <!--<a class="server serverB" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>Default config main server<br>Hosted by Coolbuddy.com</div></a>-->
+		    print( sdWorld.AnyOf([ 
 		    
+			`In space,<br>nobody can hear you`,
+			`In the void,<br>your screams are just static`,
+			`Out here,<br>the only law is survival`,
+			`The cosmos is a cold,<br>indifferent battlefield`,
+			`Among the stars,<br>we are all just stardust waiting to be reborn`,
+			`In the vastness of space,<br>even the smallest spark can ignite a war`,
+			`Outer space is a playground for heroes and monsters`,
+			`Beyond the known,<br>lies a galaxy of endless possibilities...<br>and infinite dangers`,
+			`It is not immersive<br>if you haven't pressed F11 key`
 		    
+		    ]) );
 		    
-		    <a class="server serverC" href="https://stardefenders.io:3000">stardefenders.io:3000<div>Canada, Quebec<br>Ultrawide server<br>Hosted by mrmcshroom</div></a>
-		    <a class="server serverC" href="https://stardefenders.io:3001">stardefenders.io:3001<div>Canada, Quebec<br>Easy server<br>Hosted by mrmcshroom</div></a>
-		    <a class="server serverC" href="https://stardefenders.io:3002">stardefenders.io:3002<div>Canada, Quebec<br>Paceful server<br>Hosted by mrmcshroom</div></a>
-		    <a class="server serverC" href="https://stardefenders.io:4000">stardefenders.io:4000<div>Canada, Quebec<br>Hosted by mrmcshroom, managed by Booraz</div></a>
-		    <a class="server serverF" href="https://prosuwanted.ru:3000">prosuwanted.ru:3000<div>Russia, St Petersburg<br>Hosted by prosuWANTED2001</div></a>
-		    <!--<a class="server serverD" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>Peaceful server<br>Managed by nas333</div></a>-->
-		    <a class="server serverD" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>Peaceful server<br>Managed by AverageSD</div></a>
-		    <!--<a class="server serverD" href="https://stardefenders.glitch.me">stardefenders.glitch.me<div>United States, Virginia<br>Hosted by nas333</div></a>-->
-		</div>
+		    ?></div>
 	    </div>
+	    <div id="current_music_info" style="display:none"></div>
+	    <div id="ui_back_button" style="display:none" onmousedown="GoToScreen('screen_menu')">Back</div>
 	    
-	    <div style="
-		position: absolute;
-		right: calc( 100% + 20px );
-		top: calc( -75px - 10px );
-		width: 300px;
-		height: 75px;
-		box-sizing: border-box;
-		background-color: black;
-		padding: 20px;
-		">
-		<span class="sdtitle">Language</span><span id="langs_container"></span>
-		<div class="sdgroup">Some translations can be missing</div>
-	    </div>
-	    <div style="position: absolute; right: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
-		box-sizing: border-box; background-color: black;
-		padding: 20px;">
-		<span class="sdtitle">About Star Defenders:</span><br>
-		<div class="sdgroup">
-		    Star Defenders is a sandbox-based 2D game with slightly different approach than regular game in same genre would have.<br>
-		    <br>
-		    Tell your friends about it if you like what we do here!<br>
-		    <br>
-		    Game idea and development started by <a href="https://www.gevanni.com" target="_blank">Eric Gurt</a>, though there is much more people involved now - more on GitHub where you can also <a href="https://github.com/Eric-Gurt/StarDefenders2D">participate in development</a>.<br>
-		    <br>
-		    Or even <a href="https://github.com/Eric-Gurt/StarDefenders2D/archive/main.zip">host your own Star Defenders 2D server</a><br>(future versions could be cross-connected with main server and redirect players from one server to another eventually, maybe server browser will be a thing soon too. <a href="https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/How%20to%20start%20own%20server.txt">Check this file if you'll need more help</a>).<br>
-		    <br>
-		    This game is free to play and open source now. But we would be really happy if you will be able to host your own server and maybe even lead the more active development for the project. Feel free to discuss it at this <a href="https://discord.gg/rX4xEc2Y9E" target="_blank">Discord server</a> (we have much more now).<br>
-		    <br>
-		    This game requires at least Windows 10 (with Edge or Chrome browser for best experience). It can somewhat run on Android tablets/phones. It used to work on iPad too, maybe it still does, maybe it works even better now.<br>
-		    <br>
-		    If game freezes when tab is inactive - disable "<span style="color:#c1c1c1">Calculate window occlusion on Windows</span>" and "<span style="color:#c1c1c1">Enable sleeping tabs</span>" (optionally) by visiting "<span style="color:#c1c1c1">chrome://flags</span>".
+	    
+	    <div style="z-index:4; position: relative; overflow-y: scroll; height: 100%; overflow-x: hidden; will-change: top;" class="sd_scrollbar">
+		<div id="langs_container"></div>
+		<img src="assets/logo.png" style="height: 20vh; padding-top:5vh; padding-bottom:2vh;">
+		<div class="server_info">
+		    <span id="server_status">Connecting to server</span> <span id="game_title_text">...</span> / <span id="server_playing">...</span> / <span id="server_online">...</span>
 		</div>
-		<br>
-		<span class="sdtitle">Links:</span><br>
-		<div class="sdgroup">
-		    <a href="https://www.gevanni.com/projects/StarDefenders2D/star-defenders-notificator-win.zip">Download Star Defenders notificator</a>
+		<div id="section_menu">
+		    <section_btn onclick="GoToScreen('screen_menu')">Menu</section_btn><section_btn onclick="GoToScreen('screen_chat')">Chat</section_btn><a href="<? print( discord_url ) ?>"><section_btn>Discord</section_btn></a><section_btn onclick="alert('We actually don\'t have wiki ;-;\n\nBut hey, it means more to explore and no spoilers!');">Wiki</section_btn><a href="https://github.com/Eric-Gurt/StarDefenders2D"><section_btn>Github</section_btn></a><a href="https://github.com/Eric-Gurt/StarDefenders2D/commits/main/"><section_btn>Changelog</section_btn></a><a href="https://www.reddit.com/r/stardefenders/"><section_btn>Reddit</section_btn></a><section_btn onclick="GoToScreen('screen_servers')">Servers</section_btn>
 		</div>
-	    </div>
 		
-	    <div style="height:100px"></div>
-	    
-	    <span class="sdtitle">Your name:</span><br>
-	    <input type="text" id="hero_name" size="30" maxlength="30" value="Star Defender">
-	    <br>
-	    <br>
-	    <span class="sdtitle">Appearance:</span><br>
-	    <div style="    
-		    display: flex;
-		    width: 100%;">
-		<div style=" width: 50%;">
-		    <input type="color" id="color_bright" value="#c0c0c0">
-		    <label for="color_bright" mycondition="entity1">Helmet (bright)</label>
-		    <label for="color_bright" mycondition="entity2">Body</label>
+		<section id="screen_menu" style="">
+		    <section_header>Menu</section_header>
+		    <menu_button class="crossed_out_button" onclick="alert('Aw, shucks! We have not made it yet.');"><icon style="background-position-y:calc( -46px * 0 )"></icon>Play Story Mode<button_hint>Can't wait!</button_hint></menu_button>
+		    <menu_button onclick="sdWorld.StartOnline( globalThis.GetPlayerSettings(), this );" id="start_btn"><icon style="background-position-y:calc( -46px * 1 )"></icon>Play Together<button_hint>Join current server's sandbox mode and meet new people!</button_hint></menu_button>
+		    <menu_button onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );"><icon style="background-position-y:calc( -46px * 0 )"></icon>Play Offline<button_hint>Offline sandbox mode. Your progress is saved in your browser but offline world is associated with current online server.<br><br>Beware of progress losing game bugs, these are the worst kind!</button_hint></menu_button>
+		    <menu_button onclick="GoToScreen('screen_settings')"><icon style="background-position-y:calc( -46px * 2 )"></icon>Settings</menu_button>
+		    <menu_button onclick="GoToScreen('screen_credits')"><icon style="background-position-y:calc( -46px * 3 )"></icon>Credits</menu_button>
+		    <menu_button onclick="sdMusic.Stop();setTimeout(()=>{sdSound.PlaySound({ name:sdWorld.AnyOf( sdSound.quit_sounds_str.split( '\n' ) ), x:sdWorld.camera.x, y:sdWorld.camera.y, volume:0.3, _server_allowed:true });},500);globalThis.page.style.display='none';"><icon style="background-position-y:calc( -46px * 4 )"></icon>Quit</menu_button>
+		    <!--<div style="position: absolute;left: 36vh;top: 8.5vh;width: calc(41vw - 35vh);">
+			<div id="chat_box" class="menu_rect sd_scrollbar"></div>
+			<div style="padding-top:1vh;position:relative;">
+			    <input type="text" id="menu_chat_field" class="text_input_fancy menu_rect" placeholder="Enter your message here">
+			    <menu_button id="menu_chat_field_send_button">Send</menu_button>
+			</div>
+		    </div>-->
+		</section>
+		<section id="screen_chat" style="width:60%;">
+		    <section_header>Chat</section_header>
+		    <div style="height:3vh"></div>
+		    <div id="menu_chat_box" class="menu_rect sd_scrollbar">
+			<sd_menu_chat_announce>
+			    Hi and welcome to the chat!<br><br>Messages are only visible to players who are using this server. In-game global messages can be sent by using Command Centres.
+			</sd_menu_chat_announce>
+		    </div>
+		    <div style="padding-top:1vh;position:relative;">
+			<input type="text" id="menu_chat_field" class="text_input_fancy menu_rect" placeholder="Enter your message here" autocomplete="off" onkeydown="MenuChatSend(event)">
+			<menu_button id="menu_chat_field_send_button" onclick="MenuChatSend(null)">Send</menu_button>
+		    </div>
+		</section>
+		<section id="screen_settings" style="width:60%; padding-bottom: 30vh;">
+		    <section_header>Settings</section_header>
+		    <div style="height:3vh"></div>
+		    <!-- Check sdStartupScreen_v2.js for Settings screen contents, look for "Populate settings screen" -->
+		    <!--<settings_line>
+			<left>Starting weapon:</left>
+			<right>
+			    <settings_option>Sword</settings_option>
+			    <settings_option class="selected">Shovel</settings_option>
+			</right>
+		    </settings_line>-->
+		    <input id="my_hash" type="hidden">
+		    <input id="last_local_time_start" type="hidden">
+		</section>
+		<section id="screen_credits" style="width:60%; padding-bottom: 30vh;">
+		    <section_header>Credits</section_header>
+		    <div style="height:3vh"></div>
+		    Star Defenders is a collaborative open-source HTML5 indie game project that is developed by Eric Gurt and other contributors since March 25, 2021.<br>
 		    <br>
-
-		    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
-		    <label for="color_dark" mycondition="entity1">Helmet (dark)</label>
-		    <br mycondition="entity1">
-
-		    <input type="color" id="color_visor" value="#ff0000">
-		    <label for="color_visor" mycondition="entity1">Visor</label>
-		    <label for="color_visor" mycondition="entity2">Glowing parts</label>
 		    <br>
-
-		    <!--<input type="color" id="color_splashy" value="#800000">
-		    <label for="color_splashy">Splashy stuff</label>
-		    <br>-->
-
-		    <input type="color" id="color_bright3" value="#c0c0c0" mycondition="entity1">
-		    <label for="color_bright3" mycondition="entity1">Jetpack (bright)</label>
-		    <br mycondition="entity1">
-
-		    <input type="color" id="color_dark3" value="#808080" mycondition="entity1">
-		    <label for="color_dark3" mycondition="entity1">Jetpack/armor plates (dark)</label>
-		    <br mycondition="entity1">
-
-		    <input type="color" id="color_suit" value="#000080" mycondition="entity1">
-		    <label for="color_suit" mycondition="entity1">Upper suit color</label>
-		    <br mycondition="entity1">
-
-		</div>
-		<div style=" width: 50%;">
-		
-		    <input type="color" id="color_suit2" value="#000080">
-		    <label for="color_suit2" mycondition="entity1">Lower suit color</label>
-		    <label for="color_suit2" mycondition="entity2">Details</label>
+		    <sd_header>Here is how you can help Star Defenders project</sd_header>
+		    - Tell your friends about Star Defenders!<br>
 		    <br>
+		    - Make a video of you playing Star Defenders and publish it to YouTube or any other social media<br>
+		    PS: Using <a href="https://www.streamlabs.com">Streamlabs</a> for could work for recording and <a href="https://www.blackmagicdesign.com/products/davinciresolve">DaVinci Resolve</a> or <a href="https://kdenlive.org/en/download/">Kdenlive</a> for video editing. You can also let us know <a href="<? print( discord_url ) ?>">in our Discord server</a> if you plan any streaming events - we'd be happy to help!<br>
+		    <br>
+		    - Contribute via <a href="https://github.com/Eric-Gurt/StarDefenders2D">Github</a>, or even make a separate heavily customized game based on Star Defenders engine for your own community.<br>
+		    <br>
+		    - Donate to developers, artists and musicians involved with this project!<br>
+		    <br>
+		    <br>
+		    <sd_header>Developers</sd_header>
+		    Eric Gurt - <a href="https://www.gevanni.com">Website</a> - <a href="https://www.patreon.com/Eric_Gurt">Patreon</a><br>
+		    <quote>
+			<div class="credits_pixelated_image">
+			    <img src="assets/sdCutDroid.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 22px;
+				object-position: right top;">
+			    <img src="assets/sdSpider.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 20px;
+				object-position: left top;
+			    ">
+			    <img src="assets/sdOctopus.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 22px;
+				object-position: left top;
+				filter: hue-rotate(250deg) saturate(0.3);
+			    ">
+			    <img src="assets/sdCube.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 21px;
+				object-position: left top;
+			    ">
+			</div>
+			
+			<span>"I'm the cause of all this. I polish things (visually, logic-wise and sound effects-wise) and I like to write complex/sensitive game logic. I'm an indie game developer living in Ukraine and I like to work on fun game projects."</span><br>
+			<br>
+			Made things like network synchronization, world snapshot saving, crystals, cyan/blue/green/yellow cubes, viruses, quickie, default asps, both octopuses, erthal drone, cut droid, overlord, guanako, sand worms, hover, wall, doors, cables, basic weaponry, pathfinding, face crabs, mimics, weapon bench, bombs, lost effect, server connecting red long range teleports, roaches, devil shark, tutels, bad dogs, this new UI etc.
+		    </quote>
+		    <br>
+		    
+		    Booraz - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			<div class="credits_pixelated_image">
+			    <img src="assets/crystal_combiner.png" style="
+				object-fit: none;
+				width: 64px;
+				height: 30px;
+				object-position: left top;
+			    ">
+			    <img src="assets/sdSlug.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 19px;
+				object-position: left top;
+				margin-left: -10px;
+				
+				filter: hue-rotate(180deg);
+			    ">
+			    <img src="assets/gibs/velox_mech_head.png" style="transform: translateY(10px) rotate(25deg)">
+			    <img src="assets/shield_unit_sheet.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 24px;
+				object-position: -32px 0px;
+			    ">
+			</div>
+			
+			Added slugs, grubs, falkoks, character AI, green base shielding unit, crystal combiner, velox flying mech, setr destroyer, drop pods, upgrade station, flesh, abomination, alien batteries, metal shards, workbench, land mines, barrels, excavator, rifts, shurg faction, council faction, erthal beacons/characters, tzyrg faction, extra sand worm variations, gibs etc.
+		    </quote>
+		    <br>
+		    
+		    Ghost581X - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			
+			<div class="credits_pixelated_image">
+			    <img src="assets/dmr.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 19px;
+				object-position: left top;
+			    ">
+			    <img src="assets/railgun_p03.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 19px;
+				object-position: left top;
+			    ">
+			</div>
 
-		    <input type="color" id="color_dark2" value="#808080" mycondition="entity1">
-		    <label for="color_dark2" mycondition="entity1">Lower suit armor plates</label>
-		    <br mycondition="entity1">
 
-		    <input type="color" id="color_shoes" value="#000000" mycondition="entity1">
-		    <label for="color_shoes" mycondition="entity1">Shoes</label>
-		    <br mycondition="entity1">
-
-		    <input type="color" id="color_skin" value="#808000" mycondition="entity1">
-		    <label for="color_skin" mycondition="entity1">Gloves &amp; neck color</label>
-		    <br mycondition="entity1">
-
-		    <input type="color" id="color_extra1" value="#0000ff" mycondition="entity1">
-		    <label for="color_extra1" mycondition="entity1">Extra 1</label>
-		    <br mycondition="entity1">
-
-		</div>
+			Tweaks, rebalances, nerfs, weapons.
+		    </quote>
+		    <br>
+		    
+		    mrnat444 - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			
+			<div class="credits_pixelated_image">
+			    <img src="assets/sdAmphid.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 21px;
+				object-position: 0px 0px;
+			    ">
+			    <img src="assets/sdBiter.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 21px;
+				object-position: 0px 0px;
+				transform: scaleX(-1);
+			    ">
+			</div>
+			
+			Gameplay featues, fixes, made amphids and small biters.
+		    </quote>
+		    <br>
+		    
+		    Molisson - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			Fixes, optimizations.
+		    </quote>
+		    <br>
+		    
+		    xScripty - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			
+			<div class="credits_pixelated_image">
+			    <img src="assets/sdCube.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 32px;
+				object-position: -64px -186px;
+				filter: brightness( 0.5 );
+			    ">
+			</div>
+			
+			Gameplay featues, crimson cube, cube spear.
+		    </quote>
+		    <br>
+		    
+		    AloneGuitar - <a href="https://github.com/AloneGuitar">Github</a>
+		    <quote>
+			Faction tools.
+		    </quote>
+		    <br>
+		    
+		    MrMcShroom - <a href="https://github.com/MrMcShroom">Github</a> - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			Discord server management & technical suggestions.
+		    </quote>
+		    <br>
+		    
+		    <sd_header id="music_credits_title">Music</sd_header>
+		    
+		    <span id="music_credits_here"></span>
+		    <br>
+		    <br>
+		    
+		    <sd_header>Art</sd_header>
+		    
+		    LordBored, GPU - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			These artists mostly worked on player skin variations.
+		    </quote>
+		    <br>
+		    
+		    HastySnow / LazyRain - <a href="<? print( discord_url ) ?>">Active in our Discord server</a>
+		    <quote>
+			<div class="credits_pixelated_image">
+			    <img src="assets/tank.png" style="
+				object-fit: none;
+				width: 64px;
+				height: 27px;
+				object-position: left top;
+			    ">
+			    <img src="assets/cube_bng.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 26px;
+				object-position: left top;
+				filter: hue-rotate( 250deg );
+			    ">
+			</div>
+			Skin variations, art for hover tank, cube overcharge cannon.
+		    </quote>
+		    <br>
+		    
+		    Flora
+		    <quote>
+			<div class="credits_pixelated_image">
+			    <img src="assets/command_centre.png" style="
+				object-fit: cover;
+				width: 33px;
+				height: 32px;
+				object-position: left top;
+				">
+			    <img src="assets/upgrade_station.png" style="
+				object-fit: cover;
+				width: 16px;
+				height: 32px;
+				object-position: left top;
+				">
+			    <img src="assets/zektaron_dreadnought.png" style="
+				object-fit: cover;
+				width: 54px;
+				height: 32px;
+				object-position: left;
+				">
+			</div>
+			High quality arts for base equipment and enemies, for example for command centre, upgrade station and Zektaron Dreadnought.
+		    </quote>
+		    <br>
+		    
+		    Silk1
+		    <quote>
+			Player skin variations, main menu Star Defender art.
+		    </quote>
+		    <br>
+		    
+		    darkstar1
+		    <quote>
+			<div class="credits_pixelated_image">
+			    <img src="assets/sdCrystalCrab.png" style="
+				object-fit: none;
+				width: 32px;
+				height: 21px;
+				object-position: left top;
+				filter: hue-rotate(45deg);
+			    ">
+			    <img src="assets/crystal_cluster2.png" style="
+				object-fit: none;
+				width: 48px;
+				height: 39px;
+				object-position: left top;
+				filter: hue-rotate(512deg);
+			    ">
+			</div>
+			Small crystal crab & crystal cluster arts.
+		    </quote>
+		    <br>
+		    
+		    Mrnat444
+		    <quote>
+			
+			<div class="credits_pixelated_image">
+			    <img src="assets/sdCrystalCrabBig.png" style="
+				object-fit: none;
+				width: 48px;
+				height: 39px;
+				object-position: 0px 0px;
+				filter: hue-rotate(240deg);
+			    ">
+			</div>
+			Big crystal crab art.
+		    </quote>
+		    <br>
+		    
+		    There is also a <a href="https://github.com/Eric-Gurt/StarDefenders2D/graphs/contributors">complete list of contributors</a> and <a href="https://github.com/Eric-Gurt/StarDefenders2D/commits/main/">recent updates</a>. Some of contributors are mentioned in the source code.<br>If you are a contributor - feel free to add a brief description of what you've contributed as well as correct any mistakes here.
+		</section>
+		<section id="screen_servers" style="width:60%; padding-bottom: 30vh;">
+		    <section_header>Servers</section_header>
+		    <div style="height:3vh"></div>
+		    Official servers group (cross-connected):
+		    <div class="server_group">
+			<menu_button onclick="ServerButtonPressed( this );" class="server_button server_right_connect">stardefenders.io:4000<server_details><div>Default config, larger world</div>Location: Canada, Quebec<br>Hosted by: MrMcShroom<br>Admins: Booraz</server_details></menu_button>
+			<menu_button onclick="ServerButtonPressed( this );" class="server_button server_right_connect">gevanni.com:3000<server_details><div>Low player capacity server</div>Location: Europe, Ukraine<br>Hosted by: Eric Gurt<br>Admins: Eric Gurt</server_details></menu_button>
+			<menu_button onclick="ServerButtonPressed( this );" class="server_button">plazmaburst2.com:8443<server_details><div>Default config</div>Location: USA, California<br>Hosted by: Coolbuddy.com<br>Admins: Eric Gurt</server_details></menu_button>
+		    </div>
+		    Server that might be running on your PC:
+		    <div class="server_group">
+			<menu_button onclick="ServerButtonPressed( this, true );" class="server_button">localhost:3000<server_details>This is a default server URL.<br>It becomes available whenever you download project files and start server locally</server_details></menu_button>
+		    </div>
+		    Contact us to get your server listed!<br>Check <a href="https://github.com/Eric-Gurt/StarDefenders2D">Github</a> page of the project for more information on how you can host your own server.
+		</section>
 	    </div>
-	    
-	    
-	    
-	    
-	    <br>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Play as</span><br>
-		<input type="checkbox" id="entity1" value="1">
-		<label for="entity1">Humanoid</label>
-		<br>
-		<input type="checkbox" id="entity2" value="1">
-		<label for="entity2">Drone</label>
-		<br>
-		<input type="checkbox" id="entity3" value="1">
-		<label for="entity3">Overlord</label>
-		<br>
-		<input type="checkbox" id="entity4" value="1">
-		<label for="entity4">StreamLogger(?)</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity1">
-		<span class="sdtitle">Melee weapon</span><br>
-		<!--<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
-		<label for="start_with1">Pistol and build tool</label>
-		<br>-->
-		<input type="checkbox" id="start_with1" value="sword_and_buildtool" checked>
-		<label for="start_with1">Sword</label>
-		<br>
-		<input type="checkbox" id="start_with2" value="shovel_and_buildtool">
-		<label for="start_with2">Shovel</label>
-	    </div>
-	    
-	    <!--
-	    <div class="set_block" tabindex="1">
-		Send microphone input as chat messages:<br>
-		<input type="checkbox" id="voice_chat1" value="no" checked>
-		<label for="voice_chat1">No</label>
-		<br>
-		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
-		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
-	    </div>
-	    -->
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity1">
-		<span class="sdtitle">Assign instructor on start</span><br>
-		<input type="checkbox" id="hints1" value="no">
-		<label for="hints1">No</label>
-		<br>
-		<input type="checkbox" id="hints2" value="yes" checked>
-		<label for="hints2">Yes</label>
-	    </div>
-	    
-	    <!--<div class="set_block" tabindex="1">
-		<span class="sdtitle">Resolution downscaling</span><br>
-		<input type="checkbox" id="density1" value="no">
-		<label for="density1">100%</label>
-		<br>
-		<input type="checkbox" id="density2" value="no">
-		<label for="density2">50%</label>
-		<br>
-		<input type="checkbox" id="density3" value="no">
-		<label for="density3">25%</label>
-		
-	    </div>-->
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity2">
-		<span class="sdtitle">Drone model</span><br>
-		<input type="checkbox" id="drone_helmet1" value="1">
-		<label for="drone_helmet1">Erthal</label>
-		<br>
-		<input type="checkbox" id="drone_helmet2" value="1">
-		<label for="drone_helmet2">Container</label><!-- by Booraz -->
-		<br>
-		<input type="checkbox" id="drone_helmet3" value="1">
-		<label for="drone_helmet3">Armored</label><!-- by GPU -->
-		<br>
-		<input type="checkbox" id="drone_helmet4" value="1">
-		<label for="drone_helmet4">Slider</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet5" value="1">
-		<label for="drone_helmet5">Oculus</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet6" value="1">
-		<label for="drone_helmet6">Drake</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet7" value="1">
-		<label for="drone_helmet7">Rover</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet8" value="1">
-		<label for="drone_helmet8">Junky</label><!-- art by Booraz, idea by EG -->
-		<br>
-		<input type="checkbox" id="drone_helmet9" value="1">
-		<label for="drone_helmet9">Harrier</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet10" value="1">
-		<label for="drone_helmet10">Spirit</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet11" value="1">
-		<label for="drone_helmet11">Ray</label><!-- by Silk1, edited by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet12" value="1">
-		<label for="drone_helmet12">Vulture</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet13" value="1">
-		<label for="drone_helmet13">Tracer</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet14" value="1">
-		<label for="drone_helmet14">Latch</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet15" value="1">
-		<label for="drone_helmet15">Transport</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet16" value="1">
-		<label for="drone_helmet16">Haunt</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet17" value="1">
-		<label for="drone_helmet17">Gothic</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet18" value="1">
-		<label for="drone_helmet18">Raven</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet19" value="1">
-		<label for="drone_helmet19">Conservator</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet20" value="1">
-		<label for="drone_helmet20">Blaze</label><!-- by GPU -->
-		<br>
-		<input type="checkbox" id="drone_helmet21" value="1">
-		<label for="drone_helmet21">Explorer</label><!-- by GPU -->
-		<br>
-		<input type="checkbox" id="drone_helmet22" value="1">
-		<label for="drone_helmet22">Hunter</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet23" value="1">
-		<label for="drone_helmet23">Asp</label>
-        <br>
-		<input type="checkbox" id="drone_helmet24" value="1">
-		<label for="drone_helmet24">Blight</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet25" value="1">
-		<label for="drone_helmet25">Droid</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet26" value="1">
-		<label for="drone_helmet26">Falkok</label>
-        <br>
-		<input type="checkbox" id="drone_helmet27" value="1">
-		<label for="drone_helmet27">Float</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet28" value="1">
-		<label for="drone_helmet28">Future</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet29" value="1">
-		<label for="drone_helmet29">Shrimp</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet30" value="1">
-		<label for="drone_helmet30">Synergy</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet31" value="1">
-		<label for="drone_helmet31">Vector</label><!-- by GPU -->
-        <br>
-		<input type="checkbox" id="drone_helmet32" value="1">
-		<label for="drone_helmet32">Archaic</label><!-- by LordBored -->
-        <br>
-		<input type="checkbox" id="drone_helmet33" value="1">
-		<label for="drone_helmet33">Blades</label><!-- by LordBored -->
-		<br>
-		<input type="checkbox" id="drone_helmet34" value="1">
-		<label for="drone_helmet34">Constellation</label><!-- by LordBored, re-added on request, originally named Raven -->
-	    </div>
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_helmets_here">
-		<span class="sdtitle">Helmet</span><br>
-		<!-- Helmets list is now stored at sdCharacter -->
-	    </div>
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_bodies_here">
-		<span class="sdtitle">Body model</span><br>
-		<!-- Skin list (same for bodies, argms and legs) is now stored at sdCharacter -->
-	    </div>
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_legs_here">
-		<span class="sdtitle">Legs model</span><br>
-		<!-- Skin list (same for bodies, argms and legs) is now stored at sdCharacter -->
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Show debug info</span><br>
-		<input type="checkbox" id="bugs1" value="no" checked>
-		<label for="bugs1">No</label>
-		<br>
-		<input type="checkbox" id="bugs2" value="yes">
-		<label for="bugs2">Yes</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1" mycondition="entity1 || entity2">
-		<span class="sdtitle">Character's voice (eSpeak)</span><br>
-		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
-		<label for="voice1">Lowest pitch</label>
-		<br>
-		<input type="checkbox" id="voice2" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice2">Low pitch</label>
-		<br>
-		<input type="checkbox" id="voice3" value="high" onclick="globalThis.TestVoice(this)" checked>
-		<label for="voice3">Default</label>
-		<br>
-		<input type="checkbox" id="voice4" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice4">High pitch</label>
-		<br>
-		<input type="checkbox" id="voice5" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice5">Highest pitch</label>
-		<br>
-		<input type="checkbox" id="voice6" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice6">Falkok</label>
-		<br>
-		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice7">Robotic</label>
-		<br>
-		<input type="checkbox" id="voice8" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice8">Council</label>
-		<br>
-		<input type="checkbox" id="voice9" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice9">Setr</label>
-		<br>
-		<input type="checkbox" id="voice10" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice10">Silence</label>
-		<br>
-		<input type="checkbox" id="voice11" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice11">Erthal</label>
-		<br>
-		<input type="checkbox" id="voice12" value="high" onclick="globalThis.TestVoice(this)">
-		<label for="voice12">Tzyrg</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Camera</span><br>
-		<input type="checkbox" id="camera1" value="low" checked>
-		<label for="camera1">Soft</label>
-		<br>
-		<input type="checkbox" id="camera2" value="high">
-		<label for="camera2">Fast</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Volume</span><br>
-		<input id="volume" type="range" min="0" max="100" step="0.1">
-		<!--<input type="checkbox" id="volume1" value="1">
-		<label for="volume1">40%</label>
-		<br>
-		<input type="checkbox" id="volume2" value="1">
-		<label for="volume2">25%</label>
-		<br>
-		<input type="checkbox" id="volume3" value="1" checked>
-		<label for="volume3">10%</label>-->
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Censorship</span><br>
-		<input type="checkbox" id="censorship3" value="2">
-		<label for="censorship3">Yes and hide videos</label>
-		<br>
-		<input type="checkbox" id="censorship1" value="1" checked>
-		<label for="censorship1">Yes</label>
-		<br>
-		<input type="checkbox" id="censorship2" value="0">
-		<label for="censorship2">No</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Allow self-talk</span><br>
-		<input type="checkbox" id="selftalk1" value="1" checked>
-		<label for="selftalk1">Yes (these includes hints)</label>
-		<br>
-		<input type="checkbox" id="selftalk2" value="0">
-		<label for="selftalk2">No (important hints will be compeltely disabled)</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Music</span><br>
-		<input type="checkbox" id="music1" value="1" checked>
-		<label for="music1">Enabled</label>
-		<br>
-		<input type="checkbox" id="music2" value="0">
-		<label for="music2">Disabled</label>
-	    </div>
-	    
-	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Shading</span><br>
-		<input type="checkbox" id="shading1" value="1" checked>
-		<label for="shading1">On</label>
-		<br>
-		<input type="checkbox" id="shading2" value="0">
-		<label for="shading2">Off</label>
-	    </div>
-	    <!--
-	    <div class="set_block" tabindex="1" style="width: 485px">
-		<span class="sdtitle">Other Star Defenders servers</span><br>
-	    </div>
-	    -->
-	    <div style="position:absolute;left:20px;bottom:20px">
-		
-	    <input id="my_hash" type="hidden">
-	    <input id="last_local_time_start" type="hidden">
-	    
-	    
-	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.PlayAdAndStart( globalThis.GetPlayerSettings(), this );" value="Play with other players"> 
-	    <input type="button" style="background-color:#333333; width: 300px;" id="start_offline_btn" onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );" value="Play offline (still very unreliable)"> 
-	    <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
-	    
-	    </div>
-	    
-	    <canvas style="position: absolute;right: 40px;top: 40px;/*border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;*/" id="skin_preview" width="128" height="128"></canvas>
-
 	</div>
 	    
 	<div class="password_screen" style="display:none">
@@ -717,752 +442,7 @@
 		" value="Cancel">
 	    </div>
 	</div>
-
-	<script>
-	let input_elements = document.body.querySelectorAll("input[type=color]");
-	if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
-	for( let i = 0; i < input_elements.length; i++ )
-	{
-		input_elements[i].className = "gecko";
-	}
-	Run();
 	
-	function Run()
-	{
-	    if ( typeof sdCharacter === 'undefined' ||
-		 sdCharacter.helmet_file_names_with_actual_names === undefined )
-	    {
-		setTimeout( Run, 50 );
-		return;
-	    }
-		
-	    globalThis.connection_established = false;
-	    
-	    let settings_container = document.getElementById( 'settings_container' );
-	    let start_btn = document.getElementById( 'start_btn' );
-	    let start_offline_btn = document.getElementById( 'start_offline_btn' );
-	    
-	    let my_hash_input = document.getElementById( 'my_hash' );
-	    let volume_input = document.getElementById( 'volume' );
-	    
-	    let inputs = [];
-	    let inputs_hash = {};
-	    
-	    let skin_preview = document.getElementById( 'skin_preview' );
-	    let ctx = skin_preview.getContext("2d");
-	    ctx.imageSmoothingEnabled = false;
-	    
-	    globalThis.settings_container = settings_container;
-	    globalThis.players_online = '...';
-	    globalThis.players_playing = '...';
-	    
-	    let format = ( v )=>
-	    {
-		v += '';
-		
-		let p = v.length - 3;
-		
-		while ( p > 0 )
-		{
-		    v = v.slice( 0, p ) + ' ' + v.slice( p );
-		    p -= 3;
-		}
-		
-		return v;
-	    };
-	    
-	    //let draw_once = true;
-	    
-	    let cursor_x = 0;
-	    let cursor_y = 0;
-	    
-	    let hovered_preview = false;
-	    let forced_time = 0;
-	    let hovered_color = null;
-	    
-	    skin_preview.onmouseover = ( e )=>
-	    {
-		hovered_preview = true;
-		forced_time = sdWorld.time;
-	    };
-	    skin_preview.onmouseout = ( e )=>
-	    {
-		hovered_preview = false;
-		hovered_color = null;
-	    };
-	    skin_preview.onmousemove = ( e )=>
-	    {
-		cursor_x = e.offsetX;
-		cursor_y = e.offsetY;
-	    };
-	    skin_preview.onmousedown = ( e )=>
-	    {
-		cursor_x = e.offsetX;
-		cursor_y = e.offsetY;
-		
-		var p = ctx.getImageData( cursor_x, cursor_y, 1, 1 ).data; 
-		var hex = "#" + ( "000000" + sdWorld.ColorArrayToHex( [ p[0], p[1], p[2] ] ) ).slice( -6 );
-		
-		for ( let i = 0; i < inputs.length; i++ )
-		if ( inputs[ i ].el.type === 'color' )
-		{
-		    if ( inputs[ i ].el.value === hex )
-		    {
-			inputs[ i ].el.focus();
-			inputs[ i ].el.click();
-			break;
-		    }
-		}
-	    };
-	    
-	   /*let DrawPreview = function()
-	    {
-		if ( hovered_preview )
-	        sdWorld.time = forced_time;
-	       
-		//if ( !draw_once )
-		//return;
-	    
-		settings_container.style.transform = 'scale(' + Math.min( document.body.clientWidth / 1260, Math.min( document.body.clientHeight / 830, 1 ) ) + ')';
-		
-		if ( !ctx.drawImageFilterCache )
-		{
-		    if ( typeof sdRenderer !== 'undefined' )
-		    if ( typeof sdWorld !== 'undefined' )
-		    if ( typeof sdCharacter !== 'undefined' )
-		    if ( typeof sdGun !== 'undefined' )
-		    sdRenderer.AddCacheDrawMethod( ctx );
-		}
-		
-		if ( !ctx.drawImageFilterCache )
-		return;
-	    
-		if ( globalThis.socket_io_crashed && !socket.connected )
-		start_btn.value = globalThis.socket_io_crashed;
-		else
-		{
-		    let str = T('Play with {1} other players ({2} online)');
-		    //start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
-		    str = str.split('{1}').join( format( globalThis.players_playing ) );
-		    str = str.split('{2}').join( format( globalThis.players_online ) );
-		    start_btn.value = str;
-		}
-	    
-		ctx.fillStyle = '#7b3219';
-		//ctx.fillStyle = '#111111';
-		ctx.fillRect( 0, 0, 128, 128 );
-	    
-		ctx.save();
-
-		let ent;
-		
-		let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( globalThis.GetPlayerSettings() );
-		
-		if ( sdWorld.allowed_player_classes.indexOf( preferred_entity ) === -1 )
-		ent = new sdCharacter({ x:1, y:0 });
-		else
-		ent = new sdWorld.entity_classes[ preferred_entity ]({ x:1, y:0 });
-		
-		
-		let ent2;
-		let ent3;
-		{
-		    ent3 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
-		    ent._inventory[ 1 ] = ent3;
-		    ent3._held_by = ent;
-		}
-		
-		if ( inputs_hash[ 'start_with1' ].el.checked )
-		{
-		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SWORD });
-		    ent._inventory[ 0 ] = ent2;
-		    ent2._held_by = ent;
-		}
-		else
-		if ( inputs_hash[ 'start_with2' ].el.checked )
-		{
-		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SHOVEL });
-		    ent._inventory[ 0 ] = ent2;
-		    ent2._held_by = ent;
-	        }	
-		
-		
-		//if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
-		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
-		
-		//ent._an = Math.PI / 2;
-		ent.look_x = -1000;
-		ent.look_y = 0;
-		ent.stands = true;
-		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? -1 : 0;
-		ent._anim_walk = ( sdWorld.time / 50 ) % 10;
-		
-		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( globalThis.GetPlayerSettings() );
-		ent.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( globalThis.GetPlayerSettings() );
-		ent.body = sdWorld.ConvertPlayerDescriptionToBody( globalThis.GetPlayerSettings() );
-		ent.legs = sdWorld.ConvertPlayerDescriptionToLegs( globalThis.GetPlayerSettings() );
-		
-		if ( sdWorld.time % 5000 < 500 )
-		ent.pain_anim = 10 / ( sdWorld.time % 5000 ) / 500;
-		
-		if ( ( sdWorld.time + 500 ) % 2000 < 250 )
-		{
-		    ent.fire_anim = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
-		    
-		}
-
-		ctx.scale( 4,4 );
-		ctx.translate( 16, 14 );
-		
-		let real_net_id = ent._net_id;
-		ent._net_id = 0;
-		{
-		    sdShop.isDrawing = true;
-		    ent.Draw( ctx );
-		    sdShop.isDrawing = false;
-		}
-		ent._net_id = real_net_id;
-		
-		if ( ent._ragdoll )
-		{
-		    ent._ragdoll.Delete( true );
-		}
-
-		ent.remove();
-		ent._remove();
-
-		ent2.remove();
-		ent2._remove();
-
-		ent3.remove();
-		ent3._remove();
-
-		ctx.restore();
-		
-		
-		if ( hovered_preview )
-		{
-		    var p = ctx.getImageData( cursor_x, cursor_y, 1, 1 ).data; 
-		    var hex = "#" + ( "000000" + sdWorld.ColorArrayToHex( [ p[0], p[1], p[2] ] ) ).slice( -6 );
-		    
-		    hovered_color = [ p[0], p[1], p[2] ];
-		    
-		    let reset = true;
-		    
-		    for ( let i = 0; i < inputs.length; i++ )
-		    if ( inputs[ i ].el.type === 'color' )
-		    {
-			if ( inputs[ i ].el.value === hex )
-			{
-			    reset = false;
-			    break;
-			}
-		    }
-		    
-		    if ( reset )
-		    hovered_color = null;
-		}
-		
-		if ( hovered_color )
-		{
-		    let image_data = ctx.getImageData( 0, 0, 128, 128 );
-		    let image_data_new = ctx.getImageData( 0, 0, 128, 128 );
-		    
-		    let left = -1 * 4;
-		    let right = 1 * 4;
-		    let up = -128 * 4;
-		    let down = 128 * 4;
-		    
-		    function ColorMatches( i )
-		    {
-			if ( image_data.data[ i   ] === hovered_color[ 0 ] )
-			if ( image_data.data[ i+1 ] === hovered_color[ 1 ] )
-			if ( image_data.data[ i+2 ] === hovered_color[ 2 ] )
-			return true;
-	    
-			return false;
-		    }
-		    
-		    let t = Date.now();
-		    
-		    let br = ~~( 127 + Math.sin( t / 100 ) * 127 );
-		    
-		    function Fill( i )
-		    {
-			//if ( ( t / 100 + i / 4 ) % 10 < 5 )
-			{
-			    image_data_new.data[ i   ] = br;
-			    image_data_new.data[ i+1 ] = br;
-			    image_data_new.data[ i+2 ] = br;
-			}
-		    }
-		    
-		    for ( let i = 0; i < image_data.data.length; i += 4 )
-		    {
-			if ( ColorMatches( i ) )
-			{
-			    if ( !ColorMatches( i + right ) )
-			    Fill( i + right );
-			    if ( !ColorMatches( i + left ) )
-			    Fill( i + left );
-			    if ( !ColorMatches( i + up ) )
-			    Fill( i + up );
-			    if ( !ColorMatches( i + down ) )
-			    Fill( i + down );
-			}
-		    }
-		    
-		    ctx.putImageData( image_data_new, 0, 0, 0, 0, 128, 128 );
-		}
-		
-		draw_once = false;
-	    };*/
-	
-	    globalThis.preview_fnc = ()=>{ 
-		globalThis.DrawPreview( hovered_preview, forced_time, settings_container, ctx, start_btn, inputs_hash, cursor_x, cursor_y, inputs, format, hovered_color );
-		
-		if ( globalThis.preview_interval )
-		requestAnimationFrame( globalThis.preview_fnc );
-	    };
-	    globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );// setInterval( globalThis.preview_fnc, 16 );
-	    
-	    let conditional_elements = [];
-
-	    let NO_DEFAULT_VALUE_PTR = {};
-	    
-	    //function AcceptField( my_hash, default_v='unset' )
-	    let AcceptField = ( my_hash, default_v='unset' )=>
-	    {
-		let obj = { 
-		    el: document.getElementById( my_hash ),
-		    default_value: NO_DEFAULT_VALUE_PTR
-		};
-		inputs.push( obj );
-		inputs_hash[ obj.el.id ] = obj;
-		obj.el.value = default_v;
-		try {
-		    let v = localStorage.getItem( my_hash );
-		    if ( v !== null )
-		    obj.el.value = v;
-		} catch(e){}
-		
-		obj.el.onchange = ()=>
-		{
-		    globalThis.GetPlayerSettings( obj.el );
-
-		    globalThis.SavePlayerSettings();
-		};
-	    };
-	    
-	    function GenerateHash( length )
-	    {
-		var result           = '';
-		var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-+:;[]{},.|!@#$%^&*() ';
-		var charactersLength = characters.length;
-
-		for ( var i = 0; i < length; i++ )
-		result += characters.charAt( ~~( Math.random() * charactersLength ) );
-
-		return result;
-	    }
-	    
-	    //AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
-	    AcceptField( 'my_hash', GenerateHash( 30 ) ); // document.getElementById('my_hash').value // 7.630759594789488e+57 possible unique combinations
-	    AcceptField( 'last_local_time_start', 0 );
-	    AcceptField( 'volume', 70 );
-	    AcceptField( 'password', '' );
-	    
-	    if ( Date.now() > parseInt( document.getElementById( 'last_local_time_start' ).value ) + 1000 * 60 * 60 * 8 )
-	    {
-		globalThis.will_play_startup_tune = true;
-	    }
-	    
-	    // Create helmet/body/legs options
-	    {
-		let place_helmets_here = document.getElementById( 'place_helmets_here' );
-		let place_bodies_here = document.getElementById( 'place_bodies_here' );
-		let place_legs_here = document.getElementById( 'place_legs_here' );
-
-		let compiled_helmets = '';
-		let compiled_bodies = '';
-		let compiled_legs = '';
-
-		function ItemSorter( a, b )
-		{
-		    var textA = a.name.toUpperCase();
-		    var textB = b.name.toUpperCase();
-		    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-		}
-
-		let sorted_helmet_info = sdCharacter.helmet_file_names_with_actual_names.slice().sort( ItemSorter );
-		let sorted_skin_info = sdCharacter.skin_file_names_with_actual_names.slice().sort( ItemSorter );
-
-		for ( let i = 0; i < sorted_helmet_info.length; i++ )
-		if ( sorted_helmet_info[ i ].file !== '' )
-		{
-		    let item = sorted_helmet_info[ i ];
-
-		    if ( compiled_helmets.length > 0 )
-		    compiled_helmets += `<br>`;
-
-		    compiled_helmets += 
-		    `<input type="checkbox" id="helmet${ item.id }" value="${ item.id }">
-		    <label for="helmet${ i }">${ item.name }</label>`;
-		}
-
-		for ( let i = 0; i < sorted_skin_info.length; i++ )
-		if ( sorted_skin_info[ i ].file !== '' )
-		{
-		    let item = sorted_skin_info[ i ];
-
-		    if ( compiled_bodies.length > 0 )
-		    {
-			compiled_bodies += `<br>`;
-			compiled_legs += `<br>`;
-		    }
-
-		    compiled_bodies += 
-		    `<input type="checkbox" id="body${ item.id }" value="${ item.id }">
-		    <label for="body${ i }">${ item.name }</label>`;
-
-		    compiled_legs += 
-		    `<input type="checkbox" id="legs${ item.id }" value="${ item.id }">
-		    <label for="legs{ i }">${ item.name }</label>`;
-		}
-
-		place_helmets_here.innerHTML += compiled_helmets;
-		place_bodies_here.innerHTML += compiled_bodies;
-		place_legs_here.innerHTML += compiled_legs;
-	    }
-			
-	    //function LoopThrough( settings_container )
-	    let LoopThrough = ( settings_container )=>
-	    {
-		for ( let i = 0; i < settings_container.childNodes.length; i++ )
-		{
-		    if ( settings_container.childNodes[ i ].childNodes.length > 0 )
-		    {
-			LoopThrough( settings_container.childNodes[ i ] );
-		    }
-		    
-		    
-		    if ( settings_container.childNodes[ i ].nodeName.charAt( 0 ) !== '#' )
-		    if ( settings_container.childNodes[ i ].getAttribute( 'mycondition' ) )
-		    {
-			conditional_elements.push( settings_container.childNodes[ i ] );
-		    }
-		    
-		    if ( settings_container.childNodes[ i ].nodeName === 'INPUT' )
-		    if ( settings_container.childNodes[ i ].id )
-		    if ( settings_container.childNodes[ i ].type !== 'button' )
-		    {
-			
-			let obj = { 
-			    el: settings_container.childNodes[ i ],
-			    default_value: null
-			};
-
-			if ( obj.el.type === 'checkbox' )
-			{
-			    Object.defineProperty( obj.el, "value", 
-			    {
-				get: function()
-				{ return this.checked; },
-				set: function(value)
-				{ 
-				    value = ( value === 'true' || value === true ); // localStorage stuff
-				    this.checked = value; }
-			    });
-			}
-
-			if ( obj.default_value !== NO_DEFAULT_VALUE_PTR )
-			obj.default_value = settings_container.childNodes[ i ].value;
-
-			inputs.push( obj );
-			inputs_hash[ settings_container.childNodes[ i ].id ] = obj;
-
-			try {
-			    let v = localStorage.getItem( obj.el.id );
-			    if ( v !== null )
-			    obj.el.value = v;
-			} catch(e){}
-
-
-			obj.el.addEventListener('change', ()=>
-			{
-			    globalThis.GetPlayerSettings( obj.el );
-
-			    globalThis.SavePlayerSettings();
-			});
-		    }
-		}
-	    };
-	    LoopThrough( settings_container );
-	    
-	    let JustOne = function( prefix, last_changed_el )
-	    {
-		let els = [];
-		
-		for ( let i = 1; inputs_hash[ prefix + i ]; i++ )
-		els.push( inputs_hash[ prefix + i ].el );
-	    
-		let checked_tot = 0;
-		
-		for ( let i = 0; i < els.length; i++ )
-		if ( els[ i ].checked )
-		checked_tot++;
-	    
-		if ( checked_tot !== 1 )
-		{
-		    for ( let i = 0; i < els.length; i++ )
-		    els[ i ].checked = ( els[ i ] === last_changed_el );
-		
-		    if ( last_changed_el === null )
-		    els[ 0 ].checked = true;
-		}
-	    };
-	    
-	    globalThis.enable_debug_info = false;
-	    
-	    globalThis.GetPlayerSettings = function( last_changed_el=null, do_not_export_password=false )
-	    {
-		let ret = {};
-		
-		JustOne( 'start_with', last_changed_el );
-		JustOne( 'voice', last_changed_el );
-		//JustOne( 'voice_chat', last_changed_el );
-		JustOne( 'hints', last_changed_el );
-		JustOne( 'bugs', last_changed_el );
-		//JustOne( 'visuals', last_changed_el );
-		//JustOne( 'density', last_changed_el );
-		JustOne( 'helmet', last_changed_el );
-		JustOne( 'drone_helmet', last_changed_el );
-		JustOne( 'camera', last_changed_el );
-		//JustOne( 'volume', last_changed_el );
-		JustOne( 'body', last_changed_el );
-		JustOne( 'legs', last_changed_el );
-		JustOne( 'entity', last_changed_el );
-		JustOne( 'censorship', last_changed_el );
-		JustOne( 'selftalk', last_changed_el );
-		JustOne( 'music', last_changed_el );
-		JustOne( 'shading', last_changed_el );
-		
-		for ( let i = 0; i < conditional_elements.length; i++ )
-		{
-		    let cond = conditional_elements[ i ].getAttribute( 'mycondition' );
-		    
-		    let cond_parts = cond.split('||');
-		    
-		    let vis = false;
-		    
-		    for ( let i2 = 0; i2 < cond_parts.length; i2++ )
-		    {
-			if ( inputs_hash[ cond_parts[ i2 ].trim() ].el.checked )
-			vis = true;
-		    }
-		    
-		    conditional_elements[ i ].style.display = vis ? '' : 'none';
-		}
-		
-		for ( let i = 0; i < inputs.length; i++ )
-		{
-		    let obj = inputs[ i ];
-		    
-		    if ( obj.el.value !== false )
-		    ret[ obj.el.id ] = obj.el.value;
-		}
-		
-		ret.save_file = globalThis.SavePlayerSettingsAsObject();
-		
-		if ( do_not_export_password )
-		{
-		    delete ret.save_file;
-		    delete ret.my_hash;
-		}
-		
-		if ( typeof sdTranslationManager !== 'undefined' )
-		sdTranslationManager.TranslateHTMLPage();
-		
-		return ret;
-	    };
-	    
-	    globalThis.SavePlayerSettings = function() // Should be done after validation which is done by globalThis.GetPlayerSettings
-	    {
-		for ( let i = 0; i < inputs.length; i++ )
-		{
-		    let obj = inputs[ i ];
-		    
-		    try {
-			localStorage.setItem( obj.el.id, obj.el.value );
-		    } catch(e){}
-		}
-	    };
-	    globalThis.SavePlayerSettingsAsObject = function() // Should be done after validation which is done by globalThis.GetPlayerSettings
-	    {
-		let save = {};
-		
-		for ( let i = 0; i < inputs.length; i++ )
-		{
-		    let obj = inputs[ i ];
-		    save[ obj.el.id ] = obj.el.value;
-		}
-		
-		return save;
-	    };
-	    globalThis.LoadPlayerSettingsFromObject = function( save ) // Should be done after validation which is done by globalThis.GetPlayerSettings
-	    {
-		if ( !save )
-		{
-		    trace( 'No save file was passed' );
-		    return;
-		}
-		
-		for ( let i = 0; i < inputs.length; i++ )
-		{
-		    let obj = inputs[ i ];
-		    obj.el.value = save[ obj.el.id ];
-		}
-	    };
-	    
-	
-	    document.getElementById( 'last_local_time_start' ).value = Date.now();
-	    globalThis.SavePlayerSettings();
-	    
-	    
-	    globalThis.ResetSkin = function()
-	    {
-		for ( let i = 0; i < inputs.length; i++ )
-		inputs[ i ].el.value = inputs[ i ].default_value;
-	     
-		globalThis.GetPlayerSettings();
-		globalThis.SavePlayerSettings();
-	    };
-	    
-	    globalThis.TestVoice = function( last_changed_el, phrase='in space, nobody can hear you' )
-	    {
-		let s = globalThis.GetPlayerSettings( last_changed_el );
-		
-		let _voice = sdWorld.ConvertPlayerDescriptionToVoice( s );
-		
-		_voice.amplitude = sdSound.volume_speech * 100;
-		_voice.voice = 'en/en';
-		
-		meSpeak.stop();
-		meSpeak.speak( phrase, _voice );
-	    };
-	    
-	    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-	    const SpeechGrammarList = window.webkitSpeechGrammarList || window.SpeechGrammarList;
-	    
-	    if ( SpeechRecognition )
-	    {
-	    
-		const recognition = new SpeechRecognition();
-
-		recognition.continuous = true;
-		recognition.lang = 'en-US';
-		recognition.interimResults = false;
-		recognition.maxAlternatives = 1;
-
-		let crashed = false;
-
-		globalThis.StartVoiceRecognition = function()
-		{
-		    if ( inputs_hash[ 'voice_chat2' ] )
-		    if ( inputs_hash[ 'voice_chat2' ].el.checked )
-		    {
-			recognition.start();
-			crashed = false;
-		    }
-		};
-		globalThis.StartVoiceRecognition();
-
-		globalThis.recognition = recognition;
-
-		recognition.onresult = function( event )
-		{
-		    const last = event.results.length - 1;
-
-		    globalThis.TestVoice( null, event.results[ last ][ 0 ].transcript );
-
-		    globalThis.socket.emit( 'CHAT', event.results[ last ][ 0 ].transcript.trim() );
-		};
-		recognition.onend = (e)=>
-		{
-		    console.log( 'onend' );
-		    if ( !crashed )
-		    recognition.start();
-		};
-		recognition.onerror = function(event) {
-		  console.log( 'Error occurred in recognition: ' + event.error );
-		  crashed = true;
-		};
-	    }
-	    
-	    /*function Reporter() // Simple DevTools detector, disabled for now
-	    {
-		let report = [];
-		setInterval(()=>
-		{
-		    let ticks = 0;
-		    
-		    let t = performance.now();
-		    
-		    while ( performance.now() < t + 1 )
-		    {
-			console.log( '________________________________________________________________________________________________________________________________________________________' );
-			ticks++;
-		    }
-		    
-		    report.push( ticks );
-		    
-		    console.clear();
-		    trace( report );
-		    
-		}, 500 );
-	    }
-	    Reporter();*/
-	    
-	    if ( document.location.hash === '#stream_logger' )
-	    {
-		
-		let once = true;
-		
-		function StreamLoggerAuto()
-		{
-		    if ( once )
-		    if ( typeof sdWorld !== 'undefined' )
-		    {
-			once = false;
-			globalThis.TestVoice( null, 'Hash tag detected - initiating stream logger mode. Have a nice day!' );
-		    }
-		    
-		    if ( typeof sdRenderer !== 'undefined' && sdRenderer.canvas.style.display === 'none' )
-		    {
-			if ( document.getElementById( 'entity4' ) )
-			{
-			    if ( document.getElementById( 'entity4' ).checked )
-			    {
-				if ( document.getElementById( 'volume1' ).checked )
-				{
-				    if ( socket.connected )
-				    {
-					document.getElementById( 'start_btn' ).click();
-				    }
-				}
-				else
-				document.getElementById( 'volume1' ).click();
-			    }
-			    else
-			    document.getElementById( 'entity4' ).click();
-			}
-		    }
-		    setTimeout( StreamLoggerAuto, 100 );
-		}
-		
-		StreamLoggerAuto();
-	    }
-	}
-	</script>
+	<script src="client/sdStartupScreen_v2.js"></script>
     </body>
 </html>

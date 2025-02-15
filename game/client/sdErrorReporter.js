@@ -3,6 +3,8 @@
 	Made to report iOS-specific errors on screen
 
 */
+/* global globalThis */
+
 if ( false )
 {
 	let can_show_error = true;

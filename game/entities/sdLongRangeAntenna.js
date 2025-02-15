@@ -83,7 +83,10 @@ class sdLongRangeAntenna extends sdEntity
 		
 		this._spawned_ai = false; // Spawn SD AI
 		
+		if ( sdWeather.only_instance )
 		this._event_to_spawn = sdWeather.only_instance._potential_invasion_events[ Math.floor( Math.random() * sdWeather.only_instance._potential_invasion_events.length ) ] || -1; // Random event which are usually invasions is selected.
+		else
+		this._event_to_spawn = -1; // Needed for singleplayer snapshot load
 		
 		//this.matter_max = 5500;
 		//this.matter = 100;
@@ -257,6 +260,9 @@ class sdLongRangeAntenna extends sdEntity
 											character_entity.remove();
 										}
 							
+										
+										if ( character_entity._is_being_removed )
+										clearInterval( logic, 1000 );
 									};
 									
 									setInterval( logic, 1000 );

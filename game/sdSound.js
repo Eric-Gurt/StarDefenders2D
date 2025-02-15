@@ -37,7 +37,7 @@ class sdSound
 				sdSound.volume = v * 1; // non-relative
 				sdSound.volume_speech = v * 1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
 				sdSound.volume_ambient = v * 0.75; // non-relative
-				sdSound.volume_music = v * 0.5; // non-relative
+				sdSound.volume_music = v * 0.3; // non-relative
 			};
 
 			//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -140,6 +140,243 @@ class sdSound
 			//sdSound.matter_charge_sum = 0;
 			//sdSound.matter_decrease_strength = 0;
 			sdSound.matter_target_volume_soft = 0;
+			
+			{
+				sdSound.quit_sounds_str = 
+`abomination_alert
+abomination_attack
+abomination_death
+adoor_start
+adoor_stop
+alien_charge2
+alien_energy_charge1
+alien_energy_charge2
+alien_energy_power_charge1
+alien_energy_power_charge1_fast
+alien_energy_power_charge2
+alien_energy_power_charge2_fast
+alien_energy_power_charge2_fast2
+alien_laser1
+alien_laser2
+antigravity
+anti_crystal_ambient
+armor_break
+armor_pickup
+asteroid
+bad_dog_alert
+bad_dog_attack
+bad_dog_death
+bad_dog_hurt
+bad_dog_retreat
+block4
+blockB4
+bsu_attack
+can_drink
+command_centre
+council_beacon_destruction
+council_death
+council_hurtA
+council_hurtB
+council_teleport
+crystal
+crystal2
+crystal2_short
+crystal_combiner_end
+crystal_combiner_endB
+crystal_combiner_start
+crystal_combiner_startB
+crystal_crab_death
+cube_alert2
+cube_attack
+cube_attackB
+cube_boss_ping
+cube_death
+cube_hurt
+cube_offline
+cube_shard
+cube_teleport
+cut_droid_alert
+cut_droid_attack
+cut_droid_death
+digA
+digB
+digC
+digD
+door_start
+door_stop
+drone_death
+drone_explosion
+earthquake
+enemy_mech_alert
+enemy_mech_attack4
+enemy_mech_charge
+enemy_mech_death3
+enemy_mech_hurt
+enemy_mech_warning
+epic_machine_startup
+erthal_alert
+erthal_death
+erthal_hurt
+evil_alien_charge1
+evil_alien_charge1_fast1
+explosion
+explosion3
+falkok_drone_fire
+fire_big
+fire_detected
+fire_gone
+fire_small
+f_death1
+f_death2
+f_death3
+f_pain2
+f_pain3
+f_pain4
+f_welcome1
+ghost_breath
+ghost_start
+ghost_stop
+glass10
+glass12
+guanako_confused
+guanako_death
+guanako_disagreeing
+guanako_hurt
+gun_anti_rifle_fire
+gun_anti_rifle_hit
+gun_buildtool
+gun_buildtool2
+gun_defibrillator
+gun_dmr
+gun_f_rifle
+gun_grenade_launcher
+gun_missile_launcher_p07
+gun_needle
+gun_pistol
+gun_portal4
+gun_psicutter
+gun_psicutter_bounce
+gun_railgun
+gun_railgun_malicestorm_terrorphaser
+gun_railgun_malicestorm_terrorphaser4
+gun_raygun
+gun_rayrifle
+gun_rifle
+gun_rocket
+gun_saw
+gun_shotgun
+gun_shotgun_mk2
+gun_sniper
+gun_spark
+gun_the_ripper
+gun_the_ripper2
+hover_explosion
+hover_lowhp
+hover_start
+kick_blaster
+level_up
+menu_bypass
+menu_click
+menu_hover
+missile_incoming
+mission_complete
+mission_failed
+notificator_alert
+notificator_alertB
+notificator_alertC
+notificator_alertD
+notificator_alertE
+octopus_alert
+octopus_death
+octopus_hurt2
+overlord_cannon3
+overlord_cannon4
+overlord_chatter1
+overlord_chatter2
+overlord_chatter3
+overlord_chatter4
+overlord_chatter5
+overlord_deathB
+overlord_deathC
+overlord_hurtB2
+overlord_hurtC
+overlord_nearby
+overlord_nearbyB
+overlord_spawned
+overlord_welcomeB
+piano_world_startB
+piano_world_startB2_cutA
+player_hit
+player_hit3
+player_step
+player_step_robot
+pop
+popcorn
+portal_through
+powerup_or_exp_pickup
+quickie_alert
+red_railgun
+reload
+reload3
+rescue_teleport_fake_death2
+rift_feed3
+rift_spawn1
+saber_attack
+saber_hit2
+scary_monsters_in_the_dark
+scary_monster_spawned2
+scary_monster_spawned3
+sci_fi_world_start
+score_impact
+sd_beacon
+sd_beacon_disarm
+sd_death
+sd_death2
+sd_hurt1
+sd_hurt2
+sd_welcome
+sd_welcome2
+shield
+shield_turret
+shield_turret_door
+shotgun_blaster
+shurg_turret_attack
+slug_jump
+spider_attackC
+spider_celebrateC
+spider_deathC3
+spider_hurtC
+spider_welcomeC
+supercharge_combined2
+supercharge_combined2_part1
+supercharge_combined2_part2
+sword_attack
+sword_attack2
+sword_bot_alert
+sword_bot_death
+teleport
+teleport_ready
+tentacle_end
+tentacle_start
+turret
+tzyrg_alertC
+tzyrg_death
+tzyrg_deathC2
+tzyrg_fire
+tzyrg_hurt
+tzyrg_hurtC
+virus_alert
+virus_damage2
+water
+water_entrance
+world_hit
+world_hit2
+zektaron_crash
+zektaron_death
+zombie_alert2
+zombie_hurt
+zombie_idle`;
+			}
 		}
 	}
 	static AllowSound()
@@ -148,15 +385,18 @@ class sdSound
 		{
 			sdSound.allowed = true;
 			
+			if ( typeof adConfig !== 'undefined' )
 			adConfig({
 				sound: 'on'
 			});
 			
-			sdMusic.init_class();
+			sdMusic.init_classB();
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
 	{
+		let volume_ambient = ( sdRenderer.canvas.style.display === 'block' ) ? sdSound.volume_ambient : 0;
+		
 		let target_volume = 0;
 		
 		if ( sdWorld.my_entity )
@@ -239,15 +479,15 @@ class sdSound
 		for ( var i = 0; i < sdSound.ambients.length; i++ )
 		{
 			var a = sdSound.ambients[ i ];
-			//a.audio.volume = a.di / di_sum * sdSound.volume_ambient * ( 1 - rain_intens );
-			a.audio.volume = a.di / di_sum * sdSound.volume_ambient * ( 1 - rain_intens ) * Math.max( 0, 1 - sdWorld.Dist2D( sdSound.ambient_seeker.x, sdSound.ambient_seeker.y, a.x, a.y ) ); // More silence
+			//a.audio.volume = a.di / di_sum * volume_ambient * ( 1 - rain_intens );
+			a.audio.volume = a.di / di_sum * volume_ambient * ( 1 - rain_intens ) * Math.max( 0, 1 - sdWorld.Dist2D( sdSound.ambient_seeker.x, sdSound.ambient_seeker.y, a.x, a.y ) ); // More silence
 		}
 		
-		sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
-		//sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
+		sdSound.rain_low_res.volume = rain_intens * volume_ambient;
+		//sdSound.rain_low_res.volume = rain_intens * volume_ambient;
 		
-		sdSound.earthquake.volume = earthquake_intens * sdSound.volume_ambient;
-		//sdSound.earthquake.volume = earthquake_intens * sdSound.volume_ambient;
+		sdSound.earthquake.volume = earthquake_intens * volume_ambient;
+		//sdSound.earthquake.volume = earthquake_intens * volume_ambient;
 		
 		let count_flying = 0;
 		let count_hover_loop = 0;
@@ -385,25 +625,25 @@ class sdSound
 		count_fire_small = count_fire * ( 1 - morph );
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
-		sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
+		sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * volume_ambient );
 		
 		sdSound.hover_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.hover_loop_volume_last, count_hover_loop, 0.8, GSPEED );
-		sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
+		sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * volume_ambient );
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
-		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 1.25, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
+		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 1.25, sdSound.amplifier_loop_volume_last ) * volume_ambient );
 		
 		sdSound.antigravity_volume_last = sdWorld.MorphWithTimeScale( sdSound.antigravity_volume_last, count_antigravity, 0.8, GSPEED );
-		sdSound.antigravity.volume = Math.min( 1, Math.min( 1.25, sdSound.antigravity_volume_last ) * sdSound.volume_ambient );
+		sdSound.antigravity.volume = Math.min( 1, Math.min( 1.25, sdSound.antigravity_volume_last ) * volume_ambient );
 		
 		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
-		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
+		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * volume_ambient );
 		
 		sdSound.fire_big_volume_last = sdWorld.MorphWithTimeScale( sdSound.fire_big_volume_last, count_fire_big, 0.8, GSPEED );
-		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * sdSound.volume_ambient );
+		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * volume_ambient );
 		
 		sdSound.fire_big_volume_last = sdWorld.MorphWithTimeScale( sdSound.fire_big_volume_last, count_fire_small, 0.8, GSPEED );
-		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * sdSound.volume_ambient );
+		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * volume_ambient );
 		
 		if ( sdWorld.my_entity )
 		{
@@ -418,18 +658,18 @@ class sdSound
 		
 		count_water_loop = Math.max( 0, count_water_loop - ( 0.5 + Math.sin( sdWorld.time / 10000 ) * 0.5 ) * 0.05 );
 		sdSound.water_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.water_loop_volume_last, count_water_loop, 0.8, GSPEED );
-		sdSound.water_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.water_loop_volume_last ) * sdSound.volume_ambient );
+		sdSound.water_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.water_loop_volume_last ) * volume_ambient );
 		
 		
 		
 		sdSound.lava_burn_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_burn_volume_last, count_lava_burn, 0.8, GSPEED );
-		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
+		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * volume_ambient );
 		
 		sdSound.rift_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rift_loop_volume_last, count_rift_loop, 0.8, GSPEED );
-		sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
+		sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * volume_ambient );
 		
 		sdSound.anti_crystal_ambient_volume_last = sdWorld.MorphWithTimeScale( sdSound.anti_crystal_ambient_volume_last, count_anti_crystal_ambient, 0.8, GSPEED );
-		sdSound.anti_crystal_ambient.volume = Math.min( 1, Math.min( 10, sdSound.anti_crystal_ambient_volume_last ) * sdSound.volume_ambient );
+		sdSound.anti_crystal_ambient.volume = Math.min( 1, Math.min( 10, sdSound.anti_crystal_ambient_volume_last ) * volume_ambient );
 		
 		
 		// Note: Never go over 1 on .volume - browsers will throw an error and freeze screen
@@ -602,6 +842,15 @@ class sdSound
 				
 			}
 		}
+	}
+	
+	static PlayUISound( params ) // It is more of a hack than anything
+	{
+		params._server_allowed = true;
+		params.x = sdWorld.camera.x;
+		params.y = sdWorld.camera.y;
+		
+		sdSound.PlaySound( params );
 	}
 }
 export default sdSound;

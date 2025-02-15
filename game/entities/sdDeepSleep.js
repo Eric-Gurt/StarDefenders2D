@@ -125,6 +125,7 @@ import sdHover from './sdHover.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdWanderer from './sdWanderer.js';
 import sdBullet from './sdBullet.js';
+import sdCable from './sdCable.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -677,6 +678,7 @@ class sdDeepSleep extends sdEntity
 					//sdWorld.UpdateHashPosition( ent, false, false ); // Won't call onMovementInRange
 				}*/
 				
+				if ( ent ) // Happens in singleplayer sometimes?
 				ents.push( ent );
 			}
 			
@@ -1425,6 +1427,23 @@ class sdDeepSleep extends sdEntity
 								}
 							}
 						}
+						
+						
+						if ( e.is( sdCable ) )
+						{
+							dependences.push( e._p );
+							dependences.push( e._c );
+						}
+						else
+						{
+							let cables_set = sdCable.cables_per_entity.get( e );
+							if ( cables_set !== undefined )
+							{
+								for ( let cable of cables_set )
+								if ( !cable._is_being_removed ) // Probably can't happen
+								dependences.push( cable );
+							}
+						}
 
 						/*if ( e.is( sdBlock ) )
 						if ( e._plants )
@@ -1620,7 +1639,7 @@ class sdDeepSleep extends sdEntity
 						sdLongRangeTeleport.teleported_items.add( e );
 					}
 				}
-				sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
+				sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude, true );
 
 				//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
 				//scheduled_sleep_areas_to_cancel[ i ].remove();

@@ -137,36 +137,41 @@ class sdModeration
 		
 		if ( sdWorld.server_config.apply_censorship || sdWorld.server_config.apply_censorship === undefined )
 		{
-			//trace( 'Checking words', sdModeration.bad_words.length );
-			
-			let phrase_raw_lower_case = ' ' + ( phrase.toLowerCase ) + ' ';
-			phrase = ' ' + sdModeration.SpecialsReplaceWithLatin( phrase ) + ' ';
-
-			for ( let i = 0; i < sdModeration.bad_words.length; i++ )
+			if ( sdModeration.ever_loaded )
 			{
-				if ( phrase.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 ||
-					 phrase_raw_lower_case.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 )
+				//trace( 'Checking words', sdModeration.bad_words.length );
+
+				let phrase_raw_lower_case = ' ' + ( phrase.toLowerCase ) + ' ';
+				phrase = ' ' + sdModeration.SpecialsReplaceWithLatin( phrase ) + ' ';
+
+				for ( let i = 0; i < sdModeration.bad_words.length; i++ )
 				{
-					// Potentially tracking IPs and lowering reaction level would make sense against some obsessed people, hopefully there won't be any
-					
-					if ( sdModeration.bad_words[ i ][ 1 ] < 0.15 ) // In current implementation some words can be ignored since they can be mean but not exactly worthy censoring
+					if ( phrase.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 ||
+						 phrase_raw_lower_case.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 )
 					{
-						// Low tier phrases should prevent higher tier to react to them
-						phrase = phrase.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
-						phrase_raw_lower_case = phrase_raw_lower_case.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
-						//trace( 'Partially found', i, ' -- ', sdModeration.bad_words[ i ][ 0 ], ' -- ', sdModeration.bad_words[ i ][ 1 ] );
-					}
-					else
-					{
-						//trace( 'Found bad word' );
-						/*if ( coming_from_socket )
+						// Potentially tracking IPs and lowering reaction level would make sense against some obsessed people, hopefully there won't be any
+
+						if ( sdModeration.bad_words[ i ][ 1 ] < 0.15 ) // In current implementation some words can be ignored since they can be mean but not exactly worthy censoring
 						{
-							coming_from_socket.muted_until = sdWorld.time + ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 );
-						}*/
-						return 1;
+							// Low tier phrases should prevent higher tier to react to them
+							phrase = phrase.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
+							phrase_raw_lower_case = phrase_raw_lower_case.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
+							//trace( 'Partially found', i, ' -- ', sdModeration.bad_words[ i ][ 0 ], ' -- ', sdModeration.bad_words[ i ][ 1 ] );
+						}
+						else
+						{
+							//trace( 'Found bad word' );
+							/*if ( coming_from_socket )
+							{
+								coming_from_socket.muted_until = sdWorld.time + ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 );
+							}*/
+							return 1;
+						}
 					}
 				}
 			}
+			else
+			traceOnce( 'Unable to apply censorship test because IsPhraseBad call was before modertation state was loaded' );
 		}
 		//trace( 'It is fine' );
 		return 0;
@@ -629,7 +634,7 @@ class sdModeration
 		{
 			if ( socket.character )
 			{
-				if ( parts[ 1 ] === '1' )
+				if ( parts[ 1 ] === '1' || parts[ 1 ] === '2' )
 				{
 					// Skip arrival sequence
 					if ( socket.character.driver_of )
@@ -639,6 +644,7 @@ class sdModeration
 					}
 					
 					socket.character._god = true;
+					socket.character._debug = ( parts[ 1 ] === '2' );
 					
 					if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
 					{
@@ -666,7 +672,7 @@ class sdModeration
 						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
 					}
 					
-					socket.emit('SET sdWorld.my_entity._god', true );
+					socket.emit('SET sdWorld.my_entity._god', socket.character._god, socket.character._debug );
 				}
 				else
 				if ( parts[ 1 ] === '0' )
@@ -676,10 +682,11 @@ class sdModeration
 					//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' is no longer in "godmode".' );
 				
 					socket.character._god = false;
-					socket.emit('SET sdWorld.my_entity._god', false );
+					socket.character._debug = false;
+					socket.emit('SET sdWorld.my_entity._god', socket.character._god, socket.character._debug );
 				}
 				else
-				socket.SDServiceMessage( 'Type /god 1 or /god 0' );
+				socket.SDServiceMessage( 'Type /god 1 or /god 0 . You can use /god 2 to show sensor areas' );
 			}
 			else
 			socket.SDServiceMessage( 'Server: No active character.' );

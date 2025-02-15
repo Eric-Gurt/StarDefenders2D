@@ -3,6 +3,8 @@
 	Caption with text
 
 */
+/* global sdModeration */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';

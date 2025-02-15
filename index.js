@@ -1079,7 +1079,7 @@ var no_respawn_areas = []; // arr of { x, y, radius, until }
 
 function UpdateOnlineCount()
 {
-	let pc = GetPlayingPlayersCount();
+	let pc = GetPlayingPlayersCount( false, false );
 
 	let connected_total = 0;
 
@@ -1122,6 +1122,9 @@ const hash_flood_prevention = []; // Array of { hash, expire_on } - used to prev
 const unique_hash_queue_length = 50; // It will likely limit number of online players by 50, at least if they connect at the same time
 const hash_floor_expire_in = 1000 * 30;
 globalThis.hash_flood_prevention = hash_flood_prevention;
+
+let menu_chat_messages = [];
+let menu_chat_user_counter = 0;
 
 let next_drop_log = 0;
 io.on( 'connection', ( socket )=> 
@@ -1562,7 +1565,9 @@ io.on( 'connection', ( socket )=>
 		}
 		
 		
-	
+		//socket.byte_shifter.onRemove();
+		//socket.byte_shifter = new sdByteShifter( socket );
+		//socket.byte_shifter.Reset();
 	
 		
 		let t = Date.now();
@@ -1771,6 +1776,7 @@ io.on( 'connection', ( socket )=>
 				socket.respawn_block_until = sdWorld.time + ( 1000 * 60 * 2 ); // 2 minutes respawn wait time
 				// Not sure if this is ideal solution. - Booraz149
 			}
+			sdEntity.entities.push( character_entity );
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket ) )
@@ -1920,7 +1926,7 @@ io.on( 'connection', ( socket )=>
 		{
 			setTimeout( ()=>
 			{
-				socket.emit('SET sdWorld.my_entity._god', true );//, { reliable: true, runs: 100 } );
+				socket.emit('SET sdWorld.my_entity._god', character_entity._god, character_entity._debug );//, { reliable: true, runs: 100 } );
 				
 			}, 2000 );
 		}
@@ -1946,7 +1952,7 @@ io.on( 'connection', ( socket )=>
 			}
 		}
 
-		sdEntity.entities.push( character_entity );
+		//sdEntity.entities.push( character_entity );
 		
 
 		//socket.character = character_entity; // Twice?
@@ -2012,6 +2018,52 @@ io.on( 'connection', ( socket )=>
 				if ( url.indexOf( '127.0.0.1' ) === -1 ) // No point in these as they can't be accessed from outside anyway
 				sdWorld.server_url = url;
 			}
+		}
+	});
+	socket.listens_to_menu_chat = false;
+	socket.menu_chat_uid = menu_chat_user_counter++;
+	socket.on('menu_chat_command', ( v )=>
+	{
+		if ( v === 1 )
+		{
+			if ( !socket.listens_to_menu_chat )
+			{
+				let response = { 
+					menu_chat_uid: socket.menu_chat_uid, 
+					time: Date.now(), 
+					messages: menu_chat_messages.slice() 
+				};
+				socket.emit( 'MENU_CHAT_UPDATE', response );
+			}
+			socket.listens_to_menu_chat = true;
+			socket.likely_a_real_player = true;
+		}
+		else
+		if ( v === 0 )
+		{
+			socket.listens_to_menu_chat = false;
+		}
+		else
+		{
+			v = (v+'').substring( 0, 2000 );
+			
+			let time = Date.now();
+			
+			// These are sent as is (!) Handle IP address information accordingly if you are going to
+			let obj = {
+				from: socket.menu_chat_uid,
+				text: v,
+				time: time,
+				text_censored: sdModeration.IsPhraseBad( v, socket )
+			};
+			
+			menu_chat_messages.push( obj );
+			if ( menu_chat_messages.length > 100 )
+			menu_chat_messages.shift();
+			
+			for ( let i = 0; i < sockets.length; i++ )
+			if ( sockets[ i ].listens_to_menu_chat )
+			sockets[ i ].emit( 'MENU_CHAT_UPDATE', { messages: [ obj ] } );
 		}
 	});
 	socket.on('one_time_key', ( v )=>
@@ -3044,6 +3096,9 @@ io.on( 'connection', ( socket )=>
 			socket.known_non_removed_dynamics = VoidArray;
 			socket.lost_messages = VoidArray;
 			socket.sent_messages = VoidArray;
+			
+			socket.byte_shifter.onRemove();
+			socket.byte_shifter = null;
 		
 			UpdateOnlineCount();
 			

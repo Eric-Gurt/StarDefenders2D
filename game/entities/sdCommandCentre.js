@@ -207,138 +207,6 @@ class sdCommandCentre extends sdEntity
 		
 		return this.hmax * sdWorld.damage_to_matter + 200;
 	}
-	GivePlayerTask( initiator )
-	{
-		//if ( initiator.cc_id === this._net_id ) // Only if you're part of the team // Maybe it is not needed for now
-		{
-			let task_count = 3; // Up to 3 tasks at once, unlimited time ( was 1 task, 20 minutes )
-			for ( let i = 0; i < task_count; i++ )
-			{
-				let task = Math.round( Math.random() * 9 );
-				let num_ents;
-				let difficulty_per_entity = 0.275;
-				
-				let template = { 
-					similarity_hash:'EXTRACT-X', 
-					executer: initiator,
-					mission: sdTask.MISSION_LRTP_EXTRACTION,
-					difficulty: ( 0.167 * 1 ),
-					title: 'Extract X',
-					time_left: -1,
-					lrtp_ents_needed: 1,
-					lrtp_class_proprty_value_array: [ 'sdCrystal' ],
-					description: 'Extract X by using a long range teleporter.'
-				};
-				
-				if ( task === 0 ) // Extract any natural crystals
-				{
-					num_ents = 10 + Math.round( Math.random() * 20 );
-					
-					difficulty_per_entity *= 1 / 20;
-					
-					template.title = 'Extract natural crystals';
-					template.description = 'Extract natural crystals by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_natural', true ];
-				}
-				if ( task === 1 ) // Extract any natural large/big crystals
-				{
-					num_ents = 5 + Math.round( Math.random() * 5 );
-					
-					difficulty_per_entity *= 1 / 10;
-					
-					template.title = 'Extract natural large crystals';
-					template.description = 'Extract natural large crystals by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_big', true ];
-				}
-				if ( task === 2 ) // Extract slugs
-				{
-					num_ents = 4 + Math.round( Math.random() * 6 );
-					
-					difficulty_per_entity *= 1 / 10;
-					
-					template.title = 'Extract slugs';
-					template.description = 'Extract slugs to the mothership by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdSlug' ];
-				}
-				if ( task === 3 ) // Extract alien batteries
-				{
-					num_ents = 2 + Math.round( Math.random() * 3 );
-					
-					difficulty_per_entity *= 1 / 5;
-					
-					template.title = 'Extract alien batteries';
-					template.description = 'Extract alien batteries to the mothership by using a long range teleporter, so we can study them.';
-					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', 1 ];
-				}
-				if ( task === 4 ) // Extract lost particle containers
-				{
-					num_ents = 2 + Math.round( Math.random() * 3 );
-					
-					difficulty_per_entity *= 1 / 5;
-					
-					template.title = 'Extract lost particle containers';
-					template.description = 'Extract lost particle containers to the mothership, so we can see how we can utilize them.';
-					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', 2 ];
-				}
-				if ( task === 5 ) // Extract any crystal crabs
-				{
-					num_ents = 5 + Math.round( Math.random() * 10 );
-					
-					difficulty_per_entity *= 1 / 20;
-					
-					template.title = 'Extract crab crystals';
-					template.description = 'Extract crab crystals by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'is_crab', true ];
-				}
-				if ( task === 6 ) // Extract any cube shards
-				{
-					num_ents = 2 + Math.round( Math.random() * 3 );
-					
-					difficulty_per_entity *= 1 / 5;
-					
-					template.title = 'Extract cube shards';
-					template.description = 'Extract cube shards by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdGun', 'class', sdGun.CLASS_CUBE_SHARD ];
-				}
-				if ( task === 7 ) // Extract any metal shards
-				{
-					num_ents = 2 + Math.round( Math.random() * 3 );
-					
-					difficulty_per_entity *= 1 / 5;
-					
-					template.title = 'Extract metal shards';
-					template.description = 'Extract metal shards by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdGun', 'class', sdGun.CLASS_METAL_SHARD ];
-				}
-				if ( task === 8 ) // Extract any Cubes
-				{
-					num_ents = 2 + Math.round( Math.random() * 3 );
-					
-					difficulty_per_entity *= 1 / 5;
-					
-					template.title = 'Extract Cubes';
-					template.description = 'Extract Cubes by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdCube' ];
-				}
-				if ( task === 9 ) // Extract Virus
-				{
-					num_ents = 5 + Math.round( Math.random() * 5 );
-					
-					difficulty_per_entity *= 1 / 10;
-					
-					template.title = 'Extract Virus entities';
-					template.description = 'Extract Virus entities by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdVirus' ];
-				}
-				
-				template.similarity_hash = 'EXTRACT-' + template.lrtp_class_proprty_value_array.join('-'); // Prevent overriding - it will cause lrtp_class_proprty_value_array and title/desciption mismatch
-				template.difficulty = difficulty_per_entity * num_ents;
-				template.lrtp_ents_needed = num_ents;
-
-				sdTask.MakeSureCharacterHasTask( template );
-			}
-		}
-	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		//this._armor_protection_level = 0; // Never has protection unless full health reached
@@ -370,7 +238,8 @@ class sdCommandCentre extends sdEntity
 	}
 	get description()
 	{
-		return 'Allows you to disable friendly fire with your friends as well as request tasks from Mothership.';
+		//return 'Allows you to disable friendly fire with your friends as well as request tasks from Mothership.';
+		return 'Allows you to disable friendly fire with your friends as well as send messages that can be heard anywhere.';
 	}
 	Draw( ctx, attached )
 	{
@@ -381,7 +250,9 @@ class sdCommandCentre extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+this.biometry+')', 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+this.biometry+')', 0, -8 - 6 );
+		
+		this.BasicVehicleTooltip( ctx, 0 - 6 );
 		
 		/*if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
 		sdEntity.Tooltip( ctx, 'No expiration', 0, -3, '#66ff66' );
@@ -482,11 +353,11 @@ class sdCommandCentre extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
 		{
-			if ( command_name === 'REQUEST_TASK' )
+			/*if ( command_name === 'REQUEST_TASK' )
 			{
 				this.GivePlayerTask( exectuter_character );
 			}
-			else
+			else*/
 			if ( this.owner === exectuter_character )
 			{
 				const AcceptNetID = ( net_id )=>
@@ -664,7 +535,7 @@ class sdCommandCentre extends sdEntity
 				this.AddContextOption( 'Request team join', 'REQUEST', [] );
 			}
 			//if ( exectuter_character.cc_id === this._net_id )
-			this.AddContextOption( 'Request tasks', 'REQUEST_TASK', [] );
+			//this.AddContextOption( 'Request tasks', 'REQUEST_TASK', [] );
 		}
 	}
 }

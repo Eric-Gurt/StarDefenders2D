@@ -288,11 +288,12 @@ class sdSolarMatterDistributor extends sdEntity
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
 											character_entity.remove();
 										}
-							
+										
+										if ( character_entity._is_being_removed )
+										clearInterval( logic, 1000 );
 									};
 									
 									setInterval( logic, 1000 );
-									
 									
 									break;
 								}

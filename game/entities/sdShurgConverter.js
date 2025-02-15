@@ -19,6 +19,7 @@ import sdRift from './sdRift.js';
 import sdBlock from './sdBlock.js';
 import sdFactions from './sdFactions.js';
 import sdShurgTurret from './sdShurgTurret.js';
+import sdTimer from './sdTimer.js';
 
 class sdShurgConverter extends sdEntity
 {
@@ -58,6 +59,8 @@ class sdShurgConverter extends sdEntity
 		this.should_drain_timer = 30; // Unless this is 0 or below 0, don't drain player oxyge ( sdShop bug fix )
 		//this._drain_entities = []; // Array which stores which players to drain oxygen from when they are close enough
 		//Not needed
+		
+		this._turrets = null;
 
 		sdShurgConverter.converters.push( this );
 
@@ -70,6 +73,56 @@ class sdShurgConverter extends sdEntity
 	{
 		return this.filter;
 	}*/
+	
+	static DoSequentualSpawn( initial=true )
+	{
+		let converter = [];
+		let turrets = [];
+
+		sdWeather.SimpleSpawner({
+
+			count: [ 1, 1 ],
+			class: sdShurgConverter,
+			store_ents: converter,
+			aerial: true,
+			aerial_radius: 128
+
+		});
+
+		if ( converter.length > 0 ) // Successful spawn?
+		{
+			if ( initial )
+			sdShurgConverter.ents_left = 2; // 3 converters to destroy
+
+			sdWeather.SimpleSpawner({
+
+				count: [ 2, 2 ],
+				class: sdShurgTurret,
+				aerial:true,
+				aerial_radius: 128,
+				group_radius: 800,
+				near_entity: converter[ 0 ],
+				store_ents: turrets
+
+			});
+			sdWeather.SimpleSpawner({
+
+				count: [ 3, 3 ],
+				class: sdShurgTurret,
+				params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
+				group_radius: 400,
+				near_entity: converter[ 0 ],
+				aerial: true,
+				store_ents: turrets
+
+			});
+
+			converter[ 0 ]._turrets = turrets;
+			
+			return true;
+		}
+	}
+	
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -83,63 +136,31 @@ class sdShurgConverter extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{
+			if ( this._turrets )
+			{
+				for ( let i = 0; i < this._turrets.length; i++ )
+				{
+					let t = this._turrets[ i ];
+					
+					sdTimer.ExecuteWithDelay( ( timer )=>{
+
+						if ( !t._is_being_removed )
+						t.Damage( t.hea + 1, initiator );
+
+					}, 1000 + i * 300 );
+				}
+				this._turrets = null;
+			}
+			
 			let spawned_ent = false;
 			if ( sdShurgConverter.ents_left > 0 )
 			{
 				sdShurgConverter.ents_left--;
-				//let instances = 0;
-				//let instances_tot = 1;
-
-				//while ( instances < instances_tot && sdShurgConverter.converters.length < 2 ) // Spawn another Shurg converter until last one
+				
+				if ( sdShurgConverter.DoSequentualSpawn( false ) )
 				{
-					//let points = sdShurgConverter.ents_left === 0 ? 0.25: 0;
-					//let converter = new sdShurgConverter({ x:0, y:0 });
-
-					//sdEntity.entities.push( converter );
-					
-					let converter = [];
-					
-					sdWeather.SimpleSpawner({
-						
-						count: [ 1, 1 ],
-						class: sdShurgConverter,
-						store_ents: converter,
-						aerial: true,
-						aerial_radius: 128
-						
-					})
-					
-					if ( converter.length > 0 ) // Successful spawn?
-					{
-						spawned_ent = true;
-
-						sdWeather.SimpleSpawner({
-				
-						count: [ 2, 2 ],
-						class: sdShurgTurret,
-						aerial:true,
-						aerial_radius: 128,
-						group_radius: 800,
-						near_entity: converter[ 0 ]
-				
-						});
-
-						sdWeather.SimpleSpawner({
-
-						count: [ 3, 3 ],
-						class: sdShurgTurret,
-						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
-						group_radius: 400,
-						near_entity: converter[ 0 ],
-						aerial: true
-			
-						});
-					}
-					
-					//instances++;
+					spawned_ent = true;
 				}
-
-
 			}
 
 			if ( spawned_ent === true )

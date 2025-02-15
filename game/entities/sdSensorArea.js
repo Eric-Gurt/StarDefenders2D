@@ -37,6 +37,7 @@ class sdSensorArea extends sdEntity
 		if ( observer_entity )
 		if ( observer_entity.IsPlayerClass() )
 		if ( observer_entity._god )
+		if ( observer_entity._debug )
 		return true;
 		
 		return false;

@@ -54,6 +54,9 @@ class sdAsteroid extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this.attached_to )
+		return;
+	
 		if ( this.type === sdAsteroid.TYPE_FLESH )
 		{
 			if ( from_entity )
@@ -71,15 +74,22 @@ class sdAsteroid extends sdEntity
 				{
 					if ( sdWorld.inDist2D_Boolean( this.x, this.y, this._land_x, this._land_y, 800 ) && ( sdWorld.server_config.base_degradation || !from_entity._shielded || !from_entity._shielded._is_being_removed ) )
 					{
-						from_entity.Fleshify();
+						//from_entity.Fleshify();
+						this.attached_to = from_entity;
+						this.attached_offset_x = this.x - from_entity.x;
+						this.attached_offset_y = this.y - from_entity.y;
+						this._infestation_in = sdWorld.time + 1000 * 60 * 60 * 24 * ( 2 + 2 * Math.random() ); // 2-4 days
+						
+						if ( !from_entity._shielded )
+						this._infestation_in = sdWorld.time + 5000; // Unprotected walls/ground is nearly instant
 					}
 					else
 					{
 						let e = new sdMimic({ x: this.x, y: this.y });
 						sdEntity.entities.push( e );
+						this.remove();
 					}
 
-					this.remove();
 					//this._broken = false;
 				}
 			}
@@ -94,6 +104,11 @@ class sdAsteroid extends sdEntity
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
 		this._warhead_detonated = false;
+		
+		this.attached_to = null;
+		this.attached_offset_x = 0;
+		this.attached_offset_y = 0;
+		this._infestation_in = 0;
 
 		
 		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
@@ -253,33 +268,54 @@ class sdAsteroid extends sdEntity
 	{
 		if ( this.landed )
 		{
-			this.sy += sdWorld.gravity * GSPEED;
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-			this._time_to_despawn -= GSPEED;
-			
-			this._an += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
-			
-			if ( sdWorld.is_server )
-			if ( this._time_to_despawn < 0 )
+			if ( this.attached_to )
 			{
-				if ( this.type === sdAsteroid.TYPE_MISSILE )
+				if ( this.attached_to._is_being_removed )
 				{
-					if ( this.CanMoveWithoutOverlap( this.x, this.y, 0.1 ) ) // Spawned at the top of a map in some protected wall or something like that. Just remove these
+					this.remove();
+				}
+				else
+				{
+					this.x = this.attached_to.x + this.attached_offset_x;
+					this.y = this.attached_to.y + this.attached_offset_y;
+
+					if ( sdWorld.time > this._infestation_in )
 					{
-						// Otherwise stop them from being active at least
-						this._time_to_despawn = 90;
-						this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+						this.attached_to.Fleshify( null, sdBlock.max_flesh_rank_asteroid );
+						this.remove();
+					}
+				}
+			}
+			else
+			{
+				this.sy += sdWorld.gravity * GSPEED;
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+				this._time_to_despawn -= GSPEED;
+
+				this._an += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
+
+				if ( sdWorld.is_server )
+				if ( this._time_to_despawn < 0 )
+				{
+					if ( this.type === sdAsteroid.TYPE_MISSILE )
+					{
+						if ( this.CanMoveWithoutOverlap( this.x, this.y, 0.1 ) ) // Spawned at the top of a map in some protected wall or something like that. Just remove these
+						{
+							// Otherwise stop them from being active at least
+							this._time_to_despawn = 90;
+							this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+						}
+						else
+						{
+							this.remove();
+							this._broken = false;
+						}
 					}
 					else
 					{
 						this.remove();
 						this._broken = false;
 					}
-				}
-				else
-				{
-					this.remove();
-					this._broken = false;
 				}
 			}
 		}
@@ -394,7 +430,7 @@ class sdAsteroid extends sdEntity
 	get title()
 	{
 		if ( this.type === sdAsteroid.TYPE_FLESH )
-		return ('Space flesh asteroid');
+		return this.attached_to ? 'Attached space flesh asteroid' : 'Space flesh asteroid';
 	
 		if ( this.type === sdAsteroid.TYPE_SHARDS )
 		return ('Asteroid with crystal shards');

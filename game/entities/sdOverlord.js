@@ -706,7 +706,7 @@ class sdOverlord extends sdEntity
 							}
 						}
 
-						an += ( Math.random() * 0.2 - 0.1 + waving ) * ( 1 - this._concentration * 0.9 );
+						an += ( Math.random() * 0.8 - 0.4 + waving ) * ( 1 - this._concentration * 0.9 );
 
 						let dx2 = 0;
 						let dy2 = 0;

@@ -447,6 +447,7 @@ class sdCouncilMachine extends sdEntity
 											character_entity.remove();
 										}
 							
+										
 									};
 						
 									setInterval( logic, 1000 );

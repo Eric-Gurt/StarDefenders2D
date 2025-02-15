@@ -45,7 +45,7 @@ class sdShop
 	}
 	static init_class()
 	{
-		console.log('sdShop class initiated');
+		//console.log('sdShop class initiated');
 		
 		sdShop.open = false;
 		sdShop.options = [];
@@ -365,6 +365,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
 
+			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER_PORTABLE, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _min_build_tool_level: 6 });
@@ -461,7 +462,9 @@ class sdShop
 			sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:5, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
 
 
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
@@ -2012,6 +2015,9 @@ class sdShop
 	}
 	static MouseWheel( e )
 	{
+		if ( !sdShop.open )
+		return;
+	
 		//sdShop.scroll_y -= e.deltaY;
 		sdShop.scroll_y_target -= e.deltaY;
 	}
