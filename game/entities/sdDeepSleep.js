@@ -442,7 +442,7 @@ class sdDeepSleep extends sdEntity
 	get hitbox_y2() { return this.h; }
 	
 	get hard_collision()
-	{ return true; }
+	{ return this.ThreatAsSolid(); }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
