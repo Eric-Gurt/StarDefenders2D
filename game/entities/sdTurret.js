@@ -143,6 +143,10 @@ class sdTurret extends sdEntity
 		
 		return true; 
 	}
+	IsAttachableToSteeringWheel()
+	{
+		return ( this.kind !== sdTurret.KIND_LASER_PORTABLE );
+	}
 	
 	get title()
 	{

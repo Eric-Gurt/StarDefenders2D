@@ -306,7 +306,7 @@ class sdSteeringWheel extends sdEntity
 
 									|| 
 
-									( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2._is_bg_entity === 0 && !ent2.is( sdBlock ) && !ent2.is( sdGrass ) ) // Ignore physical entities that will be pushed
+									( ent2.IsAttachableToSteeringWheel() && ent2._is_bg_entity === 0 && !ent2.is( sdBlock ) && !ent2.is( sdGrass ) ) // Ignore physical entities that will be pushed
 
 								)
 							//if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2._is_bg_entity === 0 ) // Ignore physical entities that will be pushed

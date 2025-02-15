@@ -43,7 +43,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -841,6 +841,40 @@ class sdModeration
 				sdWorld.ChangeWorldBounds( sdWorld.world_bounds.x1 + xx, sdWorld.world_bounds.y1 + yy, sdWorld.world_bounds.x2 + xx, sdWorld.world_bounds.y2 + yy );
 			
 				socket.SDServiceMessage( 'Server: Bounds changed. Current bounds: '+JSON.stringify( sdWorld.world_bounds ) );
+			}
+		}
+		else
+		if ( parts[ 0 ] === 'worldresize' )
+		{
+			let xx = Math.round( parts[ 2 ] / 32 ) * 32;
+			
+			if ( isNaN( xx ) || typeof xx !== 'number' || xx < -100000 || xx > 100000 )
+			socket.SDServiceMessage( 'Server: Value is out of range or not a number' );
+			else
+			{
+				let prop = null;
+				switch ( parts[ 1 ] )
+				{
+					case 'x1':
+					case 'y1':
+					case 'x2':
+					case 'y2':
+						prop = parts[ 1 ];
+
+						sdWorld.ChangeWorldBounds( 
+							sdWorld.world_bounds.x1 + ( ( prop === 'x1' ) ? xx : 0 ), 
+							sdWorld.world_bounds.y1 + ( ( prop === 'y1' ) ? xx : 0 ), 
+							sdWorld.world_bounds.x2 + ( ( prop === 'x2' ) ? xx : 0 ), 
+							sdWorld.world_bounds.y2 + ( ( prop === 'y2' ) ? xx : 0 ) 
+						);
+
+						socket.SDServiceMessage( 'Server: Bounds changed. Current bounds: '+JSON.stringify( sdWorld.world_bounds ) );
+						
+					break;
+
+					default: 
+						socket.SDServiceMessage( 'Server: Example: /worldresize x1 -256' );
+				}
 			}
 		}
 		else

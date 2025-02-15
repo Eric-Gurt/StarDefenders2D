@@ -488,6 +488,11 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
+	IsAttachableToSteeringWheel()
+	{
+		return ( !this.onThink.has_ApplyVelocityAndCollisions );
+	}
+	
 	get is_alive() // For tasks
 	{
 		return ( this.hea || this._hea || 0 ) > 0;
