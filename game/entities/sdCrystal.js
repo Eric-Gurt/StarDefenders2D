@@ -834,7 +834,7 @@ class sdCrystal extends sdEntity
 									aerial: true,
 
 									near_entity: e,
-									group_radius: 16,
+									group_radius: e._hitbox_x2 + 16,
 
 									allow_near_player: true
 								});
@@ -1161,11 +1161,11 @@ class sdCrystal extends sdEntity
 			this._hea = 200;
 		}
 		
-		this._hmax = this._hea; // For repair logic
-		
 		// Crabs can be healed x2 from original health (from grass)
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-		this._hmax *= 2; 
+		this._hea *= 2; 
+		
+		this._hmax = this._hea; // For repair logic
 
 		this._current_target = null; // For big crystal crabs
 		

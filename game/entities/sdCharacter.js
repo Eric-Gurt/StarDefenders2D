@@ -6346,7 +6346,8 @@ THING is cosmic mic drop!`;
 				
 				//if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
 				//new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null
-				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0, custom_filtering_method ) )
+				if ( ( initiator && initiator._god && initiator._debug ) || 
+					 fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0, custom_filtering_method ) )
 				{
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
@@ -6674,7 +6675,8 @@ THING is cosmic mic drop!`;
 			ent._owner_biometry = initiator.biometry;
 		}
 
-		if ( build_params._category !== 'Development tests' && !build_params._spawn_with_full_hp )
+		//if ( build_params._category !== 'Development tests' && !build_params._spawn_with_full_hp )
+		if ( !sdShop.IsGodModeOnlyItem( build_params ) && !build_params._spawn_with_full_hp )
 		{
 			if ( typeof ent.hmax !== 'undefined' )
 			ent.Damage( ent.hmax * 0.9, null, false, false ); // Start with low hp

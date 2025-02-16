@@ -1655,6 +1655,10 @@ class sdEntity
 											do_unstuck = true;
 											step_size = 8;
 										}
+											
+										// Relax for overlapping entities (storages) or else they might fall forever and eventually break
+										this.sx = 0;
+										this.sy = 0;
 									}
 									else
 									{
@@ -1769,7 +1773,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sy > ( best_ent.sy || 0 ) )
 									{
-										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' );
+										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' && !best_ent.is_static );
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
@@ -1819,7 +1823,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sy < ( best_ent.sy || 0 ) )
 									{
-										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' );
+										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' && !best_ent.is_static );
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
@@ -1874,7 +1878,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sx > ( best_ent.sx || 0 ) )
 									{
-										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' );
+										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' && !best_ent.is_static );
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
@@ -1929,7 +1933,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sx < ( best_ent.sx || 0 ) )			
 									{
-										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' );
+										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' && !best_ent.is_static );
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
