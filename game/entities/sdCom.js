@@ -47,6 +47,21 @@ class sdCom extends sdEntity
 		//sdCom.com_faction_attack_classes = [ 'sdManualTurret', 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
 		sdCom.com_faction_attack_classes = [ 'sdManualTurret', 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab', 'sdCube', 'sdCouncilIncinerator', 'sdTzyrgMortar' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
 		
+		sdCom.com_creature_collision_ignored_classes = [
+			'sdDrone',
+			'sdAmphid',
+			'sdAbomination',
+			'sdAsp',
+			'sdBadDog',
+			'sdBiter',
+			'sdOctopus',
+			'sdQuickie',
+			'sdSandWorm',
+			'sdVirus',
+			'sdTutel',
+			'sdFaceCrab'
+		];
+
 		sdCom.com_vision_blocking_classes = [ 'sdBlock', 'sdDoor' ];
 		
 		sdCom.com_visibility_unignored_classes_plus_erthals = sdCom.com_visibility_unignored_classes.slice();

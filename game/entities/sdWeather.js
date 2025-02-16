@@ -107,8 +107,8 @@ class sdWeather extends sdEntity
 		
 		sdWeather.only_instance = null;
 		
-		sdWeather.min_distance_from_online_players_for_entity_events = 500;
-		sdWeather.max_distance_from_online_players_for_entity_events = 3000;
+		sdWeather.min_distance_from_online_players_for_entity_events = 800;
+		sdWeather.max_distance_from_online_players_for_entity_events = 6000;
 		
 		let event_counter = 0;
 		sdWeather.EVENT_ACID_RAIN =				event_counter++; // 0
@@ -3913,7 +3913,23 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CUBE_BOSS )
 		{
+			let can_spawn = false;
 
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				let ent = sdWorld.sockets[ i ].character;
+
+				if ( !ent._is_being_removed )
+				if ( ( ent.hea || ent._hea ) > 0 )
+				if ( ent.build_tool_level >= 10 )
+				{
+					can_spawn = true;
+					break;
+				}
+			}
+
+			if ( can_spawn )
 			if ( sdCube.alive_red_cube_counter < sdCube.GetMaxAllowedCubesOfKind( sdCube.KIND_RED ) )
 			sdWeather.SimpleSpawner({
 

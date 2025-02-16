@@ -894,7 +894,7 @@ class sdBullet extends sdEntity
 									else
 									{
 										if ( typeof this._owner._nature_damage !== 'undefined' )
-										this._owner._nature_damage += dmg;
+										this._owner._nature_damage += dmg * 0.1;
 									}
 								}
 
@@ -1070,7 +1070,7 @@ class sdBullet extends sdEntity
 									//if ( from_entity.is( sdCube ) || from_entity.is( sdCrystal ) )
 									if ( from_entity.is( sdCrystal ) )
 									if ( typeof this._owner._nature_damage !== 'undefined' )
-									this._owner._nature_damage += dmg;
+									this._owner._nature_damage += dmg * 0.75;
 								}
 								
 								

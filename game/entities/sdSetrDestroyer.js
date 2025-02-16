@@ -25,6 +25,11 @@ class sdSetrDestroyer extends sdEntity
 		sdSetrDestroyer.img_destroyer_drone = sdWorld.CreateImageFromFile( 'setr_drone' );
 		sdSetrDestroyer.img_destroyer_drone_broken = sdWorld.CreateImageFromFile( 'setr_drone_destroyed' );
 		
+		sdSetrDestroyer.img_attack_indicator = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
+
+		sdSetrDestroyer.attack_indicator_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( sdSetrDestroyer.attack_indicator_filter, '#ffffff', '#ffff00' );
+		
 		sdSetrDestroyer.destroyer_counter = 0;
 		
 		sdSetrDestroyer.death_duration = 30;
@@ -79,11 +84,13 @@ class sdSetrDestroyer extends sdEntity
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
 		//this._bullets = 150;
-		this._rockets = 6;
+		this._rockets = 8;
 		// For homing
 		this.look_x = 0;
 		this.look_y = 0;
 		this.side = 1;
+		
+		this.attack_an = 0;
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
@@ -263,6 +270,7 @@ class sdSetrDestroyer extends sdEntity
 			this._current_target = initiator;
 
 			if ( initiator.GetClass() !== 'sdSetrDestroyer' )
+			if ( !this._follow_target || Math.random() < 0.1 )
 			this._follow_target = initiator;
 		}
 
@@ -637,6 +645,23 @@ class sdSetrDestroyer extends sdEntity
 				this.sy += 0.1 * GSPEED;
 			}
 			
+			if ( this._follow_target )
+			{
+				//if ( this._rocket_attack_timer > 10 )
+				{
+					this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._follow_target.x + ( this._follow_target.sx || 0 ) * 4, 0.9, GSPEED );
+					this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._follow_target.y + ( this._follow_target.sy || 0 ) * 4, 0.9, GSPEED );
+				}
+
+				//this.look_x = this._follow_target.x;
+				//this.look_y = this._follow_target.y;
+
+				let t_an = Math.atan2( this.look_y - this.y, this.look_x - this.x );
+
+				if ( this._rocket_attack_timer > 5 )
+				this.attack_an = sdWorld.RotateAngle( this.attack_an / 100, t_an, 0.1, GSPEED ) * 100;
+			}
+
 			if ( sdWorld.is_server )
 			{
 				if ( this._attack_timer <= 0 )
@@ -645,6 +670,7 @@ class sdSetrDestroyer extends sdEntity
 					if ( this._projectile_attack_timer <= 0 )
 					{
 						if ( this.hea < ( this._hmax / 2 ) )
+						if ( this._follow_target )
 						{
 							this.FireDirectionalProjectiles();
 							this._projectile_attack_timer = 15;
@@ -687,6 +713,9 @@ class sdSetrDestroyer extends sdEntity
 					//if ( this.hea < ( this._hmax / 2 ) ) // Second phase of the mech, rocket launcher can fire now
 					for ( let i = 0; i < targets.length; i++ )
 					{
+						if ( this._follow_target && targets[ i ] !== this._follow_target && Math.random() > 0.1 )
+						continue;
+
 						this._follow_target = targets[ i ];
 
 
@@ -702,7 +731,7 @@ class sdSetrDestroyer extends sdEntity
 
 						//let an = Math.atan2( targets[ i ].y - this.y - dy * 3, targets[ i ].x - this.x  - dx * 3 ) + ( Math.random() * 2 - 1 ) * 0.1;
 						
-						if ( this._rockets === 1 )
+						/*if ( this._rockets === 1 )
 						{
 							this.look_x = targets[ i ].GetCenterX() + ( dx * 4 );
 							this.look_y = targets[ i ].GetCenterY() + ( dy * 4 ); // Homing coordinates are updated only on first shot so players can still dodge them
@@ -716,7 +745,8 @@ class sdSetrDestroyer extends sdEntity
 						let an = Math.atan2( 
 								this.look_y - this.y - dy * 4, 
 								this.look_x - this.x - dx * 4 
-						) + ( Math.random() * 2 - 1 ) * 0.2;
+						) + ( Math.random() * 2 - 1 ) * 0.2;*/
+						let an = this.attack_an / 100 + ( Math.random() * 2 - 1 ) * 0.2;
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
@@ -725,8 +755,8 @@ class sdSetrDestroyer extends sdEntity
 						//bullet_obj.x += bullet_obj.sx * 5;
 						//bullet_obj.y += bullet_obj.sy * 5;
 
-						bullet_obj.sx *= 12;
-						bullet_obj.sy *= 12;
+						bullet_obj.sx *= 14;
+						bullet_obj.sy *= 14;
 					
 						bullet_obj.model = 'rocket_proj';
 
@@ -740,8 +770,8 @@ class sdSetrDestroyer extends sdEntity
 
 							bullet_obj._homing = true;
 							bullet_obj._homing_mult = 0.04;
-							bullet_obj.ac = 0.022;
-						}, this._rockets * 100 );
+							bullet_obj.ac = 0.02;
+						}, 200 + Math.random() * 200 );
 
 						bullet_obj.time_left = 30 * 3;
 
@@ -751,8 +781,8 @@ class sdSetrDestroyer extends sdEntity
 
 						if ( this._rockets <= 0 )
 						{
-							this._rockets = 6;
-							this._rocket_attack_timer = 45;
+							this._rockets = 8;
+							this._rocket_attack_timer = 90;
 						}
 
 						//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
@@ -838,6 +868,23 @@ class sdSetrDestroyer extends sdEntity
 		let xx = this.hea <= 0;
 		ctx.drawImageFilterCache( sdSetrDestroyer.img_destroyer, xx * 96, 0, 96, 64, - 48, - 32, 96, 64);
 
+		if ( !sdWorld.draw_methods_output_ptr ) // Exclude this part from lost appearance
+		if ( this.hea > 0 )
+		{
+			//ctx.blend_mode = THREE.AdditiveBlending;
+
+			ctx.sd_filter = sdSetrDestroyer.attack_indicator_filter;
+			ctx.globalAlpha = 0.5;
+
+			let laser_di = 64;
+			let width = 8;
+
+			ctx.rotate( this.attack_an / 100 );
+
+			ctx.drawImageFilterCache( sdSetrDestroyer.img_attack_indicator, 0,-width/2, laser_di,width );
+		}
+
+		ctx.blend_mode = THREE.NormalBlending;
 		ctx.filter = 'none';
 		ctx.globalAlpha = 1;
 		ctx.sd_filter = null;

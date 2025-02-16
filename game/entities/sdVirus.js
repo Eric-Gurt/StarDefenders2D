@@ -171,6 +171,10 @@ class sdVirus extends sdEntity
 			}
 		}
 	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
+	}
 	GetBleedEffect()
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;

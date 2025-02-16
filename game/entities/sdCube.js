@@ -24,6 +24,7 @@ import sdWeather from './sdWeather.js';
 //import sdPlayerSpectator from './sdPlayerSpectator.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
 
 import sdPathFinding from '../ai/sdPathFinding.js';
@@ -986,6 +987,7 @@ class sdCube extends sdEntity
 					e.is( sdSetrDestroyer ) || 
 					e.is( sdSpider ) || 
 					e.is( sdOverlord ) ||
+					e.is( sdCouncilIncinerator ) ||
 					e.is( sdZektaronDreadnought ) );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -1290,6 +1292,7 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdDrone' && target._hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
+								 ( target.GetClass() === 'sdCouncilIncinerator' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) )								 )
 							{
 								if ( 
@@ -1355,8 +1358,8 @@ class sdCube extends sdEntity
 									bullet_obj.sx = Math.cos( an );
 									bullet_obj.sy = Math.sin( an );
 
-									bullet_obj.sx *= 10;
-									bullet_obj.sy *= 10;
+									bullet_obj.sx *= 16;
+									bullet_obj.sy *= 16;
 
 									//bullet_obj.time_left = 60;
 									bullet_obj.time_left = 90; // overriden later
@@ -1508,7 +1511,7 @@ class sdCube extends sdEntity
 										this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
 									}
 								}
-							}, 500 );
+							}, 400 );
 
 							this._charged_shots--;
 
@@ -1588,7 +1591,7 @@ class sdCube extends sdEntity
 		if ( ent._target.GetClass() === 'sdCube' )
 		return false;
 		
-		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
+		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdZektaronDreadnought' || ent.GetClass() === 'sdCouncilIncinerator' ) // Bosses are targetable by cubes, bosses fight cubes aswell
 		return false;
 		
 		if ( ent.GetClass() === 'sdBot' || ent.GetClass() === 'sdDrone' )

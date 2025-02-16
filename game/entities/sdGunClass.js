@@ -746,7 +746,7 @@ class sdGunClass
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _knock_scale: 0.03 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -1035,14 +1035,15 @@ class sdGunClass
 			reload_time: 7,
 			muzzle_x: 7,
 			ammo_capacity: 16,
+			spread: 0.05,
 			count: 1,
 			matter_cost: 60,
-			projectile_velocity: 16,
+			projectile_velocity: 14,
 			projectile_properties: { _damage: 1 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.02 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -1247,11 +1248,11 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			projectile_velocity: 16 * 1.5,
-			projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.01 * 8 },
+			projectile_properties: { time_left: 1, _damage: 50, color: 'transparent', _knock_scale:0.025 * 8 },
 			projectile_velocity_dynamic: ( gun )=> { return 16 * 1.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 1, color: 'transparent', _knock_scale:0.01 * 8 };
+				let obj = { time_left: 1, color: 'transparent', _knock_scale:0.025 * 8 };
 				//obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -1271,7 +1272,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 60; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 50; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -1472,7 +1473,7 @@ class sdGunClass
 			matter_cost: 90, // Was 200, but I don't feel like this weapon is overpowered enough to have high cost like stimpack does /EG
 			min_build_tool_level: 2, // Was available from start before, however MK2 shovel needs this aswell
 			projectile_velocity: 20 * 1.5,
-			projectile_properties: { time_left: 1, _damage: 80, color: 'transparent', _knock_scale:0.01 * 8, 
+			projectile_properties: { time_left: 1, _damage: 70, color: 'transparent', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
@@ -1485,7 +1486,7 @@ class sdGunClass
 			projectile_velocity_dynamic: ( gun )=> { return 20 * 1.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 1, color: 'transparent', _knock_scale:0.01 * 8, 
+				let obj = { time_left: 1, color: 'transparent', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
@@ -1514,7 +1515,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 80; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 70; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -2316,6 +2317,14 @@ class sdGunClass
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
+				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) || target_entity.is( sdJunk ) )
+					{
+						bullet._damage = 0;
+					}
+				};
+				
 				return obj;
 			},
 
@@ -2552,7 +2561,7 @@ class sdGunClass
 			count: 1,
 			is_sword: false,
 			projectile_velocity: 16 * 1.5,
-			projectile_properties: { time_left: 1, _damage: 20, color: 'transparent', _knock_scale:0.025 * 8, _dirt_mult: 4 }, // 3X ( 1 + 2 ) damage against dirt blocks
+			projectile_properties: { time_left: 1, _damage: 19, color: 'transparent', _knock_scale:0.025 * 8, _dirt_mult: 4 }, // 3X ( 1 + 2 ) damage against dirt blocks
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 1, color: 'transparent', _knock_scale:0.025 * 8, _dirt_mult: 4 };
@@ -2575,7 +2584,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 19; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -2599,7 +2608,7 @@ class sdGunClass
 			min_build_tool_level: 4,
 			matter_cost: 90,
 			projectile_velocity: 20 * 1.5,
-			projectile_properties: { time_left: 1, _damage: 30, color: 'transparent', _dirt_mult: 6 , _knock_scale:0.025 * 8, 
+			projectile_properties: { time_left: 1, _damage: 30, color: 'transparent', _dirt_mult: 4 , _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5, pitch: 1.5 });
@@ -2611,7 +2620,7 @@ class sdGunClass
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 1, color: 'transparent', _dirt_mult: 6 , _knock_scale:0.025 * 8, 
+				let obj = { time_left: 1, color: 'transparent', _dirt_mult: 4 , _knock_scale:0.025 * 8, 
 					_custom_target_reaction:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5, pitch: 1.5 });
@@ -2726,7 +2735,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: Infinity,
-			projectile_velocity: 10,
+			projectile_velocity: 16,
 			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
@@ -2736,7 +2745,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 600;
+				return 900;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -2792,12 +2801,12 @@ class sdGunClass
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
-							// Prevent yellow cubes from commiting not living
-							if ( nears[ i ].is( sdCube ) && bullet._owner === nears[ i ] )
+							// Prevent yellow cubes from commiting not living (or un-living each other)
+							if ( nears[ i ].is( sdCube ) && bullet._owner.is( sdCube ) )
 							{
 							}
 							else
-							sdLost.ApplyAffection( nears[ i ], 200, bullet );
+							sdLost.ApplyAffection( nears[ i ], 300, bullet );
 						}
 					}
 				}
@@ -2807,6 +2816,9 @@ class sdGunClass
 		
 		const cable_reaction_method = ( bullet, target_entity )=>
 		{
+			if ( typeof bullet._owner._current_built_entity === 'undefined' )
+			return;
+
 			if ( bullet._owner._current_built_entity )
 			if ( !bullet._owner._current_built_entity.is( sdCable ) )
 			bullet._owner._current_built_entity = null;
@@ -3867,6 +3879,7 @@ class sdGunClass
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
+			spread: 0.07,
 			projectile_velocity: 16,
 			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -4398,7 +4411,7 @@ class sdGunClass
 			{
 				return 4;
 			},
-			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 100, color: '#ffffff', _knock_scale:0.01 * 8, 
+			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.01 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
@@ -4410,7 +4423,7 @@ class sdGunClass
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model:'transparent_proj', time_left: 1, color: '#ffffff', _knock_scale:0.01 * 8, 
+				let obj = { model:'transparent_proj', time_left: 1, color: '#ffffff', _knock_scale:0.025 * 8, 
 					_custom_target_reaction:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
@@ -4420,7 +4433,7 @@ class sdGunClass
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
 					}
 				};
-				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.025 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -4438,7 +4451,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 100; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 90; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -6922,6 +6935,14 @@ class sdGunClass
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) || target_entity.is( sdJunk ) )
+					{
+						bullet._damage = 0;
+					}
+				};
 				
 				return obj;
 			},
