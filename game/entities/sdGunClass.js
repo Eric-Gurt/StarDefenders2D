@@ -1898,7 +1898,9 @@ class sdGunClass
 				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
 				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
 				{
+					if ( character._socket )
 					sdSound.PlaySound({ name:'cube_shard', x:character.x, y:character.y, volume:1, pitch:1 }, [ character._socket ] );
+				
 					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
 					character.onScoreChange();
 					
@@ -9024,7 +9026,9 @@ class sdGunClass
 				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
 				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
 				{
+					if ( character._socket )
 					sdSound.PlaySound({ name:'cube_shard', x:character.x, y:character.y, volume:1, pitch:1 }, [ character._socket ] );
+				
 					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
 					character.onScoreChange();
 					

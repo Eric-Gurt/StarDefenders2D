@@ -166,6 +166,8 @@ class sdMatterContainer extends sdEntity
 					}
 				}
 			}
+			else
+			executer_socket.SDServiceMessage( 'Matter container is too far' );
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
