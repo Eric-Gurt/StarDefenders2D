@@ -488,6 +488,20 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
+	IsPhysicallyMovable() // By physics (not steering wheels). Incorrect value can crash the game or cause players to stuck in place when trying to push entity
+	{
+		if ( typeof this.sx === 'undefined' )
+		return false;
+	
+		if ( typeof this.sy === 'undefined' )
+		return false;
+	
+		if ( this.is_static )
+		return false;
+	
+		return true;
+	}
+	
 	IsAttachableToSteeringWheel()
 	{
 		return ( !this.onThink.has_ApplyVelocityAndCollisions );
@@ -1773,7 +1787,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sy > ( best_ent.sy || 0 ) )
 									{
-										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' && !best_ent.is_static );
+										let best_is_dynamic = best_ent.IsPhysicallyMovable();
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
@@ -1823,7 +1837,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sy < ( best_ent.sy || 0 ) )
 									{
-										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' && !best_ent.is_static );
+										let best_is_dynamic = best_ent.IsPhysicallyMovable();
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
@@ -1878,7 +1892,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sx > ( best_ent.sx || 0 ) )
 									{
-										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' && !best_ent.is_static );
+										let best_is_dynamic = best_ent.IsPhysicallyMovable();
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 
@@ -1933,7 +1947,7 @@ class sdEntity
 									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
 									if ( this.sx < ( best_ent.sx || 0 ) )			
 									{
-										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' && !best_ent.is_static );
+										let best_is_dynamic = best_ent.IsPhysicallyMovable();
 								
 										if ( best_is_dynamic )
 										best_is_dynamic = 

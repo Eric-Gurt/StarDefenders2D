@@ -85,6 +85,10 @@ class sdBaseShieldingUnit extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return false; }
 	
+	IsPhysicallyMovable() // By physics (not steering wheels). Incorrect value can crash the game or cause players to stuck in place when trying to push entity
+	{
+		return !this.enabled;
+	}
 	
 	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	//{ return true; }
