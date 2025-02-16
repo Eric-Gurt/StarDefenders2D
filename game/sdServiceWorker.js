@@ -43,7 +43,10 @@ self.oninstall = async event => {
 
 self.onfetch = async event => {
 
+	// console.log( event.request );
+
 	if ( ( event.request.destination === "" && !( event.request.url.includes( ".wav" ) ) ) || event.request.method !== "GET" ) return; // Handle it differently
+	if ( event.request.url.includes( ".mp3" ) ) return; // Causes 206 Partial Content here
 
 	event.respondWith(
 		( async () => {
