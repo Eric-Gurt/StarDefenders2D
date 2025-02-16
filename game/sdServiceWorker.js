@@ -8,6 +8,7 @@
 // This is also a file which can't use any ES modules (for now)
 
 // TODO: fix onfetch not initiating properly (currently takes a restart to do it)
+// Can't figure this out yet ^
 
 self.oninstall = async event => {
 	await ( await caches.open( "sdCache-v1" ) ).addAll( [
@@ -42,9 +43,7 @@ self.oninstall = async event => {
 
 self.onfetch = async event => {
 
-	// console.log( event.request ); // Check.
-
-	if ( event.request.destination === "" || event.request.method !== "GET" ) return; // Handle it differently
+	if ( ( event.request.destination === "" && !( event.request.url.includes( ".wav" ) ) ) || event.request.method !== "GET" ) return; // Handle it differently
 
 	event.respondWith(
 		( async () => {
@@ -61,9 +60,10 @@ self.onfetch = async event => {
 
 			// Assuming we haven't found a cached response yet
 			const file = await fetch( event.request );
-			// await cache.put( event.request, file ); // It hates this, I hate this. No one likes this.
+
 			const fileClone = file.clone(); // Clone, so that it wouldn't error on the original one
 			await cache.put( event.request, fileClone );
+
 			return file;
 		} )() );
 };

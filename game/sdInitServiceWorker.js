@@ -1,6 +1,4 @@
 if ( "serviceWorker" in navigator ) {
-	// TODO: change "/" if we decide to use database URL for this
-
 	navigator.serviceWorker.onmessage = event => {
 		console.log( "sdServiceWorker sent message:", event );
 	};
