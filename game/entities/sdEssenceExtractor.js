@@ -561,7 +561,7 @@ class sdEssenceExtractor extends sdEntity
 					if ( parameters_array[ 0 ] >= 0 )
 					if ( parameters_array[ 0 ] < 3 )
 					{
-						if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 32 )
+						if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) < 32 )
 						{
 							if ( command_name === 'TRANSFER_MODE' )
 							{

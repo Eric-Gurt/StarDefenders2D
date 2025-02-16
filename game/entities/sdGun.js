@@ -212,13 +212,16 @@ class sdGun extends sdEntity
 				{
 					from_entity.extra = new_extra;
 					from_entity.sd_filter = sdGun.score_shard_recolor_tiers[ new_extra ];
-					from_entity.ttl = from_entity.ttl + this.ttl;
+					from_entity.ttl = Math.max( from_entity.ttl, this.ttl );
 					
 					if ( this.follow )
 					if ( !this.follow._is_being_removed )
 					{
 						if ( !from_entity.follow || from_entity.follow._is_being_removed )
-						from_entity.follow = this.follow;
+						{
+							from_entity.follow = this.follow;
+							//from_entity.ttl = this.ttl;
+						}
 					}
 					
 					this.remove();
@@ -534,8 +537,14 @@ class sdGun extends sdEntity
 		
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		
-		let has_class = sdGun.classes[ this.class ];
+		//let has_class = sdGun.classes[ this.class ];
+		this.ResetInheritedGunClassProperties( params );
 		
+		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+	}
+	ResetInheritedGunClassProperties( params=null )
+	{
+		let has_class = sdGun.classes[ this.class ];
 		if ( has_class )
 		{
 			this._count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
@@ -543,45 +552,44 @@ class sdGun extends sdEntity
 			this._temperature_addition = sdGun.classes[ this.class ].temperature_addition || 0;
 			this._reload_time = sdGun.classes[ this.class ].reload_time || 0;
 			this._is_manual_reload = sdGun.classes[ this.class ]._is_manual_reload || false;
-			
+
 			this._sound = sdGun.classes[ this.class ].sound || null;
 			this._sound_pitch = sdGun.classes[ this.class ].sound_pitch || 1;
-		
+
 			if ( sdGun.classes[ this.class ].hea !== undefined )
 			this._hea = sdGun.classes[ this.class ].hea;
 
+			if ( params )
 			if ( this.class !== sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
 			this.ttl = params.ttl || sdGun.disowned_guns_ttl * 2;
-		
+
 			if ( has_class.onMade )
 			has_class.onMade( this, params ); // Should not make new entities, assume gun might be instantly removed once made
-		
+
 			this.fire_mode = has_class.fire_type || 1; // Adjust fire mode for the weapon
-			
+
 			if ( this._max_dps === 1 && this.extra[ 17 ] ) // If not overridden by has_class.onMade and it has a damage value
 			{
 				if ( !sdGun.classes[ this.class ].burst )
 				this._max_dps = ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
 				else // Burst fire gun scenario
 				this._max_dps = ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
-				
+
 				if ( this._max_dps === Infinity )
 				{
 					console.warn( 'Error! ' + sdGun.classes[ this.class ].title + ' does not have max DPS defined properly!' );
 					debugger;
-					
+
 					this._max_dps = 1; // Prevent future bugged infinity damage guns
 				}
-			
+
 				// Should be the correct formulas.
-				
+
 				// WARNING - for special cases like charge weapons and explosive weapons, we should probably test how much damage does a single shot of the weapon deal then probably divide with minimum time between shots.
 				// You have to override _max_dps inside that class inside onMade:(gun, params)
 			}
 			//console.log( sdGun.classes[ this.class ].title + ": " + this._max_dps );
 		}
-
-		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	
 	CollisionFiltering( from_entity )
@@ -1189,15 +1197,18 @@ class sdGun extends sdEntity
 							console.warn( report.join(', \n') );
 							throw new Error( report.join(', \n') );
 						}*/
+							
+						let self_recoil_scale = ( sdGun.classes[ this.class ].self_recoil_scale === undefined ) ? 1 : sdGun.classes[ this.class ].self_recoil_scale;
 						
-						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
+						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale * self_recoil_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale * self_recoil_scale );
 						
-						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02; // 0.01
+						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
 
 						bullet_obj._bg_shooter = background_shoot ? true : false;
 						
 						if ( bullet_obj._owner.IsPlayerClass() )
 						bullet_obj.time_left *= bullet_obj._owner.s / 100;
+
 
 						if ( sdWorld.is_server )
 						{
@@ -1205,11 +1216,19 @@ class sdGun extends sdEntity
 						}
 						else
 						{
-							bullet_obj.explosion_radius = 0;
-							bullet_obj._hook = false;
-							bullet_obj._return_damage_to_owner = false;
-							bullet_obj.remove();
-							bullet_obj._remove();
+							/*if ( sdWorld.speculative_projectiles && sdWorld.my_entity && bullet_obj._owner === sdWorld.my_entity )
+							{
+								bullet_obj._speculative = true;
+								sdEntity.entities.push( bullet_obj );
+							}
+							else*/
+							{
+								bullet_obj.explosion_radius = 0;
+								bullet_obj._hook = false;
+								bullet_obj._return_damage_to_owner = false;
+								bullet_obj.remove();
+								bullet_obj._remove();
+							}
 						}
 					}
 				}
@@ -1925,7 +1944,7 @@ class sdGun extends sdEntity
 					ctx.drawImageFilterCache( sdGun.img_muzzle1, muzzle_x - 16, muzzle_y - 16, 32,32 );
 				}*/
 						
-				let yy = 4 - ~~( Math.min( 5, this.muzzle ) / 5 * 5 );
+				let yy = Math.max( 0, 4 - ~~( Math.min( 5, this.muzzle ) / 5 * 5 ) );
 				
 				for ( let xx = 0; xx < 2; xx++ )
 				{
@@ -1951,11 +1970,11 @@ class sdGun extends sdEntity
 						ctx.sd_tint_filter = [ 255 / 255, 216 / 255, 33 / 255 ];
 					}
 					
-					if ( has_class.is_large )
+					/*if ( has_class.is_large )
 					{
 						ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*64,yy*64,64,64, muzzle_x - 32, muzzle_y - 32, 64,64 );
 					}
-					else
+					else*/
 					if ( has_class.is_long )
 					{
 						ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 25, muzzle_y - 32, 64,64 );
@@ -1963,6 +1982,9 @@ class sdGun extends sdEntity
 					else
 					{
 						ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 16, muzzle_y - 16, 32,32 );
+						
+						//if ( yy * 32 < 0 || yy * 32 >= 160 )
+						//debugger;
 					}
 					
 					ctx.sd_tint_filter = null;

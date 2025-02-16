@@ -125,6 +125,7 @@ import sdHover from './sdHover.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdWanderer from './sdWanderer.js';
 import sdBullet from './sdBullet.js';
+import sdCable from './sdCable.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -229,7 +230,7 @@ class sdDeepSleep extends sdEntity
 	}
 	static GlobalThink( GSPEED )
 	{
-		if ( sdWorld.paused )
+		if ( sdWorld.paused && sdWorld.is_singleplayer )
 		return;
 	
 		if ( sdDeepSleep.debug_pause_any_deep_sleep_logic )
@@ -441,7 +442,7 @@ class sdDeepSleep extends sdEntity
 	get hitbox_y2() { return this.h; }
 	
 	get hard_collision()
-	{ return true; }
+	{ return this.ThreatAsSolid(); }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
@@ -677,6 +678,7 @@ class sdDeepSleep extends sdEntity
 					//sdWorld.UpdateHashPosition( ent, false, false ); // Won't call onMovementInRange
 				}*/
 				
+				if ( ent ) // Happens in singleplayer sometimes?
 				ents.push( ent );
 			}
 			
@@ -1423,6 +1425,23 @@ class sdDeepSleep extends sdEntity
 									//if ( prop !== 'follow' )
 									//debugger;
 								}
+							}
+						}
+						
+						
+						if ( e.is( sdCable ) )
+						{
+							dependences.push( e._p );
+							dependences.push( e._c );
+						}
+						else
+						{
+							let cables_set = sdCable.cables_per_entity.get( e );
+							if ( cables_set !== undefined )
+							{
+								for ( let cable of cables_set )
+								if ( !cable._is_being_removed ) // Probably can't happen
+								dependences.push( cable );
 							}
 						}
 

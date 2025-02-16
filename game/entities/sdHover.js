@@ -1055,19 +1055,11 @@ class sdHover extends sdEntity
 		return;
 	
 		if ( this.nick !== '' )
-		sdEntity.Tooltip( ctx, this.nick );
+		sdEntity.Tooltip( ctx, this.nick, 0, -8 );
 		else
-		sdEntity.Tooltip( ctx, this.title );
-		/* if ( this.type === 1 )
-		sdEntity.Tooltip( ctx, "Fighter Hover" );
-		else
-		if ( this.type === 2 )
-		sdEntity.Tooltip( ctx, "Tank SD-7" );
-		else
-		if ( this.type === 3 )
-		sdEntity.Tooltip( ctx, "Hoverbike" );
-		else
-		sdEntity.Tooltip( ctx, "Hover" ); */
+		sdEntity.Tooltip( ctx, this.title, 0, -8 );
+		
+		this.BasicVehicleTooltip( ctx, 0 );
 		
 		let w = this.type === 3 ? 20 : 40;
 	

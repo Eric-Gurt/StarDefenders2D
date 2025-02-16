@@ -7,6 +7,8 @@
 
 */
 
+/* global Infinity, sdModeration */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
@@ -33,8 +35,10 @@ class sdButton extends sdEntity
 		sdButton.TYPE_WALL_BUTTON = 0;
 		sdButton.TYPE_FLOOR_SENSOR = 1;
 		sdButton.TYPE_WALL_SENSOR = 2;
-		sdButton.TYPE_WALL_MATTER_SENSOR = 3;
+		sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR = 3;
 		sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR = 4;
+		sdButton.TYPE_WALL_MATTER_SENSOR = 5;
+		sdButton.TYPE_WALL_TITLE_SENSOR = 6;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
 		
 		sdButton.BUTTON_KIND_TOGGLE = 0;
@@ -85,8 +89,14 @@ class sdButton extends sdEntity
 		if ( this.type === sdButton.TYPE_WALL_SENSOR )
 		return 'Wall sensor';
 	
-		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR )
 		return 'Matter capacity sensor';
+	
+		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		return 'Matter sensor';
+	
+		if ( this.type === sdButton.TYPE_WALL_TITLE_SENSOR )
+		return 'Name sensor';
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		return 'Elevator callback sensor';
@@ -181,8 +191,14 @@ class sdButton extends sdEntity
 		if ( this.type === sdButton.TYPE_FLOOR_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures mass
 	
-		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures max_matter
+	
+		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures matter
+	
+		if ( this.type === sdButton.TYPE_WALL_TITLE_SENSOR )
+		this.filter = [ 0, 'is', 'crystal' ];
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures count
@@ -191,7 +207,12 @@ class sdButton extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR || this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || 
+			 this.type === sdButton.TYPE_WALL_SENSOR || 
+			 this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR || 
+			 this.type === sdButton.TYPE_WALL_MATTER_SENSOR || 
+			 this.type === sdButton.TYPE_WALL_TITLE_SENSOR || 
+			 this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		if ( from_entity._is_bg_entity === 0 )
 		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdBlock ) )
@@ -215,12 +236,13 @@ class sdButton extends sdEntity
 			
 			let v = 0;
 			
-			if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+			if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
+				 this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 			{
-				if ( condition === '>' )
+				if ( condition === '>' || condition === '≥' )
 				v = 0;
 				else
-				if ( condition === '<' )
+				if ( condition === '<' || condition === '≤' )
 				v = Infinity;
 			}
 			
@@ -238,24 +260,37 @@ class sdButton extends sdEntity
 					if ( this.type === sdButton.TYPE_FLOOR_SENSOR )
 					v += e.mass;
 					else
-					if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+					if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
+						 this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 					{
-						if ( condition === '>' )
-						v = Math.max( v, ( e.matter_max || e._matter_max || 0 ) );
-						else
-						if ( condition === '<' )
-						v = Math.min( v, ( e.matter_max || e._matter_max || 0 ) );
-						else
+						let ent_value = 
+							( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ) ? 
+								( e.matter_max || e._matter_max || 0 ) : 
+								( e.matter || e._matter || 0 );
+						
 						if ( condition === '=' )
 						{
-							if ( !best_found )
-							{
-								v = ( e.matter_max || e._matter_max || 0 );
+							//if ( !best_found )
+							//{
+								v = ent_value;
 
 								if ( v === this.filter[ sdButton.FILTER_OPTION_REFERENCE ] )
 								best_found = true;
-							}
+							//}
 						}
+						else
+						if ( condition === '≠' )
+						{
+							//if ( !best_found )
+							//{
+								v = ent_value;
+
+								if ( v !== this.filter[ sdButton.FILTER_OPTION_REFERENCE ] )
+								best_found = true;
+							//}
+						}
+						else
+						v = ( ( condition === '>' || condition === '≥' ) ? Math.max : Math.min )( v, ent_value );
 					}
 					else
 					if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
@@ -263,30 +298,76 @@ class sdButton extends sdEntity
 						if ( e.is( sdSteeringWheel ) && e.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 						v += 1;
 					}
+					else
+					if ( this.type === sdButton.TYPE_WALL_TITLE_SENSOR )
+					{
+						try
+						{
+							let title = (e.title+'');
+							
+							if ( e.IsPlayerClass() )
+							title = 'Star Defender (team:' + e.cc_id+',bio:'+e.biometry+')';
+							
+							title = title.toLowerCase();
+							
+							v = title;
+							
+							if ( condition === 'is' )
+							{
+								if ( title.indexOf( this.filter[ sdButton.FILTER_OPTION_REFERENCE ] ) !== -1 )
+								best_found = true;
+							}
+							else
+							if ( condition === 'isn\'t' )
+							{
+								if ( title.indexOf( this.filter[ sdButton.FILTER_OPTION_REFERENCE ] ) === -1 )
+								best_found = true;
+							}
+						}
+						catch(e){}
+					}
+					
+					if ( best_found )
+					break;
 				}
 			}
 			
 			if ( !any_found )
-			v = 0;
+			{
+				if ( this.type === sdButton.TYPE_WALL_TITLE_SENSOR )
+				v = '-';
+				else
+				v = 0;
+			}
 			
-			////if ( any_found )
-			//{
-				if ( this.filter[ sdButton.FILTER_OPTION_CURRENT ] !== v )
-				{
-					this.filter[ sdButton.FILTER_OPTION_CURRENT ] = v;
+			let v_round = ( typeof v === 'number' ) ? Math.round( v ) : v;
+			if ( this.filter[ sdButton.FILTER_OPTION_CURRENT ] !== v_round )
+			{
+				this.filter[ sdButton.FILTER_OPTION_CURRENT ] = v_round;
 
-					this._update_version++;
-				}
-			//}
+				this._update_version++;
+			}
 			
+			let a = this.filter[ sdButton.FILTER_OPTION_CURRENT ];
+			let b = this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
+			
+			if ( condition === '>' ) return ( a > b );
+			if ( condition === '<' ) return ( a < b );
+			if ( condition === '=' ) return ( a === b );
+			if ( condition === '≥' ) return ( a >= b );
+			if ( condition === '≤' ) return ( a <= b );
+			if ( condition === '≠' ) return ( a !== b );
+			/*
 			if ( condition === '>' )
 			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] > this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
 			if ( condition === '<' )
 			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] < this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
 			if ( condition === '=' )
 			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] === this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
-		
-			return false;
+			if ( condition === '!=' )
+			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] !== this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
+			*/
+			return best_found;
 		}
 		
 		return ( this._overlapped_net_ids.length > 0 );
@@ -748,7 +829,13 @@ class sdButton extends sdEntity
 			{
 				if ( command_name === 'SET_FILTER_CONDITION' )
 				{
-					let arr = [ '>', '=', '<' ];
+					let arr;
+					
+					if ( this.type === sdButton.TYPE_WALL_TITLE_SENSOR )
+					arr = [ 'is', 'isn\'t' ];
+					else
+					arr = [ '>', '=', '<', '≥', '≠', '≤' ];
+					
 					this.filter[ sdButton.FILTER_OPTION_CONDITION ] = arr[ ( arr.indexOf( this.filter[ sdButton.FILTER_OPTION_CONDITION ] ) + 1 ) % arr.length ];
 					
 					this._update_version++;
@@ -756,13 +843,25 @@ class sdButton extends sdEntity
 				}
 				if ( command_name === 'SET_FILTER_REFERENCE' )
 				{
-					let v = parseFloat( parameters_array[ 0 ] );
-					if ( !isNaN( v ) )
+					if ( this.type === sdButton.TYPE_WALL_TITLE_SENSOR )
 					{
-						this.filter[ sdButton.FILTER_OPTION_REFERENCE ] = v;
-						
-						this._update_version++;
-						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						let v = parameters_array[ 0 ];
+						if ( v.length < 64 && !sdModeration.IsPhraseBad( v, executer_socket ) )
+						{
+							this.filter[ sdButton.FILTER_OPTION_REFERENCE ] = v;
+							this._update_version++;
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
+					}
+					else
+					{
+						let v = parseFloat( parameters_array[ 0 ] );
+						if ( !isNaN( v ) )
+						{
+							this.filter[ sdButton.FILTER_OPTION_REFERENCE ] = v;
+							this._update_version++;
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
 					}
 				}
 			}

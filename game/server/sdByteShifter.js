@@ -39,6 +39,10 @@ class sdByteShifter
 	{
 		sdByteShifter.simulate_packet_loss_percentage = 0;//0.5;
 		sdByteShifter.simulate_packet_shuffle = false;
+		sdByteShifter.simulate_packet_delay = false;
+		
+		if ( sdByteShifter.simulate_packet_shuffle || sdByteShifter.simulate_packet_delay )
+		console.warn( 'sdByteShifter debug features are enabled' );
 		
 		sdByteShifter.last_warning = 0;
 		
@@ -49,21 +53,35 @@ class sdByteShifter
 	
 	static InstallDebugFeatures( socket )
 	{
+		let e = socket.emit;
+		
 		if ( sdByteShifter.simulate_packet_shuffle )
 		{
-			let e = socket.emit;
 			socket.emit = ( ...args )=>
 			{
 				for ( let i = 0; i < args.length; i++ )
-				{
-					if ( args[ i ] instanceof Array )
-					args[ i ] = args[ i ].slice();
-				}
+				if ( args[ i ] instanceof Array )
+				args[ i ] = args[ i ].slice();
 				
 				setTimeout( ()=>
 				{
 					e.call( socket, ...args );
 				}, 50 + Math.random() * 1000 );
+			};
+		}
+		else
+		if ( sdByteShifter.simulate_packet_delay )
+		{
+			socket.emit = ( ...args )=>
+			{
+				for ( let i = 0; i < args.length; i++ )
+				if ( args[ i ] instanceof Array )
+				args[ i ] = args[ i ].slice();
+				
+				setTimeout( ()=>
+				{
+					e.call( socket, ...args );
+				}, 100 );
 			};
 		}
 	}
@@ -89,6 +107,18 @@ class sdByteShifter
 		//this.message_id = 0;
 		this.old_leaders_str = '';
 	}
+	
+	/*Reset()
+	{
+		this.confirmed_snapshot.clear();
+		
+		this.known_statics_versions = new WeakMap();
+		//this.snap_object_to_its_version = new WeakMap();
+	}*/
+	onRemove()
+	{
+	}
+	
 	/*AppendCSGOID( num )
 	{
 		if ( num !== this.last_gcso_id + 1 )
@@ -736,7 +766,7 @@ class sdByteShifter
 					{
 						socket.last_sync_score = sdWorld.time;
 
-						leaders = [ sdWorld.leaders_global, sdWorld.GetPlayingPlayersCount() ];
+						leaders = [ sdWorld.leaders_global, sdWorld.GetPlayingPlayersCount( false, false ) ];
 						
 						let leaders_str = JSON.stringify( leaders );
 						

@@ -615,7 +615,7 @@ class sdBadDog extends sdEntity
 									bullet_obj.sx *= vel;
 									bullet_obj.sy *= vel;
 
-									bullet_obj._damage = 12 + this.turret_level;
+									bullet_obj._damage = 12 + this.turret_level * 2;
 									bullet_obj.color = '#ff0000';
 									
 									this._owner = this.master; // To make bullets pass through master
@@ -941,8 +941,8 @@ class sdBadDog extends sdEntity
 							{
 								this.type = 1; // Small armored baddog
 								this.master.matter -= 300;
-								this.hmax += 200;
-								this.hea += 200;
+								this.hmax += 400;
+								this.hea += 400;
 
 								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 							}

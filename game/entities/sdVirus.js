@@ -32,7 +32,7 @@ class sdVirus extends sdEntity
 		
 		sdVirus.max_seek_range = 1000;
 		
-		sdVirus.normal_max_health = 80;
+		sdVirus.normal_max_health = 50;
 		sdVirus.normal_max_health_max = 800 * 3; 
 
 		sdVirus.viruses_tot = 0; // Will bug out in case of manual creation with build tool - because onRemoveAsFakeEntity will be called instead of onRemove
@@ -404,7 +404,7 @@ class sdVirus extends sdEntity
 				if ( this._hibernation_check_timer < 0 )
 				{
 					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
-+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}
@@ -433,7 +433,7 @@ class sdVirus extends sdEntity
 				{
 					from_entity.DamageWithEffect( 20 * this.hmax / sdVirus.normal_max_health, this );
 					
-					this._hea = Math.min( this.hmax, this._hea + 15 * this.hmax / sdVirus.normal_max_health );
+					this._hea = Math.min( this.hmax, this._hea + 1 * this.hmax / sdVirus.normal_max_health );
 					
 					from_entity.PlayDamageEffect( xx, yy );
 					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });

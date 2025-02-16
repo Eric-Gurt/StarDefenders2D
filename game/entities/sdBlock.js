@@ -177,6 +177,7 @@ class sdBlock extends sdEntity
 		
 		sdBlock.max_corruption_rank = 12; // 12
 		sdBlock.max_flesh_rank = 6; // 6
+		sdBlock.max_flesh_rank_asteroid = 12;
 		
 		sdBlock.natural_blocks_total = 0; // Inaccurate in open-world case
 		
@@ -431,14 +432,14 @@ class sdBlock extends sdEntity
 
 			this.HandleDestructionUpdate();
 			
-			if ( ( this.material === sdBlock.MATERIAL_TRAPSHIELD && ( !this._shielded || this._shielded._is_being_removed || !this._shielded.enabled ) ) || 
-				 this.material === sdBlock.MATERIAL_CORRUPTION ) // Instant regeneration, though shielded shields will have regeneration cooldown
+			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD && ( !this._shielded || this._shielded._is_being_removed || !this._shielded.enabled ) ) // Instant regeneration, though shielded shields will have regeneration cooldown
 			{
 				this._regen_timeout = 0;
 			}
 			else
 			{
-				if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				if ( this.DoesRegenerate() )
 				this._regen_timeout = 120; // Longer so digging can be less accurate towards specific block
 				else
 				this._regen_timeout = 60;
@@ -1010,8 +1011,8 @@ class sdBlock extends sdEntity
 
 		//sdEntity.entities.push( ent2 );
 
-		ent2._hmax = this._hmax * 1.5;
-		ent2._hea = this._hea * 1.5;
+		ent2._hmax = this._hmax;
+		ent2._hea = this._hea;
 		
 		return ent2;
 	}
@@ -1047,7 +1048,7 @@ class sdBlock extends sdEntity
 		
 		return ent2;
 	}
-	Fleshify( from=null ) // Fleshify is reused in sdDoor, using pointer
+	Fleshify( from=null, force_initial_rank=undefined ) // Fleshify is reused in sdDoor, using pointer
 	{
 		if ( !this.IsDamageAllowedByAdmins() )
 		return null;
@@ -1057,6 +1058,8 @@ class sdBlock extends sdEntity
 			if ( this._shielded && !this._shielded._is_being_removed )
 			return null;
 		}
+		
+		// 
 	
 		let bri = 100 - ( Math.random() * 100 / 5 );
 		let ent2 = sdEntity.Create( sdBlock, { 
@@ -1066,7 +1069,7 @@ class sdBlock extends sdEntity
 			height: this._hitbox_y2 - this._hitbox_y1, 
 			material:sdBlock.MATERIAL_FLESH, 
 			br:bri, 
-			rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 2 ) ) : undefined,
+			rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 2 ) ) : force_initial_rank,
 			natural: true
 		});
 
@@ -1097,20 +1100,10 @@ class sdBlock extends sdEntity
 				an: an
 				//side: side
 			});
-			//sdEntity.entities.push( grabber );
-
-			/*if ( !grabber.CanMoveWithoutOverlap( grabber.x, grabber.y, 0 ) )
-			{
-				grabber.remove();
-			}
-			else*/
-			// Maybe it should spawn regardless if it has space or not, so players sort of "dig it out"
-			// Just not sure if updating hash position breaks something in this case - Booraz149
-			sdWorld.UpdateHashPosition( grabber, false ); // Prevent inersection with other ones
 		}
 
 
-		if ( this._contains_class === 'sdSlug' || Math.random() < 0.05 ) // Octopus spawn gets replaced with mimic, or RNG puts abomination inside the flesh
+		if ( this._contains_class === 'sdSlug' || Math.random() < 0.07 ) // Octopus spawn gets replaced with mimic, or RNG puts abomination inside the flesh
 		{
 			ent2._contains_class = 'sdMimic'; // Turn it into an mimic
 			

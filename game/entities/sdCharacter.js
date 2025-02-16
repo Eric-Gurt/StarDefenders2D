@@ -311,6 +311,49 @@ class sdCharacter extends sdEntity
 				null;
 		}
 		
+		sdCharacter.drone_file_names_with_actual_names = [
+			{ file:'', name:'' },
+			{ file:'drone_robot2', name:'Erthal' }, // by EG
+			{ file:'drone_robot', name:'Container' }, // by Booraz
+			{ file:'drone_robot3', name:'Armored' }, // by GPU
+			{ file:'drone_robot4', name:'Slider' }, // by LordBored
+			{ file:'drone_robot5', name:'Oculus' }, // by LordBored
+			{ file:'drone_robot6', name:'Drake' }, // by LordBored
+			{ file:'drone_robot7', name:'Rover' }, // by LordBored
+			{ file:'drone_robot8', name:'Junky' }, // art by Booraz, idea by EG
+			{ file:'drone_robot9', name:'Harrier' }, // by LordBored
+			{ file:'drone_robot10', name:'Spirit' }, // by LordBored
+			{ file:'drone_robot11', name:'Ray' }, // by Silk1, edited by LordBored
+			{ file:'drone_robot12', name:'Vulture' }, // by LordBored
+			{ file:'drone_robot13', name:'Tracer' }, // by LordBored
+			{ file:'drone_robot14', name:'Latch' }, // by LordBored
+			{ file:'drone_robot15', name:'Transport' }, // by LordBored
+			{ file:'drone_robot16', name:'Haunt' }, // by LordBored
+			{ file:'drone_robot17', name:'Gothic' }, // by LordBored
+			{ file:'drone_robot18', name:'Raven' }, // by LordBored
+			{ file:'drone_robot19', name:'Conservator' }, // by LordBored
+			{ file:'drone_robot20', name:'Blaze' }, // by GPU
+			{ file:'drone_robot21', name:'Explorer' }, // by GPU
+			{ file:'drone_robot22', name:'Hunter' }, // by GPU
+			{ file:'drone_robot23', name:'Asp' }, // by EG
+			{ file:'drone_robot24', name:'Blight' }, // by GPU
+			{ file:'drone_robot25', name:'Droid' }, // by GPU
+			{ file:'drone_robot26', name:'Falkok' },
+			{ file:'drone_robot27', name:'Float' }, // by GPU
+			{ file:'drone_robot28', name:'Future' }, // by GPU
+			{ file:'drone_robot29', name:'Shrimp' }, // by GPU
+			{ file:'drone_robot30', name:'Synergy' }, // by GPU
+			{ file:'drone_robot31', name:'Vector' }, // by GPU
+			{ file:'drone_robot32', name:'Archaic' }, // by LordBored
+			{ file:'drone_robot33', name:'Blades' }, // by LordBored
+			{ file:'drone_robot34', name:'Constellation' } // by LordBored, re-added on request, originally named Raven
+		];
+		for ( let i = 0; i < sdCharacter.drone_file_names_with_actual_names.length; i++ )
+		{
+			if ( sdCharacter.drone_file_names_with_actual_names[ i ] )
+			sdCharacter.drone_file_names_with_actual_names[ i ].id = i;
+		}
+		
 		/* Generator:
 
 			let prefix = 'helmet';
@@ -327,7 +370,7 @@ class sdCharacter extends sdEntity
 			str;
 		*/
 		
-		// voide_presets
+		// voice_presets
 		sdCharacter.voice_sound_effects = {
 			
 			// Council
@@ -705,6 +748,9 @@ class sdCharacter extends sdEntity
 	onSeesEntity( ent ) // Only gets triggered for connected characters that have active socket connection, with delay (each 1000th entity is seen per sync)
 	{
 		if ( !this.is( sdCharacter ) )
+		return;
+	
+		if ( ent.is( sdStatusEffect ) || ent.is( sdTask ) )
 		return;
 
 		let hash;
@@ -1113,6 +1159,8 @@ THING is cosmic mic drop!`;
 	{
 		super( params );
 		
+		//console.warn( 'Character created', this, params );
+		
 		//EnforceChangeLog( this, '_frozen' );
 		
 		//this._is_cable_priority = true;
@@ -1135,15 +1183,18 @@ THING is cosmic mic drop!`;
 		this._pos_corr_y = this.y;
 		this._pos_corr_until = 0;*/
 		this._GSPEED_buffer_length_allowed = 0; // For players
-		this.sync = 0; // Will let other players know if gspeed catch-up logic was alreadt applied to player, thus allowing updating it without freezing in time and place
+		this.sync = 0; // Will let other players know if gspeed catch-up logic was already applied to player, thus allowing updating it without freezing in time and place
 			
-		this._global_user_uid = null; // Multiple sdCharacter-s can have same _global_user_uid because it points to user, not a character - user can have multiple characters. This can be null is sandbox modes that chose not to use global accounts yet might use presets and translations
+		this._list_online = 0; // Same value as in 'list_online' setting. Lets players be not listed on the leaderboard
+			
+		this._global_user_uid = null; // Multiple sdCharacter-s can have same _global_user_uid because it points to user, not a character - user can have multiple characters. This can be null in sandbox modes that chose not to use global accounts yet might use presets and translations
 		
 		this.lag = false;
 		
 		this._self_boost = 0;
 		
 		this._god = false;
+		this._debug = false; // Debug godmode when /god 2 // Always check for _god property too
 		this.skin_allowed = true;
 		
 		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
@@ -1156,7 +1207,7 @@ THING is cosmic mic drop!`;
 		this.legs = 1;
 		
 		this._weapon_draw_timer = 0;
-		this.weapon_stun_timer = 0; // Octopuses hold players' so they can't shoot
+		this.weapon_stun_timer = 0; // Octopuses hold players' so they can't shoot. Throwing crystals also causes it
 		
 		this._in_water = false;
 		
@@ -1164,6 +1215,10 @@ THING is cosmic mic drop!`;
 		
 		this.driver_of = null;
 		this._potential_vehicle = null; // Points at vehicle which player recently did hit
+		
+		this.carrying = null; // Crystal (and maybe something else too?) carrying
+		//this._potential_carry_target = null; // Crystals perhaps
+		this._current_collision_filter = null;
 		
 		/*this._listeners = {
 			DAMAGE: [],
@@ -1862,12 +1917,16 @@ THING is cosmic mic drop!`;
 
 		if ( this.driver_of )
 		arr.push( this.driver_of );
+
+		if ( this.carrying )
+		if ( !this.carrying._is_being_removed )
+		arr.push( this.carrying );
 		
 		return arr;
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( !this.ghosting )
+		if ( !this.ghosting || this.carrying )
 		return true;
 		
 		if ( this.driver_of )
@@ -2280,6 +2339,9 @@ THING is cosmic mic drop!`;
 
 		if ( best_t )
 		{
+			if ( this.carrying )
+			this.DropCrystal( this.carrying );
+			
 			if ( this.driver_of )
 			{
 				this.driver_of.ExcludeDriver( this, true );
@@ -2831,6 +2893,9 @@ THING is cosmic mic drop!`;
 			
 			if ( this.hea <= 0 && was_alive )
 			{
+				if ( this.carrying )
+				this.DropCrystal( this.carrying );
+		
 				let voice_preset = sdCharacter.voice_sound_effects[ this._voice.variant ] || sdCharacter.voice_sound_effects[ 'default' ];
 				
 				if ( this.hea < -100 && voice_preset.death_scream )
@@ -3050,8 +3115,8 @@ THING is cosmic mic drop!`;
 			
 			this._regen_timeout = 30;
 			if ( this.hea < 30 )
-			if ( this._ai_enabled !== sdCharacter.AI_MODEL_NONE )
-			this._dying = true;
+			if ( this._ai_enabled )
+			this._dying = true; // Maybe it is more of confusing than a good feature in the game like this
 		}
 		else
 		if ( this._socket !== null || this._my_hash !== undefined || !this.IsHostileAI() ) // Allow healing disconnected players
@@ -3847,7 +3912,13 @@ THING is cosmic mic drop!`;
 
 					sdWorld.last_hit_entity = null;
 
-					if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this._hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this._hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
+					if ( sdWorld.CheckWallExistsBox( 
+								this.x + this._ai.direction * 16 - 16, 
+								this.y + this._hitbox_y2 - 32 + 1, 
+								this.x + this._ai.direction * 16 + 16, 
+								this.y + this._hitbox_y2 - 1, this, null, null 
+							) || 
+							( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
 					{
 						if ( Math.random() < 0.5 )
 						this._key_states.SetKey( 'KeyW', 1 ); // Move up
@@ -4142,44 +4213,223 @@ THING is cosmic mic drop!`;
 
 		this._last_f_state = f_state;
 	}
+	DropCrystal( crystal_to_drop, initiated_by_player=false )
+	{
+		if ( this.carrying !== crystal_to_drop )
+		return;
+	
+		if ( initiated_by_player ) // By player attack specifically
+		return;
+		
+		this.carrying.held_by = null;
+		this.carrying.PhysWakeUp();
+		this.carrying.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+		this.carrying.sx = this.sx + this._side * 0.1;
+		this.carrying.sy = this.sy;
+
+		this.carrying = null;
+	}
 	ManagePlayerVehicleEntrance()
 	{
 		let e_state = this._key_states.GetKey( 'KeyE' );
-
-		if ( this.hea > 0 && this._frozen <= 0 )
-		if ( e_state )
-		if ( e_state !== this._last_e_state )
+		
+		if ( this.carrying )
 		{
-			if ( this.driver_of )
-			{
-				this.driver_of.ExcludeDriver( this );
-				//this.driver_of = null;
-			}
+			if ( this.carrying._is_being_removed )
+			this.carrying = null;
 			else
 			{
-				if ( this._potential_vehicle && ( this._potential_vehicle.hea || this._potential_vehicle._hea ) > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
+				let xx;
+				let yy;
+				
+				let safe_area = 3;
+				
+				if ( this._side > 0 )
+				xx = this.x + this._hitbox_x2 - this.carrying._hitbox_x1 + safe_area;
+				else
+				xx = this.x + this._hitbox_x1 - this.carrying._hitbox_x2 - safe_area;
+			
+				let placement_y = 0.75;
+			
+				yy = Math.min( 
+						this.y + ( this._hitbox_y1 * placement_y + this._hitbox_y2 * ( 1-placement_y ) ) - ( this.carrying._hitbox_y1 + this.carrying._hitbox_y2 ) / 2, // Centers
+						this.y + this._hitbox_y2 - this.carrying._hitbox_y2 // Not below floor
+					);
+			
+			
+				// Upwards
+				let an = this.GetLookAngle();
+				let look_xx = Math.sin( an );
+				let look_yy = Math.cos( an );
+				if ( look_yy < 0 )
+				if ( Math.abs( look_xx ) < Math.abs( look_yy ) )
 				{
-					this._potential_vehicle.AddDriver( this );
+					xx = this.x;
+					yy = this.y + this._hitbox_y1 - this.carrying._hitbox_y2 - safe_area;
+				}
+				
+				
+				if ( this.carrying.CanMoveWithoutOverlap( xx, yy, 0 ) )
+				{
+					this.carrying.x = xx;
+					this.carrying.y = yy;
+				}
+				this.carrying.sx = 0;
+				this.carrying.sy = 0;
+			}
+		}
+		
+		if ( this.hea > 0 && this._frozen <= 0 )
+		{
+			if ( sdWorld.is_server )
+			if ( this.carrying )
+			if ( this._key_states.GetKey( 'Mouse1' ) )
+			{
+				this.weapon_stun_timer = Math.max( this.weapon_stun_timer, 15 );
+				
+				let an = this.GetLookAngle();
+				let xx = Math.sin( an );
+				let yy = Math.cos( an );
+				
+				let vel = 3 * 1.3;
+				
+				let c = this.carrying;
+				this.DropCrystal( this.carrying );
+				
+				sdSound.PlaySound({ name:'sword_attack2', x:this.x, y:this.y, volume: 0.5, pitch: 0.8 });
+				
+				//if ( yy < 0 )
+				//yy *= 1.3;
+				
+				c.sx = this.sx + xx * vel;
+				c.sy = this.sy + yy * vel;
+				
+				if ( !this.stands )
+				{
+					this.sx -= xx * vel * c.mass / this.mass;
+					this.sy -= yy * vel * c.mass / this.mass;
+				}
+			}
+			
+			if ( e_state )
+			if ( e_state !== this._last_e_state )
+			{
+				let potential_carry_target = null;
+				
+				let range_mult = this.s / 100;
+				
+				if ( !this.driver_of && this.is( sdCharacter ) && !this.carrying )
+				{
+					let an = this.GetLookAngle();
+					let xx = Math.sin( an );
+					let yy = Math.cos( an );
+
+					let offset = this.GetBulletSpawnOffset();
+																				
+					let x1 = this.x + offset.x;
+					let y1_original = this.y + offset.y;
+					let x2 = this.x + offset.x + xx * 32 * range_mult;
+					let y2 = this.y + offset.y + yy * 32 * range_mult;
 					
-					if ( this._potential_vehicle.IsFakeVehicleForEKeyUsage() )
+					both:
+					for ( let tries = 0; tries < 3; tries++ )
 					{
+						let y1;
+						
+						if ( tries === 0 )
+						y1 = ( y1_original + this.y + this._hitbox_y1 ) / 2; // A bit higher to allow picking up items from 1 block higher
+						else
+						if ( tries === 1 )
+						y1 = y1_original;
+						else
+						y1 = ( y1_original + this.y + this._hitbox_y2 ) / 2; // And a bit lower to get crystals from 1 block holes horizontally
+
+						let di = sdWorld.Dist2D( x1,y1,x2,y2 );
+						let step = 4 * range_mult;
+						let radius = 3 * range_mult;
+
+						for ( let s = step / 2; s < di - step / 2; s += step )
+						{
+							let x = x1 + ( x2 - x1 ) / di * s;
+							let y = y1 + ( y2 - y1 ) / di * s;
+							
+							//sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_WALL_HIT });
+
+							if ( sdWorld.CheckWallExistsBox( 
+								x - radius, 
+								y - radius, 
+								x + radius, 
+								y + radius, this, null, null, null ) )
+							{
+								if ( sdWorld.last_hit_entity.IsCarriable( this ) )
+								{
+									potential_carry_target = sdWorld.last_hit_entity;
+
+									if ( potential_carry_target.held_by )
+									{
+										if ( potential_carry_target.held_by.DropCrystal( potential_carry_target ) )
+										{
+
+										}
+										else
+										potential_carry_target = null;
+									}
+									
+									if ( potential_carry_target )
+									break both;
+								}
+
+								break;
+							}
+						}
 					}
-					else
-					if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
-					this.TogglePlayerAbility();
+				}
+				
+				
+				if ( this.carrying )
+				{
+					if ( sdWorld.is_server )
+					this.DropCrystal( this.carrying );
 				}
 				else
-				this.TogglePlayerAbility();
-				/*if ( this._ghost_allowed )
+				if ( potential_carry_target )
 				{
-					this.ghosting = !this.ghosting;
-					this._ghost_breath = sdCharacter.ghost_breath_delay;
+					if ( sdWorld.is_server )
+					{
+						this.carrying = potential_carry_target;
+						this.carrying.held_by = this;
 
-					if ( this.ghosting )
-					sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+
+						if ( this._stands_on === this.carrying )
+						{
+							this.stands = false;
+							this._stands_on = null;
+						}
+					}
+				}
+				else
+				if ( this.driver_of )
+				{
+					this.driver_of.ExcludeDriver( this );
+				}
+				else
+				{
+					if ( this._potential_vehicle && ( this._potential_vehicle.hea || this._potential_vehicle._hea ) > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
+					{
+						this._potential_vehicle.AddDriver( this );
+
+						if ( this._potential_vehicle.IsFakeVehicleForEKeyUsage() )
+						{
+						}
+						else
+						if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
+						this.TogglePlayerAbility();
+					}
 					else
-					sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
-				}*/
+					this.TogglePlayerAbility();
+				}
 			}
 		}
 
@@ -4192,7 +4442,7 @@ THING is cosmic mic drop!`;
 			this.x + this._hitbox_x1 + 1, 
 			this.y + ( - this.s / 100 * 12 ) + 1, 
 			this.x + this._hitbox_x2 - 1, 
-			this.y + this._hitbox_y2 - 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() );
+			this.y + this._hitbox_y2 - 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses(), this.GetCurrentCollisionFilter() );
 	}
 	
 	ConnectedGodLogic( GSPEED )
@@ -4287,6 +4537,10 @@ THING is cosmic mic drop!`;
 			this._score_to_level_additive = this._score_to_level_additive * 1.04;
 			this._score_to_level = this._score_to_level + this._score_to_level_additive;
 		}*/
+																		
+		this.ManagePlayerFlashLight();
+		
+		this.ManagePlayerVehicleEntrance(); // Before fire logic, because Mouse1 will throw crystals and it needs to block attacks
 		
 		if ( this.hea <= 0 )
 		{
@@ -4369,7 +4623,13 @@ THING is cosmic mic drop!`;
 
 			if ( this._dying )
 			{
-				this.DamageWithEffect( GSPEED * 0.1, null, false, false );
+				//this.DamageWithEffect( GSPEED * 0.1, null, false, false );
+				this.Damage( GSPEED * 0.1, null, false, false );
+				
+				if ( this._ai_enabled )
+				{
+					this.stability = -100;
+				}
 				
 				if ( this._dying_bleed_tim <= 0 )
 				{
@@ -4422,7 +4682,7 @@ THING is cosmic mic drop!`;
 
 				//this._task_reward_counter = Math.min(1, this._task_reward_counter + GSPEED / 1800 ); // For testing
 
-				if ( this._task_reward_counter >= sdTask.reward_claim_task_amount ) // was 1 but players told me it takes too long
+				if ( this._task_reward_counter >= 1 )
 				sdTask.MakeSureCharacterHasTask({ 
 					similarity_hash:'CLAIM_REWARD-'+this._net_id, 
 					executer: this,
@@ -4546,7 +4806,7 @@ THING is cosmic mic drop!`;
 		//let new_y = this.y + this.sy * GSPEED;
 		
 		let speed_scale = 1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
-		speed_scale *= Math.max( 0.5, this.stability / 100 );
+		speed_scale *= Math.max( 0.3, this.stability / 100 );
 		
 		let walk_speed_scale = speed_scale;
 		walk_speed_scale *= ( this.mobility / 100 );
@@ -4791,6 +5051,9 @@ THING is cosmic mic drop!`;
 
 						self_effect_scale = this.hook_relative_to.mass / ( this.hook_relative_to.mass + my_ent.mass );
 
+						if ( pull_force > 0.4 )
+						this.hook_relative_to.PhysWakeUp();
+
 						this.hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
 						this.hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
 
@@ -4894,7 +5157,7 @@ THING is cosmic mic drop!`;
 				if ( Math.abs( this.sx ) > 0.01 ) // Moving left/right, it is only needed for seamless sliding
 				{
 					sdWorld.last_hit_entity = null;
-					if ( sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1 + 0.1, this.x + this._hitbox_x2, this.y + this._hitbox_y2 + 0.1, this, this.GetIgnoredEntityClasses(), null, null ) )
+					if ( sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1 + 0.1, this.x + this._hitbox_x2, this.y + this._hitbox_y2 + 0.1, this, this.GetIgnoredEntityClasses(), null, this.GetCurrentCollisionFilter() ) )
 					if ( sdWorld.last_hit_entity )
 					{
 						// Sets sdWorld.last_hit_entity;
@@ -4907,8 +5170,7 @@ THING is cosmic mic drop!`;
 				}
 			}
 
-			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
-			if ( still_stands )//|| !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
+			if ( still_stands )
 			{
 				/*let new_hit = sdWorld.last_hit_entity;
 				
@@ -4939,10 +5201,10 @@ THING is cosmic mic drop!`;
 				if ( this.hea > 0 )
 				if ( this.act_x !== 0 )
 				if ( !this.driver_of )
-				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, sdCharacter.climb_filter ) )
+				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, sdCharacter.climb_filter, this.GetCurrentCollisionFilter() ) )
 				{
 					let ledge_target = sdWorld.last_hit_entity;
-					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, sdCharacter.climb_filter ) )
+					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, sdCharacter.climb_filter, this.GetCurrentCollisionFilter() ) )
 					{
 						ledge_holding = true;
 
@@ -4999,8 +5261,8 @@ THING is cosmic mic drop!`;
 			if ( this._frozen <= 0 )
 			//if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 - 8, this.y, this ) )
 			//if ( sdWorld.CheckWallExists( this.x + this._hitbox_x2 + 8, this.y, this ) )
-			if ( !this.CanMoveWithoutOverlap( this.x - 8, this.y ) )
-			if ( !this.CanMoveWithoutOverlap( this.x + 8, this.y ) )
+			if ( !this.CanMoveWithoutOverlap( this.x - 8, this.y, 0, this.GetCurrentCollisionFilter() ) )
+			if ( !this.CanMoveWithoutOverlap( this.x + 8, this.y, 0, this.GetCurrentCollisionFilter() ) )
 			{
 				this.sy = Math.min( this.sy, -2 );
 			}
@@ -5036,11 +5298,6 @@ THING is cosmic mic drop!`;
 		}
 	
 		//this.tilt += this.tilt_speed * GSPEED;
-		
-		
-		this.ManagePlayerFlashLight();
-		
-		this.ManagePlayerVehicleEntrance();
 		
 		
 		if ( this.ghosting )
@@ -5476,7 +5733,9 @@ THING is cosmic mic drop!`;
 		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
 		this.PositionUpdateAsDriver();
 		else
-		this.ApplyVelocityAndCollisions( GSPEED, this.GetStepHeight(), ( this.hea <= 0 ) );
+		{
+			this.ApplyVelocityAndCollisions( GSPEED, this.GetStepHeight(), ( this.hea <= 0 ), 1, this.GetCurrentCollisionFilter() );
+		}
 		/*
 		if ( sdWorld.last_hit_entity )
 		{
@@ -5503,6 +5762,23 @@ THING is cosmic mic drop!`;
 			this.sync = -1;
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
+	}
+	GetCurrentCollisionFilter()
+	{
+		let filtering = null;
+
+		if ( this.carrying )
+		{
+			if ( !this._current_collision_filter )
+			this._current_collision_filter = ( e )=>
+			{
+				return ( e !== this.carrying && e._hard_collision ); // hard collision test is skipped when non-null filter is applied
+			};
+			
+			filtering = this._current_collision_filter;
+		}
+		
+		return filtering;
 	}
 	GetStepHeight()
 	{
@@ -5572,6 +5848,9 @@ THING is cosmic mic drop!`;
 		
 		if ( this._ragdoll )
 		this._ragdoll.Delete();
+	
+		if ( this.carrying )
+		this.DropCrystal( this.carrying );
 	
 		//this._ignored_guns = [];
 		//this._ignored_guns_until = [];
@@ -5688,40 +5967,47 @@ THING is cosmic mic drop!`;
 	}
 	DropWeapon( i ) // by slot
 	{
-		//if ( sdWorld.is_server )
-		if ( this._inventory[ i ] )
-		{
-			//console.log( this.title + ' drops gun ' + this._inventory[ i ]._net_id );
+		let gun = this._inventory[ i ];
 		
-			if ( typeof this._inventory[ i ]._held_by === 'undefined' )
+		if ( gun )
+		{
+			//console.log( this.title + ' drops gun ' + gun._net_id );
+		
+			if ( typeof gun._held_by === 'undefined' )
 			debugger; // Pickable items should have this property
 
 			if ( this.hea <= 0 || this._is_being_removed )
 			{
-				this._inventory[ i ].y = this.y + 16 - 4;
+				gun.y = this.y + 16 - 4;
 
-				this._inventory[ i ].sx += Math.random() * 6 - 3;
-				this._inventory[ i ].sy -= Math.random() * 3;
+				gun.sx += Math.random() * 6 - 3;
+				gun.sy -= Math.random() * 3;
 			}
 			else
 			{
 				let an = this.GetLookAngle();
 				
-				this._inventory[ i ].sx += Math.sin( an ) * 5;
-				this._inventory[ i ].sy += Math.cos( an ) * 5;
+				let throw_force = 5;
 				
-				this._ignored_guns_infos.push( { ent: this._inventory[ i ], until: sdWorld.time + 300 } );
+				if ( sdGun.classes[ gun.class ].is_sword )
+				{
+					//if ( this._dangerous_from.IsPlayerClass() )
+					throw_force *= ( 1 + this._sword_throw_mult ) / 2;
+				}
+				
+				gun.sx += Math.sin( an ) * throw_force;
+				gun.sy += Math.cos( an ) * throw_force;
+				
+				this._ignored_guns_infos.push( { ent: gun, until: sdWorld.time + 300 } );
 			}
 
-			this._inventory[ i ].ttl = sdGun.disowned_guns_ttl;
-			this._inventory[ i ]._held_by = null;
-			this._inventory[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			gun.ttl = sdGun.disowned_guns_ttl;
+			gun._held_by = null;
+			gun.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			this._inventory[ i ] = null;
 			
 			this.TriggerMovementInRange();
 		}
-		//else
-		//console.log( this.title + ' is unable to drop drop gun with slot ' + i );
 	}
 	
 	IsGunIgnored( from_entity, fast_check ) // fast_check causes it to skip expiration logic
@@ -5756,6 +6042,7 @@ THING is cosmic mic drop!`;
 		
 		if ( from_entity._is_bg_entity === this._is_bg_entity )
 		if ( from_entity._hard_collision )
+		if ( from_entity !== this.carrying )
 		{
 			if ( this.y + this._hitbox_y2 >= from_entity.y + from_entity._hitbox_y1 - this.GetStepHeight() )
 			if ( this.x + this._hitbox_x2 > from_entity.x + from_entity._hitbox_x1 )
@@ -5839,6 +6126,11 @@ THING is cosmic mic drop!`;
 				this._potential_vehicle = from_entity;
 			}
 			/*else
+			if ( from_entity.IsCarriable() )
+			{
+				this._potential_carry_target = from_entity;
+			}*/
+			/*else
 			if ( from_entity.is( sdWorkbench ) )
 			{
 				this.workbench_level = from_entity.level;
@@ -5879,6 +6171,8 @@ THING is cosmic mic drop!`;
 	{
 		if ( this.death_anim < 20 && !this.driver_of )
 		{
+			ctx.textAlign = 'center';
+			
 			let w = 20 * Math.max( 0.5, this.s / 100 );
 			
 			let raise = 0;/*5 + 15 * this.s / 100;
@@ -5959,7 +6253,6 @@ THING is cosmic mic drop!`;
 			
 			//
 			
-			ctx.textAlign = 'center';
 			
 			let size = 5.5;
 			let text_size;
@@ -6084,6 +6377,12 @@ THING is cosmic mic drop!`;
 				{
 					if ( !fake_ent._hard_collision ) 
 					{
+						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+						if ( e.GetClass() === 'sdBone' )
+						{
+							return false;
+						}
+						
 						return true;
 					}
 					
@@ -7066,14 +7365,23 @@ THING is cosmic mic drop!`;
 						}
 					}
 
-					if ( command_name === 'REMOVE_ARMOR' )
+					/*if ( command_name === 'REMOVE_ARMOR' )
 					{
 						if ( exectuter_character.armor > 0 ) 
 						{
 							exectuter_character.RemoveArmor();
 						}
+					}*/
+					if ( command_name === 'NO_TASKS' )
+					{
+						sdTask.PerformActionOnTasksOf( exectuter_character, ( task )=>
+						{
+							if ( task.mission !== sdTask.MISSION_TRACK_ENTITY )
+							if ( task.mission !== sdTask.MISSION_TASK_CLAIM_REWARD )
+							//if ( task._net_id === id )
+							task.remove();
+						});
 					}
-
 					if ( command_name === 'REMOVE_EFFECTS' )
 					{
 						//exectuter_character.stim_ef = 0;
@@ -7202,14 +7510,14 @@ THING is cosmic mic drop!`;
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
-		if ( !this._is_being_removed )
+		if ( !this._is_being_removed || exectuter_character === sdWorld.my_entity )
 		{
 			/*if ( exectuter_character )
 			this.AddPromptContextOption( 'Report this player', 'REPORT', [ undefined ], 'Specify report reason in short', '', 500 );*/
 			
-			if ( this.hea > 0 )
+			if ( this.hea > 0 || exectuter_character === sdWorld.my_entity )
 			if ( exectuter_character )
-			if ( exectuter_character.hea > 0 )
+			if ( exectuter_character.hea > 0 || exectuter_character === sdWorld.my_entity )
 			{
 				if ( exectuter_character._god )
 				{
@@ -7251,6 +7559,8 @@ THING is cosmic mic drop!`;
 							this.AddClientSideActionContextOption( 'Save & quit to main menu', ()=>
 							{
 								sdWorld.Stop();
+								
+								ClearWorld();
 							});
 							
 							this.AddClientSideActionContextOption( 'Destroy this world', ()=>
@@ -7266,15 +7576,25 @@ THING is cosmic mic drop!`;
 										sdDeepSleep.DeleteAllFiles();
 
 									}catch(e){}
+									
+									ClearWorld();
 								}
 							});
 						}
 						else
 						{
-							this.AddClientSideActionContextOption( 'Game settings & character customization', ()=>
+							this.AddClientSideActionContextOption( 'Main menu', ()=>
 							{
 								globalThis.manually_disconnected = true;
 								globalThis.socket.disconnect();
+								//GoToScreen('screen_settings');
+							});
+							
+							this.AddClientSideActionContextOption( 'Settings & character customization', ()=>
+							{
+								globalThis.manually_disconnected = true;
+								globalThis.socket.disconnect();
+								GoToScreen('screen_settings');
 							});
 							
 							this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
@@ -7300,8 +7620,9 @@ THING is cosmic mic drop!`;
 							this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
 						}
 
-						if ( this.armor > 0 )
-						this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
+						//if ( this.armor > 0 )
+						//this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] ); Seems pointless these days
+						this.AddContextOption( 'Cancel all personal tasks', 'NO_TASKS', [] );
 
 						if ( this.power_ef > 0 || this.time_ef > 0 )
 						this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );

@@ -928,12 +928,17 @@ class sdCrystal extends sdEntity
 		throw new Error('Obsolete, use this.held_by instead');
 	}*/
 	
-	/*getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
 		if ( this.held_by )
 		return [ this.held_by ]; 
 	
 		return [];
+	}
+	/*													
+	IsCarriable( by_entity ) // In hands
+	{
+		return !this.is_big;
 	}*/
 	
 	get is_natural()
@@ -1016,6 +1021,11 @@ class sdCrystal extends sdEntity
 	
 	get friction_remain()
 	{ return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 0.9 : 0.8; }
+	
+	get spaciality_tier()
+	{
+		return this.GetTier() * 40;
+	}
 	
 	GetTier()
 	{
@@ -1783,27 +1793,25 @@ class sdCrystal extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		//if ( this.should_draw === 1 )
-		//if ( this.held_by === null )
+		if ( this.is_anticrystal )
+		sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
+		else
 		{
-			if ( this.is_anticrystal )
-			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
+			// Limit vision to cable managment owner
+			if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
+				( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
+				  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
 			else
 			{
-				// Limit vision to cable managment owner
-				if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
-					( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
-					  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
-				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
+				if ( this.is_depleted )
+				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (depleted)" );
 				else
-				{
-					if ( this.is_depleted )
-					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (depleted)" );
-					else
-					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
-				}
+				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
 			}
 		}
+
+		this.BasicCarryTooltip( ctx, 8 );
 	}
 	HookAttempt() // true for allow. this._current_target is sdBullet that is hook tracer
 	{

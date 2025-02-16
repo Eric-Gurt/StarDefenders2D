@@ -32,8 +32,33 @@ class sdEntity
 	}*/
 	static init_class()
 	{
-		console.log('sdEntity class initiated');
+		//console.log('sdEntity class initiated');
 		sdEntity.entities = [];
+		/*{
+			let old_push = sdEntity.entities.push;
+			sdEntity.entities.push = ( ...es )=>
+			{
+				for ( let i = 0; i < es.length; i++ )
+				{
+					if ( 0 )
+					{
+						if ( es[ i ]._added_times === undefined )
+						es[ i ]._added_times = 1;
+						else
+						throw new Error( 'Adding same object twice?' );
+					}
+					
+					if ( 0 )
+					if ( Date.now() > sdWorld.time - 100 )
+					if ( es[ i ]._is_being_removed )
+					if ( sdWorld.entity_classes.sdEntity.active_entities.indexOf( es[ i ] ) === -1 )
+					throw new Error( 'Adding removed object to the objects list?' );
+				}
+				
+				old_push.call( sdEntity.entities, ...es );
+			};
+		}*/
+		
 		sdEntity.global_entities = []; // sdWeather. This array contains extra copies of entities that exist in primary array, which is sdEntity.entities. Entities add themselves here and remove themselves whenever proper disposer like _remove is called.
 		
 		sdEntity.snapshot_clear_crawler_i = 0; // Slowly cleans up any snapshot data which could help saving some memory, sometimes by a half
@@ -118,6 +143,10 @@ class sdEntity
 		];
 		
 		sdEntity.default_driver_position_offset = { x:0, y:0 };
+		
+		sdEntity.debug_track_unrest_physics = null;
+		sdEntity.debug_track_object_physics = null;
+		//sdEntity.phys_near_statics = new WeakMap(); // entity => { left, right, top, bottom }
 	}
 	static Create( class_ptr, params={ x:0, y:0 } ) // Does UpdateHashPosition with onMovementInRange call. Not doing UpdateHashPosition is how objects may appear on top of sdDeepSleep and cause memory leaks 
 	{
@@ -459,6 +488,16 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
+	IsAttachableToSteeringWheel()
+	{
+		return ( !this.onThink.has_ApplyVelocityAndCollisions );
+	}
+	
+	get is_alive() // For tasks
+	{
+		return ( this.hea || this._hea || 0 ) > 0;
+	}
+	
 	IsInSafeArea()
 	{
 		return !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 );
@@ -535,6 +574,17 @@ class sdEntity
 	IsVehicle() // Workbench, sdButton and sdRescueTeleport are all "vehicles" but they won't add player on .AddDriver call. If you wan to prevent ghost mode though - override .IsFakeVehicleForEKeyUsage() just like sdButton does
 	{
 		return false;
+	}
+	IsCarriable( by_entity ) // In hands
+	{
+		return ( 
+				typeof this.held_by !== 'undefined' &&
+				typeof this.sx !== 'undefined' &&
+				this.IsVisible( by_entity ) &&
+				this.IsTargetable( by_entity, true ) &&
+				this.mass <= 30 && 
+				this._hitbox_x2 - this._hitbox_x1 <= 16 && 
+				this._hitbox_y2 - this._hitbox_y1 <= 16 );
 	}
 	IsFakeVehicleForEKeyUsage()
 	{
@@ -900,45 +950,11 @@ class sdEntity
 	{
 		return false;
 	}
-	IsMovesLogic( sx_sign, sy_sign )
+	/*IsMovesLogic( sx_sign, sy_sign )
 	{
 		return sx_sign !== this._phys_last_sx || 
 			   sy_sign !== this._phys_last_sy || 
 			   !sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );
-	}
-	/*ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
-	{
-		sdEntity.chet = ( ( sdEntity.chet || 0 ) + 1 ) % 100;
-		
-		if ( !sdEntity.measure )
-		sdEntity.measure = [ 0, 0 ];
-		
-		let t = Date.now();
-		
-		if ( sdEntity.chet < 50 )
-		this.ApplyVelocityAndCollisions_New( GSPEED, step_size, apply_friction, impact_scale, custom_filtering_method );
-		else
-		this.ApplyVelocityAndCollisions_Old( GSPEED, step_size, apply_friction, impact_scale, custom_filtering_method );
-	
-		if ( sdWorld.is_server )
-		{
-			
-			sdEntity.measure[ sdEntity.chet < 50 ? 1 : 0 ] += Date.now() - t;
-		
-			if ( Math.random() < 0.001 )
-			{
-				if ( sdEntity.measure[ 1 ] > sdEntity.measure[ 0 ] )
-				trace( Math.round( sdEntity.measure[ 1 ] / sdEntity.measure[ 0 ] * 100 ) - 100 + '% slower', sdEntity.measure );
-				else
-				trace( -(Math.round( sdEntity.measure[ 1 ] / sdEntity.measure[ 0 ] * 100 ) - 100) + '% FASTER!', sdEntity.measure );
-			}
-
-			while ( sdEntity.measure[ sdEntity.chet < 50 ? 1 : 0 ] > 100 )
-			{
-				sdEntity.measure[ 0 ] *= 0.999;
-				sdEntity.measure[ 1 ] *= 0.999;
-			}
-		}
 	}*/
 	static TrackPotentialYRest( ent )
 	{
@@ -966,6 +982,44 @@ class sdEntity
 			}
 		}
 	}
+	
+	static IsPushableRecursively( entity, dx, dy, recursion=0 )
+	{
+		if ( recursion > 10 )
+		{
+			return false;
+		}
+		
+		if ( typeof entity.sx === 'undefined' )
+		return false;
+		
+		if ( entity.CanMoveWithoutOverlap( entity.x + dx, entity.y + dy ) )
+		{
+			return true;
+		}
+		else
+		{
+			if ( sdWorld.last_hit_entity )
+			{
+				return sdEntity.IsPushableRecursively( sdWorld.last_hit_entity, dx, dy, recursion + 1 );
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	
+	static calculateInelasticCollisionWithLoss( m1, m2, v1, v2, bounce_intensity1, bounce_intensity2 )
+	{
+		// Calculate velocities after inelastic collision using COR
+		const e = bounce_intensity1 * bounce_intensity2; // restitutionCoeff
+		const w1_collision = ((m1 - e * m2) * v1 + (1 + e) * m2 * v2) / (m1 + m2);
+		const w2_collision = ((1 + e) * m1 * v1 + (m2 - e * m1) * v2) / (m1 + m2);
+
+		return [ w1_collision, w2_collision ];
+	}
+	
 	// Optimized to the point where it is same as old method (sometimes +20% slower on average though), but both methods were optimized by _hard_collision optimization
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
@@ -987,71 +1041,26 @@ class sdEntity
 		//const debug = ( this._class === 'sdBaseShieldingUnit' ) && sdWorld.is_server;
 		const debug = false;
 		
-		/*if ( this.GetClass() === 'sdCrystal' )
-		if ( this.type !== 3 )
-		if ( this.type !== 6 )
-		{
-			if ( this._phys_sleep > 5 )
-			debugger;
-		}*/
-		
 		if ( !sdBullet )
 		sdBullet = sdWorld.entity_classes.sdBullet;
-		
-		//throw new Error('Fix sword not hitting character in test world 3003');
-		
-		// TODO: Bullet ricochet randomly does not bounce of walls but disappears instead
-		//throw new Error('Bullet ricochet randomly does not bounce off walls but disappears instead');
-		
-		//if ( debug )
-		//debugger;
 		
 		///////// Some ancient sleep logic ////////////
 		{
 			//this.PhysInitIfNeeded(); Done at constructor now
 
-			let sx_sign = ( this.sx > 0 );
-			let sy_sign = ( this.sy > 0 );
+			//let sx_sign = ( this.sx > 0 ); Do these still make any sense?
+			//let sy_sign = ( this.sy > 0 );
 
-			//let moves = this.IsMovesLogic( sx_sign, sy_sign );
-			let moves = ( sx_sign !== this._phys_last_sx || 
-						  sy_sign !== this._phys_last_sy || 
+			let moves = ( //sx_sign !== this._phys_last_sx || 
+						  //sy_sign !== this._phys_last_sy || 
 						  
 							Math.max(
 								Math.abs( this.sx ),
 								Math.abs( this.sy )
-							) > ( sdWorld.gravity + 0.2 ) * GSPEED );
-						  //!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 ) );
+							) > ( sdWorld.gravity + 0.2 ) * Math.max( 1, GSPEED ) );
+							//) > ( sdWorld.gravity + 0.2 ) * GSPEED );
 
-			/*if ( !moves )
-			if ( this._phys_last_rest_on )
-			{
-				if ( this._phys_last_rest_on._is_being_removed )
-				{
-					this._phys_last_rest_on = null;
-					moves = true;
-
-					//if ( this.GetClass() === 'sdHover' )
-					//console.log( this.GetClass() + ' moves due to this._phys_last_touch being removed' );
-				}
-				else
-				{
-					if ( this._phys_last_rest_on_targetable !== this._phys_last_rest_on.IsTargetable( null, true ) )
-					{
-						this._phys_last_rest_on_targetable = this._phys_last_rest_on.IsTargetable( null, true );
-						moves = true;
-					}
-					else
-					if ( !sdWorld.inDist2D_Boolean( this._phys_last_rest_on_x, this._phys_last_rest_on_y, this._phys_last_rest_on.x, this._phys_last_rest_on.y, sdWorld.gravity + 0.1 ) )
-					{
-						this._phys_last_rest_on_x = this._phys_last_rest_on.x;
-						this._phys_last_rest_on_y = this._phys_last_rest_on.y;
-
-						moves = true;
-					}
-				}
-			}*/
-
+		
 			if ( !moves )
 			{
 				let w = this._hitbox_x2 - this._hitbox_x1;
@@ -1067,30 +1076,16 @@ class sdEntity
 
 			if ( moves )
 			{
-				//if ( this._phys_sleep <= 0 )
-				//if ( this.GetClass() === 'sdHover' )
-				//console.log( this.GetClass() + ' becomes physically active' );
-
-				//if ( this._phys_sleep <= 0 ) Because top entity might enter hibernation while this one moves just slightly to the left/right
-				//{
-					this.ManageTrackedPhysWakeup();
-				//}
+				this.ManageTrackedPhysWakeup();
 				this._phys_sleep = 10;
 
-				this._phys_last_sx = sx_sign;
-				this._phys_last_sy = sy_sign;
+				//this._phys_last_sx = sx_sign;
+				//this._phys_last_sy = sy_sign;
 			}
 			else
 			{
 				if ( this._phys_sleep > 0 )
 				{
-					/*if ( !this._phys_last_touch )
-					if ( sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1 - 1, this.y + this._hitbox_y1 - 1, this.x + this._hitbox_x2 + 1, this.y + this._hitbox_y2 + 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() ) )
-					{
-						this._phys_last_touch = sdWorld.last_hit_entity;
-					}*/
-					
-					//if ( this._phys_last_touch ) // Do not sleep mid-air. It probably is not consistent?
 					if ( this._phys_last_rest_on ) // Do not sleep mid-air. It probably is not consistent?
 					{
 						this._phys_sleep -= Math.min( 1, GSPEED );
@@ -1103,14 +1098,12 @@ class sdEntity
 					if ( this._phys_sleep <= 0 )
 					if ( this._phys_last_rest_on )
 					sdEntity.TrackPhysWakeup( this._phys_last_rest_on, this );
-					//sdEntity.TrackPhysWakeup( this,  );
 				}
 				else
 				{
 					this.sx = 0;
 					this.sy = 0;
 
-					//sdWorld.last_hit_entity = this._phys_last_touch;
 					sdWorld.last_hit_entity = this._phys_last_rest_on;
 					return;
 				}
@@ -1121,11 +1114,20 @@ class sdEntity
 		if ( this.sx === 0 && this.sy === 0 )
 		{
 			sdWorld.last_hit_entity = this._phys_last_rest_on;
-			//sdWorld.last_hit_entity = this._phys_last_touch;
-			//this._phys_last_touch = this._phys_last_touch;
 				
 			return;
 		}
+		
+		
+		
+		if ( sdEntity.debug_track_unrest_physics )
+		{
+			sdEntity.debug_track_unrest_physics.set( this, { sx:this.sx, sy:this.sy, _phys_sleep:this._phys_sleep } );
+			
+			if ( this === sdEntity.debug_track_object_physics )
+			debugger;
+		}
+	
 		
 		let ignore_entity_classes = this.GetIgnoredEntityClasses();
 		let ignore_entity_classes_classes = null;
@@ -1172,7 +1174,7 @@ class sdEntity
 			this.sx = 0;
 			this.sy = 0;
 		}
-
+		
 		const bounce_intensity = this.bounce_intensity;
 		const friction_remain = this.friction_remain;
 		const IsFrictionTimeScaled = this.IsFrictionTimeScaled();
@@ -1639,21 +1641,30 @@ class sdEntity
 							let do_unstuck = false;
 
 							if ( best_t_original === 0 )
-							if ( do_stuck_check )
-							if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
-							if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
-							if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
-							if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
 							{
-								// Moving caused stuck effect
-								//debugger;
-								//this.DamageWithEffect( 10 );
-								//best_ent.DamageWithEffect( 10 );
-								if ( this.onPhysicallyStuck() )
+								if ( do_stuck_check || !hard_collision )
+								if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
+								if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
+								if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
+								if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
 								{
-									do_unstuck = true;
-									step_size = 8;
+									if ( do_stuck_check )
+									{
+										if ( this.onPhysicallyStuck() )
+										{
+											do_unstuck = true;
+											step_size = 8;
+										}
+									}
+									else
+									{
+										// Guns that are stuck in walls/doors/etc will otherwise fall forever
+										this.sx = 0;
+										this.sy = 0;
+									}
 								}
+								
+								
 							}
 
 							let on_top = Math.abs( ( this.y + this._hitbox_y2 ) - ( best_ent.y + best_ent._hitbox_y1 ) );
@@ -1729,21 +1740,65 @@ class sdEntity
 								if ( this._key_states.GetKey( 'KeyA' ) )
 								trace( 'iter='+iter, best_t, sx, sy, [ smallest === on_top, smallest === under, smallest === on_left, smallest === on_right ] );
 							}*/
-
-
+											
+							/*let near_static_data = sdEntity.phys_near_statics.get( this );
+							if ( !near_static_data )
+							{
+								near_static_data = { on_top:0, under:0, on_left:0, on_right:0 };
+								sdEntity.phys_near_statics.set( this, near_static_data );
+							}
+							else
+							{
+								near_static_data.on_top = 0;
+								near_static_data.under = 0;
+								near_static_data.on_left = 0;
+								near_static_data.on_right = 0;
+							}*/
+											
+							const push_step = 0.01;
+											
 							switch ( smallest )
 							{
 								case on_top:
 								{
-									//this.sy = ( this.mass - best_ent.mass ) * old_sy;
-									this.sy = - Math.abs( old_sy * bounce_intensity );
+									/*this.sy = - Math.abs( old_sy * bounce_intensity );
 
 									if ( typeof best_ent.sy !== 'undefined' )
-									best_ent.sy = Math.max( best_ent.sy, best_ent.sy + old_sy * ( 1 - self_effect_scale ) );
-									//best_ent.sy += old_sy * ( 1 - self_effect_scale );
+									best_ent.sy = Math.max( best_ent.sy, best_ent.sy + old_sy * ( 1 - self_effect_scale ) );*/
+									
+									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
+									if ( this.sy > ( best_ent.sy || 0 ) )
+									{
+										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' );
+								
+										if ( best_is_dynamic )
+										best_is_dynamic = 
+											( hard_collision && best_ent._hard_collision ) ? true : // Both hard, both pushed
+											( best_ent._hard_collision ) ? false : // Only best_ent is hard, let it push this entity
+											true; // Both non-hard, both are equal
+										
+										if ( best_is_dynamic )
+										if ( !sdEntity.IsPushableRecursively( best_ent, 0, push_step ) )
+										best_is_dynamic = false;
+										
+										let [ w1_collision, w2_collision ] = 
+											sdEntity.calculateInelasticCollisionWithLoss( 
+												this.mass, 
+												best_is_dynamic ? best_ent.mass : Number.MAX_SAFE_INTEGER,
+												old_sy_real,
+												best_is_dynamic ? best_ent.sy : 0,
+												bounce_intensity,
+												best_is_dynamic ? best_ent.bounce_intensity : 1
+										);
+										this.sy = w1_collision;
 
-									//if ( step_size > 0 )
-									//if ( do_stuck_check && best_ent._hard_collision )
+										if ( best_is_dynamic )
+										best_ent.sy = w2_collision;
+										else
+										this.sy -= w2_collision;
+									}
+
+									//if ( do_unstuck )
 									if ( step_size > 0 || do_stuck_check )
 									{
 										//const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
@@ -1756,14 +1811,45 @@ class sdEntity
 								break;
 								case under:
 								{
-									this.sy = old_sy * bounce_intensity;
-
-									//if ( hard_collision && best_ent._hard_collision )
-									//this.y = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
+									/*this.sy = old_sy * bounce_intensity;
 
 									if ( typeof best_ent.sy !== 'undefined' )
-									best_ent.sy = Math.min( best_ent.sy, best_ent.sy - old_sy * ( 1 - self_effect_scale ) );
-									//best_ent.sy -= old_sy * ( 1 - self_effect_scale );
+									best_ent.sy = Math.min( best_ent.sy, best_ent.sy - old_sy * ( 1 - self_effect_scale ) );*/
+									
+									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
+									if ( this.sy < ( best_ent.sy || 0 ) )
+									{
+										let best_is_dynamic = ( typeof best_ent.sy !== 'undefined' );
+								
+										if ( best_is_dynamic )
+										best_is_dynamic = 
+											( hard_collision && best_ent._hard_collision ) ? true : // Both hard, both pushed
+											( best_ent._hard_collision ) ? false : // Only best_ent is hard, let it push this entity
+											true; // Both non-hard, both are equal
+										
+										if ( best_is_dynamic )
+										if ( !sdEntity.IsPushableRecursively( best_ent, 0, -push_step ) )
+										best_is_dynamic = false;
+										
+										let [ w1_collision, w2_collision ] = 
+											sdEntity.calculateInelasticCollisionWithLoss( 
+												this.mass, 
+												best_is_dynamic ? best_ent.mass : Number.MAX_SAFE_INTEGER,
+												old_sy_real,
+												best_is_dynamic ? best_ent.sy : 0,
+												bounce_intensity,
+												best_is_dynamic ? best_ent.bounce_intensity : 1
+										);
+										this.sy = w1_collision;
+
+										if ( best_is_dynamic )
+										{
+											best_ent.sy = w2_collision;
+											best_ent._phys_sleep = Math.max( best_ent._phys_sleep, this._phys_sleep );
+										}
+										else
+										this.sy -= w2_collision;
+									}
 								
 									if ( do_unstuck )
 									if ( do_stuck_check && best_ent._hard_collision )
@@ -1778,16 +1864,47 @@ class sdEntity
 								case on_left:
 								{
 									if ( debug )
-										trace('on left', [ on_top, under, on_left, on_right ], smallest );
+									trace('on left', [ on_top, under, on_left, on_right ], smallest );
 									
-									this.sx = - old_sx * bounce_intensity;
-
-									//if ( hard_collision && best_ent._hard_collision )
-									//this.x = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
+									/*this.sx = - old_sx * bounce_intensity;
 
 									if ( typeof best_ent.sx !== 'undefined' )
-									best_ent.sx = Math.max( best_ent.sx, best_ent.sx + old_sx * ( 1 - self_effect_scale ) );
-									//best_ent.sx += old_sx * ( 1 - self_effect_scale );
+									best_ent.sx = Math.max( best_ent.sx, best_ent.sx + old_sx * ( 1 - self_effect_scale ) );*/
+								
+									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
+									if ( this.sx > ( best_ent.sx || 0 ) )
+									{
+										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' );
+								
+										if ( best_is_dynamic )
+										best_is_dynamic = 
+											( hard_collision && best_ent._hard_collision ) ? true : // Both hard, both pushed
+											( best_ent._hard_collision ) ? false : // Only best_ent is hard, let it push this entity
+											true; // Both non-hard, both are equal
+										
+										if ( best_is_dynamic )
+										if ( !sdEntity.IsPushableRecursively( best_ent, push_step, 0 ) )
+										best_is_dynamic = false;
+										
+										let [ w1_collision, w2_collision ] = 
+											sdEntity.calculateInelasticCollisionWithLoss( 
+												this.mass, 
+												best_is_dynamic ? best_ent.mass : Number.MAX_SAFE_INTEGER,
+												old_sx_real,
+												best_is_dynamic ? best_ent.sx : 0,
+												bounce_intensity,
+												best_is_dynamic ? best_ent.bounce_intensity : 1
+										);
+										this.sx = w1_collision;
+
+										if ( best_is_dynamic )
+										{
+											best_ent.sx = w2_collision;
+											best_ent._phys_sleep = Math.max( best_ent._phys_sleep, this._phys_sleep );
+										}
+										else
+										this.sx -= w2_collision;
+									}
 								
 									if ( do_unstuck )
 									if ( do_stuck_check && best_ent._hard_collision )
@@ -1802,16 +1919,47 @@ class sdEntity
 								case on_right:
 								{
 									if ( debug )
-										trace('on right', [ on_top, under, on_left, on_right ], smallest );
+									trace('on right', [ on_top, under, on_left, on_right ], smallest );
 									
-									this.sx = old_sx * bounce_intensity;
-
-									//if ( hard_collision && best_ent._hard_collision )
-									//this.x = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
+									/*this.sx = old_sx * bounce_intensity;
 
 									if ( typeof best_ent.sx !== 'undefined' )
-									best_ent.sx = Math.min( best_ent.sx, best_ent.sx - old_sx * ( 1 - self_effect_scale ) );
-									//best_ent.sx -= old_sx * ( 1 - self_effect_scale );
+									best_ent.sx = Math.min( best_ent.sx, best_ent.sx - old_sx * ( 1 - self_effect_scale ) );*/
+										
+									if ( best_ent._hard_collision || hard_collision === best_ent._hard_collision )
+									if ( this.sx < ( best_ent.sx || 0 ) )			
+									{
+										let best_is_dynamic = ( typeof best_ent.sx !== 'undefined' );
+								
+										if ( best_is_dynamic )
+										best_is_dynamic = 
+											( hard_collision && best_ent._hard_collision ) ? true : // Both hard, both pushed
+											( best_ent._hard_collision ) ? false : // Only best_ent is hard, let it push this entity
+											true; // Both non-hard, both are equal
+										
+										if ( best_is_dynamic )
+										if ( !sdEntity.IsPushableRecursively( best_ent, -push_step, 0 ) )
+										best_is_dynamic = false;
+										
+										let [ w1_collision, w2_collision ] = 
+											sdEntity.calculateInelasticCollisionWithLoss( 
+												this.mass, 
+												best_is_dynamic ? best_ent.mass : Number.MAX_SAFE_INTEGER,
+												old_sx_real,
+												best_is_dynamic ? best_ent.sx : 0,
+												bounce_intensity,
+												best_is_dynamic ? best_ent.bounce_intensity : 1
+										);
+										this.sx = w1_collision;
+
+										if ( best_is_dynamic )
+										{
+											best_ent.sx = w2_collision;
+											best_ent._phys_sleep = Math.max( best_ent._phys_sleep, this._phys_sleep );
+										}
+										else
+										this.sx -= w2_collision;
+									}
 								
 									if ( do_unstuck )
 									if ( do_stuck_check && best_ent._hard_collision )
@@ -1845,10 +1993,8 @@ class sdEntity
 								{
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
-										//if ( best_ent._hard_collision )
 										this.ImpactWithDamageEffect( impact * self_effect_scale, ( !best_ent.is_static ) ? best_ent : null ); // Extra source logic to prevent creatures from attacking ground when falling
 
-										//if ( hard_collision )
 										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), ( !this.is_static ) ? this : null ); // Extra source logic to prevent creatures from attacking ground when falling
 									}
 								}
@@ -1869,10 +2015,8 @@ class sdEntity
 								{
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
-										//if ( best_ent._hard_collision )
 										this.ImpactWithDamageEffect( impact * self_effect_scale, ( !best_ent.is_static ) ? best_ent : null ); // Extra source logic to prevent creatures from attacking ground when falling
 
-										//if ( hard_collision )
 										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ), ( !this.is_static ) ? this : null ); // Extra source logic to prevent creatures from attacking ground when falling
 									}
 								}
@@ -1884,6 +2028,7 @@ class sdEntity
 								return;
 							}
 						}
+						
 					}
 					else
 					{
@@ -2193,290 +2338,6 @@ class sdEntity
 			return 2;
 		}
 	}
-	/*ApplyVelocityAndCollisions_Old( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
-	{
-		this.PhysInitIfNeeded();
-		
-		let sx_sign = ( this.sx > 0 );
-		let sy_sign = ( this.sy > 0 );
-		
-		let moves = this.IsMovesLogic( sx_sign, sy_sign );
-		
-		if ( !moves )
-		if ( this._phys_last_touch )
-		{
-			if ( this._phys_last_touch._is_being_removed )
-			{
-				this._phys_last_touch = null;
-				moves = true;
-
-				//if ( this.GetClass() === 'sdHover' )
-				//console.log( this.GetClass() + ' moves due to this._phys_last_touch being removed' );
-			}
-			else
-			{
-				if ( this._phys_last_rest_on_targetable !== this._phys_last_touch.IsTargetable( null, true ) )
-				{
-					
-					//if ( this.GetClass() === 'sdHover' )
-					//console.log( this.GetClass() + ' moves due to IsTargetable change of this._phys_last_touch' );
-				
-					this._phys_last_rest_on_targetable = this._phys_last_touch.IsTargetable( null, true );
-					moves = true;
-				}
-				else
-				if ( !sdWorld.inDist2D_Boolean( this._phys_last_rest_on_x, this._phys_last_rest_on_y, this._phys_last_touch.x, this._phys_last_touch.y, sdWorld.gravity + 0.1 ) )
-				{
-					this._phys_last_rest_on_x = this._phys_last_touch.x;
-					this._phys_last_rest_on_y = this._phys_last_touch.y;
-							
-					//if ( this.GetClass() === 'sdHover' )
-					//console.log( this.GetClass() + ' moves due to slight move of this._phys_last_touch' );
-		
-					moves = true;
-				}
-			}
-		}
-	
-		if ( !moves )
-		{
-			let w = this._hitbox_x2 - this._hitbox_x1;
-			let h = this._hitbox_y2 - this._hitbox_y1;
-			
-			if ( this._phys_last_w !== w || this._phys_last_h !== h )
-			{
-				this._phys_last_w = w;
-				this._phys_last_h = h;
-				moves = true;
-			}
-		}
-		
-		if ( moves )
-		{
-			//if ( this._phys_sleep <= 0 )
-			//if ( this.GetClass() === 'sdHover' )
-			//console.log( this.GetClass() + ' becomes physically active' );
-
-			//if ( this._phys_sleep <= 0 ) Because top entity might enter hibernation while this one moves just slightly to the left/right
-			//{
-				this.ManageTrackedPhysWakeup();
-			//}
-			this._phys_sleep = 10;
-
-			this._phys_last_sx = sx_sign;
-			this._phys_last_sy = sy_sign;
-		}
-		else
-		{
-			if ( this._phys_sleep > 0 )
-			{
-				if ( this._phys_last_touch ) // Do not sleep mid-air
-				{
-					this._phys_sleep -= Math.min( 1, GSPEED );
-
-				}
-			}
-			else
-			{
-				this.sx = 0;
-				this.sy = 0;
-
-				sdWorld.last_hit_entity = this._phys_last_touch;
-				return;
-			}
-		}
-		
-		let CheckPointDamageAllowed_result = undefined;
-		
-		const CheckPointDamageAllowed = ()=>
-		{
-			//if ( this.GetClass() === 'sdHover' )
-			//if ( Math.abs( this.sx ) > 5 || Math.abs( this.sy ) > 5 )
-			//debugger;
-			
-			if ( CheckPointDamageAllowed_result === undefined )
-			CheckPointDamageAllowed_result = sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y );
-			
-			return CheckPointDamageAllowed_result;
-		};
-		
-		let new_x = this.x + this.sx * GSPEED;
-		let new_y = this.y + this.sy * GSPEED;
-		
-		//let safe_overlap = step_size === 0 ? 0 : ( sdWorld.is_server ? 0 : 0.01 ); // Only for players (other entities have no anti-shake measures)
-
-		let safe_overlap = ( this.UseServerCollisions() ? 0 : 0.01 );
-		
-		//if ( !sdWorld.is_server )
-		//safe_overlap += 1;
-
-		if ( this.CanMoveWithoutOverlap( new_x, new_y, safe_overlap, custom_filtering_method ) )
-		{
-			this.x = new_x;
-			this.y = new_y;
-			
-			this._phys_last_touch = null;
-		}
-		else
-		{
-			let old_x = this.x;
-			let old_y = this.y;
-			
-			this.Touches( sdWorld.last_hit_entity );
-			
-			// Moved as result of touch event - abort any further position/velocity changes
-			if ( this.x !== old_x || this.y !== old_y )
-			return;
-			
-			// Better for sync (but causes random friction)
-			//new_x = Math.round( new_x );
-			//new_y = Math.round( new_y );
-			
-			let bounce_intensity = this.bounce_intensity;
-			let friction_remain = this.friction_remain;
-			
-			let last_touch = null;
-			
-			if ( step_size > 0 )
-			{
-				last_touch = sdWorld.last_hit_entity;
-				
-				for ( let i = 1; i <= step_size; i++ )
-				{
-				    sdWorld.last_hit_entity = null;
-					
-					if ( last_touch && 
-						 Math.abs( last_touch.y + last_touch._hitbox_y1 - this._hitbox_y2 - this.y ) <= step_size && 
-						 this.CanMoveWithoutOverlap( new_x, last_touch.y + last_touch._hitbox_y1 - this._hitbox_y2 - 0.0001, 0, custom_filtering_method ) )
-					{
-						// Shake-less version
-						this.y = last_touch.y + last_touch._hitbox_y1 - this._hitbox_y2 - 0.0001;
-						
-						break;
-					}
-					else
-					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
-					{
-						this.y = new_y - i;
-						
-						break;
-					}
-					else
-					if ( last_touch !== sdWorld.last_hit_entity )
-					if ( sdWorld.last_hit_entity )
-					{
-						last_touch = sdWorld.last_hit_entity;
-						this.Touches( sdWorld.last_hit_entity );
-					}
-				}
-			}
-			
-
-			if ( this.CanMoveWithoutOverlap( new_x, this.y, safe_overlap, custom_filtering_method ) )
-			{
-				const last_hit_entity = sdWorld.last_hit_entity;
-				
-				this.Touches( sdWorld.last_hit_entity );
-			
-				let self_effect_scale = 1;
-				
-				let old_sy = Math.abs( this.sy );
-			
-				this.sy = - this.sy * bounce_intensity;
-				this.x = new_x;
-				
-				if ( apply_friction )
-				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
-				
-				if ( last_hit_entity )
-				if ( this.hard_collision )
-				{
-					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
-					
-					if ( typeof last_hit_entity.sy !== 'undefined' )
-					{
-						last_hit_entity.sy += old_sy * ( 1 - self_effect_scale );
-						//last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
-					}
-					if ( CheckPointDamageAllowed() )
-					last_hit_entity.Impact( Math.abs( old_sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
-				}
-				if ( CheckPointDamageAllowed() )
-				this.Impact( Math.abs( old_sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
-			}
-			else
-			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap, custom_filtering_method ) )
-			{
-				const last_hit_entity = sdWorld.last_hit_entity;
-				
-				this.Touches( sdWorld.last_hit_entity );
-				
-				let self_effect_scale = 1;
-				
-				let old_sx = this.sx;
-			
-				this.sx = - this.sx * bounce_intensity;
-				this.y = new_y;
-				
-				if ( apply_friction )
-				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, friction_remain, GSPEED );
-				
-				if ( last_hit_entity )
-				if ( this.hard_collision )
-				{
-					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
-					
-					if ( typeof last_hit_entity.sx !== 'undefined' )
-					{
-						last_hit_entity.sx += old_sx * ( 1 - self_effect_scale );
-						//last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
-					}
-					
-					if ( CheckPointDamageAllowed() )
-					last_hit_entity.Impact( Math.abs( old_sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
-				}
-				if ( CheckPointDamageAllowed() )
-				this.Impact( Math.abs( old_sx ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
-			}
-			else
-			{
-				const last_hit_entity = sdWorld.last_hit_entity;
-				
-				this.Touches( sdWorld.last_hit_entity );
-				
-				let self_effect_scale = 1;
-				
-				let old_sx = this.sx;
-				let old_sy = this.sy;
-			
-				this.sx = - this.sx * bounce_intensity;
-				this.sy = - this.sy * bounce_intensity;
-				
-				this.onPhysicallyStuck();
-				
-				if ( last_hit_entity )
-				if ( this.hard_collision )
-				{
-					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
-					
-					if ( typeof last_hit_entity.sx !== 'undefined' )
-					last_hit_entity.sx += old_sx * ( 1 - self_effect_scale );
-				
-					if ( typeof last_hit_entity.sy !== 'undefined' )
-					last_hit_entity.sy += old_sy * ( 1 - self_effect_scale );
-				
-					if ( CheckPointDamageAllowed() )
-					last_hit_entity.Impact( sdWorld.Dist2D_Vector( old_sx, old_sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
-				}
-			
-				if ( CheckPointDamageAllowed() )
-				this.Impact( sdWorld.Dist2D_Vector( old_sx, old_sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
-			}
-
-			this._phys_last_touch = sdWorld.last_hit_entity || last_touch;
-		}
-		
-	}*/
 	MeasureMatterCost()
 	{
 		return Infinity; // Infinity means godmode players only
@@ -3546,6 +3407,7 @@ class sdEntity
 					{
 						debugger;
 					}*/
+					//this.onHiberstateChange();
 				}
 				else
 				debugger;
@@ -3566,7 +3428,9 @@ class sdEntity
 			},1000);
 		}*/
 	}
-	
+	/*onHiberstateChange() // this._hiberstate
+	{
+	}*/
 	
 	IsVisible( observer_entity ) // Can be used to hide guns that are held, they will not be synced this way
 	{
@@ -4350,6 +4214,13 @@ class sdEntity
 		
 		ret.UpdateHitbox();
 		
+		/*if ( ret._is_being_removed )
+		if ( sdWorld.entity_classes.sdEntity.active_entities.indexOf( ret ) === -1 )
+		{
+			debugger;
+			throw new Error( 'How?' );
+		}*/
+		
 		sdEntity.entities.push( ret );
 		//sdWorld.UpdateHashPosition( ret, false ); // Will prevent sdBlock from occasionally not having collisions on client-side (it will rest in hibernated state, probably because of that. It is kind of a bug though)
 	
@@ -4382,6 +4253,8 @@ class sdEntity
 			return 'all Hovers';
 			if ( net_id === 'sdGun' )
 			return 'all items';
+			if ( net_id === 'sdJunk' )
+			return 'all dug out junk';
 			if ( net_id === '*' )
 			return 'all everything';
 		
@@ -5318,6 +5191,24 @@ class sdEntity
 			this._is_being_removed = true;
 
 			this._broken = true; // By default, you can override it after removal was called for entity // Copy [ 1 / 2 ]
+			
+			/*let removal_stack_trace = globalThis.getStackTrace();
+			let ticks = 0;
+			let cb = ()=>{
+				
+				if ( Date.now() > sdWorld.time - 100 )
+				if ( sdEntity.entities.indexOf( this ) !== -1 )
+				{
+					ticks++;
+					if ( ticks > 3 )
+					{
+						console.warn( 'Object was not removed at: ' + removal_stack_trace );
+						return;
+					}
+				}
+				setTimeout( cb, 5000 );
+			};
+			setTimeout( cb, 5000 );*/
 		}
 	}
 	ClearAllPropertiesOnRemove()
@@ -5514,7 +5405,7 @@ class sdEntity
 			}*/
 		}
 		
-		if ( this.IsGlobalEntity() )
+		/*if ( this.IsGlobalEntity() ) Better do it in sdWorld
 		{
 			let i = sdEntity.global_entities.indexOf( this );
 			if ( i === -1 )
@@ -5523,7 +5414,7 @@ class sdEntity
 			}
 			else
 			sdEntity.global_entities.splice( i, 1 );
-		}
+		}*/
 		
 		if ( this._net_id !== undefined ) // client-side entities
 		{
@@ -5555,7 +5446,7 @@ class sdEntity
 		
 		sdSound.DestroyAllSoundChannels( this );
 	}
-	_remove_from_entities_array( old_hiber_state=-2 )
+	/*_remove_from_entities_array( old_hiber_state=-2 )
 	{
 		// Use BulkRemoveEntitiesFromEntitiesArray instead when possible
 		
@@ -5567,36 +5458,36 @@ class sdEntity
 		}
 		else
 		sdEntity.entities.splice( id, 1 );
-	}
+	}*/
 	static BulkRemoveEntitiesFromEntitiesArray( arr, force_all=false ) // Entities should be already _is_being_removed. force_all is true in sdDeepSleep
-    {
-        if ( arr.length <= 0 )
-        return;
-    
-        // Partial removal approach
-        let t = force_all ? 0 : Date.now();
-        let t2 = t;
-        
-        let pos = 0;
-        
-        let at_least = force_all ? arr.length : Math.ceil( arr.length * 0.01 );
-        
-        while ( pos < arr.length && ( t2 - t < 1 || pos < at_least ) )
-        {
-            let id = sdEntity.entities.lastIndexOf( arr[ pos ] );
-            if ( id !== -1 )
-            sdEntity.entities.splice( id, 1 );
+	{
+		if ( arr.length <= 0 )
+		return;
+	
+		// Partial removal approach
+		let t = force_all ? 0 : Date.now();
+		let t2 = t;
+		
+		let pos = 0;
+		
+		let at_least = force_all ? arr.length : Math.ceil( arr.length * 0.01 );
+		
+		while ( pos < arr.length && ( t2 - t < 1 || pos < at_least ) )
+		{
+			let id = sdEntity.entities.lastIndexOf( arr[ pos ] );
+			if ( id !== -1 )
+			sdEntity.entities.splice( id, 1 );
 
             pos++;
 
-            t2 = force_all ? 0 : Date.now();
-        }
-        
-        if ( pos === arr.length )
-        arr.length = 0;
-        else
-        arr.splice( 0, pos );
-    }
+			t2 = force_all ? 0 : Date.now();
+		}
+		
+		if ( pos === arr.length )
+		arr.length = 0;
+		else
+		arr.splice( 0, pos );
+	}
 	
 	
 	
@@ -5765,6 +5656,29 @@ class sdEntity
 	}
 	Draw( ctx, attached )
 	{
+	}
+	BasicCarryTooltip( ctx, offset_y=8 )
+	{
+		if ( this.IsCarriable() )
+		{
+			if ( this.held_by )
+			{
+				if ( this.held_by === sdWorld.my_entity )
+				sdEntity.Tooltip( ctx, 'Press E to drop or Mouse1 to throw', 0, offset_y, '#aaffaa' );
+			}
+			else
+			sdEntity.Tooltip( ctx, 'Press E to carry', 0, offset_y, '#aaffaa' );
+		}
+	}
+	BasicVehicleTooltip( ctx, offset_y=8 )
+	{
+		if ( this.IsVehicle() && this.doors_locked !== true && ( this.hea || this._hea || 0 ) > 0 )
+		{
+			if ( sdWorld.my_entity.driver_of === this )
+			sdEntity.Tooltip( ctx, 'Press E to leave vehicle', 0, offset_y, '#aaffaa' );
+			else
+			sdEntity.Tooltip( ctx, 'Press E to enter vehicle', 0, offset_y, '#aaffaa' );
+		}
 	}
 	static Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
 	{

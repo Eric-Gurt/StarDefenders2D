@@ -14,20 +14,11 @@
 
 class sdMusic
 {
-	static init_class()
+	static init_classA()
 	{
-		sdMusic.enabled = false;
-		
 		sdMusic.situational_songs = [];
 		
-		sdMusic.debug = 0;
-		
-		sdMusic.default_music_cooldown = 1000 * 30; // 30 seconds
-		sdMusic.default_same_song_cooldown = 1000 * 60 * 60 * 12; // 12 hours
-		
-		sdMusic.current_song = null;
-		sdMusic.current_playback_id = null;
-		sdMusic.previous_song_end_time = 0;
+		sdMusic.is_still_playing_intro_song = true;
 		
 		let CreateSituationalSong = ( params )=>
 		{
@@ -66,6 +57,9 @@ class sdMusic
 					{
 						if ( sdMusic.current_song === params )
 						{
+							sdMusic.is_still_playing_intro_song = false;
+							sdMusic.current_music_info_element.style.display = 'none';
+							
 							sdMusic.current_song = null;
 							sdMusic.current_playback_id = null;
 							sdMusic.previous_song_end_time = sdWorld.time;
@@ -83,6 +77,16 @@ class sdMusic
 				
 				sdMusic.current_song = params;
 				sdMusic.current_playback_id = playback_id;
+				
+				sdMusic.current_music_info_element.style.display = 'block';
+				sdMusic.current_music_info_element.innerHTML = 'Track: ' + sdMusic.current_song.title;
+				sdMusic.current_music_info_element.onmousedown = ()=>
+				{
+					GoToScreen( 'screen_credits', ( transition_happened )=>
+					{
+						document.getElementById( 'music_credits_title' ).scrollIntoView({ behavior:transition_happened ? 'instant' : 'smooth', block:'start' });;
+					});
+				};
 			};
 			
 			params.CanPlay = ( ignore_global_block=false )=>
@@ -181,6 +185,22 @@ class sdMusic
 		// Add songs at the end, above this line
 		
 		//CreateSituationalSong({ title: '', url: '', file: '', tags: '' });
+		
+	}
+	static init_classB()
+	{
+		sdMusic.enabled = false;
+		
+		sdMusic.debug = 0;
+		
+		sdMusic.default_music_cooldown = 1000 * 30; // 30 seconds
+		sdMusic.default_same_song_cooldown = 1000 * 60 * 60 * 1; // 1 hour
+		
+		sdMusic.current_song = null;
+		sdMusic.current_playback_id = null;
+		sdMusic.previous_song_end_time = 0;
+		
+		sdMusic.current_music_info_element = document.getElementById( 'current_music_info' );
 		
 		//
 		
@@ -302,6 +322,9 @@ class sdMusic
 	{
 		if ( sdMusic.current_song )
 		{
+			sdMusic.is_still_playing_intro_song = false;
+			sdMusic.current_music_info_element.style.display = 'none';
+							
 			sdMusic.current_song.howl.stop( sdMusic.current_playback_id );
 			sdMusic.current_song = null;
 		}
@@ -331,14 +354,14 @@ class sdMusic
 			if ( !document.hidden )
 			{
 				// Slight random boost of same strength as global probability decay. Might be pointless but will boost chances of rare songs somewhat
-				let id = Math.floor( Math.random() * sdMusic.situational_songs.length );
+				/*let id = Math.floor( Math.random() * sdMusic.situational_songs.length );
 				let song = sdMusic.situational_songs[ id ];
-				song.IncreaseProbability( 0.001 );
+				song.IncreaseProbability( 0.001 );*/
 
 				while ( sdMusic.recent_key_presses.length > 0 && sdMusic.recent_key_presses[ 0 ].time < sdWorld.time - 10000 )
 				sdMusic.recent_key_presses.shift();
 
-				let intensity = Math.pow( Math.min( 1, sdMusic.recent_key_presses.length / 20 ), 2 ) * 0.1; // 15 when figting, 20 is during intense fight
+				let intensity = Math.pow( Math.min( 1, sdMusic.recent_key_presses.length / 25 ), 2 ) * 0.1; // 15 when figting, 20 is during intense fight
 
 				if ( sdWorld.my_entity )
 				if ( sdWorld.my_entity.hea > 0 )
@@ -450,3 +473,4 @@ class sdMusic
 	}
 }
 //sdMusic.init_class(); // Called when game started instead now
+sdMusic.init_classA();

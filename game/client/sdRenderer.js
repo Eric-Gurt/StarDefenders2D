@@ -30,7 +30,7 @@ class sdRenderer
 {
 	static init_class()
 	{
-		console.warn('sdRenderer class initiated');
+		//console.warn('sdRenderer class initiated');
 		
 		if ( typeof window === 'undefined' )
 		return;
@@ -38,6 +38,8 @@ class sdRenderer
 		sdRenderer.img_sun = sdWorld.CreateImageFromFile( 'sun' );
 		
 		sdRenderer.ad_happens = false;
+		
+		sdRenderer.dark_tint = 1;
 		
 		sdRenderer.line_of_sight_mode = true;
 		
@@ -166,6 +168,8 @@ class sdRenderer
 					sdRenderer.sky_gradient.addColorStop( 0, '#7b3219' );
 					sdRenderer.sky_gradient.addColorStop( 1, '#b75455' );
 				}
+				
+				globalThis.startupScreenOnResize();
 			};
 			//window.onresize();
 			
@@ -767,6 +771,8 @@ class sdRenderer
 	}
 	static Render( frame )
 	{
+		let GSPEED = sdWorld.GSPEED;
+		
 		/*if ( !document.hasFocus() ) Can be inaccurate
 		if ( Math.random() > 0.1 )
 		return;*/
@@ -932,15 +938,15 @@ class sdRenderer
 					for ( let i = 0; i < sdWanderer.wanderers.length; i++ )
 					{
 						let wanderer = sdWanderer.wanderers[ i ];
-						ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - sdWanderer.wanderers[ i ].layer * 0.001;
+						ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - wanderer.layer * 0.001;
 		
 						let xx = sdRenderer.screen_width / 2;
 						let yy = sdRenderer.screen_height / 2;
 			
-						let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - sdWanderer.wanderers[ i ].layer ) ) * offset_scale * current_camera_scale;
+						let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - wanderer.layer ) ) * offset_scale * current_camera_scale;
 					
 						xx += ( 0 - sdWorld.camera.x + wanderer.x ) * scale;
-						yy += ( sdWorld.base_ground_level + 150 - sdWorld.camera.y + wanderer.y ) * scale;
+						yy += ( sdWorld.base_ground_level + 150 - sdWorld.camera.y + wanderer.y + Math.sin( wanderer._net_id * 21.3281 + sdWorld.time * 0.001 ) * 10 ) * scale;
 					
 						xx -= sdRenderer.screen_width / 2 * current_camera_scale;
 						yy -= sdRenderer.screen_height / 2 * current_camera_scale;
@@ -1167,7 +1173,16 @@ class sdRenderer
 		
 		if ( sdWorld.entity_classes.sdWeather.only_instance )
 		{
-			ctx.translate( 0, Math.sin( sdWorld.time / 30 ) * sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100 );
+			let quake_intensity = sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100;
+			if ( quake_intensity > 0 )
+			{
+				quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - this._quake_screen_shake_since ) / 1000 ) );
+				ctx.translate( 0, Math.sin( sdWorld.time / 30 ) * quake_intensity );
+			}
+			else
+			{
+				this._quake_screen_shake_since = sdWorld.time;
+			}
 		}
 		
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
@@ -1854,6 +1869,13 @@ class sdRenderer
 						ctx.textAlign = 'center';
 						ctx.fillText( i + '', 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 12 );
 
+						if ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot )
+						{
+							ctx.fillStyle = '#00ffff';
+							ctx.textAlign = 'left';
+							ctx.fillText( sdWorld.my_entity._inventory[ i ].title, 15 + 345 * scale, 40 + 20 );
+						}
+
 						//if ( sdWorld.time < sdWorld.my_entity_protected_vars_untils[ 'gun_slot' ] + 1000 )
 						if ( icons_opacity > 0 )
 						{
@@ -1863,6 +1885,19 @@ class sdRenderer
 							ctx.translate( 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 30 );
 							sdWorld.my_entity._inventory[ i ].Draw( ctx, true );
 							ctx.restore();
+							
+							if ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot )
+							{
+								ctx.globalAlpha = 1 - Math.pow( 1 - ctx.globalAlpha, 8 );
+								let has_description = sdGun.classes[ sdWorld.my_entity._inventory[ i ].class ].has_description;
+								if ( has_description )
+								{
+									ctx.fillStyle = '#aaffaa';
+									ctx.textAlign = 'left';
+									for ( let i2 = 0; i2 < has_description.length; i2++ )
+									ctx.fillText( has_description[ i2 ], 15 + 345 * scale, 40 + 40 + i2 * 20 );
+								}
+							}
 						}
 
 					}
@@ -1918,6 +1953,8 @@ class sdRenderer
 				keySuggestions.push({ title: 'Flashlight', key: 'F' });
 				//else
 				//keySuggestions.push({ title: 'Flashlight', key: '- no flashlight -' });
+				
+				keySuggestions.push({ title: 'Menu', key: 'Esc' });
 			
 				for ( let i = 0; i < keySuggestions.length; i++ )
 				{
@@ -2024,7 +2061,7 @@ class sdRenderer
 					ctx.fillStyle = main_color;
 
 					ctx.textAlign = 'right';
-					ctx.fillText( ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].score : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 * scale );
+					ctx.fillText( ( ( i < sdWorld.leaders.length ) ? (sdWorld.leaders[ i ].score+'').replace(/(?<=[0-9])(?=(?:[0-9]{3})+(?![0-9]))/g, " ") : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 * scale );
 				}
 			}
 			ctx.globalAlpha = 1;
@@ -2131,6 +2168,16 @@ class sdRenderer
 			}
 			else
 			ctx.fillText( sdRenderer.service_mesage, sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 - 30 );
+		}
+		
+		if ( sdRenderer.dark_tint > 0 )
+		if ( !sdWorld.paused )
+		{
+			ctx.fillStyle = '#000000';
+			ctx.globalAlpha = sdRenderer.dark_tint;
+			ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+			
+			sdRenderer.dark_tint -= GSPEED * 0.05;
 		}
 		
 		if ( typeof ctx.FakeEnd !== 'undefined' )

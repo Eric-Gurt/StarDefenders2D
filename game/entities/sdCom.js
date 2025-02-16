@@ -6,11 +6,14 @@
 
 
 */
+/* global sdModeration */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCable from './sdCable.js';
 import sdDoor from './sdDoor.js';
+import sdCharacter from './sdCharacter.js';
 
 
 class sdCom extends sdEntity
@@ -81,8 +84,8 @@ class sdCom extends sdEntity
 	get hard_collision()
 	{ return true; }
 	
-	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	//{ return true; }
 	
 	get title()
 	{
@@ -114,7 +117,7 @@ class sdCom extends sdEntity
 		{
 			this.hacking_left = 0;
 			this._hacker = null;
-			this._update_version++;
+			//this._update_version++;
 			sdSound.PlaySound({ name:'ghost_stop', pitch: 0.5, x:this.x, y:this.y, volume:1 });
 		}
 			
@@ -138,6 +141,8 @@ class sdCom extends sdEntity
 		this._regen_timeout = 0;
 
 		this.subscribers = []; // works with _net_ids but should use biometry now
+		this.subscribers_names = []; // Player names
+		this.subscribers_names_censored = [];
 		this._cc_id = 0; // Not used as part of regular game
 		
 		this.through_walls = 0;
@@ -155,6 +160,8 @@ class sdCom extends sdEntity
 		this._hacker = null;
 		this._hacking_timer_total = 0;
 		
+		this._awaits_patch = true;
+		
 		sdCom.all_nodes.push( this );
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -163,11 +170,65 @@ class sdCom extends sdEntity
 
 		return false;
 	}
+	onSnapshotApplied()
+	{
+		if ( Date.now() < 1742247297456 ) // Until March 15, 2025
+		this._awaits_patch = true;
+	}
+	static GetNameFor( biometry_or_class )
+	{
+		if ( typeof biometry_or_class === 'number' )
+		for ( let i = 0; i < sdCharacter.characters.length; i++ )
+		if ( sdCharacter.characters[ i ].biometry === biometry_or_class )
+		return sdCharacter.characters[ i ].title;
+		
+		return '';
+	}
 	onBuilt()
 	{
 		if ( this._owner )
 		this.NotifyAboutNewSubscribers( 1, [ this._owner.biometry ] );
 		//this.NotifyAboutNewSubscribers( 1, [ this._owner._net_id ] );
+	}
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		if ( save_as_much_as_possible || observer_entity === null )
+		return super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+		
+		
+		let hide_contents = false;
+		
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, observer_entity.x, observer_entity.y, sdCom.action_range ) )
+		{
+		}
+		else
+		{
+			current_frame -= 100; // Make it so frame is different for case of obfuscation. Otherwise 1 out of 2 players seeing this entity might get wrong mixed snapshots
+			hide_contents = true;
+		}
+		
+		let snapshot = super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+		
+		if ( hide_contents )
+		{
+			let id = snapshot.subscribers.indexOf( observer_entity.biometry );
+			
+			if ( id === -1 )
+			{
+				snapshot.subscribers = [];
+				snapshot.subscribers_names = [];
+				snapshot.subscribers_names_censored = [];
+				snapshot.through_walls = 0;
+			}
+			else
+			{
+				snapshot.subscribers = [ snapshot.subscribers[ id ] ];
+				snapshot.subscribers_names = [ snapshot.subscribers_names[ id ] ];
+				snapshot.subscribers_names_censored = [ snapshot.subscribers_names_censored[ id ] ];
+			}
+		}
+		
+		return snapshot;
 	}
 	NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array=null ) // inherit_back is for new coms
 	{
@@ -191,17 +252,25 @@ class sdCom extends sdEntity
 							//this.remove();
 							return;
 						}
+						
+						let title = sdCom.GetNameFor( subs[ i ] );
+						
 						this.subscribers.push( subs[ i ] );
-						this._update_version++;
+						this.subscribers_names.push( title );
+						this.subscribers_names_censored[ i ] = ( typeof sdModeration !== 'undefined' && sdModeration.IsPhraseBad( title, null ) ) ? 1 : 0;
+						//this._update_version++;
 					}
 				}
 				else
 				if ( append1_or_remove0_or_inherit_back2 === 0 )
 				{
-					if ( this.subscribers.indexOf( subs[ i ] ) !== -1 )
+					let id = this.subscribers.indexOf( subs[ i ] );
+					if ( id !== -1 )
 					{
-						this.subscribers.splice( this.subscribers.indexOf( subs[ i ] ), 1 );
-						this._update_version++;
+						this.subscribers.splice( id, 1 );
+						this.subscribers_names.splice( id, 1 );
+						this.subscribers_names_censored.splice( id, 1 );
+						//this._update_version++;
 					}
 				}
 			}
@@ -219,6 +288,18 @@ class sdCom extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._awaits_patch )
+		{
+			this._awaits_patch = false;
+			for ( let i = 0; i < this.subscribers.length; i++ )
+			if ( typeof this.subscribers[ i ] === 'number' )
+			if ( this.subscribers_names[ i ] === undefined || this.subscribers_names[ i ] === '' )
+			{
+				this.subscribers_names[ i ] = sdCom.GetNameFor( this.subscribers[ i ] );
+				this.subscribers_names_censored[ i ] = ( typeof sdModeration !== 'undefined' && sdModeration.IsPhraseBad( this.subscribers_names[ i ], null ) ) ? 1 : 0;
+			}
+		}
+		
 		this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
 		
 		if ( this.hacking_left > 0 )
@@ -227,7 +308,7 @@ class sdCom extends sdEntity
 			{
 				this.hacking_left = 0;
 				this._hacker = null;
-				this._update_version++;
+				//this._update_version++;
 				sdSound.PlaySound({ name:'ghost_stop', pitch: 0.5, x:this.x, y:this.y, volume:1 });
 			}
 			else
@@ -253,7 +334,7 @@ class sdCom extends sdEntity
 						{
 							sdSound.PlaySound({ name:'ghost_stop', pitch: 0.5, x:this.x, y:this.y, volume:1 });
 							this.hacking_left = sdCom.hacking_duration;
-							this._update_version++;
+							//this._update_version++;
 							
 							if ( r > 0.99 )
 							if ( this._hacker )
@@ -271,7 +352,7 @@ class sdCom extends sdEntity
 						{
 							sdSound.PlaySound({ name:'kick_blaster', pitch: 0.2, x:this.x, y:this.y, volume:1 });
 							this.hacking_left = 0;
-							this._update_version++;
+							//this._update_version++;
 							this._hacker = null;
 
 							if ( near.length > 0 )
@@ -402,18 +483,7 @@ class sdCom extends sdEntity
 		let i = sdCom.all_nodes.indexOf( this );
 		if ( i !== -1 )
 		sdCom.all_nodes.splice( i, 1 );
-		// Just notify everything for sprite updates // Bad approach, something like teleports will still won't update
-		/*this.GetComWiredCache( ( ent )=>{
-			
-			if ( ent._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
-			ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-		
-			if ( typeof ent._update_version !== 'undefined' )
-			ent._update_version++;
-			
-			return false;
-		});*/
-		
+
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
@@ -466,7 +536,7 @@ class sdCom extends sdEntity
 			{
 				near[ i ].hacking_left = 0;
 				near[ i ]._hacker = null;
-				near[ i ]._update_version++;
+				//near[ i ]._update_version++;
 				
 				if ( complain_as )
 				{
@@ -530,7 +600,7 @@ class sdCom extends sdEntity
 			if ( command_name === 'ATTACK_THROUGH_WALLS' )
 			{
 				this.through_walls = ( parameters_array[ 0 ] === 1 );
-				this._update_version++;
+				//this._update_version++;
 			}
 			else
 			if ( command_name === 'HACKING' )
@@ -568,7 +638,7 @@ class sdCom extends sdEntity
 
 						this.hacking_left = sdCom.hacking_duration;
 						this._hacker = exectuter_character;
-						this._update_version++;
+						//this._update_version++;
 						this._hacking_timer_total = 0;
 						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
@@ -628,13 +698,47 @@ class sdCom extends sdEntity
 					if ( this.subscribers.indexOf( 'sdBot' ) === -1 )
 					this.AddContextOption( 'Subscribe bots', 'COM_SUB', [ 'sdBot' ] );
 
+					if ( this.subscribers.indexOf( 'sdJunk' ) === -1 )
+					this.AddContextOption( 'Subscribe dug out junk', 'COM_SUB', [ 'sdJunk' ] );
+
 					if ( this.subscribers.indexOf( '*' ) === -1 )
 					this.AddContextOption( 'Subscribe everything (for doors & teleports only)', 'COM_SUB', [ '*' ] );
 
 					for ( var i = 0; i < this.subscribers.length; i++ )
 					{
 						let net_id_or_biometry = this.subscribers[ i ];
-						this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
+						
+						let title;
+							
+						if ( typeof net_id_or_biometry === 'number' )
+						{
+							let postfix = '';
+							
+							if ( sdWorld.my_entity && net_id_or_biometry === sdWorld.my_entity.biometry )
+							postfix = ' ( me )';
+							else
+							{
+								for ( let i = 0; i < sdCharacter.characters.length; i++ )
+								if ( sdCharacter.characters[ i ].biometry === net_id_or_biometry )
+								{
+									if ( sdCharacter.characters[ i ].hea > 0 )
+									postfix = ' ( nearby )';
+									else
+									postfix = ' ( nearby, unconcious )';
+								
+									break;
+								}
+							}
+							
+							if ( sdWorld.client_side_censorship && this.subscribers_names_censored[ i ] )
+							title = 'Censored Defender' + postfix;
+							else
+							title = this.subscribers_names[ i ] + postfix;
+						}
+						else
+						title = sdEntity.GuessEntityName( net_id_or_biometry );
+						
+						this.AddContextOptionNoTranslation( T('Kick ') + title, 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
 					}
 
 					if ( this.through_walls )

@@ -14,6 +14,7 @@ import sdWeather from './sdWeather.js';
 import sdCrystal from './sdCrystal.js';
 import sdLost from './sdLost.js';
 import sdCom from './sdCom.js';
+import sdCable from './sdCable.js';
 import sdBG from './sdBG.js';
 import sdBlock from './sdBlock.js';
 
@@ -755,6 +756,16 @@ class sdStatusEffect extends sdEntity
 					status_entity.for.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
 				
 					status_entity._update_version++;
+					
+					
+
+					let cables_set = sdCable.cables_per_entity.get( status_entity.for );
+					if ( cables_set !== undefined )
+					for ( let cable of cables_set )
+					{
+						cable.Wakeup();
+						cable._update_version++;
+					}
 				}
 			
 				status_entity._ttl -= GSPEED;
@@ -1947,15 +1958,32 @@ class sdStatusEffect extends sdEntity
 		if ( status_type.onBeforeRemove )
 		status_type.onBeforeRemove( this );
 	
-		sdStatusEffect.status_effects.splice( sdStatusEffect.status_effects.indexOf( this ), 1 );
+		let id0 = sdStatusEffect.status_effects.indexOf( this );
+		if ( id0 !== -1 )
+		sdStatusEffect.status_effects.splice( id0, 1 );
+		else
+		debugger;
 		
 		if ( this._for_confirmed )
 		if ( this.for ) // Can be null if removed, which is fine
+		if ( !this.for._is_being_removed )
 		{
 			let arr = sdStatusEffect.entity_to_status_effects.get( this.for );
 			
-			arr.splice( arr.indexOf( this ), 1 );
-			arr.inversed.splice( arr.inversed.indexOf( this ), 1 );
+			if ( arr === undefined )
+			{
+				// Should not happen but for some reason happens sometimes, for example when big bases are moved fast enough diagonally
+			}
+			else
+			{
+				let id = arr.indexOf( this );
+				if ( id !== -1 ) // Happens on client side and even server-side after loading from snapshot...
+				arr.splice( id, 1 );
+
+				let id2 = arr.inversed.indexOf( this );
+				if ( id2 !== -1 ) // Happens on client side and even server-side after loading from snapshot...
+				arr.inversed.splice( id2, 1 );
+			}
 		}
 	}
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something

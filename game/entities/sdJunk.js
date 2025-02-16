@@ -105,6 +105,8 @@ class sdJunk extends sdEntity
 		this.sy = 0;
 		
 		this.regen_timeout = 0;
+		
+		this.held_by = null;
 
 		let r = Math.random();
 		let t_s = 0;
@@ -610,22 +612,25 @@ class sdJunk extends sdEntity
 	get mass() { return this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 60 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 800 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 1000 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 500 : 30; }
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 	}
-	/*Impact( vel ) // fall damage basically
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
-		// less fall damage
-		if ( vel > 10 )
-		{
-			this.DamageWithEffect( ( vel - 4 ) * 15 );
-		}
-	}*/
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		GSPEED *= 0.25;
 
+		if ( !this.held_by )
 		this.sy += sdWorld.gravity * GSPEED;
 
 		if ( sdWorld.is_server )
@@ -767,7 +772,7 @@ class sdJunk extends sdEntity
 								executer: sdWorld.sockets[ i ].character,
 								target: this,
 								mission: sdTask.MISSION_DESTROY_ENTITY,
-								difficulty: 0.334,
+								difficulty: 3 * sdTask.GetTaskDifficultyScaler(),
 								time_left: ( this.detonation_in - 30 * 2 ),
 								title: 'Disarm Council bomb',
 								description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'
@@ -1092,7 +1097,7 @@ class sdJunk extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: 0.167 * sdTask.GetTaskDifficultyScaler(),
+							difficulty: 1 * sdTask.GetTaskDifficultyScaler(),
 							title: 'Destroy Erthal distress beacon',
 							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
 						});
@@ -1153,7 +1158,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_LRTP_EXTRACTION,
-										difficulty: 0.075 * sdTask.GetTaskDifficultyScaler(),
+										difficulty: 0.1 * sdTask.GetTaskDifficultyScaler(),
 										title: 'Extract alien artifact',
 										description: 'We would like to investigate this artifact you have found. Can you deliver it to the mothership using a long range teleporter?'
 									});
@@ -1163,6 +1168,8 @@ class sdJunk extends sdEntity
 				}
 			}
 		}
+		
+		if ( !this.held_by )
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	get title()
@@ -1239,6 +1246,10 @@ class sdJunk extends sdEntity
 
 		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		sdEntity.Tooltip( ctx, this.title );
+	
+
+		
+		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
 	{
@@ -1246,6 +1257,7 @@ class sdJunk extends sdEntity
 		ctx.apply_shading = false;
 		//ctx.filter = this.filter;
 		
+		if ( this.held_by === null || attached )
 		{
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ) // First unstable cube corpse
 			{

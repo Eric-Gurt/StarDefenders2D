@@ -356,7 +356,7 @@ class sdWeaponBench extends sdEntity
 
 						if ( i >= 0 & i < upgrades.length )
 						{
-							if ( upgrades[ i ].title = "Increase damage" && upgrades[ i ].cost === 2 ) // Normal gun damage upgrade price
+							if ( upgrades[ i ].title === "Increase damage" && upgrades[ i ].cost === 2 ) // Normal gun damage upgrade price
 							{
 								let slot_mult = 1;
 								if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
@@ -368,14 +368,20 @@ class sdWeaponBench extends sdEntity
 								let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
+									let result = true;
+									
 									if ( upgrades[ i ].action )
 									{
-										upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) );
+										if ( false === upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) ) )
+										result = false;
 									}
 
-									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+									if ( result )
+									{
+										sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-									exectuter_character.matter -= ( normal_cost || 0 );	
+										exectuter_character.matter -= ( normal_cost || 0 );	
+									}
 
 									this._update_version++;
 								}
@@ -383,7 +389,7 @@ class sdWeaponBench extends sdEntity
 								executer_socket.SDServiceMessage( 'Not enough matter' );
 							}
 							else
-							if ( upgrades[ i ].title = "Improve recoil control" && upgrades[ i ].cost === 1 ) // Normal gun recoil upgrade price
+							if ( upgrades[ i ].title === "Improve recoil control" && upgrades[ i ].cost === 1 ) // Normal gun recoil upgrade price
 							{
 								let slot_mult = 1;
 								if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
@@ -395,15 +401,21 @@ class sdWeaponBench extends sdEntity
 								let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
+									let result = true;
+									
 									if ( upgrades[ i ].action )
 									{
-										upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) );
+										if ( false === upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) ) )
+										result = false;
 									}
 
-									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+									if ( result )
+									{
+										sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-									exectuter_character.matter -= ( normal_cost || 0 );	
-
+										exectuter_character.matter -= ( normal_cost || 0 );	
+									}
+									
 									this._update_version++;
 								}
 								else
@@ -412,14 +424,20 @@ class sdWeaponBench extends sdEntity
 							else
 							if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
 							{
+								let result = true;
+
 								if ( upgrades[ i ].action )
 								{
-									upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) );
+									if ( false === upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) ) )
+									result = false;
 								}
 
-								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+								if ( result )
+								{
+									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-								exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
+									exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
+								}
 
 								this._update_version++;
 							}
@@ -435,7 +453,6 @@ class sdWeaponBench extends sdEntity
 							let matter_cost = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300;
 							if ( exectuter_character.matter >= ( matter_cost ) )
 							{
-
 								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
 								exectuter_character.matter -= matter_cost;

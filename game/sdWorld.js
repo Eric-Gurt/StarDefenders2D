@@ -44,6 +44,7 @@ import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';
 import sdDeepSleep from './entities/sdDeepSleep.js';
 import sdCommandCentre from './entities/sdCommandCentre.js';
 import sdPresetEditor from './entities/sdPresetEditor.js';
+import sdTask from './entities/sdTask.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -62,7 +63,7 @@ class sdWorld
 {
 	static init_class()
 	{
-		console.log('sdWorld class initiated');
+		//console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
 		
 		//sdWorld.SERVER_EXPECTED_GSPEED = 1;
@@ -84,7 +85,7 @@ class sdWorld
 		
 		sdWorld.frame = 0;
 		
-		sdWorld.paused = false; // Single-player only, prevents some global logic like sdDeepSleep spawns
+		sdWorld.paused = true; // Single-player only, prevents some global logic like sdDeepSleep spawns
 		
 		sdWorld.event_uid_counter = 0; // Will be used by clients to not re-apply same events
 		
@@ -103,7 +104,8 @@ class sdWorld
 		//if ( !sdWorld.is_server )
 		//EnforceChangeLog( sdWorld, 'time' );
 		
-		sdWorld.soft_camera = true;
+		//sdWorld.soft_camera = true;
+		sdWorld.camera_movement = -1;
 		sdWorld.show_videos = true;
 		
 		sdWorld.sockets = null; // Becomes array
@@ -141,6 +143,7 @@ class sdWorld
 		sdWorld.my_entity_upgrades_later_set_obj = null;
 		sdWorld.my_inputs_and_gspeeds = []; // [ GSPEED, key_states ]
 		sdWorld.my_inputs_and_gspeeds_max = 100;
+		//sdWorld.speculative_projectiles = true;
 		
 		sdWorld.client_side_censorship = false;
 		
@@ -495,12 +498,13 @@ class sdWorld
 
 		return c;
 	}*/
-	static GetPlayingPlayersCount( count_dead=false )
+	static GetPlayingPlayersCount( count_dead=false, count_unlisted=true )
 	{
 		let c = 0;
 
 		for ( let i = 0; i < sdWorld.sockets.length; i++ )
 		if ( sdWorld.sockets[ i ].character !== null )
+		if ( count_unlisted || sdWorld.sockets[ i ].character._list_online )
 		if ( count_dead || sdWorld.sockets[ i ].character.hea > 0 )
 		if ( count_dead || !sdWorld.sockets[ i ].character._is_being_removed )
 		if ( !sdWorld.sockets[ i ].character.is( sdPlayerSpectator ) )
@@ -612,12 +616,17 @@ class sdWorld
 		var s4 = 0;
 		var s4_tot = 0;
 		
+		//var r = 10;
 		var r = 10;
 		var r_plus = r + 1;
 		
+		//let x_scale = 4;
+		
+		//for ( var xx = -r * x_scale; xx <= r * x_scale; xx++ )
 		for ( var xx = -r; xx <= r; xx++ )
 		for ( var yy = -r; yy <= r; yy++ )
 		{
+			//if ( sdWorld.inDist2D_Boolean( xx / x_scale, yy, 0, 0, r_plus ) )
 			if ( sdWorld.inDist2D_Boolean( xx, yy, 0, 0, r_plus ) )
 			{
 				s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8, y + yy * 8 );
@@ -679,6 +688,7 @@ class sdWorld
 		s4 /= s4_tot;
 		
 		if ( s < 0.49 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
+		//if ( s < 0.5 )
 		{
 			allow_block = false;
 			allow_water = false;
@@ -1373,9 +1383,9 @@ class sdWorld
 					]) );
 				}, 3000 );
 
-				if ( player_entity.build_tool_level % 10 === 0 )
-				if ( player_entity._socket )
-				sdSound.PlaySound({ name:'piano_world_startB', x:player_entity.x, y:player_entity.y, volume:0.5 }, [ player_entity._socket ] );
+				//if ( player_entity.build_tool_level % 10 === 0 )
+				//if ( player_entity._socket )
+				//sdSound.PlaySound({ name:'piano_world_startB', x:player_entity.x, y:player_entity.y, volume:0.5 }, [ player_entity._socket ] );
 			}
 		}
 		
@@ -3166,14 +3176,19 @@ class sdWorld
 								if ( time_to - time_from > 5 )
 								sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
 							}
+							
+							/*if ( e.GetClass() === 'sdWanderer' )
+							{
+								debugger;
+							}*/
 
-							if ( arr_i === 0 )
+							//if ( arr_i === 0 ) Wanderers need to be removed for sdEntity.entities too now
 							{
 								//e._remove_from_entities_array( hiber_state );
 								bulk_exclude.push( e );
 							}
 
-							if ( arr[ i ] === e ) // Removal did not happen?
+							if ( arr[ i ] === e ) // Removal did not happen? This is the only way for global entities to be removed... Not for just active entities though
 							{
 								arr.splice( i, 1 );
 								i--;
@@ -3229,13 +3244,10 @@ class sdWorld
 
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
-				//if ( sdShop.open || sdContextMenu.open )
-				//sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.01, 0 );
-				//else
 				sdWorld.mouse_speed_morph = Math.min( sdWorld.mouse_speed_morph + GSPEED * 0.2, 1 );
 
-				sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_x * ( 1 - sdWorld.mouse_speed_morph );
-				sdWorld.mouse_world_y = ( sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_y * ( 1 - sdWorld.mouse_speed_morph );
+				sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );
+				sdWorld.mouse_world_y = ( sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale );
 
 				if ( sdWorld.my_entity )
 				{
@@ -3246,20 +3258,42 @@ class sdWorld
 					}
 					else
 					{
-						if ( sdWorld.soft_camera )
+						//if ( sdWorld.soft_camera )
+						if ( sdWorld.camera_movement === 1 )
 						{
-							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
-							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+							//sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+							//sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.mouse_world_x ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.mouse_world_y ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
 						}
 						else
+						if ( sdWorld.camera_movement === 2 )
 						{
-							//sdWorld.camera.x = ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2;
-							//sdWorld.camera.y = ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2;
-							//for ( let i = 0; i < 30; i++ )
+							//sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+							//sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+
+							if ( sdWorld.mouse_speed_morph >= 1 )
 							{
-								sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
-								sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+								for ( let i = 0; i < 5; i++ )
+								{
+									sdWorld.camera.x = ( sdWorld.my_entity.x + sdWorld.mouse_world_x ) / 2;
+									sdWorld.camera.y = ( sdWorld.my_entity.y + sdWorld.mouse_world_y ) / 2;
+
+									sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );
+									sdWorld.mouse_world_y = ( sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale );
+								}
 							}
+							else
+							{
+								sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.mouse_world_x ) / 2, 0, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+								sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.mouse_world_y ) / 2, 0, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+							}
+						}
+						else
+						if ( sdWorld.camera_movement === 3 )
+						{
+							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x ), 0.6, GSPEED ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y ), 0.6, GSPEED ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
 						}
 					}
 
@@ -3450,6 +3484,11 @@ class sdWorld
 
 			let t11 = Date.now();
 			IncludeTimeCost( 'sdBaseShieldingUnit', t11 - t10 );
+			
+			sdTask.GlobalThink( GSPEED );
+
+			let t12 = Date.now();
+			IncludeTimeCost( 'sdTask', t12 - t11 );
 
 			// Keep it last:
 			sdWorld.frame++;
@@ -4381,6 +4420,8 @@ class sdWorld
 		
 		character_entity._allow_self_talk = ( player_settings.selftalk1 ) || false;
 		
+		character_entity._list_online = ( parseInt( player_settings.list_online ) === 2 ) ? false : true;
+		
 		character_entity.onSkinChanged();
 	}
 	
@@ -4507,6 +4548,9 @@ class sdWorld
 	}
 	static StartOffline( player_settings, full_reset=false, retry=0 )
 	{
+		let socket = globalThis.socket;
+		socket.close();
+		
 		sdWorld.paused = false;
 		
 		/*if ( sdWorld.is_singleplayer )
@@ -4562,7 +4606,7 @@ class sdWorld
 			}
 		};
 		
-		setInterval( ()=>
+		let vision_reaction_interval = setInterval( ()=>
 		{
 			let socket = offline_socket;
 			
@@ -4578,6 +4622,7 @@ class sdWorld
 				let i = ~~( Math.random() * observed_entities.length );
 				if ( i < observed_entities.length )
 				{
+					if ( observed_entities[ i ].IsVisible( socket.character ) )
 					socket.character.onSeesEntity( observed_entities[ i ] );
 				}
 			}
@@ -4614,9 +4659,6 @@ class sdWorld
 			}
 		};
 		
-		let socket = globalThis.socket;
-		socket.close();
-		
 		let admin = { my_hash:'singleplayer_hash', access_level:0, pseudonym:'Local admin', promoter_hash:null };
 		
 		sdModeration.Load = ()=>{};
@@ -4625,6 +4667,8 @@ class sdWorld
 		sdModeration.ever_loaded = true;
 		
 		sdShop.init_class();
+		
+		//ClearWorld();
 		
 		sdWorld.UpdateFilePaths( 'fake_local_directory', 0 );
 		
@@ -4657,8 +4701,10 @@ class sdWorld
 			sdEntity.entities[ i ]._broken = false;
 		}*/
 		
-		if ( sdEntity.global_entities.length === 0 )
-		sdEntity.entities.push( new sdWeather({}) );
+		//if ( sdEntity.global_entities.length === 0 )
+		//sdEntity.entities.push( new sdWeather({}) );
+		if ( sdWeather.only_instance === null )
+		sdWeather.only_instance = new sdWeather({});
 	
 		sdWorld.server_config = sdServerConfigFull;
 		
@@ -4732,6 +4778,12 @@ class sdWorld
 					offline_socket.character = sdWorld.my_entity;
 					offline_socket.character._socket = offline_socket;
 					
+					sdWorld.camera.x = sdWorld.my_entity.x;
+					sdWorld.camera.y = sdWorld.my_entity.y;
+					
+					sdWorld.my_entity.look_x = sdWorld.camera.x;
+					sdWorld.my_entity.look_y = sdWorld.camera.y;
+					
 					/*for ( let i = 0; i < sdShop.options.length; i++ )
 					if ( sdShop.options[ i ]._class === 'sdGun' )
 					if ( sdShop.options[ i ]._min_build_tool_level === 0 )
@@ -4800,6 +4852,7 @@ class sdWorld
 			
 			close: ()=>
 			{
+				clearInterval( vision_reaction_interval );
 			}
 		};
 		
@@ -4807,7 +4860,7 @@ class sdWorld
 		
 		admin.my_hash = offline_socket.character._my_hash;
 	}
-	static PlayAdAndStart( player_settings, button )
+	static StartOnline( player_settings, button )
 	{
 		button.disabled = true; // Prevent double clicks while it might be loading ad
 		
@@ -4826,6 +4879,7 @@ class sdWorld
 		}
 		else
 		{
+			if ( typeof adBreak !== 'undefined' )
 			adBreak({
 				type: 'preroll',  // ad shows at start of next level
 				name: 'game-started-ad',
@@ -4853,15 +4907,75 @@ class sdWorld
 			{
 				once = false;
 				button.disabled = false;
+
+				if ( sdWorld.is_singleplayer )
+				{
+					globalThis.socket.close();	
+					globalThis.socket = globalThis.online_socket;
+					sdWorld.is_singleplayer = false;
+					
+					globalThis.socket.connect();
+					
+					globalThis.sd_events = [];
+					sdWorld.is_server = false;
+				}
+				
 				sdWorld.Start( player_settings );
 			}
 		}
+	}
+	static ApplyUISettingsToGame( player_settings=globalThis.GetPlayerSettings() )//UpdateCensoreshipMode( player_settings=globalThis.GetPlayerSettings() )
+	{
+		globalThis.enable_debug_info = player_settings['bugs2'];
+
+		const BoolToInt = ( v )=>
+		{
+			return v?1:0;
+		};
+
+		sdRenderer.InitVisuals();
+
+		sdRenderer.shading = player_settings['shading1'] ? true : false;
+
+		sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
+		window.onresize();
+
+		let music_was_enabled = sdMusic.enabled;
+		sdMusic.enabled = player_settings['music1'] ? true : false;
+
+		if ( !sdMusic.enabled && music_was_enabled )
+		sdMusic.Stop();
+
+		sdMusic.UpdateVolume();
+
+		sdSound.SetVolumeScale( parseFloat( player_settings['volume'] ) / 100 ); // BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
+
+		//sdWorld.UpdateCensoreshipMode();
+		sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
+
+		sdWorld.camera_movement = BoolToInt( player_settings['camera1'] ) * 1 + BoolToInt( player_settings['camera2'] ) * 2 + BoolToInt( player_settings['camera3'] ) * 3;
+
+		sdWorld.show_videos = player_settings['censorship3'] ? false : true;
+		
+		let filter = ( [
+			null,
+			'',
+			'hue-rotate(-40deg) saturate(1.4)', // Purple
+			'hue-rotate(23deg) contrast(1.1) brightness(0.66) saturate(1.5)', // Dawn
+			'sepia(0.9) hue-rotate(-30deg) saturate(3)', // Sandy morning
+			'sepia(0.9) hue-rotate(-110deg) saturate(3)', // Washed pink
+			'sepia(0.9) hue-rotate(-160deg) saturate(4)' // Blue
+			
+		][ player_settings['ui_style'] ] || '' );
+		
+		globalThis.page_background.style.filter = globalThis.page_foreground.style.filter = filter + ' blur(0.2vh)';
+		globalThis.section_menu.style.filter = filter;
 	}
 	static Start( player_settings, full_reset=false, retry=0 )
 	{
 		sdWorld.paused = false;
 		
-		sdSound.AllowSound();
+		//sdSound.AllowSound();
 
 		sdWorld.my_entity_net_id = undefined; // Reset...
 
@@ -4886,79 +5000,31 @@ class sdWorld
 		}
 		else
 		{
-				let socket = globalThis.socket;
+			let socket = globalThis.socket;
 
-				globalThis.enable_debug_info = player_settings['bugs2'];
+			sdWorld.ApplyUISettingsToGame( player_settings );
 
-				const BoolToInt = ( v )=>
+			player_settings.full_reset = full_reset;
+
+			if ( globalThis.will_play_startup_tune )
+			{
+				globalThis.will_play_startup_tune = false;
+
+				setTimeout( ()=>
 				{
-					return v?1:0;
-				};
-
-				//sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
-				sdRenderer.InitVisuals();
-				
-				sdRenderer.shading = player_settings['shading1'] ? true : false;
-
-				sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
-				window.onresize();
-				
-				let music_was_enabled = sdMusic.enabled;
-				sdMusic.enabled = player_settings['music1'] ? true : false;
-				if ( !sdMusic.enabled && music_was_enabled )
-				sdMusic.Stop();
-				if ( sdMusic.enabled )
-				sdMusic.UpdateVolume();
-
-				sdSound.SetVolumeScale( parseFloat( player_settings['volume'] ) / 100 ); // BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
-
-				sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
-
-				sdWorld.soft_camera = player_settings['camera1'] ? true : false;
-				
-				sdWorld.show_videos = player_settings['censorship3'] ? false : true;
-
-				player_settings.full_reset = full_reset;
-				//player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
-				//player_settings.my_net_id = undefined;
-				/*
-				try 
-				{
-					let v;
-
-					v = localStorage.getItem( 'my_hash' );
-					if ( v !== null )
-					player_settings.my_hash = v;
-					else
-					localStorage.setItem( 'my_hash', player_settings.my_hash );
-
-					//v = localStorage.getItem( 'my_net_id' );
-					//if ( v !== null )
-					//player_settings.my_net_id = v;
-
-				} catch(e){}*/
-
-				//if ( sdWorld.time > player_settings['last_local_time_start'] + 1000 * 60 * 60 * 8 )
-				if ( globalThis.will_play_startup_tune )
-				{
-					globalThis.will_play_startup_tune = false;
-
-					setTimeout( ()=>
-					{
-						sdSound.PlaySound({ name:'sci_fi_world_start', volume:0.3, _server_allowed:true });
-						//sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
-					}, 0 );//2500 );
-				}
-
-				socket.emit( 'RESPAWN', player_settings );
-
-				sdWorld.GotoGame();
+					sdSound.PlaySound({ name:'sci_fi_world_start', volume:0.3, _server_allowed:true });
+				}, 0 );
 			}
+
+			socket.emit( 'RESPAWN', player_settings );
+
+			sdWorld.GotoGame();
+		}
 	}
 	static GotoGame()
 	{
 		sdRenderer.canvas.style.display = 'block';
-		globalThis.settings_container.style.display = 'none';
+		globalThis.page_container.style.display = 'none';
 
 		if ( globalThis.preview_interval !== null )
 		{
@@ -4966,16 +5032,22 @@ class sdWorld
 			cancelAnimationFrame( globalThis.preview_interval );
 			globalThis.preview_interval = null;
 		}
+		
+		if ( sdMusic.is_still_playing_intro_song )
+		sdMusic.Stop();
+		
 
 		globalThis.meSpeak.stop();
 
 		if ( sdWorld.mobile )
 		{
-			sdSound.AllowSound();
+			//sdSound.AllowSound();
 			sdWorld.GoFullscreen();
 		}
 		
 		sdMobileKeyboard.Open();
+		
+		sdWorld.time = Date.now();
 	}
 	static Stop()
 	{
@@ -4990,10 +5062,12 @@ class sdWorld
 		
 		sdMobileKeyboard.Close();
 		
-		globalThis.ClearWorld();
+		//globalThis.ClearWorld();
+		
+		sdRenderer.dark_tint = 1;
 		
 		sdRenderer.canvas.style.display = 'none';
-		globalThis.settings_container.style.display = 'block';
+		globalThis.page_container.style.display = 'block';
 		
 		if ( globalThis.preview_interval === null )
 		{
@@ -5005,6 +5079,8 @@ class sdWorld
 		globalThis.socket.emit( 'SELF_EXTRACT' );
 		
 		sdWorld.paused = true;
+		
+		PlayMainMenuMusic();
 	}
 	static GetAny( arr )
 	{

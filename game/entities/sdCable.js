@@ -154,6 +154,8 @@ class sdCable extends sdEntity
 		
 		this.t = ( params.type === undefined ) ? sdCable.TYPE_MATTER : params.type; // type
 		
+		//this._debug_enforced = false;
+		
 		/*this.p = null;
 		this.c = null;
 		
@@ -344,6 +346,9 @@ class sdCable extends sdEntity
 	{
 		let old = this.p;
 		
+		if ( e === old )
+		return;
+		
 		//debugger;
 		
 		if ( this.p )
@@ -373,6 +378,9 @@ class sdCable extends sdEntity
 	set c( e )
 	{
 		let old = this.c;
+		
+		if ( e === old )
+		return;
 		
 		//debugger;
 		
@@ -434,6 +442,25 @@ class sdCable extends sdEntity
 		{
 			if ( sdWorld.is_server )
 			this.remove();
+			else
+			{
+				/*if ( !this._debug_enforced )
+				{
+					this._debug_enforced = true;
+					try
+					{
+						EnforceChangeLog( this.p, '_is_being_removed', false, false );
+						EnforceChangeLog( this.c, '_is_being_removed', false, false );
+					}catch(e){}
+				}*/
+				
+				// Sometimes p and c can point towards same object by _net_id but removed version, yet client might know about new non-removed one. Not sure why it happens but it happens. Without it cables will float mid-air
+				if ( this.p )
+				this.p = sdEntity.entities_by_net_id_cache_map.get( this.p._net_id ) || this.p;
+			
+				if ( this.c )
+				this.c = sdEntity.entities_by_net_id_cache_map.get( this.c._net_id ) || this.c;
+			}
 		
 			return;
 		}
@@ -442,9 +469,13 @@ class sdCable extends sdEntity
 		{
 			if ( sdWorld.is_server )
 			{
+				this.x = this.p.x + this.d[ 0 ];
+				this.y = this.p.y + this.d[ 1 ];
+				
 				if ( this.hitbox_x1 === this._hitbox_x1 && this.hitbox_x2 === this._hitbox_x2 &&
 					 this.hitbox_y1 === this._hitbox_y1 && this.hitbox_y2 === this._hitbox_y2 )
 				{
+					if ( !sdWorld.is_singleplayer )
 					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 				}
 				else
@@ -951,7 +982,7 @@ class sdCable extends sdEntity
 		{
 			if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
 			{
-				if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 32 )
+				if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) < 32 )
 				{
 
 					//{
@@ -1002,7 +1033,7 @@ class sdCable extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		//if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
-		if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 20 ) // 32 can cause door to be "hackable" if first socket was on top
+		if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) < 20 ) // 32 can cause door to be "hackable" if first socket was on top
 		{
 			this.AddContextOption( 'Cut cable', 'CUT_CABLE', [] );
 			this.AddContextOption( 'Transfer matter', 'SET_TYPE', [ sdCable.TYPE_MATTER ] );

@@ -334,6 +334,11 @@ class sdQuadro extends sdEntity
 			if ( this.p )
 			{
 				// Logic handled by parent
+				if ( this.p._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+				{
+					this.p.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					this.p.PhysWakeUp();
+				}
 			}
 			else
 			{
@@ -358,6 +363,7 @@ class sdQuadro extends sdEntity
 			driver = this.driver0;
 		
 			let any_awake = false;
+			let max_sleep_timer = 0;
 
 			if ( this._spawn_wheels )
 			{
@@ -615,8 +621,9 @@ class sdQuadro extends sdEntity
 
 						e.ApplyVelocityAndCollisions( GSPEED_scaled, step_size, true, ( e === this ) ? 1 : 0.25, e.CustomFiltering );
 
-						if ( e._phys_sleep > 0 )
-						any_awake = true;
+						if ( max_sleep_timer < e._phys_sleep )
+						max_sleep_timer = e._phys_sleep;
+						//any_awake = true;
 					}
 				}
 			}
@@ -651,7 +658,7 @@ class sdQuadro extends sdEntity
 			HandleRegenAndPhysics( this.w1 );
 			HandleRegenAndPhysics( this.w2 );
 			
-			if ( !any_awake )
+			if ( !any_awake && max_sleep_timer <= 0 && ( !driver || !driver._socket ) )
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 				
@@ -664,12 +671,19 @@ class sdQuadro extends sdEntity
 			else
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				this._phys_sleep = Math.max( this._phys_sleep, max_sleep_timer );
 				
 				if ( this.w1 && !this.w1._is_being_removed )
-				this.w1.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				{
+					this.w1.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					this.w1._phys_sleep = Math.max( this.w1._phys_sleep, max_sleep_timer );
+				}
 			
 				if ( this.w2 && !this.w2._is_being_removed )
-				this.w2.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				{
+					this.w2.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					this.w2._phys_sleep = Math.max( this.w2._phys_sleep, max_sleep_timer );
+				}
 			}
 		}
 	}
@@ -695,9 +709,13 @@ class sdQuadro extends sdEntity
 			if ( ent === this || ent === this.w1 || ent === this.w2 )
 			return false;
 		
-			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
-			if ( this[ 'driver' + i ] === ent )
+			if ( ent.IsPlayerClass() )
+			if ( ent.driver_of === this )
 			return false;
+		
+			//for ( var i = 0; i < sdQuadro.driver_slots; i++ )
+			//if ( this[ 'driver' + i ] === ent )
+			//return false;
 
 			return true;
 		}
@@ -705,24 +723,15 @@ class sdQuadro extends sdEntity
 		{
 			if ( this.p )
 			return this.p.CustomFiltering( ent );
-			/*
-			if ( ent === this.p )
-			return false;
-
-			if ( this.p )
-			if ( ent === this.p.w1 || ent === this.p.w2 )
-			return false;
-
-			return true;*/
 			
 			return true;
 		}
 	}
 	
-	IsMovesLogic( sx_sign, sy_sign )
+	/*IsMovesLogic( sx_sign, sy_sign )
 	{
 		return !sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.4 );
-	}
+	}*/
 	
 	get friction_remain()
 	{ return 0.95; }
@@ -743,7 +752,9 @@ class sdQuadro extends sdEntity
 			if ( this.hea <= 0 )
 			return;
 	
-			sdEntity.Tooltip( ctx, this.title );
+			sdEntity.Tooltip( ctx, this.title, 0, -8 );
+			
+			this.BasicVehicleTooltip( ctx, 0 );
 
 			let w = 20;
 
@@ -752,6 +763,7 @@ class sdQuadro extends sdEntity
 
 			ctx.fillStyle = '#FF0000';
 			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+			
 		}
 	}
 	Draw( ctx, attached )

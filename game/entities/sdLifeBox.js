@@ -398,7 +398,9 @@ class sdLifeBox extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx,  this.title + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
+		sdEntity.Tooltip( ctx,  this.title + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -8 - 10 );		
+
+		this.BasicVehicleTooltip( ctx, 0 - 10 );
 		
 		let w = 40;
 	

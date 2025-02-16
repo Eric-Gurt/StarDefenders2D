@@ -92,6 +92,7 @@ class sdBullet extends sdEntity
 	return 2
 	else
 	return 0.1 }
+
 	/*
 	get substeps() // Bullets will need more
 	{ return 6; } // 3 was generally fine expect for sniper
@@ -154,7 +155,7 @@ class sdBullet extends sdEntity
 
 	RemoveBullet()
 	{
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server /*|| this._speculative*/ )
 		this.remove();
 		else
 		{
@@ -177,6 +178,8 @@ class sdBullet extends sdEntity
 		this._hittable_by_bullets = true;
 
 		this._anti_shield_damage_bonus = 0;
+		
+		//this._speculative = false; // Only exists on client-side for a short period of time
 
 		//globalThis.EnforceChangeLog( this, 'color' );
 
@@ -187,7 +190,7 @@ class sdBullet extends sdEntity
 		this._damage = 10;
 		this.time_left = 30;
 		
-		this._client_side_hide_until = 0;
+		//this._client_side_hide_until = 0;
 
 		this._return_damage_to_owner = false; // Stimpack and medikit
 		this._custom_target_reaction = null;
@@ -386,6 +389,7 @@ class sdBullet extends sdEntity
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
+		//if ( !this._speculative )
 		return;
 
 		dmg = Math.abs( dmg );

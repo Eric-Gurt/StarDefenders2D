@@ -62,7 +62,7 @@ class sdBiter extends sdEntity
 		
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === sdBiter.TYPE_LARGE ? 400 : 60;
+		this._hmax = this.type === sdBiter.TYPE_LARGE ? 400 : 20;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -175,7 +175,7 @@ class sdBiter extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
-	get mass() { return this.type === sdBiter.TYPE_LARGE ? 40 : 10; } // sdBiter is capable of crashing hovers with 50 kg mass
+	get mass() { return this.type === sdBiter.TYPE_LARGE ? 40 : 5; } // sdBiter is capable of crashing hovers with 50 kg mass
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -216,6 +216,7 @@ class sdBiter extends sdEntity
 				if ( this._last_jump < sdWorld.time - 150 )
 				//if ( this._last_stand_on )
 				//if ( in_water )
+				if ( sdWorld.is_server )
 				{
 					this._last_jump = sdWorld.time;
 					
@@ -244,7 +245,7 @@ class sdBiter extends sdEntity
 						if ( !this._attacking && di < 100 )
 						{
 							dx *= -0.5;
-							dy -= GSPEED * 5;
+							dy -= 5;
 						}
 					}
 					
@@ -254,8 +255,8 @@ class sdBiter extends sdEntity
 						dy /= 2;
 					}
 					
-					this.sx += dx;
-					this.sy += dy;
+					this.sx += dx * GSPEED;
+					this.sy += dy * GSPEED;
 
 					//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
 					//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
@@ -285,8 +286,8 @@ class sdBiter extends sdEntity
 						if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
 						if ( di > 1 )
 						{
-							this.sx += dx / di * 0.2;
-							this.sy += dy / di * 0.2;
+							this.sx += dx / di * 0.2 * GSPEED;
+							this.sy += dy / di * 0.2 * GSPEED;
 
 							//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
 							//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
@@ -319,11 +320,13 @@ class sdBiter extends sdEntity
 			if ( this._last_attack < sdWorld.time )
 			{
 				this._last_attack += 500;
-					this._attacking = true;
-					let next_att_time = ( Math.random() * 3000 + 4000 );
-					if ( this.type === sdBiter.TYPE_LARGE )
-					next_att_time = Math.max( 300, next_att_time / 6 ); // Large biters attack 6 times the frequency. They are supposed to be very lethal since they will spawn in deep underground.
-					this._last_attack = sdWorld.time + next_att_time; // So it is not so much calc intensive
+				this._attacking = true;
+				let next_att_time = ( Math.random() * 3000 + 4000 );
+				
+				if ( this.type === sdBiter.TYPE_LARGE )
+				next_att_time = Math.max( 300, next_att_time / 6 ); // Large biters attack 6 times the frequency. They are supposed to be very lethal since they will spawn in deep underground.
+			
+				this._last_attack = sdWorld.time + next_att_time; // So it is not so much calc intensive
 			}
 			
 			let from_entity;
@@ -360,7 +363,7 @@ class sdBiter extends sdEntity
 							from_entity._last_sickness_from_ent = this;
 						}
 						
-						this._hea = Math.min( this._hmax, this._hea + 15 );
+						this._hea = Math.min( this._hmax, this._hea + 5 );
 
 						this.attack_anim = 5;
 
@@ -392,9 +395,9 @@ class sdBiter extends sdEntity
 					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
 					
 					if ( this.type === sdBiter.TYPE_SMALL )
-+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 					if ( this.type === sdBiter.TYPE_LARGE ) // Large/infectious biter?
-+					this.AttemptBlockBurying( 'sdBiter.TYPE_LARGE' ); // Attempt to hibernate inside nearby blocks
+					this.AttemptBlockBurying( 'sdBiter.TYPE_LARGE' ); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}

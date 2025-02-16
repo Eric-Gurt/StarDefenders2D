@@ -12,6 +12,10 @@ class sdMatterContainer extends sdEntity
 		sdMatterContainer.img_matter_container = sdWorld.CreateImageFromFile( 'matter_container' );
 		sdMatterContainer.img_matter_container_empty = sdWorld.CreateImageFromFile( 'matter_container_empty' );
 		
+		sdMatterContainer.MODE_EQUALIZE = 0;
+		sdMatterContainer.MODE_COLLECT = 1;
+		sdMatterContainer.MODE_RELEASE = 2;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -10; }
@@ -47,6 +51,8 @@ class sdMatterContainer extends sdEntity
 		this._hea = this._hmax;
 		
 		this._regen_timeout = 0;
+		
+		this.mode = sdMatterContainer.MODE_EQUALIZE;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -77,14 +83,14 @@ class sdMatterContainer extends sdEntity
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
-		{
-			if ( this._hea < this._hmax )
-			{
-				this._hea = Math.min( this._hea + GSPEED, this._hmax );
-			}
-		}
+		if ( this._hea < this._hmax )
+		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		
+		if ( this.mode === sdMatterContainer.MODE_EQUALIZE )
 		this.MatterGlow( 0.01, 50, GSPEED );
+	
+		if ( this.mode === sdMatterContainer.MODE_RELEASE )
+		this.MatterGlow( 0.3, 50, GSPEED );
 		
 		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this._last_x !== this.x || this._last_y !== this.y )
 		{
@@ -139,10 +145,40 @@ class sdMatterContainer extends sdEntity
 	//	return 0; // Hack
 		
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.matter_max == 2560 * 2 || this.matter_max == 5120 * 2 || this.matter_max == 10240 * 2 || this.matter_max == 20480 * 2 )
+		if ( this.matter_max === 2560 * 2 || this.matter_max === 5120 * 2 || this.matter_max === 10240 * 2 || this.matter_max === 20480 * 2 )
 		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.05;
-		if ( this.matter_max == 40960 * 2 )
+		if ( this.matter_max === 40960 * 2 )
 		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.0275;
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
+			{
+				if ( command_name === 'MODE' )
+				{
+					if ( parameters_array[ 0 ] === 0 || parameters_array[ 0 ] === 1 || parameters_array[ 0 ] === 2 )
+					{
+						this.mode = parameters_array[ 0 ];
+						this._update_version++;
+					}
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+		{
+			let active_mode_text = ' ( ' + T( 'active' ) + ' )';
+			this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.mode === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );
+			this.AddContextOptionNoTranslation( T( 'Set mode to Collect' ) + (( this.mode === 1 ) ? active_mode_text : ''), 'MODE', [ 1 ] );
+			this.AddContextOptionNoTranslation( T( 'Set mode to Release' ) + (( this.mode === 2 ) ? active_mode_text : ''), 'MODE', [ 2 ] );
+		}
 	}
 }
 //sdMatterContainer.init_class();

@@ -73,7 +73,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	static let_server_owner_run_eval_command = false; // Unsafe feature for server security in cases if admin account can end up being stolen. Lets first admin to run JavaScript commands on a server via /eval ...
 	static let_non_full_access_level_admins_save_presets = true; // These are saved into presets_users and can't override same files named same way but made by top level admin
 	
-	static run_patch_overlap = ( Date.now() < 1733960619202 + 1000 * 60 * 60 * 24 * 30 * 6 ); // Run overlap patch for 6 months. It runs on server startup and every time sdDeepSleep area is loaded from disk
+	static run_patch_overlap = false;//( Date.now() < 1733960619202 + 1000 * 60 * 60 * 24 * 30 * 6 ); // Run overlap patch for 6 months. It runs on server startup and every time sdDeepSleep area is loaded from disk
 	
 	static offscreen_behavior = 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'; // Or 'OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'. We cheat a little bit offscreen as huge/dense worlds would have perforamnce issues otherwise
 	static offscreen_behavior_x_value = 30; // By how much slower or how many steps to do at once. Usually 30 can give 2x performance improvement in case of OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE. You can test if anything goes wrong offscreen by enabling debug_offscreen_behavior
@@ -126,7 +126,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED, sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ] to allow specific ones or null to allow all
-	static allow_private_storage = true; // These are accesible via LRTPs. Setting this to false will make database reject acceess, not server itself (set allow_private_storage_access to false if you wan to disable private storate on specific servers only)
+	static allow_private_storage = true; // These are accesible via LRTPs. Setting this to false will make database reject access, not server itself (set allow_private_storage_access to false if you want to disable private storate on specific servers only)
 	static allow_rescue_teleports = true;
 	static allowed_rescue_teleports = null; // [ sdRescueTeleport.TYPE_INFINITE_RANGE, sdRescueTeleport.TYPE_SHORT_RANGE, sdRescueTeleport.TYPE_CLONER, sdRescueTeleport.TYPE_RESPAWN_POINT ]
 	static allow_private_storage_access = true; // These are accesible via LRTPs. This disables private storage only on this server. If this server is uses as database - other servers will still be able to access privage storage unless allow_private_storage is set to false
@@ -1559,14 +1559,17 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		let sockets = sdWorld.sockets;
 		sdWorld.leaders.length = 0;
-
+		
 		for ( let i2 = 0; i2 < sockets.length; i2++ )
 		if ( 
 				sockets[ i2 ].character && 
 				( !sdWorld.server_config.only_admins_can_spectate || !sockets[ i2 ].character.is( sdPlayerSpectator ) ) && 
 				!sockets[ i2 ].character._is_being_removed 
 		)
-		sdWorld.leaders.push({ name:sockets[ i2 ].character.title, name_censored:sockets[ i2 ].character.title_censored, score:sockets[ i2 ].GetScore(), here:1 });
+		if ( sockets[ i2 ].character._list_online )
+		{
+			sdWorld.leaders.push({ name:sockets[ i2 ].character.title, name_censored:sockets[ i2 ].character.title_censored, score:sockets[ i2 ].GetScore(), here:1 });
+		}
 	}
 	static ModifyTerrainEntity( ent, icy ) // ent can be sdBlock or sdBG
 	{
@@ -1643,6 +1646,7 @@ class sdServerConfigFull extends sdServerConfigShort
 					// This is done because some variable-size entities might end up having wrong hash areas occupied after reboot, for example sdArea. Possibly due to _hiberstate being not really set since it already had final target value
 					if ( ent )
 					if ( !ent._is_being_removed )
+					if ( !ent.is( sdWeather ) )
 					{
 						//if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates // Disabled this just to find out what is causing objects inside of other objects
 						sdWorld.UpdateHashPosition( ent, false, false );
@@ -1951,7 +1955,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		setInterval( ()=>{
 
 			if ( sdWorld.world_has_unsaved_changes )
-			if ( !sdWorld.paused )
+			if ( !sdWorld.paused || !sdWorld.is_singleplayer )
 			{
 				sdWorld.world_has_unsaved_changes = false;
 

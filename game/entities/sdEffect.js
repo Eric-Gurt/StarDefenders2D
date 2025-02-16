@@ -24,11 +24,14 @@ class sdEffect extends sdEntity
 	
 		sdEffect.local_effect_counter = 0;
 		
-		console.log('sdEffect class initiated');
+		//console.log('sdEffect class initiated');
 		
-		sdEffect.ignored_entity_classes_arr = [ 
+		/*sdEffect.ignored_entity_classes_arr = [ 
 			'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 
-			'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic', 'sdDrone', 'sdBot', 'sdFaceCrab' 
+			'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic', 'sdDrone', 'sdBot', 'sdFaceCrab', 'sdTurret'
+		];*/
+		sdEffect.unignored_entity_classes_arr = [ 
+			'sdBlock', 'sdDoor'
 		];
 		
 		sdEffect.TYPE_BLOOD = 0;
@@ -57,6 +60,8 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_DIRT_HIT = 23;
 		sdEffect.TYPE_EXPLOSION_NON_ADDITIVE = 24;
 		sdEffect.TYPE_VOID_FIRE = 25;
+		sdEffect.TYPE_BLOOD_DROP = 26;
+		sdEffect.TYPE_BLOOD_DROP_GREEN = 27;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -346,6 +351,22 @@ class sdEffect extends sdEntity
 			spritesheet: true,
 			apply_shading: false
 		};
+		
+		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_blood_drop' ) ],
+			duration: 4,
+			random_rotation: false,
+			spritesheet: true,
+			apply_shading: true,
+			speed: 1 / 6,
+			random_speed_percentage: 0.5,
+			random_flip: true,
+			gravity: true,
+			collisions: true,
+			friction_remain: 0
+		};
+		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP ] );
+		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ].images = [ sdWorld.CreateImageFromFile( 'effect_blood_drop_green' ) ];
 	
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
@@ -435,6 +456,7 @@ class sdEffect extends sdEntity
 	get hitbox_y1() { return -1; }
 	get hitbox_y2() { return 1; }
 	
+	
 	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
 	{ return ( this._type === sdEffect.TYPE_CHAT ) ? 0.8 : 1; }
 	
@@ -442,6 +464,19 @@ class sdEffect extends sdEntity
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
 		return false;
+	}
+	
+	
+	get bounce_intensity()
+	{ 
+		let v = sdEffect.types[ this._type ].bounce_intensity;
+		return ( v === undefined ) ? 0 : v; 
+	}
+	
+	get friction_remain()
+	{
+		let v = sdEffect.types[ this._type ].friction_remain;
+		return ( v === undefined ) ? 0.8 : v; 
 	}
 	
 	constructor( params )
@@ -824,6 +859,22 @@ class sdEffect extends sdEntity
 		EnforceChangeLog( this, 'y', false, true );
 		EnforceChangeLog( this, 'sx', false, true );
 		EnforceChangeLog( this, 'sy', false, true );*/
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
+		{
+			for ( let i = 0; i < 10; i++ )
+			{
+				let r = Math.pow( ( 1 - Math.pow( Math.random(), 2 ) ), 1.5 ) * 1.75;
+				let an = Math.random() * Math.PI * 2;
+				let xx = Math.sin( an ) * r;
+				let yy = Math.cos( an ) * r;
+
+				let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
+					x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
+				sdEntity.entities.push( e );
+			}
+		}
 	}
 	static Transliterate( word )
 	{
@@ -842,9 +893,13 @@ class sdEffect extends sdEntity
 	}
 
 
-	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return sdEffect.ignored_entity_classes_arr;
+	}*/
+	GetNonIgnoredEntityClasses()
+	{
+		return sdEffect.unignored_entity_classes_arr;
 	}
 	
 	get _text_target_x()
@@ -1266,6 +1321,7 @@ class sdEffect extends sdEntity
 			let frame_size = img.height;
 			
 			let frame = ~~( this._ani );
+			ctx.sd_hue_rotation = this._hue;
 			ctx.filter = this._filter;
 			//ctx.drawImageFilterCache( img, 0 + frame*16, 0, 16,16, -8,-8,16,16 );
 			ctx.drawImageFilterCache( img, 0 + frame*frame_size, 0, frame_size,frame_size, -frame_size/2,-frame_size/2,frame_size,frame_size );
@@ -1275,6 +1331,7 @@ class sdEffect extends sdEntity
 			ctx.sd_color_mult_g = 1;
 			ctx.sd_color_mult_b = 1;
 			ctx.globalAlpha = 1;
+			ctx.sd_hue_rotation = 0;
 			
 			if ( sdEffect.types[ this._type ].camera_relative_world_scale !== undefined )
 			ctx.camera_relative_world_scale /= sdEffect.types[ this._type ].camera_relative_world_scale;
