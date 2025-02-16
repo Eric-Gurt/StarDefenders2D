@@ -176,8 +176,8 @@ class sdTurret extends sdEntity
 		return `Automatic turrets require matter and cable connection with access management node. Access management node specifies which entities turrets won't be attacking.`;
 	}
 	
-	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
-	//{ return true; }
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return !this.is_static; }
 	
 	GetComWiredCache( ...args ) // Cretes .cio property for clients to know if com exists
 	{
