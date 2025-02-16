@@ -1046,29 +1046,6 @@
 			}
 	    };
 	    
-	    globalThis.preview_fnc = ()=>{ 
-			{
-				let menu_defender = document.getElementById( 'menu_defender' );
-				let pre = menu_defender.getAttribute( 'precached' );
-				if ( pre !== 'null' ) 
-				{ 
-					menu_defender.setAttribute( 'precached', 'null' ); 
-					eval( atob( pre ) ); 
-				}
-			}
-			
-			document.getElementById( 'server_playing' ).textContent = format( globalThis.players_playing ) + ' ' + T( 'playing' );
-			document.getElementById( 'server_online' ).textContent = format( globalThis.players_online ) + ' ' + T( 'online' );
-
-			if ( skin_preview.checkVisibility() )
-			globalThis.DrawPreview( hovered_preview, forced_time, ctx, cursor_x, cursor_y, inputs, hovered_color );
-
-			if ( globalThis.preview_interval )
-			requestAnimationFrame( globalThis.preview_fnc );
-	    };
-	    globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );
-		globalThis.preview_fnc();
-	    
 	    let conditional_elements = [];
 
 	    let NO_DEFAULT_VALUE_PTR = {};
@@ -1417,6 +1394,31 @@
 				crashed = true;
 			};
 	    }
+		
+		
+	    
+	    globalThis.preview_fnc = ()=>{ 
+			{
+				let menu_defender = document.getElementById( 'menu_defender' );
+				let pre = menu_defender.getAttribute( 'precached' );
+				if ( pre !== 'null' ) 
+				{ 
+					menu_defender.setAttribute( 'precached', 'null' ); 
+					eval( atob( pre ) ); 
+				}
+			}
+			
+			document.getElementById( 'server_playing' ).textContent = format( globalThis.players_playing ) + ' ' + T( 'playing' );
+			document.getElementById( 'server_online' ).textContent = format( globalThis.players_online ) + ' ' + T( 'online' );
+
+			if ( skin_preview.checkVisibility() )
+			globalThis.DrawPreview( hovered_preview, forced_time, ctx, cursor_x, cursor_y, inputs, hovered_color );
+
+			if ( globalThis.preview_interval )
+			requestAnimationFrame( globalThis.preview_fnc );
+	    };
+	    globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );
+		globalThis.preview_fnc();
 	    
 	    /*function Reporter() // Simple DevTools detector, disabled for now
 	    {
