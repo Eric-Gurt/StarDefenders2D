@@ -44,9 +44,14 @@ class sdJunk extends sdEntity
 		sdJunk.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
 
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
+		sdJunk.img_fire_barrel = sdWorld.CreateImageFromFile( 'barrel_fire' );
+		
+		sdJunk.img_metal_chunk = sdWorld.CreateImageFromFile( 'metal_chunk' );
+		sdJunk.img_high_yield_rocket = sdWorld.CreateImageFromFile( 'high_yield_rocket' );
 
 		sdJunk.img_alien_artifact = sdWorld.CreateImageFromFile( 'artifact1' );
 		sdJunk.img_stealer_artifact = sdWorld.CreateImageFromFile( 'artifact2' );
+		sdJunk.img_unknown_object1 = sdWorld.CreateImageFromFile( 'unknown_object1' );
 
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
@@ -62,6 +67,10 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 		sdJunk.TYPE_STEALER_ARTIFACT = 9;
+		sdJunk.TYPE_FIRE_BARREL = 10;
+		sdJunk.TYPE_METAL_CHUNK = 11;
+		sdJunk.TYPE_HIGH_YIELD_ROCKET = 12;
+		sdJunk.TYPE_UNKNOWN_OBJECT = 13;
 		sdJunk.ScoreScaleByType = ( t )=>
 		{
 			if ( t === sdJunk.TYPE_ALIEN_ARTIFACT || t === sdJunk.TYPE_STEALER_ARTIFACT )
@@ -81,6 +90,9 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_STEALER_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_FIRE_BARREL ] = { x1: -6, x2: 6, y1: -8, y2: 8 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_METAL_CHUNK ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_HIGH_YIELD_ROCKET ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -108,17 +120,26 @@ class sdJunk extends sdEntity
 		
 		this.held_by = null;
 
-		let r = Math.random();
+		let r = Math.random() * 7;
 		let t_s = 0;
 
-		if ( r < 0.25 )
+		if ( r < 1 )
 		t_s = sdJunk.TYPE_FREEZE_BARREL;
 		else
-		if ( r < 0.5 )
+		if ( r < 2 )
 		t_s = sdJunk.TYPE_LOST_CONTAINER;
 		else
-		if ( r < 0.75 )
+		if ( r < 3 )
 		t_s = sdJunk.TYPE_ALIEN_BATTERY;
+		else
+		if ( r < 4 )
+		t_s = sdJunk.TYPE_FIRE_BARREL;
+		else
+		if ( r < 5 )
+		t_s = sdJunk.TYPE_METAL_CHUNK;
+		else
+		if ( r < 6 )
+		t_s = sdJunk.TYPE_HIGH_YIELD_ROCKET;
 		else
 		t_s = sdJunk.TYPE_UNSTABLE_CUBE_CORPSE;
 
@@ -130,13 +151,13 @@ class sdJunk extends sdEntity
 		this.hmax = 10000;
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 		this.hmax = 30000;
-		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large anti-crystal
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) // Large anti-crystal and the high yield rocket
 		this.hmax = 1000;
 		else
-		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel )
+		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_METAL_CHUNK ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel, 9 = Fire barrel )
 		this.hmax = 150;
 		else
-		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT || this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 		this.hmax = 500;
 
 		// Variables for large anti-crystal
@@ -416,6 +437,19 @@ class sdJunk extends sdEntity
 					color:'#33FFFF' 
 				});
 			}
+			if ( this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) // High radius explosion. Almost like a mini-nuke.
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius:80,
+					damage_scale: 150,
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this._owner,
+					can_hit_owner: true,
+					color:sdEffect.default_explosion_color
+				});
+			}
 			if ( this.type === sdJunk.TYPE_LOST_CONTAINER  ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
 			{
 				let bullet = new sdBullet({ x: this.x, y: this.y });
@@ -574,6 +608,36 @@ class sdJunk extends sdEntity
 				};
 				sdEntity.entities.push( bullet );
 			}
+			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire "barrels" ignites stuff
+			{
+				let bullet = new sdBullet({ x: this.x, y: this.y });
+				bullet.model = 'ball_charged';
+				bullet._damage = 1;
+				bullet.owner = this;
+				bullet.time_left = 0; 
+				bullet._custom_detonation_logic = ( bullet )=>
+				{
+					sdWorld.SendEffect({ 
+						x:bullet.x, 
+						y:bullet.y, 
+						radius:30,
+						damage_scale: 0, // Just a decoration effect
+						type:sdEffect.TYPE_EXPLOSION, 
+						owner:this,
+						color:'#FFA840'
+					});
+
+					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
+
+					for ( let i = 0; i < nears.length; i++ )
+					{
+						if ( nears[ i ].IsTargetable( this ) )
+						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
+						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 1000, initiator: this._owner }); // Ignite nearby objects
+					}
+				};
+				sdEntity.entities.push( bullet );
+			}
 
 			let r = Math.random();
 
@@ -596,6 +660,28 @@ class sdJunk extends sdEntity
 
 				}, 500 );
 			}
+			
+			if ( this.type === sdJunk.TYPE_METAL_CHUNK ) // Metal chunk, drops 0-2 metal shards ( Maybe laser mining tools could make them drop more? )
+			{
+				r = Math.round( Math.random() * 2 );
+				for( let i = 0; i < r; i++ )
+				{
+					let x = this.x + Math.random() * 3 - Math.random() * 3;
+					let y = this.y + Math.random() * 3 - Math.random() * 3;
+					let sx = this.sx + Math.random() - Math.random();
+					let sy = this.sy + Math.random() - Math.random();
+
+					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+						let gun;
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+						gun.sx = sx;
+						gun.sy = sy;
+						sdEntity.entities.push( gun );
+
+					}, 500 );
+				}
+			}
 
 			this.remove();
 		}
@@ -609,7 +695,7 @@ class sdJunk extends sdEntity
 		
 	}
 	
-	get mass() { return this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 60 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 800 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 1000 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 500 : 30; }
+	get mass() { return ( this.type === sdJunk.TYPE_METAL_CHUNK || this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) ? 90 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 60 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 800 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 1000 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 500 : 30; }
 	Impulse( x, y )
 	{
 		if ( this.held_by )
@@ -641,6 +727,41 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || ( this.type === sdJunk.TYPE_ALIEN_BATTERY && this.hea !== this.hmax ) || ( this.type === sdJunk.TYPE_LOST_CONTAINER && this.hea !== this.hmax ) )
 			this.Damage( GSPEED );
+		
+			if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT ) // Attacks everything in it's line of sight, relatively short range
+			{
+				this._time_to_drain -= GSPEED;
+				this.glow_animation -= GSPEED;
+
+				if ( this._time_to_drain <= 0 )
+				{
+					this.Damage( 2 ); // Self damage, limited existence
+					this._time_to_drain = Math.max( 10, 30 * 3 * ( this.hea / this.hmax ) );
+					let nears = sdWorld.GetAnythingNear( this.x, this.y, 64 );
+					for ( let i = 0; i < nears.length; i++ )
+					{
+						let ent = nears[ i ];
+						
+						if ( ent && ent !== this )
+						if ( ent.IsTargetable( this ) )
+						if ( ent._is_bg_entity === this._is_bg_entity )
+						{
+							if ( !sdWorld.CheckLineOfSight( this.x + this._hitbox_x1 / 2 + this._hitbox_x2 / 2, this.y + this._hitbox_y1 / 2 + this._hitbox_y2 / 2, ent.x + ent._hitbox_x1 / 2 + ent._hitbox_x2 / 2, ent.y + ent._hitbox_y1 / 2 + ent._hitbox_y2 / 2, this ) )
+							{
+								if ( sdWorld.last_hit_entity )
+								{
+									if ( sdWorld.last_hit_entity === ent )
+									{
+										ent.Damage( 15, this );
+										console.log( ent.GetClass() )
+									}
+								}
+							}
+						}
+					}
+					this.glow_animation = this._time_to_drain / 2;
+				}
+			}
 
 			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 			{
@@ -788,8 +909,8 @@ class sdJunk extends sdEntity
 					sdWorld.SendEffect({ 
 						x:this.x, 
 						y:this.y, 
-						radius:120, // run
-						damage_scale: 80,
+						radius:150, // run
+						damage_scale: 120,
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this._owner,
 						can_hit_owner: true,
@@ -1175,37 +1296,49 @@ class sdJunk extends sdEntity
 	get title()
 	{
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
-		return "Unstable cube corpse";
+		return 'Unstable cube corpse';
 	
 		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY )
-		return "Alien battery";
+		return 'Alien battery';
 	
 		if ( this.type === sdJunk.TYPE_LOST_CONTAINER )
-		return "Lost particle container";
+		return 'Lost particle container';
 	
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		{
-			return "Planetary matter drainer";
+			return 'Planetary matter drainer';
 		}
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
-			return "Council bomb";
+			return 'Council bomb';
 		}
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		{
-			return "Erthal distress beacon";
+			return 'Erthal distress beacon';
 		}
 
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
-			return "Advanced matter container";
+			return 'Advanced matter container';
 		}
 
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
-		return "Cryo-substance barrel";
+		return 'Cryo-substance barrel';
+	
+		if ( this.type === sdJunk.TYPE_FIRE_BARREL )
+		return 'Flammable-substance barrel';
 
 		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
-		return "Strange artifact";
+		return 'Strange artifact';
+	
+		if ( this.type === sdJunk.TYPE_METAL_CHUNK )
+		return 'Metal chunk';
+	
+		if ( this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET )
+		return 'High yield missile';
+	
+		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+		return '???';
 	
 		return 'Unknown entity';
 	}
@@ -1241,13 +1374,21 @@ class sdJunk extends sdEntity
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		}
 
-		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
 		sdEntity.Tooltip( ctx, this.title );
 
 		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		sdEntity.Tooltip( ctx, this.title );
 	
-
+		if ( this.type === sdJunk.TYPE_METAL_CHUNK )
+		sdEntity.Tooltip( ctx, this.title );
+	
+		if ( this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET )
+		sdEntity.Tooltip( ctx, this.title );
+	
+		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+		sdEntity.Tooltip( ctx, this.title );
+	
 		
 		this.BasicCarryTooltip( ctx, 8 );
 	}
@@ -1348,6 +1489,10 @@ class sdJunk extends sdEntity
 				//else
 				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
 			}
+			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire barrel
+			{
+				ctx.drawImageFilterCache( sdJunk.img_fire_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
+			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
 			{
 				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 16, 32,32 );
@@ -1355,6 +1500,18 @@ class sdJunk extends sdEntity
 			if ( this.type === sdJunk.TYPE_STEALER_ARTIFACT ) // Alien / strange artifact from stealer
 			{
 				ctx.drawImageFilterCache( sdJunk.img_stealer_artifact, - 16, - 16, 32,32 );
+			}
+			if ( this.type === sdJunk.TYPE_METAL_CHUNK ) // Metal chunk
+			{
+				ctx.drawImageFilterCache( sdJunk.img_metal_chunk, - 16, - 16, 32,32 );
+			}
+			if ( this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET )
+			{
+				ctx.drawImageFilterCache( sdJunk.img_high_yield_rocket, - 16, - 16, 32,32 );
+			}
+			if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT ) // Unknown object
+			{
+				ctx.drawImageFilterCache( sdJunk.img_unknown_object1, 0 + ( this.glow_animation > 0 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 
 		}
@@ -1397,6 +1554,8 @@ class sdJunk extends sdEntity
 				sdWorld.BasicEntityBreakEffect( this, 10 );
 			}
 		}
+		if ( this.type == sdJunk.TYPE_METAL_CHUNK )
+		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 	}
 	MeasureMatterCost()
 	{
