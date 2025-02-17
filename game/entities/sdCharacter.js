@@ -4338,6 +4338,7 @@ THING is cosmic mic drop!`;
 								x + radius, 
 								y + radius, this, null, null, null ) )
 							{
+								if ( sdWorld.last_hit_entity )
 								if ( sdWorld.last_hit_entity.IsCarriable( this ) )
 								{
 									potential_carry_target = sdWorld.last_hit_entity;
