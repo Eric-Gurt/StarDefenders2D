@@ -1055,7 +1055,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1 };
-				obj._knock_scale = 0.02 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -4429,7 +4429,7 @@ class sdGunClass
 			{
 				return 4;
 			},
-			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.01 * 8, 
+			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
@@ -4451,7 +4451,7 @@ class sdGunClass
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
 					}
 				};
-				obj._knock_scale = 0.025 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
