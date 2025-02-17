@@ -671,6 +671,9 @@ class sdOverlord extends sdEntity
 				else
 				if ( this._reload_timer <= 0 )
 				{
+					if ( this._shots_fired_towards_target % 4 === 0 && Math.random() > 0.1 )
+					this._reload_timer = 15;
+					else
 					this._reload_timer = 5;
 
 					this._muzzle_timer = 5;
@@ -716,8 +719,8 @@ class sdOverlord extends sdEntity
 
 							let di = sdWorld.Dist2D_Vector( dx2, dy2 );
 
-							dx2 += ( t.sx || 0 ) * di / 12;
-							dy2 += ( t.sy || 0 ) * di / 12;
+							//dx2 += ( t.sx || 0 ) * di / 12;
+							//dy2 += ( t.sy || 0 ) * di / 12;
 
 							di = sdWorld.Dist2D_Vector( dx2, dy2 );
 
@@ -751,7 +754,7 @@ class sdOverlord extends sdEntity
 
 						bullet_obj.model = 'blaster_proj';
 
-						bullet_obj.explosion_radius = 9;
+						bullet_obj.explosion_radius = 7;
 						
 						//bullet_obj._custom_target_reaction = sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER ].projectile_properties._custom_target_reaction;
 						

@@ -18,6 +18,7 @@ class sdFleshGrabber extends sdEntity
 	static init_class()
 	{
 		sdFleshGrabber.img_flesh = sdWorld.CreateImageFromFile( 'flesh_grabber' );
+		sdFleshGrabber.img_eye = sdWorld.CreateImageFromFile( 'flesh_eye' );
 
 		sdFleshGrabber.img_grab = sdWorld.CreateImageFromFile( 'abomination_grab' );
 		
@@ -29,13 +30,21 @@ class sdFleshGrabber extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.side === 0 || this.side === 2 ) ? -8 : ( this.side === 1 ) ? -2 : 0; }
-	get hitbox_x2() { return ( this.side === 0 || this.side === 2 ) ? 8 : ( this.side === 1 ) ? 0 : 2; }
-	get hitbox_y1() { return ( this.side === 1 || this.side === 3 ) ? -8 : ( this.side === 0 ) ? -2 : 0; }
-	get hitbox_y2() { return ( this.side === 1 || this.side === 3 ) ? 8 : ( this.side === 0 ) ? 0 : 2; }
+	get hitbox_x1() { return -( this._attached_to ? this._attached_to.width / 2 : 0 ); }//( this.side === 0 || this.side === 2 ) ? -8 : ( this.side === 1 ) ? -2 : 0; }
+	get hitbox_x2() { return ( this._attached_to ? this._attached_to.width / 2 : 0 ); }//( this.side === 0 || this.side === 2 ) ? 8 : ( this.side === 1 ) ? 0 : 2; }
+	get hitbox_y1() { return -( this._attached_to ? this._attached_to.height / 2 : 0 ); }//( this.side === 1 || this.side === 3 ) ? -8 : ( this.side === 0 ) ? -2 : 0; }
+	get hitbox_y2() { return ( this._attached_to ? this._attached_to.height / 2 : 0 ); }//( this.side === 1 || this.side === 3 ) ? 8 : ( this.side === 0 ) ? 0 : 2; }
+	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		if ( layer === -1 )
+		return [ 0, 0, -96.001 ];
+
+		return null;
+	}
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return false; }
 
 	
 	constructor( params )
@@ -43,21 +52,29 @@ class sdFleshGrabber extends sdEntity
 		super( params );
 		
 		
-		this._hmax = 200;
+		this._attached_to = params._attached_to || null; // To what flesh block is this attached to? It should die only when it's
+		
+		this._hmax = ( this._attached_to ) ? this._attached_to._hea : 0;
 		this._hea = this._hmax;
 		this._pull_timer = 50; // Timer for pulling it's enemies towards it
 		this._tenta_target = null;
+
+		this.attack_warning = false;
 
 		this.tenta_tim = 0;
 		this.tenta_x = 0;
 		this.tenta_y = 0;
 		this._current_target = null;
 
-		this._attached_to = params._attached_to || null; // To what flesh block is this attached to? It should die only when it's
+		//this.side = params.side || 0; // 0-3. Random 90 degree directions it should be attached to flesh.
 		
-		this.side = params.side || 0; // 0-3. Random 90 degree directions it should be attached to flesh.
+		this.an = params.an * 100 || 0;
+		this.eye_an = Math.random() * Math.PI * 2 * 100;
 		
-		//this.filter = 'none';
+		//this.filter = 'none';'
+
+		this.SetMethod( 'MasterDamaged', this.MasterDamaged );
+		this.SetMethod( 'MasterRemoved', this.MasterRemoved );
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -96,6 +113,12 @@ class sdFleshGrabber extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+
+		if ( !this._attached_to )
+		{
+			this.remove();
+			return;
+		}
 	
 		dmg = Math.abs( dmg );
 
@@ -104,7 +127,11 @@ class sdFleshGrabber extends sdEntity
 		
 		let was_alive = this._hea > 0;
 		
-		this._hea = Math.min( this._hea - dmg, this._hmax );
+		this._attached_to.DamageWithEffect( dmg, initiator );
+
+		if ( this._attached_to )
+		this._hea = this._attached_to._hea;
+		//this._hea = Math.min( this._hea - dmg, this._hmax );
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
@@ -131,12 +158,58 @@ class sdFleshGrabber extends sdEntity
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}*/
+
+	MasterDamaged( damaged_ent, dmg2, initiator2 )
+	{
+		if ( this._attached_to === damaged_ent )
+		if ( initiator2 )
+		if ( initiator2 !== this._attached_to )
+		if ( dmg2 > 0 )
+		if ( initiator2 !== this )
+		{
+			this._current_target = initiator2;
+			this._hea = damaged_ent._hea;
+			//this.SetTarget( initiator2 );
+		}
+	}
+
+	MasterRemoved( removed_ent )
+	{
+		if ( this._attached_to === removed_ent )
+		{
+			if ( sdWorld.is_server )
+			{
+				this._attached_to.removeEventListener( 'DAMAGE', this.MasterDamaged );
+				this._attached_to.removeEventListener( 'REMOVAL', this.MasterRemoved );
+			}
+
+			this._attached_to = null;
+		}
+	}
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
 		{
 			if ( !this._attached_to || this._attached_to._is_being_removed )
-			this.remove();
+			{
+				this.remove();
+				return;
+			}
+			else
+			{
+				if ( this.x !== this._attached_to.x + this._attached_to.width / 2 )
+				this.x = this._attached_to.x + this._attached_to.width / 2;
+
+				if ( this.y !== this._attached_to.y + this._attached_to.height / 2 )
+				this.y = this._attached_to.y + this._attached_to.height / 2;
+			
+				if ( !this._attached_to.hasEventListener( 'DAMAGE', this.MasterDamaged ) ) // Will happen on world load since events are not saved
+				{
+					this._attached_to.addEventListener( 'DAMAGE', this.MasterDamaged );
+					this._attached_to.addEventListener( 'REMOVAL', this.MasterRemoved );
+				}
+			}
 		}
 		{
 			
@@ -153,16 +226,16 @@ class sdFleshGrabber extends sdEntity
 				else
 				{
 					let dist_att = sdWorld.Dist2D_Vector( this._tenta_target.x - this.x, this._tenta_target.y - this.y );
-					let has_sight = false;
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, this._tenta_target.x, this._tenta_target.y, this._tenta_target, null, sdCom.com_creature_attack_unignored_classes ) )
-					has_sight = true;
-					else
+					let has_sight = sdWorld.CheckLineOfSight2( this.x, this.y, this._tenta_target.x, this._tenta_target.y, this._attached_to, this._tenta_target, null, sdCom.com_creature_attack_unignored_classes );
+
+					if ( !has_sight )
 					this._tenta_target = null;
+
 					if ( dist_att < 150 && has_sight )
 					{
 						let old_tenta_tim = this.tenta_tim;
 
-						this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
+						this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 
 						if ( this._tenta_target )
 						if ( this._tenta_target._is_being_removed )
@@ -198,11 +271,15 @@ class sdFleshGrabber extends sdEntity
 							this.tenta_y = this._tenta_target.y - this.y;
 						}
 					}
+					else
+					this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 				}
 			}
 			else
 			if ( this.tenta_tim > 0 )
-			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
+			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+			else
+			this._tenta_target = null;
 
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED / 10 );
@@ -212,6 +289,11 @@ class sdFleshGrabber extends sdEntity
 			
 			if ( this._current_target )
 			{
+				if ( sdWorld.is_server )
+				if ( !this._current_target._is_being_removed )
+				if ( !this.attack_warning )
+				this.eye_an = sdWorld.RotateAngle( this.eye_an / 1000, Math.atan2( this._current_target.y - this.y, this._current_target.x - this.x ), 0.1, GSPEED, false ) * 1000;
+
 				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || this._current_target.is( sdBlock ) )
 				this._current_target = null;
 				else
@@ -222,42 +304,74 @@ class sdFleshGrabber extends sdEntity
 					let from_entity;
 					//let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
 					//if ( dist_att < 150 )
-					if ( sdWorld.inDist2D_Boolean( this._current_target.x, this._current_target.y, this.x, this.y, 150 ) )
+
+					let range = 150;
+
+					if ( sdWorld.inDist2D_Boolean( this._current_target.x, this._current_target.y, this.x, this.y, range ) )
 					{
 						from_entity = this._current_target;
-						this._pull_timer = 50;
+						this._pull_timer = 60;
 
 						let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+						if ( sdWorld.CheckLineOfSight2( this.x, this.y, xx, yy, this._attached_to, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 						{
-							from_entity.DamageWithEffect( 10, this );
-							this._hea = Math.min( this._hmax, this._hea + 25 );
+							let an = Math.atan2( yy - this.y, xx - this.x );
+
+							this.tenta_x = Math.cos( an ) * range;
+							this.tenta_y = Math.sin( an ) * range;
+
+							this.attack_warning = true;
+
+							setTimeout(()=>
+							{
+								if ( this._is_being_removed ) 
+								return;
+
+								this.attack_warning = false;
+
+								if ( this.hea <= 0 || this._frozen > 0 ) // Not disabled in time
+								return;
+
+								this.tenta_tim = 100;
+
+								if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + this.tenta_x, this.y + this.tenta_y, this._attached_to ) )
+								if ( sdWorld.last_hit_entity )
+								{
+									from_entity = sdWorld.last_hit_entity; // More fun
+
+									xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+									yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+				
+									from_entity.DamageWithEffect( 10, this );
+									this._hea = Math.min( this._hmax, this._hea + 25 );
 
 
-							from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
+									from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
 
-							this.tenta_x = xx - this.x;
-							this.tenta_y = yy - this.y;
-							this.tenta_tim = 100;
-							this._tenta_target = from_entity;
+									this.tenta_x = xx - this.x;
+									this.tenta_y = yy - this.y;
+									this.tenta_tim = 100;
+									this._tenta_target = from_entity;
 
-							sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
+									sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
 
 
-							if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
-							from_entity.sx += - this.tenta_x / 100; // Pull it in
+									if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
+									from_entity.sx += - this.tenta_x / 100; // Pull it in
 
-							if ( typeof from_entity.sy !== 'undefined' )
-							from_entity.sy += - this.tenta_y / 100;
+									if ( typeof from_entity.sy !== 'undefined' )
+									from_entity.sy += - this.tenta_y / 100;
 
-							if ( from_entity.IsPlayerClass() )
-							from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+									if ( from_entity.IsPlayerClass() )
+									from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
 
-							let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
-							if ( di > 0 )
-							from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+									let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+									if ( di > 0 )
+									from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+								}
+							}, 750 );
 						}
 					}
 					else
@@ -283,7 +397,7 @@ class sdFleshGrabber extends sdEntity
 		let xx = 0;
 		let yy = 0;
 		{
-			if ( this.tenta_tim > 0 )
+			if ( this.tenta_tim > 0 || this.attack_warning )
 			{
 				let sprites = [
 					0,1,
@@ -297,7 +411,7 @@ class sdFleshGrabber extends sdEntity
 				let xx = sprites[ best_id * 2 + 0 ];
 				let yy = sprites[ best_id * 2 + 1 ];
 				
-				let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
+				let di = this.attack_warning ? 24 : sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
 			
 				if ( di < 200 )
 				{
@@ -312,16 +426,30 @@ class sdFleshGrabber extends sdEntity
 			}
 			
 		}
-		if ( this.side === 1 )
+		/*if ( this.side === 1 )
 		ctx.rotate( 270 * Math.PI / 180 );
 		if ( this.side === 2 )
 		ctx.rotate( Math.PI );
 		if ( this.side === 3 )
 		ctx.rotate( 90 * Math.PI / 180 );
-		ctx.drawImageFilterCache( sdFleshGrabber.img_flesh, - 16, - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdFleshGrabber.img_flesh, - 16, - 16, 32, 32 );*/
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+	}
+	DrawBG( ctx, attached )
+	{
+		let blink = this.attack_warning ? 0.75 : Math.max( 0.1, 1 - 1.5 * this.tenta_tim / 100 )
+		let an = this.an / 100;
+
+		ctx.rotate( an );
+		ctx.scale( 1, blink );
+
+		ctx.drawImageFilterCache( sdFleshGrabber.img_eye, 0, 0, 16,16, - 8, - 8, 16, 16 );
+
+		ctx.translate( Math.cos( this.eye_an / 1000 - an ) * 2.5, Math.sin( this.eye_an / 1000 - an ) * 1.5 );
+
+		ctx.drawImageFilterCache( sdFleshGrabber.img_eye, 0, 16, 16,16, - 8, - 8, 16, 16 );
 	}
 
 	onRemove() // Class-specific, if needed
