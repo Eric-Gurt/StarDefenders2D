@@ -873,8 +873,8 @@ class sdSandWorm extends sdEntity
 					this._current_target = null;
 					else
 					{
-						let dx = ( this._current_target.x - this.x ) + Math.sin( sdWorld.time / 600 ) * 40;
-						let dy = ( this._current_target.y - this.y ) + Math.sin( sdWorld.time / 400 ) * 40;
+						let dx = ( this._current_target.x - this.x ) + Math.sin( sdWorld.time / 1200 ) * 100 * this.scale;
+						let dy = ( this._current_target.y - this.y ) + Math.sin( sdWorld.time / 800 ) * 100 * this.scale;
 
 						//let power = 1;
 
@@ -1276,7 +1276,7 @@ class sdSandWorm extends sdEntity
 					from_entity.DamageWithEffect( 300 * this.scale, this );
 				}
 				else*/
-				from_entity.DamageWithEffect( 300 * this.scale, this );
+				from_entity.DamageWithEffect( 150 * this.scale, this );
 				
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
@@ -1313,7 +1313,9 @@ class sdSandWorm extends sdEntity
 					from_entity.DamageWithEffect( 20 * this.scale, this );
 				}
 				else*/
-				from_entity.DamageWithEffect( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
+				if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
+				from_entity.DamageWithEffect( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 5 * this.scale, this );
+
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
 				{
