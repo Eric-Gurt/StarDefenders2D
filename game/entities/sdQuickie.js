@@ -9,6 +9,7 @@ import sdGib from './sdGib.js';
 import sdBlock from './sdBlock.js';
 import sdVirus from './sdVirus.js';
 import sdAsp from './sdAsp.js';
+import sdCom from './sdCom.js';
 
 class sdQuickie extends sdEntity
 {
@@ -97,6 +98,10 @@ class sdQuickie extends sdEntity
 				
 			}
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
 	}
 	
 	GetBleedEffect()

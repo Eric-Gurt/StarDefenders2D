@@ -158,6 +158,10 @@ class sdBadDog extends sdEntity
 			}
 		}
 	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
+	}
 	GetBleedEffect()
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
@@ -705,7 +709,7 @@ class sdBadDog extends sdEntity
 						from_entity.flying = false;*/
 							
 						from_entity.flying = false;
-						from_entity.DamageStability( 100 );
+						from_entity.DamageStability( 50 );
 						from_entity._in_air_timer = 0;
 					}
 					
