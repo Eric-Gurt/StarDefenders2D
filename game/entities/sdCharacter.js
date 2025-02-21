@@ -7288,7 +7288,7 @@ THING is cosmic mic drop!`;
 							}
 							else
 							{
-								executer_socket.SDServiceMessage( 'Controlling player is not allowed.' );
+								executer_socket.SDServiceMessage( 'Replacing player is not allowed.' );
 							}
 						}
 					}
