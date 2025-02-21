@@ -925,7 +925,8 @@
 					9:`Setr`, 
 					10:`Silence`, 
 					11:`Erthal`, 
-					12:`Tzyrg`
+					12:`Tzyrg`, 
+					13:`F-Sword Bot`
 				},
 				default_option: 3
 			});
