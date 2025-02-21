@@ -4145,7 +4145,7 @@ class sdWorld
 		if ( player_description['voice7'] ) // Robot voice
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
 
-		if ( player_description['voice10'] || player_description['voice11'] || player_description['voice12'] ) // Silence, Erthal, Tzyrg
+		if ( player_description['voice10'] || player_description['voice11'] || player_description['voice12'] || player_description['voice13'] ) // Silence, Erthal, Tzyrg
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
 
 		return ret;
