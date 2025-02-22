@@ -252,7 +252,7 @@ class sdJunk extends sdEntity
 			
 			let old_hea = this.hea + dmg;
 			
-			if ( Math.round( old_hea / ( this.hmax / 25 ) ) > Math.round( this.hea / ( this.hmax / 25 ) ) ) // Should spawn about 25 assault drones throughout the fight
+			if ( Math.round( old_hea / ( this.hmax / 15 ) ) > Math.round( this.hea / ( this.hmax / 15 ) ) ) // Should spawn about 15 assault drones throughout the fight
 			{
 				if ( initiator && ( sdWorld.Dist2D( initiator.x, initiator.y, this.x, this.y ) < 600 ) )
 				{

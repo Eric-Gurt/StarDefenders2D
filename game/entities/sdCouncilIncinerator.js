@@ -521,7 +521,7 @@ class sdCouncilIncinerator extends sdEntity
 				else
 				if ( this._current_minions_count < 3 )
 				{	
-					this._next_drone_spawn = 300 + ( Math.random() * 150 ); // 10 - 15 seconds
+					this._next_drone_spawn = 450 + ( Math.random() * 150 ); // 15 - 20 seconds
 					
 					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: sdDrone.DRONE_COUNCIL, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 					sdEntity.entities.push( drone );
@@ -722,7 +722,7 @@ class sdCouncilIncinerator extends sdEntity
 				
 				if ( this._incinerate_attack_timer <= 0 )
 				{
-					this.incinerator_attack_anim = 90; //
+					this.incinerator_attack_anim = 150; // 5 seconds allows some damage to be dealt vs the incinerator
 					this._incinerate_attack_timer = 30 * 30; // 30 seconds
 					sdSound.PlaySound({ name:'crystal_combiner_start', x:this.x, y:this.y, volume:2, pitch:2 });
 				}
@@ -756,7 +756,7 @@ class sdCouncilIncinerator extends sdEntity
 					let v = 0.1;
 					
 					if ( this.incinerator_attack_anim > 0 ) // Slow down the entity during incinerator attack
-					v *= ( this.incinerator_attack_anim / 90 );
+					v *= ( this.incinerator_attack_anim / 150 );
 				
 					this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 					this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
