@@ -212,6 +212,7 @@ class sdBullet extends sdEntity
 		this.gravity_scale = 1;
 
 		this.explosion_radius = 0;
+		this._explosion_mult = params.explosion_mult || 1; // For damage upgraded guns to scale explosion damage ( not radius )
 		this.model = null; // Custom image model
 		this.model_size = params.model_size || 0; // 0 = 32x32, 1 = 64x32, 2 = 64x64, 3 = 96x96
 
@@ -313,7 +314,7 @@ class sdBullet extends sdEntity
 			y:this.y,
 			radius:this.explosion_radius,
 			//damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ),
-			damage_scale: 2,
+			damage_scale: 2 * this._explosion_mult,
 			type:sdEffect.TYPE_EXPLOSION,
 			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
