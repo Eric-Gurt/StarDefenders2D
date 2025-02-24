@@ -279,6 +279,7 @@ class sdAsteroid extends sdEntity
 					this.x = this.attached_to.x + this.attached_offset_x;
 					this.y = this.attached_to.y + this.attached_offset_y;
 
+					if ( sdWorld.is_server )
 					if ( sdWorld.time > this._infestation_in )
 					{
 						this.attached_to.Fleshify( null, sdBlock.max_flesh_rank_asteroid );
