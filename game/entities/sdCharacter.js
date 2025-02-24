@@ -4196,14 +4196,18 @@ THING is cosmic mic drop!`;
 	
 		if ( initiated_by_player ) // By player attack specifically
 		return;
-		
+	
 		this.carrying.held_by = null;
-		this.carrying.PhysWakeUp();
-		this.carrying.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
+		if ( !this.carrying._is_being_removed )
+		{
+			this.carrying.PhysWakeUp();
+			this.carrying.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-		this.carrying.sx = this.sx + this._side * 0.1;
-		this.carrying.sy = this.sy;
-
+			this.carrying.sx = this.sx + this._side * 0.1;
+			this.carrying.sy = this.sy;
+		}
+		
 		this.carrying = null;
 	}
 	ManagePlayerVehicleEntrance()
