@@ -105,6 +105,11 @@ class sdServerConfigFull extends sdServerConfigShort
 			if ( ent._phys_sleep > 0 )
 			return true;
 		}
+		else
+		if ( ent.is( sdRift ) ) // Portals with offscreen slowdown are not as active as usual.
+		{
+			return true;
+		}
 		/*else
 		if ( ent.is( sdQuadro ) )
 		{
