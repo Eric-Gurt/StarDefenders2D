@@ -29,6 +29,7 @@ class sdStatusEffect extends sdEntity
 		sdStatusEffect.img_level_up = sdWorld.CreateImageFromFile( 'level_up' );
 		sdStatusEffect.img_bubble_shield = sdWorld.CreateImageFromFile( 'bubble_shield' );
 		sdStatusEffect.img_attack_indicator_beam = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
+		sdStatusEffect.img_pulse = sdWorld.CreateImageFromFile( 'em_anomaly' );
 		
 		sdStatusEffect.types = [];
 		
@@ -1352,9 +1353,9 @@ class sdStatusEffect extends sdEntity
 			}
 		};
 
-		sdStatusEffect.types[ sdStatusEffect.TYPE_BLUE_SHIELD_EFFECT = 11 ] = 
+		sdStatusEffect.types[ sdStatusEffect.TYPE_PULSE_EFFECT = 11 ] = 
 		{
-			// Now obsolete because sdBubbleShield exists, please do not use.
+			// Just a single "pulse" that appears on an object, colorable.
 			remove_if_for_removed: true,
 	
 			is_emote: false,
@@ -1363,8 +1364,8 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
-				//status_entity.t = params.t;
-				//status_entity.shield_type = params.shield_type || 0;
+				status_entity.t = sdWorld.time; // Gets removed after 1 pulse, which is about 3 seconds.
+				status_entity.filter = params.filter || 'none';
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1383,8 +1384,17 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
-				return true; // Delete
-				//return ( status_entity.for.armor <= 0 ); // return true = delete
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				{
+				}
+				
+				if ( status_entity.for )
+				{
+					status_entity.x = status_entity.for.x;
+					status_entity.y = status_entity.for.y;
+				}
+			
+				return ( status_entity.t + 3000 <= sdWorld.time ); // return true = delete
 			},
 			onBeforeRemove: ( status_entity )=>
 			{
@@ -1401,16 +1411,19 @@ class sdStatusEffect extends sdEntity
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
 				if ( !status_entity.for )
-				return; // Needed? Not sure.
+				return;
 			
-				let cur_img = sdWorld.time % 3200;
-				cur_img = Math.round( 15 * cur_img / 3200 );
-				let size_x = Math.max( 32, Math.ceil( 16 * ( Math.abs( status_entity.for._hitbox_x1 ) + Math.abs( status_entity.for._hitbox_x2 ) ) / 16 ) );
-				let size_y = Math.max( 32, Math.ceil( 16 * ( Math.abs( status_entity.for._hitbox_y1 ) + Math.abs( status_entity.for._hitbox_y2 ) ) / 16 ) );
-				ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - size_x / 2, - size_y / 2, size_x, size_y );
+				ctx.filter = status_entity.filter;
+			
+				if ( sdWorld.time - status_entity.t <= 1500 )
+				ctx.globalAlpha = ( 0.9 * ( sdWorld.time - status_entity.t ) / 1500 );
+				else
+				ctx.globalAlpha = 1.8 - ( 0.9 * ( sdWorld.time - status_entity.t ) / 1500 );
+			
+				ctx.scale( ( 0.8 * ( sdWorld.time - status_entity.t ) / 1500 ), ( 0.8 * ( sdWorld.time - status_entity.t ) / 1500 ) );
+				ctx.drawImageFilterCache( sdStatusEffect.img_pulse, 0, 0, 32, 32, - 16, - 16, 32, 32 );
 				
-				// Maybe different shields could have different colors in future? Probably just use ctx.filter.
-				//ctx.drawImageFilterCache( sdStatusEffect.img_bubble_shield, cur_img * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+				ctx.filter = 'none';
 			}
 		};
 

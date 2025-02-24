@@ -178,7 +178,7 @@ class sdShurgConverter extends sdEntity
 				{
 					let task = sdTask.tasks[ i ];
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
-					task._difficulty = 0.1;
+					task._difficulty = 0.2;
 				}
 
 				{

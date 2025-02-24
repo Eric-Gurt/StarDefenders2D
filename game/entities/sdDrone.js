@@ -168,7 +168,7 @@ class sdDrone extends sdEntity
 		
 		this.hurt_timer = 0;
 
-		this._attack_timer = 0;
+		this._attack_timer = this.type === sdDrone.DRONE_COUNCIL ? 75 : 0; // Council support drone takes some time to heal stuff
 		this._alt_attack_timer = 0; // secondary attack timer
 		this._charged = false;
 		this._burst_ammo_start = this.type === sdDrone.DRONE_SD_BG ? 50 : this.type === sdDrone.DRONE_ERTHAL ? 6 : this.type === sdDrone.DRONE_ZEKTARON ? 3 : 0;
@@ -1778,8 +1778,8 @@ class sdDrone extends sdEntity
 							else
 							if ( this.type === sdDrone.DRONE_COUNCIL ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
-								this._attack_timer = 60;
-								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine', 'sdCouncilIncinerator' ] );
+								this._attack_timer = 75;
+								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine', 'sdCouncilIncinerator', 'sdCouncilNullifier' ] );
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
 								{
@@ -1809,7 +1809,7 @@ class sdDrone extends sdEntity
 										if ( entities[ i ].type === 4 ) // Is it a council bomb?
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{
-											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ].hmax ); // In that case, repair the bomb
+											entities[ i ].hea = Math.min( entities[ i ].hea + 500, entities[ i ].hmax ); // In that case, repair the bomb
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
@@ -1818,7 +1818,7 @@ class sdDrone extends sdEntity
 									{
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{
-											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ].hmax ); // In that case, repair the machine
+											entities[ i ].hea = Math.min( entities[ i ].hea + 500, entities[ i ].hmax ); // In that case, repair the machine
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
@@ -1827,7 +1827,16 @@ class sdDrone extends sdEntity
 									{
 										if ( entities[ i ].hea < entities[ i ]._hmax && entities[ i ].hea > 0 ) // Does it need repairing? (And is it alive?)
 										{
-											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ]._hmax ); // In that case, repair it
+											entities[ i ].hea = Math.min( entities[ i ].hea + 500, entities[ i ]._hmax ); // In that case, repair it
+											att_anim = true;
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
+										}
+									}
+									if ( entities[ i ].GetClass() === 'sdCouncilNullifier' ) // Council nullifier
+									{
+										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
+										{
+											entities[ i ].hea = Math.min( entities[ i ].hea + 500, entities[ i ].hmax ); // In that case, repair it
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
