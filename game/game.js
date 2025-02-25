@@ -1,5 +1,5 @@
 
-/* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun, sdEntity, sdByteShifter, sdChat, sdSound, LZW, sdContextMenu, sdPathFinding, sdAdminPanel, sdDatabaseEditor, sdMotherShipStorageManager, sdCodeEditor, FakeCanvasContext, sdAtlasMaterial, sdCharacter */
+/* global globalThis, sw, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun, sdEntity, sdByteShifter, sdChat, sdSound, LZW, sdContextMenu, sdPathFinding, sdAdminPanel, sdDatabaseEditor, sdMotherShipStorageManager, sdCodeEditor, FakeCanvasContext, sdAtlasMaterial, sdCharacter */
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
