@@ -346,8 +346,8 @@ class sdMothershipContainer extends sdEntity
 							nullifier[ 0 ]._ent_to_nullify = this;
 							nullifier[ 0 ]._set_matter_to = this.matter; // Halt progress
 						}
-						else // Try again in a minute
-						this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
+						//else // Try again in a minute
+						//this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
 							
 					}
 				}
