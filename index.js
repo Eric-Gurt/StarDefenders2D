@@ -369,12 +369,15 @@ globalThis.acorn = require('./game/libs/acorn.cjs');
 
 async function getFileHash( path )
 {
-	let file = fs.readFileSync( __dirname + path );
-	// console.log( file );
-	const sha256Hash = Array.from( new Uint8Array( await crypto.subtle.digest( "SHA-256", file ) ) );
-	const hash = sha256Hash.map( (byte) => byte.toString( 16 ).padStart( 2, "0" ) ).join("");
+	if ( file_exists( __dirname + path ) )
+	{
+		let file = fs.readFileSync( __dirname + path );
+		// console.log( file );
+		const sha256Hash = Array.from( new Uint8Array( await crypto.subtle.digest( "SHA-256", file ) ) );
+		const hash = sha256Hash.map( (byte) => byte.toString( 16 ).padStart( 2, "0" ) ).join("");
 
-	return hash;
+		return hash;
+	}
 }
 
 async function LoadScriptsFromFolder( path='game/entities/' )
@@ -872,8 +875,8 @@ app.get('/*', function cb( req, res, repeated=false )
 			request += "index.html";
 
 		getFileHash( request ).then( hash => {
-			res.writeHead( 200 );
-			res.write( hash );
+			res.writeHead( hash !== undefined ? 200 : 404 );
+			res.write( hash !== undefined ? hash : "404" );
 			res.end();
 		} );
 		Finalize();
