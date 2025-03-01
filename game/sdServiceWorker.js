@@ -7,53 +7,34 @@
 // This is a file to handle caching, speaking, whatever in this file.
 // This is also a file which can't use any ES modules (for now)
 
-// TODO: fix onfetch not initiating properly (currently takes a restart to do it)
-// Can't figure this out yet ^
-
 self.oninstall = async event => {
-	await ( await caches.open( "sdCache-v1" ) ).addAll( [
-			"/",
-			"/index.html",
-			"/style.css",
-			"/assets/fonts/CozetteVector.ttf",
-			"/assets/fonts/Oswald-Light.ttf",
-			"/assets/bg.png",
-			"/assets/ground_8x8.png",
-			"/favicon.png",
-			"/favicon.ico",
-			"/client/sdUserAgent.js",
-			"/client/sdErrorReporter.js",
-			"/client/sdTheatreAPIs.js",
-			"/libs/coloris/coloris.min.css",
-			"/libs/coloris/coloris.min.js",
-			"/libs/localforage.nopromises.min.js",
-			"/socketio/socketio.new.js",
-			"/libs/three.js",
-			"/libs/three-examples/BufferGeometryUtils.js",
-			"/libs/three-examples/MeshLine.js",
-			"/mespeak/mespeak.js",
-			"/libs/howler.js.min.js",
-			"/libs/acorn.cjs",
-			"/client/sdTranslationManager.js",
-			"/client/sdMobileKeyboard.js",
-			"/game.js",
-			"/client/sdMusic.js"
-	] );
+	await self.caches.open( "sdCache" );
+	self.skipWaiting(); // Skip immediately as we don't need to cache just yet
+};
+
+self.onactivate = event => {
+	event.waitUntil( clients.claim() ); // Synchronize everything, this will prevent users to refresh page to get it working
 };
 
 self.onfetch = async event => {
 
 	// console.log( event.request );
 
-	if ( ( event.request.destination === "" && !( event.request.url.includes( ".wav" ) ) ) || event.request.method !== "GET" ) return; // Handle it differently
-	if ( event.request.url.includes( ".mp3" ) ) return; // Causes 206 Partial Content here
+	if ( !event.request.url.includes( location.origin ) ) return;
+	if ( ( ( event.request.destination === "" || event.request.url.includes( ".txt" ) ) && !( event.request.url.includes( ".wav" ) ) ) || event.request.method !== "GET" ) return; // Handle it differently
+	if ( event.request.url.includes( ".mp3" ) ) return; // Causes 206 Partial Content here for some reason
 
 	event.respondWith(
 		( async () => {
-			const cache = await caches.open( "sdCache-v1" );
-			const cachedResponse = await cache.match( event.request );
+			const sdCache = await caches.open( "sdCache" );
+			const cachedResponse = await sdCache.match( event.request );
 
-			if ( cachedResponse ) {
+			// console.log( event.request.url.split( location.origin ) );
+			let hash_same = false;
+			await sdServiceWorker.isFileHashSame( event.request.url.split( location.origin )[ 1 ], event.request.url, hash_same );
+			// console.log( shouldUseCacheResponse, event.request.url );
+
+			if ( cachedResponse && hash_same ) {
 				// Assuming it has the cached response
 
 				// Update the entry too
@@ -65,13 +46,80 @@ self.onfetch = async event => {
 			const file = await fetch( event.request );
 
 			const fileClone = file.clone(); // Clone, so that it wouldn't error on the original one
-			await cache.put( event.request, fileClone );
+			const fileCloneClone = fileClone.clone();
+			await sdCache.put( event.request, fileClone );
+
+			// console.log( file.url, file.url === "" );
+			const buffer = await fileCloneClone.arrayBuffer();
+			await sdServiceWorker.hashFile( file.url, buffer );
 
 			return file;
 		} )() );
 };
 
-// Debug
-/* self.serviceWorker.onstatechange = event => {
-	console.log( "Current state:", event.target.state );
-}; */
+class sdServiceWorker
+{
+	static
+	{
+		this.database_request = self.indexedDB.open( "sdFile" );
+
+		this.database_request.onerror = event => {
+			console.log( "Failed to load database" );
+		};
+
+		this.database_request.onsuccess = event => {
+			this.database = this.database_request.result;
+			// console.log( this.database );
+		};
+
+		this.database_request.onupgradeneeded = event => {
+			this.database = this.database_request.result;
+			// Without autoIncrement set to true, `put` method would throw an error
+			this.database.createObjectStore( "hashes", { autoIncrement: true } );
+		};
+
+		// console.log( this.database_request );
+	};
+
+	static async isFileHashSame( url, originalURL, hash_same )
+	{
+		// console.log( url );
+		// if ( url === undefined ) return false;
+
+		const hash = await ( await fetch( "/check_file_hash?url=" + url ) ).text();
+
+		const transaction = this.database.transaction( "hashes", "readonly" );
+		const hashes = transaction.objectStore( "hashes" );
+
+		const oldHashRequest = hashes.get( originalURL );
+
+		oldHashRequest.onsuccess = event => {
+			const oldHash = oldHashRequest.result;
+			// console.log( oldHash, hash );
+
+			if ( oldHash === hash ) {
+				transaction.commit();
+				hash_same = true;
+			} else {
+				transaction.commit();
+				hash_same = false;
+			}
+		};
+
+		// transaction.commit();
+	};
+
+	static async hashFile( url, buffer )
+	{
+		const sha256Hash = Array.from( new Uint8Array( await crypto.subtle.digest( "SHA-256", buffer ) ) );
+		const hash = sha256Hash.map( (byte) => byte.toString( 16 ).padStart( 2, "0" ) ).join("");
+
+		const transaction = this.database.transaction( "hashes", "readwrite" );
+		const hashes = transaction.objectStore( "hashes" );
+
+		// data as an object, URL as the key.
+		// console.log( url );
+		hashes.put( hash, url );
+		transaction.commit(); // waiter, we're done!
+	};
+};

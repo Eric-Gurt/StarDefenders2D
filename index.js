@@ -362,8 +362,20 @@ import sdPortal from './game/entities/sdPortal.js';
 import sdPlayerSpectator from './game/entities/sdPlayerSpectator.js';
 
 import { createRequire } from 'module';
+import { webcrypto as crypto } from "crypto"; // Needed so that node 18 wouldn't crash
+
 const require = createRequire( import.meta.url );
 globalThis.acorn = require('./game/libs/acorn.cjs');
+
+async function getFileHash( path )
+{
+	let file = fs.readFileSync( __dirname + path );
+	// console.log( file );
+	const sha256Hash = Array.from( new Uint8Array( await crypto.subtle.digest( "SHA-256", file ) ) );
+	const hash = sha256Hash.map( (byte) => byte.toString( 16 ).padStart( 2, "0" ) ).join("");
+
+	return hash;
+}
 
 async function LoadScriptsFromFolder( path='game/entities/' )
 {
@@ -848,6 +860,22 @@ app.get('/*', function cb( req, res, repeated=false )
 		}
 		
 		res.send( JSON.stringify( response ) );
+		Finalize();
+		return;
+	}
+	else
+	if ( req.url.substring( 0, '/check_file_hash'.length ) === "/check_file_hash" ) {
+		let request = "game" + req.url.split( '?' )[ 1 ].split( "url=" )[ 1 ];
+
+		// Prevent this error
+		if ( request === "game/" )
+			request += "index.html";
+
+		getFileHash( request ).then( hash => {
+			res.writeHead( 200 );
+			res.write( hash );
+			res.end();
+		} );
 		Finalize();
 		return;
 	}
