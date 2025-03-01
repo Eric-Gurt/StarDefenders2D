@@ -227,7 +227,7 @@ class sdEffect extends sdEntity
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
-			speed: 1 / 10,
+			speed: 1 / 20,
 			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_POPCORN ] = {
@@ -861,7 +861,7 @@ class sdEffect extends sdEntity
 		EnforceChangeLog( this, 'sy', false, true );*/
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
+		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN || this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
 			for ( let i = 0; i < 10; i++ )
 			{
@@ -870,9 +870,19 @@ class sdEffect extends sdEntity
 				let xx = Math.sin( an ) * r;
 				let yy = Math.cos( an ) * r;
 
-				let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
-					x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
-				sdEntity.entities.push( e );
+				if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN ) 
+				{
+					let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
+						x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
+					sdEntity.entities.push( e );
+				}
+				else
+				if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE ) 
+				{
+					let e = new sdEffect({ type: sdEffect.TYPE_GLOW_HIT, x:this.x, y:this.y, sx: -Math.random() * 3 + Math.random() * 3, sy:-1 - Math.random() * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? '#666666' : this._color });
+					//e._duration *=2
+					sdEntity.entities.push( e );
+				}
 			}
 		}
 	}
