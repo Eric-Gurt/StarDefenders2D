@@ -1003,7 +1003,7 @@ class sdEffect extends sdEntity
 		this.y = Math.max( this.y, sdWorld.world_bounds.y1 + 8 );
 	
 		if ( this._type === sdEffect.TYPE_SMOKE && !( this._radius > 32 ))
-		this._radius *= 1.01;
+		this._radius += this._radius / 100 * GSPEED;
 
 		if ( this._ani >= this._duration )
 		{
