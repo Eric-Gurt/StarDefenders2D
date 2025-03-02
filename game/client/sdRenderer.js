@@ -99,6 +99,7 @@ class sdRenderer
 		//sdRenderer._visual_settings = 0;
 		sdRenderer.visual_settings = 0; // 0; // Still used at some parts of code
 		sdRenderer.shading = true; // New approach, affects shading and line of sight stuff
+		sdRenderer.effects_quality = 1; // Smoke and gore
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
 		
