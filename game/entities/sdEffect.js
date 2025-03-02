@@ -62,7 +62,8 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_VOID_FIRE = 25;
 		sdEffect.TYPE_BLOOD_DROP = 26;
 		sdEffect.TYPE_BLOOD_DROP_GREEN = 27;
-		sdEffect.TYPE_SMOKE = 28;
+		sdEffect.TYPE_SPARK = 28;
+		sdEffect.TYPE_SMOKE = 29;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -368,6 +369,14 @@ class sdEffect extends sdEntity
 			collisions: true,
 			friction_remain: 0
 		};
+		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP ] );
+		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ].images = [ sdWorld.CreateImageFromFile( 'effect_blood_drop_green' ) ];
+		
+		sdEffect.types[ sdEffect.TYPE_SPARK ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] );
+		sdEffect.types[ sdEffect.TYPE_SPARK ].collisions = false;
+		sdEffect.types[ sdEffect.TYPE_SPARK ].gravity = false;
+		sdEffect.types[ sdEffect.TYPE_SPARK ].speed = 1 / 3;
+		
 		sdEffect.types[ sdEffect.TYPE_SMOKE ] = {
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit_glow' )
@@ -375,8 +384,6 @@ class sdEffect extends sdEntity
 			speed: 1 / 20,
 			apply_shading: false
 		};
-		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP ] );
-		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ].images = [ sdWorld.CreateImageFromFile( 'effect_blood_drop_green' ) ];
 	
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
@@ -985,7 +992,7 @@ class sdEffect extends sdEntity
 		}
 
 		if ( sdEffect.types[ this._type ].gravity )
-		this.sy += sdWorld.gravity * GSPEED;
+		this.sy += sdEffect.types[ this._type ].gravity_mult || 1 * sdWorld.gravity * GSPEED;
 		
 		if ( sdEffect.types[ this._type ].collisions )
 		{
@@ -1005,9 +1012,9 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_SMOKE && !( this._radius > 32 ))
 		{
 			this._radius += this._radius / 100 * GSPEED;
-			if ( sdRenderer.effects_quality >= 3 && sdEffect.smoke_colors.includes( this._color ) && Math.random() < 0.01 && this._ani < 0.5 )
+			if ( sdRenderer.effects_quality >= 3 && sdEffect.smoke_colors.includes( this._color ) && Math.random() < 0.005 && this._ani < 0.5 )
 			{
-				let e = new sdEffect({ type:sdEffect.TYPE_BLOOD_DROP_GREEN, x:this.x, y:this.y, sx:this.sx * Math.random() * 3, sy:this.sy, filter:'hue-rotate(-90deg) saturate(1.5)' });
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, filter:'hue-rotate(-90deg) saturate(1.5)' });
 				sdEntity.entities.push( e );
 			}
 		}
