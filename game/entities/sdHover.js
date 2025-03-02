@@ -981,7 +981,7 @@ class sdHover extends sdEntity
 		{
 			if ( this.hea < 0  || this.driver0 && this.hea < this.hmax / 5)
 			{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 3, scale:Math.random * 6, radius:Math.random * 6, color:'#666666'});
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 3, scale:1, radius:0.25, color:'#666666'});
 					sdEntity.entities.push( e );
 			}
 		}
