@@ -67,6 +67,8 @@ class sdEffect extends sdEntity
 		
 		sdEffect.default_explosion_color = '#ffca9e';
 		
+		sdEffect.smoke_colors = ['#666666', '#555555', '#444444', '#333333', '#222222', '#111111'];
+		
 		sdEffect.effect_counters = [];
 		
 		if ( typeof document !== 'undefined' ) // Server won't have it
@@ -891,8 +893,7 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let smoke_colors = ['#666666', '#555555', '#444444', '#333333', '#222222', '#111111']
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 1 * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? smoke_colors[( Math.floor( Math.random() * smoke_colors.length ) )] : this._color });
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 1 * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )] : this._color });
 					
 					sdEntity.entities.push( e );
 				}
