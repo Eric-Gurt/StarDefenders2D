@@ -1003,7 +1003,14 @@ class sdEffect extends sdEntity
 		this.y = Math.max( this.y, sdWorld.world_bounds.y1 + 8 );
 	
 		if ( this._type === sdEffect.TYPE_SMOKE && !( this._radius > 32 ))
-		this._radius += this._radius / 100 * GSPEED;
+		{
+			this._radius += this._radius / 100 * GSPEED;
+			if ( sdRenderer.effects_quality >= 3 && sdEffect.smoke_colors.includes( this._color ) && Math.random() < 0.01 && this._ani < 0.5 )
+			{
+				let e = new sdEffect({ type:sdEffect.TYPE_BLOOD_DROP_GREEN, x:this.x, y:this.y, sx:this.sx * Math.random() * 3, sy:this.sy, filter:'hue-rotate(-90deg) saturate(1.5)' });
+				sdEntity.entities.push( e );
+			}
+		}
 
 		if ( this._ani >= this._duration )
 		{
