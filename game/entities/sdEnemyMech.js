@@ -877,6 +877,15 @@ class sdEnemyMech extends sdEntity
 		{
 			this._alert_intensity += GSPEED;
 		}
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( this.hea < 0  || this.hea < this._hmax / 5 )
+			{
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y - 24, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:Math.random * 6, radius:Math.random * 6, color:'#666666'});
+					sdEntity.entities.push( e );
+			}
+		}
 			
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
