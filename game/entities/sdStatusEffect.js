@@ -379,7 +379,7 @@ class sdStatusEffect extends sdEntity
 					const y_offset = 0;
 					const range_affection = 16;
 					
-					if ( sdRenderer.effects_quality >= 3 && status_entity.t >= temperature_fire && status_entity._next_smoke_spawn <= 0 )
+					if ( sdRenderer.effects_quality >= 2 && status_entity.t >= temperature_fire && status_entity._next_smoke_spawn <= 0 )
 					{
 						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 2, scale:1, radius:1/3, color:sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )]});
 						status_entity._next_smoke_spawn = 1;
@@ -1499,7 +1499,7 @@ class sdStatusEffect extends sdEntity
 					status_entity._next_spawn -= GSPEED;
 					status_entity._next_smoke_spawn -= GSPEED;
 					
-					if ( sdRenderer.effects_quality >= 3 && status_entity._next_smoke_spawn <= 0 )
+					if ( sdRenderer.effects_quality >= 2 && status_entity._next_smoke_spawn <= 0 )
 					{
 						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 3, scale:1, radius:1/3, color: Math.random() > 0.5 ? '#000000' : '#200000' });
 						status_entity._next_smoke_spawn = 2;
