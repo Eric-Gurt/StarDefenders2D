@@ -664,7 +664,7 @@ class sdBullet extends sdEntity
 					this._smoke_spawn_wish = this._smoke_spawn_wish % 1;
 					//this._smoke_spawn_wish -= 1;
 
-					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_GLOW_HIT, color:'#666666' });
+					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:'#666666' });
 					sdEntity.entities.push( ent );
 				}
 			}
