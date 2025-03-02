@@ -880,9 +880,9 @@ class sdEnemyMech extends sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
-			if ( this.hea < 0  || this.hea < this._hmax / 5 )
+			if ( this.hea < this._hmax / 5 )
 			{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y - 24, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:Math.random * 6, radius:Math.random * 6, color:'#666666'});
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y - 24, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:'#666666'});
 					sdEntity.entities.push( e );
 			}
 		}
