@@ -500,6 +500,14 @@
 				],
 				default_option: 1
 			});
+			AddOption({ caption: `Effects quality`, prefix: `effects_quality`,
+				options: [
+					[ 3, `High` ], 
+					[ 2, `Medium` ],
+					[ 1, `Low` ]
+				],
+				default_option: 2
+			});
 			AddOption({ caption: `UI style`, prefix: `ui_style`,
 				options: [
 					[ 1, `Default` ], 
@@ -1223,6 +1231,7 @@
 			JustOne( ret, 'selftalk', last_changed_el );
 			JustOne( ret, 'music', last_changed_el );
 			JustOne( ret, 'shading', last_changed_el );
+			JustOne( ret, 'effects_quality', last_changed_el );
 
 			for ( let i = 0; i < conditional_elements.length; i++ )
 			{
