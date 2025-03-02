@@ -1501,7 +1501,7 @@ class sdStatusEffect extends sdEntity
 					
 					if ( sdRenderer.effects_quality >= 3 && status_entity._next_smoke_spawn <= 0 )
 					{
-						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 2, scale:1, radius:1/3, color: Math.random() > 0.5 ? '#000000' : '#200000' });
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 3, scale:1, radius:1/3, color: Math.random() > 0.5 ? '#000000' : '#200000' });
 						status_entity._next_smoke_spawn = 2;
 						sdEntity.entities.push( s );
 					}
