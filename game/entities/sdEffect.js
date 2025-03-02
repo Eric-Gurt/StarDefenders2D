@@ -62,6 +62,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_VOID_FIRE = 25;
 		sdEffect.TYPE_BLOOD_DROP = 26;
 		sdEffect.TYPE_BLOOD_DROP_GREEN = 27;
+		sdEffect.TYPE_SMOKE = 28;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -227,7 +228,7 @@ class sdEffect extends sdEntity
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
-			speed: 1 / 20,
+			speed: 1 / 10,
 			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_POPCORN ] = {
@@ -364,6 +365,13 @@ class sdEffect extends sdEntity
 			gravity: true,
 			collisions: true,
 			friction_remain: 0
+		};
+		sdEffect.types[ sdEffect.TYPE_SMOKE ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'hit_glow' )
+			],
+			speed: 1 / 20,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP ] );
 		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ].images = [ sdWorld.CreateImageFromFile( 'effect_blood_drop_green' ) ];
@@ -863,7 +871,8 @@ class sdEffect extends sdEntity
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN || this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
-			for ( let i = 0; i < 10; i++ )
+			if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
+			for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 			{
 				let r = Math.pow( ( 1 - Math.pow( Math.random(), 2 ) ), 1.5 ) * 1.75;
 				let an = Math.random() * Math.PI * 2;
@@ -876,11 +885,13 @@ class sdEffect extends sdEntity
 						x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
 					sdEntity.entities.push( e );
 				}
-				else
-				if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE ) 
+			}
+			else
+			if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+			{
+				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_GLOW_HIT, x:this.x, y:this.y, sx: -Math.random() * 3 + Math.random() * 3, sy:-1 - Math.random() * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? '#666666' : this._color });
-					//e._duration *=2
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 3 + Math.random() * 3, sy:-1 - Math.random() * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? '#666666' : this._color });
 					sdEntity.entities.push( e );
 				}
 			}
@@ -1052,6 +1063,10 @@ class sdEffect extends sdEntity
 		}
 		else
 		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		{
+		}
+		else
+		if ( this._type === sdEffect.TYPE_SMOKE )
 		{
 		}
 		else
@@ -1281,6 +1296,30 @@ class sdEffect extends sdEntity
 			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
 			
 			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
+		if ( this._type === sdEffect.TYPE_SMOKE )
+		{
+			if ( this._radius !== 0 )
+			ctx.scale( 1 + this._radius, 1 + this._radius );
+		
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
+			
+			//ctx.blend_mode = THREE.AdditiveBlending;
 			{
 				ctx.sd_tint_filter = this._sd_tint_filter;
 				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
