@@ -356,7 +356,7 @@ class sdHover extends sdEntity
 
 			if ( this.hea <= 0 )
 			{
-				const break_at_hp = -400;
+				const break_at_hp = -this.hmax / 2;
 
 				if ( old_hea > 0 )
 				if ( this.matter > 25 )
@@ -974,6 +974,15 @@ class sdHover extends sdEntity
 					this._rockets = 2;
 					this._rockets_reload = 60;
 				}
+			}
+		}
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( this.hea < 0  || this.driver0 && this.hea < this.hmax / 5)
+			{
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 3, scale:Math.random * 6, radius:Math.random * 6, color:'#666666'});
+					sdEntity.entities.push( e );
 			}
 		}
 		
