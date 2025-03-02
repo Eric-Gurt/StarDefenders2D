@@ -1447,6 +1447,7 @@ class sdStatusEffect extends sdEntity
 			{
 				status_entity._ttl = params.ttl;
 				status_entity._next_spawn = 0;
+				status_entity._next_smoke_spawn = 0;
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1467,6 +1468,7 @@ class sdStatusEffect extends sdEntity
 			{
 				let attack_entities = sdWorld.GetAnythingNear( status_entity.x, status_entity.y, 64 );
 	
+				if ( sdWorld.is_server )
 				if ( attack_entities.length > 0 )
 				for ( let i = 0; i < attack_entities.length; i++ )
 				{
@@ -1495,6 +1497,14 @@ class sdStatusEffect extends sdEntity
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					status_entity._next_spawn -= GSPEED;
+					status_entity._next_smoke_spawn -= GSPEED;
+					
+					if ( sdRenderer.effects_quality >= 3 && status_entity._next_smoke_spawn <= 0 )
+					{
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 2, scale:1, radius:1/3, color: Math.random() > 0.5 ? '#000000' : '#200000' });
+						status_entity._next_smoke_spawn = 2;
+						sdEntity.entities.push( s );
+					}
 
 					if ( status_entity._next_spawn <= 0 )
 					{
