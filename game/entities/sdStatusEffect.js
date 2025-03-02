@@ -290,6 +290,7 @@ class sdStatusEffect extends sdEntity
 				status_entity._normal_temperature_removal_timer = 30; // Resets if temperature is being added, for example due to overheating
 				
 				status_entity._next_spawn = 0;
+				status_entity._next_smoke_spawn = 0;
 				status_entity._next_damage = 10;
 				
 				status_entity._effects = [];
@@ -371,11 +372,19 @@ class sdStatusEffect extends sdEntity
 				{
 					let area = ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) / ( 24 * 24 );
 					
-					status_entity._next_spawn -= GSPEED * area;					
+					status_entity._next_spawn -= GSPEED * area;
+					status_entity._next_smoke_spawn -= GSPEED * area;						
 					const up_velocity = ( status_entity.t >= temperature_fire ) ? 0 : 0.05;//-0.4;
 					const range = 4;
 					const y_offset = 0;
 					const range_affection = 16;
+					
+					if ( sdRenderer.effects_quality >= 3 && status_entity.t >= temperature_fire && status_entity._next_smoke_spawn <= 0 )
+					{
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 2, scale:1, radius:1/3, color:sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )]});
+						status_entity._next_smoke_spawn = 1;
+						sdEntity.entities.push( s );
+					}
 
 					if ( status_entity._next_spawn <= 0 )
 					{
