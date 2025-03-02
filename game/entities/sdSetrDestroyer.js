@@ -792,7 +792,7 @@ class sdSetrDestroyer extends sdEntity
 		{
 			if ( this.hea < this._hmax / 5 )
 			{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:'#666666'});
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )]});
 					sdEntity.entities.push( e );
 			}
 		}
