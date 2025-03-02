@@ -891,7 +891,9 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 3 + Math.random() * 3, sy:-1 - Math.random() * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? '#666666' : this._color });
+					let smoke_colors = ['#666666', '#555555', '#444444', '#333333', '#222222', '#111111']
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 1 * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? smoke_colors[( Math.floor( Math.random() * smoke_colors.length ) )] : this._color });
+					
 					sdEntity.entities.push( e );
 				}
 			}
@@ -998,7 +1000,10 @@ class sdEffect extends sdEntity
 		// Keep chan within world bounds
 		if ( this._type === sdEffect.TYPE_CHAT )
 		this.y = Math.max( this.y, sdWorld.world_bounds.y1 + 8 );
-		
+	
+		if ( this._type === sdEffect.TYPE_SMOKE && !( this._radius > 32 ))
+		this._radius *= 1.01;
+
 		if ( this._ani >= this._duration )
 		{
 			if ( sdEffect.types[ this._type ].onBeforeRemove )
