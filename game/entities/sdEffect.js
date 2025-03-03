@@ -381,7 +381,7 @@ class sdEffect extends sdEntity
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
-			speed: 1 / 20,
+			speed: 1 / 30,
 			apply_shading: false,
 			random_rotation: true
 		};
@@ -547,6 +547,8 @@ class sdEffect extends sdEntity
 		
 		if ( sdEffect.types[ this._type ].random_rotation90 )
 		this._rotation = Math.round( this._rotation / ( Math.PI / 2 ) ) * ( Math.PI / 2 );
+	
+		this._no_smoke = params.no_smoke || false;
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
@@ -897,11 +899,11 @@ class sdEffect extends sdEntity
 				}
 			}
 			else
-			if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+			if ( this._no_smoke && ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE ))
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-1 - Math.random() * 0.5 * this._radius / 20, scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )] : this._color });
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )] : this._color });
 					
 					sdEntity.entities.push( e );
 				}
