@@ -35,6 +35,8 @@ async function registerServiceWorker() {
 };
 
 async function unregisterServiceWorker() {
+	// NOTE: For some reason, this doesn't clear out service worker entirely :(
+
 	let sw = await navigator.serviceWorker.getRegistration( "/" ); // If there isn't one already, unregister it
 
 	if ( sw ) {
