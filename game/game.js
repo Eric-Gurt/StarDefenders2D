@@ -5,6 +5,53 @@ import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
 sdMobileKeyboard.init_class();
 
+globalThis.sw = null;
+
+async function registerServiceWorker() {
+	let sw = await navigator.serviceWorker.getRegistration( "/" ); // "/" for main URL
+
+	if ( !sw ) {
+		// So there's no current service worker registration,
+		// let's setup one.
+
+		sw = await navigator.serviceWorker.register( "./sdServiceWorker.js",
+			{
+				updateViaCache: "none" // No HTTP Cache.
+			} );
+	}
+
+	if ( !sw ) {
+		// This can usually happen if the internet goes down.
+		throw new Error( "sdServiceWorker initialization failed :(" );
+	}
+
+	sw.addEventListener( "updatefound", event => {
+		console.log( "sdServiceWorker update found" );
+	} );
+
+	await sw.update(); // Just in case
+
+	globalThis.sw = sw;
+};
+
+async function unregisterServiceWorker() {
+	let sw = await navigator.serviceWorker.getRegistration( "/" ); // If there isn't one already, unregister it
+
+	if ( sw ) {
+		await sw.unregister();
+	}
+
+	globalThis.sw = null;
+};
+
+async function caching_enabled_onClick( value ) {
+	value === "1" ? await registerServiceWorker() : await unregisterServiceWorker();
+};
+
+caching_enabled_onClick( localStorage.getItem( "caching_enabled" ) );
+
+globalThis.caching_enabled_onClick = caching_enabled_onClick;
+
 globalThis.sdTranslationManager;
 	
 meSpeak.loadVoice("voices/en/en.json");

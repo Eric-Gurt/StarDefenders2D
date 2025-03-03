@@ -290,8 +290,24 @@
 					globalThis.GetPlayerSettings();
 					globalThis.SavePlayerSettings();
 				};
-				let SetValue = ( value, save=true )=>
+				let SetValue = ( value, save=true, should_do_it_once=false )=>
 				{
+					if ( params.unstable && !should_do_it_once ) {
+						// This makes no sense - Molis
+
+						let confirmation = false;
+
+						if ( input_field.value !== "1" && value === "1" )
+						confirmation = confirm( `WARNING:
+The following setting that you are toggling can cause unstable issues.
+This current feature should be treated with caution. If you encounter any errors, please report it to GitHub.
+Are you sure you want to enable this feature?` );
+
+						if ( value !== "2" && !confirmation ) return;
+
+						if ( params.onclick ) params.onclick( value );
+					}
+
 					input_field.value = value;
 
 					for ( let i = 0; i < options.length; i++ )
@@ -430,11 +446,11 @@
 					}
 				}
 
-				SetValue( params.default_option, false );
+				SetValue( params.default_option, false, true );
 
 				input_field.onValueLoaded = ()=>
 				{
-					SetValue( input_field.value, false );
+					SetValue( input_field.value, false, true );
 				};
 			};
 
@@ -544,6 +560,15 @@
 					2:`No` 
 				},
 				default_option: 1
+			});
+			AddOption({ caption: `Enable caching files (unstable)`, prefix: `caching_enabled`,
+				unstable: true,
+				onclick: globalThis.caching_enabled_onClick,
+				options: {
+					1:`Yes`,
+					2:`No`
+				},
+				default_option: 2
 			});
 
 			let skin_history = [];
