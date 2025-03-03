@@ -528,7 +528,8 @@ class sdJunk extends sdEntity
 						radius: 200, 
 						damage_scale: 0, 
 						type: sdEffect.TYPE_EXPLOSION,
-						color:'#fff000'
+						color:'#fff000',
+						no_smoke: true
 					});
 				}
 
