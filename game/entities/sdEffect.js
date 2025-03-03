@@ -899,7 +899,8 @@ class sdEffect extends sdEntity
 				}
 			}
 			else
-			if ( this._no_smoke && ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE ))
+			if ( !this._no_smoke )
+			if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
