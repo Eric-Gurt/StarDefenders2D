@@ -1017,10 +1017,10 @@ class sdEffect extends sdEntity
 	
 		if ( this._type === sdEffect.TYPE_SMOKE )
 		{
-			if ( !this._radius > 32 )
-			this._radius += this._radius / 100 * GSPEED;
+			if (!( this._radius > 32 ))
+			this._radius += this._radius / 75 * GSPEED;
 			
-			if ( sdRenderer.effects_quality >= 3 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
+			if ( sdRenderer.effects_quality >= 2 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
 			{
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
 				sdEntity.entities.push( e );
