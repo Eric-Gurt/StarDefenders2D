@@ -7209,7 +7209,8 @@ class sdGunClass
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
-							color:'#ffffff' 
+							color:'#ffffff',
+							no_smoke: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
