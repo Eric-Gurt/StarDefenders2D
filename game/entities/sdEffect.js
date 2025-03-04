@@ -907,7 +907,7 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || this.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
 					sdEntity.entities.push( e );
 				}
 			}
@@ -1015,10 +1015,12 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_CHAT )
 		this.y = Math.max( this.y, sdWorld.world_bounds.y1 + 8 );
 	
-		if ( this._type === sdEffect.TYPE_SMOKE && !( this._radius > 32 ))
+		if ( this._type === sdEffect.TYPE_SMOKE )
 		{
+			if ( !this._radius > 32 )
 			this._radius += this._radius / 100 * GSPEED;
-			if ( sdRenderer.effects_quality >= 3 && sdEffect.smoke_colors.includes( this._color ) && Math.random() < 0.005 && this._ani < 0.5 )
+			
+			if ( sdRenderer.effects_quality >= 3 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
 			{
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
 				sdEntity.entities.push( e );
@@ -1429,7 +1431,7 @@ class sdEffect extends sdEntity
 		//ctx.apply_shading = true;
 	}
 	
-	GetSmokeColor( hex_color_arr )
+	static GetSmokeColor( hex_color_arr )
 	{
 		 return hex_color_arr[( Math.floor( Math.random() * hex_color_arr.length ))];
 	}
