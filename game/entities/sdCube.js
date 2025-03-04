@@ -606,7 +606,8 @@ class sdCube extends sdEntity
 					damage_scale: 4.5, // 5 was too deadly on relatively far range
 					type:this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 					owner:this,
-					color:this.kind === sdCube.KIND_RED ? '#000000' : '#33FFFF' 
+					color:this.kind === sdCube.KIND_RED ? '#000000' : '#33FFFF',
+					no_smoke: this.kind === sdCube.KIND_RED
 				});
 
 				//if ( initiator )
@@ -1055,7 +1056,8 @@ class sdCube extends sdEntity
 									damage_scale: 0, // Just a decoration effect
 									type: this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 									owner:this,
-									color:this.kind === sdCube.KIND_RED ? '#000000': '#aaaaaa' 
+									color:this.kind === sdCube.KIND_RED ? '#000000': '#aaaaaa',
+									no_smoke: true
 								});
 
 								let nears = sdWorld.GetAnythingNear( this.x, this.y, 32 * t + 32 );
