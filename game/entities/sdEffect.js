@@ -550,7 +550,7 @@ class sdEffect extends sdEntity
 		this._rotation = Math.round( this._rotation / ( Math.PI / 2 ) ) * ( Math.PI / 2 );
 	
 		this._no_smoke = params.no_smoke || false;
-		this._smoke_color = params.smoke_color || sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ))];
+		this._smoke_color = params.smoke_color || '';
 		this._spark_color = params.spark_color || sdEffect.default_explosion_color;
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
@@ -907,8 +907,7 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color, spark_color: this._color });
-					
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || this.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
 					sdEntity.entities.push( e );
 				}
 			}
@@ -1429,6 +1428,12 @@ class sdEffect extends sdEntity
 		
 		//ctx.apply_shading = true;
 	}
+	
+	GetSmokeColor( hex_color_arr )
+	{
+		 return hex_color_arr[( Math.floor( Math.random() * hex_color_arr.length ))];
+	}
+	
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._silences_music )
