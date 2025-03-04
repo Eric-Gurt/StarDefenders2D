@@ -845,7 +845,8 @@ class sdCube extends sdEntity
 					damage_scale: 0, // Just a decoration effect
 					type: is_void ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 					owner: this,
-					color: is_void ? '#000000' : '#aaaaaa'
+					color: is_void ? '#000000' : '#aaaaaa',
+					no_smoke: true
 				});
 
 				sdLost.ApplyAffection( target_entity, is_void ? 30 : 10, bullet, is_void ? sdLost.FILTER_VOID : sdLost.FILTER_WHITE );
