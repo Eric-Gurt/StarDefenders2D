@@ -887,7 +887,7 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN || this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
 			if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
-			for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
+			for ( let i = 0; i < 5 * Math.min(8, sdRenderer.effects_quality); i++ )
 			{
 				let r = Math.pow( ( 1 - Math.pow( Math.random(), 2 ) ), 1.5 ) * 1.75;
 				let an = Math.random() * Math.PI * 2;
@@ -902,13 +902,25 @@ class sdEffect extends sdEntity
 				}
 			}
 			else
-			if ( !this._no_smoke )
 			if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
-					sdEntity.entities.push( e );
+					let zx = -Math.random() * 2 + Math.random() * 2;
+					let zy = -2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 );
+					
+					if ( !this._no_smoke )
+					{
+						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
+						sdEntity.entities.push( e );
+					}
+					
+					if ( sdRenderer.effects_quality >= 3 )
+					if ( this._radius / 20 > 0.5 )
+					{
+						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:zx + ( Math.random() * 3 - Math.random() * 3 ) * ( this._radius / 20 ), sy:zy * Math.random() * 2, color: this._color });
+						sdEntity.entities.push( s );
+					}
 				}
 			}
 		}
