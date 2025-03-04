@@ -373,6 +373,7 @@ class sdEffect extends sdEntity
 		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ].images = [ sdWorld.CreateImageFromFile( 'effect_blood_drop_green' ) ];
 		
 		sdEffect.types[ sdEffect.TYPE_SPARK ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] );
+		sdEffect.types[ sdEffect.TYPE_SPARK ].images = [ sdWorld.CreateImageFromFile( 'effect_spark' ) ];
 		sdEffect.types[ sdEffect.TYPE_SPARK ].collisions = false;
 		sdEffect.types[ sdEffect.TYPE_SPARK ].gravity = false;
 		sdEffect.types[ sdEffect.TYPE_SPARK ].speed = 1 / 3;
@@ -549,6 +550,8 @@ class sdEffect extends sdEntity
 		this._rotation = Math.round( this._rotation / ( Math.PI / 2 ) ) * ( Math.PI / 2 );
 	
 		this._no_smoke = params.no_smoke || false;
+		this._smoke_color = params.smoke_color || sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ))];
+		this._spark_color = params.spark_color || sdEffect.default_explosion_color;
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
@@ -904,7 +907,7 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._color === sdEffect.default_explosion_color ? sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )] : this._color });
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() * 2 + Math.random() * 2, sy:-2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 ), scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color, spark_color: this._color });
 					
 					sdEntity.entities.push( e );
 				}
@@ -1018,7 +1021,7 @@ class sdEffect extends sdEntity
 			this._radius += this._radius / 100 * GSPEED;
 			if ( sdRenderer.effects_quality >= 3 && sdEffect.smoke_colors.includes( this._color ) && Math.random() < 0.005 && this._ani < 0.5 )
 			{
-				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, filter:'hue-rotate(-90deg) saturate(1.5)' });
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
 				sdEntity.entities.push( e );
 			}
 		}
@@ -1170,6 +1173,20 @@ class sdEffect extends sdEntity
 			}
 			ctx.blend_mode = THREE.NormalBlending;
 			
+		}
+		else
+		if ( this._type === sdEffect.TYPE_SPARK )
+		{	
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				if ( this._sd_tint_filter )
+				{
+					this._sd_tint_filter[ 0 ] /= 255;
+					this._sd_tint_filter[ 1 ] /= 255;
+					this._sd_tint_filter[ 2 ] /= 255;
+				}
+			}
 		}
 		else
 		{
