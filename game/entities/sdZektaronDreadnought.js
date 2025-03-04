@@ -141,6 +141,7 @@ class sdZektaronDreadnought extends sdEntity
 					bullet_obj1._damage = 7;
 					bullet_obj1.color ='#cd1e1e';
 					bullet_obj1._dirt_mult = 1;
+					bullet_obj1._no_explosion_smoke = true;
 					bullet_obj1._custom_detonation_logic = ( bullet_obj1 )=>
 					{
 						sdWorld.SendEffect({ 
@@ -150,7 +151,8 @@ class sdZektaronDreadnought extends sdEntity
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION,
 							owner:this,
-							color:'#900000'
+							color:'#900000',
+							no_smoke: true
 						});
 						
 						let nears = sdWorld.GetAnythingNear( bullet_obj1.x, bullet_obj1.y, 8 );
@@ -179,6 +181,7 @@ class sdZektaronDreadnought extends sdEntity
 					bullet_obj2._damage = 8;
 					bullet_obj2.color ='#cd1e1e';
 					bullet_obj2._dirt_mult = 1;
+					bullet_obj2._no_explosion_smoke = true;
 					bullet_obj2._custom_detonation_logic = ( bullet_obj2 )=>
 					{
 						sdWorld.SendEffect({ 
@@ -188,7 +191,8 @@ class sdZektaronDreadnought extends sdEntity
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION,
 							owner:this,
-							color:'#900000'
+							color:'#900000',
+							no_smoke: true
 						});
 						
 						let nears = sdWorld.GetAnythingNear( bullet_obj2.x, bullet_obj2.y, 8 );
@@ -217,6 +221,7 @@ class sdZektaronDreadnought extends sdEntity
 					bullet_obj3._damage = 7;
 					bullet_obj3.color ='#cd1e1e';
 					bullet_obj3._dirt_mult = 1;
+					bullet_obj3._no_explosion_smoke = true;
 					bullet_obj3._custom_detonation_logic = ( bullet_obj )=>
 					{
 						sdWorld.SendEffect({ 
@@ -226,7 +231,8 @@ class sdZektaronDreadnought extends sdEntity
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION,
 							owner:this,
-							color:'#900000'
+							color:'#900000',
+							no_smoke: true
 						});
 						
 						let nears = sdWorld.GetAnythingNear( bullet_obj3.x, bullet_obj3.y, 8 );
@@ -923,6 +929,7 @@ class sdZektaronDreadnought extends sdEntity
 						bullet_obj._damage = 24;
 						bullet_obj.explosion_radius = 6;
 						bullet_obj.color = '#ff0000';
+						bullet_obj._no_explosion_smoke = true;
 						// bullet_obj._homing = true;
 						// bullet_obj._homing_mult = 0.04;
 						// bullet_obj.ac = 0.12;
