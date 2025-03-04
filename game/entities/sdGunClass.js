@@ -5292,7 +5292,8 @@ class sdGunClass
 					damage_scale: 0, // Just a decoration effect
 					type: sdEffect.TYPE_EXPLOSION, 
 					owner: this,
-					color: '#aaaaaa'
+					color: '#aaaaaa',
+					no_smoke: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 33 * dmg_scale, bullet, sdLost.FILTER_WHITE );
@@ -9459,7 +9460,8 @@ class sdGunClass
 					damage_scale: 0, // Just a decoration effect
 					type: sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 					owner: this,
-					color: '#000000'
+					color: '#000000',
+					no_smoke: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 60, bullet, sdLost.FILTER_VOID );
