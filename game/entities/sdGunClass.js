@@ -2809,7 +2809,8 @@ class sdGunClass
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
-							color:'#ffff66' 
+							color:'#ffff66',
+							no_smoke: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
@@ -5548,10 +5549,10 @@ class sdGunClass
 			spread: 0.18,
 			spawnable: false,
 			projectile_velocity: 16,
-			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1 },
+			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 10, model: 'ball', color:'#0000c8', _dirt_mult: 1 };
+				let obj = { explosion_radius: 10, model: 'ball', color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
