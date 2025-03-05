@@ -607,7 +607,7 @@ class sdCube extends sdEntity
 					type:this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					color:this.kind === sdCube.KIND_RED ? '#000000' : '#33FFFF',
-					no_smoke: this.kind === sdCube.KIND_RED
+					no_smoke: true
 				});
 
 				//if ( initiator )
