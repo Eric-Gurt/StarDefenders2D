@@ -6,6 +6,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
+import sdCrystal from './sdCrystal.js';
 import sdGun from './sdGun.js';
 import sdJunk from './sdJunk.js';
 
@@ -167,6 +168,21 @@ class sdObelisk extends sdEntity
 			owner:this,
 			color:color
 		});
+		
+		const zap = sdWorld.GetAnythingNear( this.x, this.y ,96 );
+		
+		for ( let i = 0; i < zap.length; i++ )
+		{
+			let e = zap[ i ];
+			if ( !e._is_being_removed )
+			{
+				if ( Math.random() < 0.25 && e.GetClass() === 'sdBlock' || e.GetClass() === 'sdDoor' )
+				{
+					sdCrystal.Zap( this, e, color );
+				}
+			}
+		}
+		
 		this.remove();
 	}
 	constructor( params )
