@@ -502,9 +502,9 @@
 			});
 			AddOption({ caption: `Effects quality`, prefix: `effects_quality`,
 				options: [
-					[ 3, `High` ], 
+					[ 1, `Low` ], 
 					[ 2, `Medium` ],
-					[ 1, `Low` ]
+					[ 3, `High` ]
 				],
 				default_option: 2
 			});
