@@ -429,7 +429,7 @@ class sdZektaronDreadnought extends sdEntity
 			//this.death_anim = 1;
 			
 			sdSound.PlaySound({ name:'zektaron_death', x:this.x, y:this.y, volume:4 });
-			let x = Math.random()
+			
 			sdWorld.SendEffect({ 
 				x: this.x, 
 				y: this.y, 
