@@ -920,7 +920,10 @@ class sdEffect extends sdEntity
 					{
 						let an = Math.random() * Math.PI * 2;
 						
-						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:Math.sin( an ) * 3 * ( this._radius / 20 ), sy:-Math.cos( an ) * Math.random() * 3 * ( this._radius / 20 ), color: this._color });
+						let xx = Math.sin( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 ))
+						let yy = -( Math.cos( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 )))
+						
+						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:xx, sy:yy, color: this._color });
 						sdEntity.entities.push( s );
 					}
 				}
