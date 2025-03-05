@@ -136,7 +136,8 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj1._damage= 5;
 					bullet_obj1.color ='#0000c8';
 					bullet_obj1._dirt_mult = 1;
-
+					bullet_obj1._no_explosion_smoke = true; 
+		
 					sdEntity.entities.push( bullet_obj1 );
 
 		let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
@@ -154,6 +155,8 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj2._damage= 5;
 					bullet_obj2.color ='#0000c8';
 					bullet_obj2._dirt_mult = 1;
+					bullet_obj2._no_explosion_smoke = true; 
+		
 					sdEntity.entities.push( bullet_obj2 );
 
 		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
@@ -171,6 +174,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj3._damage= 5;
 					bullet_obj3.color ='#0000c8';
 					bullet_obj3._dirt_mult = 1;
+					bullet_obj3._no_explosion_smoke = true; 
 
 					sdEntity.entities.push( bullet_obj3 );
 
@@ -189,6 +193,8 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj4._damage= 5;
 					bullet_obj4.color ='#0000c8';
 					bullet_obj4._dirt_mult = 1;
+					bullet_obj4._no_explosion_smoke = true; 
+		
 					sdEntity.entities.push( bullet_obj4 );
 	}
 	CanAttackEnt( ent )
