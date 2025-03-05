@@ -71,7 +71,7 @@ class sdObelisk extends sdEntity
 	}
 	ActivateObelisk()
 	{
-		let color = 'FFFFFF';
+		let color = '#FFFFFF';
 		
 		if ( this.type === 1 )
 		{
