@@ -429,7 +429,7 @@ class sdZektaronDreadnought extends sdEntity
 			//this.death_anim = 1;
 			
 			sdSound.PlaySound({ name:'zektaron_death', x:this.x, y:this.y, volume:4 });
-			
+
 			sdWorld.SendEffect({ 
 				x: this.x, 
 				y: this.y, 
@@ -478,7 +478,7 @@ class sdZektaronDreadnought extends sdEntity
 							owner: that,
 							can_hit_owner: true,
 							color:'#900000',
-							no_smoke: ( Math.random() < 0.25 )
+							no_smoke: ( Math.random() > 0.25 )
 						});
 					}
 				}, i * 150 );
