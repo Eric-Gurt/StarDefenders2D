@@ -887,7 +887,7 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN || this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
 			if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
-			for ( let i = 0; i < 5 * Math.min(8, sdRenderer.effects_quality); i++ )
+			for ( let i = 0; i < Math.min( 8, 5 * sdRenderer.effects_quality ); i++ )
 			{
 				let r = Math.pow( ( 1 - Math.pow( Math.random(), 2 ) ), 1.5 ) * 1.75;
 				let an = Math.random() * Math.PI * 2;
