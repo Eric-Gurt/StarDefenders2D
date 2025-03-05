@@ -918,7 +918,9 @@ class sdEffect extends sdEntity
 					if ( sdRenderer.effects_quality >= 3 )
 					if ( this._radius / 20 > 0.5 )
 					{
-						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:zx + ( Math.random() * 3 - Math.random() * 3 ) * ( this._radius / 20 ), sy:zy * Math.random() * 2, color: this._color });
+						let an = Math.random() * Math.PI * 2;
+						
+						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:Math.sin( an ) * 3 * ( this._radius / 20 ), sy:-Math.cos( an ) * Math.random() * 3 * ( this._radius / 20 ), color: this._color });
 						sdEntity.entities.push( s );
 					}
 				}
