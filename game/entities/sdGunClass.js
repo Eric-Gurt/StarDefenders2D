@@ -1054,7 +1054,7 @@ class sdGunClass
 			projectile_properties: { _damage: 1 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1 };
+				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
