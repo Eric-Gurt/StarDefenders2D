@@ -882,7 +882,7 @@ class sdEnemyMech extends sdEntity
 		{
 			if ( this.hea < this._hmax / 5 )
 			{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y - 24, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:sdEffect.smoke_colors[( Math.floor( Math.random() * sdEffect.smoke_colors.length ) )]});
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y - 24, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
 					sdEntity.entities.push( e );
 			}
 		}
