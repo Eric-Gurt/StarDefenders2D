@@ -906,8 +906,10 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let zx = -Math.random() * 2 + Math.random() * 2;
-					let zy = -2 * Math.random() - Math.random() * 0.5 * Math.max( 1, this._radius / 20 );
+					let an = Math.random() * Math.PI / 2;
+					
+					let zx = Math.sin( an ) * ( -Math.random() * 2 + Math.random() * 2 );
+					let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
 					
 					if ( !this._no_smoke )
 					{
