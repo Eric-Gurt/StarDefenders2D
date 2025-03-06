@@ -290,6 +290,7 @@ class sdStatusEffect extends sdEntity
 				status_entity._normal_temperature_removal_timer = 30; // Resets if temperature is being added, for example due to overheating
 				
 				status_entity._next_spawn = 0;
+				status_entity._next_smoke_spawn = 0;
 				status_entity._next_damage = 10;
 				
 				status_entity._effects = [];
@@ -371,11 +372,19 @@ class sdStatusEffect extends sdEntity
 				{
 					let area = ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) / ( 24 * 24 );
 					
-					status_entity._next_spawn -= GSPEED * area;					
+					status_entity._next_spawn -= GSPEED * area;
+					status_entity._next_smoke_spawn -= GSPEED * area;						
 					const up_velocity = ( status_entity.t >= temperature_fire ) ? 0 : 0.05;//-0.4;
 					const range = 4;
 					const y_offset = 0;
 					const range_affection = 16;
+					
+					if ( sdRenderer.effects_quality >= 2 && status_entity.t >= temperature_fire && status_entity._next_smoke_spawn <= 0 )
+					{
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2, scale:1, radius:1/3, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: '#FF8800'});
+						status_entity._next_smoke_spawn = 1;
+						sdEntity.entities.push( s );
+					}
 
 					if ( status_entity._next_spawn <= 0 )
 					{
@@ -1438,6 +1447,7 @@ class sdStatusEffect extends sdEntity
 			{
 				status_entity._ttl = params.ttl;
 				status_entity._next_spawn = 0;
+				status_entity._next_smoke_spawn = 0;
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1458,6 +1468,7 @@ class sdStatusEffect extends sdEntity
 			{
 				let attack_entities = sdWorld.GetAnythingNear( status_entity.x, status_entity.y, 64 );
 	
+				if ( sdWorld.is_server )
 				if ( attack_entities.length > 0 )
 				for ( let i = 0; i < attack_entities.length; i++ )
 				{
@@ -1486,6 +1497,15 @@ class sdStatusEffect extends sdEntity
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					status_entity._next_spawn -= GSPEED;
+					status_entity._next_smoke_spawn -= GSPEED;
+					
+					if ( sdRenderer.effects_quality >= 2 && status_entity._next_smoke_spawn <= 0 )
+					{
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 3, scale:1, radius:1/3, color: Math.random() > 0.5 ? '#000000' : '#200000' });
+						s._spark_color = s._color; 
+						status_entity._next_smoke_spawn = 2;
+						sdEntity.entities.push( s );
+					}
 
 					if ( status_entity._next_spawn <= 0 )
 					{

@@ -1955,25 +1955,25 @@ class sdServerConfigFull extends sdServerConfigShort
 		};
 
 		setInterval( ()=>{
-
 			if ( sdWorld.world_has_unsaved_changes )
 			if ( !sdWorld.paused || !sdWorld.is_singleplayer )
 			{
 				sdWorld.world_has_unsaved_changes = false;
 
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
-
-				SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
-				{
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup will be initiated in 1 minute' );
+				setTimeout(()=>{
 					for ( var i = 0; i < sdWorld.sockets.length; i++ )
-					sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
-				});
+					sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
+
+					SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
+					{
+						for ( var i = 0; i < sdWorld.sockets.length; i++ )
+						sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
+					});
+				}, 1000 * 60 );
 			}
-
 		}, 1000 * sdWorld.server_config.backup_interval_seconds ); // Once per 30 minutes
-
-
 
 		/*setInterval( ()=>{
 

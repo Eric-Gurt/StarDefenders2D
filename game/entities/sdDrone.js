@@ -1392,6 +1392,7 @@ class sdDrone extends sdEntity
 								bullet_obj._damage = 24; // 20, changed values to fit more the weapon they drop
 								bullet_obj.color = '#00c600';
 								bullet_obj.explosion_radius = 18; // 32
+								bullet_obj._no_explosion_smoke = true;
 								bullet_obj.model = 'sarronian_ball';
 
 								sdEntity.entities.push( bullet_obj );
@@ -1472,6 +1473,7 @@ class sdDrone extends sdEntity
 											gas_attack_obj._hittable_by_bullets = false;
 											gas_attack_obj._detonate_on_impact = false;
 											gas_attack_obj.gravity_scale = 0;
+											gas_attack_obj._no_explosion_smoke = true;
 													
 											gas_attack_obj._custom_extra_think_logic = ( bullet, GSPEED )=>{
 												GSPEED *= 1;
@@ -1595,6 +1597,7 @@ class sdDrone extends sdEntity
 									bullet_obj.model = 'sarronian_bolt',
 									bullet_obj.color = '#00c600';
 									bullet_obj.explosion_radius = 24 / 1.5; // one-shots at 128 damage
+									bullet_obj._no_explosion_smoke = true;
 									
 									sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:this.x, y:this.y, volume: 1.5, pitch: 2 });
 									sdEntity.entities.push( bullet_obj );
@@ -1624,6 +1627,7 @@ class sdDrone extends sdEntity
 								bullet_obj._damage = 24;
 								bullet_obj.color = '#900000';
 								bullet_obj.explosion_radius = 6; // 32
+								bullet_obj._no_explosion_smoke = true;
 								bullet_obj.model = 'ball_red';
 
 								sdEntity.entities.push( bullet_obj );
@@ -1661,6 +1665,7 @@ class sdDrone extends sdEntity
 									bullet_obj.color = '#cd1e1e';
 									bullet_obj.model = 'ball_red';
 									bullet_obj.explosion_radius = 9;
+									bullet_obj._no_explosion_smoke = true;
 
 									sdEntity.entities.push( bullet_obj );
 								}
@@ -1724,7 +1729,9 @@ class sdDrone extends sdEntity
 											damage_scale: 0, // Just a decoration effect
 											type:sdEffect.TYPE_EXPLOSION,
 											owner:this,
-											color:'#900000'
+											color:'#900000',
+											no_smoke: true
+											
 										});
 										
 										let nears = sdWorld.GetAnythingNear( bullet_obj.x, bullet_obj.y, 28 );

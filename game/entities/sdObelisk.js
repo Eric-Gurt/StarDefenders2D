@@ -6,6 +6,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
+import sdCrystal from './sdCrystal.js';
 import sdGun from './sdGun.js';
 import sdJunk from './sdJunk.js';
 
@@ -70,14 +71,26 @@ class sdObelisk extends sdEntity
 	}
 	ActivateObelisk()
 	{
+		let color = '#FFFFFF';
+		
 		if ( this.type === 1 )
-		sdWeather.only_instance._quake_scheduled_amount = 30 * 90; // Earthquake for 90 seconds
+		{
+			sdWeather.only_instance._quake_scheduled_amount = 30 * 90; // Earthquake for 90 seconds
+			color = '#804000';
+			
+		}
 
 		if ( this.type === 2 )
-		sdWeather.only_instance._rain_amount = 30 * 60; // Start raining for 60 seconds
-
+		{
+			sdWeather.only_instance._rain_amount = 30 * 60; // Start raining for 60 seconds
+			color = '#00FFFF';
+		}
+		
 		if ( this.type === 3 )
-		sdWeather.only_instance._asteroid_spam_amount = 30 * 60; // Meteors for 60 seconds
+		{
+			sdWeather.only_instance._asteroid_spam_amount = 30 * 60; // Meteors for 60 seconds
+			color = '#804000';
+		}
 
 		if ( this.type === 4 ) // A larger obelisk which is the combination of all 3 above
 		{
@@ -101,6 +114,7 @@ class sdObelisk extends sdEntity
 					});
 				}
 			}
+			color = '#0000FF';
 		}
 		if ( this.type === 6 ) // A larger obelisk which summons 8 events which cannot occur via time on the planet. Guarantees chaos.
 		{
@@ -125,11 +139,13 @@ class sdObelisk extends sdEntity
 					event: j
 				});
 			}
+			color = '#FF0000';
 		}
 		if ( this.type === 7 ) // Obelisk which holds artifact, is destroyed and artifact can be extracted to mothership as a task.
 		{
 			let artifact = new sdJunk({ x: this.x, y: this.y + 4, type: sdJunk.TYPE_ALIEN_ARTIFACT });
 			sdEntity.entities.push( artifact );
+			color = '#880000';
 		}
 		if ( this.type === 8 ) // A larger obelisk which summons 10 events of same type. ( 10 x cubes, 10x asp event, for example )
 		{
@@ -141,8 +157,32 @@ class sdObelisk extends sdEntity
 					event: j
 				});
 			}
+			color = '#FF8800';
 		}
-
+		sdWorld.SendEffect({ 
+			x:this.x, 
+			y:this.y, 
+			radius:48,
+			damage_scale: 0.01, // Just a decoration effect
+			type:sdEffect.TYPE_EXPLOSION, 
+			owner:this,
+			color:color
+		});
+		
+		const zap = sdWorld.GetAnythingNear( this.x, this.y ,96 );
+		
+		for ( let i = 0; i < zap.length; i++ )
+		{
+			let e = zap[ i ];
+			if ( !e._is_being_removed )
+			{
+				if ( Math.random() < 0.25 && e.GetClass() === 'sdBlock' || e.GetClass() === 'sdDoor' )
+				{
+					sdCrystal.Zap( this, e, color );
+				}
+			}
+		}
+		
 		this.remove();
 	}
 	constructor( params )

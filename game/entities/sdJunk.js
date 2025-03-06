@@ -470,7 +470,8 @@ class sdJunk extends sdEntity
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
-							color:'#ffff66' 
+							color:'#ffff66',
+							no_smoke: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
@@ -528,7 +529,8 @@ class sdJunk extends sdEntity
 						radius: 200, 
 						damage_scale: 0, 
 						type: sdEffect.TYPE_EXPLOSION,
-						color:'#fff000'
+						color:'#fff000',
+						no_smoke: true
 					});
 				}
 
@@ -597,7 +599,8 @@ class sdJunk extends sdEntity
 						damage_scale: 0, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#33FFFF' 
+						color:'#33FFFF',
+						smoke_color: '#33FFFF'
 					});
 
 					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
@@ -627,7 +630,8 @@ class sdJunk extends sdEntity
 						damage_scale: 0, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#FFA840'
+						color:'#FFA840',
+						smoke_color: '#FFA840'
 					});
 
 					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
