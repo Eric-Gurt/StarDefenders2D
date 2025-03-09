@@ -2831,6 +2831,10 @@ class sdGunClass
 		
 		const cable_reaction_method = ( bullet, target_entity )=>
 		{
+			// Someone fired cable tool and then dropped it onto weaponbench?
+			if ( !bullet._owner || !bullet._owner.IsPlayerClass() )
+			return;
+			
 			if ( bullet._owner._current_built_entity )
 			if ( !bullet._owner._current_built_entity.is( sdCable ) )
 			bullet._owner._current_built_entity = null;
