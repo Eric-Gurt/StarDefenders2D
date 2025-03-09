@@ -54,7 +54,9 @@ class sdBullet extends sdEntity
 
 		sdBullet.images_with_smoke =
 		{
-			'rocket_proj': 1
+			'rocket_proj': 1,
+			'mini_missile_p241': 1,
+			'f_hover_rocket': 1
 		};
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -213,6 +215,8 @@ class sdBullet extends sdEntity
 
 		this.explosion_radius = 0;
 		this._explosion_mult = params.explosion_mult || 1; // For damage upgraded guns to scale explosion damage ( not radius )
+		this._no_explosion_smoke = false;
+		
 		this.model = null; // Custom image model
 		this.model_size = params.model_size || 0; // 0 = 32x32, 1 = 64x32, 2 = 64x64, 3 = 96x96
 
@@ -318,7 +322,8 @@ class sdBullet extends sdEntity
 			type:sdEffect.TYPE_EXPLOSION,
 			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
-			color:this.color
+			color:this.color,
+			no_smoke:this._no_explosion_smoke
 		});
 
 		if ( this._hook )
@@ -664,7 +669,7 @@ class sdBullet extends sdEntity
 					this._smoke_spawn_wish = this._smoke_spawn_wish % 1;
 					//this._smoke_spawn_wish -= 1;
 
-					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_GLOW_HIT, color:'#666666' });
+					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors )});
 					sdEntity.entities.push( ent );
 				}
 			}

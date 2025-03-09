@@ -10,31 +10,28 @@ import sdBullet from './sdBullet.js';
 import sdCube from './sdCube.js';
 import sdLost from './sdLost.js';
 import sdCrystal from './sdCrystal.js';
-import sdRescueTeleport from './sdRescueTeleport.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
 import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
-import sdRift from './sdRift.js';
 import sdBlock from './sdBlock.js';
-import sdSandWorm from './sdSandWorm.js';
 import sdFactions from './sdFactions.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
-class sdCouncilMachine extends sdEntity
+class sdCouncilNullifier extends sdEntity
 {
 	static init_class()
 	{
-		sdCouncilMachine.img_council_pm = sdWorld.CreateImageFromFile( 'council_machine' ); // resprite by Flora
+		sdCouncilNullifier.img_council_nullifier = sdWorld.CreateImageFromFile( 'sdCouncilNullifier' );
 
-		sdCouncilMachine.ents_left = 0; // Entities left to spawn, determined when event rolls in sdWeather.
-		sdCouncilMachine.ents = 0;
+		sdCouncilNullifier.ents = 0;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -28; }
-	get hitbox_x2() { return 28; }
+	get hitbox_x1() { return -14; }
+	get hitbox_x2() { return 14; }
 	get hitbox_y1() { return -16; }
-	get hitbox_y2() { return 36; }
+	get hitbox_y2() { return 18; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -46,24 +43,32 @@ class sdCouncilMachine extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 6000;
+		this.hmax = 12000;
 		this.hea = this.hmax;
 
-		// Variables for Council portal machine
-		this.glow_animation = 0; // Glow animation for the bomb
+		this.glow_animation = 0; // Glow animation for the jnullifier
 		this._glow_fade = 0; // Should the glow fade or not?
-		this.detonation_in = params.detonation_in || 30 * 60 * 15; // 15 minutes until the bomb explodes
-		this._rate = 120;
+		this._spawn_effect = 10; // Timer that spawns pulse status effect on entity
 		this._spawn_timer = 60; // Spawn Council timer
 		this._regen_timeout = 0; // Regen timeout;
 		
-		this._one_time_spawn = params.one_time_spawn || false; // For beam projector so the rewards are weaker since only one spawns
+		this._notify_players_in = 60; // Timer to notify players about the task
+		
+		this._ent_to_nullify = params.ent_to_nullify || null;
+		
+		this._set_matter_to = -1; // To how much matter should it drain an entity? -1 = disabled
+		
+		this._despawn_without_ent = false;
 		
 		this._ai_team = 3;
+		sdCouncilNullifier.ents++;
 
-		if ( this._one_time_spawn === false )
-		sdCouncilMachine.ents++;
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_ent_to_nullify' ) return true;
 
+		return false;
 	}
 	/*GetBleedEffect()
 	{
@@ -86,11 +91,11 @@ class sdCouncilMachine extends sdEntity
 		
 		let old_hea = this.hea + dmg;
 			
-		if ( Math.round( old_hea / ( this.hmax / 8 ) ) > Math.round( this.hea / ( this.hmax / 8 ) ) ) // Should spawn about 8 assault drones per machine
+		if ( Math.round( old_hea / ( this.hmax / 10 ) ) > Math.round( this.hea / ( this.hmax / 10 ) ) ) // Should spawn about 10 assault drones per machine
 		{
 			if ( initiator )
 			{
-				let drone = new sdDrone({ x:0, y:0 , type: 18});
+				let drone = new sdDrone({ x:0, y:0 , type: sdDrone.DRONE_COUNCIL_ATTACK });
 
 				sdEntity.entities.push( drone );
 								
@@ -150,117 +155,113 @@ class sdCouncilMachine extends sdEntity
 				} while( true );
 			}
 		}
+		if ( Math.round( old_hea / ( this.hmax / 4 ) ) > Math.round( this.hea / ( this.hmax / 4 ) ) ) // And about 4 support drones
+		{
+			//if ( initiator )
+			{
+				let drone = new sdDrone({ x:0, y:0 , type: sdDrone.DRONE_COUNCIL });
+
+				sdEntity.entities.push( drone );
+								
+				let x,y;
+				let tr = 100;
+				do
+				{
+					{
+						x = this.x + 128 - ( Math.random() * 256 );
+
+						if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+						x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+						if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+						x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+					}
+
+					y = this.y + 128 - ( Math.random() * ( 256 ) );
+					if ( y < sdWorld.world_bounds.y1 + 32 )
+					y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+					if ( y > sdWorld.world_bounds.y2 - 32 )
+					y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+					if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+					{
+						drone.x = x;
+						drone.y = y;
+						
+						drone._look_x = x + 0.5 - Math.random();
+						drone._look_y = y + 0.5 - Math.random();
+
+						sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
+						sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
+						drone.SetTarget( this );
+						
+
+						sdWorld.UpdateHashPosition( drone, false );
+						//console.log('Drone spawned!');
+						break;
+					}
+
+
+					tr--;
+					if ( tr < 0 )
+					{
+						drone.remove();
+						drone._broken = false;
+						break;
+					}
+				} while( true );
+			}
+		}
 		
 		if ( this.hea <= 0 && was_alive )
 		{
-			let spawned_ent = false;
-			if ( sdCouncilMachine.ents_left > 0 && this._one_time_spawn === false )
 			{
-				sdCouncilMachine.ents_left--;
-				let instances = 0;
-				let instances_tot = 1;
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
 
-				while ( instances < instances_tot && sdCouncilMachine.ents < 2 ) // Spawn another council machine until last one
-				{
-					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-					//let machine = new sdCouncilMachine({ x:0, y:0 });
+				let gun;
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+				gun.extra = 1;
 
-					//sdEntity.entities.push( machine );
-					
-					let machine = [];
-					
-					sdWeather.SimpleSpawner({
-						
-						count: [ 1, 1 ],
-						class: sdCouncilMachine,
-						store_ents: machine,
-						aerial: true,
-						aerial_radius: 128
-						
-					})
-					
-					if ( machine.length > 0 ) // Spawned the machine?
-					{
-						spawned_ent = true;
-						machine[ 0 ].detonation_in = this.detonation_in;
-					}
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun );
 
-					instances++;
-				}
-
-
+				}, 500 );
 			}
-
-			if ( spawned_ent === true )
+			let r = Math.random();
+			if ( r < 0.03 ) // 3% chance to drop Exalted core on task completion
 			{
-				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
-				{
-					let task = sdTask.tasks[ i ];
-					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
-					task._difficulty = 0;
-				}
-			}
-			else // If it's the last one or it didn't spawn next one due to limited space or something, end the event and reward players
-			{
-				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0.25 since it's the last machine.
-				{
-					let task = sdTask.tasks[ i ];
-					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
-					{
-						if ( this._one_time_spawn === false )
-						task._difficulty = 0.40;
-						else
-						task._difficulty = 0.10; // Beam projector scenario
-					}
-				}
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
 
-				{
-					let x = this.x;
-					let y = this.y;
-					let sx = this.sx;
-					let sy = this.sy;
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+					let random_value = Math.random();
 
 					let gun;
-					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					gun.extra = 1;
+					{
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
+					}
 
-					//gun.sx = sx;
-					//gun.sy = sy;
+					gun.sx = sx;
+					gun.sy = sy;
 					sdEntity.entities.push( gun );
 
-					}, 500 );
-				}
-				let r = Math.random();
-				if ( ( r < 0.03 && this._one_time_spawn === false ) || ( r < 0.005 && this._one_time_spawn ) ) // 3% chance to drop Exalted core on task completion (0.5% if from beam projector)
-				{
-					let x = this.x;
-					let y = this.y;
-					let sx = this.sx;
-					let sy = this.sy;
-
-					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-
-						let random_value = Math.random();
-
-						let gun;
-
-						//if ( random_value < 0.45 )
-						//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-						//else
-						{
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
-						}
-
-						gun.sx = sx;
-						gun.sy = sy;
-						sdEntity.entities.push( gun );
-
-					}, 500 );
-				}
+				}, 500 );
 			}
+
 
 			this.remove();
 		}
@@ -288,6 +289,50 @@ class sdCouncilMachine extends sdEntity
 
 		if ( sdWorld.is_server )
 		{
+			if ( this._ent_to_nullify )
+			{
+				this._despawn_without_ent = true;
+				if ( this._set_matter_to > 0 )
+				if ( this._ent_to_nullify.matter > this._set_matter_to )
+				this._ent_to_nullify.matter = sdWorld.MorphWithTimeScale( this._ent_to_nullify.matter, this._set_matter_to, 0.85, GSPEED );
+			
+				this._spawn_effect -= GSPEED;
+				if ( this._spawn_effect <= 0 )
+				{
+						
+					if ( this._ent_to_nullify.GetClass() === 'sdBeamProjector' ) // Just in case
+					this._ent_to_nullify.enabled = false;
+					
+					this._spawn_effect = 120;
+					this._ent_to_nullify.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PULSE_EFFECT, filter: 'hue-rotate(' + 195 + 'deg)' }); // Circular pulse appears on nullified object as an indicator it is nullified
+				}
+			}
+			if ( !this._ent_to_nullify || this._ent_to_nullify._is_being_removed )
+			{
+				this._ent_to_nullify = null;
+				if ( this._despawn_without_ent )
+				{
+					// Despawn entity and make players fail the task
+					for ( let i = 0; i < sdTask.tasks.length; i++ )
+					{
+						let task = sdTask.tasks[ i ];
+						if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
+						{
+							task._difficulty = 0; // Just in case
+							task._approached_target = false;
+							task._approach_target_check_timer = 600;
+							task._update_version++;
+							task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
+					}
+					// Teleport away
+					sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5 });
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+					this.remove();
+					this._broken = false;
+				}
+			}
+				
 			if ( this._glow_fade === 0 )
 			{
 				if ( this.glow_animation < 60 )
@@ -302,96 +347,42 @@ class sdCouncilMachine extends sdEntity
 				else
 				this._glow_fade = 0;
 			}
-			let old = this.detonation_in;
-
-			this.detonation_in -= GSPEED;
-
-			let rate = 120;
-
-			if ( this.detonation_in < 30 * 60 )
-			rate = 30;
-			else
-			if ( this.detonation_in < 30 * 60 * 4 )
-			rate = 60;
-			else
-			if ( this.detonation_in < 30 * 60 * 10 )
-			rate = 120;
-
-			this._rate = rate;
-
-			if ( old % rate >= rate / 2 )
-			if ( this.detonation_in % rate < rate / 2 )
+			
+			this._notify_players_in -= GSPEED;
+			if ( this._notify_players_in <= 0 && this._ent_to_nullify )
 			{
-				// Beep
-				//sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch:2 });
-				if ( this.detonation_in > 30 * 5 )
+				this._notify_players_in = 60;
 				{
 					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 					{
 						let desc;
-						if ( sdCouncilMachine.ents_left >= 2 )
-						desc = 'Council plans to invade this planet. We detected a few of their portal machines, destroy them before it is too late!';
-						else
-						if ( sdCouncilMachine.ents_left !== 0 )
-						desc = 'There is not many of them left, be quick now and destroy the remaining machines!';
-						else
-						desc = 'We located the last remaining Council portal machine. Get rid of it before they invade us, quickly!';
-					
-						if ( this._one_time_spawn === true )
-						desc = 'The Council is attempting to invade near the dark matter beam projector. Destroy the device!';
+						
+						if ( this._ent_to_nullify.GetClass() === 'sdMothershipContainer' )
+						desc = 'The Council is using a nullifier to siphon matter from our Mothership container! Stop them as fast as possible!';
+						if ( this._ent_to_nullify.GetClass() === 'sdBeamProjector' )
+						desc = 'The Council is using a nullifier to halt progress on our dark matter beam projector! We cannot waste any time, destroy it!';
 
-						let diff = 0.001; // 0 sets it to 0.1 since it doesn't count as a parameter? It gets set to 0 when damaged enough before being destroyed if not the last one, just in case.
-						if ( sdCouncilMachine.ents_left === 0 )
-						diff = 0.18; // Only last machine counts towards task points when destroyed, so the task is 100% complete
-					
-						if ( this._one_time_spawn )
-						diff = 0.05;
 
 						sdTask.MakeSureCharacterHasTask({ 
 							similarity_hash:'DESTROY-'+this._net_id, 
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: diff * sdTask.GetTaskDifficultyScaler(),
-							time_left: ( this.detonation_in - 30 * 2 ),
-							title: 'Destroy Council portal machine',
+							difficulty: 1 * sdTask.GetTaskDifficultyScaler(),
+							title: 'Destroy Council nullifier',
 							description: desc
 						});
 					}
 				}
 			}
 
-			if ( this.detonation_in <= 0 )
-			{
-				// Explosion
-				
-				sdWorld.SendEffect({ 
-					x:this.x, 
-					y:this.y, 
-					radius:10, // run
-					damage_scale: 2,
-					type:sdEffect.TYPE_EXPLOSION, 
-					owner:this._owner,
-					can_hit_owner: true,
-					color:sdEffect.default_explosion_color
-				});
-
-				// Spawn Council portal as punishment
-
-				setTimeout(()=>{//Just in case
-					let portal = new sdRift({x: this.x, y:this.y, type:5 });
-					sdEntity.entities.push( portal );
-				}, 500 );
-
-				this.remove();
-			}
 
 			if ( this._spawn_timer > 0 )
 			this._spawn_timer -= GSPEED;
 
 			if ( this._spawn_timer <= 0 )
 			{
-				this._spawn_timer = 600; // Not too frequent spawns means players can focus on destroying the portal machine
+				this._spawn_timer = 600; // Not too frequent spawns means players can focus on destroying the machine
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -407,7 +398,7 @@ class sdCouncilMachine extends sdEntity
 				{
 
 					let councils = 0;
-					let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
+					let councils_tot = 1; // This is more of a drone focused objective
 
 					while ( councils < councils_tot )
 					{
@@ -456,7 +447,7 @@ class sdCouncilMachine extends sdEntity
 										if ( !character_entity._is_being_removed )
 										{
 											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 											character_entity.remove();
 										}
 							
@@ -472,12 +463,12 @@ class sdCouncilMachine extends sdEntity
 										if ( !character_entity._is_being_removed )
 										{
 											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 											character_entity.remove();
 
 											character_entity._broken = false;
 										}
-									}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
+									}, 20000 ); // Despawn the Council if they are in world longer than intended
 
 									break;
 							}
@@ -495,12 +486,11 @@ class sdCouncilMachine extends sdEntity
 					councils++;
 					ais++;
 					}
-					// Spawn a council support drone
-					if ( this.hea < ( this.hmax * 0.75 ) )
+					// Spawn a Council drone
 					{
-						if ( Math.random() < 0.8 ) // 80% it spawns a support healing Drone
 						{
-							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+							let drone_type = ( this.hea > this.hmax / 2 ) ? sdDrone.DRONE_COUNCIL_ATTACK : sdDrone.DRONE_COUNCIL;
+							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: drone_type });
 
 							sdEntity.entities.push( drone );
 
@@ -533,7 +523,7 @@ class sdCouncilMachine extends sdEntity
 
 										sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
 										sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-
+										if ( drone.type === sdDrone.DRONE_COUNCIL )
 										drone.SetTarget( this );
 
 										sdWorld.UpdateHashPosition( drone, false );
@@ -552,63 +542,6 @@ class sdCouncilMachine extends sdEntity
 								} while( true );
 							}
 						}
-						else // Worm time
-						{
-							let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5});
-
-							sdEntity.entities.push( worm );
-
-							{
-								let x,y;
-								let tr = 100;
-								do
-								{
-									{
-										x = this.x + 192 - ( Math.random() * 384 );
-
-										if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
-
-										if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
-									}
-
-									y = this.y + 192 - ( Math.random() * ( 384 ) );
-									if ( y < sdWorld.world_bounds.y1 + 32 )
-									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-									if ( y > sdWorld.world_bounds.y2 - 32 )
-									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-									if ( worm.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, worm, sdCom.com_visibility_ignored_classes, null ) )
-									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-									{
-										worm.x = x;
-										worm.y = y;
-
-										sdSound.PlaySound({ name:'council_teleport', x:worm.x, y:worm.y, volume:0.5 });
-										sdWorld.SendEffect({ x:worm.x, y:worm.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-
-										//worm.SetTarget( this );
-
-										sdWorld.UpdateHashPosition( worm, false );
-										//console.log('worm spawned!');
-										break;
-									}
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										worm.remove();
-										worm._broken = false;
-										break;
-									}
-								} while( true );
-							}
-						}
 					}
 				}
 			}
@@ -618,11 +551,8 @@ class sdCouncilMachine extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-
-		{
-			sdEntity.TooltipUntranslated( ctx, T("Council portal machine") + " (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -24 );
-			this.DrawHealthBar( ctx );
-		}
+		sdEntity.TooltipUntranslated( ctx, T("Council nullifier"), 0, -24 );
+		this.DrawHealthBar( ctx );
 	}
 	Draw( ctx, attached )
 	{
@@ -631,10 +561,10 @@ class sdCouncilMachine extends sdEntity
 		//ctx.filter = this.filter;
 		
          {
-            ctx.drawImageFilterCache( sdCouncilMachine.img_council_pm, 0, 0, 64, 64, - 64, - 64, 128, 128 );
+            ctx.drawImageFilterCache( sdCouncilNullifier.img_council_nullifier, 0, 0, 64, 64, - 32, - 32, 64, 64 );
             ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
-            ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
-            ctx.drawImageFilterCache( sdCouncilMachine.img_council_pm, 64, 0, 64, 64, - 64, - 64, 128, 128 );
+            ctx.filter = ' drop-shadow(0px 0px 4px #FFF000)';
+            ctx.drawImageFilterCache( sdCouncilNullifier.img_council_nullifier, 64, 0, 64, 64, - 32, - 32, 64, 64 );
         }
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -645,8 +575,7 @@ class sdCouncilMachine extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		if ( this._one_time_spawn === false )
-		sdCouncilMachine.ents--;
+		sdCouncilNullifier.ents--;
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 	}
@@ -655,6 +584,6 @@ class sdCouncilMachine extends sdEntity
 		return 0; // Hack
 	}
 }
-//sdCouncilMachine.init_class();
+//sdCouncilNullifier.init_class();
 
-export default sdCouncilMachine;
+export default sdCouncilNullifier;

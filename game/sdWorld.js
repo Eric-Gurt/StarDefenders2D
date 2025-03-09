@@ -4921,6 +4921,8 @@ class sdWorld
 		sdRenderer.InitVisuals();
 
 		sdRenderer.shading = player_settings['shading1'] ? true : false;
+		
+		sdRenderer.effects_quality = player_settings['effects_quality'] || 2;
 
 		sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 		window.onresize();

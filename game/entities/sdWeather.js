@@ -746,7 +746,7 @@ class sdWeather extends sdEntity
 							target: sdCharacter.characters[ i ],
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.4,
 							//lrtp_ents_needed: 1,
 							title: 'Rescue Star Defender',
 							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
@@ -765,7 +765,7 @@ class sdWeather extends sdEntity
 							target: sdCharacter.characters[ i ],
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.4,
 							//lrtp_ents_needed: 1,
 							title: 'Arrest Star Defender',
 							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -2614,7 +2614,7 @@ class sdWeather extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.4,
 								//lrtp_ents_needed: 1,
 								title: 'Arrest Star Defender',
 								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -2629,7 +2629,7 @@ class sdWeather extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.4,
 								//lrtp_ents_needed: 1,
 								title: 'Rescue Star Defender',
 								description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
