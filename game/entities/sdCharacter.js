@@ -524,6 +524,18 @@ class sdCharacter extends sdEntity
 							] );
 						}
 					}
+					if ( character._ai_team === 11 ) // Clones
+					{
+						return sdWorld.AnyOf( [ 
+							'You were never real to begin with.',
+							'You know, maybe you are just a clone.',
+							'I am you, and you are me.',
+							'I have been here before you.',
+							'I am the real you. Come back to me, before it is too late.',
+							'You were never in control of your body. Free will does not exist.',
+							'I think, therefore I am.'
+						] );
+					}
 					return null;
 				},
 			}
