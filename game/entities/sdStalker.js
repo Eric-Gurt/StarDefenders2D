@@ -72,11 +72,12 @@ class sdStalker extends sdEntity
 		this.hea = this._hmax;
 
 		this.tilt = 0;
+		this._light_an = 0 // Client-sided
 		
 		this._look_x = this.x;
 		this._look_y = this.y;
 		
-		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
+		this._time_until_full_remove = 1;
 		
 		this._current_target = null; // Now used in case of players engaging without meeting CanAttackEnt conditions
 		
@@ -321,43 +322,18 @@ class sdStalker extends sdEntity
 			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 			
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
-			
-			let that = this;
-			for ( var i = 0; i < 3; i++ )
-			{
-				let an = Math.random() * Math.PI * 2;
-				let d = ( i === 0 ) ? 0 : Math.random() * 3;
-				let r = ( i === 0 ) ? 70 : ( 5 + Math.random() * 3 );
-
-				setTimeout( ()=>
-				{
-					if ( !that._is_being_removed || i === 0 )
-					{
-						var a = Math.random() * 2 * Math.PI;
-						var s = Math.random() * 10;
-
-						var k = 1;
-
-						var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
-						var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
-
-						that.sx -= Math.sin( an ) * d * r * 0.005;
-						that.sy -= Math.cos( an ) * d * r * 0.005;
-
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
-						sdWorld.SendEffect({ 
-							x: that.x + Math.sin( an ) * d, 
-							y: that.y + Math.cos( an ) * d, 
-							radius: r, 
-							damage_scale: 1, 
-							type: sdEffect.TYPE_EXPLOSION,
-							owner: that,
-							can_hit_owner: true,
-							color: '#00FFFF'
-						});
-					}
-				}, i * 150 );
-			}
+			sdWorld.SendEffect({ 
+				x: this.x,
+				y: this.y,
+				radius: 70, 
+				damage_scale: 1, 
+				type: sdEffect.TYPE_EXPLOSION,
+				owner: this,
+				can_hit_owner: true,
+				color: '#00FFFF',
+				no_smoke: true
+			});
+			sdWorld.SendEffect({ type: sdEffect.TYPE_LENS_FLARE, x:this.x, y:this.y, sx:0, sy:0, scale:2, radius:25, color:'#00FFFF' });
 		}
 		
 		this.alpha = Math.max( this.alpha, 50 );
@@ -789,15 +765,6 @@ class sdStalker extends sdEntity
 		{
 			this._alert_intensity += GSPEED;
 		}
-
-		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-		{
-			if ( this.hea < this._hmax / 5 )
-			{
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
-					sdEntity.entities.push( e );
-			}
-		}
 			
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
@@ -823,10 +790,10 @@ class sdStalker extends sdEntity
 		ctx.scale( -this.side, 1 );
 
 		ctx.rotate( this.tilt / 100 );
-		let xx = this.hea <= 0;
+		let xx = this.hea <= this._hmax / 5;
 
 		ctx.globalAlpha = this.alpha / 100;
-		ctx.drawImageFilterCache( sdStalker.img_stalker, -48, -24, 96, 48 );
+		ctx.drawImageFilterCache( sdStalker.img_stalker, xx * 96, 0, 96, 48, - 48, - 24, 96, 48);
 		
 		let observer_character = sdWorld.my_entity;
 		
