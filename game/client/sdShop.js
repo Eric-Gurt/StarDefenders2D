@@ -797,6 +797,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDrone', type: 16, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests', _ai_team: 0, unlimited_range: true });
 				sdShop.options.push({ _class: 'sdDrone', type: 18, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 19, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 11, _ai_team: -1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
