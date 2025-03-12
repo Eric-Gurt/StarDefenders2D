@@ -2756,18 +2756,30 @@ class sdWeather extends sdEntity
 					drones++;
 				}
 				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
-				sdWeather.SimpleSpawner({
+				{
+					sdWeather.SimpleSpawner({
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-					count: [ 3, 6 ],
-					class: sdDrone,
-					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
-					aerial: true,
-					near_entity: near_ent,
-					group_radius: group_rad,
-					unlimited_range: inf_range,
-					target: target_ent
+					});
+					sdWeather.SimpleSpawner({
+						count: [ 1, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR_SCOUT },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-				});
+					});
+				}
 				
 			}
 			else

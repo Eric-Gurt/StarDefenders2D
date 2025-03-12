@@ -47,7 +47,9 @@ class sdDrone extends sdEntity
 
 		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council_sprite' );
 		sdDrone.img_drone_council2 = sdWorld.CreateImageFromFile( 'drone_council_sprite2' );
+		
 		sdDrone.img_drone_setr = sdWorld.CreateImageFromFile( 'drone_setr_sprite' );
+		sdDrone.img_drone_setr2 = sdWorld.CreateImageFromFile( 'drone_setr_sprite2' ); // Setr scout drone
 
 		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg_sprite' ); // By floor/flora/Gravel
 		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2_sprite' ); // By floor/flora/Gravel
@@ -81,21 +83,22 @@ class sdDrone extends sdEntity
 		sdDrone.DRONE_ZEKTARON_HUNTER = 16;
 		sdDrone.DRONE_SD_BG = 17;
 		sdDrone.DRONE_COUNCIL_ATTACK = 18;
+		sdDrone.DRONE_SETR_SCOUT = 19;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SD_BG ) ? -16 : ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? -18 :
+	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SETR_SCOUT ) ? -5 : ( this.type === sdDrone.DRONE_SD_BG ) ? -16 : ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? -18 :
 		( this.type === sdDrone.DRONE_SARRONIAN_GAUSS ||this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? -11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? -10 : -6; 
 	}
-	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SD_BG ) ? 16 : ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? 18 :
+	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SETR_SCOUT ) ? 5 : ( this.type === sdDrone.DRONE_SD_BG ) ? 16 : ( this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER ) ? 18 :
 		( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? 11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? 10 : 6; 
 	}
-	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SD_BG ) ? -16 : ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? -11 :
+	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SETR_SCOUT ) ? -12 : ( this.type === sdDrone.DRONE_SD_BG ) ? -16 : ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? -11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? -10 : -6; 
 	}
-	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SD_BG ) ? 16 : ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? 11 :
+	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SETR_SCOUT ) ? 12 : ( this.type === sdDrone.DRONE_SD_BG ) ? 16 : ( this.type === sdDrone.DRONE_SARRONIAN_GAUSS || this.type === sdDrone.DRONE_SARRONIAN || this.type === sdDrone.DRONE_SARRONIAN_DETONATOR_CARRIER || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_ZEKTARON_HUNTER || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE ) ? 11 :
 		( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? 10 : 6; 
 	}
 	
@@ -138,6 +141,7 @@ class sdDrone extends sdEntity
 			this.type === sdDrone.DRONE_CUT_DROID ? 1200 : 
 			this.type === sdDrone.DRONE_SD_BG ? 2000 : 
 			this.type === sdDrone.DRONE_COUNCIL_ATTACK ? 150 : 
+			this.type === sdDrone.DRONE_SETR_SCOUT ? 250 : 
 			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 	
 		this._hea = this._hmax;
@@ -422,7 +426,7 @@ class sdDrone extends sdEntity
 		if ( this.type === sdDrone.DRONE_ZEKTARON || this.type === sdDrone.DRONE_ZEKTARON_CORVETTE || this.type === sdDrone.DRONE_ZEKTARON_HUNTER )
 		return 4;
 	
-		if ( this.type === sdDrone.DRONE_SETR )
+		if ( this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_SETR_SCOUT )
 		return 7;
 	
 		if ( this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
@@ -568,7 +572,7 @@ class sdDrone extends sdEntity
 	
 			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || 
 				 this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL || this.type === sdDrone.DRONE_SD_BG ||
-				 this.type === sdDrone.DRONE_COUNCIL_ATTACK )
+				 this.type === sdDrone.DRONE_COUNCIL_ATTACK || this.type === sdDrone.DRONE_SETR_SCOUT )
 			{
 				let explosion_color = sdEffect.default_explosion_color;
 				
@@ -1128,7 +1132,7 @@ class sdDrone extends sdEntity
 				
 				let dx = this._look_x - this.x;
 				let dy = this._look_y - this.y;
-				if ( this.type !== 6 )
+				if ( this.type !== sdDrone.DRONE_COUNCIL && this.type !== sdDrone.DRONE_SETR_SCOUT )
 				this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 			}
 
@@ -1308,7 +1312,7 @@ class sdDrone extends sdEntity
 							}
 
 							this.side = ( dx > 0 ) ? 1 : -1;
-							if ( this.type !== sdDrone.DRONE_COUNCIL )
+							if ( this.type !== sdDrone.DRONE_COUNCIL && this.type !== sdDrone.DRONE_SETR_SCOUT )
 							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 
 							//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
@@ -2068,6 +2072,42 @@ class sdDrone extends sdEntity
 								sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:this.x, y:this.y, volume:1.2 });
 							}
 							else
+							if ( this.type === sdDrone.DRONE_SETR_SCOUT && // Setr scout drones
+								 sdWorld.Dist2D( this.x, this.y, from_entity.x, from_entity.y ) < 400 &&
+								 from_entity === this._current_target && 
+								 sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+							{
+								if ( this.attack_frame <= 0 )
+								{
+									// Setr scout drones cannot attack walls to pathfind. However they have ability to call a Setr squad via flares if they spot a target
+									// We will use attack frame to spawn the flare, and timer for frequency check
+									this.attack_frame = 24;
+									this._attack_timer = 5;
+								}
+								else
+								if ( this.attack_frame <= 5 ) // Time to spawn flare?
+								{
+									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+									bullet_obj._owner = this;
+
+
+									bullet_obj.sx = 0;
+									bullet_obj.sy = -12;
+									bullet_obj.model = 'flare';
+
+									bullet_obj._damage = this._ai_team; // Used to determine which faction the drone will spawn
+									bullet_obj.color = '#aa00aa';
+									bullet_obj.time_left = 150;
+									bullet_obj._bouncy = true;
+									
+									sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
+									this._attack_timer = 1200; // 40 seconds until it can spawn next squad
+								}
+								else
+								this._attack_timer = 5; // We just use this to check for this.attack_frame
+							}
+							else
 							{
 								// Drone type has undefined behavior or too far from one of targets. We should skip the target as it can not be damaged
 								continue
@@ -2137,6 +2177,8 @@ class sdDrone extends sdEntity
 		return "SD-BG Drone";
 		if ( this.type === sdDrone.DRONE_COUNCIL_ATTACK )
 		return "Council Assault Drone";
+		if ( this.type === sdDrone.DRONE_SETR_SCOUT )
+		return "Setr Scout Drone";
 	
 		return 'Drone';
 	}
@@ -2302,6 +2344,34 @@ class sdDrone extends sdEntity
 				y0 += Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2;
 			
 				ctx.drawImageFilterCache( image, 0, 32, 16,16, x0 - 8, y0 - 8, 16,16 );
+			}
+		}
+		
+		if ( this.type === sdDrone.DRONE_SETR_SCOUT )
+		{
+			image = sdDrone.img_drone_setr2;
+			
+			death_anim_frames_from = 4;
+			death_anim_frames_to = 4;
+			
+			let y0 = 0;
+			
+			if ( this.death_anim === 0 )
+			if ( !sdShop.isDrawing )
+			y0 += Math.sin( ( sdWorld.time+this._anim_shift ) / 1000 * Math.PI ) * 2;
+			
+			if ( this.attack_frame >= 1 && this.death_anim === 0 )
+			{
+				if ( this.attack_frame < 13 )
+				{
+					attack_frame = 2;
+				}
+				else
+				attack_frame = 1;
+			
+				ctx.globalAlpha = Math.max( 0, Math.min( 1, 3 * ( 1 - ( this.attack_frame / 24 ) ) ) );
+				ctx.drawImageFilterCache( image, 3 * width, 0, width, height, -width / 2, -height / 2 + y0, width, height ); // Purple glow orb/flare
+				ctx.globalAlpha = 1;
 			}
 		}
 		

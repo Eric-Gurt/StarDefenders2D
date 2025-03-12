@@ -23,6 +23,10 @@ import sdBloodDecal from './sdBloodDecal.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBubbleShield from './sdBubbleShield.js';
 import sdBadDog from './sdBadDog.js';
+import sdDrone from './sdDrone.js';
+import sdFactions from './sdFactions.js';
+import sdCom from './sdCom.js';
+
 
 class sdBullet extends sdEntity
 {
@@ -164,6 +168,77 @@ class sdBullet extends sdEntity
 			this.sx = 0;
 			this.sy = 0;
 			//this._client_side_hide_until = sdWorld.time + 100;
+		}
+	}
+	SpawnFlareSquad()
+	{
+		// Spawn a faction near the flare, depending on "damage" value to determine which faction.
+		if ( !sdWorld.is_server ) // Let's make sure it's the server doing it.
+		return;
+		
+		if ( this._damage === 7 ) // AI team 7 is for Setr faction, so a Setr faction Spawn
+		{
+			// Attempt spawning 2 drones and 2 humanoids
+			for ( let i = 0; i < 4; i++ )
+			{
+				let ent;
+				if ( i < 2 ) // Humanoid
+				{
+					ent = sdEntity.Create( sdCharacter, { x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK } );
+					sdFactions.SetHumanoidProperties( ent, sdFactions.FACTION_SETR );
+				}
+				else // Drone
+				{
+					ent = sdEntity.Create( sdDrone, { x:this.x, y:this.y, type: sdDrone.DRONE_SETR } );
+					ent._look_x = this.x;
+					ent._look_y = this.y;
+				}
+				
+				let x,y;
+				let tr = 100;
+				do
+				{
+					{
+						x = this.x + 128 - ( Math.random() * 256 );
+
+						if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+						x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+						if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+						x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+					}
+
+					y = this.y + 128 - ( Math.random() * ( 256 ) );
+					if ( y < sdWorld.world_bounds.y1 + 32 )
+					y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+					if ( y > sdWorld.world_bounds.y2 - 32 )
+					y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+					if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, ent, sdCom.com_visibility_ignored_classes, null ) )
+					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+					{
+						ent.x = x;
+						ent.y = y;
+							
+					
+						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+						//console.log('ent spawned!');
+						break;
+					}
+
+					tr--;
+					if ( tr < 0 )
+					{
+						ent.remove();
+						ent._broken = false;
+						break;
+					}
+				} while( true );
+			}
 		}
 	}
 	constructor( params )
@@ -325,6 +400,19 @@ class sdBullet extends sdEntity
 			color:this.color,
 			no_smoke:this._no_explosion_smoke
 		});
+		
+		if ( this.model === 'flare' )
+		sdWorld.SendEffect({
+			x:this.x,
+			y:this.y,
+			radius:4,
+			//damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ),
+			damage_scale: 0,
+			type:sdEffect.TYPE_EXPLOSION,
+			owner:this._owner,
+			color:this.color,
+			no_smoke:this._no_explosion_smoke
+		});
 
 		if ( this._hook )
 		{
@@ -396,6 +484,9 @@ class sdBullet extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		//if ( !this._speculative )
+		return;
+	
+		if ( this.model === 'flare' )
 		return;
 
 		dmg = Math.abs( dmg );
@@ -561,6 +652,12 @@ class sdBullet extends sdEntity
 				this.sx += this.acx * GSPEED * this.ac * 1;
 				this.sy += this.acy * GSPEED * this.ac * 1;
 			}
+			
+			if ( this.model === 'flare' )
+			{
+				this.sx = this.sx * 0.95;
+				this.sy = this.sy * 0.95;
+			}
 
 
 			if ( this.is_grenade || this._affected_by_gravity )
@@ -636,6 +733,7 @@ class sdBullet extends sdEntity
 			if ( this._custom_extra_think_logic )
 			if ( this._custom_extra_think_logic( this, GSPEED ) )
 			{
+				if ( this.model !== 'flare' )
 				this.RemoveBullet();
 			
 				return;
@@ -644,6 +742,9 @@ class sdBullet extends sdEntity
 			this.time_left -= GSPEED;
 			if ( this.time_left <= 0 )
 			{
+				if ( this.model === 'flare' ) // If it's a "flare", this is where it calls the "Spawn squad" Function
+				this.SpawnFlareSquad();
+				
 				if ( this._hook )
 				{
 					this._last_target = null;
@@ -681,8 +782,8 @@ class sdBullet extends sdEntity
 		if ( this._bouncy )
 		return true;
 	
-		if ( this.model === 'bullet2' )
-		return false;
+		if ( this.model === 'flare' )
+		return true;
 
 		if ( this.explosion_radius > 0 )
 		return false;
@@ -751,6 +852,9 @@ class sdBullet extends sdEntity
 		/*if ( this._hook )
 		if ( from_entity._class === 'sdCharacter' || from_entity._class === 'sdGun' )
 		debugger;*/
+		if ( this.model === 'flare' ) // Flares should not deal damage
+		return;
+	
 		if ( from_entity.is( sdBlock ) && from_entity._merged )
 		{
 			// Essentially the blocks split themselves, returning an array of the new spawned blocks
@@ -926,6 +1030,7 @@ class sdBullet extends sdEntity
 					if ( this._detonate_on_impact )
 					if ( this._damage === 0 || !sdWorld.is_server )
 					{
+						if ( this.model !== 'flare' )
 						this.RemoveBullet();
 					
 						return;
@@ -936,7 +1041,7 @@ class sdBullet extends sdEntity
 			{
 				if ( sdWorld.server_config.GetHitAllowed && !sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 				this._damage = 0;
-				if ( this.is_grenade )
+				if ( this.is_grenade || this.model === 'flare' )
 				{
 					// Maybe more filtering logic had to be here
 					if ( this._custom_target_reaction_protected )
@@ -1049,7 +1154,7 @@ class sdBullet extends sdEntity
 								//if ( from_entity.GetClass() === 'sdLifeBox' )
 								if ( this._detonate_on_impact )
 								if ( from_entity.is( sdLifeBox ) )
-								if ( this._bouncy && !this.is_grenade )
+								if ( this._bouncy && !this.is_grenade && this.model !== 'flare' )
 								{
 									this.RemoveBullet(); // Prevent falkonian PSI cutter oneshotting lifebox
 								}
@@ -1243,7 +1348,6 @@ class sdBullet extends sdEntity
 					if ( this._damage === 0 )
 					{
 						//this._last_target = from_entity;
-
 						this.RemoveBullet();
 					}
 					return;
@@ -1259,10 +1363,11 @@ class sdBullet extends sdEntity
 	{
 		ctx.apply_shading = false;
 		
-		if ( this.sy !== 0 || this.sx !== 0 || this.is_grenade )
+		if ( this.sy !== 0 || this.sx !== 0 || this.is_grenade || this.model === 'flare' )
 		{
 			if ( this.model )
 			{
+				if ( this.model !== 'flare' )
 				ctx.rotate( Math.atan2( this.sy, this.sx ) );
 
 				if ( !sdBullet.images[ this.model ] )
@@ -1277,7 +1382,7 @@ class sdBullet extends sdEntity
 				if ( this.model_size === 3 )
 				ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 48, - 48, 96,96 ); // used for 96 by 96 sprites
 
-				if ( this.model === 'bullet2' )
+				if ( this.model === 'flare' )
 				{
 					if ( this._sd_tint_filter === null )
 					{
@@ -1300,14 +1405,14 @@ class sdBullet extends sdEntity
 					ctx.blend_mode = THREE.AdditiveBlending;
 					{
 						ctx.sd_tint_filter = this._sd_tint_filter;
-						let dist_travelled = sdWorld.Dist2D( this._start_x, this._start_y, this.x, this.y );
-						ctx.scale( 1 * dist_travelled / 32, 0.5 );
-						ctx.drawImageFilterCache( sdBullet.images[ this.model ], -32, - 16, 32, 32 );
+						//let dist_travelled = sdWorld.Dist2D( this._start_x, this._start_y, this.x, this.y );
+						//ctx.scale( 1 * dist_travelled / 32, 0.5 );
+						ctx.drawImageFilterCache( sdBullet.images[ this.model ], -16, - 16, 32, 32 );
 						ctx.sd_tint_filter = null;
 					}
 				}
 
-				if ( this.model !== 'bullet2' )
+				if ( this.model !== 'flare' )
 				ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 16, - 16, 32, 32 );
 
 				ctx.sd_tint_filter = null;

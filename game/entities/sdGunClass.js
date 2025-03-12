@@ -9101,10 +9101,10 @@ class sdGunClass
 			burst: 2, // Burst fire count
 			burst_reload: 24, // Burst fire reload, needed when giving burst fire
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
-			projectile_properties: { _damage: 60,  color: '#00aaff', _dirt_mult: -0.5, model:'bullet2' },
+			projectile_properties: { _damage: 60,  color: '#00aaff', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#00aaff', model:'bullet2', _dirt_mult: -0.5 };
+				let obj = { color: '#00aaff', _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
