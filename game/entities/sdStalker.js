@@ -37,10 +37,10 @@ class sdStalker extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.hea > 0 ? -44 : -22; }
-	get hitbox_x2() { return this.hea > 0 ? 44 : 22; }
-	get hitbox_y1() { return -24; }
-	get hitbox_y2() { return 24; }
+	get hitbox_x1() { return -44 }
+	get hitbox_x2() { return 44 }
+	get hitbox_y1() { return -19; }
+	get hitbox_y2() { return 19; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -52,7 +52,7 @@ class sdStalker extends sdEntity
 			let px = Math.max( observer_character.x + observer_character._hitbox_x1, Math.min( this.x, observer_character.x + observer_character._hitbox_x2 ) );
 			let py = Math.max( observer_character.y + observer_character._hitbox_y1, Math.min( this.y, observer_character.y + observer_character._hitbox_y2 ) );
 
-			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 256 )
+			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 192 && sdWorld.CheckLineOfSight( observer_character.x, observer_character.y, this.x, this.y, this, sdCom.com_visibility_ignored_classes, null ) )
 			return true;
 		}
 		
@@ -89,7 +89,7 @@ class sdStalker extends sdEntity
 		
 		this._attack_timer = 0;
 		this._laser_timer = 0;
-		this._bng_timer = 0;
+		this._bfg_timer = 0;
 		this._possession_attack_timer = 750;
 		this._charged = false;
 		
@@ -272,7 +272,7 @@ class sdStalker extends sdEntity
 			{
 				if ( typeof ent._ai_team !== 'undefined' ) // Does a potential target belong to a faction?
 				{
-					if ( ent._ai_team !== this._ai_team && ( sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdStalker.seek_range ) )
+					if ( ent._ai_team !== this._ai_team && ( sdWorld.Dist2D( this.x, this.y, ent.x, ent.y ) < sdStalker.attack_range ) )
 					return ent; // Target it
 				}
 				else
@@ -306,14 +306,14 @@ class sdStalker extends sdEntity
 				this._last_damage = sdWorld.time;
 				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 			}
-			if ( this.hea < this._hmax / 5 )
+			if ( this.hea < this._hmax / 3 )
 			{
 				this.Boost ( this._look_x, this._look_y, 7 )
 				// Needs sound effect
 			}
 		}
 		
-		this._regen_timeout = Math.max( this._regen_timeout, 30 * 20 );
+		this._regen_timeout = Math.max( this._regen_timeout, 30 * 30 ); // Looks familiar?
 		
 		if ( this.hea <= 0 && was_alive )
 		{	
@@ -446,14 +446,15 @@ class sdStalker extends sdEntity
 						this._current_target =  this.GetRandomTarget();
 				}
 
+				if ( sdWorld.time > this._last_damage + 10000 )
+				this.alpha = Math.max( this.alpha - GSPEED * 3, 0 );
+				else
 				if ( this.hea <= this._hmax * 0.9 )
 				this.alpha = Math.min( this.alpha + GSPEED * 3, 100 );
-				else
-				this.alpha = Math.max( this.alpha - GSPEED * 3, 0 );
 
 				if ( this._regen_timeout <= 0 )
 				if ( this.hea < this._hmax ) 
-				this.hea += GSPEED * 3; // Give them health regen if not taking damage over min
+				this.hea += GSPEED * 10; // Give them health regen if not taking damage over min
 			
 				if ( this._regen_timeout > 0 )
 				this._regen_timeout -= GSPEED;
@@ -670,27 +671,27 @@ class sdStalker extends sdEntity
 
 						sdEntity.entities.push( bullet_obj );
 						
-						//sdSound.PlaySound({ name:'', x:this.x, y:this.y, volume:2, pitch: 0.2 });
+						//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
 						break;
 					}
 					
-					if ( this._bng_timer <= 0 && !this._charged )
+					if ( this._bfg_timer <= 0 && !this._charged )
 					{
-						this._bng_timer = 50 
+						this._bfg_timer = 50 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:this.x, y:this.y, volume: 1.5, pitch: 0.75 });
 						this._charged = true;
 					}
 					
-					if ( this._bng_timer <= 0 && this._charged )
+					if ( this._bfg_timer <= 0 && this._charged )
 					for ( let i = 0; i < targets.length; i++ )
 					{
-						//this._current_target = targets[ i ];
+						//this._current_target = targets[ i ]; // Don't change target if its charging
 
 						if ( this._alert_intensity < 45 )// Delay attack
 						break;
 
-						this._bng_timer = 50;
+						this._bfg_timer = 50;
 						this._charged = false;
 						
 						let an = Math.atan2( this._look_y - this.y, this._look_x - this.x )
@@ -703,14 +704,14 @@ class sdStalker extends sdEntity
 						bullet_obj.sx *= 20;
 						bullet_obj.sy *= 20;
 
-						bullet_obj._damage = 66;
+						bullet_obj._damage = 250;
 						bullet_obj.color = '#FF0000';
-						bullet_obj.explosion_radius = 40;
+						bullet_obj.explosion_radius = 45;
 						bullet_obj.model = 'ball_large' // Replace this eventually
 
 						sdEntity.entities.push( bullet_obj );
 						
-						//sdSound.PlaySound({ name:'', x:this.x, y:this.y, volume:2, pitch: 0.2 });
+						sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1, pitch: 0.2 });
 						
 						break;
 					}
@@ -735,8 +736,8 @@ class sdStalker extends sdEntity
 					if ( this._possession_attack_timer > 0 )
 					this._possession_attack_timer -= GSPEED;
 				
-					if ( this._bng_timer > 0 )
-					this._bng_timer -= GSPEED;
+					if ( this._bfg_timer > 0 )
+					this._bfg_timer -= GSPEED;
 				
 					if ( this._laser_timer > 0 )
 					{
@@ -768,6 +769,7 @@ class sdStalker extends sdEntity
 			
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+
 	static IsTargetFriendly( ent ) // It targets players and turrets regardless
 	{
 		return false;
@@ -790,30 +792,18 @@ class sdStalker extends sdEntity
 		ctx.scale( -this.side, 1 );
 
 		ctx.rotate( this.tilt / 100 );
-		let xx = this.hea <= this._hmax / 5;
+		let xx = this.hea <= this._hmax / 3;
 
 		ctx.globalAlpha = this.alpha / 100;
 		ctx.drawImageFilterCache( sdStalker.img_stalker, xx * 96, 0, 96, 48, - 48, - 24, 96, 48);
 		
-		let observer_character = sdWorld.my_entity;
-		
-		if ( observer_character )
-		{
-			let px = Math.max( observer_character.x + observer_character._hitbox_x1, Math.min( this.x, observer_character.x + observer_character._hitbox_x2 ) );
-			let py = Math.max( observer_character.y + observer_character._hitbox_y1, Math.min( this.y, observer_character.y + observer_character._hitbox_y2 ) );
-
-			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 256 )
-			{
-				ctx.globalAlpha = Math.max( ctx.globalAlpha, 0.5 );
-			}
-		}
 		if ( this.hea > 0 )
 		{	
 	
 			ctx.blend_mode = THREE.AdditiveBlending;
 			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
 			
-			if ( this.hea < this._hmax / 5 )
+			if ( this.hea < this._hmax / 3 )
 			{
 				ctx.sd_color_mult_r = 1;
 				ctx.sd_color_mult_g = 0;
@@ -838,8 +828,7 @@ class sdStalker extends sdEntity
 		
 		if ( this._broken )
 		{
-			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
-			//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+			//sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 			sdWorld.DropShards( this.x, this.y, 0, 0, 
 				Math.floor( Math.max( 0, 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 				5120 / 40
