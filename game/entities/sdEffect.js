@@ -64,6 +64,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_BLOOD_DROP_GREEN = 27;
 		sdEffect.TYPE_SPARK = 28;
 		sdEffect.TYPE_SMOKE = 29;
+		sdEffect.TYPE_LENS_FLARE = 30;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -385,6 +386,14 @@ class sdEffect extends sdEntity
 			speed: 1 / 30,
 			apply_shading: false,
 			random_rotation: true
+		};
+		
+		sdEffect.types[ sdEffect.TYPE_LENS_FLARE ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'lens_flare' )
+			],
+			speed: 1 / 20,
+			apply_shading: false
 		};
 	
 		sdEffect.translit_result_assumed_language = null;
@@ -1117,6 +1126,10 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
+		if ( this._type === sdEffect.TYPE_LENS_FLARE )
+		{
+		}
+		else
 		if ( this._type === sdEffect.TYPE_TELEPORT )
 		{
 		}
@@ -1381,6 +1394,30 @@ class sdEffect extends sdEntity
 			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
 			
 			//ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
+		if ( this._type === sdEffect.TYPE_LENS_FLARE )
+		{
+			if ( this._radius !== 0 )
+			ctx.scale( 1 + this._radius, 1 + this._radius );
+		
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
 			{
 				ctx.sd_tint_filter = this._sd_tint_filter;
 				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
