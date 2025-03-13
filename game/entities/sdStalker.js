@@ -445,12 +445,14 @@ class sdStalker extends sdEntity
 				{
 						this._current_target =  this.GetRandomTarget();
 				}
-
-				if ( sdWorld.time > this._last_damage + 10000 )
+				
+				if ( sdWorld.time > this._last_damage + 1000 * 10 ) // 10 Seconds to go invisible after damage, if damaged enough
 				this.alpha = Math.max( this.alpha - GSPEED * 3, 0 );
 				else
-				if ( this.hea <= this._hmax * 0.9 )
-				this.alpha = Math.min( this.alpha + GSPEED * 3, 100 );
+				if ( this.hea <= this._hmax * 0.9 ) // Remove cloak
+				this.alpha = Math.min( this.alpha + GSPEED * 3, 100 ); 
+				else
+				this.alpha = Math.max( this.alpha - GSPEED * 3, 0 );
 
 				if ( this._regen_timeout <= 0 )
 				if ( this.hea < this._hmax ) 
