@@ -9585,6 +9585,107 @@ class sdGunClass
 					//console.log( gun._max_dps );
 			}
 		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_CANNON = 146 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ), 
+			image_charging: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
+			title: 'Stalker Devastator',
+			slot: 5,
+			reload_time: 20,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 150;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						
+						gun._held_by._auto_shoot_in = 50;
+
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:this.x, y:this.y, volume: 1.5, pitch: 0.75 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1, pitch: 0.2 });
+				}
+			},
+			projectile_properties: { explosion_radius: 45, model: 'ball_large', _damage: 250, color: '#FF0000' },
+			projectile_properties_dynamic: ( gun )=>
+			{
+				return { 
+					_damage: 0,
+					model: 'ball_large',
+					_hittable_by_bullets: false,
+					time_left: 60,
+					explosion_radius: 45,
+					color: '#FF0000',
+
+					_custom_extra_think_logic:( bullet, GSPEED )=>
+					{
+						let owner = ( bullet._owner || bullet._owner2 || null );
+					
+						GSPEED *= gun.extra[ ID_DAMAGE_MULT ];
+
+						let range = 64;
+
+						let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+							if ( !e._is_being_removed )
+							if ( e !== bullet && e !== owner )
+							if ( e._is_bg_entity === bullet._is_bg_entity )
+							if ( e.IsTargetable( owner ) )
+							if ( !e.is( sdGun ) )
+							if ( !e.is( sdBullet ) )
+							{
+								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
+								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
+								{
+									e.DamageWithEffect( GSPEED * 16, owner, false, false );
+								}
+							}
+						}
+					},
+				}
+			},
+			
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 250; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' ) )
+		};
 
 		// Add new gun classes above this line //
 		
