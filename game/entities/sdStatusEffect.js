@@ -30,6 +30,7 @@ class sdStatusEffect extends sdEntity
 		sdStatusEffect.img_bubble_shield = sdWorld.CreateImageFromFile( 'bubble_shield' );
 		sdStatusEffect.img_attack_indicator_beam = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
 		sdStatusEffect.img_pulse = sdWorld.CreateImageFromFile( 'em_anomaly' );
+		sdStatusEffect.img_light = sdWorld.CreateImageFromFile( 'lens_flare' );
 		
 		sdStatusEffect.types = [];
 		
@@ -1630,7 +1631,7 @@ class sdStatusEffect extends sdEntity
 			}
 		};
 		
-		sdStatusEffect.types[ sdStatusEffect.TYPE_PSYCHOSIS = 14 ] = // WIP
+		sdStatusEffect.types[ sdStatusEffect.TYPE_PSYCHOSIS = 14 ] = 
 		{
 			remove_if_for_removed: true,
 			is_emote: false,
@@ -1662,6 +1663,10 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
+					let e = sdWorld.my_entity;
+					if ( status_entity.for !== e )
+					return;
+				
 					status_entity._next_spawn -= GSPEED;
 
 					if ( status_entity._next_spawn <= 0 )
@@ -1694,10 +1699,32 @@ class sdStatusEffect extends sdEntity
 
 			onBeforeRemove: ( status_entity )=>
 			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				if ( status_entity.for.is( sdCharacter ) )
+				if ( status_entity.for._ragdoll )
+				if ( status_entity.for._ragdoll.head )
+				{
+					ctx.translate( status_entity.for._ragdoll.head.x - status_entity.x, status_entity.for._ragdoll.head.y - status_entity.y );
+				}
+				
+				ctx.blend_mode = THREE.AdditiveBlending;
+				ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+			
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 0;
+				ctx.sd_color_mult_b = 0;
+		
+				ctx.drawImageFilterCache( sdStatusEffect.img_light, -32, -32, 64, 64 );
+
+				ctx.blend_mode = THREE.NormalBlending;
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+				ctx.globalAlpha = 1;
 			}
 		};
-
-		
 
 		sdStatusEffect.status_effects = [];
 		
