@@ -1629,6 +1629,73 @@ class sdStatusEffect extends sdEntity
 				ctx.globalAlpha = 1;
 			}
 		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_PSYCHOSIS = 14 ] = // WIP
+		{
+			remove_if_for_removed: true,
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._ttl = params.ttl;
+				status_entity._ents = [];
+				status_entity._next_spawn = 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity._ttl = params.ttl;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				{
+					status_entity._next_spawn -= GSPEED;
+
+					if ( status_entity._next_spawn <= 0 )
+					{
+						status_entity._next_spawn = 50;
+
+						let r = Math.random();
+						
+						if ( r < 0.99 )
+						{
+							let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:0, scale:10, radius:1, color:'#FF0000' });
+							sdEntity.entities.push( ent1 );
+							
+							let ent2 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x - 8, y:status_entity.for.y - 48, sx:0, sy:0, scale:10, radius:1, color:'#FF0000' });
+							sdEntity.entities.push( ent2 );
+							
+							let ent3 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x + 8, y:status_entity.for.y - 48, sx:0, sy:0, scale:10, radius:1, color:'#FF0000' });
+							sdEntity.entities.push( ent3 );
+						}
+					}
+				}
+
+				if ( status_entity._ttl > 0 )
+				{
+					status_entity._ttl -= GSPEED;
+
+					if ( status_entity._ttl <= 0 ) status_entity.remove();
+				}
+			},
+
+			onBeforeRemove: ( status_entity )=>
+			{
+			}
+		};
 
 		
 
