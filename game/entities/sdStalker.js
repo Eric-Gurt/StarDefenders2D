@@ -15,6 +15,7 @@ import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
 import sdDrone from './sdDrone.js';
 import sdGib from './sdGib.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdStalker extends sdEntity
 {
@@ -130,9 +131,6 @@ class sdStalker extends sdEntity
 	
 		if ( entity._ai_team === this._ai_team ) // Don't make clones of clones
 		return;
-		
-		sdCrystal.Zap( this, entity, '#00FFFF' );
-		sdCrystal.Zap( entity, this, '#00FFFF' );
 
 		for ( let i = 0; i < count; i++ )
 		{
@@ -159,8 +157,7 @@ class sdStalker extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity.matter = 600;
 			character_entity.matter_max = 600; // Let player leech matter off the bodies
-				
-				
+	
 			let x,y;
 			let tr = 100;
 			do
@@ -186,8 +183,16 @@ class sdStalker extends sdEntity
 				{
 					character_entity.x = x;
 					character_entity.y = y;
-					sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:1 });
+					sdSound.PlaySound({ name:'teleport', x:x, y:y, volume:1 });
+					
 					sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
+					
+					sdCrystal.Zap( this, character_entity, '#00FFFF' );
+					sdCrystal.Zap( character_entity, this, '#00FFFF' );
+					
+					character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS }); // Permanent
+					
+					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_RIFLE });
 					setTimeout(()=> {
 						if ( !character_entity._is_being_removed )
 						{
@@ -313,7 +318,7 @@ class sdStalker extends sdEntity
 			}
 		}
 		
-		this._regen_timeout = Math.max( this._regen_timeout, 30 * 30 ); // Looks familiar?
+		this._regen_timeout = Math.max( this._regen_timeout, 30 * 10 ); // Looks familiar?
 		
 		if ( this.hea <= 0 && was_alive )
 		{	
@@ -377,10 +382,9 @@ class sdStalker extends sdEntity
 
 							{
 								if ( random_value > 0.80 )
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_PISTOL });
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_CANNON });
 								else
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RIFLE });
-                // Guns will be made later
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_BEAM });
 							}
 
 							gun.sx = sx;
@@ -615,7 +619,7 @@ class sdStalker extends sdEntity
 					if ( this._possession_attack_timer <= 0 )
 					{
 						// if ( this._current_target && !this._current_target._is_being_removed )
-						// this.PossessClone( this._current_target );
+						// this.PossessClone( this._current_target, 1 );
 					
 						let nears = sdWorld.GetAnythingNear( this.x, this.y, 386 );
 						let count = 3;
@@ -666,12 +670,22 @@ class sdStalker extends sdEntity
 						bullet_obj.sx *= 15;
 						bullet_obj.sy *= 15;
 
-						bullet_obj._damage = 25;
+						bullet_obj._damage = 18;
 						bullet_obj.color = '#00FFFF';
 						bullet_obj._rail = true;
 						bullet_obj._rail_alt = true;
-
-						sdEntity.entities.push( bullet_obj );
+						
+						bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+						{
+							if ( target_entity.IsPlayerClass() )
+							{
+								target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+							}
+						}
+						
+						setTimeout( ()=> {
+							sdEntity.entities.push( bullet_obj );
+						}, 200 )
 						
 						//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
@@ -690,7 +704,7 @@ class sdStalker extends sdEntity
 					{
 						//this._current_target = targets[ i ]; // Don't change target if its charging
 
-						if ( this._alert_intensity < 45 )// Delay attack
+						if ( this._alert_intensity < 45 ) // Delay attack
 						break;
 
 						this._bfg_timer = 50;
@@ -706,10 +720,35 @@ class sdStalker extends sdEntity
 						bullet_obj.sx *= 20;
 						bullet_obj.sy *= 20;
 
-						bullet_obj._damage = 250;
+						bullet_obj._damage = 350;
 						bullet_obj.color = '#FF0000';
-						bullet_obj.explosion_radius = 45;
-						bullet_obj.model = 'ball_large' // Replace this eventually
+						bullet_obj.model = 'ball_large'
+						
+						bullet_obj._custom_detonation_logic = ( bullet )=>
+						{
+							if ( bullet._owner )
+							{
+								sdWorld.SendEffect({ 
+									x:bullet.x, 
+									y:bullet.y, 
+									radius:45,
+									damage_scale: 4,
+									type:sdEffect.TYPE_EXPLOSION, 
+									owner:bullet._owner,
+									color:'#FF0000',
+								});
+
+								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+
+								for ( let i = 0; i < nears.length; i++ )
+								{
+									if ( nears[ i ].IsPlayerClass() )
+									{
+										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									}
+								}
+							}
+						} 
 
 						sdEntity.entities.push( bullet_obj );
 						
