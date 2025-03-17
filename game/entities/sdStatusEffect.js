@@ -1635,12 +1635,10 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
-				
 				status_entity._next_spawn = 0;
 				status_entity._ttl = params.ttl;
 				
-				if ( !sdWorld.is_server ) return;
-				status_entity._first_team = ( status_entity.for._ai_team || null );
+				status_entity._first_team = ( sdWorld.is_server ? status_entity.for.ai_team : null ); // Fix client-side errors
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1748,7 +1746,8 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( !sdWorld.is_server ) return;
 				
-				if ( !status_entity.for._is_being_removed )
+				if ( status_entity._first_team )
+				if ( !status_entity.for || !status_entity.for._is_being_removed )
 				status_entity.for._ai_team = status_entity._first_team;
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
