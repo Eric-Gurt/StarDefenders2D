@@ -9590,7 +9590,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ), 
 			image_charging: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
-			title: 'Stalker Devastator',
+			title: 'Stalker Annihilator',
 			slot: 5,
 			reload_time: 20,
 			muzzle_x: null,
@@ -9614,19 +9614,19 @@ class sdGunClass
 					if ( gun._held_by )
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
-						
 						gun._held_by._auto_shoot_in = 50;
+						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 
-						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:this.x, y:this.y, volume: 1.5, pitch: 0.75 });
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
 					}
 					return false;
 				}
 				else
 				{
-					sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1, pitch: 0.2 });
+					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
 				}
 			},
-			projectile_properties: { explosion_radius: 45, model: 'ball_large', _damage: 250, color: '#FF0000' },
+			projectile_properties: { model: 'ball_large', _damage: 350, color: '#FF0000' },
 			projectile_properties_dynamic: ( gun )=>
 			{
 				return { 
@@ -9634,7 +9634,6 @@ class sdGunClass
 					model: 'ball_large',
 					_hittable_by_bullets: false,
 					time_left: 60,
-					explosion_radius: 45,
 					color: '#FF0000',
 
 					_custom_extra_think_logic:( bullet, GSPEED )=>
@@ -9667,6 +9666,31 @@ class sdGunClass
 							}
 						}
 					},
+					_custom_detonation_logic:( bullet )=>
+					{
+						if ( bullet._owner )
+						{
+							sdWorld.SendEffect({ 
+								x:bullet.x, 
+								y:bullet.y, 
+								radius:45,
+								damage_scale: 4,
+								type:sdEffect.TYPE_EXPLOSION, 
+								owner:bullet._owner,
+								color:'#FF0000',
+							});
+
+							let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+
+							for ( let i = 0; i < nears.length; i++ )
+							{
+								if ( nears[ i ].IsPlayerClass() )
+								{
+									nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+								}
+							}
+						}
+					} 
 				}
 			},
 			
@@ -9678,7 +9702,100 @@ class sdGunClass
 					
 					gun.extra[ ID_DAMAGE_MULT ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 250; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 350; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' ) )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_BEAM = 147 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_beam' ),
+			sound: 'cube_attack',
+			title: 'Stalker Psychotic Beam',
+			slot: 4,
+			reload_time: 4,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { _rail: true, _rail_alt: true, _damage: 22, color: '#00FFFF' },
+			spawnable: false,
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( target_entity.IsPlayerClass() )
+					{
+						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+					}
+				} };
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 15; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_RIFLE = 148 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_clone_rifle' ),
+			sound: 'alien_laser1',
+			title: 'Stalker Swarm Rifle',
+			slot: 2,
+			reload_time: 2.5,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			spread: 0.01,
+			count: 1,
+			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
