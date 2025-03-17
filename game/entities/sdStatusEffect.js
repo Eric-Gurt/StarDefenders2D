@@ -1635,9 +1635,12 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
-				status_entity._ttl = params.ttl;
-				status_entity._ents = [];
+				
 				status_entity._next_spawn = 0;
+				status_entity._ttl = params.ttl;
+				
+				if ( !sdWorld.is_server ) return;
+				status_entity._first_team = ( status_entity.for._ai_team || null );
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1663,6 +1666,11 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity._ttl <= 0 )
 					status_entity.remove();
 				}
+				
+				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
+				if ( status_entity.for._ai_team )
+				status_entity.for._ai_team = 11 // Clones
+			
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					let e = sdWorld.my_entity;
@@ -1738,6 +1746,10 @@ class sdStatusEffect extends sdEntity
 
 			onBeforeRemove: ( status_entity )=>
 			{
+				if ( !sdWorld.is_server ) return;
+				
+				if ( !status_entity.for._is_being_removed )
+				status_entity.for._ai_team = status_entity._first_team;
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
