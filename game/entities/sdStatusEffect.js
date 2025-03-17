@@ -281,11 +281,6 @@ class sdStatusEffect extends sdEntity
 	
 			onMade: ( status_entity, params )=>
 			{
-				/*if ( sdWorld.is_server )
-				if ( params.for )
-				if ( params.for.is( sdWorld.entity_classes.sdCharacter ) && params.for._net_id === 85738 )
-				trace( 'onMade' );*/
-				
 				status_entity.t = temperature_normal; // Temperature
 				
 				status_entity._normal_temperature_removal_timer = 30; // Resets if temperature is being added, for example due to overheating
@@ -1661,6 +1656,13 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
+				if ( status_entity._ttl > 0 )
+				{
+					status_entity._ttl -= GSPEED;
+
+					if ( status_entity._ttl <= 0 )
+					status_entity.remove();
+				}
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					let e = sdWorld.my_entity;
@@ -1671,29 +1673,66 @@ class sdStatusEffect extends sdEntity
 
 					if ( status_entity._next_spawn <= 0 )
 					{
-						status_entity._next_spawn = 50;
+						status_entity._next_spawn = 75;
 
 						let r = Math.random();
 						
-						if ( r < 0.99 )
+						if ( r < 0.2 )
 						{
-							let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:0, scale:10, radius:1, color:'#FF0000' });
+							let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
 							sdEntity.entities.push( ent1 );
 							
-							let ent2 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x - 8, y:status_entity.for.y - 48, sx:0, sy:0, scale:10, radius:1, color:'#FF0000' });
+							let ent2 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x - 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
 							sdEntity.entities.push( ent2 );
 							
-							let ent3 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x + 8, y:status_entity.for.y - 48, sx:0, sy:0, scale:10, radius:1, color:'#FF0000' });
+							let ent3 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x + 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
 							sdEntity.entities.push( ent3 );
 						}
+						else
+						if ( r < 0.4 )
+						{
+							sdSound.PlaySound({ name: 'sd_death2', x:status_entity.x, y:status_entity.y, volume: 1, pitch: 0.5, _server_allowed: true });
+						}
+						else
+						if ( r < 0.6 )
+						{
+							sdSound.PlaySound({ name: 'zombie_alert2', x:status_entity.x, y:status_entity.y, volume: 1.5, pitch: 0.75 });
+						}
+						else
+						if ( r < 0.8 )
+						{
+							let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:-5, scale:5, radius:5, color:'#00FFFF' });
+							sdEntity.entities.push( ent1 );
+							
+						}
+						else
+						{
+							let t = sdWorld.AnyOf( [ 
+								'You will die regardless. Give in and let it happen.',
+								'You do not belong here. Go away, this is not your world.',
+								'You can\'t run forever.',
+								'I can see you. You can\'t hide from me',
+								'Surrender to me. You will not get away this time.'
+							] );
+							
+							let chat_ent = new sdEffect ({
+								x:status_entity.for.x + ( Math.random() * 100  - Math.random() * 100 ), 
+								y:status_entity.for.y + ( Math.random() * 100  - Math.random() * 100 ), 
+								type:sdEffect.TYPE_CHAT,
+								text:t,
+								color: '#FF0000',
+								voice: { 
+									wordgap: 0,
+									pitch: 5,
+									speed: 50,
+									variant: 'klatt3',
+									voice: 'en'
+								}
+							});
+							
+							sdEntity.entities.push( chat_ent );
+						}
 					}
-				}
-
-				if ( status_entity._ttl > 0 )
-				{
-					status_entity._ttl -= GSPEED;
-
-					if ( status_entity._ttl <= 0 ) status_entity.remove();
 				}
 			},
 
@@ -1717,7 +1756,14 @@ class sdStatusEffect extends sdEntity
 				ctx.sd_color_mult_b = 0;
 		
 				ctx.drawImageFilterCache( sdStatusEffect.img_light, -32, -32, 64, 64 );
-
+				
+				/*
+				ctx.font = "6px Verdana";
+				ctx.textAlign = 'left';
+				ctx.fillStyle = '#ff0000';
+				ctx.fillText( status_entity._ttl, 16, 16 );
+				*/
+				
 				ctx.blend_mode = THREE.NormalBlending;
 				ctx.sd_color_mult_r = 1;
 				ctx.sd_color_mult_g = 1;
