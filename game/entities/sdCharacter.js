@@ -2717,7 +2717,8 @@ THING is cosmic mic drop!`;
 	{
 			if ( typeof initiator._ai_team !== 'undefined' )
 			{
-				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.25 ) // 25% chance to return friendly fire
+				if ( this._ai_team !== 11 ) // Clones
+				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.15 ) // 15% chance to return friendly fire, 25% was too chaotic
 				{
 					if ( !this._ai.target )
 					this.PlayAIAlertedSound( initiator );
