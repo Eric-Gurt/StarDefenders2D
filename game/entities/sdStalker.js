@@ -28,11 +28,8 @@ class sdStalker extends sdEntity
 		
 		sdStalker.stalker_counter = 0;
 		
-		sdStalker.death_duration = 30;
-		sdStalker.post_death_ttl = 120;
-		
 		sdStalker.attack_range = 425;
-		sdStalker.seek_range = 1000;
+		sdStalker.seek_range = 750;
 		
 		sdStalker.reusable_vision_blocking_entities_array = [ this.name ];
 	
@@ -291,8 +288,14 @@ class sdStalker extends sdEntity
 		return;
 		if ( initiator )
 		{
+			
+			if ( initiator._ai_team !== this._ai_team ) // Only target players
+			this._current_target = initiator;
+
 			if ( initiator.GetClass() !== 'sdStalker' )
 			{
+				if ( initiator.GetClass() === 'sdCharacter' )
+				if ( initiator._ai_team !== this._ai_team )
 				this._current_target = initiator;
 			}
 		}
@@ -516,7 +519,7 @@ class sdStalker extends sdEntity
 						this._move_dir_y = Math.sin( an_desired );
 						this._move_dir_speed_scale = 10;
 						
-						if ( closest_di_real < sdStalker.attack_range ) // close enough to dodge obstacles
+						if ( closest_di_real < sdStalker.seek_range ) // close enough to dodge obstacles
 						{
 							let an = Math.random() * Math.PI * 2;
 
@@ -613,6 +616,10 @@ class sdStalker extends sdEntity
 			
 			if ( sdWorld.is_server && this.IsVisible() )
 			{
+				let targets = [];
+				if ( this._current_target )
+				targets.push( this._current_target )
+			
 				if ( this._attack_timer <= 0 )
 				{
 					this._attack_timer = 3;
@@ -637,17 +644,15 @@ class sdStalker extends sdEntity
 						}
 						this._possession_attack_timer = 500;
 					}
-					
-					let targets = [];
-					if ( this._current_target )
-					targets.push( this._current_target )
 
 					if ( this._laser_timer <= 0 )
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						if ( !this._charged )
 						this._current_target = targets[ i ];
-
+					
+						if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) > sdStalker.attack_range )
+						break;
 
 						if ( this._alert_intensity < 45 )// Delay attack
 						break;
@@ -670,7 +675,7 @@ class sdStalker extends sdEntity
 						bullet_obj.sx *= 15;
 						bullet_obj.sy *= 15;
 
-						bullet_obj._damage = 18;
+						bullet_obj._damage = 15;
 						bullet_obj.color = '#00FFFF';
 						bullet_obj._rail = true;
 						bullet_obj._rail_alt = true;
@@ -685,7 +690,7 @@ class sdStalker extends sdEntity
 						
 						setTimeout( ()=> {
 							sdEntity.entities.push( bullet_obj );
-						}, 200 )
+						}, 250 )
 						
 						//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
@@ -703,7 +708,10 @@ class sdStalker extends sdEntity
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						//this._current_target = targets[ i ]; // Don't change target if its charging
-
+						
+						if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) > sdStalker.attack_range )
+						break;
+					
 						if ( this._alert_intensity < 45 ) // Delay attack
 						break;
 
