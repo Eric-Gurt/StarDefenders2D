@@ -1638,7 +1638,7 @@ class sdStatusEffect extends sdEntity
 				status_entity._next_spawn = 0;
 				status_entity._ttl = params.ttl;
 				
-				status_entity._first_team = ( sdWorld.is_server ? status_entity.for.ai_team : null ); // Fix client-side errors
+				status_entity._first_team = ( sdWorld.is_server ? status_entity.for._ai_team : null ); // Fix client-side errors
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
