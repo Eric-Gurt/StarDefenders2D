@@ -9755,9 +9755,10 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
-				( [], '#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_RIFLE = 148 ] = 
@@ -9771,6 +9772,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
+			spawnable: false,
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
