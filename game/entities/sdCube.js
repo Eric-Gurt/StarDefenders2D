@@ -21,8 +21,8 @@ import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 import sdWeather from './sdWeather.js';
-//import sdPlayerSpectator from './sdPlayerSpectator.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+import sdStalker from './sdStalker.js';
 import sdStatusEffect from './sdStatusEffect.js';
 
 
@@ -973,6 +973,7 @@ class sdCube extends sdEntity
 					e.is( sdSetrDestroyer ) || 
 					e.is( sdSpider ) || 
 					e.is( sdOverlord ) ||
+					e.is( sdStalker ) ||
 					e.is( sdZektaronDreadnought ) );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -1544,7 +1545,7 @@ class sdCube extends sdEntity
 		if ( ent._target.GetClass() === 'sdCube' )
 		return false;
 		
-		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
+		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdStalker' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
 		return false;
 		
 		if ( ent.GetClass() === 'sdBot' || ent.GetClass() === 'sdDrone' )
