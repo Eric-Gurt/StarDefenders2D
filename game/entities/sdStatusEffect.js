@@ -1714,7 +1714,7 @@ class sdStatusEffect extends sdEntity
 						else
 						{
 							let t = sdWorld.AnyOf( [ 
-								'You will die regardless. Give in and let it happen.',
+								'You will die. Stop delaying the inevitable. Give in and let it happen.',
 								'You do not belong here. Go away, this is not your world.',
 								'You can\'t run forever.',
 								'I can see you. You can\'t hide from me',
