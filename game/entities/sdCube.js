@@ -1279,6 +1279,7 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdDrone' && target._hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
+								 ( target.GetClass() === 'sdStalker' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) )								 )
 							{
 								if ( 
