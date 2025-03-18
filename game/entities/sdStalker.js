@@ -672,8 +672,8 @@ class sdStalker extends sdEntity
 						bullet_obj.sx = Math.cos( an );
 						bullet_obj.sy = Math.sin( an );
 
-						bullet_obj.sx *= 15;
-						bullet_obj.sy *= 15;
+						bullet_obj.sx *= 12;
+						bullet_obj.sy *= 12;
 
 						bullet_obj._damage = 15;
 						bullet_obj.color = '#00FFFF';
@@ -688,9 +688,7 @@ class sdStalker extends sdEntity
 							}
 						}
 						
-						setTimeout( ()=> {
-							sdEntity.entities.push( bullet_obj );
-						}, 250 )
+						sdEntity.entities.push( bullet_obj );
 						
 						//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
