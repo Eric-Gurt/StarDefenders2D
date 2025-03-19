@@ -9770,7 +9770,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_clone_rifle' ),
 			sound: 'alien_laser1',
-			title: 'Stalker Swarm Rifle',
+			title: 'Stalker Rapid Rifle',
 			slot: 2,
 			reload_time: 2.5,
 			muzzle_x: null,
