@@ -658,39 +658,39 @@ class sdStalker extends sdEntity
 						break;
 
 						this._laser_timer = 1;
-						
 						let dx = ( targets[ i ].sx || 0 );
 						let dy = ( targets[ i ].sy || 0 );
 						
 						let an = Math.atan2( 
-								targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y - dy * 3, 
-								targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x - dx * 3 
+							targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y - dy * 3, 
+							targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x - dx * 3 
 						)
+						setTimeout( ()=> {
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+							bullet_obj._owner = this;
+							bullet_obj.sx = Math.cos( an );
+							bullet_obj.sy = Math.sin( an );
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-						bullet_obj._owner = this;
-						bullet_obj.sx = Math.cos( an );
-						bullet_obj.sy = Math.sin( an );
+							bullet_obj.sx *= 15;
+							bullet_obj.sy *= 15;
 
-						bullet_obj.sx *= 12;
-						bullet_obj.sy *= 12;
-
-						bullet_obj._damage = 15;
-						bullet_obj.color = '#00FFFF';
-						bullet_obj._rail = true;
-						bullet_obj._rail_alt = true;
+							bullet_obj._damage = 15;
+							bullet_obj.color = '#00FFFF';
+							bullet_obj._rail = true;
+							bullet_obj._rail_alt = true;
 						
-						bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
-						{
-							if ( target_entity.IsPlayerClass() )
+							bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
 							{
+							if ( target_entity.IsPlayerClass() )
+								{
 								target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+								}
 							}
-						}
 						
-						sdEntity.entities.push( bullet_obj );
+							sdEntity.entities.push( bullet_obj );
 						
-						//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
+							//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
+						}, 200 )
 
 						break;
 					}
