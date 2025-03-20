@@ -894,6 +894,10 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_RAILGUN = 3 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'railgun' ),
+			image0: [ sdWorld.CreateImageFromFile( 'railgun_reload0' ), sdWorld.CreateImageFromFile( 'railgun_reload1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'railgun_reload0' ), sdWorld.CreateImageFromFile( 'railgun_reload1' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'railgun' ), sdWorld.CreateImageFromFile( 'railgun' ) ],
+			has_images: true,
 			sound: 'gun_railgun',
 			title: 'Railgun',
 			slot: 4,
