@@ -906,7 +906,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
-			projectile_properties: { _damage:1 }, // Set properties inside projectile_properties_dynamic
+			projectile_properties: { _damage:1, color: '#62c8f2' }, // Set properties inside projectile_properties_dynamic
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -1055,7 +1055,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 60,
 			projectile_velocity: 16,
-			projectile_properties: { _damage: 1 },
+			projectile_properties: { _damage: 1, color:'#00ffff' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
