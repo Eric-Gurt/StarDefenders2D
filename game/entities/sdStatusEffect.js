@@ -1637,8 +1637,15 @@ class sdStatusEffect extends sdEntity
 			{
 				status_entity._next_spawn = 0;
 				status_entity._ttl = params.ttl;
+				status_entity._first_team = null;
 				
-				status_entity._first_team = ( sdWorld.is_server ? status_entity.for._ai_team : null ); // Fix client-side errors
+				if ( status_entity.for )
+				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) && status_entity.for._ai_enabled )
+				{
+					status_entity._first_team = status_entity.for._ai_team; // Fix client-side errors
+					
+					status_entity.for._ai_team = 11; // Clones
+				}
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1664,10 +1671,6 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity._ttl <= 0 )
 					status_entity.remove();
 				}
-				
-				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
-				if ( status_entity.for._ai_team )
-				status_entity.for._ai_team = 11 // Clones
 			
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
@@ -1748,6 +1751,7 @@ class sdStatusEffect extends sdEntity
 				
 				if ( status_entity._first_team )
 				if ( !status_entity.for || !status_entity.for._is_being_removed )
+				if ( status_entity.for._ai_enabled )
 				status_entity.for._ai_team = status_entity._first_team;
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
