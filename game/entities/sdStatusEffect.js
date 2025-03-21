@@ -1675,7 +1675,7 @@ class sdStatusEffect extends sdEntity
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					let e = sdWorld.my_entity;
-					if ( status_entity.for !== e )
+					if ( status_entity.for._net_id !== e._net_id )
 					return;
 				
 					status_entity._next_spawn -= GSPEED;
@@ -1748,7 +1748,7 @@ class sdStatusEffect extends sdEntity
 			onBeforeRemove: ( status_entity )=>
 			{
 				if ( !sdWorld.is_server ) return;
-				
+
 				if ( status_entity._first_team )
 				if ( !status_entity.for || !status_entity.for._is_being_removed )
 				if ( status_entity.for._ai_enabled )
