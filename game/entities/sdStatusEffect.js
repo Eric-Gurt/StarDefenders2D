@@ -1721,7 +1721,8 @@ class sdStatusEffect extends sdEntity
 								'You do not belong here. Go away, this is not your world.',
 								'You can\'t run forever.',
 								'I can see you. You can\'t hide from me',
-								'Surrender to me. You will not get away this time.'
+								'Surrender to me. You will not get away this time.',
+								'Close your eyes. Embrace the eternal sleep.'
 							] );
 							
 							let chat_ent = new sdEffect ({
