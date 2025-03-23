@@ -1638,15 +1638,19 @@ class sdStatusEffect extends sdEntity
 				status_entity._next_spawn = 0;
 				status_entity._ttl = params.ttl;
 				status_entity._first_team = null;
+				status_entity._first_chat_color = null;
 				
 				if ( status_entity.for )
-				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) && status_entity.for._ai_enabled )
+				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
 				{
-					status_entity._first_team = status_entity.for._ai_team; // Fix client-side errors
+					if ( status_entity.for._ai_enabled )
+					{
+						status_entity._first_team = status_entity.for._ai_team; // Fix client-side errors
 					
-					status_entity.for._ai_team = 11; // Clones
-					
-					
+						status_entity.for._ai_team = 11; // Clones
+					}
+					status_entity._first_chat_color = status_entity.for._chat_color;
+					status_entity.for._chat_color = '#ff0000'
 				}
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
@@ -1752,10 +1756,14 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( !sdWorld.is_server ) return;
 
-				if ( status_entity._first_team !== null )
 				if ( !status_entity.for || !status_entity.for._is_being_removed )
-				if ( status_entity.for._ai_enabled )
-				status_entity.for._ai_team = status_entity._first_team;
+				{
+					if ( status_entity.for._ai_enabled )
+					if ( status_entity._first_team !== null )
+					status_entity.for._ai_team = status_entity._first_team;
+				
+					status_entity.for._chat_color = status_entity._first_chat_color
+				}
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
