@@ -370,7 +370,7 @@ class sdStalker extends sdEntity
 					let r = Math.random();
 					let shards = 2 + Math.round( Math.random() * 3 );
 			
-					if ( r < 0.35 )
+					if ( r < 0.45 )
 					{
 						let x = this.x;
 						let y = this.y;
@@ -681,9 +681,9 @@ class sdStalker extends sdEntity
 						
 							bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
 							{
-							if ( target_entity.IsPlayerClass() )
+								if ( target_entity.IsPlayerClass() )
 								{
-								target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 								}
 							}
 						
