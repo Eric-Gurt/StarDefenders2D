@@ -448,7 +448,27 @@ class sdCharacter extends sdEntity
 				hurt: [ 'erthal_hurt' ],
 				alert: [ 'erthal_alert' ]
 			},
-	
+			// Clones
+			'clone':
+			{
+				//death: [ 'council_death' ],
+				//hurt: [ 'council_hurtA', 'council_hurtB' ],
+				
+				alert_tts: ( character, enemy )=>
+				{
+					{
+						return sdWorld.AnyOf( [ 
+							'You were never real to begin with.',
+							'You know, maybe you are just a clone.',
+							'I am you, and you are me.',
+							'I have been here before you.',
+							'I am the real you. Come back to me, before it is too late.',
+							'You were never in control of your body. Free will does not exist.',
+							'I think, therefore I am.'
+						] );
+					}
+				}
+			},
 			// Star Defenders
 			'default':
 			{
@@ -524,18 +544,6 @@ class sdCharacter extends sdEntity
 							] );
 						}
 					}
-					if ( character._ai_team === 11 ) // Clones
-					{
-						return sdWorld.AnyOf( [ 
-							'You were never real to begin with.',
-							'You know, maybe you are just a clone.',
-							'I am you, and you are me.',
-							'I have been here before you.',
-							'I am the real you. Come back to me, before it is too late.',
-							'You were never in control of your body. Free will does not exist.',
-							'I think, therefore I am.'
-						] );
-					}
 					return null;
 				},
 			}
@@ -589,7 +597,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
