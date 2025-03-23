@@ -141,7 +141,7 @@ class sdStalker extends sdEntity
 			character_entity.helmet = entity.helmet;
 			character_entity.body = entity.body;
 			character_entity.legs = entity.legs;
-			character_entity._voice = entity._voice;
+			// character_entity._voice = entity._voice; // Unnatural voice fits them more than their real one
 			character_entity.sd_filter = entity.sd_filter;
 		
 			character_entity._ai_team = 11;
