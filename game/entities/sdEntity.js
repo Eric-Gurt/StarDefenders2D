@@ -5735,6 +5735,12 @@ class sdEntity
 			ctx.fillStyle = color;//'#FF0000';
 		
 			ctx.fillRect( 1 - w / 2, 1 + h - y_raise, ( w - 2 ) * Math.max( 0, ( this.hea || this._hea ) / ( this.hmax || this._hmax ) ), 1 );
+			
+			ctx.font = "3px Verdana";
+			ctx.textAlign = 'center';
+			
+			ctx.fillStyle = '#ffffff';
+			ctx.fillText( Math.round ( this.hea ), 0, h - y_raise + 2.5 );
 		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
