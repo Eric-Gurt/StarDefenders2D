@@ -1645,6 +1645,8 @@ class sdStatusEffect extends sdEntity
 					status_entity._first_team = status_entity.for._ai_team; // Fix client-side errors
 					
 					status_entity.for._ai_team = 11; // Clones
+					
+					
 				}
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
@@ -1750,7 +1752,7 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( !sdWorld.is_server ) return;
 
-				if ( status_entity._first_team )
+				if ( status_entity._first_team !== null )
 				if ( !status_entity.for || !status_entity.for._is_being_removed )
 				if ( status_entity.for._ai_enabled )
 				status_entity.for._ai_team = status_entity._first_team;
