@@ -1433,6 +1433,7 @@ THING is cosmic mic drop!`;
 		};
 		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
+		this._chat_color = params.chat_color || '#ffffff'
 		
 		//this.team_id = 0; // 0 is FFA team
 	
@@ -7765,6 +7766,7 @@ THING is cosmic mic drop!`;
 			attachment_x: 0,
 			attachment_y: -raise,
 			text:t,
+			color: this._chat_color,
 			text_censored: undefined,
 			voice:this._voice,
 			no_ef:simulate_sound
