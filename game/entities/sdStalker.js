@@ -160,6 +160,7 @@ class sdStalker extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity.matter = 600;
 			character_entity.matter_max = 600; // Let player leech matter off the bodies
+			character_entity.s = entity.s;
 			
 			character_entity._chat_color = '#ff0000';
 	
