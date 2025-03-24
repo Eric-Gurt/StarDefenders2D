@@ -141,7 +141,13 @@ class sdStalker extends sdEntity
 			character_entity.helmet = entity.helmet;
 			character_entity.body = entity.body;
 			character_entity.legs = entity.legs;
-			// character_entity._voice = entity._voice; // Unnatural voice fits them more than their real one
+			character_entity._voice = {
+				wordgap: 0,
+				pitch: 25,
+				speed: 100,
+				variant: 'clone',
+				voice: 'en'
+			};
 			character_entity.sd_filter = entity.sd_filter;
 		
 			character_entity._ai_team = 11;
@@ -188,6 +194,8 @@ class sdStalker extends sdEntity
 					
 					sdCrystal.Zap( this, character_entity, '#00FFFF' );
 					sdCrystal.Zap( character_entity, this, '#00FFFF' );
+					
+					sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_GLOW_HIT, color:'#00ffff', scale:2, radius:5 });
 					
 					character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS }); // Permanent
 					
@@ -389,7 +397,7 @@ class sdStalker extends sdEntity
 								if ( random_value > 0.80 )
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_CANNON });
 								else
-								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_BEAM });
+								gun = new sdGun({ x:x, y:y, class:Math.random() > 0.5 ? sdGun.CLASS_STALKER_BEAM : sdGun.CLASS_STALKER_CLONER });
 							}
 
 							gun.sx = sx;
