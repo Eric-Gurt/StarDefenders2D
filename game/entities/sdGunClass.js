@@ -9821,7 +9821,7 @@ class sdGunClass
 				'#008080', 15, 'glow' ) )
 		};
 		
-		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = // Wasn't really worth it compared to Emergency Instructor, hopefully stronger now
+		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_cloner' ),
 			sound: 'gun_raygun',
@@ -9836,7 +9836,7 @@ class sdGunClass
 			spawnable: false,
 			GetAmmoCost: ()=>
 			{
-				return 150;
+				return 300;
 			},
 			projectile_properties_dynamic: ( gun )=> { 
 				
@@ -9902,7 +9902,7 @@ class sdGunClass
 									
 									ent.remove();
 								}
-							}, 1000 * 60 );
+							}, 1000 * 20 );
 						}
 					}
 				} };
