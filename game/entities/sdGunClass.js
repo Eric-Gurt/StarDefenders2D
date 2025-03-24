@@ -9723,6 +9723,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_STALKER_BEAM = 147 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_beam' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_beam2' ),
 			sound: 'cube_attack',
 			title: 'Stalker Psychotic Beam',
 			slot: 4,
@@ -9732,13 +9733,18 @@ class sdGunClass
 			count: 1,
 			projectile_properties: { _rail: true, _rail_alt: true, _damage: 22, color: '#00FFFF' },
 			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.IsPlayerClass() )
 					{
-						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+						let owner = gun._held_by;
+						
+						if ( owner && !owner._is_being_removed )
+						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20, owner: gun.fire_mode === 2 ? owner : null });
 					}
 				} };
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
@@ -9813,6 +9819,116 @@ class sdGunClass
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
 				'#008080', 15, 'glow' ) )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_cloner' ),
+			sound: 'cube_attack',
+			sound_pitch: 2,
+			title: 'Stalker Clone Ray',
+			slot: 7,
+			reload_time: 96,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { _rail: true, _rail_alt: true, _damage: 1, color: '#00FFFF', time_left: 10 },
+			spawnable: false,
+			GetAmmoCost: ()=>
+			{
+				return 700;
+			},
+			projectile_properties_dynamic: ( gun )=> { 
+				
+				let obj = { _rail: true, _rail_zap: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], time_left: 10, _custom_target_reaction:( bullet, target_entity )=>
+				{
+					let owner = gun._held_by;
+					
+					if ( target_entity.is( sdCharacter ) && ( target_entity._voice.variant !== 'clone' ) ) // No clones of clones
+					{
+						if ( sdWorld.is_server )
+						if ( owner )
+						{
+
+							let ent = new sdCharacter({ x: owner.x + 16 * owner._side, y: owner.y,
+								_ai_enabled: sdCharacter.AI_MODEL_AGGRESSIVE, 
+								_ai_gun_slot: 2,
+								_ai_level: 10,
+								sd_filter: target_entity.sd_filter,
+								title: target_entity.title,
+								_owner: owner
+							});
+							ent.gun_slot = 2;
+							sdEntity.entities.push( ent );
+
+							let ent2 = new sdGun({ x: ent.x, y: ent.y,
+								class: sdGun.CLASS_STALKER_RIFLE
+							}); 
+							sdEntity.entities.push( ent2 );
+
+							sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+							sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+								
+							ent.hea = 1000;
+							ent.hmax = 1000;
+							ent.helmet = target_entity.helmet;
+							ent.body = target_entity.body;
+							ent.legs = target_entity.legs;
+							ent._voice = {
+								wordgap: 0,
+								pitch: 25,
+								speed: 100,
+								variant: 'clone',
+								voice: 'en'
+							};
+							ent._ai_stay_near_entity = owner;
+							ent._ai_stay_distance = 256;
+							ent.sd_filter = target_entity.sd_filter;
+							ent._matter_regeneration = 20;
+							ent._jetpack_allowed = true;
+							ent._jetpack_fuel_multiplier = 0.25;
+							ent.matter = 600;
+							ent.matter_max = 600;
+							ent.s = target_entity.s;
+								
+							ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, owner: owner });
+								
+							setTimeout(()=>
+							{
+								if ( !ent._is_being_removed )
+								{
+									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+									sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+									
+									ent.remove();
+								}
+							}, 1000 * 20 );
+						}
+					}
+				} };
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 1; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' )
 		};
 
 		// Add new gun classes above this line //
