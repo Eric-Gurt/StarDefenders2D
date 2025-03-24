@@ -1706,6 +1706,9 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
 					if ( status_entity.for._ai_enabled )
 					{
+						if ( status_entity.for._ai && status_entity.for._ai.target )
+						status_entity.for._ai.target = null; // Reset current target before doing anything
+					
 						status_entity.for.look_x = status_entity._owner.look_x;
 						status_entity.for.look_y = status_entity._owner.look_y;
 						
