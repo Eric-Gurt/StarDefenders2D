@@ -1699,7 +1699,21 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity._ttl <= 0 )
 					status_entity.remove();
 				}
-				
+				if ( status_entity._owner && status_entity._owner._key_states.GetKey( 'Mouse1' ) )
+				{
+					if ( status_entity.for )
+					if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
+					if ( status_entity.for._ai_enabled )
+					{
+						status_entity.for.look_x = status_entity._owner.look_x;
+						status_entity.for.look_y = status_entity._owner.look_y;
+						
+						status_entity.for._ai_force_fire = true;
+					}
+				}
+				else
+				status_entity.for._ai_force_fire = false;
+			
 				if ( status_entity.visual ) return;
 				
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
@@ -1792,6 +1806,8 @@ class sdStatusEffect extends sdEntity
 					
 						if ( status_entity.for._ai && status_entity.for._ai.target )
 						status_entity.for._ai.target = null; // Reset current target
+					
+						status_entity.for._ai_force_fire = false;
 					}
 					// console.log ( status_entity.for._ai_team, status_entity._first_team )
 				}
