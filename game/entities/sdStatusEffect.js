@@ -1724,7 +1724,7 @@ class sdStatusEffect extends sdEntity
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					let e = sdWorld.my_entity;
-					if ( status_entity.for._net_id !== e._net_id )
+					if ( status_entity.for !== e )
 					return;
 				
 					status_entity._next_spawn -= GSPEED;
@@ -1819,6 +1819,7 @@ class sdStatusEffect extends sdEntity
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
+				if ( status_entity.for && !status_entity.for._is_being_removed )
 				if ( status_entity.for.is( sdCharacter ) )
 				if ( status_entity.for._ragdoll )
 				if ( status_entity.for._ragdoll.head )
