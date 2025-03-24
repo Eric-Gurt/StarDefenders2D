@@ -1730,7 +1730,7 @@ class sdStatusEffect extends sdEntity
 						else
 						if ( r < 0.4 )
 						{
-							sdSound.PlaySound({ name: 'sd_death2', x:status_entity.x, y:status_entity.y, volume: 1, pitch: 0.5, _server_allowed: true });
+							sdSound.PlaySound({ name: 'sd_death2', x:status_entity.x, y:status_entity.y, volume: 0.5, pitch: 0.5, _server_allowed: true });
 						}
 						else
 						if ( r < 0.6 )
