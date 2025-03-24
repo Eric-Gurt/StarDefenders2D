@@ -1699,6 +1699,7 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity._ttl <= 0 )
 					status_entity.remove();
 				}
+				if ( sdWorld.is_server )
 				if ( status_entity._owner && status_entity._owner._key_states.GetKey( 'Mouse1' ) )
 				{
 					if ( status_entity.for )
@@ -1708,6 +1709,7 @@ class sdStatusEffect extends sdEntity
 						status_entity.for.look_x = status_entity._owner.look_x;
 						status_entity.for.look_y = status_entity._owner.look_y;
 						
+						if ( !status_entity._is_being_removed ) // Prevents infinite fire
 						status_entity.for._ai_force_fire = true;
 					}
 				}
