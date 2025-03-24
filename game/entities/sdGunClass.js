@@ -9619,6 +9619,8 @@ class sdGunClass
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
 						gun._held_by._auto_shoot_in = 50;
+						
+						if ( sdWorld.is_server )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
@@ -9669,6 +9671,7 @@ class sdGunClass
 
 									if ( e.IsPlayerClass() )
 									{
+										if ( sdWorld.is_server )
 										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 									}
 								}
