@@ -348,6 +348,8 @@ class sdBullet extends sdEntity
 		this._first_frame = true; // Bad approach but early removal isn't good either. Also impossible to know if projectile is hook this early so far
 		
 		this._extra_filtering_method = null;
+		
+		this._for_ai_target = null; // Target "drone"
 
 		// Defining this in method that is not called on this object and passed as collision filtering thing
 		//this.BouncyCollisionFiltering = this.BouncyCollisionFiltering.bind( this ); Bad, snapshot will enumerate it
@@ -637,15 +639,17 @@ class sdBullet extends sdEntity
 
 				if ( this._homing && this._owner )
 				{
+					let invert = ( this._owner.IsPlayerClass() && this._owner._key_states.GetKey( 'Mouse3' ) ? -1 : 1 ); // Repel missiles via right-click
 					let di_targ = sdWorld.Dist2D_Vector( this._owner.look_x - this.x, this._owner.look_y - this.y );
-					let xx = 1 * ( this._owner.look_x - this.x ) - this.sx * di_targ / 15;
-					let yy = 1 * ( this._owner.look_y - this.y ) - this.sy * di_targ / 15;
+					let xx = invert * ( this._owner.look_x - this.x ) - this.sx * di_targ / 15;
+					let yy = invert * ( this._owner.look_y - this.y ) - this.sy * di_targ / 15;
 
 					let di = sdWorld.Dist2D_Vector( xx, yy );
 					if ( di > 0.01 )
 					{
 						this.acx = sdWorld.MorphWithTimeScale( this.acx, xx / di * 50, 1 - this._homing_mult, GSPEED );
 						this.acy = sdWorld.MorphWithTimeScale( this.acy, yy / di * 50, 1 - this._homing_mult, GSPEED );
+						
 					}
 				}
 
@@ -733,7 +737,7 @@ class sdBullet extends sdEntity
 			if ( this._custom_extra_think_logic )
 			if ( this._custom_extra_think_logic( this, GSPEED ) )
 			{
-				if ( this.model !== 'flare' )
+				if ( this.model !== 'flare' || this.model !== 'stalker_target' )
 				this.RemoveBullet();
 			
 				return;
@@ -775,6 +779,19 @@ class sdBullet extends sdEntity
 				}
 			}
 		}
+		
+		if ( sdWorld.is_server )
+		if ( this.model === 'stalker_target' )
+		{
+			if ( this._for_ai_target.is( sdCharacter ) && this._for_ai_target._ai_enabled )
+			{
+				if ( this._for_ai_target._ai && this._for_ai_target._ai.target )
+				this._for_ai_target._ai.target = this;
+			}
+
+			if ( !this._for_ai_target || this._for_ai_target._is_being_removed )
+			this.RemoveBullet();
+		}	
 	}
 
 	CanBounceOff( from_entity )
@@ -782,7 +799,7 @@ class sdBullet extends sdEntity
 		if ( this._bouncy )
 		return true;
 	
-		if ( this.model === 'flare' )
+		if ( this.model === 'flare' || this.model === 'stalker_target' )
 		return true;
 
 		if ( this.explosion_radius > 0 )
@@ -852,7 +869,7 @@ class sdBullet extends sdEntity
 		/*if ( this._hook )
 		if ( from_entity._class === 'sdCharacter' || from_entity._class === 'sdGun' )
 		debugger;*/
-		if ( this.model === 'flare' ) // Flares should not deal damage
+		if ( this.model === 'flare' || this.model === 'stalker_target' ) // Flares should not deal damage
 		return;
 	
 		if ( from_entity.is( sdBlock ) && from_entity._merged )
@@ -1030,7 +1047,7 @@ class sdBullet extends sdEntity
 					if ( this._detonate_on_impact )
 					if ( this._damage === 0 || !sdWorld.is_server )
 					{
-						if ( this.model !== 'flare' )
+						if ( this.model !== 'flare' || this.model !== 'stalker_target' )
 						this.RemoveBullet();
 					
 						return;
@@ -1041,7 +1058,7 @@ class sdBullet extends sdEntity
 			{
 				if ( sdWorld.server_config.GetHitAllowed && !sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 				this._damage = 0;
-				if ( this.is_grenade || this.model === 'flare' )
+				if ( this.is_grenade || this.model === 'flare' || this.model === 'stalker_target' )
 				{
 					// Maybe more filtering logic had to be here
 					if ( this._custom_target_reaction_protected )
@@ -1154,7 +1171,7 @@ class sdBullet extends sdEntity
 								//if ( from_entity.GetClass() === 'sdLifeBox' )
 								if ( this._detonate_on_impact )
 								if ( from_entity.is( sdLifeBox ) )
-								if ( this._bouncy && !this.is_grenade && this.model !== 'flare' )
+								if ( this._bouncy && !this.is_grenade && this.model !== 'flare' && this.model !== 'stalker_target' )
 								{
 									this.RemoveBullet(); // Prevent falkonian PSI cutter oneshotting lifebox
 								}
