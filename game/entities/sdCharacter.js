@@ -1266,6 +1266,7 @@ THING is cosmic mic drop!`;
 		this._ai_dive_suggestion_x = 0;
 		this._ai_dive_suggestion_y = 0;
 		this._ai_dive_suggestion_rethink_in = 0;
+		this._ai_force_fire = false; // For possessed AIs
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -3984,7 +3985,7 @@ THING is cosmic mic drop!`;
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
 		
-		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until )
+		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until || this._ai_force_fire )
 		this._key_states.SetKey( 'Mouse1', 1 );
 		else
 		this._key_states.SetKey( 'Mouse1', 0 );
