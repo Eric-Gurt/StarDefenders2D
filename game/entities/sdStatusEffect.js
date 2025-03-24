@@ -1668,7 +1668,7 @@ class sdStatusEffect extends sdEntity
 							*/
 						}
 						
-						if ( status_entity.for._ai && status_entity.for._ai.target  )
+						if ( status_entity.for._ai && status_entity.for._ai.target )
 						status_entity.for._ai.target = null; // Reset current target
 						
 						// console.log ( status_entity.for._ai_team, status_entity._first_team )
@@ -1786,9 +1786,13 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity.visual ) return;
 					
 					if ( status_entity.for._ai_enabled )
-					if ( status_entity._first_team !== null )
-					status_entity.for._ai_team = status_entity._first_team;
-				
+					{
+						if ( status_entity._first_team !== null )
+						status_entity.for._ai_team = status_entity._first_team;
+					
+						if ( status_entity.for._ai && status_entity.for._ai.target )
+						status_entity.for._ai.target = null; // Reset current target
+					}
 					// console.log ( status_entity.for._ai_team, status_entity._first_team )
 				}
 			},
