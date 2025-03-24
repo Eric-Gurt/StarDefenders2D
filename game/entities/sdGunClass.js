@@ -9824,8 +9824,8 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_cloner' ),
-			sound: 'cube_attack',
-			sound_pitch: 2,
+			sound: 'gun_raygun',
+			sound_pitch: 1.333,
 			title: 'Stalker Clone Ray',
 			slot: 7,
 			reload_time: 96,
