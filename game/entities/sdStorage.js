@@ -520,7 +520,10 @@ class sdStorage extends sdEntity
 					( 
 						from_entity.type === sdJunk.TYPE_ALIEN_BATTERY || 
 						from_entity.type === sdJunk.TYPE_LOST_CONTAINER || 
-						from_entity.type === sdJunk.TYPE_FREEZE_BARREL 
+						from_entity.type === sdJunk.TYPE_FREEZE_BARREL ||
+						from_entity.type === sdJunk.TYPE_FIRE_BARREL ||
+						from_entity.type === sdJunk.TYPE_METAL_CHUNK ||
+						from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT
 					)
 				) 
 
@@ -620,6 +623,21 @@ class sdStorage extends sdEntity
 							else
 							if ( from_entity.type === sdJunk.TYPE_FREEZE_BARREL )
 							name = ( 'Cryo-substance barrel' );
+							else
+							if ( from_entity.type === sdJunk.TYPE_FIRE_BARREL )
+							name = ( 'Flammable-substance barrel' );
+							else
+							if ( from_entity.type === sdJunk.TYPE_METAL_CHUNK )
+							{
+								name = ( 'Metal chunk' );
+								is_armable = 0;
+							}
+							else
+							if ( from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+							{
+								name = ( '???' );
+								is_armable = 0;
+							}
 					
 						}
 						else
