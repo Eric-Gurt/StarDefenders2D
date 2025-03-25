@@ -72,8 +72,8 @@ class sdStalker extends sdEntity
 		this.tilt = 0;
 		this._light_an = 0 // Client-sided
 		
-		this._look_x = this.x;
-		this._look_y = this.y;
+		this.look_x = this.x;
+		this.look_y = this.y;
 		
 		this._time_until_full_remove = 1;
 		
@@ -88,7 +88,7 @@ class sdStalker extends sdEntity
 		this._attack_timer = 0;
 		this._laser_timer = 0;
 		this._bfg_timer = 0;
-		this._possession_attack_timer = 750;
+		this._possession_attack_timer = 500;
 		this._charged = false;
 		
 		this._ai_team = 11;
@@ -115,7 +115,7 @@ class sdStalker extends sdEntity
 			this._last_seen_player = sdWorld.time;
 		}
 	}
-	PossessClone( entity, count )
+	PossessClone( entity, count, drone )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -210,6 +210,27 @@ class sdStalker extends sdEntity
 							character_entity._broken = false;
 						}	
 					}, 1000 * 20 );
+					
+					if ( drone )
+					{
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+					
+						bullet_obj._homing = true;
+						bullet_obj._homing_mult = 0.1;
+						bullet_obj.ac = 0.03;
+						bullet_obj._bouncy = true;
+						bullet_obj._owner = this;
+						bullet_obj._for_ai_target = character_entity;
+
+						bullet_obj._damage = 1;
+						bullet_obj.explosion_radius = 20;
+						bullet_obj.model = 'stalker_target';
+						bullet_obj.color = sdEffect.default_explosion_color;
+						bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
+						bullet_obj._hea = 300;
+
+						sdEntity.entities.push( bullet_obj )
+					}
 					break;
 				}
 
@@ -327,7 +348,7 @@ class sdStalker extends sdEntity
 			}
 			if ( this.hea < this._hmax / 3 )
 			{
-				this.Boost ( this._look_x, this._look_y, 7 )
+				this.Boost ( this.look_x, this.look_y, 7 )
 				// Needs sound effect
 			}
 		}
@@ -449,19 +470,19 @@ class sdStalker extends sdEntity
 				
 				if ( this._current_target )
 				{
-					this._look_x = sdWorld.MorphWithTimeScale( this._look_x, this._current_target.x + ( ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 ), 0.95, GSPEED * 2 );
-					this._look_y = sdWorld.MorphWithTimeScale( this._look_y, this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 ), 0.98, GSPEED * 2 );
-					let an = Math.atan2( this._look_y - this.y, Math.abs( this._look_x - this.x ));
+					this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._current_target.x + ( ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 ), 0.95, GSPEED * 2 );
+					this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 ), 0.98, GSPEED * 2 );
+					let an = Math.atan2( this.look_y - this.y, Math.abs( this.look_x - this.x ));
 					this.tilt = an * 100;
-					this.side = ( this._look_x > this.x ) ? -1 : 1;
+					this.side = ( this.look_x > this.x ) ? -1 : 1;
 				}
 				else
 				{
-						this._current_target = this.GetRandomEntityNearby();
+					this._current_target = this.GetRandomEntityNearby();
 				}
 				if ( !this._current_target ) // Still no target?
 				{
-						this._current_target =  this.GetRandomTarget();
+					this._current_target =  this.GetRandomTarget();
 				}
 				
 				if ( sdWorld.time > this._last_damage + 1000 * 10 ) // 10 Seconds to go invisible after damage, if damaged enough
@@ -648,7 +669,7 @@ class sdStalker extends sdEntity
 							{
 								if ( e.GetClass() === 'sdCharacter' && count > 0 )
 								{
-									this.PossessClone( e, 1 + Math.round( Math.random() ) );
+									this.PossessClone( e, 1 + Math.round( Math.random() ), Math.random() > 0.5 );
 									count--;
 								}
 							}
@@ -727,7 +748,7 @@ class sdStalker extends sdEntity
 						this._bfg_timer = 50;
 						this._charged = false;
 						
-						let an = Math.atan2( this._look_y - this.y, this._look_x - this.x )
+						let an = Math.atan2( this.look_y - this.y, this.look_x - this.x )
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
