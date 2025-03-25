@@ -1799,7 +1799,7 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( !sdWorld.is_server ) return;
 
-				if ( !status_entity.for || !status_entity.for._is_being_removed )
+				if ( status_entity.for && !status_entity.for._is_being_removed )
 				{
 					status_entity.for._chat_color = status_entity._first_chat_color
 					if ( status_entity.visual ) return;
