@@ -9840,15 +9840,13 @@ class sdGunClass
 			spawnable: false,
 			fire_mode: 1,
 			has_alt_fire_mode: true,
-			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			GetAmmoCost: ( gun )=>
 			{
-				if ( shoot_from_scenario )
-				return 0;
-		
-				if ( gun.fire_mode !== 1 )
-				return 280;// * dmg_scale;
-				else
-				return 45; //35
+				if ( gun.fire_mode === 1 )
+				return 300;
+			
+				if ( gun.fire_mode === 2 )
+				return 200; 
 			},
 			projectile_properties_dynamic: ( gun )=> 
 			{ 
@@ -9927,7 +9925,7 @@ class sdGunClass
 										bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
 										bullet_obj._hea = 300;
 								
-										sdEntity.entities.push( bullet_obj )
+										sdEntity.entities.push( bullet_obj );
 									}
 								
 									setTimeout(()=>
