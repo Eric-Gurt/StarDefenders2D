@@ -788,6 +788,7 @@ class sdBullet extends sdEntity
 		
 			if ( this._for_ai_target )
 			if ( this._for_ai_target.is( sdCharacter ) && this._for_ai_target._ai_enabled )
+			if ( !this._for_ai_target._ai_force_fire )
 			{
 				if ( this._for_ai_target._ai )
 				this._for_ai_target._ai.target = this;
