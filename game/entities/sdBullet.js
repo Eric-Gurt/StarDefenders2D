@@ -783,14 +783,15 @@ class sdBullet extends sdEntity
 		if ( sdWorld.is_server )
 		if ( this.model === 'stalker_target' )
 		{
+			if ( !this._for_ai_target || this._for_ai_target._is_being_removed )
+			this.RemoveBullet();
+		
+			if ( this._for_ai_target )
 			if ( this._for_ai_target.is( sdCharacter ) && this._for_ai_target._ai_enabled )
 			{
 				if ( this._for_ai_target._ai )
 				this._for_ai_target._ai.target = this;
 			}
-
-			if ( !this._for_ai_target || this._for_ai_target._is_being_removed )
-			this.RemoveBullet();
 		}	
 	}
 
