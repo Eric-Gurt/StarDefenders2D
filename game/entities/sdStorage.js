@@ -522,8 +522,8 @@ class sdStorage extends sdEntity
 						from_entity.type === sdJunk.TYPE_LOST_CONTAINER || 
 						from_entity.type === sdJunk.TYPE_FREEZE_BARREL ||
 						from_entity.type === sdJunk.TYPE_FIRE_BARREL ||
-						from_entity.type === sdJunk.TYPE_METAL_CHUNK ||
-						from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT
+						from_entity.type === sdJunk.TYPE_METAL_CHUNK /* ||
+						from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT */
 					)
 				) 
 
@@ -632,12 +632,12 @@ class sdStorage extends sdEntity
 								name = ( 'Metal chunk' );
 								is_armable = 0;
 							}
-							else
+							/* else
 							if ( from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 							{
 								name = ( '???' );
 								is_armable = 0;
-							}
+							} */
 					
 						}
 						else
