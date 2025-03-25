@@ -107,21 +107,25 @@ class sdStatusEffect extends sdEntity
 				if ( !status_entity.for )
 				return;
 				
-				if ( status_entity._progress < 200 / 1000 * 30 )
+				if ( status_entity._progress < 200 / 1000 * 15 )
 				{
 					if ( status_entity.dmg > 0 )
 					{
-						if ( status_entity.for.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX )
+						if ( status_entity.for.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX ) // Walls
 						{
 							ctx.sd_status_effect_tint_filter = [ 1.5, 1.5, 1.5 ];
 						}
 						else
-						ctx.sd_status_effect_filter = { s:'ffffff' };
+						{
+							if ( status_entity._progress < 200 / 1000 * 7.5 )
+							ctx.sd_status_effect_tint_filter = [ 2, 1.5, 1.5 ];
+							else
+							ctx.sd_status_effect_tint_filter = [ 2, 0.75, 0.75 ];
+						}
 					}
 					else
 					{
-						//ctx.sd_status_effect_filter = { s:'66ff66' };
-						ctx.sd_status_effect_tint_filter = [ 0.75, 1.5, 0.75 ];
+						ctx.sd_status_effect_tint_filter = [ 0.75, 1.5, 0.75 ]; // Heal
 					}
 				}
 			},
