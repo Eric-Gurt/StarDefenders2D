@@ -113,9 +113,9 @@ class sdStatusEffect extends sdEntity
 					{
 						{
 							if ( status_entity._progress < 200 / 1000 * 7.5 )
-							ctx.sd_status_effect_tint_filter = [ 1.5, 1.5, 1.5 ];
+							ctx.sd_status_effect_tint_filter = [ 1.75, 1.75, 1.75 ];
 							else
-							ctx.sd_status_effect_tint_filter = [ 1.25, 1.25, 1.25 ];
+							ctx.sd_status_effect_tint_filter = [ 1.5, 1.5, 1.5 ];
 						}
 					}
 					else
