@@ -109,7 +109,7 @@ class sdBullet extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return this.is_grenade; }
 
-	get mass() { return 5; }
+	get mass() { return this.model === 'stalker_target' ? 15 : 5; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -578,6 +578,7 @@ class sdBullet extends sdEntity
 		//if ( this._skip_crystals )
 		//if ( from_entity.is( sdCrystal ) )
 		//return false;
+	
 
 		if ( this._extra_filtering_method )
 		return this._extra_filtering_method( from_entity, this );
