@@ -87,6 +87,7 @@ import sdWanderer from './sdWanderer.js';
 import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
 import sdMothershipContainer from './sdMothershipContainer.js';
+import sdStalker from './sdStalker.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -169,6 +170,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
+		sdWeather.EVENT_STALKER =				event_counter++; // 58
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -3929,6 +3931,20 @@ class sdWeather extends sdEntity
 				if ( tasks_total < 5 )
 				sdWeather.GivePlayerTask( character );
 			}
+		}
+		if ( r === sdWeather.EVENT_STALKER ) 
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdStalker,
+				
+				aerial: true,
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
+				
+			});
 		}
 	}
 	static GivePlayerTask( initiator ) // AssignTasks // GiveTasks
