@@ -227,7 +227,7 @@ class sdStalker extends sdEntity
 						bullet_obj.model = 'stalker_target';
 						bullet_obj.color = sdEffect.default_explosion_color;
 						bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
-						bullet_obj._hea = 300;
+						bullet_obj._hea = 100;
 
 						sdEntity.entities.push( bullet_obj )
 					}
