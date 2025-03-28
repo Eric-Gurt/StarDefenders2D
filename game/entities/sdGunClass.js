@@ -9967,9 +9967,46 @@ class sdGunClass
 				'#00ffff', 15, 'core' ),
 				'#008080', 15, 'glow' )
 		};
+		
+		sdGun.classes[ sdGun.CLASS_ACCESS_KEY = 150 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'access_key' ),
+			sound: 'gun_defibrillator',
+			sound_pitch: 1.5,
+			title: 'Access key',
+			slot: 7,
+			reload_time: 16,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { color: 'transparent', _soft: true, time_left: 2 },
+			spawnable: true,
+			GetAmmoCost: ( gun )=>
+			{
+				return 0; 
+			},
+			projectile_properties_dynamic: ( gun )=> 
+			{ 
+				let obj = 
+				{
+					_damage: 1, color:'transparent', _soft: true, time_left: 2, _custom_target_reaction:( bullet, target_entity )=> 
+					{
+						if ( target_entity.GetClass() === 'sdWeaponBench' && target_entity.type === 1  ) // sdWeaponBench.TYPE_DISPLAY
+						{
+							target_entity.LockLogic( gun._held_by, gun )
+						}
+					}
+				};
+				
+				return obj;
+			},
+
+			upgrades: AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'key' )
+		};
+		
 
 		// Add new gun classes above this line //
-		
+
 		let index_to_const = [];
 		for ( let s in sdGun )
 		if ( s.indexOf( 'CLASS_' ) === 0 )
