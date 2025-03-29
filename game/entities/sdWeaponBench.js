@@ -851,7 +851,7 @@ class sdWeaponBench extends sdEntity
 							}
 						}
 						if ( item.class === sdGun.CLASS_ACCESS_KEY )
-						this.AddPromptContextOption( 'Set keycard access ID', 'SET_KEY_ID', [ undefined ], 'Enter new ID', this.text, 32 );
+						this.AddPromptContextOption( 'Set keycard access ID', 'SET_KEY_ID', [ undefined ], 'Enter new ID', this.gun_password, 32 );
 					}
 				}
 			}
@@ -861,7 +861,7 @@ class sdWeaponBench extends sdEntity
 				
 				if ( !this.locked || exectuter_character._god )
 				{
-					this.AddPromptContextOption( 'Set access ID', 'SET_KEY', [ undefined ], 'Enter new ID', this.text, 32 );
+					this.AddPromptContextOption( 'Set access ID', 'SET_KEY', [ undefined ], 'Enter new ID', '', 32 );
 				
 					this.AddContextOption( 'Generate access key', 'CREATE_KEY', [ ], false );
 				}
