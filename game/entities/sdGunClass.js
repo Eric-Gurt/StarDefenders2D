@@ -174,6 +174,7 @@ class sdGunClass
 			
 			return arr;
 		}
+		
 
 		let ID_BASE = 0;
 		let ID_STOCK = 1;
@@ -9973,7 +9974,11 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'access_key' ),
 			sound: 'sd_beacon',
 			sound_pitch: 1.5,
-			title: 'Access key',
+			//title: 'Access key',
+			title_dynamic: ( gun )=>
+			{
+				return ( gun.extra && gun.extra[ ID_TITLE ] ? 'Access key' + ' ( ' + gun.extra[ ID_TITLE ] + ' ) ' : 'Access key' );
+			},
 			slot: 7,
 			reload_time: 16,
 			muzzle_x: null,
@@ -9981,6 +9986,7 @@ class sdGunClass
 			count: 1,
 			projectile_properties: { color: 'transparent', _soft: true, time_left: 2 },
 			spawnable: true,
+			category: 'Base equipment',
 			GetAmmoCost: ( gun )=>
 			{
 				return 0; 
@@ -10000,7 +10006,15 @@ class sdGunClass
 				
 				return obj;
 			},
-
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_TITLE ] = '';
+				}
+			},
+		
 			upgrades: AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'key' )
 		};
 		
