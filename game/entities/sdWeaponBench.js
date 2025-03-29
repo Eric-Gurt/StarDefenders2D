@@ -53,6 +53,7 @@ class sdWeaponBench extends sdEntity
 		this._hmax = this.type === sdWeaponBench.TYPE_DISPLAY ? 5000 : 800;
 		this._hea = this._hmax;
 		
+		this._lock_cooldown = 0;
 		this._key_cooldown = 0;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
 		
@@ -89,6 +90,9 @@ class sdWeaponBench extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._lock_cooldown > 0 )
+		this._lock_cooldown -= GSPEED;
+	
 		if ( this._key_cooldown > 0 )
 		this._key_cooldown -= GSPEED;
 	
@@ -583,8 +587,10 @@ class sdWeaponBench extends sdEntity
 				
 				if ( command_name === 'LOCK' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+				if ( this._lock_cooldown <= 0 )
 				{	
 					this.LockLogic( exectuter_character, key );
+					this._lock_cooldown = 20; // No sound spam
 				
 					return;
 				}
