@@ -52,7 +52,7 @@ class sdWeaponBench extends sdEntity
 		this._hmax = this.type === sdWeaponBench.TYPE_DISPLAY ? 5000 : 800;
 		this._hea = this._hmax;
 		
-		this._key_created = false; // Access key
+		this._key_cooldown = 0;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
 		
 		this.gun_password = null;
@@ -81,6 +81,9 @@ class sdWeaponBench extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._key_cooldown > 0 )
+		this._key_cooldown -= GSPEED;
+	
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -412,6 +415,8 @@ class sdWeaponBench extends sdEntity
 				if ( key._access_id === this._access_id )
 				{
 					this.locked = !this.locked; // Lock / unlock depending on current status
+					
+					sdSound.PlaySound({ name:'gun_defibrillator', x:this.x, y:this.y, volume:1, pitch:1.5 });
 					sdSound.PlaySound({ name:'adoor_start', x:this.x, y:this.y, volume:1.5, pitch:1.2 });
 				}
 				else
@@ -452,6 +457,7 @@ class sdWeaponBench extends sdEntity
 			{
 				if ( command_name === 'CREATE_KEY' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+				if ( this._key_cooldown <= 0 )
 				{
 					if ( this.locked && !exectuter_character._god )
 					return;
@@ -460,7 +466,9 @@ class sdWeaponBench extends sdEntity
 					key.sd_filter = sdWorld.CreateSDFilter();
 					key.sd_filter.s = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 					
-					sdEntity.entities.push( key )
+					sdEntity.entities.push( key );
+					
+					this._key_cooldown = 120;
 					
 					return;
 				}
