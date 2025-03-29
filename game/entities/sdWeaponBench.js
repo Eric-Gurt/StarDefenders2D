@@ -56,6 +56,13 @@ class sdWeaponBench extends sdEntity
 		this._key_cooldown = 0;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
 		
+		let hex = '#';
+		let str = '0123456789abcdef';
+		for ( let i = 0; i < 6; i++ )
+		hex += str.charAt( ~~( Math.random() * str.length ) );
+	
+		this._key_color = hex;
+		
 		this.gun_password = null;
 		
 		this._current_category_stack = [];
@@ -480,6 +487,9 @@ class sdWeaponBench extends sdEntity
 					let keycard = new sdGun({ x:exectuter_character.x, y:exectuter_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
 					
 					sdEntity.entities.push( keycard );
+				
+					keycard.sd_filter = sdWorld.CreateSDFilter( true );
+					sdWorld.ReplaceColorInSDFilter_v2( keycard.sd_filter, '#00ff00', this._key_color );
 					
 					this._key_cooldown = 60;
 					
@@ -533,7 +543,7 @@ class sdWeaponBench extends sdEntity
 							{
 								this.item0._access_id = parameters_array[ 0 ];
 								
-								this.gun_password = parameters_array[ 0 ]
+								this.gun_password = parameters_array[ 0 ];
 
 								this._update_version++;
 								executer_socket.SDServiceMessage( 'Keycard access ID updated' );
@@ -541,6 +551,31 @@ class sdWeaponBench extends sdEntity
 						}
 						else
 						executer_socket.SDServiceMessage( 'Access ID is too long' );
+					}
+					
+					return;
+				}
+				
+				if ( command_name === 'SET_KEY_HINT' ) // For keycard item, not this entity
+				if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+				{
+					if ( typeof parameters_array[ 0 ] === 'string' )
+					{
+						if ( parameters_array[ 0 ].length < 16 )
+						{
+							if ( this.item0.class === sdGun.CLASS_ACCESS_KEY )
+							{
+								if ( this.item0.extra )
+								{
+									this.item0.extra[ 15 ] = parameters_array[ 0 ]; // ID_TITLE = 15
+								
+									this._update_version++;
+									executer_socket.SDServiceMessage( 'Keycard hint has been set' );
+								}
+							}
+						}
+						else
+						executer_socket.SDServiceMessage( 'Hint is too long' );
 					}
 					
 					return;
@@ -876,7 +911,10 @@ class sdWeaponBench extends sdEntity
 							}
 						}
 						if ( item.class === sdGun.CLASS_ACCESS_KEY )
-						this.AddPromptContextOption( 'Set keycard access ID', 'SET_KEY_ID', [ undefined ], 'Enter new ID', this.gun_password, 32 );
+						{
+							this.AddPromptContextOption( 'Set keycard access ID', 'SET_KEY_ID', [ undefined ], 'Enter new ID', ( this.gun_password || '' ), 32 );
+							this.AddPromptContextOption( 'Set keycard hint', 'SET_KEY_HINT', [ undefined ], 'Enter hint', ( item.extra ? item.extra[ 15 ] : '' ), 32 ); // ID_TITLE = 15;
+						}
 					}
 				}
 			}
