@@ -9971,7 +9971,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ACCESS_KEY = 150 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'access_key' ),
-			sound: 'gun_defibrillator',
+			sound: 'sd_beacon',
 			sound_pitch: 1.5,
 			title: 'Access key',
 			slot: 7,
