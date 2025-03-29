@@ -493,6 +493,20 @@ class sdWeaponBench extends sdEntity
 						if ( parameters_array[ 0 ].length < 32 )
 						{
 							this._access_id = parameters_array[ 0 ];
+							
+							if ( parameters_array[ 0 ].length <= 3 || parameters_array[ 0 ] === '123456' )
+							{
+								let t = sdWorld.AnyOf( [ 
+									'I don\'t think this was the best idea...',
+									'I have a feeling my items wont be so safe here',
+									'Can this thing get hacked?',
+									'What\'s the worst that could happen?',
+									'Is that all I can come up with?',
+									'I mean, who else is gonna use this thing? Hopefully only me'
+								] );
+							
+								exectuter_character.Say ( t );
+							}
 
 							this._update_version++;
 							executer_socket.SDServiceMessage( 'Access ID updated, revoked old keys' );
