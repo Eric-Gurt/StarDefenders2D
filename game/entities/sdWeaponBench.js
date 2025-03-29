@@ -449,6 +449,7 @@ class sdWeaponBench extends sdEntity
 					'I need a key to do that',
 					'I don\'t have the key on me right now',
 					'No key... But have I tried looking under the mat?',
+					'I\'ve got to find the key, it has to be somewhere nearby...'
 				] );
 				character.Say ( t );
 			}
@@ -464,6 +465,11 @@ class sdWeaponBench extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
 			{
+				let key = null;
+				let potential_key = exectuter_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ];
+				if ( potential_key && potential_key.class === sdGun.CLASS_ACCESS_KEY )
+				key = potential_key;
+
 				if ( command_name === 'CREATE_KEY' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 				if ( this._key_cooldown <= 0 )
@@ -471,13 +477,11 @@ class sdWeaponBench extends sdEntity
 					if ( this.locked && !exectuter_character._god )
 					return;
 				
-					let key = new sdGun({ x:exectuter_character.x, y:exectuter_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
-					key.sd_filter = sdWorld.CreateSDFilter();
-					key.sd_filter.s = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+					let keycard = new sdGun({ x:exectuter_character.x, y:exectuter_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
 					
-					sdEntity.entities.push( key );
+					sdEntity.entities.push( keycard );
 					
-					this._key_cooldown = 120;
+					this._key_cooldown = 60;
 					
 					return;
 				}
@@ -544,10 +548,8 @@ class sdWeaponBench extends sdEntity
 				
 				if ( command_name === 'LOCK' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				{
-					let potential_key = exectuter_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ]
-						
-					this.LockLogic( exectuter_character, ( potential_key && potential_key.class === sdGun.CLASS_ACCESS_KEY ? potential_key : null ) );
+				{	
+					this.LockLogic( exectuter_character, key );
 				
 					return;
 				}
