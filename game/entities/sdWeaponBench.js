@@ -3,6 +3,7 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
+import sdEffect from './sdEffect.js';
 
 
 class sdWeaponBench extends sdEntity
