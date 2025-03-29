@@ -418,6 +418,8 @@ class sdWeaponBench extends sdEntity
 					
 					sdSound.PlaySound({ name:'gun_defibrillator', x:this.x, y:this.y, volume:1, pitch:1.5 });
 					sdSound.PlaySound({ name:'adoor_start', x:this.x, y:this.y, volume:1.5, pitch:1.2 });
+
+					this._update_version++;
 				}
 				else
 				{
@@ -428,9 +430,7 @@ class sdWeaponBench extends sdEntity
 						'Not again...',
 						'Insanity is doing the same thing over and over again and expecting different results'
 					] );
-					character.Say( t )
-
-					this._update_version++
+					character.Say( t );
 				}
 			}
 			else
