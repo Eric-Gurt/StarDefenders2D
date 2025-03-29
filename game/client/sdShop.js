@@ -349,6 +349,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 8, _min_build_tool_level: 18, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 20, _min_build_tool_level: 36, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdWeaponBench', type: 1,  _category:'Base equipment', _min_build_tool_level: 10 });
 			sdShop.options.push({ _class: 'sdWeaponMerger',_min_workbench_level: 5, _category:'Base equipment' });
 
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
