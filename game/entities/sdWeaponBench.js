@@ -252,20 +252,28 @@ class sdWeaponBench extends sdEntity
 		if ( this._broken )
 		{
 			if ( !this.locked )
-			for ( var i = 0; i < this.GetSlotsTotal(); i++ )
-			this.DropSlot( i );
+			{
+				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+				this.DropSlot( i );
+			}
 		
 			if ( this.locked )
+			{
 				sdWorld.SendEffect({ 
-				x:this.x, 
-				y:this.y, 
-				radius: 70, 
-				damage_scale: 7,
-				type:sdEffect.TYPE_EXPLOSION, 
-				owner:this,
-				can_hit_owner: false,
-				color: sdEffect.default_explosion_color
-			});
+					x:this.x, 
+					y:this.y, 
+					radius: 70, 
+					damage_scale: 7,
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					can_hit_owner: false,
+					color: sdEffect.default_explosion_color
+				});
+				
+				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+				if ( this[ 'item' + i ] )
+				this[ 'item' + i ].remove();
+			}
 
 			sdWorld.BasicEntityBreakEffect( this, 5 );
 		}
