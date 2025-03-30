@@ -63,8 +63,8 @@ class sdWeaponBench extends sdEntity
 		this._hmax = this.type === sdWeaponBench.TYPE_DISPLAY ? 5000 : 800;
 		this._hea = this._hmax;
 		
-		this._last_locked = sdWorld.time;
-		this._last_key_created = sdWorld.time;
+		this._last_locked = 0; // sdWorld.time;
+		this._last_key_created = 0; // sdWorld.time;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
 	
 		this._key_color = this.GetRandomColor();
