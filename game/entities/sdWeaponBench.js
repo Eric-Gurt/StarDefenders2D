@@ -840,11 +840,11 @@ class sdWeaponBench extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
 		{
+			if ( !this.locked )
 			for ( let i = 0; i < this.GetSlotsTotal(); i++ )
 			{
 				let item = this[ 'item' + i ]
 				if ( item )
-				if ( !this.locked )
 				{
 					
 					this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
