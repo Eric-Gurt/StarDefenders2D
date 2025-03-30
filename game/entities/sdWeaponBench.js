@@ -158,11 +158,12 @@ class sdWeaponBench extends sdEntity
 			
 			if ( item )
 			{
+				// TODO: fix variable names
 				let start_x = -14
 
 				let row_height = 11;
-				let row_offset_x = 11
-				let row_offset_y = 8;
+				let row_offset_x = 11.5
+				let row_offset_y = 7.5;
 				
 				if ( this.locked )
 				return;
