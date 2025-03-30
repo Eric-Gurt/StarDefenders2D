@@ -30,6 +30,16 @@ class sdWeaponBench extends sdEntity
 		return this.type === sdWeaponBench.TYPE_DISPLAY ? 8 : 1;
 	}
 	
+	GetRandomColor()
+	{
+		let hex = '#';
+		let str = '0123456789abcdef';
+		for ( let i = 0; i < 6; i++ )
+		hex += str.charAt( ~~( Math.random() * str.length ) );
+	
+		return hex;
+	}
+	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
 	
@@ -56,13 +66,8 @@ class sdWeaponBench extends sdEntity
 		this._lock_cooldown = 0;
 		this._key_cooldown = 0;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
-		
-		let hex = '#';
-		let str = '0123456789abcdef';
-		for ( let i = 0; i < 6; i++ )
-		hex += str.charAt( ~~( Math.random() * str.length ) );
 	
-		this._key_color = hex;
+		this._key_color = this.GetRandomColor();
 		
 		this.gun_password = null;
 		
@@ -511,6 +516,8 @@ class sdWeaponBench extends sdEntity
 						if ( parameters_array[ 0 ].length < 32 )
 						{
 							this._access_id = parameters_array[ 0 ];
+							
+							this._key_color = this.GetRandomColor();
 							
 							if ( parameters_array[ 0 ].length <= 3 || parameters_array[ 0 ] === '123456' )
 							{
