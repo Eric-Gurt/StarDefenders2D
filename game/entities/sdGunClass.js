@@ -9619,7 +9619,7 @@ class sdGunClass
 					if ( gun._held_by )
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
-						gun._held_by._auto_shoot_in = 50;
+						gun._held_by._auto_shoot_in = 40;
 						
 						if ( sdWorld.is_server )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
