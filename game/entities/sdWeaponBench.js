@@ -139,7 +139,13 @@ class sdWeaponBench extends sdEntity
 		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
-	{	
+	{
+		if ( sdShop.isDrawing )
+		{
+			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+			ctx.scale( 0.75, 0.75 );
+		}
+		
 		let xx = 0;
 		let yy = 0;
 
