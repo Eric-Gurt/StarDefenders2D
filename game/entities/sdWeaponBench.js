@@ -489,7 +489,7 @@ class sdWeaponBench extends sdEntity
 
 				if ( command_name === 'CREATE_KEY' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				if ( this._key_cooldown <= 0 )
+				if ( this._key_cooldown > 0 )
 				{
 					if ( this.locked && !exectuter_character._god )
 					return;
@@ -595,7 +595,7 @@ class sdWeaponBench extends sdEntity
 				
 				if ( command_name === 'LOCK' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				if ( this._lock_cooldown <= 0 )
+				if ( this._lock_cooldown > 0 )
 				{	
 					this.LockLogic( exectuter_character, key );
 					this._lock_cooldown = 20; // No sound spam
