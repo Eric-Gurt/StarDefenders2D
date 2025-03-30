@@ -63,8 +63,8 @@ class sdWeaponBench extends sdEntity
 		this._hmax = this.type === sdWeaponBench.TYPE_DISPLAY ? 5000 : 800;
 		this._hea = this._hmax;
 		
-		this._lock_cooldown = 0;
-		this._key_cooldown = 0;
+		this._last_locked = sdWorld.time;
+		this._last_key_created = sdWorld.time;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
 	
 		this._key_color = this.GetRandomColor();
@@ -95,12 +95,6 @@ class sdWeaponBench extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._lock_cooldown > 0 )
-		this._lock_cooldown -= GSPEED;
-	
-		if ( this._key_cooldown > 0 )
-		this._key_cooldown -= GSPEED;
-	
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -115,11 +109,11 @@ class sdWeaponBench extends sdEntity
 			let item = this[ 'item' + i ];
 			if ( item )
 			item.UpdateHeldPosition();
+		}
 		
-			if ( this._hea >= this._hmax )
-			{
+		if ( this._hea >= this._hmax )
+		{
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
-			}
 		}
 	}
 	get title()
@@ -451,7 +445,7 @@ class sdWeaponBench extends sdEntity
 					sdSound.PlaySound({ name:'gun_defibrillator', x:this.x, y:this.y, volume:1, pitch:1.5 });
 					sdSound.PlaySound({ name:'adoor_start', x:this.x, y:this.y, volume:1.5, pitch:1.2 });
 					
-					this._lock_cooldown = 0;
+					this._last_locked = sdWorld.time;
 
 					this._update_version++;
 				}
@@ -497,7 +491,7 @@ class sdWeaponBench extends sdEntity
 
 				if ( command_name === 'CREATE_KEY' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				if ( this._key_cooldown <= 0 )
+				if ( sdWorld.time > this._last_key_created + 3000 )
 				{
 					if ( this.locked && !exectuter_character._god )
 					return;
@@ -509,7 +503,7 @@ class sdWeaponBench extends sdEntity
 					keycard.sd_filter = sdWorld.CreateSDFilter( true );
 					sdWorld.ReplaceColorInSDFilter_v2( keycard.sd_filter, '#00ff00', this._key_color );
 					
-					this._key_cooldown = 60;
+					this._last_key_created = sdWorld.time;
 					
 					return;
 				}
@@ -603,10 +597,9 @@ class sdWeaponBench extends sdEntity
 				
 				if ( command_name === 'LOCK' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				if ( this._lock_cooldown <= 0 )
+				if ( sdWorld.time > this._last_locked + 1000 ) // No sound spam
 				{	
 					this.LockLogic( exectuter_character, key );
-					this._lock_cooldown = 20; // No sound spam
 				
 					return;
 				}
