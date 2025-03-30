@@ -450,6 +450,8 @@ class sdWeaponBench extends sdEntity
 					
 					sdSound.PlaySound({ name:'gun_defibrillator', x:this.x, y:this.y, volume:1, pitch:1.5 });
 					sdSound.PlaySound({ name:'adoor_start', x:this.x, y:this.y, volume:1.5, pitch:1.2 });
+					
+					this._lock_cooldown = 0;
 
 					this._update_version++;
 				}
@@ -495,7 +497,7 @@ class sdWeaponBench extends sdEntity
 
 				if ( command_name === 'CREATE_KEY' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				if ( this._key_cooldown > 0 )
+				if ( this._key_cooldown <= 0 )
 				{
 					if ( this.locked && !exectuter_character._god )
 					return;
@@ -601,7 +603,7 @@ class sdWeaponBench extends sdEntity
 				
 				if ( command_name === 'LOCK' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-				if ( this._lock_cooldown > 0 )
+				if ( this._lock_cooldown <= 0 )
 				{	
 					this.LockLogic( exectuter_character, key );
 					this._lock_cooldown = 20; // No sound spam
