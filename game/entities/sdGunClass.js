@@ -5117,9 +5117,9 @@ class sdGunClass
 				
 				if ( gun._held_by )
 				{
-					let m = Math.min( 20, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
+					let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
 					obj.explosion_radius *= m;
-					gun._reload_time = 5 * ( 1 + m ) / 2;
+					gun._reload_time = 7 * ( 1 + m ) / 2;
 				}
 				
 				return obj;
@@ -5130,7 +5130,7 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				let m = Math.min( 20, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
+				let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
 				gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
 				
 				if ( gun.extra === 1 )
@@ -9619,7 +9619,7 @@ class sdGunClass
 					if ( gun._held_by )
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
-						gun._held_by._auto_shoot_in = 40;
+						gun._held_by._auto_shoot_in = 35;
 						
 						if ( sdWorld.is_server )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
@@ -9633,7 +9633,7 @@ class sdGunClass
 					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
 				}
 			},
-			projectile_properties: { model: 'ball_large', _damage: 350, color: '#FF0000' },
+			projectile_properties: { model: 'ball_large', _damage: 400, color: '#FF0000' },
 			projectile_properties_dynamic: ( gun )=>
 			{
 				return { 
@@ -9668,7 +9668,7 @@ class sdGunClass
 								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
 								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
-									e.DamageWithEffect( GSPEED * 16, owner, false, false );
+									e.DamageWithEffect( GSPEED * 32, owner, false, false );
 
 									if ( e.IsPlayerClass() )
 									{
@@ -9686,14 +9686,14 @@ class sdGunClass
 							sdWorld.SendEffect({ 
 								x:bullet.x, 
 								y:bullet.y, 
-								radius:45,
-								damage_scale: 4,
+								radius:48,
+								damage_scale: 5,
 								type:sdEffect.TYPE_EXPLOSION, 
 								owner:bullet._owner,
 								color:'#FF0000',
 							});
 
-							let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+							let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
 
 							for ( let i = 0; i < nears.length; i++ )
 							{
@@ -9715,7 +9715,7 @@ class sdGunClass
 					
 					gun.extra[ ID_DAMAGE_MULT ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 350; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 400; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
