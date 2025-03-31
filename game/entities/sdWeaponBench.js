@@ -314,7 +314,7 @@ class sdWeaponBench extends sdEntity
 		return;
 	
 		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
+		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_METAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
 		{
 			if ( from_entity._held_by === null )
 			{
@@ -935,13 +935,13 @@ class sdWeaponBench extends sdEntity
 			}
 			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 			{
-				this.AddContextOption( 'Toggle lock', 'LOCK', [ ], false );
+				this.AddContextOption( 'Toggle lock', 'LOCK', [ ] );
 				
 				if ( !this.locked || exectuter_character._god )
 				{
 					this.AddPromptContextOption( 'Set access ID', 'SET_KEY', [ undefined ], 'Enter new ID', '', 32 );
 				
-					this.AddContextOption( 'Generate access key', 'CREATE_KEY', [ ], false );
+					this.AddContextOption( 'Generate access key', 'CREATE_KEY', [ ] );
 				}
 			}
 		}
