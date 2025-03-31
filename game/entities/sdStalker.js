@@ -201,6 +201,8 @@ class sdStalker extends sdEntity
 					character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS }); // Permanent
 					
 					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_RIFLE });
+					sdEntity.entities.push( gun );
+					
 					setTimeout(()=> {
 						if ( !character_entity._is_being_removed )
 						{
@@ -758,7 +760,7 @@ class sdStalker extends sdEntity
 						bullet_obj.sx *= 20;
 						bullet_obj.sy *= 20;
 
-						bullet_obj._damage = 350;
+						bullet_obj._damage = 400;
 						bullet_obj.color = '#FF0000';
 						bullet_obj.model = 'ball_large'
 						
@@ -769,14 +771,14 @@ class sdStalker extends sdEntity
 								sdWorld.SendEffect({ 
 									x:bullet.x, 
 									y:bullet.y, 
-									radius:45,
-									damage_scale: 4,
+									radius:48,
+									damage_scale: 5,
 									type:sdEffect.TYPE_EXPLOSION, 
 									owner:bullet._owner,
 									color:'#FF0000',
 								});
 
-								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
 
 								for ( let i = 0; i < nears.length; i++ )
 								{
