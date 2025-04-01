@@ -9593,8 +9593,10 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_CANNON = 146 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ), 
+			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_cannon2' ),
 			image_charging: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
+			image_charging_alt: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
 			title: 'Stalker Annihilator',
 			slot: 5,
 			reload_time: 20,
@@ -9602,6 +9604,8 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -9622,6 +9626,7 @@ class sdGunClass
 						gun._held_by._auto_shoot_in = 35;
 						
 						if ( sdWorld.is_server )
+						if ( gun.fire_mode === 2 )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
@@ -9669,15 +9674,22 @@ class sdGunClass
 									if ( !e.is( sdGun ) )
 									if ( !e.is( sdBullet ) )
 									e.DamageWithEffect( GSPEED * 32, owner, false, false );
-									
-									if ( typeof e.sx !== 'undefined' )
-									if ( typeof e.sy !== 'undefined' )
+								
+									if ( gun.fire_mode === 2 )
 									{
-										let an = ( Math.atan2( bullet.x - e.x, bullet.y - e.y ) ) // Pull enemies into the bullet to make it easier to hit
+										if ( typeof e.sx !== 'undefined' )
+										if ( typeof e.sy !== 'undefined' )
+										{
+											if ( e.is( sdBullet ) )
+											e._owner = owner;
+										
+											let an = ( Math.atan2( bullet.x - e.x, bullet.y - e.y ) ) // Pull enemies into the bullet to make it easier to hit
 		
-										e.sx += ( Math.sin ( an ) * 5 ) / ( e.mass * 0.05 );
-										e.sy += ( Math.cos ( an ) * 5 ) / ( e.mass * 0.05 );
+											e.sx += ( Math.sin ( an ) * 5 ) / ( e.mass * 0.05 );
+											e.sy += ( Math.cos ( an ) * 5 ) / ( e.mass * 0.05 );
+										}
 									}
+									
 									if ( e.IsPlayerClass() )
 									{
 										if ( sdWorld.is_server )
