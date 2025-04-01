@@ -9633,7 +9633,7 @@ class sdGunClass
 					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
 				}
 			},
-			projectile_properties: { model: 'ball_large', _damage: 400, color: '#FF0000' },
+			projectile_properties: { model: 'ball_large', _damage: 500, color: '#FF0000' },
 			projectile_properties_dynamic: ( gun )=>
 			{
 				return { 
@@ -9669,7 +9669,15 @@ class sdGunClass
 								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
 									e.DamageWithEffect( GSPEED * 32, owner, false, false );
-
+									
+									if ( typeof e.sx !== 'undefined' )
+									if ( typeof e.sy !== 'undefined' )
+									{
+										let an = ( Math.atan2( bullet.x - e.x, bullet.y - e.y ) ) // Pull enemies into the bullet to make it easier to hit
+		
+										e.sx += Math.sin ( an ) * 3;
+										e.sy += Math.cos ( an ) * 3;
+									}
 									if ( e.IsPlayerClass() )
 									{
 										if ( sdWorld.is_server )
@@ -9715,7 +9723,7 @@ class sdGunClass
 					
 					gun.extra[ ID_DAMAGE_MULT ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 400; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 500; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
