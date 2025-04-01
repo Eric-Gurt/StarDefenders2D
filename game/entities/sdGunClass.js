@@ -9693,6 +9693,7 @@ class sdGunClass
 									if ( e.IsPlayerClass() )
 									{
 										if ( sdWorld.is_server )
+										if ( gun.fire_mode === 2 )
 										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 									}
 								}
@@ -9712,14 +9713,17 @@ class sdGunClass
 								owner:bullet._owner,
 								color:'#FF0000',
 							});
-
-							let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
-
-							for ( let i = 0; i < nears.length; i++ )
+							
+							if ( gun.fire_mode === 2 )
 							{
-								if ( nears[ i ].IsPlayerClass() )
+								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
+
+								for ( let i = 0; i < nears.length; i++ )
 								{
-									nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									if ( nears[ i ].IsPlayerClass() )
+									{
+										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									}
 								}
 							}
 						}
