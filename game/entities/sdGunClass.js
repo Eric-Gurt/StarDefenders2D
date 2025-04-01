@@ -9675,8 +9675,8 @@ class sdGunClass
 									{
 										let an = ( Math.atan2( bullet.x - e.x, bullet.y - e.y ) ) // Pull enemies into the bullet to make it easier to hit
 		
-										e.sx += Math.sin ( an ) * 3;
-										e.sy += Math.cos ( an ) * 3;
+										e.sx += ( Math.sin ( an ) * 5 ) / ( e.mass * 0.05 );
+										e.sy += ( Math.cos ( an ) * 5 ) / ( e.mass * 0.05 );
 									}
 									if ( e.IsPlayerClass() )
 									{
