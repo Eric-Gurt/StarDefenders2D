@@ -9659,8 +9659,6 @@ class sdGunClass
 							if ( e !== bullet && e !== owner )
 							if ( e._is_bg_entity === bullet._is_bg_entity )
 							if ( e.IsTargetable( owner ) )
-							if ( !e.is( sdGun ) )
-							if ( !e.is( sdBullet ) )
 							{
 								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
@@ -9668,6 +9666,8 @@ class sdGunClass
 								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
 								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
+									if ( !e.is( sdGun ) )
+									if ( !e.is( sdBullet ) )
 									e.DamageWithEffect( GSPEED * 32, owner, false, false );
 									
 									if ( typeof e.sx !== 'undefined' )
