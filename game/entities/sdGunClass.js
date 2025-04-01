@@ -9614,7 +9614,11 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
+				if ( gun.fire_mode === 1 )
 				return 150;
+			
+				if ( gun.fire_mode === 2 )
+				return 300; 
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
