@@ -9491,7 +9491,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spread: 0,
-            		spawnable: false,
+			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{	
 				return 60;
@@ -9640,6 +9640,19 @@ class sdGunClass
 				else
 				{
 					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
+					if ( gun.fire_mode === 2 )
+					if ( gun._held_by )
+					if ( !gun._held_by._is_being_removed )
+					{
+						let owner = gun._held_by;
+						
+						if ( owner.look_x && owner.look_y ) // Prevent weird bugs
+						{
+							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) )
+							owner.sx += Math.sin ( an ) * 10;
+							owner.sy += Math.cos ( an ) * 10;
+						}
+					}
 				}
 			},
 			projectile_properties: { model: 'ball_large', _damage: 500, color: '#FF0000' },
