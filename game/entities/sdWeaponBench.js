@@ -126,7 +126,11 @@ class sdWeaponBench extends sdEntity
 	}
 	get description()
 	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 		return `Can be used to customize appearance and upgrade properties of your weapons. In order to drop weapon onto weapon modification bench - press V. Then right click on weapon modification bench for more options.`;
+	
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		return `Allows for secure item storage, can be locked via access keys and will self destruct in case of an intrusion attempt. Right click on weapon display locker for configuration and more options.`;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
