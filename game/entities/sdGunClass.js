@@ -9655,7 +9655,7 @@ class sdGunClass
 					}
 				}
 			},
-			projectile_properties: { model: 'ball_large', _damage: 500, color: '#FF0000' },
+			projectile_properties: { model: 'ball_large', _damage: 350, color: '#FF0000' },
 			projectile_properties_dynamic: ( gun )=>
 			{
 				let obj =
