@@ -9615,10 +9615,10 @@ class sdGunClass
 				return 0;
 				
 				if ( gun.fire_mode === 1 )
-				return 150;
+				return 250;
 			
 				if ( gun.fire_mode === 2 )
-				return 300; 
+				return 500; 
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -9645,8 +9645,8 @@ class sdGunClass
 			projectile_properties: { model: 'ball_large', _damage: 500, color: '#FF0000' },
 			projectile_properties_dynamic: ( gun )=>
 			{
-				return { 
-					_damage: 0,
+				let obj =
+				{ 
 					model: 'ball_large',
 					_hittable_by_bullets: false,
 					time_left: 60,
@@ -9733,6 +9733,11 @@ class sdGunClass
 						}
 					} 
 				}
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.fire_mode === 2 ? gun.extra[ ID_ALT_DAMAGE_VALUE ] : gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				
+				return obj;
 			},
 			
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
@@ -9743,7 +9748,8 @@ class sdGunClass
 					
 					gun.extra[ ID_DAMAGE_MULT ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 500; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 350; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 600; // Damage value of the alternative firing mode bullet
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
