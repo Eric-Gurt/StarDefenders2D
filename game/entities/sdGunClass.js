@@ -9646,11 +9646,12 @@ class sdGunClass
 					{
 						let owner = gun._held_by;
 						
+						if ( owner.hea <= owner.hmax / 2 )
 						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
 						{
 							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) )
-							owner.sx += Math.sin ( an ) * 7;
-							owner.sy += Math.cos ( an ) * 7;
+							owner.sx += Math.sin ( an ) * 10;
+							owner.sy += Math.cos ( an ) * 10;
 						}
 					}
 				}
