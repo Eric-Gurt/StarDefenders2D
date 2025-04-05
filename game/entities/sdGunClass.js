@@ -9646,7 +9646,7 @@ class sdGunClass
 					{
 						let owner = gun._held_by;
 						
-						if ( owner.hea <= owner.hmax / 2 )
+						if ( owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
 						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
 						{
 							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) )
