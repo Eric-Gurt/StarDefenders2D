@@ -759,6 +759,9 @@ class sdStalker extends sdEntity
 
 						bullet_obj.sx *= 20;
 						bullet_obj.sy *= 20;
+						
+						bullet_obj.x += bullet_obj.sx * 1.5;
+						bullet_obj.y += bullet_obj.sy * 1.5;
 
 						bullet_obj._damage = 700;
 						bullet_obj.color = '#FF0000';
