@@ -5364,6 +5364,7 @@ THING is cosmic mic drop!`;
 			}
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( sdRenderer.effects_quality > 1 )
 			{
 				if ( this._jetpack_smoke_timer > 0 )
 				this._jetpack_smoke_timer -= GSPEED;
