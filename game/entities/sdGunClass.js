@@ -9831,6 +9831,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_STALKER_RIFLE = 148 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_clone_rifle' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_clone_rifle2' ),
 			sound: 'alien_laser1',
 			title: 'Stalker Rapid Rifle',
 			slot: 2,
@@ -9840,6 +9841,8 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -9850,6 +9853,13 @@ class sdGunClass
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+			
+				if ( gun.fire_mode === 2 )
+				{
+					obj._homing = true;
+					obj._homing_mult = 0.1;
+					obj.ac = 0.2;
+				}
 				
 				return obj;
 			},
