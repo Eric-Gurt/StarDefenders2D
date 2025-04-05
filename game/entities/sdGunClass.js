@@ -9938,6 +9938,8 @@ class sdGunClass
 										class: sdGun.CLASS_STALKER_RIFLE
 									}); 
 									sdEntity.entities.push( ent2 );
+									
+									ent2.fire_mode = Math.random() > 0.5 ? 1 : 2;
 
 									sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
