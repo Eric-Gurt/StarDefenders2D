@@ -201,6 +201,8 @@ class sdStalker extends sdEntity
 					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_RIFLE });
 					sdEntity.entities.push( gun );
 					
+					gun.fire_mode = Math.random() > 0.5 ? 1 : 2;
+					
 					setTimeout(()=> {
 						if ( !character_entity._is_being_removed )
 						{
