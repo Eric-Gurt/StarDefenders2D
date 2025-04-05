@@ -96,8 +96,6 @@ class sdStalker extends sdEntity
 		
 		this._last_damage = 0; // Sound flood prevention
 		
-		this.side = 1;
-		
 		this.alpha = 100;
 				
 		sdStalker.stalker_counter++;
@@ -476,7 +474,6 @@ class sdStalker extends sdEntity
 					this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 ), 0.98, GSPEED * 2 );
 					let an = Math.atan2( this.look_y - this.y, Math.abs( this.look_x - this.x ));
 					this.tilt = an * 100;
-					this.side = ( this.look_x > this.x ) ? -1 : 1;
 				}
 				else
 				{
@@ -873,7 +870,8 @@ class sdStalker extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.scale( -this.side, 1 );
+		let side =  ( this.look_x > this.x ) ? 1 : -1;
+		ctx.scale( side, 1 );
 
 		ctx.rotate( this.tilt / 100 );
 		let xx = this.hea <= this._hmax / 3;
