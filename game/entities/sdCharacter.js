@@ -597,7 +597,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'clone' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'clone' || this._voice.variant === 'swordbot' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -1495,6 +1495,8 @@ THING is cosmic mic drop!`;
 		this.bleed_effect = this.GetBleedEffect(); // Clients need it in order to play proper walk sound
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
+		
+		this._jetpack_smoke_timer = 0; // Client-side
 		
 		sdCharacter.characters.push( this );
 	}
@@ -5358,6 +5360,21 @@ THING is cosmic mic drop!`;
 				{
 					this.sx += x_force * GSPEED;
 					this.sy += y_force * GSPEED;
+				}
+			}
+			
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			{
+				if ( this._jetpack_smoke_timer > 0 )
+				this._jetpack_smoke_timer -= GSPEED;
+			
+				if ( this._jetpack_smoke_timer <= 0 )
+				{
+					let offset = ( this.look_x > this.x ) ? -6 : 6;
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + offset, y:this.y, sx: -Math.random() + Math.random(), sy: 1 * Math.random() * 3, scale:0.5, radius:0.333, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
+					sdEntity.entities.push( e );
+					
+					this._jetpack_smoke_timer = 1;
 				}
 			}
 		}
