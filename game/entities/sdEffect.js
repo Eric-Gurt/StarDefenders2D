@@ -1072,7 +1072,7 @@ class sdEffect extends sdEntity
 			}
 		}
 		
-		if ( this._type === sdEffect.TYPE_GLASS )
+		if ( this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL )
 		{
 			this._rotation += this.sx * 0.5 * GSPEED;
 		}
