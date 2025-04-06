@@ -3912,7 +3912,7 @@ class sdWorld
 		return 'none';
 	}
 	
-	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, type=sdEffect.TYPE_ROCK )
+	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, sound='blockB4', type=sdEffect.TYPE_ROCK )
 	{
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
@@ -3920,7 +3920,7 @@ class sdWorld
 			return;
 			
 			if ( volume > 0 )
-			sdSound.PlaySound({ name:'blockB4', 
+			sdSound.PlaySound({ name:sound, 
 				x: that.x, 
 				y: that.y, 
 				volume: volume, 
