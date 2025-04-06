@@ -979,6 +979,11 @@ class sdEffect extends sdEntity
 		return sdEffect.unignored_entity_classes_arr;
 	}
 	
+	get bounce_intensity()
+	{
+		return this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL ? 0.25 : 0; 
+	}
+
 	get _text_target_x()
 	{
 		return this._attachment.x + this._attachment_x;
