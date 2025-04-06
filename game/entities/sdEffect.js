@@ -65,6 +65,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_SPARK = 28;
 		sdEffect.TYPE_SMOKE = 29;
 		sdEffect.TYPE_LENS_FLARE = 30;
+		sdEffect.TYPE_GLASS = 31
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -393,6 +394,17 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'lens_flare' )
 			],
 			speed: 1 / 20,
+			apply_shading: false
+		};
+		
+		sdEffect.types[ sdEffect.TYPE_GLASS ] = {
+			images: [ sdWorld.CreateImageFromFile( 'glass' ) ],
+			speed: 1 / 90,
+			random_speed_percentage: 0.5,
+			random_flip: true,
+			random_rotation: true,
+			gravity: true,
+			collisions: true,
 			apply_shading: false
 		};
 	
@@ -1054,6 +1066,11 @@ class sdEffect extends sdEntity
 				sdEntity.entities.push( e );
 			}
 		}
+		
+		if ( this._type === sdEffect.TYPE_GLASS )
+		{
+			this._rotation += this.sx * 0.5 * GSPEED;
+		}
 
 		if ( this._ani >= this._duration )
 		{
@@ -1432,6 +1449,11 @@ class sdEffect extends sdEntity
 			ctx.filter = this._filter;
 			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 96 + (frame%3)*32, 0 + ~~(frame/3)*32, 32,32, -16,-16,32,32 );
 			ctx.filter = 'none';
+		}
+		else
+		if ( this._type === sdEffect.TYPE_GLASS )
+		{
+			ctx.rotate( this._rotation );
 		}
 		else
 		if ( sdEffect.types[ this._type ].spritesheet )
