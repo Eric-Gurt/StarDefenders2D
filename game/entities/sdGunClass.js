@@ -9766,10 +9766,11 @@ class sdGunClass
 					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 600; // Damage value of the alternative firing mode bullet
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' ) )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_BEAM = 147 ] = 
@@ -9822,10 +9823,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' ) )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_RIFLE = 148 ] = 
@@ -9877,10 +9879,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' ) )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = 
@@ -10023,10 +10026,11 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 1; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_ACCESS_KEY = 150 ] = 
