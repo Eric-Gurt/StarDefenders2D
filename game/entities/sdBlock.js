@@ -2407,7 +2407,7 @@ class sdBlock extends sdEntity
 					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
 					else
 					if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
-					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GLASS, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GLASS, sx: Math.sin(a)*s*1.5, sy: Math.cos(a)*s*1.5 }) );
 					else
 					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
 				}
