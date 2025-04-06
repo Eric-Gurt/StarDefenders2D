@@ -9661,7 +9661,7 @@ class sdGunClass
 			{
 				let obj =
 				{ 
-					model: 'ball_large',
+					model: gun.fire_mode === 2 ? 'ball_large_circled' : 'ball_large',
 					_hittable_by_bullets: false,
 					time_left: 60,
 					color: '#FF0000',
