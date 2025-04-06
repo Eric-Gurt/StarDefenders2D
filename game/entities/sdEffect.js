@@ -262,7 +262,8 @@ class sdEffect extends sdEntity
 			random_speed_percentage: 0.1,
 			random_flip: false,
 			gravity: true,
-			collisions: true
+			collisions: true,
+			bounce_intensity: 0.333
 		};
 		sdEffect.types[ sdEffect.TYPE_HEARTS ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_hearts' ) ],
@@ -405,6 +406,7 @@ class sdEffect extends sdEntity
 			random_rotation: true,
 			gravity: true,
 			collisions: true,
+			bounce_intensity: 0.25,
 			apply_shading: false
 		};
 	
@@ -977,11 +979,6 @@ class sdEffect extends sdEntity
 	GetNonIgnoredEntityClasses()
 	{
 		return sdEffect.unignored_entity_classes_arr;
-	}
-	
-	get bounce_intensity()
-	{
-		return this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL ? 0.25 : 0; 
 	}
 
 	get _text_target_x()
