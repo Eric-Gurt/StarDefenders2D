@@ -1555,7 +1555,6 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals--;
 
-
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
 			sdJunk.council_bombs--;
@@ -1567,6 +1566,11 @@ class sdJunk extends sdEntity
 			sdJunk.erthal_beacons--;
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
+		}
+		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
+		{
+			if ( this._broken )
+			sdWorld.BasicEntityBreakEffect( this, 8, 3, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
 		}
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
@@ -1583,10 +1587,11 @@ class sdJunk extends sdEntity
 				sdWorld.BasicEntityBreakEffect( this, 10 );
 			}
 		}
-		if ( this.type === sdJunk.TYPE_METAL_CHUNK && this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
-		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT && this._broken );
-		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
+		if ( this.type === sdJunk.TYPE_METAL_CHUNK || this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+		{
+			if ( this._broken )
+			sdWorld.BasicEntityBreakEffect( this, 8, 3, 0.75, 0.75 );
+		}
 	}
 	MeasureMatterCost()
 	{
