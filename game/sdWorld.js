@@ -3924,7 +3924,8 @@ class sdWorld
 				x: that.x, 
 				y: that.y, 
 				volume: volume, 
-				pitch: pitch });
+				pitch: pitch,
+				_server_allowed: true });
 			
 			for ( let i = 0; i < debris_count; i++ )
 			{
