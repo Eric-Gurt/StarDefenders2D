@@ -1570,7 +1570,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
 		{
 			if ( this._broken )
-			sdWorld.BasicEntityBreakEffect( this, 8, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
+			sdWorld.BasicEntityBreakEffect( this, 10, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
 		}
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
@@ -1590,7 +1590,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_METAL_CHUNK || this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 		{
 			if ( this._broken )
-			sdWorld.BasicEntityBreakEffect( this, 8, 3, 0.75, 0.75 );
+			sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
 		}
 	}
 	MeasureMatterCost()
