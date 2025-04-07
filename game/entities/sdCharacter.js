@@ -5372,7 +5372,7 @@ THING is cosmic mic drop!`;
 				if ( this._jetpack_smoke_timer <= 0 )
 				{
 					let offset = ( this.look_x > this.x ) ? -6 : 6;
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + offset, y:this.y, sx: -Math.random() + Math.random(), sy: 1 * Math.random() * 3, scale:0.5, radius:0.333, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + offset, y:this.y, sx: -Math.random() + Math.random(), sy: 1 + Math.random() * 3, scale:0.5, radius:0.333, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
 					sdEntity.entities.push( e );
 					
 					this._jetpack_smoke_timer = 1;
