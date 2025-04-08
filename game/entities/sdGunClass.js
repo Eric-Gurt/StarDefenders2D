@@ -894,6 +894,10 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_RAILGUN = 3 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'railgun' ),
+			image0: [ sdWorld.CreateImageFromFile( 'railgun_reload0' ), sdWorld.CreateImageFromFile( 'railgun_reload1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'railgun_reload0' ), sdWorld.CreateImageFromFile( 'railgun_reload1' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'railgun' ), sdWorld.CreateImageFromFile( 'railgun' ) ],
+			has_images: true,
 			sound: 'gun_railgun',
 			title: 'Railgun',
 			slot: 4,
@@ -902,7 +906,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
-			projectile_properties: { _damage:1 }, // Set properties inside projectile_properties_dynamic
+			projectile_properties: { _damage:1, color: '#62c8f2' }, // Set properties inside projectile_properties_dynamic
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -961,6 +965,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -1050,14 +1055,15 @@ class sdGunClass
 			count: 1,
 			matter_cost: 60,
 			projectile_velocity: 16,
-			projectile_properties: { _damage: 1 },
+			projectile_properties: { _damage: 1, color:'#00ffff' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1 };
+				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -1174,6 +1180,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -2267,7 +2274,7 @@ class sdGunClass
 			//burst: 3, // Burst fire count // EG: Having 2 cooldown (reload and burst cooldown) feels like a downgrade
 			//burst_reload: 30, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 6,
-			projectile_properties: { _damage: 25 },
+			projectile_properties: { _damage: 14 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { };
@@ -2300,7 +2307,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 14; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -2481,6 +2488,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -2805,7 +2813,8 @@ class sdGunClass
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
-							color:'#ffff66' 
+							color:'#ffff66',
+							no_smoke: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
@@ -2827,6 +2836,10 @@ class sdGunClass
 		
 		const cable_reaction_method = ( bullet, target_entity )=>
 		{
+			// Someone fired cable tool and then dropped it onto weaponbench?
+			if ( !bullet._owner || !bullet._owner.IsPlayerClass() )
+			return;
+			
 			if ( bullet._owner._current_built_entity )
 			if ( !bullet._owner._current_built_entity.is( sdCable ) )
 			bullet._owner._current_built_entity = null;
@@ -3315,19 +3328,22 @@ class sdGunClass
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8,
-            reload_time: 60,
+            reload_time: 5,
+			burst: 3,
+			burst_reload: 60,
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
 			spawnable: false,
-            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20 },
+            projectile_properties: { _rail: true, _damage: 76, color: '#62c8f2', explosion_radius: 10, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 20 };
+				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 10, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -3348,7 +3364,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 98; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 76 // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -3843,14 +3859,15 @@ class sdGunClass
 			spawnable:false,
 			projectile_velocity: 16,
 			fire_type: 2,
-			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff', _dirt_mult: 1 },
+			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff', _dirt_mult: 1, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 7, model: 'ball', color:'#00aaff', _dirt_mult: 1 };
+				let obj = { explosion_radius: 7, model: 'ball', color:'#00aaff', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
@@ -4176,14 +4193,15 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
 				}
 			},
-			projectile_properties: { explosion_radius: 24, model: 'sarronian_bolt', _damage: 128, color: '#00c600' },
+			projectile_properties: { explosion_radius: 24, model: 'sarronian_bolt', _damage: 128, color: '#00c600', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 24, model: 'sarronian_bolt', color: '#00c600' };
+				let obj = { explosion_radius: 24, model: 'sarronian_bolt', color: '#00c600', _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -4288,6 +4306,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4611,6 +4630,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -4750,14 +4770,15 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7' }, // 3x more damage against vehicles
+			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7', _no_explosion_smoke: true }, // 3x more damage against vehicles
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 16, _rail: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7' };
+				let obj = { explosion_radius: 16, _rail: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7', _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -4797,14 +4818,15 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { model: 'sarronian_ball', color: '#00c600', explosion_radius: 12 },
+			projectile_properties: { model: 'sarronian_ball', color: '#00c600', explosion_radius: 12, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _damage: 32, model: 'sarronian_ball', color: '#00c600', explosion_radius: 12 };
+				let obj = { _damage: 32, model: 'sarronian_ball', color: '#00c600', explosion_radius: 12, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -5084,12 +5106,12 @@ class sdGunClass
 			projectile_velocity: 12,
 			projectile_properties: { 
 				
-				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa',
+				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
 			},
 			projectile_properties_dynamic: ( gun )=>{
 				
 				let obj = { 
-					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa',
+					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
 				};
 				
 				if ( gun._held_by )
@@ -5279,7 +5301,8 @@ class sdGunClass
 					damage_scale: 0, // Just a decoration effect
 					type: sdEffect.TYPE_EXPLOSION, 
 					owner: this,
-					color: '#aaaaaa'
+					color: '#aaaaaa',
+					no_smoke: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 33 * dmg_scale, bullet, sdLost.FILTER_WHITE );
@@ -5531,13 +5554,13 @@ class sdGunClass
 			muzzle_x: 7,
 			ammo_capacity: 10,
 			count: 4,
-			spread: 0.13,
+			spread: 0.18,
 			spawnable: false,
 			projectile_velocity: 16,
-			projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1 },
+			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 10, model: 'ball', color:'#0000c8', _dirt_mult: 1 };
+				let obj = { explosion_radius: 10, model: 'ball', color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -5546,6 +5569,7 @@ class sdGunClass
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -5589,6 +5613,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -7194,7 +7219,8 @@ class sdGunClass
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
-							color:'#ffffff' 
+							color:'#ffffff',
+							no_smoke: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
@@ -8048,10 +8074,10 @@ class sdGunClass
 			ammo_capacity: 12,
 			spread: 0.12,
 			spawnable: false,
-			projectile_properties: { _dirt_mult: 1.25, model: 'sarronian_ball', color: '#00c600' },
+			projectile_properties: { _dirt_mult: 1.25, model: 'sarronian_ball', color: '#00c600', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: 1.25, model: 'sarronian_ball', color: '#00c600', explosion_radius: 10,
+				let obj = { _dirt_mult: 1.25, model: 'sarronian_ball', color: '#00c600', explosion_radius: 10, _no_explosion_smoke: true,
 				_custom_detonation_logic:( bullet )=>
 				{
 					sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:bullet.x, y:bullet.y, volume:1, pitch: 0.5 });
@@ -8066,6 +8092,7 @@ class sdGunClass
 								bullet_obj1.color ='#e16b00';
 								bullet_obj1._dirt_mult = 1;
 								bullet_obj1._hittable_by_bullets = false;
+								bullet_obj1._no_explosion_smoke = true;
 								sdEntity.entities.push( bullet_obj1 );
 			
 					let bullet_obj2 = new sdBullet({ x: bullet.x, y: bullet.y });
@@ -8078,6 +8105,7 @@ class sdGunClass
 								bullet_obj2.color ='#00ff00';
 								bullet_obj2._dirt_mult = 1;
 								bullet_obj2._hittable_by_bullets = false;
+								bullet_obj2._no_explosion_smoke = true;
 								sdEntity.entities.push( bullet_obj2 );
 			
 					let bullet_obj3 = new sdBullet({ x: bullet.x, y: bullet.y });
@@ -8090,6 +8118,7 @@ class sdGunClass
 								bullet_obj3.color ='#00ff00';
 								bullet_obj3._dirt_mult = 1;
 								bullet_obj3._hittable_by_bullets = false;
+								bullet_obj3._no_explosion_smoke = true;
 								sdEntity.entities.push( bullet_obj3 );
 			
 					let bullet_obj4 = new sdBullet({ x: bullet.x, y: bullet.y });
@@ -8102,6 +8131,7 @@ class sdGunClass
 								bullet_obj4.color ='#00ff00';
 								bullet_obj4._dirt_mult = 1;
 								bullet_obj4._hittable_by_bullets = false;
+								bullet_obj4._no_explosion_smoke = true;
 								sdEntity.entities.push( bullet_obj4 );
 				} };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
@@ -8149,9 +8179,9 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.2,
 			spawnable: false,
-			projectile_properties: { _damage: 48, _dirt_mult: 1.4, model: 'sarronian_bio_blob', color: '#974800', explosion_radius: 52, },
+			projectile_properties: { _damage: 48, _dirt_mult: 1.4, model: 'sarronian_bio_blob', color: '#974800', explosion_radius: 52, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
-				let obj = { _dirt_mult: 1.25, model: 'sarronian_bio_blob', color: '#974800', explosion_radius: 52,
+				let obj = { _dirt_mult: 1.25, model: 'sarronian_bio_blob', color: '#974800', explosion_radius: 52, _no_explosion_smoke: true,
 				_hittable_by_bullets: false,
 				is_grenade: true,
 				time_left: 75,
@@ -8236,6 +8266,7 @@ class sdGunClass
 								bullet_obj1.color ='#e16b00';
 								bullet_obj1._dirt_mult = 1;
 								bullet_obj1._hittable_by_bullets = false;
+								bullet_obj1._no_explosion_smoke = true;
 
 								sdEntity.entities.push( bullet_obj1 );
 			
@@ -8249,6 +8280,7 @@ class sdGunClass
 								bullet_obj2.color ='#e16b00';
 								bullet_obj2._dirt_mult = 1;
 								bullet_obj2._hittable_by_bullets = false;
+								bullet_obj2._no_explosion_smoke = true;
 
 								sdEntity.entities.push( bullet_obj2 );
 			
@@ -8262,6 +8294,7 @@ class sdGunClass
 								bullet_obj3.color ='#e16b00';
 								bullet_obj3._dirt_mult = 1;
 								bullet_obj3._hittable_by_bullets = false;
+								bullet_obj3._no_explosion_smoke = true;
 
 								sdEntity.entities.push( bullet_obj3 );
 			
@@ -8275,6 +8308,7 @@ class sdGunClass
 								bullet_obj4.color ='#e16b00';
 								bullet_obj4._dirt_mult = 1;
 								bullet_obj4._hittable_by_bullets = false,
+								bullet_obj4._no_explosion_smoke = true;
 								
 								sdEntity.entities.push( bullet_obj4 );
 
@@ -8292,6 +8326,7 @@ class sdGunClass
 								bullet_obj5.time_left = 90;
 								bullet_obj5._hittable_by_bullets = false;
 								bullet_obj5._detonate_on_impact = false;
+								bullet_obj5._no_explosion_smoke = true;  
 								bullet_obj5.gravity_scale = 0;
 								
 								bullet_obj5._custom_extra_think_logic = ( bullet, GSPEED )=>
@@ -8377,13 +8412,13 @@ class sdGunClass
 			is_sword: true,
 			has_alt_fire_mode: true,
 			spawnable: false,
-			projectile_properties: { _damage: 1, _dirt_mult: 1, color: '#aaffaa' },
+			projectile_properties: { _damage: 1, _dirt_mult: 1, color: '#aaffaa', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				if ( gun.fire_mode !== 2 )
 				{ let obj = { explosion_radius: 28, model:'sarronian_energy_wave', color: '#00ff00', _dirt_mult: 1,
 					projectile_velocity: 2, time_left: 75, _hittable_by_bullets: false, gravity_scale: 0,
-					model_size: 2 } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
+					model_size: 2, _no_explosion_smoke: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
 					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -8395,7 +8430,7 @@ class sdGunClass
 
 				if ( gun.fire_mode === 2 )
 				{ let obj2 = { color: '#00ff00', model:'sarronian_bolt', _dirt_mult: 1,
-					time_left: 45, _hittable_by_bullets: false, gravity_scale: 0.66, explosion_radius: 4, projectile_velocity: 6 }
+					time_left: 45, _hittable_by_bullets: false, gravity_scale: 0.66, explosion_radius: 4, projectile_velocity: 6, _no_explosion_smoke: true }
 					
 					obj2._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 					obj2._damage = gun.extra[ ID_ALT_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -8582,14 +8617,15 @@ class sdGunClass
 			ammo_capacity: 4,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { _damage: 92, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties: { _damage: 92, _dirt_mult: -0.5, color: '#cd1e1e', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _rail: true, color: '#cd1e1e', _rail_circled: true, explosion_radius: 4 };
+				let obj = { _dirt_mult: -0.5, _rail: true, color: '#cd1e1e', _rail_circled: true, explosion_radius: 4, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -8633,10 +8669,10 @@ class sdGunClass
 			count: 5,
 			spread: 0.09,
 			spawnable: false,
-			projectile_properties: { _damage: 27, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties: { _damage: 27, _dirt_mult: -0.5, color: '#cd1e1e', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 			
-				let obj = { _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 8 };
+				let obj = { _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 8, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -8645,6 +8681,7 @@ class sdGunClass
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				// if ( gun.extra[ ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
@@ -8685,14 +8722,15 @@ class sdGunClass
 			count: 1,
 			spread: 0.02,
 			spawnable: false,
-			projectile_properties: { _damage: 24, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties: { _damage: 24, _dirt_mult: -0.5, color: '#cd1e1e', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _damage: 24, _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 6 };
+				let obj = { _damage: 24, _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 6, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
@@ -8737,7 +8775,8 @@ class sdGunClass
 					damage_scale: 0, // Just a decoration effect
 					type: sdEffect.TYPE_EXPLOSION, 
 					owner: this,
-					color: '#900000'
+					color: '#900000',
+					no_smoke: true
 				});
 				
 				let e = target_entity; // Easier mob statues.
@@ -8773,17 +8812,18 @@ class sdGunClass
 			is_sword: true,
 			has_alt_fire_mode: true,
 			spawnable: false,
-			projectile_properties: { _damage: 1, _dirt_mult: -0.5, color: '#aaffaa' },
+			projectile_properties: { _damage: 1, _dirt_mult: -0.5, color: '#aaffaa', _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				if ( gun.fire_mode !== 2 )
 				{ let obj = { explosion_radius: 12, color: '#ff0000', _dirt_mult: 1, _rail: true,
-					_rail_circled: true, time_left: 75, _hittable_by_bullets: false } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites}
+					_rail_circled: true, time_left: 75, _hittable_by_bullets: false, _no_explosion_smoke: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
 					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 					obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 					obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+					obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 					
 					if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 					obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -8793,7 +8833,7 @@ class sdGunClass
 
 				if ( gun.fire_mode === 2 )
 				{ let obj = { color: '#ff0000', _dirt_mult: 1, _rail: true,
-				_rail_circled: true, time_left: 75, _hittable_by_bullets: false,
+				_rail_circled: true, time_left: 75, _hittable_by_bullets: false, _no_explosion_smoke: true,
 				_custom_target_reaction_protected:spear_target_reaction_glassed,
 				_custom_target_reaction:spear_target_reaction_glassed }
 			
@@ -8974,11 +9014,12 @@ class sdGunClass
 			projectile_properties: { _damage: 1 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1 };
+				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
 				
 				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -9064,10 +9105,10 @@ class sdGunClass
 			burst: 2, // Burst fire count
 			burst_reload: 24, // Burst fire reload, needed when giving burst fire
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
-			projectile_properties: { _damage: 60,  color: '#00aaff', _dirt_mult: -0.5, model:'bullet2' },
+			projectile_properties: { _damage: 60,  color: '#00aaff', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#00aaff', model:'bullet2', _dirt_mult: -0.5 };
+				let obj = { color: '#00aaff', _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -9428,7 +9469,8 @@ class sdGunClass
 					damage_scale: 0, // Just a decoration effect
 					type: sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 					owner: this,
-					color: '#000000'
+					color: '#000000',
+					no_smoke: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 60, bullet, sdLost.FILTER_VOID );
@@ -9546,6 +9588,384 @@ class sdGunClass
 					// It can be merged with other unstable cores to raise power, reaching up to 600 DPS. (Still lose 5% on merging though)
 					//console.log( gun._max_dps );
 			}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_CANNON = 146 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ), 
+			image_charging: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
+			title: 'Stalker Annihilator',
+			slot: 5,
+			reload_time: 20,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 150;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						gun._held_by._auto_shoot_in = 50;
+						
+						if ( sdWorld.is_server )
+						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
+				}
+			},
+			projectile_properties: { model: 'ball_large', _damage: 350, color: '#FF0000' },
+			projectile_properties_dynamic: ( gun )=>
+			{
+				return { 
+					_damage: 0,
+					model: 'ball_large',
+					_hittable_by_bullets: false,
+					time_left: 60,
+					color: '#FF0000',
+
+					_custom_extra_think_logic:( bullet, GSPEED )=>
+					{
+						let owner = ( bullet._owner || bullet._owner2 || null );
+					
+						GSPEED *= gun.extra[ ID_DAMAGE_MULT ];
+
+						let range = 64;
+
+						let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+							if ( !e._is_being_removed )
+							if ( e !== bullet && e !== owner )
+							if ( e._is_bg_entity === bullet._is_bg_entity )
+							if ( e.IsTargetable( owner ) )
+							if ( !e.is( sdGun ) )
+							if ( !e.is( sdBullet ) )
+							{
+								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
+								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
+								{
+									e.DamageWithEffect( GSPEED * 16, owner, false, false );
+
+									if ( e.IsPlayerClass() )
+									{
+										if ( sdWorld.is_server )
+										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									}
+								}
+							}
+						}
+					},
+					_custom_detonation_logic:( bullet )=>
+					{
+						if ( bullet._owner )
+						{
+							sdWorld.SendEffect({ 
+								x:bullet.x, 
+								y:bullet.y, 
+								radius:45,
+								damage_scale: 4,
+								type:sdEffect.TYPE_EXPLOSION, 
+								owner:bullet._owner,
+								color:'#FF0000',
+							});
+
+							let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+
+							for ( let i = 0; i < nears.length; i++ )
+							{
+								if ( nears[ i ].IsPlayerClass() )
+								{
+									nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+								}
+							}
+						}
+					} 
+				}
+			},
+			
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 350; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' ) )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_BEAM = 147 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_beam' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_beam2' ),
+			sound: 'cube_attack',
+			title: 'Stalker Psychotic Beam',
+			slot: 4,
+			reload_time: 3,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { _rail: true, _rail_alt: true, _damage: 22, color: '#00FFFF' },
+			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( target_entity.IsPlayerClass() )
+					{
+						let owner = gun._held_by;
+						
+						if ( owner && !owner._is_being_removed )
+						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20, owner: gun.fire_mode === 2 ? owner : null });
+					}
+				} };
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 22; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' ) )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_RIFLE = 148 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_clone_rifle' ),
+			sound: 'alien_laser1',
+			title: 'Stalker Rapid Rifle',
+			slot: 2,
+			reload_time: 2,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			spread: 0.01,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' ) )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'stalker_cloner' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_cloner2' ),
+			sound: 'gun_raygun',
+			sound_pitch: 1.333,
+			title: 'Stalker Clone Ray',
+			slot: 7,
+			reload_time: 96,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { _rail: true, _rail_alt: true, _damage: 1, color: '#00FFFF', time_left: 10 },
+			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
+			GetAmmoCost: ( gun )=>
+			{
+				if ( gun.fire_mode === 1 )
+				return 300;
+			
+				if ( gun.fire_mode === 2 )
+				return 200; 
+			},
+			projectile_properties_dynamic: ( gun )=> 
+			{ 
+				// if ( gun.fire_mode === 1 ) // Create clone
+				{
+					let obj = 
+					{
+						_rail: true, _rail_zap: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], time_left: 10, _custom_target_reaction:( bullet, target_entity )=>
+						{
+							let owner = gun._held_by;
+					
+							if ( target_entity.is( sdCharacter ) && ( target_entity._voice.variant !== 'clone' ) ) // No clones of clones
+							{
+								if ( sdWorld.is_server )
+								if ( owner )
+								{
+
+									let ent = new sdCharacter({ x: owner.x + 16 * owner._side, y: owner.y,
+										_ai_enabled: sdCharacter.AI_MODEL_AGGRESSIVE, 
+										_ai_gun_slot: 2,
+										_ai_level: 10,
+										sd_filter: target_entity.sd_filter,
+										title: target_entity.title,
+										_owner: owner
+									});
+									ent.gun_slot = 2;
+									sdEntity.entities.push( ent );
+
+									let ent2 = new sdGun({ x: ent.x, y: ent.y,
+										class: sdGun.CLASS_STALKER_RIFLE
+									}); 
+									sdEntity.entities.push( ent2 );
+
+									sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+								
+									ent.hea = 1000;
+									ent.hmax = 1000;
+									ent.helmet = target_entity.helmet;
+									ent.body = target_entity.body;
+									ent.legs = target_entity.legs;
+									ent._voice = {
+										wordgap: 0,
+										pitch: 25,
+										speed: 100,
+										variant: 'clone',
+										voice: 'en'
+									};
+									//ent._ai_stay_near_entity = owner;
+									//ent._ai_stay_distance = 256;
+									ent.sd_filter = target_entity.sd_filter;
+									ent._matter_regeneration = 20;
+									ent._jetpack_allowed = true;
+									ent._jetpack_fuel_multiplier = 0.25;
+									ent.matter = 600;
+									ent.matter_max = 600;
+									ent.s = target_entity.s;
+								
+									ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, owner: owner });
+									
+									if ( gun.fire_mode === 1 ) // Spawns a target drone for clones to follow and aim at. A more defensive mode.
+									{
+										let bullet_obj = new sdBullet({ x: gun.x, y: gun.y });
+					
+										bullet_obj._homing = true;
+										bullet_obj._homing_mult = 0.1;
+										bullet_obj.ac = 0.03;
+										bullet_obj._bouncy = true;
+										bullet_obj._owner = owner;
+										bullet_obj._for_ai_target = ent;
+
+										bullet_obj._damage = 1;
+										bullet_obj.explosion_radius = 20;
+										bullet_obj.model = 'stalker_target';
+										bullet_obj.color = sdEffect.default_explosion_color;
+										bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
+										bullet_obj._hea = 100;
+								
+										sdEntity.entities.push( bullet_obj );
+									}
+								
+									setTimeout(()=>
+									{
+										if ( !ent._is_being_removed )
+										{
+											sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+											sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+									
+											ent.remove();
+										}
+									}, 1000 * 20 );
+								}
+							}
+						}
+					};
+					obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
+					obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+					obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+					if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+					obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+					return obj;
+				}
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 1; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'accelerator' ),
+				'#00ffff', 15, 'core' ),
+				'#008080', 15, 'glow' )
 		};
 
 		// Add new gun classes above this line //

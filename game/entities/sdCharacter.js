@@ -448,7 +448,27 @@ class sdCharacter extends sdEntity
 				hurt: [ 'erthal_hurt' ],
 				alert: [ 'erthal_alert' ]
 			},
-	
+			// Clones
+			'clone':
+			{
+				//death: [ 'council_death' ],
+				//hurt: [ 'council_hurtA', 'council_hurtB' ],
+				
+				alert_tts: ( character, enemy )=>
+				{
+					{
+						return sdWorld.AnyOf( [ 
+							'You were never real to begin with.',
+							'You know, maybe you are just a clone.',
+							'I am you, and you are me.',
+							'I have been here before you.',
+							'I am the real you. Come back to me, before it is too late.',
+							'You were never in control of your body. Free will does not exist.',
+							'I think, therefore I am.'
+						] );
+					}
+				}
+			},
 			// Star Defenders
 			'default':
 			{
@@ -577,7 +597,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant ==='swordbot' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'clone' || this._voice.variant ==='swordbot' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -1246,6 +1266,7 @@ THING is cosmic mic drop!`;
 		this._ai_dive_suggestion_x = 0;
 		this._ai_dive_suggestion_y = 0;
 		this._ai_dive_suggestion_rethink_in = 0;
+		this._ai_force_fire = false; // For possessed AIs
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -1421,6 +1442,7 @@ THING is cosmic mic drop!`;
 		};
 		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
+		this._chat_color = params.chat_color || '#ffffff'
 		
 		//this.team_id = 0; // 0 is FFA team
 	
@@ -2705,7 +2727,8 @@ THING is cosmic mic drop!`;
 	{
 			if ( typeof initiator._ai_team !== 'undefined' )
 			{
-				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.25 ) // 25% chance to return friendly fire
+				if ( this._voice.variant !== 'clone' ) // Clones
+				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.15 ) // 15% chance to return friendly fire, 25% was too chaotic
 				{
 					if ( !this._ai.target )
 					this.PlayAIAlertedSound( initiator );
@@ -3962,7 +3985,7 @@ THING is cosmic mic drop!`;
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
 		
-		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until )
+		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until || this._ai_force_fire )
 		this._key_states.SetKey( 'Mouse1', 1 );
 		else
 		this._key_states.SetKey( 'Mouse1', 0 );
@@ -4196,14 +4219,18 @@ THING is cosmic mic drop!`;
 	
 		if ( initiated_by_player ) // By player attack specifically
 		return;
-		
+	
 		this.carrying.held_by = null;
-		this.carrying.PhysWakeUp();
-		this.carrying.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
+		if ( !this.carrying._is_being_removed )
+		{
+			this.carrying.PhysWakeUp();
+			this.carrying.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-		this.carrying.sx = this.sx + this._side * 0.1;
-		this.carrying.sy = this.sy;
-
+			this.carrying.sx = this.sx + this._side * 0.1;
+			this.carrying.sy = this.sy;
+		}
+		
 		this.carrying = null;
 	}
 	ManagePlayerVehicleEntrance()
@@ -7745,6 +7772,7 @@ THING is cosmic mic drop!`;
 			attachment_x: 0,
 			attachment_y: -raise,
 			text:t,
+			color: this._chat_color,
 			text_censored: undefined,
 			voice:this._voice,
 			no_ef:simulate_sound

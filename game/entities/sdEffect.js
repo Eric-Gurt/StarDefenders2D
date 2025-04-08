@@ -62,9 +62,14 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_VOID_FIRE = 25;
 		sdEffect.TYPE_BLOOD_DROP = 26;
 		sdEffect.TYPE_BLOOD_DROP_GREEN = 27;
+		sdEffect.TYPE_SPARK = 28;
+		sdEffect.TYPE_SMOKE = 29;
+		sdEffect.TYPE_LENS_FLARE = 30;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
+		
+		sdEffect.smoke_colors = ['#444444', '#333333', '#222222', '#111111'];
 		
 		sdEffect.effect_counters = [];
 		
@@ -367,6 +372,29 @@ class sdEffect extends sdEntity
 		};
 		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP ] );
 		sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ].images = [ sdWorld.CreateImageFromFile( 'effect_blood_drop_green' ) ];
+		
+		sdEffect.types[ sdEffect.TYPE_SPARK ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_BLOOD_DROP_GREEN ] );
+		sdEffect.types[ sdEffect.TYPE_SPARK ].images = [ sdWorld.CreateImageFromFile( 'effect_spark' ) ];
+		sdEffect.types[ sdEffect.TYPE_SPARK ].collisions = false;
+		sdEffect.types[ sdEffect.TYPE_SPARK ].gravity = false;
+		sdEffect.types[ sdEffect.TYPE_SPARK ].speed = 1 / 3;
+		
+		sdEffect.types[ sdEffect.TYPE_SMOKE ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'hit_glow' )
+			],
+			speed: 1 / 30,
+			apply_shading: false,
+			random_rotation: true
+		};
+		
+		sdEffect.types[ sdEffect.TYPE_LENS_FLARE ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'lens_flare' )
+			],
+			speed: 1 / 20,
+			apply_shading: false
+		};
 	
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
@@ -502,7 +530,7 @@ class sdEffect extends sdEntity
 		{
 			sdEffect.effect_counters[ this._type ]++;
 			
-			if ( sdEffect.effect_counters[ this._type ] > 128 )
+			if ( sdEffect.effect_counters[ this._type ] > 128 * sdRenderer.effects_quality )
 			this.remove();
 		}
 		
@@ -529,6 +557,10 @@ class sdEffect extends sdEntity
 		
 		if ( sdEffect.types[ this._type ].random_rotation90 )
 		this._rotation = Math.round( this._rotation / ( Math.PI / 2 ) ) * ( Math.PI / 2 );
+	
+		this._no_smoke = params.no_smoke || false;
+		this._smoke_color = params.smoke_color || '';
+		this._spark_color = params.spark_color || sdEffect.default_explosion_color;
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
@@ -861,18 +893,51 @@ class sdEffect extends sdEntity
 		EnforceChangeLog( this, 'sy', false, true );*/
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
+		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN || this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		{
-			for ( let i = 0; i < 10; i++ )
+			if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
+			for ( let i = 0; i < Math.min( 8, 5 * sdRenderer.effects_quality ); i++ )
 			{
 				let r = Math.pow( ( 1 - Math.pow( Math.random(), 2 ) ), 1.5 ) * 1.75;
 				let an = Math.random() * Math.PI * 2;
 				let xx = Math.sin( an ) * r;
 				let yy = Math.cos( an ) * r;
 
-				let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
-					x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
-				sdEntity.entities.push( e );
+				if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN ) 
+				{
+					let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
+						x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
+					sdEntity.entities.push( e );
+				}
+			}
+			else
+			if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+			{
+				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
+				{
+					if ( !this._no_smoke )
+					{
+						let an = Math.random() * Math.PI / 2;
+					
+						let zx = Math.sin( an ) * ( -Math.random() * 2 + Math.random() * 2 );
+						let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
+					
+						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
+						sdEntity.entities.push( e );
+					}
+					
+					if ( sdRenderer.effects_quality >= 3 )
+					if ( this._radius / 20 > 0.5 )
+					{
+						let an = Math.random() * Math.PI * 2;
+						
+						let xx = Math.sin( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 ))
+						let yy = -( Math.cos( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 )))
+						
+						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:xx, sy:yy, color: this._color });
+						sdEntity.entities.push( s );
+					}
+				}
 			}
 		}
 	}
@@ -961,7 +1026,7 @@ class sdEffect extends sdEntity
 		}
 
 		if ( sdEffect.types[ this._type ].gravity )
-		this.sy += sdWorld.gravity * GSPEED;
+		this.sy += sdEffect.types[ this._type ].gravity_mult || 1 * sdWorld.gravity * GSPEED;
 		
 		if ( sdEffect.types[ this._type ].collisions )
 		{
@@ -977,7 +1042,19 @@ class sdEffect extends sdEntity
 		// Keep chan within world bounds
 		if ( this._type === sdEffect.TYPE_CHAT )
 		this.y = Math.max( this.y, sdWorld.world_bounds.y1 + 8 );
-		
+	
+		if ( this._type === sdEffect.TYPE_SMOKE )
+		{
+			if (!( this._radius > 32 ))
+			this._radius += this._radius / 75 * GSPEED;
+			
+			if ( sdRenderer.effects_quality >= 2 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
+			{
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
+				sdEntity.entities.push( e );
+			}
+		}
+
 		if ( this._ani >= this._duration )
 		{
 			if ( sdEffect.types[ this._type ].onBeforeRemove )
@@ -1042,6 +1119,14 @@ class sdEffect extends sdEntity
 		}
 		else
 		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		{
+		}
+		else
+		if ( this._type === sdEffect.TYPE_SMOKE )
+		{
+		}
+		else
+		if ( this._type === sdEffect.TYPE_LENS_FLARE )
 		{
 		}
 		else
@@ -1121,6 +1206,20 @@ class sdEffect extends sdEntity
 			}
 			ctx.blend_mode = THREE.NormalBlending;
 			
+		}
+		else
+		if ( this._type === sdEffect.TYPE_SPARK )
+		{	
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				if ( this._sd_tint_filter )
+				{
+					this._sd_tint_filter[ 0 ] /= 255;
+					this._sd_tint_filter[ 1 ] /= 255;
+					this._sd_tint_filter[ 2 ] /= 255;
+				}
+			}
 		}
 		else
 		{
@@ -1210,7 +1309,7 @@ class sdEffect extends sdEntity
 				ctx.fill();
 			}
 			
-			ctx.fillStyle = '#ffffff';
+			ctx.fillStyle = this._color;
 			ctx.fillText( t, 0, 0 );
 		}
 		else
@@ -1256,6 +1355,54 @@ class sdEffect extends sdEntity
 		}
 		else
 		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		{
+			if ( this._radius !== 0 )
+			ctx.scale( 1 + this._radius, 1 + this._radius );
+		
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
+		if ( this._type === sdEffect.TYPE_SMOKE )
+		{
+			if ( this._radius !== 0 )
+			ctx.scale( 1 + this._radius, 1 + this._radius );
+		
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
+			
+			//ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
+		if ( this._type === sdEffect.TYPE_LENS_FLARE )
 		{
 			if ( this._radius !== 0 )
 			ctx.scale( 1 + this._radius, 1 + this._radius );
@@ -1339,6 +1486,12 @@ class sdEffect extends sdEntity
 		
 		//ctx.apply_shading = true;
 	}
+	
+	static GetSmokeColor( hex_color_arr )
+	{
+		 return hex_color_arr[( Math.floor( Math.random() * hex_color_arr.length ))];
+	}
+	
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._silences_music )

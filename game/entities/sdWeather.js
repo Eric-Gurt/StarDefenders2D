@@ -87,6 +87,7 @@ import sdWanderer from './sdWanderer.js';
 import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
 import sdMothershipContainer from './sdMothershipContainer.js';
+import sdStalker from './sdStalker.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -169,6 +170,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
+		sdWeather.EVENT_STALKER =				event_counter++; // 58
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -746,7 +748,7 @@ class sdWeather extends sdEntity
 							target: sdCharacter.characters[ i ],
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.4,
 							//lrtp_ents_needed: 1,
 							title: 'Rescue Star Defender',
 							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
@@ -765,7 +767,7 @@ class sdWeather extends sdEntity
 							target: sdCharacter.characters[ i ],
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.4,
 							//lrtp_ents_needed: 1,
 							title: 'Arrest Star Defender',
 							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -2614,7 +2616,7 @@ class sdWeather extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.4,
 								//lrtp_ents_needed: 1,
 								title: 'Arrest Star Defender',
 								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -2629,7 +2631,7 @@ class sdWeather extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.4,
 								//lrtp_ents_needed: 1,
 								title: 'Rescue Star Defender',
 								description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
@@ -2756,18 +2758,30 @@ class sdWeather extends sdEntity
 					drones++;
 				}
 				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
-				sdWeather.SimpleSpawner({
+				{
+					sdWeather.SimpleSpawner({
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-					count: [ 3, 6 ],
-					class: sdDrone,
-					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
-					aerial: true,
-					near_entity: near_ent,
-					group_radius: group_rad,
-					unlimited_range: inf_range,
-					target: target_ent
+					});
+					sdWeather.SimpleSpawner({
+						count: [ 1, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR_SCOUT },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-				});
+					});
+				}
 				
 			}
 			else
@@ -3917,6 +3931,20 @@ class sdWeather extends sdEntity
 				if ( tasks_total < 5 )
 				sdWeather.GivePlayerTask( character );
 			}
+		}
+		if ( r === sdWeather.EVENT_STALKER ) 
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdStalker,
+				
+				aerial: true,
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
+				
+			});
 		}
 	}
 	static GivePlayerTask( initiator ) // AssignTasks // GiveTasks

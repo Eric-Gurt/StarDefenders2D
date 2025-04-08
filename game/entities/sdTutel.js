@@ -145,7 +145,8 @@ class sdTutel extends sdEntity
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					can_hit_owner: false,
-					color:'#51b5ad' 
+					color:'#51b5ad',
+					no_smoke: true
 				});
 			}
 		}

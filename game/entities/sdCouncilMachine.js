@@ -209,9 +209,9 @@ class sdCouncilMachine extends sdEntity
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
 					{
 						if ( this._one_time_spawn === false )
-						task._difficulty = 0.18;
+						task._difficulty = 0.40;
 						else
-						task._difficulty = 0.05; // Beam projector scenario
+						task._difficulty = 0.10; // Beam projector scenario
 					}
 				}
 
@@ -455,7 +455,7 @@ class sdCouncilMachine extends sdEntity
 										if ( character_entity.hea <= 0 )
 										if ( !character_entity._is_being_removed )
 										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
 											character_entity.remove();
 										}
@@ -471,7 +471,7 @@ class sdCouncilMachine extends sdEntity
 							
 										if ( !character_entity._is_being_removed )
 										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
 											character_entity.remove();
 
@@ -531,7 +531,7 @@ class sdCouncilMachine extends sdEntity
 										drone.x = x;
 										drone.y = y;
 
-										sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
+										sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
 										sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
 										drone.SetTarget( this );
@@ -588,7 +588,7 @@ class sdCouncilMachine extends sdEntity
 										worm.x = x;
 										worm.y = y;
 
-										sdSound.PlaySound({ name:'teleport', x:worm.x, y:worm.y, volume:0.5 });
+										sdSound.PlaySound({ name:'council_teleport', x:worm.x, y:worm.y, volume:0.5 });
 										sdWorld.SendEffect({ x:worm.x, y:worm.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
 										//worm.SetTarget( this );

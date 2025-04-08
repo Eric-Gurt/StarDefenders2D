@@ -29,13 +29,13 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.img_teleport_short_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_short_no_matter' ); // 2 imgs
 		*/
 		sdRescueTeleport.max_matter = 1700;
-		sdRescueTeleport.max_matter_short = 500;
+		sdRescueTeleport.max_matter_short = 400;
 		sdRescueTeleport.max_matter_cloner = 40000 * 3; // 40k can be charged rather quickly. It is a last resort escape thing after all.
 		sdRescueTeleport.max_matter_respawn_point = 100;
 		
 		sdRescueTeleport.clonning_time = 30 * 60 * 3;// 3 minutes
 
-		sdRescueTeleport.max_short_range_distance = 1200;
+		sdRescueTeleport.max_short_range_distance = 2400;
 		sdRescueTeleport.max_default_range_distance = 10000;
 		
 		sdRescueTeleport.rescue_teleports = [];
@@ -382,7 +382,7 @@ class sdRescueTeleport extends sdEntity
 			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
 			sdRescueTeleport.max_matter_short;*/
 	
-		this.matter = 0;
+		this.matter = 100; // When built it now has 100 starting matter so the first charge is easier to achieve
 		
 		this.allowed = true;
 		

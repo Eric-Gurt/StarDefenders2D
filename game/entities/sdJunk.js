@@ -120,7 +120,7 @@ class sdJunk extends sdEntity
 		
 		this.held_by = null;
 
-		let r = Math.random() * 7;
+		let r = Math.random() * 8;
 		let t_s = 0;
 
 		if ( r < 1 )
@@ -140,6 +140,9 @@ class sdJunk extends sdEntity
 		else
 		if ( r < 6 )
 		t_s = sdJunk.TYPE_HIGH_YIELD_ROCKET;
+		else
+		if ( r < 7 )
+		t_s = sdJunk.TYPE_UNKNOWN_OBJECT;
 		else
 		t_s = sdJunk.TYPE_UNSTABLE_CUBE_CORPSE;
 
@@ -252,7 +255,7 @@ class sdJunk extends sdEntity
 			
 			let old_hea = this.hea + dmg;
 			
-			if ( Math.round( old_hea / ( this.hmax / 25 ) ) > Math.round( this.hea / ( this.hmax / 25 ) ) ) // Should spawn about 25 assault drones throughout the fight
+			if ( Math.round( old_hea / ( this.hmax / 15 ) ) > Math.round( this.hea / ( this.hmax / 15 ) ) ) // Should spawn about 15 assault drones throughout the fight
 			{
 				if ( initiator && ( sdWorld.Dist2D( initiator.x, initiator.y, this.x, this.y ) < 600 ) )
 				{
@@ -467,7 +470,8 @@ class sdJunk extends sdEntity
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
-							color:'#ffff66' 
+							color:'#ffff66',
+							no_smoke: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
@@ -525,7 +529,8 @@ class sdJunk extends sdEntity
 						radius: 200, 
 						damage_scale: 0, 
 						type: sdEffect.TYPE_EXPLOSION,
-						color:'#fff000'
+						color:'#fff000',
+						no_smoke: true
 					});
 				}
 
@@ -594,7 +599,8 @@ class sdJunk extends sdEntity
 						damage_scale: 0, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#33FFFF' 
+						color:'#33FFFF',
+						smoke_color: '#33FFFF'
 					});
 
 					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
@@ -624,7 +630,8 @@ class sdJunk extends sdEntity
 						damage_scale: 0, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#FFA840'
+						color:'#FFA840',
+						smoke_color: '#FFA840'
 					});
 
 					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
@@ -735,12 +742,14 @@ class sdJunk extends sdEntity
 
 				if ( this._time_to_drain <= 0 )
 				{
-					this.Damage( 2 ); // Self damage, limited existence
-					this._time_to_drain = Math.max( 10, 30 * 3 * ( this.hea / this.hmax ) );
+					this.DamageWithEffect( 0.25 ); // Self damage, limited existence
+					this._time_to_drain = Math.max( 5, 30 * 2 * ( this.hea / this.hmax ) );
 					let nears = sdWorld.GetAnythingNear( this.x, this.y, 64 );
+					let damaged_ents = [];
 					for ( let i = 0; i < nears.length; i++ )
 					{
 						let ent = nears[ i ];
+						
 						
 						if ( ent && ent !== this )
 						if ( ent.IsTargetable( this ) )
@@ -750,10 +759,29 @@ class sdJunk extends sdEntity
 							{
 								if ( sdWorld.last_hit_entity )
 								{
-									if ( sdWorld.last_hit_entity === ent )
+									//if ( sdWorld.last_hit_entity === ent ) 
+									// Maybe it should damage whatever it line of sight touched since it is in it's radius anyway
+									let should_damage = true;
+									for ( let j = 0; j < damaged_ents.length; j++ ) // Check if ent was damaged before
+									if ( damaged_ents [ j ] === sdWorld.last_hit_entity )
 									{
-										ent.Damage( 15, this );
-										console.log( ent.GetClass() )
+										should_damage = false;
+										break;
+									}
+								
+									if ( should_damage )
+									{
+										if ( sdWorld.last_hit_entity.is( sdCrystal ) ) // Crystals have unique interaction - either get charged up or lose matter regen
+										{
+											let ent2 = sdWorld.last_hit_entity;
+											// Essentially a 50/50 gamble for matter regen on crystals. Though it also scales how much it regenerates/loses depending on crystal max matter
+											let mult = Math.max( 0.5, 5120 / ent2.matter_max );
+											sdCrystal.Zap( this, ent2, '#7076e6' ); // Zap effect to show it's doing something
+											ent2.matter_regen = Math.max( 0, Math.min( sdCrystal.max_matter_regen, ent2.matter_regen + ( ( Math.random() - Math.random() ) * mult ) ) );
+										}
+										else
+										sdWorld.last_hit_entity.DamageWithEffect( 5, this ); // Other things should just get damaged without any effect so it seems a little supernatural
+										damaged_ents.push( sdWorld.last_hit_entity ); // But not more than once
 									}
 								}
 							}
@@ -1527,6 +1555,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals--;
 
+
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
 			sdJunk.council_bombs--;
@@ -1554,7 +1583,9 @@ class sdJunk extends sdEntity
 				sdWorld.BasicEntityBreakEffect( this, 10 );
 			}
 		}
-		if ( this.type == sdJunk.TYPE_METAL_CHUNK )
+		if ( this.type === sdJunk.TYPE_METAL_CHUNK && this._broken )
+		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
+		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT && this._broken );
 		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 	}
 	MeasureMatterCost()
