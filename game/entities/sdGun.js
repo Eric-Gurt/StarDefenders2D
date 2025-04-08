@@ -537,6 +537,8 @@ class sdGun extends sdEntity
 		
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		
+		this._access_id = params.access_id || null; // For keycards
+		
 		//let has_class = sdGun.classes[ this.class ];
 		this.ResetInheritedGunClassProperties( params );
 		

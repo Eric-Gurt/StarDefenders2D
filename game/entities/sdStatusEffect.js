@@ -1818,7 +1818,9 @@ class sdStatusEffect extends sdEntity
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
 			{
-				if ( status_entity.for && !status_entity.for._is_being_removed )
+				if ( !status_entity.for )
+				return;
+			
 				if ( status_entity.for.is( sdCharacter ) )
 				if ( status_entity.for._ragdoll )
 				if ( status_entity.for._ragdoll.head )

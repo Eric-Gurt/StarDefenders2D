@@ -174,6 +174,7 @@ class sdGunClass
 			
 			return arr;
 		}
+		
 
 		let ID_BASE = 0;
 		let ID_STOCK = 1;
@@ -5116,9 +5117,9 @@ class sdGunClass
 				
 				if ( gun._held_by )
 				{
-					let m = Math.min( 20, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
+					let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
 					obj.explosion_radius *= m;
-					gun._reload_time = 5 * ( 1 + m ) / 2;
+					gun._reload_time = 7 * ( 1 + m ) / 2;
 				}
 				
 				return obj;
@@ -5129,7 +5130,7 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				let m = Math.min( 20, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
+				let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
 				gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
 				
 				if ( gun.extra === 1 )
@@ -9490,7 +9491,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spread: 0,
-            		spawnable: false,
+			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{	
 				return 60;
@@ -9592,8 +9593,10 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_CANNON = 146 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ), 
+			image: sdWorld.CreateImageFromFile( 'stalker_cannon' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_cannon2' ),
 			image_charging: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
+			image_charging_alt: sdWorld.CreateImageFromFile( 'stalker_cannon_charging' ),
 			title: 'Stalker Annihilator',
 			slot: 5,
 			reload_time: 20,
@@ -9601,6 +9604,8 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -9609,7 +9614,11 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 150;
+				if ( gun.fire_mode === 1 )
+				return 250;
+			
+				if ( gun.fire_mode === 2 )
+				return 500; 
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -9618,9 +9627,10 @@ class sdGunClass
 					if ( gun._held_by )
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
-						gun._held_by._auto_shoot_in = 50;
+						gun._held_by._auto_shoot_in = 35;
 						
 						if ( sdWorld.is_server )
+						if ( gun.fire_mode === 2 )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
@@ -9630,14 +9640,28 @@ class sdGunClass
 				else
 				{
 					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
+					//if ( gun.fire_mode === 2 )
+					if ( gun._held_by )
+					if ( !gun._held_by._is_being_removed )
+					{
+						let owner = gun._held_by;
+						
+						if ( owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
+						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
+						{
+							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) )
+							owner.sx += Math.sin ( an ) * 10;
+							owner.sy += Math.cos ( an ) * 10;
+						}
+					}
 				}
 			},
 			projectile_properties: { model: 'ball_large', _damage: 350, color: '#FF0000' },
 			projectile_properties_dynamic: ( gun )=>
 			{
-				return { 
-					_damage: 0,
-					model: 'ball_large',
+				let obj =
+				{ 
+					model: gun.fire_mode === 2 ? 'ball_large_circled' : 'ball_large',
 					_hittable_by_bullets: false,
 					time_left: 60,
 					color: '#FF0000',
@@ -9658,8 +9682,6 @@ class sdGunClass
 							if ( e !== bullet && e !== owner )
 							if ( e._is_bg_entity === bullet._is_bg_entity )
 							if ( e.IsTargetable( owner ) )
-							if ( !e.is( sdGun ) )
-							if ( !e.is( sdBullet ) )
 							{
 								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
@@ -9667,11 +9689,29 @@ class sdGunClass
 								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
 								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
-									e.DamageWithEffect( GSPEED * 16, owner, false, false );
-
+									if ( !e.is( sdGun ) )
+									if ( !e.is( sdBullet ) )
+									e.DamageWithEffect( GSPEED * 32, owner, false, false );
+								
+									if ( gun.fire_mode === 2 )
+									{
+										if ( typeof e.sx !== 'undefined' )
+										if ( typeof e.sy !== 'undefined' )
+										{
+											if ( e.is( sdBullet ) )
+											e._owner = owner;
+										
+											let an = ( Math.atan2( bullet.x - e.x, bullet.y - e.y ) ) // Pull enemies into the bullet to make it easier to hit
+		
+											e.sx += ( Math.sin ( an ) * 5 ) / ( e.mass * 0.05 );
+											e.sy += ( Math.cos ( an ) * 5 ) / ( e.mass * 0.05 );
+										}
+									}
+									
 									if ( e.IsPlayerClass() )
 									{
 										if ( sdWorld.is_server )
+										if ( gun.fire_mode === 2 )
 										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
 									}
 								}
@@ -9685,25 +9725,33 @@ class sdGunClass
 							sdWorld.SendEffect({ 
 								x:bullet.x, 
 								y:bullet.y, 
-								radius:45,
-								damage_scale: 4,
+								radius:48,
+								damage_scale: 5,
 								type:sdEffect.TYPE_EXPLOSION, 
 								owner:bullet._owner,
 								color:'#FF0000',
 							});
-
-							let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
-
-							for ( let i = 0; i < nears.length; i++ )
+							
+							if ( gun.fire_mode === 2 )
 							{
-								if ( nears[ i ].IsPlayerClass() )
+								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
+
+								for ( let i = 0; i < nears.length; i++ )
 								{
-									nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									if ( nears[ i ].IsPlayerClass() )
+									{
+										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									}
 								}
 							}
 						}
 					} 
 				}
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.fire_mode === 2 ? gun.extra[ ID_ALT_DAMAGE_VALUE ] : gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				
+				return obj;
 			},
 			
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
@@ -9715,12 +9763,14 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_MULT ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					gun.extra[ ID_DAMAGE_VALUE ] = 350; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 600; // Damage value of the alternative firing mode bullet
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' ) )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_BEAM = 147 ] = 
@@ -9773,15 +9823,17 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' ) )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_RIFLE = 148 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'stalker_clone_rifle' ),
+			image_alt: sdWorld.CreateImageFromFile( 'stalker_clone_rifle2' ),
 			sound: 'alien_laser1',
 			title: 'Stalker Rapid Rifle',
 			slot: 2,
@@ -9791,6 +9843,8 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
+			fire_mode: 1,
+			has_alt_fire_mode: true,
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -9801,6 +9855,13 @@ class sdGunClass
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+			
+				if ( gun.fire_mode === 2 )
+				{
+					obj._homing = true;
+					obj._homing_mult = 0.1;
+					obj.ac = 0.2;
+				}
 				
 				return obj;
 			},
@@ -9818,10 +9879,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' ) )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STALKER_CLONER = 149 ] = 
@@ -9879,6 +9941,8 @@ class sdGunClass
 										class: sdGun.CLASS_STALKER_RIFLE
 									}); 
 									sdEntity.entities.push( ent2 );
+									
+									ent2.fire_mode = Math.random() > 0.5 ? 1 : 2;
 
 									sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
@@ -9962,14 +10026,65 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 1; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#ff0000', 15, 'accelerator' ),
 				'#00ffff', 15, 'core' ),
-				'#008080', 15, 'glow' )
+				'#008080', 15, 'glow' ),
+				'#800000', 15, 'glow alt' ) )
 		};
+		
+		sdGun.classes[ sdGun.CLASS_ACCESS_KEY = 150 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'access_key' ),
+			sound: 'sd_beacon',
+			sound_pitch: 1.5,
+			//title: 'Access key',
+			title_dynamic: ( gun )=>
+			{
+				return ( gun.extra && gun.extra[ ID_TITLE ] ? 'Access key' + ' ( ' + gun.extra[ ID_TITLE ] + ' ) ' : 'Access key' );
+			},
+			slot: 7,
+			reload_time: 16,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { color: 'transparent', _soft: true, time_left: 2 },
+			spawnable: true,
+			category: 'Base equipment',
+			GetAmmoCost: ( gun )=>
+			{
+				return 0; 
+			},
+			projectile_properties_dynamic: ( gun )=> 
+			{ 
+				let obj = 
+				{
+					_damage: 1, color:'transparent', _soft: true, time_left: 2, _custom_target_reaction:( bullet, target_entity )=> 
+					{
+						if ( target_entity.GetClass() === 'sdWeaponBench' && target_entity.type === 1  ) // sdWeaponBench.TYPE_DISPLAY
+						{
+							target_entity.LockLogic( gun._held_by, gun )
+						}
+					}
+				};
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_TITLE ] = '';
+				}
+			},
+		
+			upgrades: AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'key' )
+		};
+		
 
 		// Add new gun classes above this line //
-		
+
 		let index_to_const = [];
 		for ( let s in sdGun )
 		if ( s.indexOf( 'CLASS_' ) === 0 )

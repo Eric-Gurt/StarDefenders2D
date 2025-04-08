@@ -3,6 +3,7 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
+import sdEffect from './sdEffect.js';
 
 
 class sdWeaponBench extends sdEntity
@@ -10,17 +11,34 @@ class sdWeaponBench extends sdEntity
 	static init_class()
 	{
 		sdWeaponBench.img_weapon_workbench = sdWorld.CreateImageFromFile( 'weapon_bench' );
+		sdWeaponBench.img_weapon_locker = sdWorld.CreateImageFromFile( 'sdWeaponDisplay' );
 		
-		sdWeaponBench.access_range = 46;
+		sdWeaponBench.access_range = 64;
 		
-		sdWeaponBench.slots_tot = 1;
+		sdWeaponBench.TYPE_UPGRADE_BENCH = 0;
+		sdWeaponBench.TYPE_DISPLAY = 1;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return -9; }
-	get hitbox_x2()  { return 8; }
-	get hitbox_y1()  { return -11; }
-	get hitbox_y2()  { return 0; }
+	get hitbox_x1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -31 : -9; }
+	get hitbox_x2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 31 : 8; }
+	get hitbox_y1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -24 : -11; }
+	get hitbox_y2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 24 : 0; }
+	
+	GetSlotsTotal()
+	{
+		return this.type === sdWeaponBench.TYPE_DISPLAY ? 8 : 1;
+	}
+	
+	GetRandomColor()
+	{
+		let hex = '#';
+		let str = '0123456789abcdef';
+		for ( let i = 0; i < 6; i++ )
+		hex += str.charAt( ~~( Math.random() * str.length ) );
+	
+		return hex;
+	}
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
@@ -29,29 +47,33 @@ class sdWeaponBench extends sdEntity
 	{ return true; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return this.type !== sdWeaponBench.TYPE_DISPLAY; }
 	
 	constructor( params )
 	{
 		super( params );
-		
-		//this.sx = 0;
-		//this.sy = 0;
-
-		this._hea = 800;
-		this._hmax = 800;
-		
 		this._regen_timeout = 0;
 
 		this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		this.item_dps = 1; // Value is given when item is placed on bench. Needed public variable so damage upgrade can have correct DPS for matter cost calculation - Booraz149
 		
+		this.type = params.type || sdWeaponBench.TYPE_UPGRADE_BENCH;
+		this.locked = false;
+		
+		this._hmax = this.type === sdWeaponBench.TYPE_DISPLAY ? 5000 : 800;
+		this._hea = this._hmax;
+		
+		this._last_locked = 0; // sdWorld.time;
+		this._last_key_created = 0; // sdWorld.time;
+		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
+	
+		this._key_color = this.GetRandomColor();
+		
+		this.gun_password = null;
+		
 		this._current_category_stack = [];
 		
-		//this._held_items = [];
-		//this.held_net_ids = [];
-		
-		for ( var i = 0; i < sdWeaponBench.slots_tot; i++ )
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 		this[ 'item' + i ] = null;
 	}
 	Damage( dmg, initiator=null )
@@ -82,21 +104,33 @@ class sdWeaponBench extends sdEntity
 				this._hea = Math.min( this._hea + GSPEED, this._hmax );
 			}
 		}
-		if ( this.item0 )
-		this.item0.UpdateHeldPosition();
+		for ( let i = 0; i < this.GetSlotsTotal(); i++ )
+		{
+			let item = this[ 'item' + i ];
+			if ( item )
+			item.UpdateHeldPosition();
+		}
 		
 		if ( this._hea >= this._hmax )
 		{
-			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}
 	get title()
 	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 		return 'Weapon modification bench';
+	
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		return 'Weapon display locker';
 	}
 	get description()
 	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 		return `Can be used to customize appearance and upgrade properties of your weapons. In order to drop weapon onto weapon modification bench - press V. Then right click on weapon modification bench for more options.`;
+	
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		return `Allows for secure item storage, can be locked via access keys and will self destruct in case of an intrusion attempt. Right click on weapon display locker for configuration and more options.`;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -104,84 +138,133 @@ class sdWeaponBench extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_workbench, - 16, - 16, 32,32 );
-		
-		if ( this.item0 )
+		if ( sdShop.isDrawing )
 		{
-			//ctx.translate( -1, -15 );
-			ctx.translate( -1, -17 );
-			this.item0.Draw( ctx, true );
-			
-			let has_class = sdGun.classes[ this.item0.class ];
-			
-			if ( has_class.use_parts_rendering )
-			{
-				let gun = this.item0;
-				
-				let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
-				
-				let ID_MAGAZINE = 2;
+			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+			ctx.scale( 0.75, 0.75 );
+		}
 		
-				let ID_DAMAGE_MULT = 7;
-				let ID_FIRE_RATE = 8;
-				let ID_RECOIL_SCALE = 9;
-				let ID_HAS_EXPLOSION = 10;
-				let ID_TEMPERATURE_APPLIED = 11;
-				let ID_HAS_SHOTGUN_EFFECT = 12;
-				let ID_HAS_RAIL_EFFECT = 13;
-				let ID_SLOT = 14;
+		let xx = 0;
+		let yy = 0;
 
-				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
-				sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
-				sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
-				
-				let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
-				
-				if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -30, '#aaffaa' );
-				else
-				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -30, '#aaffaa' );
+		if ( this.locked )
+		xx = 1;
+
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_workbench, - 16, - 16, 32,32 );
+	
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_locker, xx * 64, 0, 64, 48, - 32, - 24, 64, 48);
+	
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+		{
+			let item = this[ 'item' + i ];
 			
-				sdEntity.TooltipUntranslated( ctx, T('Temperature') + ': ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
-				
-				sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
-				
-				sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
-				
-				sdEntity.TooltipUntranslated( ctx, T('Biometry lock') + ': ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
-			}
-			else // Regular guns
+			if ( item )
 			{
-				let gun = this.item0;
-				
-				let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
-				
-				//let ID_MAGAZINE = 2;
-		
-				let ID_DAMAGE_MULT = 7;
-				//let ID_FIRE_RATE = 8;
-				let ID_RECOIL_SCALE = 9;
-				let ID_DAMAGE_VALUE = 17;
-				let ID_ALT_DAMAGE_VALUE = 18;
+				// TODO: fix variable names
+				let start_x = -14
 
-				if ( this.item0.extra[ ID_DAMAGE_VALUE ] )
-				sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
-				if ( this.item0.extra[ ID_ALT_DAMAGE_VALUE ] )
-				sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( this.item0.extra[ ID_ALT_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
-				if ( this.item0.extra[ ID_RECOIL_SCALE ] )
-				sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
+				let row_height = 11;
+				let row_offset_x = 11.5
+				let row_offset_y = 7.5;
 				
-				let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
-				
-				if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
-				else
-				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+				if ( this.locked )
+				return;
 			
-				if ( this.item0.GetAmmoCapacity() !== -1 )
-				sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
+				ctx.save();
+				{
+					if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+					{
+						ctx.translate( ( i - i % 2 + row_height + start_x ) * row_offset_y, ( row_offset_x * ( i % 2 === 0 ? -1 : 1 ) ) ); 
+					}
+			
+					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+					ctx.translate( -1, -17 );
+			
+					item.Draw( ctx, true );
 				
-				sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+					{
+						let has_class = sdGun.classes[ item.class ];
+			
+						if ( has_class.use_parts_rendering )
+						{
+							let gun = item;
+
+							let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+				
+							let ID_MAGAZINE = 2;
+		
+							let ID_DAMAGE_MULT = 7;
+							let ID_FIRE_RATE = 8;
+							let ID_RECOIL_SCALE = 9;
+							let ID_HAS_EXPLOSION = 10;
+							let ID_TEMPERATURE_APPLIED = 11;
+							let ID_HAS_SHOTGUN_EFFECT = 12;
+							let ID_HAS_RAIL_EFFECT = 13;
+							let ID_SLOT = 14;
+
+							//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
+							sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 25 * item.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
+							sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
+				
+							let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
+				
+							if ( Math.round( reload_time / 30 * 1000 ) < 16 )
+							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -30, '#aaffaa' );
+							else
+							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -30, '#aaffaa' );
+			
+							sdEntity.TooltipUntranslated( ctx, T('Temperature') + ': ' + Math.round( item.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
+				
+							sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
+				
+							sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( item.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+				
+							sdEntity.TooltipUntranslated( ctx, T('Biometry lock') + ': ' + ( ( item.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
+						}
+						else // Regular guns
+						{
+							let gun = this.item0;
+				
+							let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+				
+							//let ID_MAGAZINE = 2;
+		
+							let ID_DAMAGE_MULT = 7;
+							//let ID_FIRE_RATE = 8;
+							let ID_RECOIL_SCALE = 9;
+							let ID_DAMAGE_VALUE = 17;
+							let ID_ALT_DAMAGE_VALUE = 18;
+
+							if ( item.extra[ ID_DAMAGE_VALUE ] )
+							sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
+					
+							if ( item.extra[ ID_ALT_DAMAGE_VALUE ] )
+							sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
+					
+							if ( item.extra[ ID_RECOIL_SCALE ] )
+							sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
+				
+							let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
+				
+							if ( Math.round( reload_time / 30 * 1000 ) < 16 )
+							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
+							else
+							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+			
+							if ( item.GetAmmoCapacity() !== -1 )
+							sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
+
+							sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( item.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+							
+							if ( this.gun_password )
+							sdEntity.TooltipUntranslated( ctx, T('Access ID') + ': ' + this.gun_password, 0, -10, '#333333' );
+						}
+					}
+					ctx.restore();
+				}
 			}
 		}
 	}
@@ -189,14 +272,35 @@ class sdWeaponBench extends sdEntity
 	{
 		if ( this._broken )
 		{
-			for ( var i = 0; i < sdWeaponBench.slots_tot; i++ )
-			this.DropSlot( i );
+			if ( !this.locked )
+			{
+				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+				this.DropSlot( i );
+			}
+		
+			if ( this.locked )
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius: 70, 
+					damage_scale: 7,
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					can_hit_owner: false,
+					color: sdEffect.default_explosion_color
+				});
+				
+				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+				if ( this[ 'item' + i ] )
+				this[ 'item' + i ].remove();
+			}
 
 			sdWorld.BasicEntityBreakEffect( this, 5 );
 		}
 		else
 		{
-			for ( var i = 0; i < sdWeaponBench.slots_tot; i++ )
+			for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 			if ( this[ 'item' + i ] )
 			this[ 'item' + i ].remove();
 		}
@@ -210,14 +314,17 @@ class sdWeaponBench extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
+		if ( this.locked )
+		return;
+	
 		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
+		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_METAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
 		{
 			if ( from_entity._held_by === null )
 			{
 				let free_slot = -1;
 				
-				for ( var i = 0; i < sdWeaponBench.slots_tot; i++ )
+				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 				{
 					if ( this[ 'item' + i ] )
 					{
@@ -250,6 +357,11 @@ class sdWeaponBench extends sdEntity
 					
 					this.item_dps = from_entity._max_dps || 100;
 					
+					if ( from_entity.class == sdGun.CLASS_ACCESS_KEY )
+					this.gun_password = from_entity._access_id;
+					else
+					this.gun_password = null;
+					
 					this._current_category_stack = [];
 					
 					this._update_version++;
@@ -261,7 +373,7 @@ class sdWeaponBench extends sdEntity
 	{
 		let arr = [];
 		
-		for ( var i = 0; i < sdWeaponBench.slots_tot; i++ )
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 		if ( this[ 'item' + i ] )
 		arr.push( this[ 'item' + i ] );
 		
@@ -274,7 +386,7 @@ class sdWeaponBench extends sdEntity
 	ExtractItem( item_net_id, initiator_character=null, throw_on_not_found=false )
 	{
 		let slot = -1;
-		for ( var i = 0; i < sdWeaponBench.slots_tot; i++ )
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 		if ( this[ 'item' + i ] )
 		if ( this[ 'item' + i ]._net_id === item_net_id )
 		{
@@ -323,6 +435,50 @@ class sdWeaponBench extends sdEntity
 		this.upgraded_dur = false;
 	}
 	
+	LockLogic( character, key )
+	{
+		if ( character )
+		if ( character.hea > 0 )
+		{
+			if ( key )
+			{
+				if ( key._access_id === this._access_id )
+				{
+					this.locked = !this.locked; // Lock / unlock depending on current status
+					
+					sdSound.PlaySound({ name:'gun_defibrillator', x:this.x, y:this.y, volume:1, pitch:1.5 });
+					sdSound.PlaySound({ name:'adoor_start', x:this.x, y:this.y, volume:1.5, pitch:1.2 });
+					
+					this._last_locked = sdWorld.time;
+
+					this._update_version++;
+				}
+				else
+				{
+					let t = sdWorld.AnyOf( [ 
+						'Wrong key...',
+						'Why is this not working?',
+						'Perhaps I should generate a new key?',
+						'Not again...',
+						'Insanity is doing the same thing over and over again and expecting different results'
+					] );
+					character.Say( t );
+				}
+			}
+			else
+			{
+				let t = sdWorld.AnyOf( [ 
+					'I forgot my key',
+					'I need a key to do that',
+					'I don\'t have the key on me right now',
+					'No key... But have I tried looking under the mat?',
+					'I\'ve got to find the key, it has to be somewhere nearby...'
+				] );
+				character.Say ( t );
+			}
+		}
+	}
+	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -332,47 +488,229 @@ class sdWeaponBench extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
 			{
-				if ( this.item0 )
-				{
-					if ( this.item0.biometry_lock !== -1 && this.item0.biometry_lock !== exectuter_character.biometry )
-					{
-						executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
-						return;
-					}
+				let key = null;
+				let potential_key = exectuter_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ];
+				if ( potential_key && potential_key.class === sdGun.CLASS_ACCESS_KEY )
+				key = potential_key;
 
+				if ( command_name === 'CREATE_KEY' )
+				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+				if ( sdWorld.time > this._last_key_created + 3000 )
+				{
+					if ( this.locked && !exectuter_character._god )
+					return;
+				
+					let keycard = new sdGun({ x:exectuter_character.x, y:exectuter_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
+					
+					sdEntity.entities.push( keycard );
+				
+					keycard.sd_filter = sdWorld.CreateSDFilter( true );
+					sdWorld.ReplaceColorInSDFilter_v2( keycard.sd_filter, '#00ff00', this._key_color );
+					
+					this._last_key_created = sdWorld.time;
+					
+					return;
+				}
+				
+				if ( command_name === 'SET_KEY' )
+				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+				{
+					if ( this.locked && !exectuter_character._god )
+					return;
+				
+					if ( typeof parameters_array[ 0 ] === 'string' )
+					{
+						if ( parameters_array[ 0 ].length < 32 )
+						{
+							this._access_id = parameters_array[ 0 ];
+							
+							this._key_color = this.GetRandomColor();
+							
+							if ( parameters_array[ 0 ].length <= 3 || parameters_array[ 0 ] === '123456' )
+							{
+								let t = sdWorld.AnyOf( [ 
+									'I don\'t think this was the best idea...',
+									'I have a feeling my items wont be so safe here',
+									'Can this thing get hacked?',
+									'What\'s the worst that could happen?',
+									'Is that all I can come up with?',
+									'I mean, who else is gonna use this thing? Hopefully only me'
+								] );
+							
+								exectuter_character.Say ( t );
+							}
+
+							this._update_version++;
+							executer_socket.SDServiceMessage( 'Access ID updated, revoked old keys' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Access ID is too long' );
+					}
+					
+					return;
+				}
+
+				if ( command_name === 'SET_KEY_ID' ) // For keycard item, not this entity
+				if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+				{
+					if ( typeof parameters_array[ 0 ] === 'string' )
+					{
+						if ( parameters_array[ 0 ].length < 32 )
+						{
+							if ( this.item0.class === sdGun.CLASS_ACCESS_KEY )
+							{
+								this.item0._access_id = parameters_array[ 0 ];
+								
+								this.gun_password = parameters_array[ 0 ];
+
+								this._update_version++;
+								executer_socket.SDServiceMessage( 'Keycard access ID updated' );
+							}
+						}
+						else
+						executer_socket.SDServiceMessage( 'Access ID is too long' );
+					}
+					
+					return;
+				}
+				
+				if ( command_name === 'SET_KEY_HINT' ) // For keycard item, not this entity
+				if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+				{
+					if ( typeof parameters_array[ 0 ] === 'string' )
+					{
+						if ( parameters_array[ 0 ].length < 16 )
+						{
+							if ( this.item0.class === sdGun.CLASS_ACCESS_KEY )
+							{
+								if ( this.item0.extra )
+								{
+									this.item0.extra[ 15 ] = parameters_array[ 0 ]; // ID_TITLE = 15
+								
+									this._update_version++;
+									executer_socket.SDServiceMessage( 'Keycard hint has been set' );
+								}
+							}
+						}
+						else
+						executer_socket.SDServiceMessage( 'Hint is too long' );
+					}
+					
+					return;
+				}
+				
+				if ( command_name === 'LOCK' )
+				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+				if ( sdWorld.time > this._last_locked + 1000 ) // No sound spam
+				{	
+					this.LockLogic( exectuter_character, key );
+				
+					return;
+				}
+				let item = this.type === sdWeaponBench.TYPE_DISPLAY ? this[ 'item' + parameters_array[ 0 ] ] : this.item0; // Workaround
+				if ( item )
+				{
 					if ( command_name === 'GET' )
 					{
-						if ( this.item0 )
-						this.ExtractItem( this.item0._net_id, exectuter_character );
+						if ( this.locked )
+						return;
+					
+						let slot = parameters_array[ 0 ];
+					
+						if ( this[ 'item' + slot ] )
+						{
+							this.ExtractItem( this[ 'item' + slot ]._net_id, exectuter_character );
+							this.gun_password = null;
+						}
 
 						this._update_version++;
 					}
 					else
-					if ( command_name === 'UPGRADE' )
+					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 					{
-						let upgrades = sdGun.classes[ this.item0.class ].upgrades;
-
-						let i = parseInt( parameters_array[ 0 ] );
-
-						if ( i >= 0 & i < upgrades.length )
+						if ( item.biometry_lock !== -1 && item.biometry_lock !== exectuter_character.biometry )
 						{
-							if ( upgrades[ i ].title === "Increase damage" && upgrades[ i ].cost === 2 ) // Normal gun damage upgrade price
+							executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
+							return;
+						}
+						
+						if ( command_name === 'UPGRADE' )
+						{
+							let upgrades = sdGun.classes[ item.class ].upgrades;
+
+							let i = parseInt( parameters_array[ 0 ] );
+
+							if ( i >= 0 & i < upgrades.length )
 							{
-								let slot_mult = 1;
-								if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
-								slot_mult = 0.7;
-								//if ( sdGun.classes[ this.item0.class ].slot === 2 )
-								//slot_mult = 1.5;
-								//let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-								let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) ); // Starter guns should be cheap, while endgame guns should be at 500 matter for damage
-								let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
-								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+								if ( upgrades[ i ].title === "Increase damage" && upgrades[ i ].cost === 2 ) // Normal gun damage upgrade price
+								{
+									let slot_mult = 1;
+									if ( sdGun.classes[ item.class ].slot === 0 || sdGun.classes[ item.class ].slot === 1 )
+									slot_mult = 0.7;
+							
+									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
+									let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
+									if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+									{
+										let result = true;
+									
+										if ( upgrades[ i ].action )
+										{
+											if ( false === upgrades[ i ].action( item, exectuter_character, ...parameters_array[ 0 ].slice ( 1 ) ) )
+											result = false;
+										}
+
+										if ( result )
+										{
+											sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+											exectuter_character.matter -= ( normal_cost || 0 );	
+										}
+
+										this._update_version++;
+									}
+									else
+									executer_socket.SDServiceMessage( 'Not enough matter' );
+								}
+								else
+								if ( upgrades[ i ].title === "Improve recoil control" && upgrades[ i ].cost === 1 ) // Normal gun recoil upgrade price
+								{
+									let slot_mult = 1;
+									if ( sdGun.classes[ item.class ].slot === 0 || sdGun.classes[ item.class ].slot === 1 )
+									slot_mult = 0.7;
+
+									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
+									let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
+									if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+									{
+										let result = true;
+									
+										if ( upgrades[ i ].action )
+										{
+											if ( false === upgrades[ i ].action( item, exectuter_character, ...parameters_array.slice( 1 ) ) )
+											result = false;
+										}
+
+										if ( result )
+										{
+											sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+											exectuter_character.matter -= ( normal_cost || 0 );	
+										}
+									
+										this._update_version++;
+									}
+									else
+									executer_socket.SDServiceMessage( 'Not enough matter' );
+								}
+								else
+								if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
 								{
 									let result = true;
-									
+
 									if ( upgrades[ i ].action )
 									{
-										if ( false === upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) ) )
+										if ( false === upgrades[ i ].action( item, exectuter_character, ...parameters_array.slice( 1 ) ) )
 										result = false;
 									}
 
@@ -380,7 +718,7 @@ class sdWeaponBench extends sdEntity
 									{
 										sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-										exectuter_character.matter -= ( normal_cost || 0 );	
+										exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
 									}
 
 									this._update_version++;
@@ -388,168 +726,113 @@ class sdWeaponBench extends sdEntity
 								else
 								executer_socket.SDServiceMessage( 'Not enough matter' );
 							}
-							else
-							if ( upgrades[ i ].title === "Improve recoil control" && upgrades[ i ].cost === 1 ) // Normal gun recoil upgrade price
+						}
+						else
+						if ( command_name === 'INCREASE_HP' )
+						{
+							if ( item )
 							{
-								let slot_mult = 1;
-								if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
-								slot_mult = 0.7;
-								//if ( sdGun.classes[ this.item0.class ].slot === 2 )
-								//slot_mult = 1.5;
-								//let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-								let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
-								let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
-								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
-								{
-									let result = true;
-									
-									if ( upgrades[ i ].action )
-									{
-										if ( false === upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) ) )
-										result = false;
-									}
-
-									if ( result )
-									{
-										sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
-
-										exectuter_character.matter -= ( normal_cost || 0 );	
-									}
-									
-									this._update_version++;
-								}
-								else
-								executer_socket.SDServiceMessage( 'Not enough matter' );
-							}
-							else
-							if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
-							{
-								let result = true;
-
-								if ( upgrades[ i ].action )
-								{
-									if ( false === upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) ) )
-									result = false;
-								}
-
-								if ( result )
+								let matter_cost = sdGun.classes[ item.class ].spawnable !== false ? ( sdGun.classes[ item.class ].matter_cost || 30 ) : 300;
+								if ( exectuter_character.matter >= ( matter_cost ) )
 								{
 									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-									exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
+									exectuter_character.matter -= matter_cost;
+
+									item._hea = 500;
+
+									this.upgraded_dur = true;
+
+									this._update_version++;
 								}
-
-								this._update_version++;
-							}
-							else
-							executer_socket.SDServiceMessage( 'Not enough matter' );
-						}
-					}
-					else
-					if ( command_name === 'INCREASE_HP' )
-					{
-						if ( this.item0 )
-						{
-							let matter_cost = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300;
-							if ( exectuter_character.matter >= ( matter_cost ) )
-							{
-								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
-
-								exectuter_character.matter -= matter_cost;
-
-								this.item0._hea = 500;
-
-								this.upgraded_dur = true;
-
-								this._update_version++;
-							}
-							else
-							executer_socket.SDServiceMessage( 'Not enough matter' );
-						}
-					}
-					else
-					if ( command_name === 'SET_BIOMETRY' ) // For non custom guns and for non "Lost damage" guns
-					{
-						if ( this.item0 )
-						{
-							let matter_cost = 500;
-							let player_has_weapon_with_biometry = false;
-							if ( !this.item0.IsGunRecoverable() ) // Just in case
-							executer_socket.SDServiceMessage( 'This weapon cannot have retrieval.' );
-							else
-							if ( exectuter_character.matter >= ( matter_cost ) )
-							{
-
-								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
-
-								exectuter_character.matter -= matter_cost;
-
-								if ( this.item0.biometry_lock === -1 )
-								this.item0.biometry_lock = exectuter_character.biometry;
 								else
-								this.item0.biometry_lock = -1;
-							
-								for ( let i = 0; i < exectuter_character._inventory.length; i++ )
+								executer_socket.SDServiceMessage( 'Not enough matter' );
+							}
+						}
+						else
+						if ( command_name === 'SET_BIOMETRY' ) // For non custom guns and for non "Lost damage" guns
+						{
+							if ( item )
+							{
+								let matter_cost = 500;
+								let player_has_weapon_with_biometry = false;
+								if ( !item.IsGunRecoverable() ) // Just in case
+								executer_socket.SDServiceMessage( 'This weapon cannot have retrieval.' );
+								else
+								if ( exectuter_character.matter >= ( matter_cost ) )
 								{
-									if ( exectuter_character._inventory[ i ] )
+
+									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+									exectuter_character.matter -= matter_cost;
+
+									if ( item.biometry_lock === -1 )
+									item.biometry_lock = exectuter_character.biometry;
+									else
+									this.item.biometry_lock = -1;
+							
+									for ( let i = 0; i < exectuter_character._inventory.length; i++ )
 									{
-										if ( exectuter_character._inventory[ i ].biometry_lock === exectuter_character.biometry )
+										if ( exectuter_character._inventory[ i ] )
 										{
-											player_has_weapon_with_biometry = true;
-											break;
+											if ( exectuter_character._inventory[ i ].biometry_lock === exectuter_character.biometry )
+											{
+												player_has_weapon_with_biometry = true;
+												break;
+											}
 										}
 									}
-								}
-								if ( this.item0.biometry_lock !== -1 )
-								{
-									if ( !player_has_weapon_with_biometry )
+									if ( item.biometry_lock !== -1 )
 									{
-										exectuter_character.Say( [ 
-							'In case of my demise, someone is in for a surprise.', 
-							'It should automatically teleport back to the Mothership if forcefully removed.', 
-							'This weapon will automatically recall into the Mothership if I disappear whilst having it.',
-							'I guess this now has extended warranty, heh.',
-							'If I forcefully lose possession of this item, it will recall into the Mothership.',
-							'As long as only one item prioritizes retrieval, it will always be that one.'
-						][ ~~( Math.random() * 5 ) ] );
+										if ( !player_has_weapon_with_biometry )
+										{
+											exectuter_character.Say( [ 
+								'In case of my demise, someone is in for a surprise.', 
+								'It should automatically teleport back to the Mothership if forcefully removed.', 
+								'This weapon will automatically recall into the Mothership if I disappear whilst having it.',
+								'I guess this now has extended warranty, heh.',
+								'If I forcefully lose possession of this item, it will recall into the Mothership.',
+								'As long as only one item prioritizes retrieval, it will always be that one.'
+							][ ~~( Math.random() * 5 ) ] );
 						
-										executer_socket.SDServiceMessage( 'This weapon will be teleported to the Mothership storage on death.' );
+											executer_socket.SDServiceMessage( 'This weapon will be teleported to the Mothership storage on death.' );
+										}
+										else
+										{
+											exectuter_character.Say( [ 
+								'I already have a weapon to prioritize saving.', 
+								'Having multiple of these will not work.', 
+								'I can only save one weapon, in case of death.',
+								'They will not save more than one weapon with this feature.',
+								'I can\'t save multiple weapons on death. I should pick only one.'
+							][ ~~( Math.random() * 4 ) ] );
+											executer_socket.SDServiceMessage( 'Equipping multiple priority retrieval weapons will save a stronger one.' );
+										}
 									}
 									else
-									{
+										{
 										exectuter_character.Say( [ 
-							'I already have a weapon to prioritize saving.', 
-							'Having multiple of these will not work.', 
-							'I can only save one weapon, in case of death.',
-							'They will not save more than one weapon with this feature.',
-							'I can\'t save multiple weapons on death. I should pick only one.'
-						][ ~~( Math.random() * 4 ) ] );
-										executer_socket.SDServiceMessage( 'Equipping multiple priority retrieval weapons will save a stronger one.' );
+							'Priority retrieval disabled for this item.', 
+							'It will no longer attempt retrieval to Mothership on death, if equipped'
+						][ ~~( Math.random() * 1 ) ] );
+										executer_socket.SDServiceMessage( 'Priority retrieval disabled for this weapon.' );
 									}
+									this._update_version++;
 								}
 								else
-									{
-									exectuter_character.Say( [ 
-						'Priority retrieval disabled for this item.', 
-						'It will no longer attempt retrieval to Mothership on death, if equipped'
-					][ ~~( Math.random() * 1 ) ] );
-									executer_socket.SDServiceMessage( 'Priority retrieval disabled for this weapon.' );
-								}
-								this._update_version++;
+								executer_socket.SDServiceMessage( 'Not enough matter' );
 							}
-							else
-							executer_socket.SDServiceMessage( 'Not enough matter' );
 						}
+					}
+					else
+					{
+						executer_socket.SDServiceMessage( 'No weapon found' );
 					}
 				}
 				else
 				{
-					executer_socket.SDServiceMessage( 'No weapon found' );
+					executer_socket.SDServiceMessage( 'Too far' );
 				}
-			}
-			else
-			{
-				executer_socket.SDServiceMessage( 'Too far' );
 			}
 		}
 	}
@@ -561,104 +844,110 @@ class sdWeaponBench extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
 		{
-			if ( this.item0 )
+			if ( !this.locked )
+			for ( let i = 0; i < this.GetSlotsTotal(); i++ )
 			{
-				this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.item0._net_id ), 'GET', [ ] );
-				let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-				
-				//if ( this._current_category_stack.length === 0 )
-				if ( this.upgraded_dur === false )
-				this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ], false );
-			
-				if ( this.item0.IsGunRecoverable() && this.item0.class !== sdGun.CLASS_CUSTOM_RIFLE )
-				this.AddContextOption( 'Prioritize weapon retrieval on death ('+ 500 +' matter)', 'SET_BIOMETRY', [ ], false );
-				
-				if ( this._current_category_stack.length > 0 )
-				this.AddClientSideActionContextOption( 'Go back...', ()=>
+				let item = this[ 'item' + i ]
+				if ( item )
 				{
-					this._current_category_stack.pop();
-					this.RebuildContextMenu();
-				}, false );
-				
-				let upgrades = sdGun.classes[ this.item0.class ].upgrades;
-				
-				if ( upgrades )
-				for ( let i in upgrades )
-				{
-					let upgrade = upgrades[ i ];
 					
-					if ( ( upgrade.category || undefined ) === this._current_category_stack[ this._current_category_stack.length - 1 ] )
+					this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
+					let matter_cost_durability = sdGun.classes[ item.class ].spawnable !== false ? ( sdGun.classes[ item.class ].matter_cost || 30 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+				
+					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+					if ( this.upgraded_dur === false )
+					this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ], false );
+			
+					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+					if ( item.IsGunRecoverable() && item.class !== sdGun.CLASS_CUSTOM_RIFLE )
+					this.AddContextOption( 'Prioritize weapon retrieval on death ('+ 500 +' matter)', 'SET_BIOMETRY', [ ], false );
+				
+					if ( this._current_category_stack.length > 0 )
+					this.AddClientSideActionContextOption( 'Go back...', ()=>
 					{
-						if ( upgrade.represents_category )
+						this._current_category_stack.pop();
+						this.RebuildContextMenu();
+					}, false );
+					
+					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+					{
+						let upgrades = sdGun.classes[ item.class ].upgrades;
+				
+						if ( upgrades )
+						for ( let i in upgrades )
 						{
-							this.AddClientSideActionContextOption( upgrade.title, ()=>
+							let upgrade = upgrades[ i ];
+
+							if ( ( upgrade.category || undefined ) === this._current_category_stack[ this._current_category_stack.length - 1 ] )
 							{
-								this._current_category_stack.push( upgrade.represents_category );
-								this.RebuildContextMenu();
-							}, false );
-						}
-						else
-						if ( upgrade.color_picker_for )
-						{
-							if ( upgrade.color_picker_for.length === 7 )
-							upgrade.color_picker_for = upgrade.color_picker_for.substring( 1 ); // Skip #
+								if ( upgrade.represents_category )
+								{
+									this.AddClientSideActionContextOption( upgrade.title, ()=>
+									{
+										this._current_category_stack.push( upgrade.represents_category );
+										this.RebuildContextMenu();
+									}, false );
+								}
+								else
+								if ( upgrade.color_picker_for )
+								{
+									if ( upgrade.color_picker_for.length === 7 )
+									upgrade.color_picker_for = upgrade.color_picker_for.substring( 1 ); // Skip #
 							
-							let color = upgrade.color_picker_for;
+									let color = upgrade.color_picker_for;
 							
-							if ( this.item0.sd_filter ) // Replace with whatever is currently picked
-							color = sdWorld.GetColorOfSDFilter( this.item0.sd_filter, color );
+									if ( item.sd_filter ) // Replace with whatever is currently picked
+									color = sdWorld.GetColorOfSDFilter( item.sd_filter, color );
 						
-							this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+									this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+								}
+								else
+								if ( upgrade.title === "Increase damage" && upgrade.cost === 2 ) // Non "custom" gun damage
+								{
+									let slot_mult = 1;
+									if ( sdGun.classes[ item.class ].slot === 0 || sdGun.classes[ item.class ].slot === 1 )
+									slot_mult = 0.7;
+							
+									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
+									let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
+									this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+								}
+								else
+								if ( upgrade.title === "Improve recoil control" && upgrade.cost === 1 ) // Non "custom" gun recoil
+								{
+									let slot_mult = 1;
+									if ( sdGun.classes[ item.class ].slot === 0 || sdGun.classes[ item.class ].slot === 1 )
+									slot_mult = 0.7;
+
+									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
+									let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
+									this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+								}
+								else
+								{
+									this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+								}
+							}
 						}
-						else
-						if ( upgrade.title === "Increase damage" && upgrade.cost === 2 ) // Non "custom" gun damage
+						if ( item.class === sdGun.CLASS_ACCESS_KEY )
 						{
-							let slot_mult = 1;
-							if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
-							slot_mult = 0.7;
-							//if ( sdGun.classes[ this.item0.class ].slot === 2 )
-							//slot_mult = 1.5;
-							let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
-							let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
-							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
-						}
-						else
-						if ( upgrade.title === "Improve recoil control" && upgrade.cost === 1 ) // Non "custom" gun recoil
-						{
-							let slot_mult = 1;
-							if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
-							slot_mult = 0.7;
-							//if ( sdGun.classes[ this.item0.class ].slot === 2 )
-							//slot_mult = 1.5;
-							let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
-							let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
-							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
-						}
-						else
-						{
-							this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+							this.AddPromptContextOption( 'Set keycard access ID', 'SET_KEY_ID', [ undefined ], 'Enter new ID', ( this.gun_password || '' ), 32 );
+							this.AddPromptContextOption( 'Set keycard hint', 'SET_KEY_HINT', [ undefined ], 'Enter hint', ( item.extra ? item.extra[ 15 ] : '' ), 32 ); // ID_TITLE = 15;
 						}
 					}
 				}
 			}
-			
-			/*
-			if ( this.owner === exectuter_character )
+			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 			{
-				this.AddContextOption( 'Accept everyone', 'ACCEPT_ALL', [ ] );
-				this.AddContextOption( 'Reject everyone', 'REJECT_ALL', [ ] );
-				this.AddContextOption( 'Kick everyone from team', 'KICK_ALL', [ ] );
-					
-				for ( var i = 0; i < this.pending_team_joins.length; i++ )
+				this.AddContextOption( 'Toggle lock', 'LOCK', [ ] );
+				
+				if ( !this.locked || exectuter_character._god )
 				{
-					this.AddContextOption( 'Accept ' + sdEntity.GuessEntityName( this.pending_team_joins[ i ] ), 'ACCEPT', [ this.pending_team_joins[ i ] ] );
-					this.AddContextOption( 'Reject ' + sdEntity.GuessEntityName( this.pending_team_joins[ i ] ), 'REJECT', [ this.pending_team_joins[ i ] ] );
+					this.AddPromptContextOption( 'Set access ID', 'SET_KEY', [ undefined ], 'Enter new ID', '', 32 );
+				
+					this.AddContextOption( 'Generate access key', 'CREATE_KEY', [ ] );
 				}
 			}
-			else
-			{
-				this.AddContextOption( 'Request team join', 'REQUEST', [] );
-			}*/
 		}
 	}
 }

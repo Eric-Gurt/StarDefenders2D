@@ -65,6 +65,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_SPARK = 28;
 		sdEffect.TYPE_SMOKE = 29;
 		sdEffect.TYPE_LENS_FLARE = 30;
+		sdEffect.TYPE_GLASS = 31
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -261,7 +262,8 @@ class sdEffect extends sdEntity
 			random_speed_percentage: 0.1,
 			random_flip: false,
 			gravity: true,
-			collisions: true
+			collisions: true,
+			bounce_intensity: 0.333
 		};
 		sdEffect.types[ sdEffect.TYPE_HEARTS ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_hearts' ) ],
@@ -393,6 +395,18 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'lens_flare' )
 			],
 			speed: 1 / 20,
+			apply_shading: false
+		};
+		
+		sdEffect.types[ sdEffect.TYPE_GLASS ] = {
+			images: [ sdWorld.CreateImageFromFile( 'glass' ) ],
+			speed: 1 / 90,
+			random_speed_percentage: 0.5,
+			random_flip: true,
+			random_rotation: true,
+			gravity: true,
+			collisions: true,
+			bounce_intensity: 0.25,
 			apply_shading: false
 		};
 	
@@ -931,8 +945,8 @@ class sdEffect extends sdEntity
 					{
 						let an = Math.random() * Math.PI * 2;
 						
-						let xx = Math.sin( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 ))
-						let yy = -( Math.cos( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 )))
+						let xx = Math.sin( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ))
+						let yy = -( Math.cos( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 )))
 						
 						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:xx, sy:yy, color: this._color });
 						sdEntity.entities.push( s );
@@ -966,7 +980,7 @@ class sdEffect extends sdEntity
 	{
 		return sdEffect.unignored_entity_classes_arr;
 	}
-	
+
 	get _text_target_x()
 	{
 		return this._attachment.x + this._attachment_x;
@@ -1053,6 +1067,11 @@ class sdEffect extends sdEntity
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
 				sdEntity.entities.push( e );
 			}
+		}
+		
+		if ( this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL )
+		{
+			this._rotation += this.sx * 0.5 * GSPEED;
 		}
 
 		if ( this._ani >= this._duration )
@@ -1432,6 +1451,11 @@ class sdEffect extends sdEntity
 			ctx.filter = this._filter;
 			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 96 + (frame%3)*32, 0 + ~~(frame/3)*32, 32,32, -16,-16,32,32 );
 			ctx.filter = 'none';
+		}
+		else
+		if ( this._type === sdEffect.TYPE_GLASS )
+		{
+			ctx.rotate( this._rotation );
 		}
 		else
 		if ( sdEffect.types[ this._type ].spritesheet )
