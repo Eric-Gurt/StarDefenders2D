@@ -9640,7 +9640,7 @@ class sdGunClass
 				else
 				{
 					sdSound.PlaySound({ name:'alien_laser1', x:gun.x, y:gun.y, volume:1, pitch: 0.2 });
-					if ( gun.fire_mode === 2 )
+					//if ( gun.fire_mode === 2 )
 					if ( gun._held_by )
 					if ( !gun._held_by._is_being_removed )
 					{
