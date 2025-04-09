@@ -5187,7 +5187,7 @@ class sdGunClass
 			title: 'Task Ops DMR',
 			slot: 4,
 			reload_time: 9,
-			muzzle_x: 12,
+			muzzle_x: 13,
 			ammo_capacity: 20,
 			count: 1,
 			fire_type: 2,
@@ -7662,6 +7662,10 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_CHAINSAW = 117 ] = {
 			image: sdWorld.CreateImageFromFile( 'crystal_saw' ),
+			image0: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
+			has_images: true,
 			//spritesheet: true,
 			sound: 'gun_saw',//'cut_droid_attack',
 			sound_pitch: 1.2,
