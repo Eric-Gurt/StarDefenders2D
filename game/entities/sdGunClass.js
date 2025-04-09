@@ -2474,7 +2474,7 @@ class sdGunClass
 			title: 'Rocket launcher MK2',
 			slot: 5,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			spread: 0.05,
 			projectile_velocity: 14,
@@ -7658,14 +7658,14 @@ class sdGunClass
 
 
 		sdGun.classes[ sdGun.CLASS_CHAINSAW = 117 ] = {
-			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
-			spritesheet: true,
+			image: sdWorld.CreateImageFromFile( 'crystal_saw' ),
+			//spritesheet: true,
 			sound: 'gun_saw',//'cut_droid_attack',
 			sound_pitch: 1.2,
 			sound_volume: 0.7,
-			title: 'Chainsaw',
+			title: 'Crystal cutter',
 			slot: 0,
-			reload_time: 7,
+			reload_time: 6,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
@@ -7705,7 +7705,7 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#808080', 15, 'blade' ) )
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#c0c0c0', 15, 'blade' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_CRYOGUN = 118 ] = 
