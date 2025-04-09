@@ -2029,7 +2029,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 15 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -4593,6 +4593,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_METAL_SHARD = 73 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'metal_shard' ),
+			image_variative: true,
 			sound: 'gun_defibrillator',
 			title: 'Alienic metal shard',
 			sound_pitch: 1,
