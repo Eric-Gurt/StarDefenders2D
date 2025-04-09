@@ -2510,7 +2510,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( 
+						AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [], '#008080', 15 ), '#ff0000', 15 )
+					)
 		};
 
 		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
@@ -5676,7 +5678,8 @@ class sdGunClass
 				}
 				return false;
 			},
-			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff'}
+			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff'},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_RAYRIFLE = 94 ] =
