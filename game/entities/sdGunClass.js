@@ -2029,7 +2029,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 15 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -2474,7 +2474,7 @@ class sdGunClass
 			title: 'Rocket launcher MK2',
 			slot: 5,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			spread: 0.05,
 			projectile_velocity: 14,
@@ -2510,7 +2510,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( 
+						AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [], '#008080', 15 ), '#ff0000', 15 )
+					)
 		};
 
 		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
@@ -4591,6 +4593,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_METAL_SHARD = 73 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'metal_shard' ),
+			image_variative: true,
 			sound: 'gun_defibrillator',
 			title: 'Alienic metal shard',
 			sound_pitch: 1,
@@ -5185,13 +5188,13 @@ class sdGunClass
 			title: 'Task Ops DMR',
 			slot: 4,
 			reload_time: 9,
-			muzzle_x: 12,
+			muzzle_x: 14,
 			ammo_capacity: 20,
 			count: 1,
 			fire_type: 2,
 			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
-			projectile_properties: { _damage: 72, penetrating: true, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 80, penetrating: true, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating: true, _dirt_mult: -0.5 };
@@ -5219,7 +5222,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 72; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 80; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -5676,7 +5679,8 @@ class sdGunClass
 				}
 				return false;
 			},
-			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff'}
+			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff'},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_RAYRIFLE = 94 ] =
@@ -7658,20 +7662,25 @@ class sdGunClass
 
 
 		sdGun.classes[ sdGun.CLASS_CHAINSAW = 117 ] = {
-			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
-			spritesheet: true,
+			image: sdWorld.CreateImageFromFile( 'crystal_saw' ),
+			image0: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
+			has_images: true,
+			//spritesheet: true,
 			sound: 'gun_saw',//'cut_droid_attack',
 			sound_pitch: 1.2,
 			sound_volume: 0.7,
-			title: 'Chainsaw',
+			title: 'Crystal cutter',
 			slot: 0,
-			reload_time: 7,
+			reload_time: 6,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
 			is_sword: false,
 			projectile_velocity: 20,
 			spawnable: false,
+			has_description: [ 'Can be used to cut large crystals into 4 smaller ones' ],
 			projectile_properties: 
 			{ 
 				time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
@@ -7705,7 +7714,7 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#808080', 15, 'blade' ) )
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#c0c0c0', 15, 'blade' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_CRYOGUN = 118 ] = 

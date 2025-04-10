@@ -317,8 +317,10 @@ class sdWeaponBench extends sdEntity
 		if ( this.locked )
 		return;
 	
+		let allow_ignored_items = this.type === sdWeaponBench.TYPE_DISPLAY;
+		
 		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_METAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
+		if ( !sdGun.classes[ from_entity.class ].ignore_slot || allow_ignored_items ) // Allow some un-upgradable items for display only
 		{
 			if ( from_entity._held_by === null )
 			{
