@@ -202,6 +202,7 @@ class sdAsteroid extends sdEntity
 	}
 	AsteroidLanded()
 	{
+		if ( sdWorld.is_server )
 		if ( !this.landed )
 		{
 			this.landed = true;
@@ -219,7 +220,7 @@ class sdAsteroid extends sdEntity
 			else
 			if ( this.type === sdAsteroid.TYPE_MISSILE ) 
 			{
-				if ( Math.random() < 0.9 ) this.Fragmentation(); // Small chance to malfunction, for realism
+				if ( Math.random() < 0.9 ) this.remove(); // Small chance to malfunction, for realism
 			}
 			else
 			sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
