@@ -248,7 +248,7 @@ class sdAsteroid extends sdEntity
 				bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
 				bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
 				bullet_obj.time_left = 500 * this.scale / 100 / 16 * 2;
-												
+							
 				bullet_obj._damage = 32;
 				//bullet_obj._temperature_addition = 1000;
 
@@ -257,7 +257,7 @@ class sdAsteroid extends sdEntity
 
 				bullet_obj._owner = this;
 				
-				bullet_obj._can_hit_owner = true;
+				bullet_obj._can_hit_owner = false;
 				bullet_obj.color = '#ffff00';
 
 				sdEntity.entities.push( bullet_obj );
