@@ -157,7 +157,8 @@ class sdAsteroid extends sdEntity
 		this._time_to_despawn = 30 * 60 * 2; // 2 minutes to despawn landed asteroids
 		
 		//this._an = 0;
-		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
+		this._an = ( Math.atan2( this.sy, this.sx ) - Math.PI / 2 );
+		this.rotation = this._an * 100;  // Needed as public variable for aiming missiles
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -206,6 +207,7 @@ class sdAsteroid extends sdEntity
 			this.landed = true;
 
 			this._an = Math.random() * Math.PI;
+			this.rotation = this._an * 100;
 
 			if ( this.type === sdAsteroid.TYPE_FLESH )
 			{
@@ -266,6 +268,9 @@ class sdAsteroid extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( sdWorld.is_server )
+		this.rotation = this._an * 100;
+		
 		if ( this.landed )
 		{
 			if ( this.attached_to )
@@ -352,8 +357,8 @@ class sdAsteroid extends sdEntity
 				}
 			}
 
-			if ( !sdWorld.is_server )
-			this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
+			// if ( !sdWorld.is_server )
+			this._an = ( Math.atan2( this.sy, this.sx ) - Math.PI / 2 );
 		
 			//if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 			if ( !this.CanMoveWithoutDeepSleepTriggering( new_x, new_y, 0 ) )
@@ -456,7 +461,7 @@ class sdAsteroid extends sdEntity
 		let yy = 0;
 		
 		if ( !sdShop.isDrawing )
-		ctx.rotate( this._an );
+		ctx.rotate( this.rotation / 100 );
 
 		ctx.scale( this.scale/100, this.scale/100 );
 		
@@ -476,6 +481,51 @@ class sdAsteroid extends sdEntity
 	MeasureMatterCost()
 	{
 		return 100; // Hack
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			{
+				if ( command_name === 'IGNITE' )
+				if ( this.type === sdAsteroid.TYPE_MISSILE )
+				if ( this.landed )
+				{
+					this.landed = false;
+		
+					this.sx = Math.sin ( this._an - Math.PI ) * 15;
+					this.sy = Math.cos ( this._an ) * 15;
+					
+					sdSound.PlaySound({ name:'missile_incoming', x:this.x, y:this.y, volume: 1, pitch: 1 });
+					
+					// Prevent instant explosion due to getting stuck in walls even when aimed properly - might not be needed anymore
+					
+					//this.x += this.sx / 2;
+					//this.y += this.sy / 2;
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( this.type === sdAsteroid.TYPE_MISSILE )
+			if ( this.landed )
+			{
+					
+					this.AddContextOption( 'Reignite engine', 'IGNITE', [ ] );
+				
+			}
+		}
 	}
 };
 export default sdAsteroid;
