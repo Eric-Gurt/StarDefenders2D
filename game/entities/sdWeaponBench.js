@@ -53,6 +53,7 @@ class sdWeaponBench extends sdEntity
 	{
 		super( params );
 		this._regen_timeout = 0;
+		this._last_damage = 0; // Prevent sound spam
 
 		this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		this.item_dps = 1; // Value is given when item is placed on bench. Needed public variable so damage upgrade can have correct DPS for matter cost calculation - Booraz149
@@ -86,6 +87,13 @@ class sdWeaponBench extends sdEntity
 		this._hea -= dmg;
 		
 		this._regen_timeout = 60;
+		
+		if ( this.locked )
+		if ( sdWorld.time > this._last_damage + 50 )
+		{
+			this._last_damage = sdWorld.time;
+			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 100 ) });
+		}
 		
 		if ( this._hea <= 0 )
 		{
