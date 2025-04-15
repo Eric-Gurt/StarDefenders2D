@@ -92,7 +92,26 @@ class sdWeaponBench extends sdEntity
 			this.remove();
 		}
 	}
+	GetItemOffset ( slot ) // Cleaner way
+	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+		return { x: 1, y: -16 };
 	
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		{
+			// Variable names might be wrong - was changed from being veritcal to horizontal
+			let start_x = -14
+
+			let row_height = 11;
+			let row_offset_x = 11.5
+			let row_offset_y = 7.5;
+		
+			return { 
+				x: ( slot - slot % 2 + row_height + start_x ) * row_offset_y,
+				y: row_offset_x * ( slot % 2 === 0 ? -1 : 1 )
+			};
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -162,25 +181,14 @@ class sdWeaponBench extends sdEntity
 			
 			if ( item )
 			{
-				// TODO: fix variable names
-				let start_x = -14
-
-				let row_height = 11;
-				let row_offset_x = 11.5
-				let row_offset_y = 7.5;
+				let offsets = this.GetItemOffset( i );
 				
 				if ( this.locked )
 				return;
 			
 				ctx.save();
 				{
-					if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-					{
-						ctx.translate( ( i - i % 2 + row_height + start_x ) * row_offset_y, ( row_offset_x * ( i % 2 === 0 ? -1 : 1 ) ) ); 
-					}
-			
-					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-					ctx.translate( -1, -17 );
+					ctx.translate( offsets.x, offsets.y );
 			
 					item.Draw( ctx, true );
 				
@@ -275,7 +283,15 @@ class sdWeaponBench extends sdEntity
 			if ( !this.locked )
 			{
 				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
-				this.DropSlot( i );
+				if ( this[ 'item' + i ] )
+				{
+					let item = this[ 'item' + i ];
+					this.DropSlot( i );
+					let offsets = this.GetItemOffset ( i );
+					
+					item.x = offsets.x + this.x;
+					item.y = offsets.y + this.y;
+				}
 			}
 		
 			if ( this.locked )
@@ -296,7 +312,7 @@ class sdWeaponBench extends sdEntity
 				this[ 'item' + i ].remove();
 			}
 
-			sdWorld.BasicEntityBreakEffect( this, 5 );
+			sdWorld.BasicEntityBreakEffect( this, 8 );
 		}
 		else
 		{
