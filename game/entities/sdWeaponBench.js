@@ -189,10 +189,10 @@ class sdWeaponBench extends sdEntity
 			
 			if ( item )
 			{
-				let offsets = this.GetItemOffset( i );
-				
 				if ( this.locked )
 				return;
+
+				let offsets = this.GetItemOffset( i );
 			
 				ctx.save();
 				{
