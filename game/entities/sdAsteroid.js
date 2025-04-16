@@ -527,8 +527,8 @@ class sdAsteroid extends sdEntity
 				{
 					this.landed = false;
 		
-					this.sx = Math.sin ( this._an - Math.PI ) * 15;
-					this.sy = Math.cos ( this._an ) * 15;
+					this.sx = Math.sin ( this._an - Math.PI ) * 10;
+					this.sy = Math.cos ( this._an ) * 10;
 					
 					sdSound.PlaySound({ name:'missile_incoming', x:this.x, y:this.y, volume: 1, pitch: 1 });
 					
