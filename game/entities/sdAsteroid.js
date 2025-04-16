@@ -407,7 +407,7 @@ class sdAsteroid extends sdEntity
 			
 			if ( this._eff_timer <= 0 )
 			{
-				let xx = -this.sx + ( -Math.random() + Math.random() );
+				let xx = -this.sx / 4 + ( -Math.random() + Math.random() );
 				let yy = -this.sy / 4 + ( -Math.random() + Math.random() );
 				
 				let e = new sdEffect({ type: sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx: xx, sy: yy, color: this._eff_color });
