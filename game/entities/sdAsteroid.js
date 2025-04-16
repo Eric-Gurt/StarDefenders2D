@@ -26,6 +26,8 @@ class sdAsteroid extends sdEntity
 		sdAsteroid.TYPE_FLESH = 2;
 		sdAsteroid.TYPE_MISSILE = 3;
 		
+		sdAsteroid.effect_colors = [ '#fffff0', '#fffff0', '#ff0000', '#80ffff' ]
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -5 * this.scale / 100; }
@@ -133,7 +135,6 @@ class sdAsteroid extends sdEntity
 
 		this.matter_max = 0;
 
-		
 		this._witnessers = new WeakSet();
 		
 		if ( this.type === sdAsteroid.TYPE_SHARDS )
@@ -159,6 +160,10 @@ class sdAsteroid extends sdEntity
 		//this._an = 0;
 		this._an = ( Math.atan2( this.sy, this.sx ) - Math.PI / 2 );
 		this.rotation = this._an * 100;  // Needed as public variable for aiming missiles
+		
+		// client-sided
+		this._eff_color = sdAsteroid.effect_colors [ this.type ];
+		this._eff_timer = 0;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -220,7 +225,8 @@ class sdAsteroid extends sdEntity
 			else
 			if ( this.type === sdAsteroid.TYPE_MISSILE ) 
 			{
-				if ( Math.random() < 0.9 ) this.remove(); // Small chance to malfunction, for realism
+				if ( Math.random() < 0.9 ) // Small chance to malfunction, for realism
+				this.remove();
 			}
 			else
 			sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
@@ -390,6 +396,29 @@ class sdAsteroid extends sdEntity
 				this.x = new_x;
 				this.y = new_y;
 				sdWorld.UpdateHashPosition( this, false, true );
+			}
+		}
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		if ( !this.landed )
+		if ( sdRenderer.effects_quality > 1 )
+		{
+			if ( this._eff_timer > 0 )
+			this._eff_timer -= GSPEED;
+			
+			if ( this._eff_timer <= 0 )
+			{
+				let xx = -this.sx + ( -Math.random() + Math.random() );
+				let yy = -this.sy / 4 + ( -Math.random() + Math.random() );
+				
+				let e = new sdEffect({ type: sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx: xx, sy: yy, color: this._eff_color });
+				sdEntity.entities.push( e );
+				if ( this.type !== sdAsteroid.TYPE_FLESH )
+				{
+					let e2 = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + xx * 2, y:this.y + yy * 2, sx: xx, sy:yy, scale:1, radius:this.scale / 200, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color:this._eff_color });
+					sdEntity.entities.push( e2 );
+				}
+					
+				this._eff_timer = 1;
 			}
 		}
 	}
