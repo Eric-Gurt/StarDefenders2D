@@ -191,6 +191,9 @@ class sdHover extends sdEntity
 		
 		if ( this._spawn_with_ents )
 		this.matter = this.matter_max; // Let AI have more matter
+	
+		// client-sided
+		this._eff_timer = 0;
 	}
 	
 	
@@ -979,10 +982,18 @@ class sdHover extends sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
-			if ( this.hea < 0  || this.driver0 && this.hea < this.hmax / 5)
+			if ( this.hea < 0 || this.driver0 && this.hea < this.hmax / 5 )
 			{
+				if ( this._eff_timer > 0 )
+				this._eff_timer -= GSPEED;
+			
+				if ( this._eff_timer <= 0 )
+				{
 					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 3, scale:1, radius:0.25, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
 					sdEntity.entities.push( e );
+					
+					this._eff_timer = 1;
+				}
 			}
 		}
 		
