@@ -170,7 +170,7 @@ class sdWeaponBench extends sdEntity
 			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 			ctx.scale( 0.75, 0.75 );
 		}
-		
+
 		let xx = 0;
 		let yy = 0;
 
@@ -328,6 +328,17 @@ class sdWeaponBench extends sdEntity
 			if ( this[ 'item' + i ] )
 			this[ 'item' + i ].remove();
 		}
+	}
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		let ents = [];
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+		if ( this[ 'item' + i ] )
+		{
+			let item = this[ 'item' + i ];
+			ents.push( item );
+		}
+		return ents;
 	}
 	MeasureMatterCost()
 	{
