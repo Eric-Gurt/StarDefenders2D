@@ -594,10 +594,10 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'clone' || this._voice.variant === 'swordbot' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'swordbot' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -620,6 +620,9 @@ class sdCharacter extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._voice.variant === 'clone' )
+		return 'grayscale(100%)brightness(0.75)'
+	
 		return '';
 	}
 	
