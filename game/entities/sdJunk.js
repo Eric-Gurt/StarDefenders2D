@@ -437,7 +437,9 @@ class sdJunk extends sdEntity
 					damage_scale: 2 + ( 1 * ( this.matter / 90 ) ), // Weaker explosion if you drain it's matter before that, more lethal than regular cube explosion if it's matter is max
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
-					color:'#33FFFF' 
+					color:'#33FFFF',
+					no_smoke: true,
+					shrapnel: true
 				});
 			}
 			if ( this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) // High radius explosion. Almost like a mini-nuke.
@@ -471,7 +473,8 @@ class sdJunk extends sdEntity
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
 							color:'#ffff66',
-							no_smoke: true
+							no_smoke: true,
+							shrapnel: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
@@ -530,7 +533,8 @@ class sdJunk extends sdEntity
 						damage_scale: 0, 
 						type: sdEffect.TYPE_EXPLOSION,
 						color:'#fff000',
-						no_smoke: true
+						no_smoke: true,
+						shrapnel: true
 					});
 				}
 
@@ -600,7 +604,8 @@ class sdJunk extends sdEntity
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
 						color:'#33FFFF',
-						smoke_color: '#33FFFF'
+						smoke_color: '#33FFFF',
+						shrapnel: true
 					});
 
 					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
@@ -631,7 +636,8 @@ class sdJunk extends sdEntity
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
 						color:'#FFA840',
-						smoke_color: '#FFA840'
+						smoke_color: '#FFA840',
+						shrapnel: true
 					});
 
 					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
@@ -942,7 +948,8 @@ class sdJunk extends sdEntity
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this._owner,
 						can_hit_owner: true,
-						color:sdEffect.default_explosion_color
+						color:sdEffect.default_explosion_color,
+						shrapnel: true
 					});
 
 					// Spawn Council mecha worm as a punishment aswell
