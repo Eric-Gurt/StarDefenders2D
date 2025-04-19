@@ -582,6 +582,8 @@ class sdEffect extends sdEntity
 		this._spark_color = params.spark_color || sdEffect.default_explosion_color;
 		this._shrapnel = params.shrapnel || false;
 		
+		this._extra_eff_timer = 0; // Secondary particle effect
+		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
 		//this._attachment = params.attachment || null;
@@ -1080,8 +1082,16 @@ class sdEffect extends sdEntity
 		
 		if ( this._type === sdEffect.TYPE_SHRAPNEL )
 		{
-			let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx * 0.8, sy:this.sy * 0.8, color: this._color });
-			sdEntity.entities.push( e );
+			if ( this._extra_eff_timer > 0 )
+			this._extra_eff_timer -= GSPEED;
+			
+			if ( this._extra_eff_timer <= 0 )
+			{
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx * 0.8, sy:this.sy * 0.8, color: this._color });
+				sdEntity.entities.push( e );
+				
+				this._extra_eff_timer = 1;
+			}
 		}
 		
 		if ( this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL )
