@@ -2817,7 +2817,8 @@ class sdGunClass
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
 							color:'#ffff66',
-							no_smoke: true
+							no_smoke: true,
+							shrapnel: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
@@ -5306,7 +5307,8 @@ class sdGunClass
 					type: sdEffect.TYPE_EXPLOSION, 
 					owner: this,
 					color: '#aaaaaa',
-					no_smoke: true
+					no_smoke: true,
+					shrapnel: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 33 * dmg_scale, bullet, sdLost.FILTER_WHITE );
@@ -9480,7 +9482,8 @@ class sdGunClass
 					type: sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 					owner: this,
 					color: '#000000',
-					no_smoke: true
+					no_smoke: true,
+					shrapnel: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 60, bullet, sdLost.FILTER_VOID );
