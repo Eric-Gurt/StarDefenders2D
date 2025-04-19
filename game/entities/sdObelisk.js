@@ -24,7 +24,7 @@ class sdObelisk extends sdEntity
 		sdObelisk.img_obelisk3 = sdWorld.CreateImageFromFile( 'obelisk3' );*/
 		sdObelisk.img_obelisk4 = sdWorld.CreateImageFromFile( 'obelisk4' );
 		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' ); // Sprite by PeacyQuack
-		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' );
+		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' ); // Original sprite by PeacyQuack, reworked by LazyRain
 		sdObelisk.img_obelisk7 = sdWorld.CreateImageFromFile( 'obelisk7' );
 		sdObelisk.img_obelisk8 = sdWorld.CreateImageFromFile( 'obelisk8' ); // Sprite by LordBored
 
