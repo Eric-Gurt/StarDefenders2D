@@ -1090,7 +1090,7 @@ class sdEffect extends sdEntity
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx * 0.8, sy:this.sy * 0.8, color: this._color });
 				sdEntity.entities.push( e );
 				
-				this._extra_eff_timer = 1;
+				this._extra_eff_timer = 2.5;
 			}
 		}
 		
