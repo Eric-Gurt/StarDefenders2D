@@ -5307,8 +5307,7 @@ class sdGunClass
 					type: sdEffect.TYPE_EXPLOSION, 
 					owner: this,
 					color: '#aaaaaa',
-					no_smoke: true,
-					shrapnel: true
+					no_smoke: true
 				});
 
 				sdLost.ApplyAffection( target_entity, 33 * dmg_scale, bullet, sdLost.FILTER_WHITE );
