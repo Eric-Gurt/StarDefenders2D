@@ -107,7 +107,13 @@ class sdWeaponBench extends sdEntity
 	
 		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 		{
+			/*
+				Draw items in pattern:
+				[ 1 ] [ 3 ] [ 5 ] [ 7 ]
+				[ 2 ] [ 4 ] [ 6 ] [ 8 ]
+			*/
 			// Variable names might be wrong - was changed from being veritcal to horizontal
+			
 			let start_x = -14
 
 			let row_height = 11;
