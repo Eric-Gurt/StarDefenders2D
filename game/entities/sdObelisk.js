@@ -34,7 +34,7 @@ class sdObelisk extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.type === 8 ? -9 : this.type === 7 ? -9 : this.type === 6 ? -10 : this.type === 5 ? -9 : this.type === 4 ? -8 : -5; }
-	get hitbox_x2() { return this.type === 8 ? 9 : this.type === 7 ? 9 : this.type === 6 ? 9 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
+	get hitbox_x2() { return this.type === 8 ? 9 : this.type === 7 ? 9 : this.type === 6 ? 10 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
 	get hitbox_y1() { return this.type === 8 ? -19 : this.type === 7 ? -19 : this.type === 6 ? -24 : this.type === 5 ? -21 : this.type === 4 ? - 24 : -12; }
 	get hitbox_y2() { return this.type === 8 ? 31 : this.type === 7 ? 31 : this.type === 6 ? 32 : this.type === 5 ? 21 : this.type === 4 ? 32 : 16; }
 	
@@ -239,6 +239,12 @@ class sdObelisk extends sdEntity
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
+		
+		if ( !sdShop.isDrawing ) // Some subtle randomness atleast
+		{
+			let inversion = this._net_id % 2 === 0 ? 1 : -1;
+			ctx.scale( inversion, 1 );
+		}
 		
 		if ( this.type === 1 )
 		{
