@@ -1431,7 +1431,12 @@ class sdJunk extends sdEntity
 	{
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		ctx.apply_shading = false;
-		//ctx.filter = this.filter;
+		
+		if ( !sdShop.isDrawing ) // Some subtle randomness atleast
+		{
+			let inversion = this._net_id % 2 === 0 ? 1 : -1;
+			ctx.scale( inversion, 1 );
+		}
 		
 		if ( this.held_by === null || attached )
 		{
@@ -1548,7 +1553,6 @@ class sdJunk extends sdEntity
 			{
 				ctx.drawImageFilterCache( sdJunk.img_unknown_object1, 0 + ( this.glow_animation > 0 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
 			}
-
 		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
