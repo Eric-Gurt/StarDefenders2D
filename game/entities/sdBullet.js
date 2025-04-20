@@ -769,14 +769,16 @@ class sdBullet extends sdEntity
 		{
 			if ( sdBullet.images_with_smoke[ this.model ] )
 			{
-				this._smoke_spawn_wish += GSPEED;
-				if ( this._smoke_spawn_wish > 1 )
+				if ( this._smoke_spawn_wish > 0 )
+				this._smoke_spawn_wish -= GSPEED;
+			
+				if ( this._smoke_spawn_wish <= 0 )
 				{
-					this._smoke_spawn_wish = this._smoke_spawn_wish % 1;
-					//this._smoke_spawn_wish -= 1;
-
-					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors )});
+					let colors = [ '#777777', '#666666', '#555555' ]
+					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:sdEffect.GetSmokeColor( colors )});
 					sdEntity.entities.push( ent );
+					
+					this._smoke_spawn_wish = 0.5;
 				}
 			}
 		}
