@@ -1070,7 +1070,7 @@ class sdEffect extends sdEntity
 	
 		if ( this._type === sdEffect.TYPE_SMOKE )
 		{
-			if ( !this._radius > 32 )
+			if ( this._radius < 32 )
 			this._radius += this._radius / 75 * GSPEED;
 			
 			if ( sdRenderer.effects_quality >= 2 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
