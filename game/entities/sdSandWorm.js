@@ -32,8 +32,11 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_corrupted_head_attack = sdWorld.CreateImageFromFile( 'worm_corrupted_head_attack' );
 		sdSandWorm.img_worm_corrupted_body = sdWorld.CreateImageFromFile( 'worm_corrupted_body' );
 
-		sdSandWorm.img_worm_council_head_idle = sdWorld.CreateImageFromFile( 'worm_council_head_idle' ); // Council mecha worm or something.
+		// Council mecha worm sprites by 𝔱revoga
+		sdSandWorm.img_worm_council_head_idle = sdWorld.CreateImageFromFile( 'worm_council_head_idle' );
 		sdSandWorm.img_worm_council_head_attack = sdWorld.CreateImageFromFile( 'worm_council_head_attack' );
+		sdSandWorm.img_worm_council_glow = sdWorld.CreateImageFromFile( 'worm_council_glow' );
+		sdSandWorm.img_worm_council_glow_body = sdWorld.CreateImageFromFile( 'worm_council_glow_body' );
 		sdSandWorm.img_worm_council_body = sdWorld.CreateImageFromFile( 'worm_council_body' );
 		
 		sdSandWorm.img_crystal_hunting_worm_head_idle = sdWorld.CreateImageFromFile( 'worm_chunter_head_idle' );
@@ -294,7 +297,7 @@ class sdSandWorm extends sdEntity
 
 	
 		if ( head_entity !== this && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Is this the council worm?
-		dmg = dmg * 0.05; // 95% damage reduction to body damage for council worms, they are sort of a boss after all
+		dmg = dmg * 0.15; // 85% damage reduction to body damage for council worms, they are sort of a boss after all
 		
 		if ( initiator )
 		//if ( !initiator.is( sdSandWorm ) )
@@ -1208,9 +1211,23 @@ class sdSandWorm extends sdEntity
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
 			else
 			if ( this.model === 0 )
-			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
+			{
+				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
+				
+				if ( this.death_anim === 0 )
+				ctx.apply_shading = false; // Glow in the dark
+			
+				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow, - 16, - 16, 32,32 );
+			}
 			else
-			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_body, - 16, - 16, 32,32 );
+			{
+				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_body, - 16, - 16, 32,32 );
+				
+				if ( this.death_anim === 0 )
+				ctx.apply_shading = false; // Glow in the dark
+			
+				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow_body, - 16, - 16, 32,32 );
+			}
 		}
 		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
 		{
