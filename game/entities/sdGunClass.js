@@ -7226,7 +7226,8 @@ class sdGunClass
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
 							color:'#ffffff',
-							no_smoke: true
+							no_smoke: true,
+							shrapnel: true
 						});
 
 						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
