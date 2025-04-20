@@ -643,7 +643,9 @@ class sdRift extends sdEntity
 						damage_scale: 0.01, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#33FFFF' 
+						color:'#33FFFF',
+						no_smoke: true,
+						shrapnel: true
 					});
 					from_entity.remove();
 				
@@ -661,7 +663,9 @@ class sdRift extends sdEntity
 					damage_scale: 0.01, // Just a decoration effect
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
-					color:'#33FFFF' 
+					color:'#33FFFF' ,
+					no_smoke: true,
+					shrapnel: true
 				});
 				//Relocate the anomaly
 				this.teleport_alpha = 0;
@@ -768,7 +772,9 @@ class sdRift extends sdEntity
 			damage_scale: 0.01, // Just a decoration effect
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this,
-			color:'#FFFFFF' 
+			color:'#FFFFFF',
+			no_smoke: true,
+			shrapnel: true
 		});
 	}
 	onRemoveAsFakeEntity()
