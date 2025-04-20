@@ -491,10 +491,11 @@ class sdAsteroid extends sdEntity
 		let yy = 0;
 		
 		if ( !sdShop.isDrawing )
-		ctx.rotate( this.rotation / 100 );
+		{
+			ctx.rotate( this.rotation / 100 );
 
-		ctx.scale( this.scale/100, this.scale/100 );
-		
+			ctx.scale( this.scale/100, this.scale/100 );
+		}
 		if ( this.landed )
 		yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 3000 < 1500 ) ? 1 : 0;
 		else
@@ -552,7 +553,7 @@ class sdAsteroid extends sdEntity
 			if ( this.landed )
 			{
 					
-					this.AddContextOption( 'Reignite engine', 'IGNITE', [ ] );
+				this.AddContextOption( 'Reignite engine', 'IGNITE', [ ] );
 				
 			}
 		}
