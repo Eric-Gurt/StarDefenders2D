@@ -897,6 +897,7 @@ class sdStalker extends sdEntity
 			else
 			ctx.sd_color_mult_r = 0;
 		
+			ctx.apply_shading = false;
 			ctx.drawImageFilterCache( sdStalker.img_light, -14, -32, 64, 64 );
 
 			ctx.blend_mode = THREE.NormalBlending;
