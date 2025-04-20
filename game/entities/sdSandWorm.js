@@ -1063,8 +1063,8 @@ class sdSandWorm extends sdEntity
 									this._current_target = this.GetRandomCrystal(); // Focus on finding crystals anyway
 									this._last_found_target++;
 								}
-						}
 							}
+						}
 					}
 				}
 			}
@@ -1211,12 +1211,13 @@ class sdSandWorm extends sdEntity
 			ctx.sd_hue_rotation = 0;
 			if ( this.model === 1 )
 			{
-				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
-				
+				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
+			
 				if ( this.death_anim === 0 )
 				ctx.apply_shading = false; // Glow in the dark
 			
-				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
+				// ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow, - 16, - 16, 32,32 );
 			}
 			else
 			if ( this.model === 0 )
