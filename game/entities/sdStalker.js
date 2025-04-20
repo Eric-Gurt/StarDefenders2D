@@ -373,7 +373,8 @@ class sdStalker extends sdEntity
 				owner: this,
 				can_hit_owner: true,
 				color: '#00FFFF',
-				no_smoke: true
+				no_smoke: true,
+				shrapnel: true
 			});
 			sdWorld.SendEffect({ type: sdEffect.TYPE_LENS_FLARE, x:this.x, y:this.y, sx:0, sy:0, scale:2, radius:25, color:'#00FFFF' });
 		}
@@ -777,7 +778,7 @@ class sdStalker extends sdEntity
 									damage_scale: 5,
 									type:sdEffect.TYPE_EXPLOSION, 
 									owner:bullet._owner,
-									color:'#FF0000',
+									color:'#FF0000'
 								});
 
 								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
