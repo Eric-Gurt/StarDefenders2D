@@ -212,8 +212,8 @@ class sdAsteroid extends sdEntity
 		{
 			this.landed = true;
 
-			this._an = Math.random() * Math.PI;
-			this.rotation = this._an * 100;
+			// this._an = Math.random() * Math.PI;
+			// this.rotation = this._an * 100;
 
 			if ( this.type === sdAsteroid.TYPE_FLESH )
 			{
