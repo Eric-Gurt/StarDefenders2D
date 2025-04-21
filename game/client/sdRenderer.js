@@ -2014,7 +2014,7 @@ class sdRenderer
 				
 				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 85 );
 				
-				ctx.fillText( sdEntity.entities.length+" entities", 10 * scale, sdRenderer.screen_height - 70 );
+				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " :: total / active" , 10 * scale, sdRenderer.screen_height - 70 );
 				
 				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 10 * scale, sdRenderer.screen_height - 55 );
 				
