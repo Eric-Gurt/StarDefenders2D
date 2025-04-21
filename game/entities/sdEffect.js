@@ -401,7 +401,7 @@ class sdEffect extends sdEntity
 		
 		sdEffect.types[ sdEffect.TYPE_GLASS ] = {
 			images: [ sdWorld.CreateImageFromFile( 'glass' ) ],
-			speed: 1 / 90,
+			speed: 1 / 180,
 			random_speed_percentage: 0.5,
 			random_flip: true,
 			random_rotation: true,
