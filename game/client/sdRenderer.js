@@ -2001,6 +2001,8 @@ class sdRenderer
 			ctx.fillText( T("Level") + ": " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
 
 			const gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
+			
+			if ( gun )
 			if ( !sdGun.classes[ gun.class ].is_build_gun  )
 			{
 				ctx.fillStyle = '#ffffff';
