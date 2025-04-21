@@ -9742,6 +9742,7 @@ class sdGunClass
 								type:sdEffect.TYPE_EXPLOSION, 
 								owner:bullet._owner,
 								color:'#FF0000',
+								shrapnel: true
 							});
 							
 							if ( gun.fire_mode === 2 )

@@ -778,7 +778,8 @@ class sdStalker extends sdEntity
 									damage_scale: 5,
 									type:sdEffect.TYPE_EXPLOSION, 
 									owner:bullet._owner,
-									color:'#FF0000'
+									color:'#FF0000',
+									shrapnel: true
 								});
 
 								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
