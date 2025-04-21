@@ -456,7 +456,7 @@ class sdAsteroid extends sdEntity
 			}
 			if ( this.type === sdAsteroid.TYPE_MISSILE )
 			{
-				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
+				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, shrapnel:true, can_hit_owner:false, owner:this });
 				this.Fragmentation(); // Always activate warhead in case of destruction
 			}
 			else
