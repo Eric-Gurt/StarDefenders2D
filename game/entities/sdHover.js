@@ -982,7 +982,7 @@ class sdHover extends sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
-			if ( this.hea < 0 || this.driver0 && this.hea < this.hmax / 5 )
+			if ( this.hea < 0 && this.hea > -300 || this.driver0 && this.hea < this.hmax / 5 )
 			{
 				if ( this._eff_timer > 0 )
 				this._eff_timer -= GSPEED;
