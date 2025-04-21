@@ -8338,7 +8338,8 @@ class sdGunClass
 								bullet_obj5.time_left = 90;
 								bullet_obj5._hittable_by_bullets = false;
 								bullet_obj5._detonate_on_impact = false;
-								bullet_obj5._no_explosion_smoke = true;  
+								bullet_obj5._no_explosion_smoke = true;
+								bullet_obj5._explosion_shrapnel = true;
 								bullet_obj5.gravity_scale = 0;
 								
 								bullet_obj5._custom_extra_think_logic = ( bullet, GSPEED )=>
@@ -8430,7 +8431,7 @@ class sdGunClass
 				if ( gun.fire_mode !== 2 )
 				{ let obj = { explosion_radius: 28, model:'sarronian_energy_wave', color: '#00ff00', _dirt_mult: 1,
 					projectile_velocity: 2, time_left: 75, _hittable_by_bullets: false, gravity_scale: 0,
-					model_size: 2, _no_explosion_smoke: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
+					model_size: 2, _no_explosion_smoke: true, _explosion_shrapnel: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
 					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -8788,7 +8789,8 @@ class sdGunClass
 					type: sdEffect.TYPE_EXPLOSION, 
 					owner: this,
 					color: '#900000',
-					no_smoke: true
+					no_smoke: true,
+					shrapnel: true
 				});
 				
 				let e = target_entity; // Easier mob statues.
