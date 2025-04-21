@@ -1499,7 +1499,7 @@ THING is cosmic mic drop!`;
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
-		this._jetpack_smoke_timer = 0; // Client-side
+		this._jetpack_effect_timer = 0; // Client-side
 		
 		sdCharacter.characters.push( this );
 	}
@@ -5369,16 +5369,18 @@ THING is cosmic mic drop!`;
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			if ( sdRenderer.effects_quality > 1 )
 			{
-				if ( this._jetpack_smoke_timer > 0 )
-				this._jetpack_smoke_timer -= GSPEED;
+				if ( this._jetpack_effect_timer > 0 )
+				this._jetpack_effect_timer -= GSPEED;
 			
-				if ( this._jetpack_smoke_timer <= 0 )
+				if ( this._jetpack_effect_timer <= 0 )
 				{
 					let offset = ( this.look_x > this.x ) ? -6 : 6;
-					let e = new sdEffect({ type: sdEffect.TYPE_SPARK, x:this.x + offset, y:this.y, sx: this.sx / 2 + ( -Math.random() + Math.random() ) * 2, sy: this.sy / 2 + Math.random() * 4, color: '#ffff00' });
+					let type = sdEffect.TYPE_SPARK;
+					
+					let e = new sdEffect({ type: type, x:this.x + offset, y:this.y, sx: this.sx / 2 + ( -Math.random() + Math.random() ) * 2, sy: this.sy / 2 + Math.random() * 4, color: '#ffff00' });
 					sdEntity.entities.push( e );
 					
-					this._jetpack_smoke_timer = 2;
+					this._jetpack_effect_timer = 2;
 				}
 			}
 		}
