@@ -9803,7 +9803,7 @@ class sdGunClass
 			spawnable: false,
 			fire_mode: 1,
 			has_alt_fire_mode: true,
-			projectile_properties_dynamic: ( gun )=>{ 
+			projectile_properties_dynamic: ( gun )=> { 
 				
 				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], _custom_target_reaction:( bullet, target_entity )=>
 				{
@@ -9812,7 +9812,7 @@ class sdGunClass
 						let owner = gun._held_by;
 						
 						if ( owner && !owner._is_being_removed )
-						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20, owner: gun.fire_mode === 2 ? owner : null });
+						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20, owner: owner, controllable: gun.fire_mode === 2 });
 					}
 				} };
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];

@@ -1640,6 +1640,7 @@ class sdStatusEffect extends sdEntity
 				status_entity._first_chat_color = null;
 				
 				status_entity._owner = params.owner || null;
+				status_entity._controllable = params.controllable || false;
 				
 				status_entity.visual = params.visual || false // Ignore extra logic and only show blinking light sprite
 				
@@ -1699,6 +1700,7 @@ class sdStatusEffect extends sdEntity
 					status_entity.remove();
 				}
 				if ( sdWorld.is_server )
+				if ( status_entity._controllable )
 				if ( status_entity._owner && status_entity._owner._key_states.GetKey( 'Mouse1' ) )
 				{
 					if ( status_entity.for )
