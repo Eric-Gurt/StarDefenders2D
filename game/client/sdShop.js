@@ -614,6 +614,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdAsteroid', type:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsteroid', type:2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsteroid', type:3, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:3, landed:true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
