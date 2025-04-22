@@ -53,6 +53,7 @@ class sdWeaponBench extends sdEntity
 	{
 		super( params );
 		this._regen_timeout = 0;
+		this._last_damage = 0; // Prevent sound spam
 
 		this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		this.item_dps = 1; // Value is given when item is placed on bench. Needed public variable so damage upgrade can have correct DPS for matter cost calculation - Booraz149
@@ -87,12 +88,44 @@ class sdWeaponBench extends sdEntity
 		
 		this._regen_timeout = 60;
 		
+		if ( this.locked )
+		if ( sdWorld.time > this._last_damage + 50 )
+		{
+			this._last_damage = sdWorld.time;
+			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 100 ) });
+		}
+		
 		if ( this._hea <= 0 )
 		{
 			this.remove();
 		}
 	}
+	GetItemOffset ( slot ) // Cleaner way
+	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+		return { x: 1, y: -16 };
 	
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		{
+			/*
+				Draw items in pattern:
+				[ 1 ] [ 3 ] [ 5 ] [ 7 ]
+				[ 2 ] [ 4 ] [ 6 ] [ 8 ]
+			*/
+			// Variable names might be wrong - was changed from being veritcal to horizontal
+			
+			let start_x = -14
+
+			let row_height = 11;
+			let row_offset_x = 11.5
+			let row_offset_y = 7.5;
+		
+			return { 
+				x: ( slot - slot % 2 + row_height + start_x ) * row_offset_y,
+				y: row_offset_x * ( slot % 2 === 0 ? -1 : 1 )
+			};
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -143,7 +176,7 @@ class sdWeaponBench extends sdEntity
 			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 			ctx.scale( 0.75, 0.75 );
 		}
-		
+
 		let xx = 0;
 		let yy = 0;
 
@@ -162,25 +195,14 @@ class sdWeaponBench extends sdEntity
 			
 			if ( item )
 			{
-				// TODO: fix variable names
-				let start_x = -14
-
-				let row_height = 11;
-				let row_offset_x = 11.5
-				let row_offset_y = 7.5;
-				
 				if ( this.locked )
 				return;
+
+				let offsets = this.GetItemOffset( i );
 			
 				ctx.save();
 				{
-					if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-					{
-						ctx.translate( ( i - i % 2 + row_height + start_x ) * row_offset_y, ( row_offset_x * ( i % 2 === 0 ? -1 : 1 ) ) ); 
-					}
-			
-					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-					ctx.translate( -1, -17 );
+					ctx.translate( offsets.x, offsets.y );
 			
 					item.Draw( ctx, true );
 				
@@ -275,7 +297,15 @@ class sdWeaponBench extends sdEntity
 			if ( !this.locked )
 			{
 				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
-				this.DropSlot( i );
+				if ( this[ 'item' + i ] )
+				{
+					let item = this[ 'item' + i ];
+					this.DropSlot( i );
+					let offsets = this.GetItemOffset ( i );
+					
+					item.x = offsets.x + this.x;
+					item.y = offsets.y + this.y;
+				}
 			}
 		
 			if ( this.locked )
@@ -296,7 +326,7 @@ class sdWeaponBench extends sdEntity
 				this[ 'item' + i ].remove();
 			}
 
-			sdWorld.BasicEntityBreakEffect( this, 5 );
+			sdWorld.BasicEntityBreakEffect( this, 8 );
 		}
 		else
 		{
@@ -304,6 +334,17 @@ class sdWeaponBench extends sdEntity
 			if ( this[ 'item' + i ] )
 			this[ 'item' + i ].remove();
 		}
+	}
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		let ents = [];
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+		if ( this[ 'item' + i ] )
+		{
+			let item = this[ 'item' + i ];
+			ents.push( item );
+		}
+		return ents;
 	}
 	MeasureMatterCost()
 	{
@@ -317,8 +358,10 @@ class sdWeaponBench extends sdEntity
 		if ( this.locked )
 		return;
 	
+		let allow_ignored_items = this.type === sdWeaponBench.TYPE_DISPLAY;
+		
 		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class !== sdGun.CLASS_SCORE_SHARD && from_entity.class !== sdGun.CLASS_CRYSTAL_SHARD && from_entity.class !== sdGun.CLASS_METAL_SHARD && from_entity.class !== sdGun.CLASS_CUBE_SHARD && from_entity.class !== sdGun.CLASS_ERTHAL_ENERGY_CELL )
+		if ( !sdGun.classes[ from_entity.class ].ignore_slot || allow_ignored_items ) // Allow some un-upgradable items for display only
 		{
 			if ( from_entity._held_by === null )
 			{

@@ -102,6 +102,7 @@ class sdRenderer
 		sdRenderer.effects_quality = 2; // Smoke and gore
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
+		sdRenderer.display_coords = 0;
 		
 		//sdRenderer.ctx = canvas.getContext("2d");
 		//sdRenderer.ctx = canvas.getContext('webgl-2d');
@@ -1999,23 +2000,36 @@ class sdRenderer
 
 			ctx.fillStyle = '#ffff00';
 			ctx.fillText( T("Level") + ": " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
-
-			const gun = sdWorld.my_entity._inventory[sdWorld.my_entity.gun_slot];
-			ctx.fillStyle = '#ffffff';
-			ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ), 15 + 345 * scale, 40 ); // Hey, don't close to my debug mode!  --- Alone Guitar
-
+			
+			if ( sdRenderer.display_coords )
+			{
+				ctx.fillStyle = '#ffffaa';
+				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 465 * scale, 17 );
+			}
+			
+			const gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
+			
+			if ( gun )
+			if ( !sdGun.classes[ gun.class ].is_build_gun  )
+			{
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( gun.GetAmmoCapacity() ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
+			}
 			if ( globalThis.enable_debug_info )
 			{
-				ctx.fillStyle = '#AAAAff';
-				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 5 + 445 * scale, 17 );
 				
-				ctx.fillStyle = '#AAAAff'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
+				ctx.fillStyle = '#ffffaa'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
            		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
-           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );
 				
-				ctx.fillText("Framerate: "+sdRenderer.last_frame_times.length+" FPS", 5 + 445 * scale, 47 );
+				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 70 );
 				
-				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 5 + 445 * scale, 47 + 17 );
+				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " / " + sdEntity.global_entities.length + " :: total / active / global" , 10 * scale, sdRenderer.screen_height - 55 );
+				
+				ctx.fillText("Mouse Coordinates: X = " + sdWorld.my_entity.look_x.toFixed(0) + ", Y = " + sdWorld.my_entity.look_y.toFixed(0), 10 * scale, sdRenderer.screen_height - 40 );
+				
+				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 10 * scale, sdRenderer.screen_height - 25 );
+				
+				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 10 * scale, sdRenderer.screen_height - 10 );
 			}
 			
 			ctx.save();

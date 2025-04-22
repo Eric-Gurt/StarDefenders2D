@@ -208,7 +208,8 @@ class sdUpgradeStation extends sdEntity
 		
 		this._armor_protection_level = 0;
 
-		this.hologram = true;
+		// client-side
+		this._hologram = true;
 		this._hologram_timer = 0;
 	}
 	get mass()
@@ -228,9 +229,11 @@ class sdUpgradeStation extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		//this._armor_protection_level = 0; // Never has protection unless full health reached
-
-		if ( this._hologram_timer > 0 )
-		this._hologram_timer -= GSPEED;
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( this._hologram_timer > 0 )
+			this._hologram_timer -= GSPEED;
+		}
 
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
@@ -254,6 +257,7 @@ class sdUpgradeStation extends sdEntity
 			this._armor_protection_level = 4; // If upgraded at least once - it can be only destroyed with big explosions
 		}
 
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		if ( this._hologram_timer <= 0 ) // A bit messy perhaps?
 		{
 			let ents = sdWorld.GetAnythingNear( this.x, this.y, 16 );
@@ -269,12 +273,12 @@ class sdUpgradeStation extends sdEntity
 					{
 						if ( e.IsPlayerClass() ) 
 						{
-							this.hologram = true;
+							this._hologram = true;
 							is_found = true;
-							this._hologram_timer = 50;
+							this._hologram_timer = 10; // Can be low since it does not have to be server-sided
 						}
 						else
-						this.hologram = false;
+						this._hologram = false;
 					}
 				}
 			}	
@@ -340,7 +344,7 @@ class sdUpgradeStation extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.hologram )
+		if ( this._hologram )
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 31, 32,64 );
 		else
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us_disabled, -16, -16 - 31, 32,64 );

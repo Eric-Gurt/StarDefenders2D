@@ -4194,6 +4194,16 @@ class sdWeather extends sdEntity
 					]);
 					template.lrtp_class_proprty_value_array = [ 'sdOctopus', 'is_alive', true ];
 				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.4;
+					
+					template.title = 'Extract fallen missiles';
+					template.description = 'Extract fallen missiles by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdAsteroid', 'type', sdAsteroid.TYPE_MISSILE ];
+				});
 				/*
 				task_options.push(()=>
 				{

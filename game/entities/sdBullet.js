@@ -291,6 +291,7 @@ class sdBullet extends sdEntity
 		this.explosion_radius = 0;
 		this._explosion_mult = params.explosion_mult || 1; // For damage upgraded guns to scale explosion damage ( not radius )
 		this._no_explosion_smoke = false;
+		this._explosion_shrapnel = false;
 		
 		this.model = null; // Custom image model
 		this.model_size = params.model_size || 0; // 0 = 32x32, 1 = 64x32, 2 = 64x64, 3 = 96x96
@@ -400,7 +401,8 @@ class sdBullet extends sdEntity
 			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
 			color:this.color,
-			no_smoke:this._no_explosion_smoke
+			no_smoke:this._no_explosion_smoke,
+			shrapnel: this._explosion_shrapnel
 		});
 		
 		if ( this.model === 'flare' )
@@ -769,14 +771,16 @@ class sdBullet extends sdEntity
 		{
 			if ( sdBullet.images_with_smoke[ this.model ] )
 			{
-				this._smoke_spawn_wish += GSPEED;
-				if ( this._smoke_spawn_wish > 1 )
+				if ( this._smoke_spawn_wish > 0 )
+				this._smoke_spawn_wish -= GSPEED;
+			
+				if ( this._smoke_spawn_wish <= 0 )
 				{
-					this._smoke_spawn_wish = this._smoke_spawn_wish % 1;
-					//this._smoke_spawn_wish -= 1;
-
-					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors )});
+					let colors = [ '#777777', '#666666', '#555555' ]
+					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:sdEffect.GetSmokeColor( colors )});
 					sdEntity.entities.push( ent );
+					
+					this._smoke_spawn_wish = 0.5;
 				}
 			}
 		}

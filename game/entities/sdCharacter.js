@@ -594,10 +594,10 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'clone' || this._voice.variant === 'swordbot' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'swordbot' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -620,6 +620,9 @@ class sdCharacter extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._voice.variant === 'clone' )
+		return 'grayscale(100%)brightness(0.75)'
+	
 		return '';
 	}
 	
@@ -1496,7 +1499,7 @@ THING is cosmic mic drop!`;
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
-		this._jetpack_smoke_timer = 0; // Client-side
+		this._jetpack_effect_timer = 0; // Client-side
 		
 		sdCharacter.characters.push( this );
 	}
@@ -5366,16 +5369,18 @@ THING is cosmic mic drop!`;
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			if ( sdRenderer.effects_quality > 1 )
 			{
-				if ( this._jetpack_smoke_timer > 0 )
-				this._jetpack_smoke_timer -= GSPEED;
+				if ( this._jetpack_effect_timer > 0 )
+				this._jetpack_effect_timer -= GSPEED;
 			
-				if ( this._jetpack_smoke_timer <= 0 )
+				if ( this._jetpack_effect_timer <= 0 )
 				{
 					let offset = ( this.look_x > this.x ) ? -6 : 6;
-					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + offset, y:this.y, sx: -Math.random() + Math.random(), sy: 1 + Math.random() * 3, scale:0.5, radius:0.333, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
+					let type = sdEffect.TYPE_SPARK;
+					
+					let e = new sdEffect({ type: type, x:this.x + offset, y:this.y, sx: this.sx / 2 + ( -Math.random() + Math.random() ) * 2, sy: this.sy / 2 + Math.random() * 4, color: '#ffff00' });
 					sdEntity.entities.push( e );
 					
-					this._jetpack_smoke_timer = 1;
+					this._jetpack_effect_timer = 2;
 				}
 			}
 		}
@@ -6758,27 +6763,6 @@ THING is cosmic mic drop!`;
 			ctx.fillText( 'Connection problem', 0, -25 - 5, 50 );
 		}
 		
-		//ctx.filter = this.filter;
-		ctx.sd_filter = this.sd_filter;
-		//if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
-		let effects = sdStatusEffect.entity_to_status_effects.get( this );
-		if ( effects !== undefined )
-		for ( let i = 0; i < effects.length; i++ )
-		{
-			if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
-			ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)'; // Give it the good old red outline
-		
-	
-		}
-		
-		//if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
-		//ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
-	
-		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
-		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
-		
-		const char_filter = ctx.filter;
-		
 		if ( !attached )
 		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
 		{
@@ -6811,6 +6795,27 @@ THING is cosmic mic drop!`;
 				ctx.restore();
 			}
 		}
+		
+		//ctx.filter = this.filter;
+		ctx.sd_filter = this.sd_filter;
+		//if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
+		let effects = sdStatusEffect.entity_to_status_effects.get( this );
+		if ( effects !== undefined )
+		for ( let i = 0; i < effects.length; i++ )
+		{
+			if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
+			ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)'; // Give it the good old red outline
+		
+	
+		}
+		
+		//if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
+		//ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
+	
+		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
+		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
+		
+		const char_filter = ctx.filter;
 		
 		if ( this._ragdoll )
 		{

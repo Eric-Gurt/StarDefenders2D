@@ -508,6 +508,13 @@
 				],
 				default_option: 2
 			});
+			AddOption({ caption: `Display coordinates`, prefix: `coords`,
+				options: [
+					[ 2, `Disabled` ], 
+					[ 1, `Enabled` ]
+				],
+				default_option: 2
+			});
 			AddOption({ caption: `UI style`, prefix: `ui_style`,
 				options: [
 					[ 1, `Default` ], 
@@ -1232,6 +1239,7 @@
 			JustOne( ret, 'music', last_changed_el );
 			JustOne( ret, 'shading', last_changed_el );
 			JustOne( ret, 'effects_quality', last_changed_el );
+			JustOne( ret, 'coords', last_changed_el );
 
 			for ( let i = 0; i < conditional_elements.length; i++ )
 			{

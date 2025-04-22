@@ -373,7 +373,8 @@ class sdStalker extends sdEntity
 				owner: this,
 				can_hit_owner: true,
 				color: '#00FFFF',
-				no_smoke: true
+				no_smoke: true,
+				shrapnel: true
 			});
 			sdWorld.SendEffect({ type: sdEffect.TYPE_LENS_FLARE, x:this.x, y:this.y, sx:0, sy:0, scale:2, radius:25, color:'#00FFFF' });
 		}
@@ -778,6 +779,7 @@ class sdStalker extends sdEntity
 									type:sdEffect.TYPE_EXPLOSION, 
 									owner:bullet._owner,
 									color:'#FF0000',
+									shrapnel: true
 								});
 
 								let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
@@ -896,6 +898,7 @@ class sdStalker extends sdEntity
 			else
 			ctx.sd_color_mult_r = 0;
 		
+			ctx.apply_shading = false;
 			ctx.drawImageFilterCache( sdStalker.img_light, -14, -32, 64, 64 );
 
 			ctx.blend_mode = THREE.NormalBlending;
