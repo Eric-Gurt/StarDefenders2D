@@ -2013,7 +2013,7 @@ class sdRenderer
 			if ( !sdGun.classes[ gun.class ].is_build_gun  )
 			{
 				ctx.fillStyle = '#ffffff';
-				ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ) + ` ( ${gun.GetBulletCost( false, false ) * Math.abs( gun.GetAmmoCapacity() )} matter )`, 15 + 345 * scale, 40 );
+				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( gun.GetAmmoCapacity() ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
 			}
 			if ( globalThis.enable_debug_info )
 			{
