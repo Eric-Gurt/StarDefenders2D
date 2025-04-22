@@ -7192,7 +7192,6 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'area_amplifier' ),
 			sound_pitch: 4,
 			sound: 'supercharge_combined2_part2',
-			
 			title: 'Area amplifier',
 			slot: 7,
 			reload_time: 15,
@@ -7252,7 +7251,7 @@ class sdGunClass
 					}
 				}
 			},
-			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#6199ff', 15 ) )
 		};
 		
 		const illusion_reaction = ( bullet, target_entity )=>
@@ -7320,7 +7319,7 @@ class sdGunClass
 				_custom_target_reaction: illusion_reaction,
 				_custom_target_reaction_protected: illusion_reaction
 			},
-			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 15 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHURG_PISTOL = 112 ] = 
