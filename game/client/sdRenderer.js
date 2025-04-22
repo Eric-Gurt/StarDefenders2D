@@ -102,6 +102,7 @@ class sdRenderer
 		sdRenderer.effects_quality = 2; // Smoke and gore
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
+		sdRenderer.display_coords = 0;
 		
 		//sdRenderer.ctx = canvas.getContext("2d");
 		//sdRenderer.ctx = canvas.getContext('webgl-2d');
@@ -1999,7 +2000,13 @@ class sdRenderer
 
 			ctx.fillStyle = '#ffff00';
 			ctx.fillText( T("Level") + ": " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
-
+			
+			if ( sdRenderer.display_coords )
+			{
+				ctx.fillStyle = '#ffffaa';
+				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 465 * scale, 17 );
+			}
+			
 			const gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
 			
 			if ( gun )
@@ -2014,11 +2021,9 @@ class sdRenderer
 				ctx.fillStyle = '#ffffaa'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
            		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
 				
-				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 85 );
+				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 70 );
 				
-				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " / " + sdEntity.global_entities.length + " :: total / active / global" , 10 * scale, sdRenderer.screen_height - 70 );
-				
-				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 10 * scale, sdRenderer.screen_height - 55 );
+				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " / " + sdEntity.global_entities.length + " :: total / active / global" , 10 * scale, sdRenderer.screen_height - 55 );
 				
 				ctx.fillText("Mouse Coordinates: X = " + sdWorld.my_entity.look_x.toFixed(0) + ", Y = " + sdWorld.my_entity.look_y.toFixed(0), 10 * scale, sdRenderer.screen_height - 40 );
 				
