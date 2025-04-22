@@ -104,7 +104,7 @@ class sdAsteroid extends sdEntity
 		//this._max_build_tool_level_near = 0;
 
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
-		this.landed = false;
+		this.landed = params.landed || false;
 		this._warhead_detonated = false;
 		
 		this.attached_to = null;
