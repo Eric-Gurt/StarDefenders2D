@@ -119,8 +119,8 @@ class sdAsteroid extends sdEntity
 		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
-		this.sx = Math.random() * 12 - 6;
-		this.sy = 10;
+		this.sx = this.landed ? 0 : Math.random() * 12 - 6;
+		this.sy = this.landed ? 0 : 10;
 		
 		if ( this.type === sdAsteroid.TYPE_MISSILE )
 		{
