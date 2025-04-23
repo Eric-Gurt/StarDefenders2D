@@ -10096,6 +10096,56 @@ class sdGunClass
 			upgrades: AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'key' )
 		};
 		
+		sdGun.classes[ sdGun.CLASS_REPAIR_TOOL = 151 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'sd_repair_tool' ), // By Ghost581X
+			sound: 'gun_defibrillator',
+			sound_pitch: 0.75,
+			sound_volume: 1.5,
+			title: 'Vehicle repair tool',
+			slot: 7,
+			reload_time: 32,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { color: 'transparent', _soft: true, time_left: 2 },
+			GetAmmoCost: ( gun )=>
+			{
+				return 32; 
+			},
+			projectile_properties_dynamic: ( gun )=> 
+			{ 
+				let obj = 
+				{
+					_damage: 1, color:'#00ffff', _rail: true, _soft: true, time_left: 3, _custom_target_reaction:( bullet, target_entity )=> 
+					{
+						let vehicles = [ 'sdHover', 'sdQuadro', 'sdLifeBox' ];
+						
+						if ( vehicles.includes( target_entity.GetClass() )  )
+						if ( target_entity.hea > 0 ) // Can't repair completely destroyed ones
+						{
+							let heal = Math.min( target_entity.hmax - target_entity.hea, 192 ); // Prevent overheal possibly?
+							target_entity.hea += heal;
+							
+							sdSound.PlaySound({ name:'gun_buildtool', x:target_entity.x, y:target_entity.y, volume:1.25, pitch:1 });
+						}
+					}
+				};
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_TITLE ] = '';
+				}
+			},
+		
+			upgrades: AddRecolorsFromColorAndCost( [], '#00ffff', 15 )
+		};
+		
 
 		// Add new gun classes above this line //
 
