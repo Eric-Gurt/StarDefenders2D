@@ -10135,15 +10135,6 @@ class sdGunClass
 				
 				return obj;
 			},
-			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
-			{
-				if ( !gun.extra )
-				{
-					gun.extra = [];
-					gun.extra[ ID_TITLE ] = '';
-				}
-			},
-		
 			upgrades: AddRecolorsFromColorAndCost( [], '#00ffff', 15 )
 		};
 		
