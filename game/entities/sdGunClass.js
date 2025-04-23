@@ -10101,14 +10101,14 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'sd_repair_tool' ), // By Ghost581X
 			sound: 'gun_defibrillator',
 			sound_pitch: 0.75,
-			sound_volume: 1.5,
+			sound_volume: 2,
 			title: 'Vehicle repair tool',
 			slot: 7,
-			reload_time: 32,
+			reload_time: 24,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { color: 'transparent', _soft: true, time_left: 2 },
+			projectile_properties: { color: '#00ffff', _rail: true, _soft: true, time_left: 3 },
 			GetAmmoCost: ( gun )=>
 			{
 				return 32; 
