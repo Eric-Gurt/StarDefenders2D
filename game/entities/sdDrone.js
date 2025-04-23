@@ -809,7 +809,7 @@ class sdDrone extends sdEntity
 		)
 		this.remove();
 	}
-	get mass() { return 500; }
+	get mass() { return 100; } // Why 500?
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
