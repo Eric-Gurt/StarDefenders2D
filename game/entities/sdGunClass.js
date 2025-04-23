@@ -10108,6 +10108,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
+			min_build_tool_level: 5,
 			projectile_properties: { color: '#00ffff', _rail: true, _soft: true, time_left: 3 },
 			GetAmmoCost: ( gun )=>
 			{
