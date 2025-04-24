@@ -10126,7 +10126,7 @@ class sdGunClass
 						if ( vehicles.includes( target_entity.GetClass() )  )
 						if ( target_entity.hea > 0 ) // Can't repair completely destroyed ones
 						{
-							let heal = Math.min( target_entity.hmax - target_entity.hea, 192 ); // Prevent overheal possibly?
+							let heal = Math.min( target_entity.hmax - target_entity.hea, 250 ); // Prevent overheal possibly?
 							target_entity.hea += heal;
 							
 							sdSound.PlaySound({ name:'gun_buildtool', x:target_entity.x, y:target_entity.y, volume:1.25, pitch:1 });
