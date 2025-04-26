@@ -1256,7 +1256,7 @@ class sdGun extends sdEntity
 						
 						let offset = this._held_by.GetBulletSpawnOffset();
 
-						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
+						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel + this._held_by.sx / 4, sy:Math.cos( an ) * vel + this._held_by.sy / 4, rotation: Math.PI / 2 - initial_an });
 						sdEntity.entities.push( ef );
 					}
 				}
