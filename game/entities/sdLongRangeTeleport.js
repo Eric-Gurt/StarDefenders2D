@@ -694,7 +694,7 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			for( let i = 0; i < 8; i++ )
 			{
-				let shard = new sdGun({ x:this.x + ( i % 2 !== 0 ? 4 : -4 ) * i, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+				let shard = new sdGun({ x:this.x + ( -24 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 				sdEntity.entities.push( shard );
 			}
 		}
@@ -719,7 +719,7 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			for( let i = 0; i < 3; i++ )
 			{
-				let crystal = new sdCrystal({ x:this.x + - 24 + i * 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 				sdEntity.entities.push( crystal );
 			}
 		}
