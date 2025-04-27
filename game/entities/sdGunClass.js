@@ -25,6 +25,7 @@ import sdEssenceExtractor from './sdEssenceExtractor.js';
 import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdArea from './sdArea.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
 
 
@@ -10161,6 +10162,7 @@ class sdGunClass
 					
 					if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
 					if ( sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 					sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_HIT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:0.5, color:'#FFFFFF' });
 					{
 						for ( let i = 0; i < nears.length; i++ )
