@@ -8793,11 +8793,7 @@ class sdGunClass
 				});
 				
 				let e = target_entity; // Easier mob statues.
-				if ( e.GetClass() !== 'sdCharacter' && e.GetClass() !== 'sdBlock' && e.GetClass() !== 'sdHover' && e.GetClass() !== 'sdCommandCentre'
-				&& e.GetClass() !== 'sdLifeBox' && e.GetClass() !== 'sdMatterAmplifier' && e.GetClass() !== 'sdLongRangeTeleport' && e.GetClass() !== 'sdPlayerDrone' 
-				&& e.GetClass() !== 'sdQuadro' && e.GetClass() !== 'sdRescueTeleport' && e.GetClass() !== 'sdSteeringWheel' && e.GetClass() !== 'sdStorage'
-				&& e.GetClass() !== 'sdStorageTank' && e.GetClass() !== 'sdTeleport' && e.GetClass() !== 'sdThruster' && e.GetClass() !== 'sdUpgradeStation'
-				&& e.GetClass() !== 'sdWeaponBench' && e.GetClass() !== 'sdWorkbench' )
+				if ( !e.IsPlayerClass() ) // Less damage to players
 				sdLost.ApplyAffection( target_entity, 600 * dmg_scale, bullet, sdLost.FILTER_GLASSED );
 				else
 				sdLost.ApplyAffection( target_entity, 90 * dmg_scale, bullet, sdLost.FILTER_GLASSED );
