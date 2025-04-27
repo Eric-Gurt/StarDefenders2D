@@ -10150,7 +10150,7 @@ class sdGunClass
 			projectile_properties: { },
 			GetAmmoCost: ( gun )=>
 			{
-				return 2.5;
+				return 1;
 			},
 			onShootAttempt: ( gun )=>
 			{
@@ -10191,8 +10191,7 @@ class sdGunClass
 									
 										let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) ) 
 		
-										e.sx += ( Math.sin ( an ) ) / ( e.mass * 0.05 );
-										e.sy += ( Math.cos ( an ) ) / ( e.mass * 0.05 );
+										e.Impulse( ( Math.sin ( an ) * 15 ), ( Math.cos ( an ) * 15 ) );
 									}
 								}
 							}
