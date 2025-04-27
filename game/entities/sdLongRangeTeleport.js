@@ -692,55 +692,24 @@ class sdLongRangeTeleport extends sdEntity
 		let rewards = reward_type;// || 1;
 		if ( rewards === 'CLAIM_REWARD_SHARDS' )
 		{
-			let shard, shard2, shard3, shard4, shard5, shard6, shard7;
-			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard );
-			shard2 = new sdGun({ x:this.x - 4, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard2 );
-			shard3 = new sdGun({ x:this.x + 4, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard3 );
-			shard4 = new sdGun({ x:this.x - 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard4 );
-			shard5 = new sdGun({ x:this.x + 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard5 );
-			shard6 = new sdGun({ x:this.x - 12, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard6 );
-			shard7 = new sdGun({ x:this.x + 12, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
-			sdEntity.entities.push( shard7 );
+			for( let i = 0; i < 8; i++ )
+			{
+				let shard = new sdGun({ x:this.x + ( i % 2 !== 0 ? 4 : -4 ) * i, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+				sdEntity.entities.push( shard );
+			}
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
 			for( let i = 0; i < 2; i++ ) // Task rewards now drop 2 items. Kind of painful to recieve only one item when you can get 15K worth of crystals - Booraz149
 			{
+				
 				let gun, rng;
 				rng = Math.random() * 0.9; // With more gun rewards, these values will change
-				//With each new gun, add 0.1 to rng multiplier
-				if ( rng < 0.1 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
-				else
-				if ( rng < 0.2 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
-				else
-				if ( rng < 0.3 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
-				else
-				if ( rng < 0.4 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
-				else
-				if ( rng < 0.5 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
-				else
-				if ( rng < 0.6 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
-				else
-				if ( rng < 0.7 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
-				else
-				if ( rng < 0.8 )
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
-				else
-				gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_PLASMA_RIFLE });
+				
+				let types = [ sdGun.CLASS_TOPS_DMR, sdGun.CLASS_TOPS_SHOTGUN, sdGun.CLASS_COMBAT_INSTRUCTOR, sdGun.CLASS_ZAPPER, sdGun.CLASS_RAYRIFLE, sdGun.CLASS_AREA_AMPLIFIER, sdGun.CLASS_ILLUSION_MAKER, sdGun.CLASS_LVL4_ARMOR_REGEN, sdGun.CLASS_TOPS_PLASMA_RIFLE ]
+
+				gun = new sdGun({ x:this.x + ( i % 2 !== 0 ? 10 : -10 ), y:this.y - 16, class:sdWorld.AnyOf( types ) });
 		
 				sdEntity.entities.push( gun );
 			}
@@ -748,26 +717,22 @@ class sdLongRangeTeleport extends sdEntity
 		else
 		if ( rewards === 'CLAIM_REWARD_CRYSTALS' )
 		{
-			let crystal, crystal2, crystal3;
-			crystal = new sdCrystal({ x:this.x - 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-			sdEntity.entities.push( crystal );
-			crystal2 = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-			sdEntity.entities.push( crystal2 );
-			crystal3 = new sdCrystal({ x:this.x + 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-			sdEntity.entities.push( crystal3 );
+			for( let i = 0; i < 3; i++ )
+			{
+				let crystal = new sdCrystal({ x:this.x + - 24 + i * 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+				sdEntity.entities.push( crystal );
+			}
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_CONTAINER' )
 		{
-			let container;
-			container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
+			let container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
 			sdEntity.entities.push( container );
 		}
 		else
 		if ( rewards === 'CLAIM_SCANNER' )
 		{
-			let scanner;
-			scanner = new sdLandScanner({ x:this.x, y:this.y - 32});
+			let scanner = new sdLandScanner({ x:this.x, y:this.y - 32});
 			sdEntity.entities.push( scanner );
 		}
 		else
