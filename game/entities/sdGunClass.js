@@ -10140,7 +10140,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'gravity_gun' ),
 			title: 'Gravity gun',
-			slot: 7,
+			slot: 8,
 			reload_time: 0,
 			muzzle_x: null,
 			ammo_capacity: -1,
