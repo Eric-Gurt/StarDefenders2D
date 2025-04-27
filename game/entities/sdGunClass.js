@@ -25,6 +25,7 @@ import sdEssenceExtractor from './sdEssenceExtractor.js';
 import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdArea from './sdArea.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
 
 
@@ -10133,6 +10134,71 @@ class sdGunClass
 				return obj;
 			},
 			upgrades: AddRecolorsFromColorAndCost( [], '#00ffff', 15 )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_TELEKINETICS = 152 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gravity_gun' ),
+			title: 'Gravity gun',
+			slot: 7,
+			reload_time: 0,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 500,
+			spawnable: false,
+			projectile_properties: { },
+			GetAmmoCost: ( gun )=>
+			{
+				return 2.5;
+			},
+			onShootAttempt: ( gun )=>
+			{
+				// Similar to sdPlayerDrone
+				let owner = gun._held_by;
+				{
+					let range = 24;
+					let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+					
+					if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
+					if ( sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+					sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_HIT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:0.5, color:'#FFFFFF' });
+					{
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+							if ( !e._is_being_removed )
+							//if ( e !== gun && e !== owner )
+							if ( e._is_bg_entity === gun._is_bg_entity )
+							if ( e.IsTargetable( owner ) )
+							{
+								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+								if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
+								if ( sdWorld.CheckLineOfSight( gun.x, gun.y, xx, yy, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+								if ( sdArea.CheckPointDamageAllowed( e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2 ) )
+								{
+									if ( typeof e.sx !== 'undefined' )
+									if ( typeof e.sy !== 'undefined' )
+									{
+										e.PhysWakeUp();
+										e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+										
+										if ( e.is( sdBullet ) )
+										e._owner = owner;
+									
+										let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) ) 
+		
+										e.sx += ( Math.sin ( an ) ) / ( e.mass * 0.05 );
+										e.sy += ( Math.cos ( an ) ) / ( e.mass * 0.05 );
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( [], '#80ff80', 15 )
 		};
 		
 

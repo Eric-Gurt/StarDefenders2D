@@ -707,7 +707,7 @@ class sdLongRangeTeleport extends sdEntity
 				let gun, rng;
 				rng = Math.random() * 0.9; // With more gun rewards, these values will change
 				
-				let types = [ sdGun.CLASS_TOPS_DMR, sdGun.CLASS_TOPS_SHOTGUN, sdGun.CLASS_COMBAT_INSTRUCTOR, sdGun.CLASS_ZAPPER, sdGun.CLASS_RAYRIFLE, sdGun.CLASS_AREA_AMPLIFIER, sdGun.CLASS_ILLUSION_MAKER, sdGun.CLASS_LVL4_ARMOR_REGEN, sdGun.CLASS_TOPS_PLASMA_RIFLE ]
+				let types = [ sdGun.CLASS_TOPS_DMR, sdGun.CLASS_TOPS_SHOTGUN, sdGun.CLASS_COMBAT_INSTRUCTOR, sdGun.CLASS_ZAPPER, sdGun.CLASS_RAYRIFLE, sdGun.CLASS_AREA_AMPLIFIER, sdGun.CLASS_ILLUSION_MAKER, sdGun.CLASS_LVL4_ARMOR_REGEN, sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_TELEKINETICS ]
 
 				gun = new sdGun({ x:this.x + ( i % 2 !== 0 ? 10 : -10 ), y:this.y - 16, class:sdWorld.AnyOf( types ) });
 		
