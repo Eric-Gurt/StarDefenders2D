@@ -25,7 +25,6 @@ import sdEssenceExtractor from './sdEssenceExtractor.js';
 import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
-import sdArea from './sdArea.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
 
 
