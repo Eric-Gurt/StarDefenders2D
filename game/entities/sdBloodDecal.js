@@ -80,7 +80,7 @@ class sdBloodDecal extends sdEntity
 	{
 		super( params );
 		
-		this.variation = 0; // grass variation
+		// this.variation = 0; // Seems unused to me?
 
 		this.effect_type = params.effect_type || sdEffect.TYPE_BLOOD; // Or sdEffect.TYPE_BLOOD_GREEN
 		this.hue = params.hue || 0;
