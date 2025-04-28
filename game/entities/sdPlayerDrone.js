@@ -19,7 +19,7 @@ class sdPlayerDrone extends sdCharacter
 	static init_class()
 	{
 		//sdPlayerDrone.img_player_drone = sdWorld.CreateImageFromFile( 'drone_robot2' );
-		sdPlayerDrone.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
+		//sdPlayerDrone.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 		
 		sdPlayerDrone.drone_helmets = [
 			null, // 0
@@ -603,6 +603,16 @@ class sdPlayerDrone extends sdCharacter
 			
 			if ( this.act_x !== 0 || this.act_y !== 0 )
 			this.PhysWakeUp();
+
+			if ( Math.random() < 0.25 )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( this.grabbed )
+			{
+				let ent = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.grabbed.x, y:this.grabbed.y, sx:0, sy:0, scale:1, radius:1, color:'#ffffff' }); // Different color to be distinguishable from gravity gun
+				let ent2 = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.x, y:this.y, sx:0, sy:0, scale:1, radius:1, color:'#ffffff' });
+				
+				sdEntity.entities.push( ent, ent2 )
+			}
 		}
 		
 		this.HandlePlayerPowerups( GSPEED );
@@ -657,11 +667,11 @@ class sdPlayerDrone extends sdCharacter
 			ctx.filter = 'none';
 			ctx.globalAlpha = 0.5;
 			
-			ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
+			/*ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
 			
 			ctx.translate( this.grabbed.x + ( this.grabbed._hitbox_x1 + this.grabbed._hitbox_x2 ) / 2 - this.x, this.grabbed.y + ( this.grabbed._hitbox_y1 + this.grabbed._hitbox_y2 ) / 2 - this.y );
 			
-			ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
+			ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );*/
 			
 			ctx.globalAlpha = 1;
 			ctx.blend_mode = THREE.NormalBlending;
@@ -726,9 +736,9 @@ class sdPlayerDrone extends sdCharacter
 					{
 						ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
 					}
-					else
+					/*else
 					if ( this.grabbed )
-					ctx.filter = 'brightness(3)';
+					ctx.filter = 'brightness(3)';*/
 					else
 					ctx.filter = 'none';
 
