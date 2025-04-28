@@ -10167,7 +10167,11 @@ class sdGunClass
 					if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
 					if ( sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
 					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
-					sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_HIT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:0.5, color:'#FFFFFF' });
+					{
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_HIT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:0.5, color:'#FFFFFF' });
+						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:2 / 3, pitch:1 });
+					}
+					
 					{
 						for ( let i = 0; i < nears.length; i++ )
 						{
