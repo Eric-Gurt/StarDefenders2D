@@ -751,7 +751,7 @@ class sdGunClass
 			title: 'Pistol',
 			slot: 1,
 			reload_time: 5,
-			muzzle_x: 4,
+			muzzle_x: 3,
 			ammo_capacity: 12,
 			spread: 0.01,
 			count: 1,
@@ -952,7 +952,7 @@ class sdGunClass
 			title: 'Rocket launcher',
 			slot: 5,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,
 			spread: 0.05,
 			projectile_velocity: 14,
@@ -1154,12 +1154,7 @@ class sdGunClass
 				gun.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9. Will be later extended in case of high tier
 			}
 		};
-		
-		
-		
-		
-		
-		
+
 		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER = 9 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
@@ -1167,7 +1162,7 @@ class sdGunClass
 			title: 'Grenade launcher',
 			slot: 5,
 			reload_time: 20,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,
 			spread: 0.05,
 			count: 1,
@@ -1388,7 +1383,7 @@ class sdGunClass
 			title: 'Cube-gun',
 			slot: 4,
 			reload_time: 3,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
@@ -1713,7 +1708,7 @@ class sdGunClass
 			title: 'Cube-shotgun',
 			slot: 3,
 			reload_time: 20,
-			muzzle_x: 6,
+			muzzle_x: 8,
 			ammo_capacity: -1,
 			spread: 0.15,
 			count: 5,
@@ -1941,7 +1936,7 @@ class sdGunClass
 			slot: 1,
 			reload_time: 6,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			muzzle_x: 7,
+			muzzle_x: 4,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
@@ -4005,7 +4000,7 @@ class sdGunClass
 			title: 'Sniper rifle',
 			slot: 4,
 			reload_time: 60,
-			muzzle_x: 11,
+			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
@@ -4245,7 +4240,7 @@ class sdGunClass
 			title: 'Velox Combat Rifle',
 			slot: 2,
 			reload_time: 1.5,
-			muzzle_x: 10,
+			muzzle_x: 11,
 			ammo_capacity: 30,
 			burst: 3,
 			burst_reload: 16,
@@ -4620,7 +4615,7 @@ class sdGunClass
 			title: 'Grenade launcher MK2',
 			slot: 5,
 			reload_time: 9,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: 6,
 			spread: 0.05,
 			count: 1,
@@ -4666,7 +4661,7 @@ class sdGunClass
 			title: 'Cube-gun v2',
 			slot: 4,
 			reload_time: 3,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 15 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
@@ -4713,7 +4708,7 @@ class sdGunClass
 			title: 'Cube-shotgun v2',
 			slot: 3,
 			reload_time: 20,
-			muzzle_x: 6,
+			muzzle_x: 8,
 			ammo_capacity: -1,
 			spread: 0.1,
 			count: 7,
@@ -7146,7 +7141,7 @@ class sdGunClass
 			title: 'Cube-pistol v2',
 			slot: 1,
 			reload_time: 3,
-			muzzle_x: 4,
+			muzzle_x: 5,
 			burst: 3,
 			burst_reload: 10,
 			ammo_capacity: -1,
@@ -7331,14 +7326,14 @@ class sdGunClass
 			title: 'Shurg Pistol',
 			slot: 1,
 			reload_time: 7,
-			muzzle_x: 6,
+			muzzle_x: 5,
 			ammo_capacity: 10,
 			spread: 0.03,
 			count: 2,
 			fire_type: 1,
 			spawnable: false,
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
-			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties: { _damage: 1, color: '#004400' }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
@@ -7423,7 +7418,7 @@ class sdGunClass
 			//sound_pitch: 0.5,
 			slot: 4,
 			reload_time: 0.3,
-			muzzle_x: 8,
+			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
@@ -7520,12 +7515,12 @@ class sdGunClass
 			title: 'Shurg sniper rifle',
 			slot: 4,
 			reload_time: 60,
-			muzzle_x: 11,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			spawnable: false,
-			projectile_properties: { _damage: 115, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 115, color: '#004400', /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating:true, _dirt_mult: -0.5 };
@@ -10097,7 +10092,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'sd_repair_tool' ), // By Ghost581X
 			sound: 'gun_defibrillator',
-			sound_pitch: 0.75,
+			sound_pitch: 0.3,
 			sound_volume: 2,
 			title: 'Vehicle repair tool',
 			slot: 7,
@@ -10169,7 +10164,7 @@ class sdGunClass
 					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 					{
 						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_HIT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:0.5, color:'#FFFFFF' });
-						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:2 / 3, pitch:1 });
+						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
 					}
 					
 					{
