@@ -10115,7 +10115,7 @@ class sdGunClass
 					{
 						let vehicles = [ 'sdHover', 'sdQuadro', 'sdLifeBox' ];
 						
-						if ( vehicles.includes( target_entity.GetClass() )  )
+						if ( vehicles.includes( target_entity.GetClass() ) )
 						if ( ( target_entity.hea || target_entity._hea || 0 ) > 0 ) // Can't repair completely destroyed ones
                         {
                             let heal = Math.min( ( target_entity.hmax || target_entity._hmax || 0 ) - ( target_entity.hea || target_entity._hea || 0 ), 250 ); // Prevent overheal possibly?
@@ -10164,7 +10164,10 @@ class sdGunClass
 					if ( sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
 					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 					{
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_HIT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:0.5, color:'#FFFFFF' });
+						/* let offsets = owner.GetBulletSpawnOffset();
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:offsets.x + owner.x, y:offsets.y + owner.y, sx:0, sy:0, scale:1 / 3, radius:1, color:'#80ffff' }); */
+						
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:1, color:'#80ffff' });
 						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
 					}
 					
