@@ -10165,9 +10165,9 @@ class sdGunClass
 					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 					{
 						/* let offsets = owner.GetBulletSpawnOffset();
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:offsets.x + owner.x, y:offsets.y + owner.y, sx:0, sy:0, scale:1 / 3, radius:1, color:'#80ffff' }); */
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:offsets.x + owner.x, y:offsets.y + owner.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' }); */
 						
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1 / 3, radius:1, color:'#80ffff' });
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' });
 						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
 					}
 					
