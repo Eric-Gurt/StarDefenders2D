@@ -608,8 +608,8 @@ class sdPlayerDrone extends sdCharacter
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			if ( this.grabbed )
 			{
-				let ent = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.grabbed.x, y:this.grabbed.y, sx:0, sy:0, scale:1, radius:1, color:'#ffffff' }); // Different color to be distinguishable from gravity gun
-				let ent2 = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.x, y:this.y, sx:0, sy:0, scale:1, radius:1, color:'#ffffff' });
+				let ent = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.grabbed.x, y:this.grabbed.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' }); // Different color to be distinguishable from gravity gun
+				let ent2 = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.x, y:this.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' });
 				
 				sdEntity.entities.push( ent, ent2 )
 			}
