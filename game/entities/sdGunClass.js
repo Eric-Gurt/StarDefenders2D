@@ -10092,7 +10092,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'sd_repair_tool' ), // By Ghost581X
 			sound: 'gun_defibrillator',
-			sound_pitch: 0.3,
+			sound_pitch: 0.75,
 			sound_volume: 2,
 			title: 'Vehicle repair tool',
 			slot: 7,
@@ -10115,6 +10115,7 @@ class sdGunClass
 					{
 						let vehicles = [ 'sdHover', 'sdQuadro', 'sdLifeBox' ];
 						
+						if ( vehicles.includes( target_entity.GetClass() )  )
 						if ( ( target_entity.hea || target_entity._hea || 0 ) > 0 ) // Can't repair completely destroyed ones
                         {
                             let heal = Math.min( ( target_entity.hmax || target_entity._hmax || 0 ) - ( target_entity.hea || target_entity._hea || 0 ), 250 ); // Prevent overheal possibly?
