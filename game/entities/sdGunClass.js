@@ -10159,7 +10159,7 @@ class sdGunClass
 					let range = 24;
 					let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
 					
-					if ( Math.random() < 0.5 )
+					if ( Math.random() < 1 / 3 )
 					if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
 					if ( sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
 					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )

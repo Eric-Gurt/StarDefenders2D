@@ -604,7 +604,7 @@ class sdPlayerDrone extends sdCharacter
 			if ( this.act_x !== 0 || this.act_y !== 0 )
 			this.PhysWakeUp();
 
-			if ( Math.random() < 0.25 )
+			if ( Math.random() < 1 / 3 )
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			if ( this.grabbed )
 			{
