@@ -213,7 +213,7 @@ class sdUpgradeStation extends sdEntity
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		if ( this._hologram_timer <= 0 ) // A bit messy perhaps?
 		{
-			let ents = sdWorld.GetAnythingNear( this.x, this.y, 16 );
+			let ents = sdWorld.GetAnythingNear( this.x, this.y, 32 );
 	
 			for ( let i = 0; i < ents.length; i++ )
 			{
