@@ -20,6 +20,8 @@ class sdRoach extends sdEntity
 		sdRoach.TYPE_ROACH = 0;
 		sdRoach.TYPE_MOTH = 1;
 		
+		sdRoach.light_ents = [ 'sdLamp', 'sdCrystal' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return ( this.bgcrawl === 1 && this.fr <= 2 ) ? -5 : -5; }
@@ -188,6 +190,12 @@ class sdRoach extends sdEntity
 			if ( from_entity.IsTargetable( this ) )
 			if ( ( this.nick.length === 0 && !from_entity.is( sdRoach ) ) || ( this.nick.length > 0 && from_entity.is( sdRoach ) && from_entity.nick.length === 0 ) )
 			{
+				if ( this.type === sdRoach.TYPE_MOTH && sdRoach.light_ents.includes( from_entity.GetClass() ) )
+				{
+					this._walk_duration = 0;
+					return;
+				}
+			
 				this._random_bite_timeout = 30;
 				
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
@@ -326,7 +334,26 @@ class sdRoach extends sdEntity
 				{
 					if ( old_walk_delay > 0 )
 					{
+						if ( this.type === sdRoach.TYPE_ROACH )
 						this.an = Math.random() * Math.PI * 2 * 100;
+						else
+						if ( this.type === sdRoach.TYPE_MOTH ) // Attracted to light sources
+						{
+							let nears = sdWorld.GetAnythingNear( this.x, this.y, 192, null, null );
+							for ( let i = 0; i < nears.length; i++ )
+							{
+								let ent = nears [ i ];
+								
+								if ( !ent._is_being_removed )
+								if ( sdRoach.light_ents.includes( ent.GetClass() ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, null, null, [ 'sdBlock', 'sdDoor' ] ) ) 
+								{
+									this.an = Math.atan2( this.x - ent.x, this.y - ent.y ) * 100;
+									break;
+								}
+								this.an = Math.random() * Math.PI * 2 * 100;
+							}
+						}
 						this.dx = -Math.sin( this.an / 100 ) * 100;
 						this.dy = -Math.cos( this.an / 100 ) * 100;
 
