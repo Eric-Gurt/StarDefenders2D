@@ -10155,51 +10155,44 @@ class sdGunClass
 			{
 				// Similar to sdPlayerDrone
 				let owner = gun._held_by;
-				{
-					let range = 24;
-					let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+				let range = 24;
+				let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
 					
+				if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
+				if ( owner._god || sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+				if ( owner._god || sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
+				{
 					if ( Math.random() < 1 / 3 )
-					if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
-					if ( sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
-					if ( sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 					{
 						/* let offsets = owner.GetBulletSpawnOffset();
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:offsets.x + owner.x, y:offsets.y + owner.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' }); */
-						
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius:1, color:'#aaffaa' });
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:offsets.x + owner.x, y:offsets.y + owner.y, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' }); */
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });
 						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
 					}
-					
+						
+					let range = 24;
+					let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+						
+					for ( let i = 0; i < nears.length; i++ )
 					{
-						for ( let i = 0; i < nears.length; i++ )
+						let e = nears[ i ];
+						if ( !e._is_being_removed )
+						//if ( e !== gun && e !== owner )
+						if ( e._is_bg_entity === gun._is_bg_entity )
+						if ( e.IsTargetable( owner ) )
 						{
-							let e = nears[ i ];
-							if ( !e._is_being_removed )
-							//if ( e !== gun && e !== owner )
-							if ( e._is_bg_entity === gun._is_bg_entity )
-							if ( e.IsTargetable( owner ) )
+							if ( typeof e.sx !== 'undefined' )
+							if ( typeof e.sy !== 'undefined' )
 							{
-								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
-								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-								if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 300 ) )
-								if ( sdWorld.CheckLineOfSight( gun.x, gun.y, xx, yy, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
-								if ( sdArea.CheckPointDamageAllowed( e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2 ) )
-								{
-									if ( typeof e.sx !== 'undefined' )
-									if ( typeof e.sy !== 'undefined' )
-									{
-										e.PhysWakeUp();
-										e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								e.PhysWakeUp();
+								e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 										
-										if ( e.is( sdBullet ) )
-										e._owner = owner;
+								if ( e.is( sdBullet ) )
+								e._owner = owner;
 									
-										let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) ) 
+								let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) ) 
 		
-										e.Impulse( ( Math.sin ( an ) * 15 ), ( Math.cos ( an ) * 15 ) );
-									}
-								}
+								e.Impulse( ( Math.sin ( an ) * 15 ), ( Math.cos ( an ) * 15 ) );
 							}
 						}
 					}
