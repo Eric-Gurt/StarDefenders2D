@@ -136,7 +136,7 @@ class sdUpgradeStation extends sdEntity
 				sdEntity.entities.push( gun );
 			}
 		}, 500 );
-		this._cooldown = 900; // 30 second cooldown so it does not get spammed.
+		this.cooldown = 900; // 30 second cooldown so it does not get spammed.
 		this.matter -= 500;
 		this.WakeUpMatterSources();
 		sdWorld.UpdateHashPosition( this, false );
@@ -151,7 +151,7 @@ class sdUpgradeStation extends sdEntity
 		this.hmax = 5000 * 2;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
-		this._cooldown = 0;
+		this.cooldown = 0;
 		this.matter_max = 5500;
 		this.matter = 100;
 		this.level = 1;
@@ -191,8 +191,8 @@ class sdUpgradeStation extends sdEntity
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 
-		if ( this._cooldown > 0 )
-		this._cooldown -= GSPEED;
+		if ( this.cooldown > 0 )
+		this.cooldown -= GSPEED;
 	
 		if ( this._armor_cooldown > 0 )
 		this._armor_cooldown -= GSPEED;
@@ -295,10 +295,14 @@ class sdUpgradeStation extends sdEntity
 		{
 			ctx.blend_mode = THREE.AdditiveBlending;
 			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+			if ( this.cooldown > 0 )
+			ctx.filter = 'hue-rotate(270deg)';
+		
 			ctx.drawImageFilterCache( sdUpgradeStation.img_hologram, -16, -16 - 31, 32,64 );
 
 			ctx.blend_mode = THREE.NormalBlending;
 			ctx.globalAlpha = 1;
+			ctx.filter = 'none';
 		}
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 31, 32,64 );
 
@@ -342,7 +346,7 @@ class sdUpgradeStation extends sdEntity
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 				{
-					if ( this._cooldown <= 0 )
+					if ( this.cooldown <= 0 )
 					{
 						if ( this.matter >= 500 )
 						this.DropBasicEquipment( executer_socket.character );
@@ -350,7 +354,7 @@ class sdUpgradeStation extends sdEntity
 						executer_socket.SDServiceMessage( 'Upgrade station needs at least 500 matter!' );
 					}
 					else
-					executer_socket.SDServiceMessage( 'Upgrade station is generating new weapons, please wait ' + ~~( this._cooldown / 30 ) + ' seconds.' );
+					executer_socket.SDServiceMessage( 'Upgrade station is generating new weapons, please wait ' + ~~( this.cooldown / 30 ) + ' seconds.' );
 				}
 				else
 				{
