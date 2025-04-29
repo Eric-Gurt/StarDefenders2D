@@ -9,12 +9,16 @@ import sdBG from './sdBG.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdCrystal from './sdCrystal.js';
 import sdStorage from './sdStorage.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdRoach extends sdEntity
 {
 	static init_class()
 	{
 		sdRoach.img_roach = sdWorld.CreateImageFromFile( 'sdRoach' ); // Sprite by floor
+		
+		sdRoach.TYPE_ROACH = 0;
+		sdRoach.TYPE_MOTH = 1;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -47,8 +51,9 @@ class sdRoach extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hea = 30;
-		this._hmax = 30;
+		this.type = params.type || sdRoach.TYPE_ROACH;
+		
+		this._hea = this._hmax = this.type === sdRoach.TYPE_MOTH ? 100 : 30;
 		
 		this.bgcrawl = 1; // 1 if crawles on background wall, 0 if on the ground. Always tries to crawle on bg walls if there are any
 		
@@ -132,7 +137,11 @@ class sdRoach extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this.type === sdRoach.TYPE_ROACH )
 		return '';
+	
+		if ( this.type === sdRoach.TYPE_MOTH )
+		return 'hue-rotate(180deg)';
 	}
 	
 	get mass() { return 15; }
@@ -184,13 +193,20 @@ class sdRoach extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 				
-				let dmg = this.nick.length > 0 ? 10 : ( 5 * this.strength );
+				let dmg = this.nick.length > 0 ? 10 : ( 5 * this.strength * this.type === sdRoach.TYPE_MOTH ? 3 : 1 );
 				
 				if ( from_entity.IsPlayerClass() || from_entity.is( sdCrystal ) || from_entity.is( sdStorage ) )
-				dmg = 5;
+				dmg = this.type === sdRoach.TYPE_ROACH ? 5 : 15;
 				
 				from_entity.DamageWithEffect( dmg, this );
 				from_entity.PlayDamageEffect( xx, yy );
+				
+				if ( this.type === sdRoach.TYPE_MOTH )
+				if ( from_entity.IsPlayerClass() )
+				{
+					from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+					sdWorld.SendEffect({ x: from_entity.x, y: from_entity.y, type: sdEffect.TYPE_GLOW_ALT, color: '#ff0000', radius: 0.5, scale: 2 });
+				}
 				
 				sdSound.PlaySound({ name:'popcorn', x:xx, y:yy, volume:0.2, pitch:3 });
 			}
@@ -314,7 +330,7 @@ class sdRoach extends sdEntity
 						this.dx = -Math.sin( this.an / 100 ) * 100;
 						this.dy = -Math.cos( this.an / 100 ) * 100;
 
-						this._walk_duration = Math.random() * 50;
+						this._walk_duration = Math.random() * ( this.type === sdRoach.TYPE_MOTH ? 3 : 1 ) * 100;
 						
 						if ( this._hunger > 90 || ( this._decal_to_feed_from && this._decal_to_feed_from.is( sdRoach ) ) )
 						if ( this._decal_to_feed_from )
@@ -397,8 +413,9 @@ class sdRoach extends sdEntity
 			{
 				if ( this.bgcrawl === 1 )
 				{
-					this.sx += this.dx / 100 * GSPEED * 0.5;
-					this.sy += this.dy / 100 * GSPEED * 0.5;
+					let speed = this.type === sdRoach.TYPE_MOTH ? 1 : 0.5
+					this.sx += this.dx / 100 * GSPEED * speed;
+					this.sy += this.dy / 100 * GSPEED * speed;
 
 					let vel = sdWorld.Dist2D_Vector_pow2( this.sx, this.sy );
 
@@ -430,10 +447,17 @@ class sdRoach extends sdEntity
 	}
 	get title()
 	{
+		if ( this.type === sdRoach.TYPE_ROACH )
 		return 'Roach';
+	
+		if ( this.type === sdRoach.TYPE_MOTH )
+		return 'Blood moth';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.type === sdRoach.TYPE_MOTH )
+		sdEntity.Tooltip( ctx, this.title );
+		else
 		if ( this.nick.length > 0 )
 		if ( this.fr <= 2 )
 		{
@@ -467,13 +491,14 @@ class sdRoach extends sdEntity
 		}
 		
 		let xx = Math.min( this.fr, 6 );
-		let yy = this.bgcrawl;
+		let yy = this.bgcrawl + this.type * 2;
 		
 		if ( this.fr > 20 )
 		ctx.globalAlpha = 0.5;
 	
 		if ( this.nick.length === 0 )
 		if ( this.strength > 0 )
+		if ( this.type !== sdRoach.TYPE_MOTH )
 		{
 			let f = sdWorld.CreateSDFilter();
 
@@ -499,6 +524,7 @@ class sdRoach extends sdEntity
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
+		if ( this.type !== sdRoach.TYPE_MOTH )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
@@ -564,6 +590,7 @@ class sdRoach extends sdEntity
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
+		if ( this.type !== sdRoach.TYPE_MOTH )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
