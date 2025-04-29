@@ -10164,8 +10164,10 @@ class sdGunClass
 				{
 					if ( Math.random() < 1 / 3 )
 					{
-						/* let offsets = owner.GetBulletSpawnOffset();
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:offsets.x + owner.x, y:offsets.y + owner.y, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' }); */
+						/*let xx = Math.sin ( owner.GetLookAngle() ) * 12;
+						let yy = Math.cos ( owner.GetLookAngle() ) * 12;
+						
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:gun.x + xx, y:gun.y + yy, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });*/
 						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });
 						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
 					}
