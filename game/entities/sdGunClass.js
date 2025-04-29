@@ -10191,9 +10191,12 @@ class sdGunClass
 										
 								if ( e.is( sdBullet ) )
 								e._owner = owner;
+							
+								/*if ( e.is( sdCharacter ) )
+								if ( e._ai_enabled && e._ai_team !== 10 ) // Time shifter
+								e.DropWeapon( e.gun_slot );*/
 									
-								let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) ) 
-		
+								let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) );
 								e.Impulse( ( Math.sin ( an ) * 15 ), ( Math.cos ( an ) * 15 ) );
 							}
 						}
