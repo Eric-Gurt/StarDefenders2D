@@ -611,6 +611,8 @@ class sdPlayerDrone extends sdCharacter
 				let ent = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.grabbed.x, y:this.grabbed.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' }); // Different color to be distinguishable from gravity gun
 				let ent2 = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.x, y:this.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' });
 				
+				sdSound.PlaySound({ name:'gravity_gun', x:this.x, y:this.y, volume:1.25, pitch:0.8, _server_allowed: true });
+				
 				sdEntity.entities.push( ent, ent2 )
 			}
 		}
