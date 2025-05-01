@@ -10113,9 +10113,9 @@ class sdGunClass
 				{
 					_damage: 1, color:'#00ffff', _rail: true, _soft: true, time_left: 3, _custom_target_reaction:( bullet, target_entity )=> 
 					{
-						let vehicles = [ 'sdHover', 'sdQuadro', 'sdLifeBox' ];
+						let heal_ents = [ 'sdHover', 'sdQuadro', 'sdLifeBox', 'sdWorkbench', 'sdWeaponBench', 'sdUpgradeStation' ];
 						
-						if ( vehicles.includes( target_entity.GetClass() ) )
+						if ( heal_ents.includes( target_entity.GetClass() ) )
 						if ( ( target_entity.hea || target_entity._hea || 0 ) > 0 ) // Can't repair completely destroyed ones
                         {
                             let heal = Math.min( ( target_entity.hmax || target_entity._hmax || 0 ) - ( target_entity.hea || target_entity._hea || 0 ), 250 ); // Prevent overheal possibly?
