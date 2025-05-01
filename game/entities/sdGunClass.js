@@ -5606,10 +5606,10 @@ class sdGunClass
 			projectile_velocity: 14,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { time_left: 30, explosion_radius: 19, model: 'rocket_proj', _damage: 16 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
+			projectile_properties: { time_left: 40, explosion_radius: 19, model: 'rocket_proj', _damage: 16 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 30, explosion_radius: 19, model: 'rocket_proj', color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
+				let obj = { time_left: 40, explosion_radius: 19, model: 'rocket_proj', color:'#7acaff', ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
