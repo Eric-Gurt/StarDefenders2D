@@ -10188,6 +10188,7 @@ class sdGunClass
 							{
 								e.PhysWakeUp();
 								e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								e.HookAttempt();
 										
 								if ( e.is( sdBullet ) )
 								e._owner = owner;
