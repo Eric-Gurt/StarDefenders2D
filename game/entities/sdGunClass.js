@@ -10101,7 +10101,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 500,
-			min_build_tool_level: 5,
+			min_workbench_level: 1,
 			projectile_properties: { color: '#00ffff', _rail: true, _soft: true, time_left: 3 },
 			GetAmmoCost: ( gun )=>
 			{
