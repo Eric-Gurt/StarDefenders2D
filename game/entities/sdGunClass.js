@@ -5601,7 +5601,7 @@ class sdGunClass
 			muzzle_x: 8,
 			ammo_capacity: -1,
 			burst: 6,
-			burst_reload: 45,
+			burst_reload: 35,
 			spread: 0.05,
 			projectile_velocity: 14,
 			count: 1,
