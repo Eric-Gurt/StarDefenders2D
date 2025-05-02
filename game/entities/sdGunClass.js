@@ -9931,7 +9931,6 @@ class sdGunClass
 								if ( sdWorld.is_server )
 								if ( owner )
 								{
-
 									let ent = new sdCharacter({ x: owner.x + 16 * owner._side, y: owner.y,
 										_ai_enabled: sdCharacter.AI_MODEL_AGGRESSIVE, 
 										_ai_gun_slot: 2,
@@ -9975,7 +9974,7 @@ class sdGunClass
 									ent.matter_max = 600;
 									ent.s = target_entity.s;
 								
-									ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, owner: owner });
+									ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, owner: owner, controllable: true });
 									
 									if ( gun.fire_mode === 1 ) // Spawns a target drone for clones to follow and aim at. A more defensive mode.
 									{
@@ -10157,7 +10156,6 @@ class sdGunClass
 				let owner = gun._held_by;
 				let range = 24;
 				let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
-					
 				if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 400 ) )
 				if ( owner._god || sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
 				if ( owner._god || sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
