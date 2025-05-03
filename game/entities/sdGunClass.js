@@ -10187,16 +10187,22 @@ class sdGunClass
 								e.PhysWakeUp();
 								e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 								e.HookAttempt();
-										
+	
 								if ( e.is( sdBullet ) )
 								e._owner = owner;
-							
+
 								/*if ( e.is( sdCharacter ) )
 								if ( e._ai_enabled && e._ai_team !== 10 ) // Time shifter
 								e.DropWeapon( e.gun_slot );*/
-									
+
 								let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) );
-								e.Impulse( ( Math.sin ( an ) * 15 ), ( Math.cos ( an ) * 15 ) );
+
+								let xx =  Math.sin ( an );
+								let yy = Math.cos ( an );
+
+								let s = 15;
+								
+								e.Impulse( xx * s, yy * s );
 							}
 						}
 					}
