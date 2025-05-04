@@ -308,7 +308,8 @@ class sdTurret extends sdEntity
 				( e.hea || e._hea ) > 0 && 
 				( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
 				( !e.is( sdMimic ) || e.morph < 100 ) && 
-				( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
+				( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) &&
+				( typeof e.held_by === 'undefined' || e.held_by === null )
 			)
 		{
 			if ( this.type === 1 )
@@ -435,6 +436,15 @@ class sdTurret extends sdEntity
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	}
+	onThinkFrozen( GSPEED )
+	{
+		if ( !this.is_static ) // Likely is capable of falling
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -816,6 +826,10 @@ class sdTurret extends sdEntity
 		//this.DrawConnections( ctx );
 	}
 	get mass() { return this.is_static ? 100 : 60; }
+	IsPhysicallyMovable()
+	{
+		return !this.is_static;
+	}
 	Impulse( x, y )
 	{
 		if ( this.is_static )

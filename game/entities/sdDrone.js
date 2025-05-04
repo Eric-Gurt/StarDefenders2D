@@ -352,17 +352,37 @@ class sdDrone extends sdEntity
 						ent.sy = dy * 0.05 + this.sy - Math.abs( dx ) * 0.05;
 						sdEntity.entities.push( ent );
 
-						sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+						//sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+						sdWorld.UpdateHashPosition( ent, false, false ); // Important! Prevents memory leaks and hash tree bugs // UPD: onMovementInRange was making them be fed into BSUs indefinitely...
 						
 						if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
 						{
-							ent.remove();
-							ent._broken = false;
-							this._consumed_entity_snapshots.unshift( snapshot );
+							if ( ent._is_being_removed )
+							{
+								// ?
+								trace( 'SD-BG\'s crystal got removed while being extracted' );
+							}
+							else
+							{
+								ent.remove();
+								ent._broken = false;
+								this._consumed_entity_snapshots.unshift( snapshot );
+							}
 						}
 						else
 						{
 							sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:this.x, y:this.y, volume:0.5, pitch:0.35 });
+							
+							if ( ent.is( sdCrystal ) )
+							{
+								// Instead of letting players dupe crystals let's just duplicate regeneration rate by 2.5 and current matter by 5 times, but only once
+								if ( ent._private_props.sdbg_duped !== 1 )
+								{
+									ent._private_props.sdbg_duped = 1;
+									ent.matter_regen = Math.min( ent.matter_regen * 2.5, sdCrystal.max_matter_regen );
+									ent.matter = Math.min( ent.matter * 5, ent.matter_max );
+								}
+							}
 						}
 					}
 					catch ( e )
@@ -2134,7 +2154,7 @@ class sdDrone extends sdEntity
 		if ( this.type === sdDrone.DRONE_CUT_DROID )
 		return "Cut droid";
 		if ( this.type === sdDrone.DRONE_SD_BG )
-		return "SD-BG Drone";
+		return "SD-BG Crystal Purifier Drone";
 		if ( this.type === sdDrone.DRONE_COUNCIL_ATTACK )
 		return "Council Assault Drone";
 	

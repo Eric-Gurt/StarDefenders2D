@@ -92,12 +92,12 @@ canvas
     mix-blend-mode: screen;
     image-rendering: pixelated;
     
-    animation: spin 1200s linear infinite; 
+    /*animation: spin 1200s linear infinite; */
 }
-@keyframes spin {
+/*@keyframes spin {
     0% { transform: translate(-50%,-50%) rotate(0deg); }
     100% { transform: translate(-50%,-50%) rotate(360deg); }
-}
+}*/
 #section_menu
 {
 }

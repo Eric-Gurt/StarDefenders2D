@@ -33,6 +33,8 @@ class sdBarrel extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this.held_by = null;
+		
 		this.arming = 0;
 		
 		this.hea = 40;
@@ -66,8 +68,18 @@ class sdBarrel extends sdEntity
 	}
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x * 0.03;
 		this.sy += y * 0.03;
+	}
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -77,9 +89,11 @@ class sdBarrel extends sdEntity
 	{
 		this.arming = Math.min( 100, this.arming + GSPEED * 0.85 );
 		
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		if ( !this.held_by )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		}
 		
 	}
 	get title()
@@ -92,6 +106,8 @@ class sdBarrel extends sdEntity
 		sdEntity.TooltipUntranslated( ctx, this.title + ' ( ' + T('building') + ': ' + (~~this.arming) + '% )' );
 		else
 		sdEntity.Tooltip( ctx, this.title );
+	
+		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
 	{
@@ -100,8 +116,11 @@ class sdBarrel extends sdEntity
 		if ( this.arming < 100 && !sdShop.isDrawing )
 		ctx.globalAlpha = 0.5;
 		
-		ctx.filter = this.filter;
-		ctx.drawImageFilterCache( sdBarrel.img_barrel, -16, -16 );
+		if ( this.held_by === null || attached )
+		{
+			ctx.filter = this.filter;
+			ctx.drawImageFilterCache( sdBarrel.img_barrel, -16, -16 );
+		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
