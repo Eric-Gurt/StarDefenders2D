@@ -3912,19 +3912,20 @@ class sdWorld
 		return 'none';
 	}
 	
-	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1 )
+	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, sound='blockB4', type=sdEffect.TYPE_ROCK )
 	{
-		if ( sdWorld.is_server )
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			if ( !that._broken )
 			return;
 			
 			if ( volume > 0 )
-			sdSound.PlaySound({ name:'blockB4', 
+			sdSound.PlaySound({ name:sound, 
 				x: that.x, 
 				y: that.y, 
 				volume: volume, 
-				pitch: pitch });
+				pitch: pitch,
+				_server_allowed: true });
 			
 			for ( let i = 0; i < debris_count; i++ )
 			{
@@ -3938,7 +3939,7 @@ class sdWorld
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() });
+				sdEntity.entities.push( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() }) );
 			}
 		}
 	}
@@ -4923,6 +4924,8 @@ class sdWorld
 		sdRenderer.shading = player_settings['shading1'] ? true : false;
 		
 		sdRenderer.effects_quality = player_settings['effects_quality'] || 2;
+		
+		sdRenderer.display_coords = player_settings['coords1'] ? true : false
 
 		sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 		window.onresize();

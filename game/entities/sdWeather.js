@@ -87,6 +87,7 @@ import sdWanderer from './sdWanderer.js';
 import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
 import sdMothershipContainer from './sdMothershipContainer.js';
+import sdStalker from './sdStalker.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -169,6 +170,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
+		sdWeather.EVENT_STALKER =				event_counter++; // 58
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2756,18 +2758,30 @@ class sdWeather extends sdEntity
 					drones++;
 				}
 				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
-				sdWeather.SimpleSpawner({
+				{
+					sdWeather.SimpleSpawner({
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-					count: [ 3, 6 ],
-					class: sdDrone,
-					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
-					aerial: true,
-					near_entity: near_ent,
-					group_radius: group_rad,
-					unlimited_range: inf_range,
-					target: target_ent
+					});
+					sdWeather.SimpleSpawner({
+						count: [ 1, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR_SCOUT },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-				});
+					});
+				}
 				
 			}
 			else
@@ -3918,6 +3932,20 @@ class sdWeather extends sdEntity
 				sdWeather.GivePlayerTask( character );
 			}
 		}
+		if ( r === sdWeather.EVENT_STALKER ) 
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdStalker,
+				
+				aerial: true,
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
+				
+			});
+		}
 	}
 	static GivePlayerTask( initiator ) // AssignTasks // GiveTasks
 	{
@@ -4165,6 +4193,16 @@ class sdWeather extends sdEntity
 						`Oh, I see you are doing great. How about another Octopus? It is just what we need. Use the long-range teleporter and try not to get eaten.`
 					]);
 					template.lrtp_class_proprty_value_array = [ 'sdOctopus', 'is_alive', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.4;
+					
+					template.title = 'Extract fallen missiles';
+					template.description = 'Extract fallen missiles by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdAsteroid', 'type', sdAsteroid.TYPE_MISSILE ];
 				});
 				/*
 				task_options.push(()=>

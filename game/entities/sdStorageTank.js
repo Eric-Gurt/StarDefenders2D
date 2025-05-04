@@ -5,6 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdWater from './sdWater.js';
 import sdBlock from './sdBlock.js';
+import sdEffect from './sdEffect.js';
 import sdCrystal from './sdCrystal.js';
 
 class sdStorageTank extends sdEntity
@@ -278,7 +279,7 @@ class sdStorageTank extends sdEntity
 				);
 			}
 			*/
-			sdWorld.BasicEntityBreakEffect( this, 10 );
+			sdWorld.BasicEntityBreakEffect( this, 10, 6, 0.5, 1, 'glass12', sdEffect.TYPE_GLASS );
 		}
 	}
 	

@@ -24,7 +24,7 @@ class sdObelisk extends sdEntity
 		sdObelisk.img_obelisk3 = sdWorld.CreateImageFromFile( 'obelisk3' );*/
 		sdObelisk.img_obelisk4 = sdWorld.CreateImageFromFile( 'obelisk4' );
 		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' ); // Sprite by PeacyQuack
-		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' );
+		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' ); // Original sprite by PeacyQuack, reworked by LazyRain
 		sdObelisk.img_obelisk7 = sdWorld.CreateImageFromFile( 'obelisk7' );
 		sdObelisk.img_obelisk8 = sdWorld.CreateImageFromFile( 'obelisk8' ); // Sprite by LordBored
 
@@ -33,10 +33,10 @@ class sdObelisk extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 8 ? -9 : this.type === 7 ? -9 : this.type === 6 ? -9 : this.type === 5 ? -9 : this.type === 4 ? -8 : -5; }
-	get hitbox_x2() { return this.type === 8 ? 9 : this.type === 7 ? 9 : this.type === 6 ? 9 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
-	get hitbox_y1() { return this.type === 8 ? -19 : this.type === 7 ? -19 : this.type === 6 ? -19 : this.type === 5 ? -16 : this.type === 4 ? - 24 : -12; }
-	get hitbox_y2() { return this.type === 8 ? 31 : this.type === 7 ? 31 : this.type === 6 ? 31 : this.type === 5 ? 21 : this.type === 4 ? 32 : 16; }
+	get hitbox_x1() { return this.type === 8 ? -9 : this.type === 7 ? -9 : this.type === 6 ? -10 : this.type === 5 ? -9 : this.type === 4 ? -8 : -5; }
+	get hitbox_x2() { return this.type === 8 ? 9 : this.type === 7 ? 9 : this.type === 6 ? 10 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
+	get hitbox_y1() { return this.type === 8 ? -19 : this.type === 7 ? -19 : this.type === 6 ? -24 : this.type === 5 ? -21 : this.type === 4 ? - 24 : -12; }
+	get hitbox_y2() { return this.type === 8 ? 31 : this.type === 7 ? 31 : this.type === 6 ? 32 : this.type === 5 ? 21 : this.type === 4 ? 32 : 16; }
 	
 	get hard_collision()
 	{ return true; }
@@ -239,6 +239,12 @@ class sdObelisk extends sdEntity
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
+		
+		if ( !sdShop.isDrawing ) // Some subtle randomness atleast
+		{
+			let inversion = this._net_id % 2 === 0 ? 1 : -1;
+			ctx.scale( inversion, 1 );
+		}
 		
 		if ( this.type === 1 )
 		{

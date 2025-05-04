@@ -5736,7 +5736,7 @@ class sdEntity
 		ctx.fillStyle = color;
 		ctx.fillText(t, 0 + x, -25 + y ); 
 	}
-	DrawHealthBar( ctx, color=undefined, y_raise=20 ) // Not called automatically, needs .hea and .hmax as public properties
+	DrawHealthBar( ctx, color=undefined, y_raise=20, raw_health=true ) // Not called automatically, needs .hea and .hmax as public properties
 	{
 		if ( this.hea > 0 )
 		{
@@ -5760,6 +5760,14 @@ class sdEntity
 			ctx.fillStyle = color;//'#FF0000';
 		
 			ctx.fillRect( 1 - w / 2, 1 + h - y_raise, ( w - 2 ) * Math.max( 0, ( this.hea || this._hea ) / ( this.hmax || this._hmax ) ), 1 );
+			if ( raw_health )
+			{
+				ctx.font = "3px Verdana";
+				ctx.textAlign = 'center';
+			
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText( Math.round ( this.hea ), 0, h - y_raise + 2.5 );
+			}
 		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer

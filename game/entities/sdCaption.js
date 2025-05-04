@@ -24,8 +24,6 @@ class sdCaption extends sdEntity
 			'hue-rotate(-77deg)', '#a366bb', '#faeeff',
 			'hue-rotate(-52deg)', '#bb66af', '#ffeefd'
 		];
-
-		sdCaption.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -35,7 +33,7 @@ class sdCaption extends sdEntity
 	get hitbox_y2() { return 4; }
 	
 	get hard_collision()
-	{ return true; }
+	{ return false; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
@@ -70,10 +68,6 @@ class sdCaption extends sdEntity
 			if ( this._hea <= 0 )
 			this.remove();
 		}
-	}
-	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
-	{
-		return sdCaption.ignored_classes_arr;
 	}
 	constructor( params )
 	{

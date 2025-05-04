@@ -448,7 +448,27 @@ class sdCharacter extends sdEntity
 				hurt: [ 'erthal_hurt' ],
 				alert: [ 'erthal_alert' ]
 			},
-	
+			// Clones
+			'clone':
+			{
+				//death: [ 'council_death' ],
+				//hurt: [ 'council_hurtA', 'council_hurtB' ],
+				
+				alert_tts: ( character, enemy )=>
+				{
+					{
+						return sdWorld.AnyOf( [ 
+							'You were never real to begin with.',
+							'You know, maybe you are just a clone.',
+							'I am you, and you are me.',
+							'I have been here before you.',
+							'I am the real you. Come back to me, before it is too late.',
+							'You were never in control of your body. Free will does not exist.',
+							'I think, therefore I am.'
+						] );
+					}
+				}
+			},
 			// Star Defenders
 			'default':
 			{
@@ -574,10 +594,10 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'swordbot' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -600,6 +620,9 @@ class sdCharacter extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._voice.variant === 'clone' )
+		return 'grayscale(100%)brightness(0.75)'
+	
 		return '';
 	}
 	
@@ -1246,6 +1269,7 @@ THING is cosmic mic drop!`;
 		this._ai_dive_suggestion_x = 0;
 		this._ai_dive_suggestion_y = 0;
 		this._ai_dive_suggestion_rethink_in = 0;
+		this._ai_force_fire = false; // For possessed AIs
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -1421,6 +1445,7 @@ THING is cosmic mic drop!`;
 		};
 		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
+		this._chat_color = params.chat_color || '#ffffff'
 		
 		//this.team_id = 0; // 0 is FFA team
 	
@@ -1473,6 +1498,8 @@ THING is cosmic mic drop!`;
 		this.bleed_effect = this.GetBleedEffect(); // Clients need it in order to play proper walk sound
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
+		
+		this._jetpack_effect_timer = 0; // Client-side
 		
 		sdCharacter.characters.push( this );
 	}
@@ -2705,7 +2732,8 @@ THING is cosmic mic drop!`;
 	{
 			if ( typeof initiator._ai_team !== 'undefined' )
 			{
-				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.25 ) // 25% chance to return friendly fire
+				if ( this._voice.variant !== 'clone' ) // Clones
+				if ( initiator._ai_team !== this._ai_team || Math.random() < 0.15 ) // 15% chance to return friendly fire, 25% was too chaotic
 				{
 					if ( !this._ai.target )
 					this.PlayAIAlertedSound( initiator );
@@ -3962,7 +3990,7 @@ THING is cosmic mic drop!`;
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
 		
-		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until )
+		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until || this._ai_force_fire )
 		this._key_states.SetKey( 'Mouse1', 1 );
 		else
 		this._key_states.SetKey( 'Mouse1', 0 );
@@ -5338,6 +5366,24 @@ THING is cosmic mic drop!`;
 				{
 					this.sx += x_force * GSPEED;
 					this.sy += y_force * GSPEED;
+				}
+			}
+			
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( sdRenderer.effects_quality > 1 )
+			{
+				if ( this._jetpack_effect_timer > 0 )
+				this._jetpack_effect_timer -= GSPEED;
+			
+				if ( this._jetpack_effect_timer <= 0 )
+				{
+					let offset = ( this.look_x > this.x ) ? -6 : 6;
+					let type = sdEffect.TYPE_SPARK;
+					
+					let e = new sdEffect({ type: type, x:this.x + offset, y:this.y, sx: this.sx / 2 + ( -Math.random() + Math.random() ) * 2, sy: this.sy / 2 + Math.random() * 4, color: '#ffff00' });
+					sdEntity.entities.push( e );
+					
+					this._jetpack_effect_timer = 2;
 				}
 			}
 		}
@@ -6720,27 +6766,6 @@ THING is cosmic mic drop!`;
 			ctx.fillText( 'Connection problem', 0, -25 - 5, 50 );
 		}
 		
-		//ctx.filter = this.filter;
-		ctx.sd_filter = this.sd_filter;
-		//if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
-		let effects = sdStatusEffect.entity_to_status_effects.get( this );
-		if ( effects !== undefined )
-		for ( let i = 0; i < effects.length; i++ )
-		{
-			if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
-			ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)'; // Give it the good old red outline
-		
-	
-		}
-		
-		//if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
-		//ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
-	
-		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
-		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
-		
-		const char_filter = ctx.filter;
-		
 		if ( !attached )
 		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
 		{
@@ -6773,6 +6798,27 @@ THING is cosmic mic drop!`;
 				ctx.restore();
 			}
 		}
+		
+		//ctx.filter = this.filter;
+		ctx.sd_filter = this.sd_filter;
+		//if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
+		let effects = sdStatusEffect.entity_to_status_effects.get( this );
+		if ( effects !== undefined )
+		for ( let i = 0; i < effects.length; i++ )
+		{
+			if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
+			ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)'; // Give it the good old red outline
+		
+	
+		}
+		
+		//if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
+		//ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
+	
+		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
+		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
+		
+		const char_filter = ctx.filter;
 		
 		if ( this._ragdoll )
 		{
@@ -7755,6 +7801,7 @@ THING is cosmic mic drop!`;
 			attachment_x: 0,
 			attachment_y: -raise,
 			text:t,
+			color: this._chat_color,
 			text_censored: undefined,
 			voice:this._voice,
 			no_ef:simulate_sound

@@ -26,6 +26,8 @@ class sdAsteroid extends sdEntity
 		sdAsteroid.TYPE_FLESH = 2;
 		sdAsteroid.TYPE_MISSILE = 3;
 		
+		sdAsteroid.effect_colors = [ '#fffff0', '#fffff0', '#ff0000', '#80ffff' ]
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -5 * this.scale / 100; }
@@ -102,7 +104,7 @@ class sdAsteroid extends sdEntity
 		//this._max_build_tool_level_near = 0;
 
 		//this._type = params._type || Math.random() < 0.2 ? 1 : 0;
-		this.landed = false;
+		this.landed = params.landed || false;
 		this._warhead_detonated = false;
 		
 		this.attached_to = null;
@@ -117,8 +119,8 @@ class sdAsteroid extends sdEntity
 		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
-		this.sx = Math.random() * 12 - 6;
-		this.sy = 10;
+		this.sx = this.landed ? 0 : Math.random() * 12 - 6;
+		this.sy = this.landed ? 0 : 10;
 		
 		if ( this.type === sdAsteroid.TYPE_MISSILE )
 		{
@@ -133,7 +135,6 @@ class sdAsteroid extends sdEntity
 
 		this.matter_max = 0;
 
-		
 		this._witnessers = new WeakSet();
 		
 		if ( this.type === sdAsteroid.TYPE_SHARDS )
@@ -157,7 +158,12 @@ class sdAsteroid extends sdEntity
 		this._time_to_despawn = 30 * 60 * 2; // 2 minutes to despawn landed asteroids
 		
 		//this._an = 0;
-		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
+		this._an = ( Math.atan2( this.sy, this.sx ) - Math.PI / 2 );
+		this.rotation = this._an * 100;  // Needed as public variable for aiming missiles
+		
+		// client-sided
+		this._eff_color = sdAsteroid.effect_colors [ this.type ];
+		this._eff_timer = 0;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -201,11 +207,13 @@ class sdAsteroid extends sdEntity
 	}
 	AsteroidLanded()
 	{
+		if ( sdWorld.is_server )
 		if ( !this.landed )
 		{
 			this.landed = true;
 
-			this._an = Math.random() * Math.PI;
+			// this._an = Math.random() * Math.PI;
+			// this.rotation = this._an * 100;
 
 			if ( this.type === sdAsteroid.TYPE_FLESH )
 			{
@@ -217,7 +225,8 @@ class sdAsteroid extends sdEntity
 			else
 			if ( this.type === sdAsteroid.TYPE_MISSILE ) 
 			{
-				if ( Math.random() < 0.9 ) this.Fragmentation(); // Small chance to malfunction, for realism
+				if ( Math.random() < 0.9 ) // Small chance to malfunction, for realism
+				this.remove();
 			}
 			else
 			sdWorld.SendEffect({ x:this.x, y:this.y, radius:36 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
@@ -246,7 +255,7 @@ class sdAsteroid extends sdEntity
 				bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
 				bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
 				bullet_obj.time_left = 500 * this.scale / 100 / 16 * 2;
-												
+							
 				bullet_obj._damage = 32;
 				//bullet_obj._temperature_addition = 1000;
 
@@ -255,7 +264,7 @@ class sdAsteroid extends sdEntity
 
 				bullet_obj._owner = this;
 				
-				bullet_obj._can_hit_owner = true;
+				bullet_obj._can_hit_owner = false;
 				bullet_obj.color = '#ffff00';
 
 				sdEntity.entities.push( bullet_obj );
@@ -266,6 +275,9 @@ class sdAsteroid extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( sdWorld.is_server )
+		this.rotation = this._an * 100;
+		
 		if ( this.landed )
 		{
 			if ( this.attached_to )
@@ -352,8 +364,8 @@ class sdAsteroid extends sdEntity
 				}
 			}
 
-			if ( !sdWorld.is_server )
-			this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
+			// if ( !sdWorld.is_server )
+			this._an = ( Math.atan2( this.sy, this.sx ) - Math.PI / 2 );
 		
 			//if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 			if ( !this.CanMoveWithoutDeepSleepTriggering( new_x, new_y, 0 ) )
@@ -384,6 +396,29 @@ class sdAsteroid extends sdEntity
 				this.x = new_x;
 				this.y = new_y;
 				sdWorld.UpdateHashPosition( this, false, true );
+			}
+		}
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		if ( !this.landed )
+		if ( sdRenderer.effects_quality > 1 )
+		{
+			if ( this._eff_timer > 0 )
+			this._eff_timer -= GSPEED;
+			
+			if ( this._eff_timer <= 0 )
+			{
+				let xx = -this.sx / 4 + ( -Math.random() + Math.random() );
+				let yy = -this.sy / 4 + ( -Math.random() + Math.random() );
+				
+				let e = new sdEffect({ type: sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx: xx, sy: yy, color: this._eff_color });
+				sdEntity.entities.push( e );
+				if ( this.type !== sdAsteroid.TYPE_FLESH )
+				{
+					let e2 = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + xx * 2, y:this.y + yy * 2, sx: xx, sy:yy, scale:1, radius:this.scale / 200, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color:this._eff_color });
+					sdEntity.entities.push( e2 );
+				}
+					
+				this._eff_timer = 1;
 			}
 		}
 	}
@@ -421,7 +456,7 @@ class sdAsteroid extends sdEntity
 			}
 			if ( this.type === sdAsteroid.TYPE_MISSILE )
 			{
-				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
+				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, shrapnel:true, can_hit_owner:false, owner:this });
 				this.Fragmentation(); // Always activate warhead in case of destruction
 			}
 			else
@@ -456,10 +491,11 @@ class sdAsteroid extends sdEntity
 		let yy = 0;
 		
 		if ( !sdShop.isDrawing )
-		ctx.rotate( this._an );
+		{
+			ctx.rotate( this.rotation / 100 );
 
-		ctx.scale( this.scale/100, this.scale/100 );
-		
+			ctx.scale( this.scale/100, this.scale/100 );
+		}
 		if ( this.landed )
 		yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 3000 < 1500 ) ? 1 : 0;
 		else
@@ -476,6 +512,51 @@ class sdAsteroid extends sdEntity
 	MeasureMatterCost()
 	{
 		return 100; // Hack
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			{
+				if ( command_name === 'IGNITE' )
+				if ( this.type === sdAsteroid.TYPE_MISSILE )
+				if ( this.landed )
+				{
+					this.landed = false;
+		
+					this.sx = Math.sin ( this._an - Math.PI ) * 10;
+					this.sy = Math.cos ( this._an ) * 10;
+					
+					sdSound.PlaySound({ name:'missile_incoming', x:this.x, y:this.y, volume: 1, pitch: 1 });
+					
+					// Prevent instant explosion due to getting stuck in walls even when aimed properly - might not be needed anymore
+					
+					//this.x += this.sx / 2;
+					//this.y += this.sy / 2;
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( this.type === sdAsteroid.TYPE_MISSILE )
+			if ( this.landed )
+			{
+					
+				this.AddContextOption( 'Reignite engine', 'IGNITE', [ ] );
+				
+			}
+		}
 	}
 };
 export default sdAsteroid;

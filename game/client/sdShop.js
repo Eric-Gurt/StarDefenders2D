@@ -348,7 +348,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 4, _min_build_tool_level: 9, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 8, _min_build_tool_level: 18, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 20, _min_build_tool_level: 36, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdWeaponBench', type: 0, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdWeaponBench', type: 1,  _category:'Base equipment', _min_build_tool_level: 10 });
 			sdShop.options.push({ _class: 'sdWeaponMerger',_min_workbench_level: 5, _category:'Base equipment' });
 
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
@@ -613,6 +614,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdAsteroid', type:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsteroid', type:2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsteroid', type:3, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsteroid', type:3, landed:true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
@@ -648,6 +650,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSetrDestroyer', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilIncinerator', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdStalker', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilNullifier', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdStealer', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
@@ -797,6 +800,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDrone', type: 16, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests', _ai_team: 0, unlimited_range: true });
 				sdShop.options.push({ _class: 'sdDrone', type: 18, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 19, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 11, _ai_team: -1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });

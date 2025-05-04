@@ -64,6 +64,9 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_BLOOD_DROP_GREEN = 27;
 		sdEffect.TYPE_SPARK = 28;
 		sdEffect.TYPE_SMOKE = 29;
+		sdEffect.TYPE_LENS_FLARE = 30;
+		sdEffect.TYPE_GLASS = 31;
+		sdEffect.TYPE_SHRAPNEL = 32;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -260,7 +263,8 @@ class sdEffect extends sdEntity
 			random_speed_percentage: 0.1,
 			random_flip: false,
 			gravity: true,
-			collisions: true
+			collisions: true,
+			bounce_intensity: 0.333
 		};
 		sdEffect.types[ sdEffect.TYPE_HEARTS ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_hearts' ) ],
@@ -386,7 +390,31 @@ class sdEffect extends sdEntity
 			apply_shading: false,
 			random_rotation: true
 		};
-	
+		
+		sdEffect.types[ sdEffect.TYPE_LENS_FLARE ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'lens_flare' )
+			],
+			speed: 1 / 20,
+			apply_shading: false
+		};
+		
+		sdEffect.types[ sdEffect.TYPE_GLASS ] = {
+			images: [ sdWorld.CreateImageFromFile( 'glass' ) ],
+			speed: 1 / 180,
+			random_speed_percentage: 0.5,
+			random_flip: true,
+			random_rotation: true,
+			gravity: true,
+			collisions: true,
+			bounce_intensity: 0.25,
+			apply_shading: false
+		};
+		
+		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_SPARK ] );
+		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
+		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
+		
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
 			"Ё":"YO",
@@ -552,6 +580,9 @@ class sdEffect extends sdEntity
 		this._no_smoke = params.no_smoke || false;
 		this._smoke_color = params.smoke_color || '';
 		this._spark_color = params.spark_color || sdEffect.default_explosion_color;
+		this._shrapnel = params.shrapnel || false;
+		
+		this._extra_eff_timer = 0; // Secondary particle effect
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
@@ -897,7 +928,7 @@ class sdEffect extends sdEntity
 				if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN ) 
 				{
 					let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
-						x:this.x, y:this.y, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
+						x:this.x+xx*2, y:this.y+yy*2, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
 					sdEntity.entities.push( e );
 				}
 			}
@@ -906,13 +937,13 @@ class sdEffect extends sdEntity
 			{
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
-					let an = Math.random() * Math.PI / 2;
-					
-					let zx = Math.sin( an ) * ( -Math.random() * 2 + Math.random() * 2 );
-					let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
-					
 					if ( !this._no_smoke )
 					{
+						let an = Math.random() * Math.PI / 2;
+					
+						let zx = Math.sin( an ) * ( -Math.random() * 2 + Math.random() * 2 );
+						let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
+					
 						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
 						sdEntity.entities.push( e );
 					}
@@ -922,10 +953,13 @@ class sdEffect extends sdEntity
 					{
 						let an = Math.random() * Math.PI * 2;
 						
-						let xx = Math.sin( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 ))
-						let yy = -( Math.cos( an ) * Math.random() * 3 * Math.min( 3, ( this._radius / 20 )))
+						let xx = Math.sin( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ) );
+						let yy = -( Math.cos( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ) ) );
+
+						let type = this._shrapnel ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
+						let mult = type === sdEffect.TYPE_SHRAPNEL ? 2 / 3 : 1;
 						
-						let s = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:xx, sy:yy, color: this._color });
+						let s = new sdEffect({ type:type, x:this.x, y:this.y, sx:xx*mult, sy:yy*mult, color: this._color });
 						sdEntity.entities.push( s );
 					}
 				}
@@ -957,7 +991,7 @@ class sdEffect extends sdEntity
 	{
 		return sdEffect.unignored_entity_classes_arr;
 	}
-	
+
 	get _text_target_x()
 	{
 		return this._attachment.x + this._attachment_x;
@@ -1036,7 +1070,7 @@ class sdEffect extends sdEntity
 	
 		if ( this._type === sdEffect.TYPE_SMOKE )
 		{
-			if (!( this._radius > 32 ))
+			if ( this._radius < 32 )
 			this._radius += this._radius / 75 * GSPEED;
 			
 			if ( sdRenderer.effects_quality >= 2 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
@@ -1044,6 +1078,25 @@ class sdEffect extends sdEntity
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
 				sdEntity.entities.push( e );
 			}
+		}
+		
+		if ( this._type === sdEffect.TYPE_SHRAPNEL )
+		{
+			if ( this._extra_eff_timer > 0 )
+			this._extra_eff_timer -= GSPEED;
+			
+			if ( this._extra_eff_timer <= 0 )
+			{
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx * 0.8, sy:this.sy * 0.8, color: this._color });
+				sdEntity.entities.push( e );
+				
+				this._extra_eff_timer = 2.5;
+			}
+		}
+		
+		if ( this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL )
+		{
+			this._rotation += this.sx * 0.5 * GSPEED;
 		}
 
 		if ( this._ani >= this._duration )
@@ -1114,6 +1167,10 @@ class sdEffect extends sdEntity
 		}
 		else
 		if ( this._type === sdEffect.TYPE_SMOKE )
+		{
+		}
+		else
+		if ( this._type === sdEffect.TYPE_LENS_FLARE )
 		{
 		}
 		else
@@ -1195,7 +1252,7 @@ class sdEffect extends sdEntity
 			
 		}
 		else
-		if ( this._type === sdEffect.TYPE_SPARK )
+		if ( this._type === sdEffect.TYPE_SPARK || this._type === sdEffect.TYPE_SHRAPNEL )
 		{	
 			if ( this._sd_tint_filter === null )
 			{
@@ -1296,7 +1353,7 @@ class sdEffect extends sdEntity
 				ctx.fill();
 			}
 			
-			ctx.fillStyle = '#ffffff';
+			ctx.fillStyle = this._color;
 			ctx.fillText( t, 0, 0 );
 		}
 		else
@@ -1389,12 +1446,41 @@ class sdEffect extends sdEntity
 			ctx.blend_mode = THREE.NormalBlending;
 		}
 		else
+		if ( this._type === sdEffect.TYPE_LENS_FLARE )
+		{
+			if ( this._radius !== 0 )
+			ctx.scale( 1 + this._radius, 1 + this._radius );
+		
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
 		if ( this._type === sdEffect.TYPE_TELEPORT )
 		{
 			let frame = ~~( this._ani );
 			ctx.filter = this._filter;
 			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 96 + (frame%3)*32, 0 + ~~(frame/3)*32, 32,32, -16,-16,32,32 );
 			ctx.filter = 'none';
+		}
+		else
+		if ( this._type === sdEffect.TYPE_GLASS )
+		{
+			ctx.rotate( this._rotation );
 		}
 		else
 		if ( sdEffect.types[ this._type ].spritesheet )

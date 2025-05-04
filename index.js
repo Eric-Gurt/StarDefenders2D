@@ -2016,6 +2016,7 @@ io.on( 'connection', ( socket )=>
 			{
 				if ( url.indexOf( 'localhost' ) === -1 ) // No point in these as they can't be accessed from outside anyway
 				if ( url.indexOf( '127.0.0.1' ) === -1 ) // No point in these as they can't be accessed from outside anyway
+				if ( url.indexOf( '[::1]' ) === -1 ) // No point in these as they can't be accessed from outside anyway
 				sdWorld.server_url = url;
 			}
 		}

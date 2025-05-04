@@ -21,8 +21,8 @@ import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 import sdWeather from './sdWeather.js';
-//import sdPlayerSpectator from './sdPlayerSpectator.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
+import sdStalker from './sdStalker.js';
 import sdStatusEffect from './sdStatusEffect.js';
 
 
@@ -573,7 +573,9 @@ class sdCube extends sdEntity
 					damage_scale: 4.5, // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
-					color:'#66FF66' 
+					color:'#66FF66',
+					no_smoke: true,
+					shrapnel: true
 				});
 
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
@@ -609,7 +611,8 @@ class sdCube extends sdEntity
 					type:this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					color:this.kind === sdCube.KIND_RED ? '#000000' : '#33FFFF',
-					no_smoke: true
+					no_smoke: true,
+					shrapnel: true
 				});
 
 				//if ( initiator )
@@ -978,6 +981,7 @@ class sdCube extends sdEntity
 					e.is( sdSetrDestroyer ) || 
 					e.is( sdSpider ) || 
 					e.is( sdOverlord ) ||
+					e.is( sdStalker ) ||
 					e.is( sdZektaronDreadnought ) );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -1064,7 +1068,8 @@ class sdCube extends sdEntity
 									type: this.kind === sdCube.KIND_RED ? sdEffect.TYPE_EXPLOSION_NON_ADDITIVE : sdEffect.TYPE_EXPLOSION, 
 									owner:this,
 									color:this.kind === sdCube.KIND_RED ? '#000000': '#aaaaaa',
-									no_smoke: true
+									no_smoke: true,
+									shrapnel: true
 								});
 
 								let nears = sdWorld.GetAnythingNear( this.x, this.y, 32 * t + 32 );
@@ -1284,6 +1289,7 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdDrone' && target._hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
+								 ( target.GetClass() === 'sdStalker' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) )								 )
 							{
 								if ( 
@@ -1558,7 +1564,7 @@ class sdCube extends sdEntity
 		if ( ent._target.GetClass() === 'sdCube' )
 		return false;
 		
-		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
+		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdStalker' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
 		return false;
 		
 		if ( ent.GetClass() === 'sdBot' || ent.GetClass() === 'sdDrone' )

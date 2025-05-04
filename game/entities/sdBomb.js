@@ -153,6 +153,7 @@ class sdBomb extends sdEntity
 					owner: this._owner,
 					can_hit_owner: true,
 					color:sdEffect.default_explosion_color,
+					shrapnel: true,
 					
 					anti_shield: ( this.type === sdBomb.TYPE_ANTI_BASE )
 				});
