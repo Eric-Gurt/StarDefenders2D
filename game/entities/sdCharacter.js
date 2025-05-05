@@ -4238,7 +4238,7 @@ THING is cosmic mic drop!`;
 		
 		this.carrying = null;
 	}
-	ManagePlayerVehicleEntrance()
+	ManagePlayerVehicleEntrance( GSPEED )
 	{
 		let e_state = this._key_states.GetKey( 'KeyE' );
 		
@@ -4277,14 +4277,17 @@ THING is cosmic mic drop!`;
 					yy = this.y + this._hitbox_y1 - this.carrying._hitbox_y2 - safe_area;
 				}
 				
-				
-				if ( this.carrying.CanMoveWithoutOverlap( xx, yy, 0 ) )
+				this.carrying.PlayerIsCarrying( this, GSPEED );
+				if ( this.carrying )
 				{
-					this.carrying.x = xx;
-					this.carrying.y = yy;
+					if ( this.carrying.CanMoveWithoutOverlap( xx, yy, 0 ) )
+					{
+						this.carrying.x = xx;
+						this.carrying.y = yy;
+					}
+					this.carrying.sx = 0;
+					this.carrying.sy = 0;
 				}
-				this.carrying.sx = 0;
-				this.carrying.sy = 0;
 			}
 		}
 		
@@ -4549,7 +4552,7 @@ THING is cosmic mic drop!`;
 																		
 		this.ManagePlayerFlashLight();
 		
-		this.ManagePlayerVehicleEntrance(); // Before fire logic, because Mouse1 will throw crystals and it needs to block attacks
+		this.ManagePlayerVehicleEntrance( GSPEED ); // Before fire logic, because Mouse1 will throw crystals and it needs to block attacks
 		
 		if ( this.hea <= 0 )
 		{
@@ -4988,7 +4991,7 @@ THING is cosmic mic drop!`;
 				hook_x = this.hook_relative_to.x + this.hook_relative_x;
 				hook_y = this.hook_relative_to.y + this.hook_relative_y;
 
-				if ( this.hook_relative_to.is( sdCube ) )
+				//if ( this.hook_relative_to.is( sdCube ) )
 				this.hook_relative_to.PlayerIsHooked( this, GSPEED );
 			}
 

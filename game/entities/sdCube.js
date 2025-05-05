@@ -192,6 +192,8 @@ class sdCube extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this.held_by = null;
+		
 		this._dropped_items = new WeakSet(); // Just so they won't be lost by boss cube
 		
 		if ( params.tag )
@@ -814,19 +816,22 @@ class sdCube extends sdEntity
 	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW ? 30*4 : 30; }
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 		//this.sx += x * 0.1 * ( this.kind === sdCube.KIND_YELLOW ? 0.25 : 1 );
 		//this.sy += y * 0.1 * ( this.kind === sdCube.KIND_YELLOW ? 0.25 : 1 );
 	}
-	/*Impact( vel ) // fall damage basically
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
-		// less fall damage
-		if ( vel > 10 )
-		{
-			this.DamageWithEffect( ( vel - 4 ) * 15 );
-		}
-	}*/
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
+	}
+	
 	FireDirectionalBeams( is_void ) // Fire 4 rail beams in 4 different directions - up, down, left and right
 	{
 		if ( !sdWorld.is_server )
@@ -1028,6 +1033,7 @@ class sdCube extends sdEntity
 		
 		if ( this.hea <= 0 )
 		{
+			if ( !this.held_by )
 			this.sy += sdWorld.gravity * GSPEED;
 		
 			if ( this.death_anim < sdCube.death_duration + sdCube.post_death_ttl )
@@ -1521,7 +1527,8 @@ class sdCube extends sdEntity
 		{
 			this._alert_intensity += GSPEED;
 		}
-			
+		
+		if ( !this.held_by )
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	PlayerIsHooked( character, GSPEED )
@@ -1530,6 +1537,13 @@ class sdCube extends sdEntity
 		this._matter_stealer_passive_boost += GSPEED * 0.6;
 		else
 		character._nature_damage += GSPEED;
+	}
+	PlayerIsCarrying( character, GSPEED )
+	{
+		this.PlayerIsHooked( character, GSPEED );
+		
+		if ( this._matter_stealer_passive_boost > 45 )
+		character.DropCrystal( this );
 	}
 	static IsTargetFriendly( ent, cube=null ) // Assumes _nature_damage and _player_damage are defined properties, thus will work mostly only for sdCharacter
 	{
@@ -1595,126 +1609,132 @@ class sdCube extends sdEntity
 		
 		if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_MATTER_STEALER )
 		this.DrawHealthBar( ctx, undefined, 10 );
+	
+		if ( this.hea <= 0 )
+		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
 	{
 		if ( this.hea > 0 )
 		ctx.apply_shading = false;
-		
-		let xx = 0;
-		let yy = 0;
-
-		let draw_blinking_grey_sprite = false;
-		
-		let scale = sdCube.hitbox_scale_per_kind[ this.kind ];
-		
-		if ( this.kind === sdCube.KIND_YELLOW )
-		{
-			ctx.scale( scale, scale );
-			ctx.sd_filter = sdCube.huge_filter;
-		}
-
-		if ( this.kind === sdCube.KIND_WHITE )
-		{
-			ctx.scale( scale, scale );
-			ctx.sd_filter = sdCube.white_filter;
-		}
-
-		if ( this.kind === sdCube.KIND_PINK )
-		{
-			ctx.sd_filter = sdCube.pink_filter;
-			yy = 1;
-		}
-		
-		if ( this.kind === sdCube.KIND_GREEN )
-		{
-			ctx.scale( scale, scale );
-			ctx.sd_filter = sdCube.green_filter;
-			yy = 3;
-		}
-		if ( this.kind === sdCube.KIND_BLUE )
-		{
-			ctx.scale( scale, scale );
-			ctx.sd_filter = sdCube.blue_filter;
-			yy = 2;
-		}
-		if ( this.kind === sdCube.KIND_MATTER_STEALER )
-		{
-			ctx.scale( scale, scale );
-			yy = 4;
-		}
-		if ( this.kind === sdCube.KIND_ANCIENT )
-		{
-			ctx.scale( scale, scale );
-			ctx.sd_filter = sdCube.ancient_filter;
-			//yy = 5; // Reserved for ancient shotgun cube
-		}
-		if ( this.kind === sdCube.KIND_RED )
-		{
-			ctx.scale( scale / 2, scale / 2 );
-			ctx.sd_filter = sdCube.red_filter;
-			yy = 6
-		}
-		
-		/*if ( this.armor > 1000 )
-		ctx.filter = 'drop-shadow(0px 0px 2px #ffaaaa) drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
-		else
-		if ( this.armor > 500 )
-		ctx.filter = 'drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
-		else
-		if ( this.armor > 0 )
-		ctx.filter = 'drop-shadow(0px 0px 2px #007eff)';*/
-		
-		/*if ( this.armor > 1000 )
-		ctx.filter = 'drop-shadow(0px 0px 2px #ffaaaa) drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
-		else
-		if ( this.armor > 500 )
-		ctx.filter = 'drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
-		else*/
-		if ( this.armor > 0 )
-		ctx.filter = 'drop-shadow(-1px 0px 0px #ffffff) drop-shadow(1px 0px 0px #ffffff) drop-shadow(0px -1px 0px #ffffff) drop-shadow(0px 1px 0px #ffffff)' + 
-					'drop-shadow(0px 0px 1px #7ebeff)';
-		
-		if ( this.hea > 0 )
-		{
-			if ( this.attack_anim > 0 )
-			xx = 3;
-			else
-			if ( this.regen_timeout > 45 )
-			xx = 2;
-			else
-			{
-				xx = 0;
-
-				if ( this.matter < this.matter_max )
-				draw_blinking_grey_sprite = true;
-			}
-		}
-		else
-		xx = 1;
 	
-		let observer_character = sdWorld.my_entity;
-		
-		ctx.globalAlpha = this.alpha / 100;
-		
-		if ( observer_character )
+		if ( this.held_by === null || attached )
 		{
-			let px = Math.max( observer_character.x + observer_character._hitbox_x1, Math.min( this.x, observer_character.x + observer_character._hitbox_x2 ) );
-			let py = Math.max( observer_character.y + observer_character._hitbox_y1, Math.min( this.y, observer_character.y + observer_character._hitbox_y2 ) );
+			let xx = 0;
+			let yy = 0;
 
-			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 32 )
+			let draw_blinking_grey_sprite = false;
+
+			let scale = sdCube.hitbox_scale_per_kind[ this.kind ];
+
+			if ( this.kind === sdCube.KIND_YELLOW )
 			{
-				ctx.globalAlpha = Math.max( ctx.globalAlpha, 0.5 );
+				ctx.scale( scale, scale );
+				ctx.sd_filter = sdCube.huge_filter;
 			}
-		}
 
-		ctx.drawImageFilterCache( sdCube.img_cube, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
+			if ( this.kind === sdCube.KIND_WHITE )
+			{
+				ctx.scale( scale, scale );
+				ctx.sd_filter = sdCube.white_filter;
+			}
 
-		if ( draw_blinking_grey_sprite )
-		{
-			ctx.globalAlpha *= ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+			if ( this.kind === sdCube.KIND_PINK )
+			{
+				ctx.sd_filter = sdCube.pink_filter;
+				yy = 1;
+			}
 
-			ctx.drawImageFilterCache( sdCube.img_cube, 32,yy * 32, 32,32, -16, -16, 32,32 );
+			if ( this.kind === sdCube.KIND_GREEN )
+			{
+				ctx.scale( scale, scale );
+				ctx.sd_filter = sdCube.green_filter;
+				yy = 3;
+			}
+			if ( this.kind === sdCube.KIND_BLUE )
+			{
+				ctx.scale( scale, scale );
+				ctx.sd_filter = sdCube.blue_filter;
+				yy = 2;
+			}
+			if ( this.kind === sdCube.KIND_MATTER_STEALER )
+			{
+				ctx.scale( scale, scale );
+				yy = 4;
+			}
+			if ( this.kind === sdCube.KIND_ANCIENT )
+			{
+				ctx.scale( scale, scale );
+				ctx.sd_filter = sdCube.ancient_filter;
+				//yy = 5; // Reserved for ancient shotgun cube
+			}
+			if ( this.kind === sdCube.KIND_RED )
+			{
+				ctx.scale( scale / 2, scale / 2 );
+				ctx.sd_filter = sdCube.red_filter;
+				yy = 6
+			}
+
+			/*if ( this.armor > 1000 )
+			ctx.filter = 'drop-shadow(0px 0px 2px #ffaaaa) drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
+			else
+			if ( this.armor > 500 )
+			ctx.filter = 'drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
+			else
+			if ( this.armor > 0 )
+			ctx.filter = 'drop-shadow(0px 0px 2px #007eff)';*/
+
+			/*if ( this.armor > 1000 )
+			ctx.filter = 'drop-shadow(0px 0px 2px #ffaaaa) drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
+			else
+			if ( this.armor > 500 )
+			ctx.filter = 'drop-shadow(0px 0px 2px #ffffff) drop-shadow(0px 0px 2px #007eff)';
+			else*/
+			if ( this.armor > 0 )
+			ctx.filter = 'drop-shadow(-1px 0px 0px #ffffff) drop-shadow(1px 0px 0px #ffffff) drop-shadow(0px -1px 0px #ffffff) drop-shadow(0px 1px 0px #ffffff)' + 
+						'drop-shadow(0px 0px 1px #7ebeff)';
+
+			if ( this.hea > 0 )
+			{
+				if ( this.attack_anim > 0 )
+				xx = 3;
+				else
+				if ( this.regen_timeout > 45 )
+				xx = 2;
+				else
+				{
+					xx = 0;
+
+					if ( this.matter < this.matter_max )
+					draw_blinking_grey_sprite = true;
+				}
+			}
+			else
+			xx = 1;
+
+			let observer_character = sdWorld.my_entity;
+
+			ctx.globalAlpha = this.alpha / 100;
+
+			if ( observer_character )
+			{
+				let px = Math.max( observer_character.x + observer_character._hitbox_x1, Math.min( this.x, observer_character.x + observer_character._hitbox_x2 ) );
+				let py = Math.max( observer_character.y + observer_character._hitbox_y1, Math.min( this.y, observer_character.y + observer_character._hitbox_y2 ) );
+
+				if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 32 )
+				{
+					ctx.globalAlpha = Math.max( ctx.globalAlpha, 0.5 );
+				}
+			}
+
+			ctx.drawImageFilterCache( sdCube.img_cube, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
+
+			if ( draw_blinking_grey_sprite )
+			{
+				ctx.globalAlpha *= ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+
+				ctx.drawImageFilterCache( sdCube.img_cube, 32,yy * 32, 32,32, -16, -16, 32,32 );
+			}
 		}
 		
 		ctx.globalAlpha = 1;

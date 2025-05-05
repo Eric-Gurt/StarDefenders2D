@@ -291,7 +291,7 @@ class sdPlayerDrone extends sdCharacter
 		{
 			this.ManagePlayerFlashLight();
 			
-			this.ManagePlayerVehicleEntrance();
+			this.ManagePlayerVehicleEntrance( GSPEED );
 			
 			if ( this._key_states.GetKey( 'KeyV' ) )
 			this.MatterGlow( 0.1, 30, GSPEED );

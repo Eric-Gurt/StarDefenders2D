@@ -1478,6 +1478,7 @@ class sdCrystal extends sdEntity
 	}
 	
 	get mass() { return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 5 : ( this.type === 2 || this.type === 6 ) ? 120 : 30; }
+
 	Impulse( x, y )
 	{
 		if ( this.held_by )

@@ -851,6 +851,10 @@ class sdBaseShieldingUnit extends sdEntity
 			sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 		}
 	}
+	IsPhysicallyMovable()
+	{
+		return !this.enabled;
+	}
 	get mass() { return ( this.enabled ) ? 500 : 35; }
 	Impulse( x, y )
 	{

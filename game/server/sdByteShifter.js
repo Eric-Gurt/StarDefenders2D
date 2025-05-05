@@ -246,8 +246,8 @@ class sdByteShifter
 						{
 							//ent._flag = visited_ent_flag;
 
-							if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
-								 ent.IsVisible( socket.character ) )
+							//if ( ( ent.IsVisible === sdEntity.prototype.IsVisible || ent.IsVisible( socket.character ) ) )
+							if ( ( ent.IsVisible === sdEntity.prototype.IsVisible || ent.IsVisible( socket.character ) ) && !ent._is_being_removed )
 							{
 								ent._flag = listed_ent_flag;
 							

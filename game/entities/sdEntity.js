@@ -600,6 +600,12 @@ class sdEntity
 				this._hitbox_x2 - this._hitbox_x1 <= 16 && 
 				this._hitbox_y2 - this._hitbox_y1 <= 16 );
 	}
+	PlayerIsHooked( character, GSPEED )
+	{
+	}
+	PlayerIsCarrying( character, GSPEED )
+	{
+	}
 	IsFakeVehicleForEKeyUsage()
 	{
 		return false;
@@ -997,6 +1003,19 @@ class sdEntity
 		}
 	}
 	
+	IsPhysicallyMovable() // Correct value prevents players (and other entities) from sticking to such objects
+	{
+		if ( typeof this.sx !== 'undefined' )
+		{
+			if ( typeof this.held_by !== 'undefined' )
+			if ( this.held_by )
+			return false;
+			
+			return true;
+		}
+		return false;
+	}
+	
 	static IsPushableRecursively( entity, dx, dy, recursion=0 )
 	{
 		if ( recursion > 10 )
@@ -1004,7 +1023,8 @@ class sdEntity
 			return false;
 		}
 		
-		if ( typeof entity.sx === 'undefined' )
+		if ( !entity.IsPhysicallyMovable() )
+		//if ( typeof entity.sx === 'undefined' )
 		return false;
 		
 		if ( entity.CanMoveWithoutOverlap( entity.x + dx, entity.y + dy ) )
@@ -5525,9 +5545,14 @@ class sdEntity
 	{
 		if ( this.onThink.has_ApplyVelocityAndCollisions ) // Likely is capable of falling
 		{
-			this.sy += sdWorld.gravity * GSPEED;
-			
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
+			if ( typeof this.held_by !== 'undefined' && this.held_by )
+			{
+			}
+			else
+			{
+				this.sy += sdWorld.gravity * GSPEED;
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
+			}
 		}
 		else
 		{
