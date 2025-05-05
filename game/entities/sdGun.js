@@ -1630,8 +1630,10 @@ class sdGun extends sdEntity
 		
 			// I am making this too complicated - Booraz
 		
-			
+			if ( !this.title_censored )
 			sdEntity.Tooltip( ctx, this.GetTitle(), 0, xx );
+			else
+			sdEntity.Tooltip( ctx, '[censored]', 0, xx );
 			xx += 8;
 			if ( has_slot )
 			{
