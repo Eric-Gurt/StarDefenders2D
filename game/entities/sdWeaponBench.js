@@ -400,7 +400,7 @@ class sdWeaponBench extends sdEntity
 					
 					this.item_dps = from_entity._max_dps || 100;
 					
-					if ( from_entity.class == sdGun.CLASS_ACCESS_KEY )
+					if ( from_entity.class === sdGun.CLASS_ACCESS_KEY )
 					this.gun_password = from_entity._access_id;
 					else
 					this.gun_password = null;
@@ -622,13 +622,14 @@ class sdWeaponBench extends sdEntity
 				{
 					if ( typeof parameters_array[ 0 ] === 'string' )
 					{
-						if ( parameters_array[ 0 ].length < 16 )
+						if ( parameters_array[ 0 ].length < 32 )
 						{
 							if ( this.item0.class === sdGun.CLASS_ACCESS_KEY )
 							{
 								if ( this.item0.extra )
 								{
 									this.item0.extra[ 15 ] = parameters_array[ 0 ]; // ID_TITLE = 15
+									this.item0.title_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
 								
 									this._update_version++;
 									executer_socket.SDServiceMessage( 'Keycard hint has been set' );
