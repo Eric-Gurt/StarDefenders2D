@@ -97,7 +97,7 @@ class sdStalker extends sdEntity
 		this._last_damage = 0; // Sound flood prevention
 		
 		this.alpha = 100;
-				
+
 		sdStalker.stalker_counter++;
 		
 		this._last_seen_player = 0;
@@ -166,14 +166,12 @@ class sdStalker extends sdEntity
 			let tr = 100;
 			do
 			{
-				{
-					x = this.x + 256 - ( Math.random() * 256 );
-					if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-					x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+				x = this.x + 256 - ( Math.random() * 256 );
+				if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+				x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
 
-					if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-					x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
-				}
+				if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+				x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
 
 				y = this.y + 256 - ( Math.random() * ( 256 ) );
 				if ( y < sdWorld.world_bounds.y1 + 32 )
@@ -208,6 +206,15 @@ class sdStalker extends sdEntity
 						{
 							sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y }); // We desperately need more sound effects
 							sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
+							
+							for( let i = 0; i < character_entity._inventory.length; i++ ) // Prevent loot from being stolen and disappearing
+							{
+								let item = character_entity._inventory[ i ];
+
+								if ( i !== character_entity.gun_slot )
+								character_entity.DropWeapon( i );
+							}
+							
 							character_entity.remove();
 							character_entity._broken = false;
 						}	
