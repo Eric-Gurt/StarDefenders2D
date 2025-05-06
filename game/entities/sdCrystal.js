@@ -673,7 +673,9 @@ class sdCrystal extends sdEntity
 								damage_scale: 0, // Just a decoration effect
 								type:sdEffect.TYPE_EXPLOSION, 
 								owner:e,
-								color:'#ffff66' 
+								color:'#ffff66',
+								no_smoke:true,
+								shrapnel:true
 							});
 
 							for ( let i = 0; i < e._anything_near.length; i++ )
