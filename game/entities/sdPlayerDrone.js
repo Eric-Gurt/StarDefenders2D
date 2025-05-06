@@ -585,7 +585,9 @@ class sdPlayerDrone extends sdCharacter
 
 						this.grabbed.Impulse( dx * p, 
 											  dy * p );
-
+											  
+						if ( this.grabbed.is( sdBullet ) )
+						this.grabbed._owner = this;
 
 						if ( this.grabbed.is( sdCube ) )
 						this.grabbed.PlayerIsHooked( this, GSPEED );
