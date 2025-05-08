@@ -1214,9 +1214,11 @@ class sdSandWorm extends sdEntity
 				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
 			
 				if ( this.death_anim === 0 )
-				ctx.apply_shading = false; // Glow in the dark
+				{
+					ctx.apply_shading = false; // Glow in the dark
 			
-				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
+					ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
+				}
 				// ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow, - 16, - 16, 32,32 );
 			}
 			else
@@ -1225,18 +1227,22 @@ class sdSandWorm extends sdEntity
 				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
 				
 				if ( this.death_anim === 0 )
-				ctx.apply_shading = false; // Glow in the dark
+				{
+					ctx.apply_shading = false; // Glow in the dark
 			
-				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow, - 16, - 16, 32,32 );
+					ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow, - 16, - 16, 32,32 );
+				}
 			}
 			else
 			{
 				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_body, - 16, - 16, 32,32 );
 				
 				if ( this.death_anim === 0 )
-				ctx.apply_shading = false; // Glow in the dark
+				{
+					ctx.apply_shading = false; // Glow in the dark
 			
-				ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow_body, - 16, - 16, 32,32 );
+					ctx.drawImageFilterCache( sdSandWorm.img_worm_council_glow_body, - 16, - 16, 32,32 );
+				}
 			}
 		}
 		if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
