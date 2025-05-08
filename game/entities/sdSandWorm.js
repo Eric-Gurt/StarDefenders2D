@@ -1206,8 +1206,8 @@ class sdSandWorm extends sdEntity
 		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
 		{
 			ctx.filter = 'none';
-			if ( this.death_anim === 1 )
-			ctx.filter = 'brightness(0.5)';
+			//if ( this.death_anim === 1 )
+			//ctx.filter = 'brightness(0.5)';
 			ctx.sd_hue_rotation = 0;
 			if ( this.model === 1 )
 			{
