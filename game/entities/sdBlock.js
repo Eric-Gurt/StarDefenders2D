@@ -1,4 +1,6 @@
 
+/* global FakeCanvasContext, Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdCrystal from './sdCrystal.js';
@@ -1816,7 +1818,15 @@ class sdBlock extends sdEntity
 						//{
 							if ( ( ent.is( sdBlock ) && ent._merged === false ) || ent.is( sdDoor ) )
 							{
-								ent.Fleshify( this );
+								if ( ent._shielded )
+								{
+									if ( ent._shielded.onFleshifyAttempted() )
+									ent.Fleshify( this );
+								}
+								else
+								{
+									ent.Fleshify( this );
+								}
 								corrupt_done = true;
 								break;
 							}

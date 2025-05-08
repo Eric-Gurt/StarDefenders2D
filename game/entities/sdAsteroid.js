@@ -30,6 +30,12 @@ class sdAsteroid extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	static GetProtetedBlockInfestationDelay()
+	{
+		//return 1000; // Hack
+		
+		return 1000 * 60 * 60 * 24 * ( 2 + 2 * Math.random() ); // 2-4 days, per BSU actually now in order to prevent raiding with flesh asteroids and manually placed unprotected walls
+	}
 	get hitbox_x1() { return -5 * this.scale / 100; }
 	get hitbox_x2() { return 5 * this.scale / 100; }
 	get hitbox_y1() { return -5 * this.scale / 100; }
@@ -80,9 +86,15 @@ class sdAsteroid extends sdEntity
 						this.attached_to = from_entity;
 						this.attached_offset_x = this.x - from_entity.x;
 						this.attached_offset_y = this.y - from_entity.y;
-						this._infestation_in = sdWorld.time + 1000 * 60 * 60 * 24 * ( 2 + 2 * Math.random() ); // 2-4 days
+						//this._infestation_in = sdWorld.time + 1000 * 60 * 60 * 24 * ( 2 + 2 * Math.random() ); // 2-4 days
 						
-						if ( !from_entity._shielded )
+						if ( from_entity._shielded )
+						{
+							from_entity._shielded.onFleshifyAttempted();
+							
+							this._infestation_in = sdWorld.time + sdAsteroid.GetProtetedBlockInfestationDelay();
+						}
+						else
 						this._infestation_in = sdWorld.time + 5000; // Unprotected walls/ground is nearly instant
 					}
 					else

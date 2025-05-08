@@ -24,6 +24,7 @@ import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
 import sdDoor from './sdDoor.js';
 import sdCamera from './sdCamera.js';
+import sdAsteroid from './sdAsteroid.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBG from './sdBG.js';
@@ -103,6 +104,18 @@ class sdBaseShieldingUnit extends sdEntity
 	}
 	RequireSpawnAlign() 
 	{ return false; }
+	
+	onFleshifyAttempted()
+	{
+		if ( this._flesh_infestation_counter === 0 )
+		{
+			this._flesh_infestation_allowed_in = sdWorld.time + sdAsteroid.GetProtetedBlockInfestationDelay();
+		}
+		
+		this._flesh_infestation_counter++;
+		
+		return ( sdWorld.time >= this._flesh_infestation_allowed_in );
+	}
 
 	constructor( params )
 	{
@@ -114,6 +127,9 @@ class sdBaseShieldingUnit extends sdEntity
 		this.sy = 0;
 		
 		this._time_amplification = 0;
+		
+		this._flesh_infestation_counter = 0; // Grows up overtime if something tries to infestate it, resets on re-enabling BSU
+		this._flesh_infestation_allowed_in = 0; // Becomes timestamp once counter becomes 1 or more
 		
 		this._connected_cameras_cache = [];
 		this._connected_cameras_cache_last_rethink = 0;
@@ -662,6 +678,9 @@ class sdBaseShieldingUnit extends sdEntity
 		{
 			return;
 		}
+		
+		this._flesh_infestation_counter = 0;
+		this._flesh_infestation_allowed_in = 0;
 		
 		if ( enable )
 		{
