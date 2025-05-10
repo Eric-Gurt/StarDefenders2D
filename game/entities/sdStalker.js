@@ -24,7 +24,6 @@ class sdStalker extends sdEntity
 		sdStalker.img_stalker = sdWorld.CreateImageFromFile( 'sdStalker' );
 		
 		sdStalker.img_light = sdWorld.CreateImageFromFile( 'lens_flare' );
-		sdStalker.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 		
 		sdStalker.stalker_counter = 0;
 		
