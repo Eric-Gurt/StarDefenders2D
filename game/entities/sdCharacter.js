@@ -594,6 +594,10 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
+		if ( Math.random() < 0.33 )
+		if ( this.armor )
+		return sdEffect.TYPE_WALL_HIT;
+	
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
@@ -2888,15 +2892,26 @@ THING is cosmic mic drop!`;
 				
 					if ( damage_to_deal > dmg )
 					throw new Error( 'Armor logic error, hitpoints damage increased after armor was applied damage_to_deal > dmg === ' + damage_to_deal + ' > ' + dmg );
-				
+
 					if ( damage_to_deal < 0 )
 					throw new Error( 'Armor logic error, hitpoints damage is negative damage_to_deal === ' + damage_to_deal );
-					
+
 					sdSound.PlaySound({ name:'armor_break', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 } );
+
+					for ( let i = 0; i < 4; i++ )
+					{
+						let a = Math.random() * 2 * Math.PI;
+						let s = Math.random() * 2;
+
+						let k = Math.random();
+
+						let x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+						let y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+					}
 					
 					this.RemoveArmor();
-					
-					
 				}
 			}
 			
