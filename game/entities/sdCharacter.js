@@ -594,8 +594,9 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( Math.random() < 0.33 )
-		if ( this.armor )
+		if ( Math.random() < 1 / 3 )
+		if ( this.armor > 0 )
+		if ( this.hea > 0 )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
