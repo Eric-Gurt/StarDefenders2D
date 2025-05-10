@@ -6710,7 +6710,7 @@ class sdGunClass
 			title: 'Tzyrg Shotgun',
 			slot: 3,
 			reload_time: 18,
-			muzzle_x: 11,
+			muzzle_x: 8,
 			ammo_capacity: 12,
 			count: 5,
 			spread: 0.12,
@@ -9844,14 +9844,14 @@ class sdGunClass
 			title: 'Stalker Rapid Rifle',
 			slot: 2,
 			reload_time: 2,
-			muzzle_x: null,
+			muzzle_x: 8,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
 			fire_mode: 1,
 			has_alt_fire_mode: true,
-			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties: { color: '#00FFFF', _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
