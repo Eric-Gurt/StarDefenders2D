@@ -2899,7 +2899,7 @@ THING is cosmic mic drop!`;
 
 					sdSound.PlaySound({ name:'armor_break', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 } );
 
-					for ( let i = 0; i < 4; i++ )
+					for ( let i = 0; i < 5; i++ )
 					{
 						let a = Math.random() * 2 * Math.PI;
 						let s = Math.random() * 2;
