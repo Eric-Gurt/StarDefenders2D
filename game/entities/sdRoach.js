@@ -141,11 +141,15 @@ class sdRoach extends sdEntity
 	{
 		if ( this.type === sdRoach.TYPE_ROACH )
 		return '';
-	
-		if ( this.type === sdRoach.TYPE_MOTH )
-		return 'hue-rotate(180deg)';
 	}
+	GetBleedEffectHue()
+	{
+		if ( this.type === sdRoach.TYPE_MOTH )
+		return 180;
 	
+		return 0;
+	}
+
 	get mass() { return 15; }
 	
 	Impulse( x, y )
