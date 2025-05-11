@@ -4337,7 +4337,7 @@ class sdGunClass
 			reload_time: 0,
 			muzzle_x: 12,
 			ammo_capacity: -1,
-			count: 1,
+			count: 2,
 			spread: 0.05,
 			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -4357,7 +4357,6 @@ class sdGunClass
 					if ( gun._held_by )
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
-						
 						gun._held_by._auto_shoot_in = 1000 / 1000 * 30;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 3 });
@@ -4371,7 +4370,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 2;
+						gun._held_by._auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost; // Was 3. It is not that strong to drain matter that fast
 					}
 				}
