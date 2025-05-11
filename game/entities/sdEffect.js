@@ -31,7 +31,7 @@ class sdEffect extends sdEntity
 			'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic', 'sdDrone', 'sdBot', 'sdFaceCrab', 'sdTurret'
 		];*/
 		sdEffect.unignored_entity_classes_arr = [ 
-			'sdBlock', 'sdDoor'
+			'sdBlock', 'sdDoor', 'sdConveyor'
 		];
 		
 		sdEffect.TYPE_BLOOD = 0;
