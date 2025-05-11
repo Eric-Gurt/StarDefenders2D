@@ -596,7 +596,7 @@ class sdCharacter extends sdEntity
 	{
 		if ( Math.random() < 1 / 3 )
 		if ( this.armor > 0 )
-		if ( this.hea > 0 )
+		if ( this.hea > 0 && !this._dying )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
@@ -626,7 +626,7 @@ class sdCharacter extends sdEntity
 	GetBleedEffectFilter()
 	{
 		if ( this._voice.variant === 'clone' )
-		return 'grayscale(100%)brightness(0.75)'
+		return 'saturate(0)brightness(0.75)'
 	
 		return '';
 	}
