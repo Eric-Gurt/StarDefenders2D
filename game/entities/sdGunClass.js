@@ -25,6 +25,7 @@ import sdEssenceExtractor from './sdEssenceExtractor.js';
 import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdArea from './sdArea.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
 
 
@@ -750,7 +751,7 @@ class sdGunClass
 			title: 'Pistol',
 			slot: 1,
 			reload_time: 5,
-			muzzle_x: 4,
+			muzzle_x: 3,
 			ammo_capacity: 12,
 			spread: 0.01,
 			count: 1,
@@ -951,7 +952,7 @@ class sdGunClass
 			title: 'Rocket launcher',
 			slot: 5,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,
 			spread: 0.05,
 			projectile_velocity: 14,
@@ -1153,12 +1154,7 @@ class sdGunClass
 				gun.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9. Will be later extended in case of high tier
 			}
 		};
-		
-		
-		
-		
-		
-		
+
 		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER = 9 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
@@ -1166,7 +1162,7 @@ class sdGunClass
 			title: 'Grenade launcher',
 			slot: 5,
 			reload_time: 20,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,
 			spread: 0.05,
 			count: 1,
@@ -1387,7 +1383,7 @@ class sdGunClass
 			title: 'Cube-gun',
 			slot: 4,
 			reload_time: 3,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
@@ -1712,7 +1708,7 @@ class sdGunClass
 			title: 'Cube-shotgun',
 			slot: 3,
 			reload_time: 20,
-			muzzle_x: 6,
+			muzzle_x: 8,
 			ammo_capacity: -1,
 			spread: 0.15,
 			count: 5,
@@ -1940,7 +1936,7 @@ class sdGunClass
 			slot: 1,
 			reload_time: 6,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			muzzle_x: 7,
+			muzzle_x: 4,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
@@ -3898,8 +3894,10 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
-			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
+			// Split gun sprite into 2 files for proper overheating filter on barrel
+			image: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
+			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
+			image_barrel: sdWorld.CreateImageFromFile( 'fmech_lmg2_barrel' ), // Used for overheating barrel filter
 			//sound: 'supercharge_combined2',
 			title: 'Velox Flying Mech Minigun',
 			//sound_pitch: 0.5,
@@ -3922,6 +3920,22 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
+				if ( gun.overheat > 250 )
+				if ( Math.random() < 0.2 )
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				{
+					let offset = 10;
+
+					let xx = Math.sin ( gun._held_by.GetLookAngle() ) * offset;
+					let yy = Math.cos ( gun._held_by.GetLookAngle() ) * offset;
+	
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:gun.x+xx, y:gun.y+yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2.5, scale:1/3, radius:1/3, color: '#555555' });
+					sdEntity.entities.push ( e );
+				}
+
+				if ( gun._overheat_cooldown )
+				return false;
+
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
@@ -3929,7 +3943,7 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun.overheat / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -3947,23 +3961,41 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
+						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun.overheat / 180 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
-						gun._combo_timer = 30;
-						if ( gun._combo < 60 )
-						gun._combo += 2; // Speed up rate of fire, the longer it shoots
+						
+						if ( gun.overheat < 300 )
+						gun.overheat += 3.33; // Speed up rate of fire, the longer it shoots
+						else
+						{
+							gun._overheat_cooldown = 50;
+							sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.5 });
+						}
 					}
 				}
 				return true;
 			},
-			projectile_properties: { _damage: 30, _dirt_mult: -0.5 }, // Combined with fire rate
+			ExtraDraw: ( gun, ctx, attached )=>
+			{
+				ctx.sd_color_mult_r = 1 + gun.overheat / 200;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+
+				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_barrel, -16, -16, 32, 32 );
+
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+			},
+			projectile_properties: { time_left: 60, _damage: 28, _dirt_mult: -0.5 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5 };
+				let obj = { time_left: 60, _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._temperature_addition = gun.overheat > 250 ? gun.overheat / 3 : 0;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -3984,13 +4016,17 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 24; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					
 					gun._max_dps = ( 30 / ( 2 / ( 1 + ( 60 / 90 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			OnThinkOwnerless: ( gun, GSPEED ) =>
+			{
+				return false; // No sleeping or else it might get stuck with overheat
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#a5e0ff', 30 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
@@ -4004,7 +4040,7 @@ class sdGunClass
 			title: 'Sniper rifle',
 			slot: 4,
 			reload_time: 60,
-			muzzle_x: 11,
+			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
@@ -4244,7 +4280,7 @@ class sdGunClass
 			title: 'Velox Combat Rifle',
 			slot: 2,
 			reload_time: 1.5,
-			muzzle_x: 10,
+			muzzle_x: 11,
 			ammo_capacity: 30,
 			burst: 3,
 			burst_reload: 16,
@@ -4341,7 +4377,7 @@ class sdGunClass
 			reload_time: 0,
 			muzzle_x: 12,
 			ammo_capacity: -1,
-			count: 1,
+			count: 2,
 			spread: 0.05,
 			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -4361,7 +4397,6 @@ class sdGunClass
 					if ( gun._held_by )
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
-						
 						gun._held_by._auto_shoot_in = 1000 / 1000 * 30;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 3 });
@@ -4375,7 +4410,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 2;
+						gun._held_by._auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost; // Was 3. It is not that strong to drain matter that fast
 					}
 				}
@@ -4619,7 +4654,7 @@ class sdGunClass
 			title: 'Grenade launcher MK2',
 			slot: 5,
 			reload_time: 9,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: 6,
 			spread: 0.05,
 			count: 1,
@@ -4665,7 +4700,7 @@ class sdGunClass
 			title: 'Cube-gun v2',
 			slot: 4,
 			reload_time: 3,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 15 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
@@ -4712,7 +4747,7 @@ class sdGunClass
 			title: 'Cube-shotgun v2',
 			slot: 3,
 			reload_time: 20,
-			muzzle_x: 6,
+			muzzle_x: 8,
 			ammo_capacity: -1,
 			spread: 0.1,
 			count: 7,
@@ -5605,15 +5640,15 @@ class sdGunClass
 			muzzle_x: 8,
 			ammo_capacity: -1,
 			burst: 6,
-			burst_reload: 45,
+			burst_reload: 35,
 			spread: 0.05,
 			projectile_velocity: 14,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { time_left: 30, explosion_radius: 19, model: 'rocket_proj', _damage: 16 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
+			projectile_properties: { time_left: 40, explosion_radius: 19, model: 'rocket_proj', _damage: 16 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 30, explosion_radius: 19, model: 'rocket_proj', color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
+				let obj = { time_left: 40, explosion_radius: 19, model: 'rocket_proj', color:'#7acaff', ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -6714,7 +6749,7 @@ class sdGunClass
 			title: 'Tzyrg Shotgun',
 			slot: 3,
 			reload_time: 18,
-			muzzle_x: 11,
+			muzzle_x: 8,
 			ammo_capacity: 12,
 			count: 5,
 			spread: 0.12,
@@ -7145,7 +7180,7 @@ class sdGunClass
 			title: 'Cube-pistol v2',
 			slot: 1,
 			reload_time: 3,
-			muzzle_x: 4,
+			muzzle_x: 5,
 			burst: 3,
 			burst_reload: 10,
 			ammo_capacity: -1,
@@ -7330,14 +7365,14 @@ class sdGunClass
 			title: 'Shurg Pistol',
 			slot: 1,
 			reload_time: 7,
-			muzzle_x: 6,
+			muzzle_x: 5,
 			ammo_capacity: 10,
 			spread: 0.03,
 			count: 2,
 			fire_type: 1,
 			spawnable: false,
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
-			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties: { _damage: 1, color: '#004400' }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
@@ -7422,7 +7457,7 @@ class sdGunClass
 			//sound_pitch: 0.5,
 			slot: 4,
 			reload_time: 0.3,
-			muzzle_x: 8,
+			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
@@ -7519,12 +7554,12 @@ class sdGunClass
 			title: 'Shurg sniper rifle',
 			slot: 4,
 			reload_time: 60,
-			muzzle_x: 11,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			spawnable: false,
-			projectile_properties: { _damage: 115, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 115, color: '#004400', /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating:true, _dirt_mult: -0.5 };
@@ -8793,11 +8828,7 @@ class sdGunClass
 				});
 				
 				let e = target_entity; // Easier mob statues.
-				if ( e.GetClass() !== 'sdCharacter' && e.GetClass() !== 'sdBlock' && e.GetClass() !== 'sdHover' && e.GetClass() !== 'sdCommandCentre'
-				&& e.GetClass() !== 'sdLifeBox' && e.GetClass() !== 'sdMatterAmplifier' && e.GetClass() !== 'sdLongRangeTeleport' && e.GetClass() !== 'sdPlayerDrone' 
-				&& e.GetClass() !== 'sdQuadro' && e.GetClass() !== 'sdRescueTeleport' && e.GetClass() !== 'sdSteeringWheel' && e.GetClass() !== 'sdStorage'
-				&& e.GetClass() !== 'sdStorageTank' && e.GetClass() !== 'sdTeleport' && e.GetClass() !== 'sdThruster' && e.GetClass() !== 'sdUpgradeStation'
-				&& e.GetClass() !== 'sdWeaponBench' && e.GetClass() !== 'sdWorkbench' )
+				if ( !e.IsPlayerClass() ) // Less damage to players
 				sdLost.ApplyAffection( target_entity, 600 * dmg_scale, bullet, sdLost.FILTER_GLASSED );
 				else
 				sdLost.ApplyAffection( target_entity, 90 * dmg_scale, bullet, sdLost.FILTER_GLASSED );
@@ -9852,14 +9883,14 @@ class sdGunClass
 			title: 'Stalker Rapid Rifle',
 			slot: 2,
 			reload_time: 2,
-			muzzle_x: null,
+			muzzle_x: 8,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
 			fire_mode: 1,
 			has_alt_fire_mode: true,
-			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties: { color: '#00FFFF', _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
@@ -9939,7 +9970,6 @@ class sdGunClass
 								if ( sdWorld.is_server )
 								if ( owner )
 								{
-
 									let ent = new sdCharacter({ x: owner.x + 16 * owner._side, y: owner.y,
 										_ai_enabled: sdCharacter.AI_MODEL_AGGRESSIVE, 
 										_ai_gun_slot: 2,
@@ -9983,7 +10013,7 @@ class sdGunClass
 									ent.matter_max = 600;
 									ent.s = target_entity.s;
 								
-									ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, owner: owner });
+									ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, owner: owner, controllable: true });
 									
 									if ( gun.fire_mode === 1 ) // Spawns a target drone for clones to follow and aim at. A more defensive mode.
 									{
@@ -10012,6 +10042,14 @@ class sdGunClass
 										{
 											sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
 											sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+											
+											for( let i = 0; i < ent._inventory.length; i++ ) // Prevent loot from being stolen and disappearing
+											{
+												let item = ent._inventory[ i ];
+												
+												if ( i !== ent.gun_slot )
+												ent.DropWeapon( i );
+											}
 									
 											ent.remove();
 										}
@@ -10094,6 +10132,130 @@ class sdGunClass
 			},
 		
 			upgrades: AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'key' )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_REPAIR_TOOL = 151 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'sd_repair_tool' ), // By Ghost581X
+			sound: 'gun_defibrillator',
+			sound_pitch: 0.75,
+			sound_volume: 2,
+			title: 'Vehicle repair tool',
+			slot: 7,
+			reload_time: 24,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 500,
+			min_workbench_level: 1,
+			projectile_properties: { color: '#00ffff', _rail: true, _soft: true, time_left: 3 },
+			GetAmmoCost: ( gun )=>
+			{
+				return 32; 
+			},
+			projectile_properties_dynamic: ( gun )=> 
+			{ 
+				let obj = 
+				{
+					_damage: 1, color:'#00ffff', _rail: true, _soft: true, time_left: 3, _custom_target_reaction:( bullet, target_entity )=> 
+					{
+						let heal_ents = [ 'sdHover', 'sdQuadro', 'sdLifeBox', 'sdWorkbench', 'sdWeaponBench', 'sdUpgradeStation' ];
+						
+						if ( heal_ents.includes( target_entity.GetClass() ) )
+						if ( ( target_entity.hea || target_entity._hea || 0 ) > 0 ) // Can't repair completely destroyed ones
+                        {
+                            let heal = Math.min( ( target_entity.hmax || target_entity._hmax || 0 ) - ( target_entity.hea || target_entity._hea || 0 ), 250 ); // Prevent overheal possibly?
+                            if ( typeof target_entity.hea !== 'undefined' )
+                            target_entity.hea += heal;
+                            else
+                            if ( typeof target_entity._hea !== 'undefined' )
+                            target_entity._hea += heal;
+
+                            sdSound.PlaySound({ name:'gun_buildtool', x:target_entity.x, y:target_entity.y, volume:1.25, pitch:1 });
+                        }
+					}
+				};
+				
+				return obj;
+			},
+			upgrades: AddRecolorsFromColorAndCost( [], '#00ffff', 15 )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_TELEKINETICS = 152 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gravity_gun' ),
+			title: 'Gravity gun',
+			slot: 7,
+			reload_time: 0,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 500,
+			spawnable: false,
+			projectile_properties: { },
+			GetAmmoCost: ( gun )=>
+			{
+				return 1;
+			},
+			onShootAttempt: ( gun )=>
+			{
+				// Similar to sdPlayerDrone
+				let owner = gun._held_by;
+				let range = 24;
+				let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+				if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 400 ) )
+				if ( owner._god || sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+				if ( owner._god || sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
+				{
+					if ( Math.random() < 1 / 3 )
+					{
+						/*let xx = Math.sin ( owner.GetLookAngle() ) * 12;
+						let yy = Math.cos ( owner.GetLookAngle() ) * 12;
+						
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:gun.x + xx, y:gun.y + yy, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });*/
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });
+						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
+					}
+						
+					let range = 24;
+					let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+						
+					for ( let i = 0; i < nears.length; i++ )
+					{
+						let e = nears[ i ];
+						if ( !e._is_being_removed )
+						//if ( e !== gun && e !== owner )
+						if ( e._is_bg_entity === gun._is_bg_entity )
+						if ( e.IsTargetable( owner ) )
+						{
+							if ( typeof e.sx !== 'undefined' )
+							if ( typeof e.sy !== 'undefined' )
+							{
+								e.PhysWakeUp();
+								e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								e.HookAttempt();
+	
+								if ( e.is( sdBullet ) )
+								e._owner = owner;
+
+								/*if ( e.is( sdCharacter ) )
+								if ( e._ai_enabled && e._ai_team !== 10 ) // Time shifter
+								e.DropWeapon( e.gun_slot );*/
+
+								let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) );
+
+								let xx =  Math.sin ( an );
+								let yy = Math.cos ( an );
+
+								let s = 15;
+								
+								e.Impulse( xx * s, yy * s );
+							}
+						}
+					}
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( [], '#80ff80', 15 )
 		};
 		
 

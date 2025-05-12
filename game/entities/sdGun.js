@@ -539,6 +539,9 @@ class sdGun extends sdEntity
 		
 		this._access_id = params.access_id || null; // For keycards
 		
+		this.overheat = 0; // Used by minigun-like weapons
+		this._overheat_cooldown = 0;
+		
 		//let has_class = sdGun.classes[ this.class ];
 		this.ResetInheritedGunClassProperties( params );
 		
@@ -1256,7 +1259,7 @@ class sdGun extends sdEntity
 						
 						let offset = this._held_by.GetBulletSpawnOffset();
 
-						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
+						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel + this._held_by.sx / 4, sy:Math.cos( an ) * vel + this._held_by.sy / 4, rotation: Math.PI / 2 - initial_an });
 						sdEntity.entities.push( ef );
 					}
 				}
@@ -1365,7 +1368,6 @@ class sdGun extends sdEntity
 		let GSPEED_unscaled = GSPEED;
 		
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
-
 		if ( this.ammo_left === -123 )
 		{
 			if ( sdGun.classes[ this.class ].ammo_capacity === undefined )
@@ -1388,6 +1390,15 @@ class sdGun extends sdEntity
 			else
 			this._combo = 0;
 
+			if ( this.overheat > 0 )
+			{
+				let decay_mult = this._overheat_cooldown ? 6 : this.overheat > 200 ? 3 : 0.75;
+				this.overheat = Math.max( 0, this.overheat - GSPEED * decay_mult );
+			}
+			
+			if ( this._overheat_cooldown > 0 )
+			this._overheat_cooldown = Math.max( 0, this._overheat_cooldown - GSPEED );
+		
 			if ( this._held_by )
 			if ( this._held_by._is_being_removed )
 			{
@@ -1563,6 +1574,7 @@ class sdGun extends sdEntity
 		if ( this.reload_time_left <= 0 )
 		if ( this._combo_timer <= 0 )
 		if ( this.muzzle <= 0 )
+		if ( this.overheat <= 0 )
 		{
 			// Always allow sync on weaponbenches automatically
 			if ( !this._held_by.IsPlayerClass() )
@@ -1630,8 +1642,12 @@ class sdGun extends sdEntity
 		
 			// I am making this too complicated - Booraz
 		
-			
-			sdEntity.Tooltip( ctx, this.GetTitle(), 0, xx );
+			let t = this.GetTitle();
+		
+			if ( sdWorld.client_side_censorship && this.title_censored )
+			t = sdWorld.CensoredText( t );
+		
+			sdEntity.Tooltip( ctx, t, 0, xx );
 			xx += 8;
 			if ( has_slot )
 			{
@@ -1653,6 +1669,7 @@ class sdGun extends sdEntity
 		this.UpdateHolderClientSide();
 		
 		let has_class = sdGun.classes[ this.class ];
+		
 		
 		if ( has_class )
 		{
@@ -1928,6 +1945,8 @@ class sdGun extends sdEntity
 				{
 					ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 				}
+				if ( has_class.ExtraDraw )
+				has_class.ExtraDraw( this, ctx, attached );
 			}
 			
 			ctx.filter = 'none';
