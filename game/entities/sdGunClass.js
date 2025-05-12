@@ -3894,8 +3894,9 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
-			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
+			image: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
+			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
+			image_alt: sdWorld.CreateImageFromFile( 'fmech_lmg2_barrel' ), // Used for overheating barrel filter
 			//sound: 'supercharge_combined2',
 			title: 'Velox Flying Mech Minigun',
 			//sound_pitch: 0.5,
@@ -3948,9 +3949,23 @@ class sdGunClass
 						gun._combo_timer = 30;
 						if ( gun._combo < 60 )
 						gun._combo += 2; // Speed up rate of fire, the longer it shoots
+
+						gun.overheat += 2;
 					}
 				}
 				return true;
+			},
+			ExtraDraw: ( gun, ctx, attached )=>
+			{
+				ctx.sd_color_mult_r = 1 + gun.overheat / 100;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+
+				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_alt, -16, -16, 32, 32 );
+
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
 			},
 			projectile_properties: { _damage: 30, _dirt_mult: -0.5 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -3985,6 +4000,10 @@ class sdGunClass
 					gun._max_dps = ( 30 / ( 2 / ( 1 + ( 60 / 90 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
 					//UpdateCusomizableGunProperties( gun );
 				}
+			},
+			OnThinkOwnerless: ( gun, GSPEED ) =>
+			{
+				return false; // No sleeping or else it might get stuck with overheat?
 			},
 			upgrades: AddGunDefaultUpgrades()
 		};
