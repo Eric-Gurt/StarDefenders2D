@@ -3922,13 +3922,15 @@ class sdGunClass
 			{
 				if ( gun.overheat > 250 )
 				if ( Math.random() < 0.2 )
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 				{
 					let offset = 10;
 
 					let xx = Math.sin ( gun._held_by.GetLookAngle() ) * offset;
 					let yy = Math.cos ( gun._held_by.GetLookAngle() ) * offset;
-
-					sdWorld.SendEffect({ type: sdEffect.TYPE_SMOKE, x:gun.x+xx, y:gun.y+yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2.5, scale:1/3, radius:1/3, color: '#555555' });
+	
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:gun.x+xx, y:gun.y+yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2.5, scale:1/3, radius:1/3, color: '#555555' });
+					sdEntity.entities.push ( e );
 				}
 
 				if ( gun._overheat_cooldown )
@@ -3959,7 +3961,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun.overheat / 120 ) ); // Faster rate of fire when shooting more
+						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun.overheat / 180 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
 						
 						if ( gun.overheat < 300 )
@@ -3985,7 +3987,7 @@ class sdGunClass
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
 			},
-			projectile_properties: { time_left: 60, _damage: 25, _dirt_mult: -0.5 }, // Combined with fire rate
+			projectile_properties: { time_left: 60, _damage: 28, _dirt_mult: -0.5 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 60, _dirt_mult: -0.5 };
@@ -4014,7 +4016,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					
 					gun._max_dps = ( 30 / ( 2 / ( 1 + ( 60 / 90 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
 					//UpdateCusomizableGunProperties( gun );
