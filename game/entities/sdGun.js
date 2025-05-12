@@ -540,6 +540,7 @@ class sdGun extends sdEntity
 		this._access_id = params.access_id || null; // For keycards
 		
 		this.overheat = 0; // Used by minigun-like weapons
+		this._overheat_cooldown = 0;
 		
 		//let has_class = sdGun.classes[ this.class ];
 		this.ResetInheritedGunClassProperties( params );
@@ -1390,7 +1391,13 @@ class sdGun extends sdEntity
 			this._combo = 0;
 
 			if ( this.overheat > 0 )
-			this.overheat = Math.max( 0, this.overheat - GSPEED );
+			{
+				let decay_mult = this._overheat_cooldown ? 6 : this.overheat > 200 ? 3 : 0.75;
+				this.overheat = Math.max( 0, this.overheat - GSPEED * decay_mult );
+			}
+			
+			if ( this._overheat_cooldown > 0 )
+			this._overheat_cooldown = Math.max( 0, this._overheat_cooldown - GSPEED );
 		
 			if ( this._held_by )
 			if ( this._held_by._is_being_removed )
