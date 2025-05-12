@@ -3894,6 +3894,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
 		{
+			// Split gun sprite into 2 files for proper overheating filter on barrel
 			image: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
 			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
 			image_alt: sdWorld.CreateImageFromFile( 'fmech_lmg2_barrel' ), // Used for overheating barrel filter
@@ -3919,6 +3920,20 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
+				if ( gun.overheat > 250 )
+				if ( Math.random() < 0.2 )
+				{
+					let offset = 10;
+
+					let xx = Math.sin ( gun._held_by.GetLookAngle() ) * offset;
+					let yy = Math.cos ( gun._held_by.GetLookAngle() ) * offset;
+
+					sdWorld.SendEffect({ type: sdEffect.TYPE_SMOKE, x:gun.x+xx, y:gun.y+yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2.5, scale:1/3, radius:1/3, color: '#555555' });
+				}
+
+				if ( gun._overheat_cooldown )
+				return false;
+
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
@@ -3926,7 +3941,7 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun.overheat / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -3944,20 +3959,23 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
+						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun.overheat / 120 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
-						gun._combo_timer = 30;
-						if ( gun._combo < 60 )
-						gun._combo += 2; // Speed up rate of fire, the longer it shoots
-
-						gun.overheat += 2;
+						
+						if ( gun.overheat < 300 )
+						gun.overheat += 3.33; // Speed up rate of fire, the longer it shoots
+						else
+						{
+							gun._overheat_cooldown = 50;
+							sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.5 });
+						}
 					}
 				}
 				return true;
 			},
 			ExtraDraw: ( gun, ctx, attached )=>
 			{
-				ctx.sd_color_mult_r = 1 + gun.overheat / 100;
+				ctx.sd_color_mult_r = 1 + gun.overheat / 200;
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
 
@@ -3967,14 +3985,15 @@ class sdGunClass
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
 			},
-			projectile_properties: { _damage: 30, _dirt_mult: -0.5 }, // Combined with fire rate
+			projectile_properties: { time_left: 60, _damage: 25, _dirt_mult: -0.5 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5 };
+				let obj = { time_left: 60, _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._temperature_addition = gun.overheat;
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
@@ -3995,7 +4014,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 24; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					
 					gun._max_dps = ( 30 / ( 2 / ( 1 + ( 60 / 90 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
 					//UpdateCusomizableGunProperties( gun );
@@ -4003,9 +4022,9 @@ class sdGunClass
 			},
 			OnThinkOwnerless: ( gun, GSPEED ) =>
 			{
-				return false; // No sleeping or else it might get stuck with overheat?
+				return false; // No sleeping or else it might get stuck with overheat
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#a5e0ff', 30 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
