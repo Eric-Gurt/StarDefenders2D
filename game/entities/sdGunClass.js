@@ -3897,7 +3897,7 @@ class sdGunClass
 			// Split gun sprite into 2 files for proper overheating filter on barrel
 			image: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
 			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
-			image_alt: sdWorld.CreateImageFromFile( 'fmech_lmg2_barrel' ), // Used for overheating barrel filter
+			image_barrel: sdWorld.CreateImageFromFile( 'fmech_lmg2_barrel' ), // Used for overheating barrel filter
 			//sound: 'supercharge_combined2',
 			title: 'Velox Flying Mech Minigun',
 			//sound_pitch: 0.5,
@@ -3979,7 +3979,7 @@ class sdGunClass
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
 
-				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_alt, -16, -16, 32, 32 );
+				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_barrel, -16, -16, 32, 32 );
 
 				ctx.sd_color_mult_r = 1;
 				ctx.sd_color_mult_g = 1;
