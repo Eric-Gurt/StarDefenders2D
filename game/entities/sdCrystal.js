@@ -275,10 +275,13 @@ class sdCrystal extends sdEntity
 			
 			ImpactAltering: ( e, vel )=>
 			{
-				e._bounce_anim = Math.min( 0.5, vel * 0.05 );
+				vel *= 0.075;
+				e._bounce_anim = Math.min( 0.5, vel );
+
+				if ( vel > 0.5 )
 				sdSound.PlaySound({ name:'slug_jump', x:e.x, y:e.y, volume: 1 / 3 });
-			
-				return vel * 0.1;
+
+				return vel;
 			},
 			
 			BouncinessAltering: ( e )=>
