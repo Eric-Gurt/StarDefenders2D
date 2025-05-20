@@ -275,6 +275,9 @@ class sdCrystal extends sdEntity
 			
 			ImpactAltering: ( e, vel )=>
 			{
+				e._bounce_anim = Math.min( 0.5, vel * 0.05 );
+				sdSound.PlaySound({ name:'slug_jump', x:e.x, y:e.y, volume: 1 / 3 });
+			
 				return vel * 0.1;
 			},
 			
@@ -295,7 +298,18 @@ class sdCrystal extends sdEntity
 			GetFilterAltering: ( e, ctx_filter )=>
 			{
 				return ctx_filter + 'hue-rotate(10deg)contrast(0.3)brightness(1.2)saturate(0.7)contrast(4)';
-			}
+			},
+			
+			onDraw: ( e, ctx, attached )=>
+			{
+				ctx.scale( 1 + e._bounce_anim / 2, 1 - e._bounce_anim )
+				e._DefaultDraw( ctx, attached );
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				e._bounce_anim = Math.max( 0, e._bounce_anim - GSPEED * 0.15 );
+			},
 		};
 		sdCrystal.spaciality_table[ 640 ] = {
 			
@@ -1159,7 +1173,7 @@ class sdCrystal extends sdEntity
 			this._hea = 15;
 			this._spawn_anim = 0;
 		}
-		
+
 		if ( this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ )
 		{
 			this._hea = 200;
@@ -1177,6 +1191,8 @@ class sdCrystal extends sdEntity
 		this.speciality = ( ( params.from_ground || params.from_tree ) && Math.random() < 0.05 ) ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
 		if ( params.speciality !== undefined )
 		this.speciality = params.speciality;
+	
+		this._bounce_anim = 0;
 	
 		this._private_props = {};
 		this.extra = {};
