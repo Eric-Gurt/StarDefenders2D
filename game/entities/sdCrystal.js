@@ -796,7 +796,9 @@ class sdCrystal extends sdEntity
 						damage_scale: 0,
 						type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 						owner:initiator,
-						color:'#000000' 
+						color:'#000000',
+						no_smoke:true,
+						shrapnel:true
 					});
 				}
 			},
@@ -1364,8 +1366,6 @@ class sdCrystal extends sdEntity
 				let replacement_entity = null;
 				let drop_reward = true;
 				
-				// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null )
-				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) // Big crystals/big crystal crabs
 				{
 					let xx_tot = 1;
@@ -1413,14 +1413,16 @@ class sdCrystal extends sdEntity
 						replacement_entity = ent;
 					}
 
-					
+					// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=false )
 					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ) * ( 4 - xx_tot * yy_tot ),
 						this.matter_max / 160,
 						8,
 						undefined,
 						undefined,
-						replacement_entity
+						replacement_entity,
+						null,
+						this.speciality
 					);
 				}
 				else
@@ -1430,7 +1432,9 @@ class sdCrystal extends sdEntity
 					5,
 					undefined,
 					undefined,
-					replacement_entity
+					replacement_entity,
+					null,
+					this.speciality
 				);
 		
 				if ( drop_reward )
@@ -1480,7 +1484,6 @@ class sdCrystal extends sdEntity
 	}
 	
 	get mass() { return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 5 : ( this.type === 2 || this.type === 6 ) ? 120 : 30; }
-
 	Impulse( x, y )
 	{
 		if ( this.held_by )
