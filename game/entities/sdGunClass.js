@@ -1113,7 +1113,7 @@ class sdGunClass
 			title: 'Crystal shard',
 			title_dynamic: ( gun )=>
 			{
-				return 'Crystal shard ( ' + (~~gun.extra) + ' matter )';
+				return 'Crystal shard ( ' + (~~( gun.extra && gun.extra[0] || '?') ) + ' matter )';
 			},
 			hea: 5,
 			//no_tilt: true,
@@ -1129,19 +1129,21 @@ class sdGunClass
 			apply_shading: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				// 2 was too bad for case of randomly breaking crystals when digging
-				if ( character.matter + gun.extra <= character.matter_max )
+				if ( !( gun.extra && gun.extra[ 0 ] ) ) // Remove shards from old versions which will crash the server
+				return gun.remove();
+				
+				if ( character.matter + gun.extra[ 0 ] <= character.matter_max )
 				{
-					character.matter += gun.extra;
+					character.matter += gun.extra[ 0 ];
 					gun.remove(); 
 				}
 				else
 				if ( character.matter < character.matter_max - 1 )
 				{
-					gun.extra -= character.matter_max - character.matter;
+					gun.extra[ 0 ] -= character.matter_max - character.matter;
 					character.matter = character.matter_max;
 					
-					if ( gun.extra < 1 )
+					if ( gun.extra[ 0 ] < 1 )
 					gun.remove(); 
 				}
 
@@ -1152,6 +1154,13 @@ class sdGunClass
 				const normal_ttl_seconds = 9;
 				
 				gun.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9. Will be later extended in case of high tier
+				
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ 0 ] = 1; // Matter
+					gun.extra[ 1 ] = 0; // Speciality
+				}
 			}
 		};
 
