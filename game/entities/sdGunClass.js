@@ -3986,9 +3986,12 @@ class sdGunClass
 			},
 			ExtraDraw: ( gun, ctx, attached )=>
 			{
-				ctx.sd_color_mult_r = 1 + gun.overheat / 200;
+				ctx.sd_color_mult_r = 1 + gun.overheat / 250;
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
+
+				if ( gun.overheat > 50 )
+				ctx.apply_shading = false;
 
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_barrel, -16, -16, 32, 32 );
 
