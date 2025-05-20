@@ -1760,9 +1760,15 @@ class sdGun extends sdEntity
 
 				if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 				{
-					let v = this.extra / sdWorld.crystal_shard_value * 40;
+					let v = this.extra[ 0 ] / sdWorld.crystal_shard_value * 40;
 
 					ctx.filter = sdWorld.GetCrystalHue( v );
+					
+					if ( this.extra[ 1 ] )
+					{
+						if ( sdCrystal.spaciality_table[ v ] && sdCrystal.spaciality_table[ v ].GetFilterAltering )
+						ctx.filter = sdCrystal.spaciality_table[ v ].GetFilterAltering( this, ctx.filter )
+					}
 				}
 
 				if ( this.class === sdGun.CLASS_BUILDTOOL_UPG )
@@ -2019,7 +2025,7 @@ class sdGun extends sdEntity
 	MeasureMatterCost()
 	{
 		if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
-		return this.extra;
+		return this.extra && this.extra[ 0 ] || 30;
 	
 		return sdGun.classes[ this.class ].matter_cost || 30;
 	}
