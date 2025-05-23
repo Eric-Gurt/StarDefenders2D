@@ -180,7 +180,10 @@ class sdMusic
 		https://www.newgrounds.com/audio/listen/1355583
 		// Author needs to be contacted, uses some 3rd party samples?
 		// Sent DM on Newgrounds
+		// UPD 2025: AnxLyen replied with: SURE THING! You can use it
 		*/
+		traceOnce( 'Got permission to use https://www.newgrounds.com/audio/listen/1355583 , add it to the project' );
+		
 	   
 		// Add songs at the end, above this line
 		
