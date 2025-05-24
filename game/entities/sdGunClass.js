@@ -2034,7 +2034,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 15 ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#d50000', 15 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
