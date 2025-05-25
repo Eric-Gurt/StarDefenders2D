@@ -220,6 +220,24 @@ class sdGunClass
 			gun.ammo_left = Math.min( gun.ammo_left, gun.GetAmmoCapacity() );
 		}
 		
+		function hasNoExtra( gun, initiator )
+		{
+			// Sometimes extra is 0, probably whenever taken from other server
+			
+			if ( gun.extra instanceof Object )
+			{
+				return false; // All fine
+			}
+			else
+			{
+				if ( initiator )
+				if ( initiator._socket )
+				initiator._socket.SDServiceMessage( 'This device does not support upgrades.' );
+
+				return true;
+			}
+		}
+					
 		function AddGunEditorUpgrades( custom_rifle_upgrades=[] )
 		{
 			function AddCustomizationUpgrade( custom_rifle_upgrades, id, class_prop )
@@ -232,6 +250,9 @@ class sdGunClass
 							category: 'customize_parts',
 							action: ( gun, initiator=null )=> 
 							{
+								if ( hasNoExtra( gun, initiator ) )
+								return false;
+
 								if ( sdGun.classes[ gun.class ][ class_prop ].length > 0 )
 								{
 									gun.extra[ id ] = ( ( gun.extra[ id ] || 0 ) + 1 ) % sdGun.classes[ gun.class ][ class_prop ].length; 
@@ -277,49 +298,7 @@ class sdGunClass
 				} 
 			);
 	
-			//
-			/*custom_rifle_upgrades.push(
-				{
-					title: 'Customize main color...', 
-					represents_category: 'customize_colors_main',
-					category: 'customize_colors'
-				} 
-			);
-			custom_rifle_upgrades.push(
-				{
-					title: 'Customize dark color...', 
-					represents_category: 'customize_colors_dark',
-					category: 'customize_colors'
-				} 
-			);
-			custom_rifle_upgrades.push(
-				{
-					title: 'Customize bright color...', 
-					represents_category: 'customize_colors_bright',
-					category: 'customize_colors'
-				} 
-			);
-			custom_rifle_upgrades.push(
-				{
-					title: 'Customize energy color...', 
-					represents_category: 'customize_colors_energy',
-					category: 'customize_colors'
-				} 
-			);
-			custom_rifle_upgrades.push(
-				{
-					title: 'Customize laser color...', 
-					represents_category: 'customize_colors_laser',
-					category: 'customize_colors'
-				} 
-			);
-			custom_rifle_upgrades.push(
-				{
-					title: 'Customize bullets color...', 
-					represents_category: 'customize_colors_bullets',
-					category: 'customize_colors'
-				} 
-			);*/
+		
 	
 			custom_rifle_upgrades.push(
 				{
@@ -328,6 +307,9 @@ class sdGunClass
 					category: 'customize_colors',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_PROJECTILE_COLOR ] = '#';
 						let str = '0123456789abcdef';
 						for ( let i = 0; i < 6; i++ )
@@ -381,6 +363,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						if ( gun.extra[ ID_DAMAGE_MULT ] < 3 )
 						{
 							gun.extra[ ID_DAMAGE_MULT ] += 0.05; // 5%
@@ -405,6 +390,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						if ( gun.extra[ ID_DAMAGE_MULT ] > 0 )
 						{
 							gun.extra[ ID_DAMAGE_MULT ] = Math.max( 0, gun.extra[ ID_DAMAGE_MULT ] - 0.05 ); // 5%
@@ -429,6 +417,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] < 750 )
 						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] < 500 )
 						{
@@ -453,6 +444,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -750 )
 						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -273.15 )
 						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > 0 )
@@ -478,6 +472,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_FIRE_RATE ] = Math.max( 1, gun.extra[ ID_FIRE_RATE ] - 0.1 );
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -490,6 +487,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_FIRE_RATE ] = Math.min( 10, gun.extra[ ID_FIRE_RATE ] + 0.1 );
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -502,6 +502,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -514,6 +517,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ ID_RECOIL_SCALE ] * 1.05 ); // Limit recoil decreasing so it doesn't crash server
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -527,6 +533,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_HAS_RAIL_EFFECT ] = 1 - gun.extra[ ID_HAS_RAIL_EFFECT ];
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -539,6 +548,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_HAS_EXPLOSION ] = 1 - gun.extra[ ID_HAS_EXPLOSION ];
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -550,7 +562,10 @@ class sdGunClass
 					cost: 100, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
-					{ 
+					{
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_HAS_SHOTGUN_EFFECT ] = 1 - gun.extra[ ID_HAS_SHOTGUN_EFFECT ];
 						UpdateCusomizableGunProperties( gun );
 					} 
@@ -562,7 +577,7 @@ class sdGunClass
 					cost: 500, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
-					{ 
+					{
 						if ( initiator )
 						{
 							if ( gun.biometry_lock === -1 )
@@ -595,6 +610,9 @@ class sdGunClass
 					cost: 0, 
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_PROJECTILE_COLOR ] = '#';
 						let str = '0123456789abcdef';
 						for ( let i = 0; i < 6; i++ )
@@ -610,11 +628,12 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						if ( gun.extra[ ID_DAMAGE_MULT ] < 2 )
 						{
 							gun.extra[ ID_DAMAGE_MULT ] += 0.05; // 5%
-							//gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
-							//UpdateCusomizableGunProperties( gun );
 						}
 						else
 						{
@@ -634,16 +653,16 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						if ( gun.extra[ ID_DAMAGE_MULT ] > 0 )
 						{
 							gun.extra[ ID_DAMAGE_MULT ] = Math.max( 0, gun.extra[ ID_DAMAGE_MULT ] - 0.05 ); // 5%
-							//gun.extra[ ID_RECOIL_SCALE ] *= 1.05; // 5%
-							//UpdateCusomizableGunProperties( gun );
 						}
 						else
 						{
-							if ( initiator )
-							if ( initiator._socket )
+							if ( initiator && initiator._socket )
 							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
 					
 							return false; // Do not subtract matter
@@ -651,30 +670,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			/*normal_rifle_upgrades.push(
-				{
-					title: 'Increase fire rate', 
-					cost: 0, 
-					category: 'customize_properties',
-					action: ( gun, initiator=null )=> 
-					{ 
-						gun.extra[ ID_FIRE_RATE ] = Math.max( 1, gun.extra[ ID_FIRE_RATE ] - 0.1 );
-						//UpdateCusomizableGunProperties( gun );
-					} 
-				} 
-			);
-			normal_rifle_upgrades.push(
-				{
-					title: 'Decrease fire rate', 
-					cost: 0, 
-					category: 'customize_properties',
-					action: ( gun, initiator=null )=> 
-					{ 
-						gun.extra[ ID_FIRE_RATE ] = Math.min( 10, gun.extra[ ID_FIRE_RATE ] + 0.1 );
-						//UpdateCusomizableGunProperties( gun );
-					} 
-				} 
-			);*/
+		
 			normal_rifle_upgrades.push(
 				{
 					title: 'Improve recoil control', 
@@ -682,6 +678,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
 						//UpdateCusomizableGunProperties( gun );
 					} 
@@ -694,6 +693,9 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
 						gun.extra[ ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ ID_RECOIL_SCALE ] * 1.05 ); // Limit recoil decreasing so it doesn't crash server
 						//UpdateCusomizableGunProperties( gun );
 					} 
