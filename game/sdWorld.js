@@ -1275,11 +1275,13 @@ class sdWorld
 			gib._ignore_collisions_with = ignore_collisions_with;
 			gib.image = image;
 
-			for ( let i = 0; i < sdStatusEffect.status_effects.length; i++ )
+			let status_effects = sdStatusEffect.entity_to_status_effects.get( ignore_collisions_with );
+			if ( status_effects )
+			for ( let i = 0; i < status_effects.length; i++ )
 			{
-				if ( sdStatusEffect.status_effects[ i ].for === ignore_collisions_with )
+				// if ( sdStatusEffect.status_effects[ i ].for === ignore_collisions_with )
 				{
-					let status_entity = sdStatusEffect.status_effects[ i ];
+					let status_entity = status_effects[ i ];
 					if ( status_entity.type === sdStatusEffect.TYPE_TEMPERATURE )
 					{
 						gib.ApplyStatusEffect({ type: status_entity.type, t:status_entity.t, initiator: status_entity._initiator }); // Probably should only get temperature ones, otherwise may cause bugs or crashes with other types
