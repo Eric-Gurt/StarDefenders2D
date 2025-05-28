@@ -1275,12 +1275,18 @@ class sdWorld
 			gib._ignore_collisions_with = ignore_collisions_with;
 			gib.image = image;
 
-			/*for ( let i = 0; i < sdStatusEffect.status_effects.length; i++ )
+			for ( let i = 0; i < sdStatusEffect.status_effects.length; i++ )
 			{
-				if ( sdStatusEffect.status_effects[ i ].for === ignore_collisions_with ) // Is this effect for the entity we just gibbed?
-				
-			}*/
-			// TO DO: TRANSFER STATUS EFFECTS FROM GIBBED ENTITY TO GIBS
+				if ( sdStatusEffect.status_effects[ i ].for === ignore_collisions_with )
+				{
+					let status_entity = sdStatusEffect.status_effects[ i ];
+					if ( status_entity.type === sdStatusEffect.TYPE_TEMPERATURE )
+					{
+						gib.ApplyStatusEffect({ type: status_entity.type, t:status_entity.t, initiator: status_entity._initiator }); // Probably should only get temperature ones, otherwise may cause bugs or crashes with other types
+						break;
+					}
+				}
+			}
 
 			sdEntity.entities.push( gib );
 			//gib.s = scale;
@@ -1394,7 +1400,7 @@ class sdWorld
 			player_entity.onScoreChange();
 		}
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=false ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
 	{
 		if ( sdWorld.is_server )
 		{
@@ -1409,7 +1415,11 @@ class sdWorld
 				
 				//ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
 				if ( shard_class_id === sdGun.CLASS_CRYSTAL_SHARD )
-				ent.extra = value_mult * sdWorld.crystal_shard_value;
+				if ( ent.extra ) // Might not be needed anymore - keep it just in case to prevent crashes
+				{
+					ent.extra[ 0 ] = value_mult * sdWorld.crystal_shard_value;
+					ent.extra [ 1 ] = speciality;
+				}
 			
 				ent._ignore_collisions_with = ignore_collisions_with;
 				ent.follow = follow;

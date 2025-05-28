@@ -80,7 +80,7 @@ class sdBloodDecal extends sdEntity
 	{
 		super( params );
 		
-		this.variation = 0; // grass variation
+		//this.variation = 0; // seems unused to me?
 
 		this.effect_type = params.effect_type || sdEffect.TYPE_BLOOD; // Or sdEffect.TYPE_BLOOD_GREEN
 		this.hue = params.hue || 0;
@@ -149,7 +149,7 @@ class sdBloodDecal extends sdEntity
 				{
 					if ( Math.random() < 0.5 ) // 50% chance a roach spawns
 					{
-						let ent = new sdRoach({ x: this.x + this._hitbox_x2 / 2, y: this.y + this._hitbox_y2 / 2 });
+						let ent = new sdRoach({ x: this.x + this._hitbox_x2 / 2, y: this.y + this._hitbox_y2 / 2, type: Math.random() < 0.05 ? sdRoach.TYPE_MOTH : sdRoach.TYPE_ROACH });
 						sdEntity.entities.push( ent );
 						
 						if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
@@ -166,6 +166,7 @@ class sdBloodDecal extends sdEntity
 								let random_roach = ents[ ~~( ents.length * Math.random() ) ];
 								
 								if ( random_roach )
+								if ( random_roach.type !== sdRoach.TYPE_MOTH )
 								if ( random_roach.nick.length === 0 )
 								if ( random_roach.strength < 40 )
 								random_roach.strength += 3;
