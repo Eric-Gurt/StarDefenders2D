@@ -1582,6 +1582,12 @@ class sdJunk extends sdEntity
 		{
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 10, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
+		
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+			sdWorld.BasicEntityBreakEffect( this, 10, 2, 0.75, 0.75, 'water_entrance', sdEffect.TYPE_FROZEN );
+		
+			if ( this.type === sdJunk.TYPE_FIRE_BARREL )
+			sdWorld.BasicEntityBreakEffect( this, 10, 2, 0.75, 0.75, 'fire_big', sdEffect.TYPE_FIRE );
 		}
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{

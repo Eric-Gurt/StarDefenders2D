@@ -275,7 +275,13 @@ class sdCrystal extends sdEntity
 			
 			ImpactAltering: ( e, vel )=>
 			{
-				return vel * 0.1;
+				vel *= 0.075;
+				e._bounce_anim = Math.min( 0.5, vel );
+
+				if ( vel > 0.5 )
+				sdSound.PlaySound({ name:'slug_jump', x:e.x, y:e.y, volume: 1 / 3 });
+
+				return vel;
 			},
 			
 			BouncinessAltering: ( e )=>
@@ -295,7 +301,18 @@ class sdCrystal extends sdEntity
 			GetFilterAltering: ( e, ctx_filter )=>
 			{
 				return ctx_filter + 'hue-rotate(10deg)contrast(0.3)brightness(1.2)saturate(0.7)contrast(4)';
-			}
+			},
+			
+			onDraw: ( e, ctx, attached )=>
+			{
+				ctx.scale( 1 + e._bounce_anim / 2, 1 - e._bounce_anim )
+				e._DefaultDraw( ctx, attached );
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				e._bounce_anim = Math.max( 0, e._bounce_anim - GSPEED * 0.15 );
+			},
 		};
 		sdCrystal.spaciality_table[ 640 ] = {
 			
@@ -673,7 +690,9 @@ class sdCrystal extends sdEntity
 								damage_scale: 0, // Just a decoration effect
 								type:sdEffect.TYPE_EXPLOSION, 
 								owner:e,
-								color:'#ffff66' 
+								color:'#ffff66',
+								no_smoke:true,
+								shrapnel:true
 							});
 
 							for ( let i = 0; i < e._anything_near.length; i++ )
@@ -794,7 +813,9 @@ class sdCrystal extends sdEntity
 						damage_scale: 0,
 						type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 						owner:initiator,
-						color:'#000000' 
+						color:'#000000',
+						no_smoke:true,
+						shrapnel:true
 					});
 				}
 			},
@@ -1155,7 +1176,7 @@ class sdCrystal extends sdEntity
 			this._hea = 15;
 			this._spawn_anim = 0;
 		}
-		
+
 		if ( this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ )
 		{
 			this._hea = 200;
@@ -1173,6 +1194,8 @@ class sdCrystal extends sdEntity
 		this.speciality = ( ( params.from_ground || params.from_tree ) && Math.random() < 0.05 ) ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
 		if ( params.speciality !== undefined )
 		this.speciality = params.speciality;
+	
+		this._bounce_anim = 0;
 	
 		this._private_props = {};
 		this.extra = {};
@@ -1362,8 +1385,6 @@ class sdCrystal extends sdEntity
 				let replacement_entity = null;
 				let drop_reward = true;
 				
-				// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null )
-				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) // Big crystals/big crystal crabs
 				{
 					let xx_tot = 1;
@@ -1411,14 +1432,16 @@ class sdCrystal extends sdEntity
 						replacement_entity = ent;
 					}
 
-					
+					// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=false )
 					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ) * ( 4 - xx_tot * yy_tot ),
 						this.matter_max / 160,
 						8,
 						undefined,
 						undefined,
-						replacement_entity
+						replacement_entity,
+						null,
+						this.speciality
 					);
 				}
 				else
@@ -1428,14 +1451,16 @@ class sdCrystal extends sdEntity
 					5,
 					undefined,
 					undefined,
-					replacement_entity
+					replacement_entity,
+					null,
+					this.speciality
 				);
 		
 				if ( drop_reward )
 				{
 					let reward_amount = sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL * this.matter_max / 5120;
 
-					reward_amount *= this.matter_regen / 100;
+					reward_amount *= Math.min ( sdCrystal.max_matter_regen / 100, this.matter_regen / 100 );
 
 					if ( this.is_crab ) // Give 40k large crab and 40k large crystal a love.
 					{
@@ -1445,10 +1470,10 @@ class sdCrystal extends sdEntity
 						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
 					}
 
-					if ( this.matter_max >= 90000 || this.matter_regen >= 401 || this.is_anticrystal ) // Too high matter and regeneration will crash the server ( Preset Editor ), also spamming for score shards is not good.
+					if ( this.is_anticrystal )
 					reward_amount = 0;
 
-					reward_amount = ~~( reward_amount );
+					reward_amount = Math.min( 700, ~~( reward_amount ) );
 
 					if ( reward_amount > 0 )
 					{
@@ -1478,7 +1503,6 @@ class sdCrystal extends sdEntity
 	}
 	
 	get mass() { return this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ? 5 : ( this.type === 2 || this.type === 6 ) ? 120 : 30; }
-
 	Impulse( x, y )
 	{
 		if ( this.held_by )
