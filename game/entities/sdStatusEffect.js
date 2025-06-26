@@ -1734,63 +1734,66 @@ class sdStatusEffect extends sdEntity
 					{
 						status_entity._next_spawn = 75;
 
-						let r = Math.random();
-						
-						if ( r < 0.2 )
-						{
-							let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
-							sdEntity.entities.push( ent1 );
+						switch ( Math.round( Math.random() * 5 ) )
+						{	
+							case 1:
+							{
+								let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
 							
-							let ent2 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x - 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
-							sdEntity.entities.push( ent2 );
+								let ent2 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x - 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
 							
-							let ent3 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x + 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
-							sdEntity.entities.push( ent3 );
-						}
-						else
-						if ( r < 0.4 )
-						{
-							sdSound.PlaySound({ name: 'sd_death2', x:status_entity.x, y:status_entity.y, volume: 0.5, pitch: 0.5, _server_allowed: true });
-						}
-						else
-						if ( r < 0.6 )
-						{
-							sdSound.PlaySound({ name: 'zombie_alert2', x:status_entity.x, y:status_entity.y, volume: 1.5, pitch: 0.75 });
-						}
-						else
-						if ( r < 0.8 )
-						{
-							let ent1 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:-5, scale:5, radius:5, color:'#00FFFF' });
-							sdEntity.entities.push( ent1 );
+								let ent3 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x + 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
+								sdEntity.entities.push( ent1, ent2, ent3 );
 							
-						}
-						else
-						{
-							let t = sdWorld.AnyOf( [ 
-								'You will die. Stop delaying the inevitable. Give in and let it happen.',
-								'You do not belong here. Go away, this is not your world.',
-								'You can\'t run forever.',
-								'I can see you. You can\'t hide from me',
-								'Surrender to me. You will not get away this time.',
-								'Close your eyes. Embrace the eternal sleep.'
-							] );
+								break;
+							}
+							case 2:
+							{
+								sdSound.PlaySound({ name: 'sd_death2', x:status_entity.x, y:status_entity.y, volume: 0.5, pitch: 0.5, _server_allowed: true });
+								break;
+							}
+							case 3:
+							{
+								sdSound.PlaySound({ name: 'zombie_alert2', x:status_entity.x, y:status_entity.y, volume: 1.5, pitch: 0.75 });
+								break;
+							}
+							case 4:
+							{
+								let ent = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:-5, scale:5, radius:5, color:'#00FFFF' });
+								sdEntity.entities.push( ent );
 							
-							let chat_ent = new sdEffect ({
-								x:status_entity.for.x + ( Math.random() * 100  - Math.random() * 100 ), 
-								y:status_entity.for.y + ( Math.random() * 100  - Math.random() * 100 ), 
-								type:sdEffect.TYPE_CHAT,
-								text:t,
-								color: '#FF0000',
-								voice: { 
-									wordgap: 0,
-									pitch: 5,
-									speed: 50,
-									variant: 'klatt3',
-									voice: 'en'
-								}
-							});
-							
-							sdEntity.entities.push( chat_ent );
+								break;
+							}
+							default:
+							{
+								let t = sdWorld.AnyOf( [ 
+									'You will die. Stop delaying the inevitable. Give in and let it happen.',
+									'You do not belong here. Go away, this is not your world.',
+									'You can\'t run forever.',
+									'I can see you. You can\'t hide from me',
+									'Surrender to me. You will not get away this time.',
+									'Close your eyes. Embrace the eternal sleep.'
+								] );
+								
+								let chat_ent = new sdEffect ({
+									x:status_entity.for.x + ( Math.random() * 100  - Math.random() * 100 ), 
+									y:status_entity.for.y + ( Math.random() * 100  - Math.random() * 100 ), 
+									type:sdEffect.TYPE_CHAT,
+									text:t,
+									color: '#FF0000',
+									voice: { 
+										wordgap: 0,
+										pitch: 5,
+										speed: 50,
+										variant: 'klatt3',
+										voice: 'en'
+									}
+								});
+								
+								sdEntity.entities.push( chat_ent );
+								
+								break;
+							}
 						}
 					}
 				}
