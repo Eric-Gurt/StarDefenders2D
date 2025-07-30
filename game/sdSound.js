@@ -244,6 +244,7 @@ ghost_start
 ghost_stop
 glass10
 glass12
+gravity_gun
 guanako_confused
 guanako_death
 guanako_disagreeing

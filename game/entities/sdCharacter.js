@@ -598,6 +598,11 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
+		if ( Math.random() < 1 / 3 )
+		if ( this.armor > 0 )
+		if ( this.hea > 0 && !this._dying )
+		return sdEffect.TYPE_WALL_HIT;
+	
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
@@ -625,7 +630,7 @@ class sdCharacter extends sdEntity
 	GetBleedEffectFilter()
 	{
 		if ( this._voice.variant === 'clone' )
-		return 'grayscale(100%)brightness(0.75)'
+		return 'saturate(0)brightness(0.75)'
 	
 		return '';
 	}
@@ -2819,8 +2824,8 @@ THING is cosmic mic drop!`;
 	
 		if ( dmg > 0 )
 		if ( initiator && initiator !== this && ( initiator.cc_id !== this.cc_id || this.cc_id === 0 ) ) // Allow PvP damage scale for non-teammates only
-		if ( ( this._my_hash !== undefined || this._socket || this.title === 'Player from the shop' ) && 
-		     ( initiator._my_hash !== undefined || initiator._socket || initiator.title === 'Player from the shop' ) ) // Both are real players or at least test dummie from the shop
+		if ( ( this._my_hash !== undefined || this._socket ) && 
+		( initiator._my_hash !== undefined || initiator._socket ) ) // Both are real players or at least test dummie from the shop
 		if ( this.is( sdCharacter ) && initiator.is( sdCharacter ) ) // Only for characters... So it won't make drones/Overlords overpowered
 		{
 			dmg *= sdWorld.server_config.player_vs_player_damage_scale;
@@ -2913,15 +2918,26 @@ THING is cosmic mic drop!`;
 				
 					if ( damage_to_deal > dmg )
 					throw new Error( 'Armor logic error, hitpoints damage increased after armor was applied damage_to_deal > dmg === ' + damage_to_deal + ' > ' + dmg );
-				
+
 					if ( damage_to_deal < 0 )
 					throw new Error( 'Armor logic error, hitpoints damage is negative damage_to_deal === ' + damage_to_deal );
-					
+
 					sdSound.PlaySound({ name:'armor_break', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 } );
+
+					for ( let i = 0; i < 5; i++ )
+					{
+						let a = Math.random() * 2 * Math.PI;
+						let s = Math.random() * 2;
+
+						let k = Math.random();
+
+						let x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+						let y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+					}
 					
 					this.RemoveArmor();
-					
-					
 				}
 			}
 			

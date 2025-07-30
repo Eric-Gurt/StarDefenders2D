@@ -15,8 +15,8 @@ class sdUpgradeStation extends sdEntity
 {
 	static init_class()
 	{
-		sdUpgradeStation.img_us = sdWorld.CreateImageFromFile( 'upgrade_station' ); // Re-skin by Flora
-		sdUpgradeStation.img_us_disabled = sdWorld.CreateImageFromFile( 'upgrade_station_disabled' ); // Re-skin by Flora
+		sdUpgradeStation.img_us = sdWorld.CreateImageFromFile( 'upgrade_station_disabled' ); // Re-skin by Flora
+		sdUpgradeStation.img_hologram = sdWorld.CreateImageFromFile( 'upgrade_station_hologram' ); // Re-skin by Flora
 
 		sdUpgradeStation.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
 		
@@ -113,77 +113,30 @@ class sdUpgradeStation extends sdEntity
 	}
 	DropBasicEquipment( character )
 	{
-		setTimeout(()=>{ // Just in case, unsure if needed
-
-			let gun, gun2, gun3, gun4, gun5, gun6; // Note: Same variable could have been used too -- Eric Gurt
+		setTimeout(()=> // Just in case, unsure if needed
+		{
+			let items = [ ];
 			
-			if ( this.level === 1 )
-			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
-			else
-			if ( this.level === 2 )
-			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
-			else
-			//if ( this.level === 3 )
-			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SMG });
-		
-			// Note: Missing level have caused gun to be undefined. Keep last level under else condition to avoid that.
-		
-			gun.sx = character.sx;
-			gun.sy = character.sy;
-			sdEntity.entities.push( gun );
+			switch ( this.level )
+			{
+				case 1:
+				items = [ sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE, sdGun.CLASS_SHOTGUN, sdGun.CLASS_SWORD, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+				break;
+				case 2:
+				items = [ sdGun.CLASS_LASER_PISTOL, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+				break;
+				default: // Level 3 or higher
+				items = [ sdGun.CLASS_SMG, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+				break;
+			}
 			
-			// --
-
-			if ( this.level === 1 )
-			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
-			else
-			//if ( this.level >= 2 )
-			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG });
-		
-			gun2.sx = character.sx;
-			gun2.sy = character.sy;
-			sdEntity.entities.push( gun2 );
-			
-			// --
-			
-			if ( this.level < 3 )
-			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN });
-			//if ( this.level >= 3 )
-			else
-			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN_MK2 });
-		
-			gun3.sx = character.sx;
-			gun3.sy = character.sy;
-			sdEntity.entities.push( gun3 );
-			
-			// --
-
-			if ( this.level === 1 )
-			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SWORD });
-			//if ( this.level >= 2 )
-			else
-			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SABER });
-		
-			gun4.sx = character.sx;
-			gun4.sy = character.sy;
-			sdEntity.entities.push( gun4 );
-			
-			// --
-
-			gun5 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_MEDIKIT });
-			gun5.sx = character.sx;
-			gun5.sy = character.sy;
-			sdEntity.entities.push( gun5 );
-			
-			// --
-
-			gun6 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_BUILD_TOOL });
-			gun6.sx = character.sx;
-			gun6.sy = character.sy;
-			sdEntity.entities.push( gun6 );
-
-			}, 500 );
-		this._cooldown = 900; // 30 second cooldown so it does not get spammed.
+			for ( let i = 0; i < 6; i++ )
+			{
+				let gun = new sdGun({ x:character.x, y:character.y, class:items[ i ] });
+				sdEntity.entities.push( gun );
+			}
+		}, 500 );
+		this.cooldown = 900; // 30 second cooldown so it does not get spammed.
 		this.matter -= 500;
 		this.WakeUpMatterSources();
 		sdWorld.UpdateHashPosition( this, false );
@@ -198,7 +151,7 @@ class sdUpgradeStation extends sdEntity
 		this.hmax = 5000 * 2;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
-		this._cooldown = 0;
+		this.cooldown = 0;
 		this.matter_max = 5500;
 		this.matter = 100;
 		this.level = 1;
@@ -238,8 +191,8 @@ class sdUpgradeStation extends sdEntity
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 
-		if ( this._cooldown > 0 )
-		this._cooldown -= GSPEED;
+		if ( this.cooldown > 0 )
+		this.cooldown -= GSPEED;
 	
 		if ( this._armor_cooldown > 0 )
 		this._armor_cooldown -= GSPEED;
@@ -260,28 +213,22 @@ class sdUpgradeStation extends sdEntity
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		if ( this._hologram_timer <= 0 ) // A bit messy perhaps?
 		{
-			let ents = sdWorld.GetAnythingNear( this.x, this.y, 16 );
-			let is_found = false;
+			let ents = sdWorld.GetAnythingNear( this.x, this.y, 32 );
 	
-			if ( ents.length > 0 )
 			for ( let i = 0; i < ents.length; i++ )
 			{
-				if ( !is_found ) 
+				let e = ents[ i ];
 				{
-					let e = ents[ i ];
-					if ( !e._is_being_removed )
+					if ( e.IsPlayerClass() ) 
 					{
-						if ( e.IsPlayerClass() ) 
-						{
-							this._hologram = true;
-							is_found = true;
-							this._hologram_timer = 10; // Can be low since it does not have to be server-sided
-						}
-						else
-						this._hologram = false;
+						this._hologram = true;
+						this._hologram_timer = 10; // Can be low since it does not have to be server-sided
+
+						break;
 					}
+					this._hologram = false;
 				}
-			}	
+			}
 		}
 		this.sy += sdWorld.gravity * GSPEED;
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
@@ -345,14 +292,25 @@ class sdUpgradeStation extends sdEntity
 	Draw( ctx, attached )
 	{
 		if ( this._hologram )
+		{
+			ctx.blend_mode = THREE.AdditiveBlending;
+			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+			if ( this.cooldown > 0 )
+			ctx.filter = 'hue-rotate(270deg)';
+		
+			ctx.drawImageFilterCache( sdUpgradeStation.img_hologram, -16, -16 - 31, 32,64 );
+
+			ctx.blend_mode = THREE.NormalBlending;
+			ctx.globalAlpha = 1;
+			ctx.filter = 'none';
+		}
 		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 31, 32,64 );
-		else
-		ctx.drawImageFilterCache( sdUpgradeStation.img_us_disabled, -16, -16 - 31, 32,64 );
-	
+
 		if ( this.armor_to_build !== -1 )
 		{
 			ctx.drawImageFilterCache( sdGun.classes[ this.armor_to_build ].image, - 16, -8, 32,32 );
 		}
+		
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -388,7 +346,7 @@ class sdUpgradeStation extends sdEntity
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 				{
-					if ( this._cooldown <= 0 )
+					if ( this.cooldown <= 0 )
 					{
 						if ( this.matter >= 500 )
 						this.DropBasicEquipment( executer_socket.character );
@@ -396,7 +354,7 @@ class sdUpgradeStation extends sdEntity
 						executer_socket.SDServiceMessage( 'Upgrade station needs at least 500 matter!' );
 					}
 					else
-					executer_socket.SDServiceMessage( 'Upgrade station is generating new weapons, please wait ' + ~~( this._cooldown / 30 ) + ' seconds.' );
+					executer_socket.SDServiceMessage( 'Upgrade station is generating new weapons, please wait ' + ~~( this.cooldown / 30 ) + ' seconds.' );
 				}
 				else
 				{

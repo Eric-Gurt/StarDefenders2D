@@ -25,6 +25,15 @@ class sdWeaponBench extends sdEntity
 	get hitbox_y1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -24 : -11; }
 	get hitbox_y2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 24 : 0; }
 	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+		return null;
+		
+		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+		return [ 0, 0, -40 ];
+	}
+	
 	GetSlotsTotal()
 	{
 		return this.type === sdWeaponBench.TYPE_DISPLAY ? 8 : 1;
@@ -171,23 +180,10 @@ class sdWeaponBench extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( sdShop.isDrawing )
-		{
-			if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-			ctx.scale( 0.75, 0.75 );
-		}
-
-		let xx = 0;
-		let yy = 0;
-
-		if ( this.locked )
-		xx = 1;
-
-		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_workbench, - 16, - 16, 32,32 );
-	
 		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_locker, xx * 64, 0, 64, 48, - 32, - 24, 64, 48);
+		return;
+	
+		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_workbench, - 16, - 16, 32,32 );
 	
 		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 		{
@@ -205,8 +201,6 @@ class sdWeaponBench extends sdEntity
 					ctx.translate( offsets.x, offsets.y );
 			
 					item.Draw( ctx, true );
-				
-					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 					{
 						let has_class = sdGun.classes[ item.class ];
 			
@@ -285,6 +279,46 @@ class sdWeaponBench extends sdEntity
 							sdEntity.TooltipUntranslated( ctx, T('Access ID') + ': ' + this.gun_password, 0, -10, '#333333' );
 						}
 					}
+					ctx.restore();
+				}
+			}
+		}
+	}
+	DrawBG( ctx, attached )
+	{
+		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+		return;
+	
+		if ( sdShop.isDrawing )
+		{
+			ctx.scale( 0.75, 0.75 );
+		}
+
+		let xx = 0;
+		let yy = 0;
+
+		if ( this.locked )
+		xx = 1;
+	
+		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_locker, xx * 64, 0, 64, 48, - 32, - 24, 64, 48);
+	
+		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
+		{
+			let item = this[ 'item' + i ];
+			
+			if ( item )
+			{
+				if ( this.locked )
+				return;
+
+				let offsets = this.GetItemOffset( i );
+			
+				ctx.save();
+				{
+					ctx.translate( offsets.x, offsets.y );
+			
+					item.Draw( ctx, true );
+					
 					ctx.restore();
 				}
 			}
@@ -400,7 +434,7 @@ class sdWeaponBench extends sdEntity
 					
 					this.item_dps = from_entity._max_dps || 100;
 					
-					if ( from_entity.class == sdGun.CLASS_ACCESS_KEY )
+					if ( from_entity.class === sdGun.CLASS_ACCESS_KEY )
 					this.gun_password = from_entity._access_id;
 					else
 					this.gun_password = null;
@@ -622,13 +656,14 @@ class sdWeaponBench extends sdEntity
 				{
 					if ( typeof parameters_array[ 0 ] === 'string' )
 					{
-						if ( parameters_array[ 0 ].length < 16 )
+						if ( parameters_array[ 0 ].length < 32 )
 						{
 							if ( this.item0.class === sdGun.CLASS_ACCESS_KEY )
 							{
 								if ( this.item0.extra )
 								{
 									this.item0.extra[ 15 ] = parameters_array[ 0 ]; // ID_TITLE = 15
+									this.item0.title_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
 								
 									this._update_version++;
 									executer_socket.SDServiceMessage( 'Keycard hint has been set' );

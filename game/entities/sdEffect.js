@@ -34,7 +34,7 @@ class sdEffect extends sdEntity
 			'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic', 'sdDrone', 'sdBot', 'sdFaceCrab', 'sdTurret'
 		];*/
 		sdEffect.unignored_entity_classes_arr = [ 
-			'sdBlock', 'sdDoor'
+			'sdBlock', 'sdDoor', 'sdConveyor'
 		];
 		
 		sdEffect.TYPE_BLOOD = 0;
@@ -70,6 +70,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_LENS_FLARE = 30;
 		sdEffect.TYPE_GLASS = 31;
 		sdEffect.TYPE_SHRAPNEL = 32;
+		sdEffect.TYPE_GLOW_ALT = 33;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -417,6 +418,12 @@ class sdEffect extends sdEntity
 		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_SPARK ] );
 		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
 		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
+		
+		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_GLOW_HIT ] );
+		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].images = [ sdWorld.CreateImageFromFile( 'glow_alt' ) ];
+		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].random_flip = true;
+		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].random_rotation = true;
+		
 		
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
@@ -1165,7 +1172,7 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
-		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		if ( this._type === sdEffect.TYPE_GLOW_HIT || this._type === sdEffect.TYPE_GLOW_ALT )
 		{
 		}
 		else
@@ -1401,10 +1408,12 @@ class sdEffect extends sdEntity
 			ctx.blend_mode = THREE.NormalBlending;
 		}
 		else
-		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		if ( this._type === sdEffect.TYPE_GLOW_HIT || this._type === sdEffect.TYPE_GLOW_ALT )
 		{
 			if ( this._radius !== 0 )
 			ctx.scale( 1 + this._radius, 1 + this._radius );
+			if ( this._rotation !== 0 )
+			ctx.rotate( this._rotation );
 		
 			if ( this._sd_tint_filter === null )
 			{

@@ -838,7 +838,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ANCIENT_WALL, natural: false, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdRoach', type: 0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdRoach', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
