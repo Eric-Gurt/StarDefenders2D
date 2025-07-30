@@ -366,7 +366,7 @@ class sdMothershipContainer extends sdEntity
 							mission: sdTask.MISSION_PROTECT_ENTITY,				
 							title: 'Protect and fill the mothership matter container with matter',
 							description: desc,
-							difficulty: 1.6,
+							difficulty: 2, // 1.6 was definitely not worth it
 							time_left: this._time_until_remove - ( 30 * 3 ),
 							allow_hibernation: false
 						});
@@ -480,7 +480,7 @@ class sdMothershipContainer extends sdEntity
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
 							title: 'Extract the mothership matter container',
 							description: desc,
-							difficulty: 0.4,
+							difficulty: 10, // 0.4 was definitely not worth it, probably even 10 is not worth it still
 							for_all_players: true, // Reward everyone if successfully completed
 							lrtp_class_proprty_value_array: [ 'sdMothershipContainer', 'matter', this.matter_max ], // And make sure the container is filled
 							time_left: this._time_until_remove - ( 30 * 3 )

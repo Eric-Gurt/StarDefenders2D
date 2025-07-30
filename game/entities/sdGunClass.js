@@ -2898,6 +2898,19 @@ class sdGunClass
 							}
 
 							//bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+							
+							if ( bullet._owner._current_built_entity.t === sdCable.TYPE_WIRELESS )
+							{
+								if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
+								{
+									target_entity.variation = bullet._owner._current_built_entity.v;
+									target_entity._update_version++;
+								}
+								else
+								{
+									bullet._owner._current_built_entity.t = sdCable.TYPE_MATTER;
+								}
+							}
 
 							bullet._owner._current_built_entity._update_version++;
 
@@ -2914,7 +2927,13 @@ class sdGunClass
 							offsets: target_entity.is( sdNode ) ? [ 0,0, 0,0 ] : [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
 							type: ( target_entity.is( sdStorageTank ) || target_entity.is( sdEssenceExtractor ) ) ? sdCable.TYPE_LIQUID : sdCable.TYPE_MATTER
 						});
-
+						
+						if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
+						{
+							ent.t = sdCable.TYPE_WIRELESS; // Type
+							ent.v = target_entity.variation;
+						}
+					
 						bullet._owner._current_built_entity = ent;
 						//bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
 
@@ -3406,6 +3425,8 @@ class sdGunClass
 					gun._held_by.sx = 0;
 					gun._held_by.sy = 0;
 					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+						
+					gun._held_by.PhysWakeUp();
 				}
 				return true;
 			},
@@ -5678,6 +5699,9 @@ class sdGunClass
 					gun._held_by.sy = 0;
 					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 					gun._held_by.matter -= 30;
+						
+					gun._held_by.PhysWakeUp();
+					
 					return true;
 				}
 				return false;
@@ -6679,6 +6703,8 @@ class sdGunClass
 					gun._held_by.sx = dx * 2;
 					gun._held_by.sy = dy * 2;
 					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+						
+					gun._held_by.PhysWakeUp();
 
 					if ( landed_hit === true )
 					{

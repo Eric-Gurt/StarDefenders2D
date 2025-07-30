@@ -832,13 +832,13 @@ class sdSteeringWheel extends sdEntity
 							 //sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED, false, this )
 							)
 						{
-							if ( this.driver0.CanMoveWithoutOverlap( this.driver0.x + xx, this.driver0.y + yy ) )
+							/*if ( this.driver0.CanMoveWithoutOverlap( this.driver0.x + xx, this.driver0.y + yy ) )
 							{
 								this.driver0.x += xx;
 								this.driver0.y += yy;
 								
 								sdWorld.UpdateHashPosition( this.driver0, false, false );
-							}
+							}*/
 						}
 						else
 						{					
@@ -1004,85 +1004,92 @@ class sdSteeringWheel extends sdEntity
 			throw new Error( 'Unable to cache _scan_set' );
 		}
 
+		const Filter = ( ent2, current )=>
+		{
+			if ( ent2._is_being_removed )
+			{
+				//trace( 'Skipped potentially stopping entity that is being removed', ent2 );
+				return false;
+			}
+
+			if ( ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsPhysicallyMovable() )
+			{
+				if ( stuff_to_push.indexOf( ent2 ) === -1 )
+				{
+					stuff_to_push.push( ent2 );
+
+					ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );
+				}
+			}
+			else
+			{
+				//if ( scan.indexOf( ent2 ) === -1 )
+				if ( !scan_set.has( ent2 ) )
+				{
+					// Let sample builders go through unprotected walls since it might be the one building them
+					if ( current.is( sdSampleBuilder ) )
+					if ( typeof ent2._shielded !== 'undefined' )
+					if ( ent2._shielded === null )
+					{
+						return false;
+					}
+
+					if ( ent2.is( sdButton ) )
+					{
+						return false;
+					}
+
+					if ( stopping_entities.indexOf( ent2 ) === -1 )
+					{
+						stopping_entities.push( ent2 );
+
+						//trace( 'Added stopping entity', ent2 );
+
+						if ( !forceful )
+						if ( stopped_entities.indexOf( current ) === -1 )
+						stopped_entities.push( current );
+					}
+				}
+			}
+
+			return false;
+		};
+
+		const GetIgnoredEntityClassesFor = ( current )=>
+		{
+			if ( current.is( sdDoor ) )
+			return sdDoor.ignored_entity_classes_travel;
+
+			return current.GetIgnoredEntityClasses();
+		};
+
+		const AddItemToPushWithAnythingOnTop = ( ent2 )=>
+		{
+			if ( !ent2._is_being_removed )
+			if ( ent2.IsPhysicallyMovable() )
+			if ( stuff_to_push.indexOf( ent2 ) === -1 )
+			{
+				stuff_to_push.push( ent2 );
+				RecursivelyAddItemsLyingOnTop( ent2 );
+			}
+		};
+		const RecursivelyAddItemsLyingOnTop = ( current )=>
+		{
+			if ( current._phys_entities_on_top )
+			for ( let i = 0; i < current._phys_entities_on_top.length; i++ )
+			{
+				let ent2 = current._phys_entities_on_top[ i ];
+
+				AddItemToPushWithAnythingOnTop( ent2 );
+			}
+		};
+		
+		if ( initiator.driver0 )
+		AddItemToPushWithAnythingOnTop( initiator.driver0 );
+
 		for ( let i = 0; i < scan.length; i++ )
 		{
 			let current = scan[ i ];
-
-			/*if ( current._is_being_removed )
-			{
-				scan.splice( i, 1 );
-				
-				if ( _scan_net_ids )
-				_scan_net_ids.splice( i, 1 );
-				
-				i--;
-				continue;
-			}*/
-
-			const Filter = ( ent2, current )=>
-			{
-				if ( ent2._is_being_removed )
-				{
-					//trace( 'Skipped potentially stopping entity that is being removed', ent2 );
-					return false;
-				}
-			
-				// Normally, it should igonre all possible drivers
-				/*if ( ent2 === this.driver0 )
-				{
-					return false;
-				}*/
-						
-				if ( ent2.onThink.has_ApplyVelocityAndCollisions )
-				{
-					if ( stuff_to_push.indexOf( ent2 ) === -1 )
-					{
-						stuff_to_push.push( ent2 );
-						
-						ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );
-					}
-				}
-				else
-				{
-					//if ( scan.indexOf( ent2 ) === -1 )
-					if ( !scan_set.has( ent2 ) )
-					{
-						// Let sample builders go through unprotected walls since it might be the one building them
-						if ( current.is( sdSampleBuilder ) )
-						if ( typeof ent2._shielded !== 'undefined' )
-						if ( ent2._shielded === null )
-						{
-							return false;
-						}
-						
-						if ( ent2.is( sdButton ) )
-						{
-							return false;
-						}
-
-						if ( stopping_entities.indexOf( ent2 ) === -1 )
-						{
-							stopping_entities.push( ent2 );
-							
-							//trace( 'Added stopping entity', ent2 );
-							
-							if ( !forceful )
-							if ( stopped_entities.indexOf( current ) === -1 )
-							stopped_entities.push( current );
-						}
-					}
-				}
-
-				return false;
-			};
-			
-			const GetIgnoredEntityClassesFor = ( current )=>
-			{
-				if ( current.is( sdDoor ) )
-				return sdDoor.ignored_entity_classes_travel;
-				
-				return current.GetIgnoredEntityClasses();
-			};
 
 			if ( current.CanMoveWithoutOverlap( current.x + xx, current.y + yy, 0, ( ent2 )=>{ return Filter( ent2, current ); }, GetIgnoredEntityClassesFor( current ) ) )
 			{
@@ -1095,15 +1102,7 @@ class sdSteeringWheel extends sdEntity
 				stopped_entities.push( current );
 			}
 			
-			if ( current._phys_entities_on_top )
-			for ( let i = 0; i < current._phys_entities_on_top.length; i++ )
-			{
-				let ent2 = current._phys_entities_on_top[ i ];
-				
-				if ( !ent2._is_being_removed )
-				if ( stuff_to_push.indexOf( ent2 ) === -1 )
-				stuff_to_push.push( ent2 );
-			}
+			RecursivelyAddItemsLyingOnTop( current );
 			
 			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 )
 			will_move = false;
@@ -1117,9 +1116,27 @@ class sdSteeringWheel extends sdEntity
 			if ( current.y + yy + current._hitbox_y1 < sdWorld.world_bounds.y1 )
 			will_move = false;
 		}
+		for ( let i = 0; i < stuff_to_push.length; i++ )
+		{
+			let current = stuff_to_push[ i ];
+			
+			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 && !current.CanMoveWithoutOverlap( current.x - 1, current.y ) )
+			will_move = false;
+			else
+			if ( current.x + xx + current._hitbox_x1 < sdWorld.world_bounds.x1 && !current.CanMoveWithoutOverlap( current.x + 1, current.y ) )
+			will_move = false;
+			else
+			if ( current.y + yy + current._hitbox_y2 > sdWorld.world_bounds.y2 && !current.CanMoveWithoutOverlap( current.x, current.y - 1 ) )
+			will_move = false;
+			else
+			if ( current.y + yy + current._hitbox_y1 < sdWorld.world_bounds.y1 && !current.CanMoveWithoutOverlap( current.x, current.y + 1 ) )
+			will_move = false;
+		}
 
 		if ( stopping_entities.length > 0 || stopped_entities.length > 0 )
 		will_move = false;
+	
+		//trace( 'stuff_to_push', stuff_to_push );
 		
 		if ( will_move || forceful || force_push_bsus )
 		for ( let i = 0; i < stuff_to_push.length; i++ )
@@ -1144,10 +1161,11 @@ class sdSteeringWheel extends sdEntity
 
 				current.x += xx;
 				current.y += yy;
-				
 				sdWorld.UpdateHashPosition( current, false, false );
+				current._last_x = current.x; // Hacky, prevents calling ManageTrackedPhysWakeup in sdWorld entity loop
+				current._last_y = current.y; // Hacky, prevents calling ManageTrackedPhysWakeup in sdWorld entity loop
 				
-				current.ManageTrackedPhysWakeup();
+				//current.ManageTrackedPhysWakeup();
 
 				if ( current.is( sdDoor ) )
 				{
@@ -1165,8 +1183,6 @@ class sdSteeringWheel extends sdEntity
 
 				if ( current.is_static )
 				{
-					//current._update_version++;
-					
 					current.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_MOVEMENT_SMOOTH, tx:current.x, ty:current.y });
 				}
 				
@@ -1179,40 +1195,15 @@ class sdSteeringWheel extends sdEntity
 				
 				item.x += xx;
 				item.y += yy;
-
-				// This was causing items to be easily broken in moving bases
-				/*if ( xx < 0 )
-				{
-					if ( item.sx > xx )
-					item.sx = xx - Math.abs( item.sx - xx ) * item.bounce_intensity;
-				}
-				else
-				if ( xx > 0 )
-				{
-					if ( item.sx < xx )
-					item.sx = xx + Math.abs( item.sx - xx ) * item.bounce_intensity;
-				}
-
-
-				if ( yy < 0 )
-				{
-					if ( item.sy > yy )
-					item.sy = yy - Math.abs( item.sy - yy ) * item.bounce_intensity;
-				}
-				else
-				if ( yy > 0 )
-				{
-					if ( item.sy < yy )
-					item.sy = yy + Math.abs( item.sy - yy ) * item.bounce_intensity;
-				}*/
-				
 				sdWorld.UpdateHashPosition( item, false, false );
+				item._last_x = item.x; // Hacky, prevents calling ManageTrackedPhysWakeup in sdWorld entity loop
+				item._last_y = item.y; // Hacky, prevents calling ManageTrackedPhysWakeup in sdWorld entity loop
 				
 				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				
 				item.PhysWakeUp();
 				
-				item.ManageTrackedPhysWakeup();
+				//item.ManageTrackedPhysWakeup();
 				
 				if ( ( item.is( sdCrystal ) && item.held_by ) || item.IsPlayerClass() )
 				{
@@ -1220,6 +1211,18 @@ class sdSteeringWheel extends sdEntity
 				}
 				else
 				item.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_MOVEMENT_SMOOTH, tx:item.x, ty:item.y });
+			}
+			
+			// Call movement in range for everything together, or else motors won't trigger any switches
+			for ( let i = 0; i < scan.length; i++ )
+			{
+				let current = scan[ i ];
+				sdWorld.UpdateHashPosition( current, false, true );
+			}
+			for ( let i = 0; i < stuff_to_push.length; i++ )
+			{
+				let current = stuff_to_push[ i ];
+				sdWorld.UpdateHashPosition( current, false, true );
 			}
 		}
 		else

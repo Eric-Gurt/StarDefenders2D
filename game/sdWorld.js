@@ -157,8 +157,8 @@ class sdWorld
 				x2: 0, 
 				y2: 0
 			};
-			sdWorld.base_ground_level1 = {};
-			sdWorld.base_ground_level2 = {};
+			//sdWorld.base_ground_level1 = {};
+			//sdWorld.base_ground_level2 = {};
 			sdWorld.base_grass_level = {};
 			sdWorld.base_ground_level = 0;//-256;
 
@@ -528,9 +528,29 @@ class sdWorld
 	{
 		let xx = Math.floor( x / 16 );
 					
-		const pow = 2; // Higher value causes higher variations to be more rare
+		const pow = 1; // Higher value causes higher variations to be more rare
+		
+		if ( sdWorld.base_grass_level[ xx ] === undefined )
+		{
+			if ( sdWorld.base_grass_level[ xx-1 ] !== undefined && sdWorld.base_grass_level[ xx+1 ] !== undefined )
+			{
+				sdWorld.base_grass_level[ xx ] = ( sdWorld.base_grass_level[ xx-1 ] + sdWorld.base_grass_level[ xx+1 ] ) / 2 + ( Math.random() - 0.5 ) * 0.1;
+			}
+			else
+			if ( sdWorld.base_grass_level[ xx-1 ] !== undefined )
+			{
+				sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx-1 ] + ( Math.random() - 0.5 ) * 0.1;
+			}
+			else
+			if ( sdWorld.base_grass_level[ xx+1 ] !== undefined )
+			{
+				sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx+1 ] + ( Math.random() - 0.5 ) * 0.1;
+			}
+			else
+			sdWorld.base_grass_level[ xx ] = 0 + ( Math.random() - 0.5 ) * 0.1;
+		}
 
-		return Math.round( Math.pow( Math.sin( ( sdWorld.base_grass_level[ xx ] || 0 ) * 15 ) * 0.5 + 0.5, pow ) * 2 );
+		return Math.ceil( Math.pow( Math.sin( ( sdWorld.base_grass_level[ xx ] || 0 ) * 15 ) * 0.5 + 0.5, pow ) * 2 );
 
 	}
 	static GetGroundElevation( x )
@@ -1109,12 +1129,12 @@ class sdWorld
 			for ( var x = sdWorld.world_bounds.x2; x < x2; x += 16 )
 			{
 				var xx = Math.floor( x / 16 );
-				sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx - 1 ] || 0;
-				sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx - 1 ] || 0;
+				//sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx - 1 ] || 0;
+				//sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx - 1 ] || 0;
 				sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx - 1 ] || 0;
 
-				sdWorld.base_ground_level1[ xx ] += ( Math.random() - 0.5 ) * 0.2;
-				sdWorld.base_ground_level2[ xx ] += ( Math.random() - 0.25 ) * 0.1;
+				//sdWorld.base_ground_level1[ xx ] += ( Math.random() - 0.5 ) * 0.2;
+				//sdWorld.base_ground_level2[ xx ] += ( Math.random() - 0.25 ) * 0.1;
 				sdWorld.base_grass_level[ xx ] += ( Math.random() - 0.5 ) * 0.1;
 
 				var from_y = GetGroundElevation( xx );
@@ -1135,12 +1155,12 @@ class sdWorld
 			for ( var x = sdWorld.world_bounds.x1 - 16; x >= x1; x -= 16 )
 			{
 				var xx = Math.floor( x / 16 );
-				sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx + 1 ] || 0;
-				sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx + 1 ] || 0;
+				//sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx + 1 ] || 0;
+				//sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx + 1 ] || 0;
 				sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx + 1 ] || 0;
 
-				sdWorld.base_ground_level1[ xx ] -= ( Math.random() - 0.5 ) * 0.2;
-				sdWorld.base_ground_level2[ xx ] -= ( Math.random() - 0.25 ) * 0.1;
+				//sdWorld.base_ground_level1[ xx ] -= ( Math.random() - 0.5 ) * 0.2;
+				//sdWorld.base_ground_level2[ xx ] -= ( Math.random() - 0.25 ) * 0.1;
 				sdWorld.base_grass_level[ xx ] -= ( Math.random() - 0.5 ) * 0.1;
 
 				var from_y = GetGroundElevation( xx );
@@ -1495,7 +1515,7 @@ class sdWorld
 			}
 		}
 	}
-	static SendEffect( params, command='EFF', exclusive_to_sockets_arr=null ) // 'S' for sound
+	static SendEffect( params, command='EFF', exclusive_to_sockets_arr=null ) // 'S' for sound, 'P' for projectile ragdoll push
 	{
 		if ( !sdWorld.is_server )
 		return;

@@ -36,6 +36,7 @@ class sdBomb extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		// Carrying
 		this.held_by = null;
 		
 		this.type = params.type || 0;

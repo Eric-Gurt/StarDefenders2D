@@ -149,7 +149,7 @@ class sdVeloxFortifier extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.125,
+						difficulty: 0.2,
 						title: 'Destroy Velox Fortifier',
 						description: 'Velox have placed a device which grants them shielding capabilities. It is imperative that you destroy it, they are already a nuisance without shields!'
 					});

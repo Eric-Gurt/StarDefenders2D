@@ -22,6 +22,18 @@ class sdCrystalCombiner extends sdEntity
 		sdCrystalCombiner.TYPE_DEFAULT = 0; // Regular crystal combiner
 		sdCrystalCombiner.TYPE_IMPROVED = 1; // Improved version, from workbench
 		sdCrystalCombiner.TYPE_AUTOMATED = 2; // Upside-down version and combines automatically
+		
+		sdCrystalCombiner.AUTO_MODE_IDLE = 0;
+		sdCrystalCombiner.AUTO_MODE_COMBINE = 1;
+		sdCrystalCombiner.AUTO_MODE_DRAIN1 = 2;
+		sdCrystalCombiner.AUTO_MODE_DRAIN2 = 3;
+		sdCrystalCombiner.auto_mode_titles = [
+			'Idle mode',
+			'Combine mode',
+			'Drain left mode',
+			'Drain right mode'
+		];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -18; }
@@ -94,6 +106,8 @@ class sdCrystalCombiner extends sdEntity
 		this._ignore_pickup_tim = 0;
 		
 		this._regen_timeout = 0;
+		
+		this.auto_mode = sdCrystalCombiner.AUTO_MODE_COMBINE;
 		
 		this.prog = 0; // progress
 		
@@ -281,58 +295,10 @@ class sdCrystalCombiner extends sdEntity
 					{
 						this.prog = 0;
 
-						//this.CombineCrystalsEnd();
 						if ( this.crystal0 )
 						this.DropCrystal( this.crystal0 );
 					
-						// Try to get sleeping crystals on top
-						/*if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
-						{
-							if ( !this.CanMoveWithoutOverlap( this.x, this.y - 1 ) )
-							{
-								if ( sdWorld.last_hit_entity )
-								{
-									this.onMovementInRange( sdWorld.last_hit_entity );
-								}
-							}
-						*/
-						
-						//trace( 'Combining ended' );
-					   
-						//this.ManageTrackedPhysWakeup();
-						
-						let tries = 10; // Try for 1 second
-						
-						sdTimer.ExecuteWithDelay( ( timer )=>{
-
-							if ( this._is_being_removed || ( this.crystal0 && this.crystal1 ) )
-							{
-								//trace( 'We already have crystals' );
-								return;
-							}
-
-							this.ManageTrackedPhysWakeup();
-							
-							if ( !this.CanMoveWithoutOverlap( this.x, this.y - 1 ) )
-							if ( sdWorld.last_hit_entity )
-							{
-								sdWorld.last_hit_entity.ManageTrackedPhysWakeup();
-								this.onMovementInRange( sdWorld.last_hit_entity );
-							}
-							
-							//if ( this._phys_entities_on_top && this._phys_entities_on_top.length > 0 )
-							//{
-								if ( tries-- > 0 )
-								{
-									timer.ScheduleAgain( 100 );
-								}
-								//else
-								//trace( 'Out of tries' );
-							//}
-							//else
-							//trace( 'Nothing rests of top, stopping lookup' );
-
-						}, 100 );
+						this.AttemptGrabbingNewCrystals();
 					}
 					else
 					{
@@ -391,15 +357,24 @@ class sdCrystalCombiner extends sdEntity
 				}
 				else
 				{
-					this.drain_direction = 0;
+					/*this.drain_direction = 0;
 					this._update_version++;
 					sdSound.PlaySound({ name:'crystal_combiner_endB', x:this.x, y:this.y, volume:1 });
+					*/
+					this.DrainWithDirection( 0 );
+					
+					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+					{
+						this.DropCrystals();
+						this.AttemptGrabbingNewCrystals();
+					}
 				}
 			}
 			else
 			{
-				this.drain_direction = 0;
-				this._update_version++;
+				/*this.drain_direction = 0;
+				this._update_version++;*/
+				this.DrainWithDirection( 0 );
 			}
 		}
 		
@@ -578,6 +553,21 @@ class sdCrystalCombiner extends sdEntity
 		}
 	}
 	
+	DrainWithDirection( direction )
+	{
+		if ( this.drain_direction !== direction )
+		{
+			this._update_version++;
+			this.drain_direction = direction;
+			this.prog = 0;
+
+			if ( direction === 0 )
+			sdSound.PlaySound({ name:'crystal_combiner_endB', x:this.x, y:this.y, volume:1 });
+			else
+			sdSound.PlaySound({ name:'crystal_combiner_startB', x:this.x, y:this.y, volume:1 });
+		}
+	}
+	
 	CombineCrystals()
 	{
 		if ( !sdWorld.is_server )
@@ -718,6 +708,38 @@ class sdCrystalCombiner extends sdEntity
 		
 		return true;
 	}*/
+	
+	AttemptGrabbingNewCrystals()
+	{
+		let tries = 30; // Try for 3 seconds
+
+		sdTimer.ExecuteWithDelay( ( timer )=>
+		{
+			if ( this._is_being_removed || ( this.crystal0 && this.crystal1 ) )
+			{
+				return;
+			}
+
+			let arr = this._phys_entities_on_top;
+			if ( arr )
+			for ( let i = 0; i < arr.length; i++ )
+			this.onMovementInRange( arr[ i ] );
+
+			/*this.ManageTrackedPhysWakeup();
+
+			if ( !this.CanMoveWithoutOverlap( this.x, this.y - 1 ) )
+			if ( sdWorld.last_hit_entity )
+			{
+				sdWorld.last_hit_entity.ManageTrackedPhysWakeup();
+				this.onMovementInRange( sdWorld.last_hit_entity );
+			}*/
+
+			if ( tries-- > 0 )
+			timer.ScheduleAgain( 100 );
+
+		}, 100 );
+	}
+	
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
@@ -775,6 +797,19 @@ class sdCrystalCombiner extends sdEntity
 							this.GetYFor( from_entity ), 
 							0 ) );
 							
+				
+					// Never swap left and right in case of draining and automatic combiner
+					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+					if ( this.auto_mode === sdCrystalCombiner.AUTO_MODE_DRAIN1 || 
+						 this.auto_mode === sdCrystalCombiner.AUTO_MODE_DRAIN2 )
+					{
+						if ( from_entity.x < this.x )
+						can_put_right = false;
+						else
+						can_put_left = false;
+					}
+					
+					
 					let di0 = Math.abs( ( this.x - 24 + 16 ) - from_entity.x );
 					let di1 = Math.abs( ( this.x - 8 + 16 ) - from_entity.x );
 					
@@ -810,7 +845,7 @@ class sdCrystalCombiner extends sdEntity
 					this._update_version++;
 					
 					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
-					this.CombineCrystals();
+					this.DoAutomaticAction();
 				}
 			}
 		}
@@ -824,6 +859,18 @@ class sdCrystalCombiner extends sdEntity
 		}
 	}
 	
+	DoAutomaticAction()
+	{
+		if ( this.auto_mode === sdCrystalCombiner.AUTO_MODE_COMBINE )
+		this.CombineCrystals();
+
+		if ( this.auto_mode === sdCrystalCombiner.AUTO_MODE_DRAIN1 )
+		this.DrainWithDirection( 1 );
+
+		if ( this.auto_mode === sdCrystalCombiner.AUTO_MODE_DRAIN2 )
+		this.DrainWithDirection( -1 );
+	}
+	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -834,39 +881,48 @@ class sdCrystalCombiner extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			{
-				if ( command_name === 'COMBINE' )
+				if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
 				{
-					if ( this.crystal0 && this.crystal1 )
-					this.CombineCrystals();
-					else
-					executer_socket.SDServiceMessage( 'Crystal combiner needs 2 crystals to combine them' );
-				}
-				if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
-				{
-					if ( this.drain_direction === 0 )
+					if ( command_name === 'AUTO_MODE' )
+					if ( typeof parameters_array[ 0 ] === 'number' )
+					if ( sdCrystalCombiner.auto_mode_titles[ parameters_array[ 0 ] ] )
+					if ( this.auto_mode !== parameters_array[ 0 ] )
 					{
-						if ( command_name === 'DRAIN1' )
-						{
-							this._update_version++;
-							this.drain_direction = 1;
-							this.prog = 0;
-							sdSound.PlaySound({ name:'crystal_combiner_startB', x:this.x, y:this.y, volume:1 });
-						}
-						if ( command_name === 'DRAIN2' )
-						{
-							this._update_version++;
-							this.drain_direction = -1;
-							this.prog = 0;
-							sdSound.PlaySound({ name:'crystal_combiner_startB', x:this.x, y:this.y, volume:1 });
-						}
-					}
-					else
-					if ( command_name === 'DRAIN_STOP' )
-					{
-						this._update_version++;
-						this.drain_direction = 0;
+						this.auto_mode = parameters_array[ 0 ];
+						this.DrainWithDirection( 0 );
 						this.prog = 0;
-						sdSound.PlaySound({ name:'crystal_combiner_endB', x:this.x, y:this.y, volume:1 });
+						this._update_version++;
+						
+						this.DoAutomaticAction();
+					}
+				}
+				else
+				{
+					if ( command_name === 'COMBINE' )
+					{
+						if ( this.crystal0 && this.crystal1 )
+						this.CombineCrystals();
+						else
+						executer_socket.SDServiceMessage( 'Crystal combiner needs 2 crystals to combine them' );
+					}
+					if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+					{
+						if ( this.drain_direction === 0 )
+						{
+							if ( command_name === 'DRAIN1' )
+							{
+								this.DrainWithDirection( 1 );
+							}
+							if ( command_name === 'DRAIN2' )
+							{
+								this.DrainWithDirection( -1 );
+							}
+						}
+						else
+						if ( command_name === 'DRAIN_STOP' )
+						{
+							this.DrainWithDirection( 0 );
+						}
 					}
 				}
 			}
@@ -880,17 +936,25 @@ class sdCrystalCombiner extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 		{
-			this.AddContextOption( 'Combine crystals', 'COMBINE', [] );
-			
-			if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+			if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
 			{
-				if ( this.drain_direction === 0 )
+				for ( let i = 0; i < sdCrystalCombiner.auto_mode_titles.length; i++ )
+				this.AddContextOption( sdCrystalCombiner.auto_mode_titles[ i ], 'AUTO_MODE', [ i ], true, ( this.auto_mode === i ) ? { color:'#00ff00' } : {} );
+			}
+			else
+			{
+				this.AddContextOption( 'Combine crystals', 'COMBINE', [] );
+
+				if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
 				{
-					this.AddContextOption( 'Drain regeneration rate of left crystal', 'DRAIN1', [] );
-					this.AddContextOption( 'Drain regeneration rate of right crystal', 'DRAIN2', [] );
+					if ( this.drain_direction === 0 )
+					{
+						this.AddContextOption( 'Drain regeneration rate of left crystal', 'DRAIN1', [] );
+						this.AddContextOption( 'Drain regeneration rate of right crystal', 'DRAIN2', [] );
+					}
+					else
+					this.AddContextOption( 'Stop draining', 'DRAIN_STOP', [] );
 				}
-				else
-				this.AddContextOption( 'Stop draining', 'DRAIN_STOP', [] );
 			}
 		}
 	}

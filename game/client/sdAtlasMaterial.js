@@ -8,7 +8,7 @@
 
 */
 
-/* global sdLamp */
+/* global sdLamp, sdWeather, sdCharacter */
 
 import sdWorld from '../sdWorld.js';
 import sdRenderer from './sdRenderer.js';
@@ -561,28 +561,96 @@ class sdSuperTexture
 		uv_dataView.setFloat32( offset_4_2 + 0, u1, true );
 		uv_dataView.setFloat32( offset_4_2 + 4, v1, true );
 		
-		//if ( sdRenderer.ctx.apply_shading ) // 39 ms
 		if ( sdRenderer.shading )
+		if ( apply_shading )
+		if ( sdWeather.only_instance )
+		{
+			let sum = 0;
+			
+			const OFFSET_TARGET_RESULT = 0;
+			const OFFSET_AVERAGE_RESULT = 1;
+			const OFFSET_RECALC_FRAME = 2;
+
+			let next_recalc = sdAtlasMaterial.brightness_cache_buffer_dataView.getUint32( cache_slot + OFFSET_RECALC_FRAME );
+			
+			if ( sdAtlasMaterial.brightness_recalculation_frame > next_recalc )
+			{
+				let sun_intensity = sdWeather.only_instance.GetSunIntensity();
+
+				sum += Math.max( 0.5, Math.min( 1, ( 32 - wy ) / 64 ) * sun_intensity * 2 );
+
+				let range;
+				let intenisty;
+
+				for ( let i2 = 0; i2 < sdRenderer.known_light_sources_previous.length; i2++ )
+				{
+					let e = sdRenderer.known_light_sources_previous[ i2 ];
+
+					if ( e.is( sdLamp ) )
+					{
+						range = 200;
+						intenisty = 1;
+					}
+					else
+					if ( e.is( sdWater ) )
+					{
+						range = 100;
+						intenisty = 1;
+					}
+					else
+					{
+						range = 50;
+						intenisty = 0.3;
+					}
+
+					let di = sdWorld.inDist2D( wx, wy, e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2, range );
+					if ( di >= 0 )
+					{
+						sum += intenisty * ( 1 - di / range );
+						//sum += intenisty * ( 30 / ( 30 + 200 * di / range ) );
+					}
+				}
+				for ( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					let e = sdCharacter.characters[ i ];
+					if ( e.flashlight )
+					if ( e.hea > 0 )
+					{
+						range = 150;
+						intenisty = 0.7;
+
+						let di = sdWorld.inDist2D( wx, wy, e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2, range );
+						if ( di >= 0 )
+						{
+							sum += 0.7 * ( 1 - di / range );
+							//sum += intenisty * ( 30 / ( 30 + 200 * di / range ) );
+						}
+					}
+				}
+
+				if ( sum > 1 )
+				sum = 1;
+
+				sdAtlasMaterial.brightness_cache_buffer_dataView.setUint8( cache_slot + OFFSET_TARGET_RESULT, sum * 255 );
+				sdAtlasMaterial.brightness_cache_buffer_dataView.setUint32( cache_slot + OFFSET_RECALC_FRAME, sdAtlasMaterial.brightness_recalculation_frame + 1 );
+				//sdAtlasMaterial.brightness_cache_buffer_dataView.setUint32( cache_slot + OFFSET_RECALC_FRAME, sdAtlasMaterial.brightness_recalculation_frame + 32 + ~~( Math.random() * 32 ) );
+			}
+			else
+			{
+				sum = sdAtlasMaterial.brightness_cache_buffer_dataView.getUint8( cache_slot + OFFSET_TARGET_RESULT ) / 255;
+			}
+			
+			if ( sum < 1 )
+			{
+				r *= sum;
+				g *= sum;
+				b *= sum;
+			}
+		}
+		/*if ( sdRenderer.shading )
 		if ( apply_shading ) // 2 ms
 		if ( sdAtlasMaterial.brightness_cache_buffer_dataView !== null ) // 46 ms
 		{
-			/*
-			//const xx = ( x1 - sdAtlasMaterial.left_top.x ) * sdAtlasMaterial.one_div_right_minus_left_x;
-			//const yy = ( y1 - sdAtlasMaterial.left_top.y ) * sdAtlasMaterial.one_div_right_minus_left_y;
-			
-			//const w = sdAtlasMaterial.brightness_cache_buffer_width;
-			//const h = sdAtlasMaterial.brightness_cache_buffer_height;
-
-			//const x = sdAtlasMaterial.brightness_cache_cam_x + ( xx - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_x;
-			//const y = sdAtlasMaterial.brightness_cache_cam_y + ( yy - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_y;
-			
-			function GetCacheSlot( x, y )
-			{
-				return ( sdWorld.limit( 0, Math.round((y-sdWorld.world_bounds.y1)/16), h ) * w + sdWorld.limit( 0, Math.round((x-sdWorld.world_bounds.x1)/16), w ) ) * sdAtlasMaterial.brightness_cache_buffer_group_size;
-			}
-			
-			let cache_slot = GetCacheSlot( x, y );*/
-			
 			const x = wx;
 			const y = wy;
 			
@@ -616,32 +684,6 @@ class sdSuperTexture
 				}
 
 				TraceRayTowards( x, screen_top_y );
-				//TraceRayTowards( x - ( y - screen_top_y ) * 0.25, screen_top_y );
-				//TraceRayTowards( x + ( y - screen_top_y ) * 0.25, screen_top_y );
-				
-				/*
-				if ( rays < rays_total )
-				for ( let i = 0; i < sdLamp.lamps.length; i++ )
-				if ( sdWorld.inDist2D_Boolean( x, y, sdLamp.lamps[i].x, sdLamp.lamps[i].y, 200 ) )
-				if ( sdWorld.CheckLineOfSight( x, y, sdLamp.lamps[i].x, sdLamp.lamps[i].y, sdLamp.lamps[i], null, null, sdWorld.FilterVisionBlocking ) )
-				{
-					rays += rays_total;
-
-					if ( rays >= rays_total )
-					break;
-				}
-				
-				if ( rays < 3 )
-				for ( let i = 0; i < sdWater.all_waters.length; i++ )
-				if ( sdWater.all_waters[i].type === sdWater.TYPE_LAVA )
-				if ( sdWorld.inDist2D_Boolean( x, y, sdWater.all_waters[i].x + 8, sdWater.all_waters[i].y + 8, 100 ) )
-				if ( sdWorld.CheckLineOfSight( x, y, sdWater.all_waters[i].x + 8, sdWater.all_waters[i].y + 8, sdWater.all_waters[i], null, null, sdWorld.FilterVisionBlocking ) )
-				{
-					rays += rays_total;
-
-					if ( rays >= rays_total )
-					break;
-				}*/
 				
 				let fast_recalc = false;
 				
@@ -651,15 +693,18 @@ class sdSuperTexture
 					let e = sdRenderer.known_light_sources_previous[ i2 ];
 					
 					// Blinking bug? Check this
-					/*if ( 
-						isNaN( e.x ) ||
-						isNaN( e.y ) ||
-						isNaN( e._hitbox_x1 ) ||
-						isNaN( e._hitbox_x2 ) ||
-						isNaN( e._hitbox_y1 ) ||
-						isNaN( e._hitbox_y2 )
-					)
-					debugger;*/
+					if ( 0 )
+					{
+						if ( 
+							isNaN( e.x ) ||
+							isNaN( e.y ) ||
+							isNaN( e._hitbox_x1 ) ||
+							isNaN( e._hitbox_x2 ) ||
+							isNaN( e._hitbox_y1 ) ||
+							isNaN( e._hitbox_y2 )
+						)
+						debugger;
+					}
 					
 					let range = e.is( sdLamp ) ? 200 : e.is( sdWater ) ? 100 : 50;
 					
@@ -680,42 +725,6 @@ class sdSuperTexture
 						}
 					}
 				}
-				
-				/*if ( rays < rays_total )
-				{
-					for ( let i = 0; i < sdCharacter.characters.length; i++ )
-					{
-						let char = sdCharacter.characters[ i ];
-						if ( char.hea > 0 )
-						{
-							let firstAngle = Math.atan2( char.look_x - char.x, char.look_y - char.y );
-							let secondAngle = Math.atan2( wx - char.x, wy - char.y );
-
-							let an = firstAngle - secondAngle;
-
-							if ( an > Math.PI )
-							an -= Math.PI * 2;
-
-							if ( an < -Math.PI )
-							an += Math.PI * 2;
-
-							an = Math.abs( an ) / 0.5;
-
-							if ( an < 1 )
-							{
-								let di = sdWorld.Dist2D_Vector( wx - char.x, wy - char.y );
-								
-								fast_recalc = true;
-
-								if ( di < 400 )
-								if ( sdWorld.CheckLineOfSight( char.x, char.y, wx, wy, null, null, sdCom.com_vision_blocking_classes ) )
-								rays = Math.min( rays_total, rays + rays_total * ( 1 - an ) * ( 1 - di / 400 ) );
-								//current_result = Math.max( current_result, 255 * ( 1 - an ) * ( 1 - di / 400 ) );
-							}
-						}
-					}
-				}*/
-				
 				
 				target_result *= ( rays / rays_total ) * 0.9 + 0.1;
 				
@@ -744,31 +753,16 @@ class sdSuperTexture
 				
 					let last_recalc = sdAtlasMaterial.brightness_cache_buffer_dataView.getUint32( cache_slot + OFFSET_RECALC_FRAME );
 					
-					//if ( last_recalc <= 0 || last_recalc < sdAtlasMaterial.brightness_recalculation_frame - 60 )
 					if ( last_recalc <= 0  )
 					return -1;
 
-					//tot++;
-
-					//if ( target_result === -1 )
 					target_result = sdAtlasMaterial.brightness_cache_buffer_dataView.getUint8( cache_slot + OFFSET_TARGET_RESULT );
 
 					return target_result;
 				}
 
 				current_result = target_result; tot++;
-				/*
-				current_result += GetFinalBrightnessFor( cache_slot + sdAtlasMaterial.brightness_cache_buffer_group_size );
-				current_result += GetFinalBrightnessFor( cache_slot - sdAtlasMaterial.brightness_cache_buffer_group_size );
-				current_result += GetFinalBrightnessFor( cache_slot + sdAtlasMaterial.brightness_cache_buffer_group_size * sdAtlasMaterial.brightness_cache_buffer_width );
-				current_result += GetFinalBrightnessFor( cache_slot - sdAtlasMaterial.brightness_cache_buffer_group_size * sdAtlasMaterial.brightness_cache_buffer_width );
-				*/
 				
-				/*current_result = Math.max( current_result, GetFinalBrightnessFor( cache_slot + sdAtlasMaterial.brightness_cache_buffer_group_size ) );// - 0.01 * 255 );
-				current_result = Math.max( current_result, GetFinalBrightnessFor( cache_slot - sdAtlasMaterial.brightness_cache_buffer_group_size ) );//- 0.01 * 255 );
-				current_result = Math.max( current_result, GetFinalBrightnessFor( cache_slot + sdAtlasMaterial.brightness_cache_buffer_group_size * sdAtlasMaterial.brightness_cache_buffer_width ) );//- 0.01 * 255 );
-				current_result = Math.max( current_result, GetFinalBrightnessFor( cache_slot - sdAtlasMaterial.brightness_cache_buffer_group_size * sdAtlasMaterial.brightness_cache_buffer_width ) );//- 0.01 * 255 );
-				*/
 			   
 				for ( let xx = -2; xx <= 2; xx++ )
 				for ( let yy = -2; yy <= 2; yy++ )
@@ -785,14 +779,6 @@ class sdSuperTexture
 						tot++;
 					}
 					
-					/*current_result = Math.max( 
-							current_result, 
-							GetFinalBrightnessFor( 
-									cache_slot + 
-										sdAtlasMaterial.brightness_cache_buffer_group_size * xx + 
-										sdAtlasMaterial.brightness_cache_buffer_group_size * sdAtlasMaterial.brightness_cache_buffer_width * yy 
-							) - 25
-					);*/
 				}
 				
 				current_result /= tot;
@@ -891,7 +877,7 @@ class sdSuperTexture
 			r *= current_result;
 			g *= current_result;
 			b *= current_result;
-		}
+		}*/
 		
 		color_dataView.setFloat32( offset_4_4 + 0, r, true );
 		color_dataView.setFloat32( offset_4_4 + 4, g, true );

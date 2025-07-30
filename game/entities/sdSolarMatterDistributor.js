@@ -335,7 +335,7 @@ class sdSolarMatterDistributor extends sdEntity
 					mission: sdTask.MISSION_PROTECT_ENTITY,				
 					title: 'Protect solar powered matter distributor',
 					description: desc,
-					difficulty: 0.0625
+					difficulty: 0.2
 				});
 			}
 			this.has_players_nearby = false;

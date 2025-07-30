@@ -21,6 +21,8 @@ class sdCharacterRagdoll
 		sdCharacterRagdoll.SeededRandomNumberGenerator = new sdWorld.SeededRandomNumberGenerator_constructor( 64372 );
 		
 		sdCharacterRagdoll.sdBone = sdBone;
+		
+		sdCharacterRagdoll.local_damage_decay_speed = 0.2;
 	}
 	
 	constructor( character )
@@ -29,6 +31,8 @@ class sdCharacterRagdoll
 		throw new Error( 'Ragdoll already exists for sdCharacter' );
 	
 		this._ignore_sounds_until = 0;
+		
+		this._local_damage_timer = 0;
 		
 		this._ledge_holding_x = 0;
 		this._ledge_holding_y = 0;
@@ -709,6 +713,19 @@ class sdCharacterRagdoll
 				{
 					let bone = this.bones[ i ];
 
+					let force_strength = 1;
+					
+					if ( bone._local_damage_timer > 0 )
+					{
+						force_strength *= Math.pow( 1 - bone._local_damage_timer, 4 );
+						p_pos = Math.min( p_pos, 0.6 );
+						p = Math.min( p, 0.6 );
+						
+						bone._local_damage_timer = Math.max( bone._local_damage_timer - GSPEED * sdCharacterRagdoll.local_damage_decay_speed );
+					}
+					
+					let GSPEED_scaled = GSPEED * force_strength;
+
 					let lx = bone.x;
 					let ly = bone.y;
 					
@@ -718,29 +735,25 @@ class sdCharacterRagdoll
 					{
 						let an = Math.atan2( lx - cx, ly - cy ) + Math.PI / 2;
 						let power = -sdWorld.limit( 0, sdWorld.Dist2D_Vector( lx - cx, ly - cy ), 10 ) * act_x * 0.055;
-						bone.sx += Math.sin( an ) * GSPEED * power;
-						bone.sy += Math.cos( an ) * GSPEED * power;
+						bone.sx += Math.sin( an ) * GSPEED_scaled * power;
+						bone.sy += Math.cos( an ) * GSPEED_scaled * power;
 					}
-
-					//let di = sdWorld.Dist2D_Vector( lx - bone.x, ly - bone.y );
 					
-					let range_strength = 1;// Math.min( 1, di / 15 );
-					
-					bone.x = sdWorld.MorphWithTimeScale( bone.x, bone._tx, 1 - p_pos, GSPEED );
-					bone.y = sdWorld.MorphWithTimeScale( bone.y, bone._ty, 1 - p_pos, GSPEED );
+					bone.x = sdWorld.MorphWithTimeScale( bone.x, bone._tx, 1 - p_pos, GSPEED_scaled );
+					bone.y = sdWorld.MorphWithTimeScale( bone.y, bone._ty, 1 - p_pos, GSPEED_scaled );
 
-					bone.sx = sdWorld.MorphWithTimeScale( bone.sx, bone._tx - lx + this.character.sx, 1 - p * range_strength, GSPEED );
-					bone.sy = sdWorld.MorphWithTimeScale( bone.sy, bone._ty - ly + this.character.sy, 1 - p * range_strength, GSPEED );
+					bone.sx = sdWorld.MorphWithTimeScale( bone.sx, bone._tx - lx + this.character.sx, 1 - p, GSPEED_scaled );
+					bone.sy = sdWorld.MorphWithTimeScale( bone.sy, bone._ty - ly + this.character.sy, 1 - p, GSPEED_scaled );
 
                     if ( bone === this.torso )
                     {
-						bone.sx += ( bone._tx - lx + this.character.sx - bone.sx * 1 * range_strength ) * 0.8 * GSPEED * ( 1 - p );//( 1 - p );
-						bone.sy += ( bone._ty - ly + this.character.sy - bone.sy * 1 * range_strength ) * 0.8 * GSPEED * ( 1 - p );//( 1 - p );
+						bone.sx += ( bone._tx - lx + this.character.sx - bone.sx ) * 0.8 * GSPEED_scaled * ( 1 - p );
+						bone.sy += ( bone._ty - ly + this.character.sy - bone.sy ) * 0.8 * GSPEED_scaled * ( 1 - p );
 					}
 					else
 					{
-						bone.sx += ( bone._tx - lx + this.character.sx - bone.sx * 2 * range_strength ) * 2 * GSPEED * p_vel * ( 1 - p );// * ( 1 - p );
-						bone.sy += ( bone._ty - ly + this.character.sy - bone.sy * 2 * range_strength ) * 2 * GSPEED * p_vel * ( 1 - p );// * ( 1 - p );
+						bone.sx += ( bone._tx - lx + this.character.sx - bone.sx * 2 ) * 2 * GSPEED_scaled * p_vel * ( 1 - p );
+						bone.sy += ( bone._ty - ly + this.character.sy - bone.sy * 2 ) * 2 * GSPEED_scaled * p_vel * ( 1 - p );
 					}
 				}
 			}
@@ -896,308 +909,318 @@ class sdCharacterRagdoll
 	
 		this._body_offset_y = sdWorld.limit( this.character.y, this._body_offset_y, this.character.y + 6 * ( 1 - this.character._crouch_intens * 0.5 ) );
 
-		if ( this.character.hea > 0 && this.character.stability >= 100 )
-		return;
-		
-		let use_corrections = this.UseCorrections();
-			
-		//if ( !allow_alive_update )
-		//if ( this.character.hea > 0 )
-		//return;
-	
-		if ( GSPEED > 1 )
-		GSPEED = 1;
-	
-		//GSPEED = Math.random() * 0.9 + 0.1;
-	
-		let side = this.character._side;
-		
-		let i,a,b,di,target_di,p,dx,dy,limit_mode,c,always_left,avx,avy,avsx,avsy;
-		
-		if ( use_corrections )
+		if ( this.character.hea > 0 && this.character.stability >= 100 && this._local_damage_timer === 0 )
 		{
-			dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2 - ( this.torso.x + this.chest.x ) / 2;
-			dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2 - ( this.torso.y + this.chest.y ) / 2;
-
-
-			this.chest.x += dx;
-			this.chest.y += dy;
-			
-			this.torso.x += dx;
-			this.torso.y += dy;
-			this.torso.sx = this.character.sx;
-			this.torso.sy = this.character.sy;
-			
-			if ( this.torso._soft_bone )
-			{
-				this.torso._soft_bone.x = this.torso.x;
-				this.torso._soft_bone.y = this.torso.y;
-				this.torso._soft_bone.sx = this.torso.sx;
-				this.torso._soft_bone.sy = this.torso.sy;
-			}
-			
-			if ( this.chest._soft_bone )
-			{
-				this.chest._soft_bone.x = this.chest.x;
-				this.chest._soft_bone.y = this.chest.y;
-				this.chest._soft_bone.sx = this.chest.sx;
-				this.chest._soft_bone.sy = this.chest.sy;
-			}
-			
-			
-			for ( i = 0; i < this.bones.length; i++ )
-			{
-				
-			}
-			/*
-			// Pulling towards logical server-side position of sdCharacter
-			avx = 0;
-			avy = 0;
-			avsx = 0;
-			avsy = 0;
-
-			for ( i = 0; i < this.bones.length; i++ )
-			{
-				avx += this.bones[ i ].x;
-				avy += this.bones[ i ].y;
-				avsx += this.bones[ i ].sx;
-				avsy += this.bones[ i ].sy;
-			}
-			avx /= this.bones.length;
-			avy /= this.bones.length;
-			avsx /= this.bones.length;
-			avsy /= this.bones.length;
-
-			dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2 - avx;
-			dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2 - avy;
-
-			di = sdWorld.Dist2D_Vector( dx, dy );
-
-			dx += ( this.character.sx - avsx ) * 5;
-			dy += ( this.character.sy - avsy ) * 5;
-
-			target_di = sdWorld.Dist2D_Vector( dx, dy ); // For stress
-
-			if ( target_di > 10 && di > 5 )
-			this._stress = sdWorld.MorphWithTimeScale( this._stress, 1, 0.99, GSPEED );
-			else
-			this._stress = sdWorld.MorphWithTimeScale( this._stress, 0.1, 0.99, GSPEED );
-
-			p = 0.1 * GSPEED * this._stress;
-
-			//if ( false ) // Hack, debugging fast random pulls on death
-			if ( di > 5 )
-			for ( i = 0; i < this.bones.length; i++ )
-			{
-				//if ( di > 15 )
-				if ( this._stress > 0.8 )
-				{
-					//if ( this.bones[ i ]._phys_sleep > 0 )
-					//{
-						this.bones[ i ].sx += dx * p;
-						this.bones[ i ].sy += dy * p;
-					//}
-
-					this.bones[ i ].x += dx * p;
-					this.bones[ i ].y += dy * p;
-				}
-				else
-				{
-					this.bones[ i ].RelaxedPush( dx * p, dy * p );
-				}
-			}*/
-
+			// No simulations
 		}
-		
-		let steps = ( this.character.hea <= 0 ) ? 2 : 1; // 5 is best for ragdolls that are partially stuck on ledges
-		
-		const solver_strength = 1; // Do not use values above 1
-		
-		let wall_exists_cache = new Map(); // Bone_obj => result
-		
-		const CheckWallExistsNearBone = ( i )=>
+		else
 		{
-			let bone = this.bones[ i ];
-			
-			let r = wall_exists_cache.get( bone );
-			
-			if ( r === undefined )
+			this._local_damage_timer = Math.max( this._local_damage_timer - GSPEED * sdCharacterRagdoll.local_damage_decay_speed );
+
+			let use_corrections = this.UseCorrections();
+
+			if ( GSPEED > 1 )
+			GSPEED = 1;
+
+			//GSPEED = Math.random() * 0.9 + 0.1;
+
+			let side = this.character._side;
+
+			let i,a,b,di,target_di,p,dx,dy,limit_mode,c,always_left,avx,avy,avsx,avsy;
+
+			if ( use_corrections )
 			{
-				if ( bone._soft_bone_of )
+				dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2 - ( this.torso.x + this.chest.x ) / 2;
+				dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2 - ( this.torso.y + this.chest.y ) / 2;
+
+
+				this.chest.x += dx;
+				this.chest.y += dy;
+
+				this.torso.x += dx;
+				this.torso.y += dy;
+				this.torso.sx = this.character.sx;
+				this.torso.sy = this.character.sy;
+
+				if ( this.torso._soft_bone )
 				{
-					r = wall_exists_cache.get( bone._soft_bone_of );
+					this.torso._soft_bone.x = this.torso.x;
+					this.torso._soft_bone.y = this.torso.y;
+					this.torso._soft_bone.sx = this.torso.sx;
+					this.torso._soft_bone.sy = this.torso.sy;
 				}
+
+				if ( this.chest._soft_bone )
+				{
+					this.chest._soft_bone.x = this.chest.x;
+					this.chest._soft_bone.y = this.chest.y;
+					this.chest._soft_bone.sx = this.chest.sx;
+					this.chest._soft_bone.sy = this.chest.sy;
+				}
+
+
+				for ( i = 0; i < this.bones.length; i++ )
+				{
+
+				}
+				/*
+				// Pulling towards logical server-side position of sdCharacter
+				avx = 0;
+				avy = 0;
+				avsx = 0;
+				avsy = 0;
+
+				for ( i = 0; i < this.bones.length; i++ )
+				{
+					avx += this.bones[ i ].x;
+					avy += this.bones[ i ].y;
+					avsx += this.bones[ i ].sx;
+					avsy += this.bones[ i ].sy;
+				}
+				avx /= this.bones.length;
+				avy /= this.bones.length;
+				avsx /= this.bones.length;
+				avsy /= this.bones.length;
+
+				dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2 - avx;
+				dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2 - avy;
+
+				di = sdWorld.Dist2D_Vector( dx, dy );
+
+				dx += ( this.character.sx - avsx ) * 5;
+				dy += ( this.character.sy - avsy ) * 5;
+
+				target_di = sdWorld.Dist2D_Vector( dx, dy ); // For stress
+
+				if ( target_di > 10 && di > 5 )
+				this._stress = sdWorld.MorphWithTimeScale( this._stress, 1, 0.99, GSPEED );
 				else
-				if ( bone._soft_bone )
+				this._stress = sdWorld.MorphWithTimeScale( this._stress, 0.1, 0.99, GSPEED );
+
+				p = 0.1 * GSPEED * this._stress;
+
+				//if ( false ) // Hack, debugging fast random pulls on death
+				if ( di > 5 )
+				for ( i = 0; i < this.bones.length; i++ )
 				{
-					r = wall_exists_cache.get( bone._soft_bone );
-				}
-				
-				if ( r !== undefined )
-				wall_exists_cache.set( bone, r );
-			}
-			
-			if ( r === undefined )
-			{
-				r = sdWorld.CheckWallExistsBox( 
-					  bone.x-5, 
-					  bone.y, 
-					  bone.x+5, 
-					  bone.y+8, bone, bone.GetIgnoredEntityClasses(), bone.GetNonIgnoredEntityClasses(), null );
-					  
-				wall_exists_cache.set( bone, r );
-			}
-				  
-			return r;
-		};
-		
-		GSPEED /= steps;
-		for ( let s = 0; s < steps; s++ )
-		{
-			//if ( s === 0 )
-			for ( i = 0; i < this.bones.length; i++ )
-			{
-				if ( use_corrections )
-				{
-					if ( sdWorld.inDist2D_Boolean( this.bones[ i ]._rag_lx, this.bones[ i ]._rag_ly, this.bones[ i ].x, this.bones[ i ].y, 2 ) && 
-						  this._stress < 0.2 &&
-						  CheckWallExistsNearBone( i ) )
+					//if ( di > 15 )
+					if ( this._stress > 0.8 )
 					{
-						this.bones[ i ]._phys_last_sx = ( this.bones[ i ].sx > 0 );
-						this.bones[ i ]._phys_last_sy = ( this.bones[ i ].sy > 0 );
+						//if ( this.bones[ i ]._phys_sleep > 0 )
+						//{
+							this.bones[ i ].sx += dx * p;
+							this.bones[ i ].sy += dy * p;
+						//}
+
+						this.bones[ i ].x += dx * p;
+						this.bones[ i ].y += dy * p;
 					}
 					else
 					{
-						this.bones[ i ]._phys_sleep = Math.max( 1, this.bones[ i ]._phys_sleep );
-
-						this.bones[ i ]._rag_lx = this.bones[ i ].x;
-						this.bones[ i ]._rag_ly = this.bones[ i ].y;
-
-						if ( this.character.hea <= 0 )
-						this.bones[ i ].sy += sdWorld.gravity * GSPEED;
+						this.bones[ i ].RelaxedPush( dx * p, dy * p );
 					}
-				}
-				else
-				{
-					//if ( this.character.hea <= 0 || this.character.stability <= 100 )
-					this.bones[ i ].sy += sdWorld.gravity * GSPEED * Math.min( 1, 1 - this.character.stability / 100 );
-				}
-			
-				//let old_hit = this.bones[ i ]._phys_last_touch;
-				this.bones[ i ].ApplyVelocityAndCollisions( GSPEED, 0, true );
-				if ( !this.bones[ i ]._phys_last_touch )
-				this.bones[ i ]._can_make_sound = Math.min( 3, this.bones[ i ]._can_make_sound + GSPEED );
-				else
-				this.bones[ i ]._can_make_sound = 0;
-				/*
-				if ( s === 0 )
-				if ( this.character._key_states.GetKey('Mouse1') )
-				{
-					this.bones[ i ].PhysWakeUp();
-					
-					this.bones[ i ].sx = this.bones[ i ].x;
-					this.bones[ i ].sy = this.bones[ i ].y;
-					
-					this.bones[ i ].x = this._smooth_look_x + this.bones[ i ]._initial_x - 16;
-					this.bones[ i ].y = this._smooth_look_y + this.bones[ i ]._initial_y - 16;
-					
-					this.bones[ i ].sx = this.bones[ i ].x - this.bones[ i ].sx;
-					this.bones[ i ].sy = this.bones[ i ].y - this.bones[ i ].sy;
 				}*/
+
 			}
-			//if ( false ) // Hack
-			for ( i = 0; i < this.springs.length; i++ )
+
+			let steps = ( this.character.hea <= 0 ) ? 2 : 1; // 5 is best for ragdolls that are partially stuck on ledges
+
+			const solver_strength = 1; // Do not use values above 1
+
+			let wall_exists_cache = new Map(); // Bone_obj => result
+
+			const CheckWallExistsNearBone = ( i )=>
 			{
-				a = this.springs[ i ].parent;
-				b = this.springs[ i ].child;
-				
-				if ( a._phys_sleep > 0 || b._phys_sleep > 0 )
+				let bone = this.bones[ i ];
+
+				let r = wall_exists_cache.get( bone );
+
+				if ( r === undefined )
 				{
-					target_di = this.springs[ i ].radius * this.character.s / 100;
-					limit_mode = this.springs[ i ].limit_mode;
-
-					dx = b.x - a.x;
-					dy = b.y - a.y;
-
-					di = sdWorld.Dist2D_Vector( dx, dy );
-
-					//if ( limit_mode === sdCharacterRagdoll.spring_both || ( limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) )
-					//if ( limit_mode === sdCharacterRagdoll.spring_both || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
-					if ( limit_mode === sdCharacterRagdoll.spring_both || ( true && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( true && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
-					if ( Math.abs( di - target_di ) > 0.1 )
-					if ( di > 0.0001 )
+					if ( bone._soft_bone_of )
 					{
-						//p = 1 / di * ( di - target_di ) * 0.5 * GSPEED;
-						p = 1 / di * ( di - target_di ) * 0.5 * solver_strength;
-						
-						//p *= 0.1; // Hack, debugging random pulls
-						/*
-						if ( Math.abs( p * dy ) > 5 )
+						r = wall_exists_cache.get( bone._soft_bone_of );
+					}
+					else
+					if ( bone._soft_bone )
+					{
+						r = wall_exists_cache.get( bone._soft_bone );
+					}
+
+					if ( r !== undefined )
+					wall_exists_cache.set( bone, r );
+				}
+
+				if ( r === undefined )
+				{
+					r = sdWorld.CheckWallExistsBox( 
+						  bone.x-5, 
+						  bone.y, 
+						  bone.x+5, 
+						  bone.y+8, bone, bone.GetIgnoredEntityClasses(), bone.GetNonIgnoredEntityClasses(), null );
+
+					wall_exists_cache.set( bone, r );
+				}
+
+				return r;
+			};
+
+			GSPEED /= steps;
+			for ( let s = 0; s < steps; s++ )
+			{
+				//if ( s === 0 )
+				for ( i = 0; i < this.bones.length; i++ )
+				{
+					if ( use_corrections )
+					{
+						if ( sdWorld.inDist2D_Boolean( this.bones[ i ]._rag_lx, this.bones[ i ]._rag_ly, this.bones[ i ].x, this.bones[ i ].y, 2 ) && 
+							  this._stress < 0.2 &&
+							  CheckWallExistsNearBone( i ) )
 						{
-							console.log( 'Found spring force', Math.abs( p * dy ), this.springs[ i ], di, target_di );
-						}
-*/
-						if ( di > target_di * 10 + 10 )
-						{
-							//debugger;
-							b.x = a.x;
-							b.y = a.y;
-							b.sx = 0;
-							b.sy = 0;
+							this.bones[ i ]._phys_last_sx = ( this.bones[ i ].sx > 0 );
+							this.bones[ i ]._phys_last_sy = ( this.bones[ i ].sy > 0 );
 						}
 						else
 						{
-							a.RelaxedPush( dx * p, dy * p );
-							b.RelaxedPush( -dx * p, -dy * p );
+							this.bones[ i ]._phys_sleep = Math.max( 1, this.bones[ i ]._phys_sleep );
+
+							this.bones[ i ]._rag_lx = this.bones[ i ].x;
+							this.bones[ i ]._rag_ly = this.bones[ i ].y;
+
+							if ( this.character.hea <= 0 )
+							this.bones[ i ].sy += sdWorld.gravity * GSPEED;
 						}
-						
-						a._phys_sleep = b._phys_sleep = Math.max( a._phys_sleep, b._phys_sleep );
 					}
-				}
-			}
-			//if ( false ) // Hack
-			for ( i = 0; i < this.angular_restrictors.length; i++ )
-			{
-				a = this.angular_restrictors[ i ][ 0 ];
-				b = this.angular_restrictors[ i ][ 1 ];
-				c = this.angular_restrictors[ i ][ 2 ];
-				
-				if ( a._phys_sleep > 0 || b._phys_sleep > 0 || c._phys_sleep > 0 )
-				{
-					always_left = this.angular_restrictors[ i ][ 3 ];
-
-					if ( ( ( ( b.x - a.x ) * ( c.y - a.y ) - ( b.y - a.y ) * ( c.x - a.x ) ) * side > 0 ) === always_left )
-					//while ( ( ( ( b.x - a.x ) * ( c.y - a.y ) - ( b.y - a.y ) * ( c.x - a.x ) ) * side > 0 ) === always_left )
+					else
 					{
-						di = sdWorld.distToSegmentSquared( c, a, b ); // p is tested point, v and w is a segment
+						//if ( this.character.hea <= 0 || this.character.stability <= 100 )
+						this.bones[ i ].sy += sdWorld.gravity * GSPEED * Math.min( 1, 1 - this.character.stability / 100 );
+					}
 
+					//let old_hit = this.bones[ i ]._phys_last_touch;
+					this.bones[ i ].ApplyVelocityAndCollisions( GSPEED, 0, true );
+					if ( !this.bones[ i ]._phys_last_touch )
+					this.bones[ i ]._can_make_sound = Math.min( 3, this.bones[ i ]._can_make_sound + GSPEED );
+					else
+					this.bones[ i ]._can_make_sound = 0;
+					/*
+					if ( s === 0 )
+					if ( this.character._key_states.GetKey('Mouse1') )
+					{
+						this.bones[ i ].PhysWakeUp();
+
+						this.bones[ i ].sx = this.bones[ i ].x;
+						this.bones[ i ].sy = this.bones[ i ].y;
+
+						this.bones[ i ].x = this._smooth_look_x + this.bones[ i ]._initial_x - 16;
+						this.bones[ i ].y = this._smooth_look_y + this.bones[ i ]._initial_y - 16;
+
+						this.bones[ i ].sx = this.bones[ i ].x - this.bones[ i ].sx;
+						this.bones[ i ].sy = this.bones[ i ].y - this.bones[ i ].sy;
+					}*/
+				}
+				//if ( false ) // Hack
+				for ( i = 0; i < this.springs.length; i++ )
+				{
+					a = this.springs[ i ].parent;
+					b = this.springs[ i ].child;
+
+					if ( a._phys_sleep > 0 || b._phys_sleep > 0 )
+					{
+						target_di = this.springs[ i ].radius * this.character.s / 100;
+						limit_mode = this.springs[ i ].limit_mode;
+
+						dx = b.x - a.x;
+						dy = b.y - a.y;
+
+						di = sdWorld.Dist2D_Vector( dx, dy );
+
+						//if ( limit_mode === sdCharacterRagdoll.spring_both || ( limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) )
+						//if ( limit_mode === sdCharacterRagdoll.spring_both || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
+						if ( limit_mode === sdCharacterRagdoll.spring_both || ( true && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( true && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
+						if ( Math.abs( di - target_di ) > 0.1 )
 						if ( di > 0.0001 )
 						{
-							dx = sdWorld.reusable_closest_point.x - c.x;
-							dy = sdWorld.reusable_closest_point.y - c.y;
+							//p = 1 / di * ( di - target_di ) * 0.5 * GSPEED;
+							p = 1 / di * ( di - target_di ) * 0.5 * solver_strength;
 
-							//p = 0.5 * GSPEED;
-							p = 0.5 * solver_strength;
-							//p = 1 * GSPEED;
-
-							c.RelaxedPush( dx * p, dy * p );
-							//if ( !c.RelaxedPush( dx * p, dy * p ) )
-							//break;
-							
-							//if ( this.character.hea <= 0 )
-							if ( true )
+							//p *= 0.1; // Hack, debugging random pulls
+							/*
+							if ( Math.abs( p * dy ) > 5 )
 							{
-								p /= 2;
-								a.RelaxedPush( -dx * p, -dy * p );
+								console.log( 'Found spring force', Math.abs( p * dy ), this.springs[ i ], di, target_di );
+							}
+	*/
+							if ( di > target_di * 10 + 10 )
+							{
+								//debugger;
+								b.x = a.x;
+								b.y = a.y;
+								b.sx = 0;
+								b.sy = 0;
+							}
+							else
+							{
+								a.RelaxedPush( dx * p, dy * p );
 								b.RelaxedPush( -dx * p, -dy * p );
 							}
-							a._phys_sleep = b._phys_sleep = c._phys_sleep = Math.max( a._phys_sleep, b._phys_sleep, c._phys_sleep );
+
+							a._phys_sleep = b._phys_sleep = Math.max( a._phys_sleep, b._phys_sleep );
 						}
-						//else
-						//break;
+					}
+				}
+				//if ( false ) // Hack
+				for ( i = 0; i < this.angular_restrictors.length; i++ )
+				{
+					a = this.angular_restrictors[ i ][ 0 ];
+					b = this.angular_restrictors[ i ][ 1 ];
+					c = this.angular_restrictors[ i ][ 2 ];
+
+					if ( a._phys_sleep > 0 || b._phys_sleep > 0 || c._phys_sleep > 0 )
+					{
+						always_left = this.angular_restrictors[ i ][ 3 ];
+
+						if ( ( ( ( b.x - a.x ) * ( c.y - a.y ) - ( b.y - a.y ) * ( c.x - a.x ) ) * side > 0 ) === always_left )
+						//while ( ( ( ( b.x - a.x ) * ( c.y - a.y ) - ( b.y - a.y ) * ( c.x - a.x ) ) * side > 0 ) === always_left )
+						{
+							di = sdWorld.distToSegmentSquared( c, a, b ); // p is tested point, v and w is a segment
+
+							if ( di > 0.0001 )
+							{
+								dx = sdWorld.reusable_closest_point.x - c.x;
+								dy = sdWorld.reusable_closest_point.y - c.y;
+
+								//p = 0.5 * GSPEED;
+								p = 0.5 * solver_strength;
+								//p = 1 * GSPEED;
+
+								c.RelaxedPush( dx * p, dy * p );
+								//if ( !c.RelaxedPush( dx * p, dy * p ) )
+								//break;
+
+								//if ( this.character.hea <= 0 )
+								if ( true )
+								{
+									p /= 2;
+									a.RelaxedPush( -dx * p, -dy * p );
+									b.RelaxedPush( -dx * p, -dy * p );
+								}
+								a._phys_sleep = b._phys_sleep = c._phys_sleep = Math.max( a._phys_sleep, b._phys_sleep, c._phys_sleep );
+							}
+							//else
+							//break;
+						}
 					}
 				}
 			}
+		}
+		
+		for ( let i = 0; i < this.bones.length; i++ )
+		{
+			this.bones[ i ]._last_x = this.bones[ i ].x;
+			this.bones[ i ]._last_y = this.bones[ i ].y;
+			this.bones[ i ]._last_sx = this.bones[ i ].sx;
+			this.bones[ i ]._last_sy = this.bones[ i ].sy;
 		}
 	}
 	
@@ -1487,6 +1510,8 @@ class sdBone extends sdEntity
 		this.radius = params.radius;
 		this._ragdoll = params.ragdoll;
 		
+		this._local_damage_timer = 0; // 0...1
+		
 		this.sx = params.sx;
 		this.sy = params.sy;
 		
@@ -1498,7 +1523,13 @@ class sdBone extends sdEntity
 		
 		this._rag_lx = this.x;
 		this._rag_ly = this.y;
-
+		
+		// Frame data for copying during RTP copy
+		this._last_x = this.x;
+		this._last_y = this.y;
+		this._last_sx = this.sx;
+		this._last_sy = this.sy;
+		
 		this._bounciness = params.bounciness || 0.15; // 0.25
 		this._friction_remain = params.friction_remain || 0.7;
 		

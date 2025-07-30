@@ -367,6 +367,26 @@ class sdBullet extends sdEntity
 		this.SetMethod( 'BouncyCollisionFiltering', this.BouncyCollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 		this.SetMethod( 'RegularCollisionFiltering', this.RegularCollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
+	onSnapshotApplied()
+	{
+		if ( !sdWorld.is_server )
+		{
+			// Assume ownership so bullet does not dissappear on first sync while it is in player
+			if ( !this._owner )
+			{
+				if ( !this.CanMoveWithoutOverlap( this.x, this.y ) )
+				{
+					let e = sdWorld.last_hit_entity;
+					if ( e )
+					if ( e.IsPlayerClass() )
+					{
+						this._owner = e;
+						this._can_hit_owner = false;
+					}
+				}
+			}
+		}
+	}
 	onRemove()
 	{
 		if ( this._custom_detonation_logic )
@@ -1036,6 +1056,21 @@ class sdBullet extends sdEntity
 									}
 								}
 
+							}
+							
+							if ( from_entity.is( sdCharacter ) )
+							{
+								if ( from_entity._god && from_entity._socket )
+								{
+								}
+								else
+								sdWorld.SendEffect({ 
+									t: from_entity._net_id,
+									x: Math.round( this.x - from_entity.x ), 
+									y: Math.round( this.y - from_entity.y ), 
+									sx: Math.round( this.sx * Math.abs( this._damage ) * this._knock_scale ), 
+									sy: Math.round( this.sy * Math.abs( this._damage ) * this._knock_scale ) 
+								}, 'P' );
 							}
 
 							if ( this._bouncy )

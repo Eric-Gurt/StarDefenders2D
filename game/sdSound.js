@@ -75,17 +75,23 @@ class sdSound
 						return 0;
 					}
 				});
-
+				
+				let last_pitch = 1;
 				Object.defineProperty( sdSound[ var_name ], 'pitch', 
 				{ 
 					set: function ( x ) 
 					{ 
-						sdSound[ var_name + '_howl' ].rate( x, sdSound[ var_name + '_sound_id' ] );
+						if ( last_pitch !== x )
+						{
+							last_pitch = x;
+
+							sdSound[ var_name + '_howl' ].rate( x, sdSound[ var_name + '_sound_id' ] );
+						}
 					},
 					get: function()
 					{
 						debugger; // Won't work
-						return 0;
+						return last_pitch;
 					}
 				});
 			};

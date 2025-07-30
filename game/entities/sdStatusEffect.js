@@ -17,6 +17,7 @@ import sdCom from './sdCom.js';
 import sdCable from './sdCable.js';
 import sdBG from './sdBG.js';
 import sdBlock from './sdBlock.js';
+import sdWater from './sdWater.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -299,6 +300,11 @@ class sdStatusEffect extends sdEntity
 				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 1 / 2 ]
 			
 				status_entity._every_synced = false;
+				
+				let water_to_wake_up = sdWater.all_swimmers.get( params.for );
+				if ( water_to_wake_up )
+				if ( !water_to_wake_up._is_being_removed )
+				water_to_wake_up.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			},
 			
 			onNotMergedAndAboutToBeMade: ( params )=>

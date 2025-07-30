@@ -344,7 +344,8 @@ class sdFaceCrab extends sdEntity
 				}
 					
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
-				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+				let yy = from_entity.y + from_entity._hitbox_y1;
+				//let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
 				if ( !from_entity.is( sdFaceCrab ) )
 				if ( from_entity === this._current_target || from_entity.IsPlayerClass() || ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD ) )

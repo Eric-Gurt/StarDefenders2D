@@ -117,6 +117,8 @@ class sdRenderer
 		sdRenderer.known_light_sources_previous = [];
 		sdRenderer.known_light_sources = []; // Array of entities
 		
+		sdRenderer.visible_chunks = new Map(); // hash -> { x, y, last_active_visibility_time, active_visibility, opacity }
+		
 		if ( typeof window !== 'undefined' )
 		{
 			window.onresize = function( event )
@@ -1237,19 +1239,6 @@ class sdRenderer
 				{
 					const e = visible_entities[ i ];
 					
-					/*if (	e.is( sdEffect ) &&
-								( e._type === sdEffect.TYPE_BEAM || e._type === sdEffect.TYPE_BEAM_CIRCLED ) )
-					{
-						trace( e );
-					}*/
-
-					//e._flag2 = 0; // Visibility detection
-					
-					/*if ( e.is( sdStatusEffect ) )
-					{
-						debugger;
-					}*/
-
 					if ( !e.IsVisible( sdWorld.my_entity ) )
 					{
 					}
@@ -1263,15 +1252,16 @@ class sdRenderer
 								( 
 									sdWorld.my_entity === e || 
 									sdWorld.my_entity.driver_of === e || 
-									//sdWorld.my_entity._god ||
-									!sdRenderer.line_of_sight_mode
+									
+									true
+									//!sdRenderer.line_of_sight_mode
 								) 
 							) 
 						)
 					{
 						e._flag2 = frame_flag_reference;
 					}
-					else
+					/*else
 					if ( sdWorld.my_entity )
 					if ( sdRenderer.old_visibility_map )
 					{
@@ -1283,8 +1273,6 @@ class sdRenderer
 							let ex = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 							let ey = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
 
-							//let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
-							
 							let m = angles / ( Math.PI * 2 );
 							
 							let furthest_an = Math.max(
@@ -1296,7 +1284,6 @@ class sdRenderer
 
 							let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
 
-							//if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
 							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, furthest_an + sdRenderer.visibility_falloff + max_dimension + 32 ) )
 							e._flag2 = frame_flag_reference;
 						}
@@ -1322,7 +1309,7 @@ class sdRenderer
 								e._flag2 = frame_flag_reference;
 							}
 						}
-					}
+					}*/
 				}
 			}
 			
@@ -1431,13 +1418,82 @@ class sdRenderer
 			}
 			
 			if ( sdRenderer.line_of_sight_mode )
+			if ( sdWorld.my_entity )
+			{
+				ctx.apply_shading = false;
+				ctx.fillStyle = '#040422';
+		
+				let z_offset_old = ctx.z_offset;
+				ctx.z_offset += 1;
+		
+				//ctx.draw_offset = 1;
+				{
+																					
+					let CHUNK_SIZE = sdWorld.CHUNK_SIZE;
+					
+					//for ( let [ hash, info ] of sdRenderer.visible_chunks )
+					for ( let x = min_x-CHUNK_SIZE; x < max_x+CHUNK_SIZE; x += CHUNK_SIZE )
+					for ( let y = min_y-CHUNK_SIZE; y < max_y+CHUNK_SIZE; y += CHUNK_SIZE )
+					{
+						const hash = ( sdWorld.FastFloor( (y) / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( (x) / CHUNK_SIZE );
+						
+						let info = sdRenderer.visible_chunks.get( hash );
+						
+						let opacity = 1;
+
+						sdRenderer.ctx.box_caps.top =
+						sdRenderer.ctx.box_caps.right =
+						sdRenderer.ctx.box_caps.bottom =
+						sdRenderer.ctx.box_caps.left = true;
+						
+						if ( info !== undefined )
+						{
+							if ( info.active_visibility || sdWorld.time < info.last_active_visibility_time + 3000 )
+							info.opacity = Math.max( 0, info.opacity - GSPEED / 30 * 3 );
+							else
+							info.opacity = Math.min( 1, info.opacity + GSPEED / 30 / 2 );
+							
+							opacity = info.opacity;
+							
+							if ( opacity < 1 )
+							{
+								sdRenderer.ctx.box_caps.top =
+								sdRenderer.ctx.box_caps.right =
+								sdRenderer.ctx.box_caps.bottom =
+								sdRenderer.ctx.box_caps.left = false;
+							}
+						}
+						
+						if ( opacity <= 0 )
+						continue;
+						
+						ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+
+						ctx.globalAlpha = opacity;
+						
+						let xx = sdWorld.FastFloor( ( x ) / CHUNK_SIZE ) * CHUNK_SIZE;
+						let yy = sdWorld.FastFloor( ( y ) / CHUNK_SIZE ) * CHUNK_SIZE;
+
+						ctx.fillRect( 
+							xx,
+							yy,
+							CHUNK_SIZE,
+							CHUNK_SIZE );
+					}
+				}
+				
+				ctx.globalAlpha = 1;
+				ctx.z_offset = z_offset_old;
+				ctx.apply_shading = true;
+			}
+			/*if ( sdRenderer.line_of_sight_mode )
 			{
 				ctx.apply_shading = false;
 				// Line of sight take 2
 				sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
 
 				ctx.apply_shading = true;
-			}
+			}*/
 			
 			
 			
@@ -2363,7 +2419,6 @@ class sdRenderer
 				xx = sdWorld.my_entity.x;
 				yy = sdWorld.my_entity.y + ( sdWorld.my_entity._hitbox_y1 + sdWorld.my_entity._hitbox_y2 ) / 2;
 				
-				//if ( sdWorld.my_entity._god || !sdRenderer.line_of_sight_mode )
 				if ( !sdRenderer.line_of_sight_mode )
 				{
 					darkest_alpha = 0.6;

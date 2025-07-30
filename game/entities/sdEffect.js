@@ -3,6 +3,9 @@
 	Server-side effect test:
 	sdWorld.SendEffect({ x: , y: , type:sdEffect.TYPE_WALL_HIT });
 
+	Client-side effect test:
+	sdEntity.entities.push( new sdWorld.entity_classes.sdEffect({ x:bone_to.x, y:bone_to.y, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT }) );
+
 */
 /* global THREE, sdMusic */
 

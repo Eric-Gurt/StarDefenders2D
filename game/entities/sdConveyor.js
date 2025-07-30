@@ -199,6 +199,8 @@ class sdConveyor extends sdEntity
 			}
 		}
 		
+		let recheck_nearby_belts_once = true;
+		
 		for ( let i = 0; i < this._transported_entities.length; i++ )
 		{
 			let another_entity = this._transported_entities[ i ];
@@ -219,6 +221,29 @@ class sdConveyor extends sdEntity
 					}
 					
 					another_entity.PhysWakeUp();
+					
+					if ( recheck_nearby_belts_once )
+					{
+						recheck_nearby_belts_once = false;
+						
+						if ( this._right_belt )
+						if ( this._right_belt._is_being_removed || !this.DoesOverlapWith( this._right_belt, 4 ) )
+						{
+							if ( this._right_belt._left_belt === this )
+							this._right_belt._left_belt = null;
+							
+							this._right_belt = null;
+						}
+						
+						if ( this._left_belt )
+						if ( this._left_belt._is_being_removed || !this.DoesOverlapWith( this._left_belt, 4 ) )
+						{
+							if ( this._left_belt._right_belt === this )
+							this._left_belt._right_belt = null;
+						
+							this._left_belt = null;
+						}
+					}
 					
 					if ( another_entity.y + another_entity._hitbox_y2 < this.y + 4 ) // On top
 					{

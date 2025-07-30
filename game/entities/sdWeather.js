@@ -2990,7 +2990,7 @@ class sdWeather extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						lrtp_class_proprty_value_array: [ 'sdLandScanner', 'scanned_ents', 350 ],
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
-						difficulty: 0.14,
+						difficulty: 0.3,
 						lrtp_matter_capacity_needed: 1,
 						title: 'Planet scan',
 						time_left: 30 * 60 * 15,
@@ -3795,7 +3795,7 @@ class sdWeather extends sdEntity
 							mission: sdTask.MISSION_PROTECT_ENTITY,
 							protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
 							time_left: 30 * 60 * 5, // 5 minutes
-							difficulty: 0.075,
+							difficulty: 0.2,
 							title: 'Protect a drone',
 							description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
 						});
@@ -4536,6 +4536,7 @@ class sdWeather extends sdEntity
 									}
 									
 									if ( e )
+									if ( e.y - 4 > sdWorld.world_bounds.y1 )
 									{
 										if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
 										{

@@ -472,7 +472,7 @@ class sdCrystal extends sdEntity
 							{
 								const Check = ()=>
 								{
-									return ( !e._is_being_removed && !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x, e2.y, e,e2, null, sdCom.com_visibility_unignored_classes ) )
+									return ( !e._is_being_removed && !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x+(e2.hitbox_x1+e2.hitbox_x2)/2, e2.y+(e2.hitbox_y1+e2.hitbox_y2)/2, e,e2, null, sdCom.com_visibility_unignored_classes ) )
 								};
 
 								if ( Check() )
@@ -2094,6 +2094,10 @@ class sdCrystal extends sdEntity
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 	
+	IsPhysicallyMovable()
+	{
+		return !this.held_by;
+	}
 }
 //sdCrystal.init_class();
 

@@ -1054,6 +1054,40 @@ class sdEntity
 		return [ w1_collision, w2_collision ];
 	}
 	
+	ApplyVelocityAndCollisionsPreviouslyCarried( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null )
+	{
+		if ( this._last_held_by )
+		{
+			if ( this._last_held_by._is_being_removed || sdWorld.time > this._last_held_by_until )
+			{
+				this._last_held_by = null;
+			}
+			else
+			{
+				if ( this._last_held_by_filter === null )
+				this._last_held_by_filter = ( e )=>
+				{
+					return ( e !== this._last_held_by && e.hard_collision );
+				};
+
+				if ( custom_filtering_method === null )
+				{
+					custom_filtering_method = this._last_held_by_filter;
+				}
+				else
+				{
+					debugger; // Filter combination is not yet supported for previously carried items
+				}
+			}
+		}
+		
+		return sdEntity.prototype.ApplyVelocityAndCollisions.call( 
+					this,
+					GSPEED, step_size, apply_friction, impact_scale, custom_filtering_method 
+		);
+		//return this.ApplyVelocityAndCollisions( GSPEED, step_size, apply_friction, impact_scale, custom_filtering_method );
+	}
+	
 	// Optimized to the point where it is same as old method (sometimes +20% slower on average though), but both methods were optimized by _hard_collision optimization
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
@@ -1794,6 +1828,9 @@ class sdEntity
 							}*/
 											
 							const push_step = 0.01;
+							
+							const inverse_space_around_required_for_unstuck = 0; // -0.00001 prevents crystals from sliding on top of other crystals when pushed // 0.001 makes crates be pushed into walls by players jetpacking into them
+							//const directional_space_required_for_unstuck = 0; Seems not needed actually
 											
 							switch ( smallest )
 							{
@@ -1842,7 +1879,7 @@ class sdEntity
 										//const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
 										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.00001; // There was a case where standing on a turret would instantly stuck player to it
 
-										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001, custom_filtering_method ) )
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
 										this.y = y_risen;
 									}
 								}
@@ -1894,7 +1931,7 @@ class sdEntity
 									{
 										const y_risen = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
 
-										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001, custom_filtering_method ) )
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
 										this.y = y_risen;
 									}
 								}	
@@ -1949,7 +1986,7 @@ class sdEntity
 									{
 										const x_risen = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
 
-										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001, custom_filtering_method ) )
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
 										this.x = x_risen;
 									}
 								}
@@ -2004,7 +2041,7 @@ class sdEntity
 									{
 										const x_risen = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
 
-										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001, custom_filtering_method ) )
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
 										this.x = x_risen;
 									}
 								}
@@ -2885,6 +2922,21 @@ class sdEntity
 		
 		// Premake all needed variables so sealing would work best
 		{
+			if ( this.onThink.has_held_by === undefined )
+			{
+				// Guns are exception because they can't be carried and thus extra logic can be too demanding
+				this.onThink.has_held_by = ( this.GetClass() !== 'sdGun' && this.constructor.toString().indexOf( 'this.held_by' ) !== -1 );
+			}
+			
+			if ( this.onThink.has_held_by )
+			{
+				this._last_held_by = null;
+				this._last_held_by_until = 0;
+				this._last_held_by_filter = null;
+				
+				this.SetMethod( 'ApplyVelocityAndCollisions', this.ApplyVelocityAndCollisionsPreviouslyCarried );
+			}
+			
 			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
 			{
 				let onThinkString = this.onThink.toString();

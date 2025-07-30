@@ -72,6 +72,8 @@ class sdHover extends sdEntity
 		sdHover.TYPE_BIKE = 3;
 		sdHover.TYPE_FALKOK_HOVER = 4;
 		
+		sdHover.debug_hitboxes = false;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -545,7 +547,7 @@ class sdHover extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.2,
 								//lrtp_ents_needed: 1,
 								title: 'Arrest Star Defender',
 								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -1101,6 +1103,12 @@ class sdHover extends sdEntity
 		{
 			if ( this.type !== sdHover.TYPE_BIKE )
 			ctx.scale( 0.5, 0.5 );
+		}
+		
+		if ( sdHover.debug_hitboxes )
+		{
+			ctx.fillStyle = '#00ff00';
+			ctx.fillRect( this.hitbox_x1, this.hitbox_y1, this.hitbox_x2-this.hitbox_x1, this.hitbox_y2-this.hitbox_y1 );
 		}
 		
 		ctx.rotate( this._tilt / 100 );

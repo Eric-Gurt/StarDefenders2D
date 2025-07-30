@@ -111,6 +111,7 @@ class sdTask extends sdEntity
 				task._approach_target_check_timer = 1; // Every 2 seconds it will check if target was approached by task executor, until it does.
 				// Players that don't get close to the objective don't get rewards now.
 				
+				task.SetBasicProgress( 0, 1 );
 			},
 			onCompletion: ( task )=>
 			{
@@ -462,6 +463,8 @@ class sdTask extends sdEntity
 				task._protect_type = params.protect_type || 0; // 0 = progress bar ( Dark matter beam projector, Long range frequency antenna ), 1 = Entity must survive for a time limit ( SD-BG drone )
 				task._approached_target = false; // Same as destroy entity tasks
 				task._approach_target_check_timer = 1;
+				
+				task.SetBasicProgress( 0, 1 );
 			},
 			onCompletion: ( task )=>
 			{

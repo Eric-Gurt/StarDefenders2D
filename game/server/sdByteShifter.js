@@ -90,8 +90,7 @@ class sdByteShifter
 	{
 		this.socket = socket;
 		
-		//this.current_snapshot_entities = new Map();
-		this.confirmed_snapshot = new Map();
+		this.confirmed_snapshot = new Map(); // Used to by entity -> snapshot, now it is _net_id -> snapshot
 		
 		this.sent_messages_first = 0;
 		this.sent_messages_last = 0;
@@ -106,32 +105,15 @@ class sdByteShifter
 		
 		//this.message_id = 0;
 		this.old_leaders_str = '';
-	}
-	
-	/*Reset()
-	{
-		this.confirmed_snapshot.clear();
 		
-		this.known_statics_versions = new WeakMap();
-		//this.snap_object_to_its_version = new WeakMap();
-	}*/
+		this.visited_hashes_untils = new Map(); // Chunk hash -> { hash, x, y until } it allows contents to be visible for a duration of chunk vanishing on client-side
+	}
+
 	onRemove()
 	{
 	}
 	
-	/*AppendCSGOID( num )
-	{
-		if ( num !== this.last_gcso_id + 1 )
-		{
-			let c = this.socket.character;
-			
-			if ( c )
-			c._key_states.Reset();
-		}
-		this.last_gcso_id = num;
-	}*/
 	ClientReportedArrival( arr )
-	//ClientReportedArrival( uid )
 	{
 		if ( arr instanceof Array )
 		{
@@ -145,15 +127,6 @@ class sdByteShifter
 				
 				arr[ i ] = v;
 			}
-			
-			// Forget no longer mentioned sent_messages_confirmed_ids, they won't be checked nor sent either
-			/*for ( let i = 0; i < this.sent_messages_confirmed_ids.length; i++ )
-			if ( arr.indexOf( i ) === -1 )
-			{
-				this.sent_messages_confirmed_ids.splice( i, 1 );
-				i--;
-				continue;
-			}*/
 			
 			this.sent_messages_confirmed_ids = arr;
 			
@@ -191,13 +164,6 @@ class sdByteShifter
 		}
 	}
 	
-	/*static GetSyncSnapshot( ent, observer=null )
-	{
-		let r = ent.GetSnapshot( globalThis.GetFrame(), false, observer, false );
-		
-		return r;
-	}*/
-	
 	SendSnapshot()
 	{
 		let socket = this.socket;
@@ -213,6 +179,8 @@ class sdByteShifter
 				
 				{
 					socket._FixCameraPosition();
+					
+					// Copy block-like vision [ 1 / 2 ]
 
 					// Copy Camera Bounds [ 2 / 2 ]
 					let min_x = socket.camera.x - 800/2 / socket.camera.scale;
@@ -241,12 +209,8 @@ class sdByteShifter
 					
 					const AddEntity = ( ent )=>//, forced )=>
 					{
-						//if ( ent._flag !== visited_ent_flag )
 						if ( ent._flag < visited_ent_flag )
 						{
-							//ent._flag = visited_ent_flag;
-
-							//if ( ( ent.IsVisible === sdEntity.prototype.IsVisible || ent.IsVisible( socket.character ) ) )
 							if ( ( ent.IsVisible === sdEntity.prototype.IsVisible || ent.IsVisible( socket.character ) ) && !ent._is_being_removed )
 							{
 								ent._flag = listed_ent_flag;
@@ -254,9 +218,6 @@ class sdByteShifter
 								current_snapshot_entities.push( ent );
 								
 								let is_static = ent.is_static;
-								
-								//if ( sdByteShifter.simulate_all_as_non_static )
-								//is_static = false;
 								
 								if ( is_static )
 								{
@@ -269,57 +230,27 @@ class sdByteShifter
 									else
 									{
 										// Reuse the snapshot object
-										let snap = this.confirmed_snapshot.get( ent );
+										//let snap = this.confirmed_snapshot.get( ent );
+										let snap = this.confirmed_snapshot.get( ent._net_id );
 										
 										if ( snap )
 										{
-											replacement_for_confirmed_snapshot.set( ent, snap );
+											//replacement_for_confirmed_snapshot.set( ent, snap );
+											replacement_for_confirmed_snapshot.set( ent._net_id, snap );
 
 											return; // Skip
 										}
 									}
 								}
 								
-								/*if ( ent.is_static ) // 5.8
-								{
-									observed_statics_map2.add( ent._net_id ); // ?
-
-									if ( snapshot.length < MaxCompleteEntitiesCount || forced )
-									{
-										if ( socket.known_statics_versions_map2.get( ent._net_id ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
-										{
-											socket.known_statics_versions_map2.set( ent._net_id, ent._update_version );
-
-											let snap = ent.GetSnapshot( frame, false, socket.character );
-											snapshot.push( snap );
-											snapshot_only_statics.push( snap );
-										}
-									}
-								}
-								else
-								{
-									observed_entities.push( ent );
-									observed_entities_map.add( ent );
-								}*/
+								//let confirmed_state = this.confirmed_snapshot.get( ent );
+								let confirmed_state = this.confirmed_snapshot.get( ent._net_id );
 								
-								let confirmed_state = this.confirmed_snapshot.get( ent );
-								
-								/*if ( confirmed_state !== undefined )
-								if ( confirmed_state._broken || confirmed_state._is_being_removed )
-								throw new Error( 'TEST' );*/
-								
-								//let snap = ent.GetSnapshot( frame, false, socket.character );
-								//let snap = sdByteShifter.GetSyncSnapshot( ent, socket.character );
 								let snap = ent.GetSnapshot( globalThis.GetFrame(), false, socket.character, false );
-								
-								//let values_array = Object.values( snap );
 									
 								if ( confirmed_state === undefined )
 								{
-									//if ( ent.is( sdTask ) )
-									//trace( 'Requesting creation of task', ent._net_id,'since it is missing in confirmed snapshot' );
 									
-								
 									let class_info = ent._class_id; // Number or string if class has initial type/class/mission properties
 									
 									for ( let i = 0; i < sdEntity.properties_important_upon_creation.length; i++ )
@@ -330,14 +261,6 @@ class sdByteShifter
 										class_info += '/' + i + '=' + snap[ prop ];
 									}
 									
-									/*snapshot.push([
-
-										ent._net_id, // 0
-										class_info, // 1 - list of indexes of properties to update OR class ID if it is a first sync OR -1 if removal OR -2 if broken
-										...values_array // 2... - values of properties
-
-									]);*/
-									
 									let entity_snapshot = [
 										ent._net_id, // 0
 										class_info, // 1 - list of indexes of properties to update OR class ID if it is a first sync OR -1 if removal OR -2 if broken
@@ -346,16 +269,9 @@ class sdByteShifter
 									entity_snapshot.push( snap[ prop ] ); // 2... - values of properties
 								
 									snapshot.push( entity_snapshot );
-									
-									// sdWorld.entity_classes_array[ ._class_id ] is a reverse class search
 								}
 								else
 								{
-									//if ( confirmed_state.length !== values_array.length )
-									//throw new Error( 'Did entity synced property count changed? It should not be a thing. Entity class is ' + ent.GetClass()  );
-									
-									//let props_array = Object.keys( snap );
-								
 									let prop_ids = null;
 									let values_array_partial = null;
 									
@@ -368,9 +284,6 @@ class sdByteShifter
 									{
 										let snap_value = snap[ prop ];
 										let confirmed_value = confirmed_state[ prop ];
-										
-										//if ( prop === 'hook_relative_to' )
-										//trace( ( ( confirmed_value !== snap_value ) ? 'sending' : 'NOT SENDING' ) + ' hook_relative_to as' + snap_value );
 										
 										let is_pos = false;
 										let is_vel = false;
@@ -406,7 +319,6 @@ class sdByteShifter
 													mismatch = ( confirmed_value !== snap_value );
 												}
 											}
-											//mismatch = ( confirmed_value !== snap_value || ( is_active_or_rare_update && ( is_pos || is_vel ) ) );
 										}
 										else
 										if ( typeof snap_value === 'object' )
@@ -462,12 +374,8 @@ class sdByteShifter
 											mismatch = ( confirmed_value !== snap_value );
 										}
 										
-										//if ( confirmed_value !== snap_value || ( !ent.is_static && ( prop === 'x' || prop === 'y' || prop === 'sx' || prop === 'sy' ) ) )
-										//if ( confirmed_value !== snap_value || ( ( !ent.is_static || ent.awake ) && ( is_pos || is_vel ) ) )
 										if ( mismatch )
 										{
-											//trace( ent, prop, snap_value, confirmed_value );
-											
 											if ( prop_ids === null )
 											{
 												prop_ids = [ i ];
@@ -483,21 +391,6 @@ class sdByteShifter
 										i++;
 									}
 									
-									/*for ( let i = 0; i < confirmed_state.length; i++ )
-									if ( confirmed_state[ i ] !== values_array[ i ] )
-									{
-										if ( prop_ids === null )
-										{
-											prop_ids = [ i ];
-											values_array_partial = [ values_array[ i ] ];
-										}
-										else
-										{
-											prop_ids.push( i );
-											values_array_partial.push( values_array[ i ] );
-										}
-									}*/
-									
 									if ( prop_ids !== null )
 									snapshot.push([
 
@@ -510,17 +403,10 @@ class sdByteShifter
 								
 								let snap_stored_copy = null;
 								
-								//if ( Math.random() < 0.5 )
-								//snap_stored_copy = Object.assign( {}, snap ); // Slower than structuredClone
-								//else
-								//if ( Math.random() < 0.5 )
-								//snap_stored_copy = structuredClone( snap ); // Much faster somehow
-								//else
-								//snap_stored_copy = { ...snap }; // Slower than structuredClone
 								snap_stored_copy = ShallowClone( snap );
 								
-								replacement_for_confirmed_snapshot.set( ent, snap_stored_copy );
-								//replacement_for_confirmed_snapshot.set( ent, snap );
+								//replacement_for_confirmed_snapshot.set( ent, snap_stored_copy );
+								replacement_for_confirmed_snapshot.set( ent._net_id, snap_stored_copy );
 								
 								if ( is_static )
 								this.snap_object_to_its_version.set( snap_stored_copy, ent._update_version );
@@ -606,14 +492,15 @@ class sdByteShifter
 						VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
 					}
 					else
+					if ( socket.character )
 					{
 						// At the end of a beam
-						const extra_xy_spread = 64;
-						const extra_xy_spread_step = 64;
+						const extra_xy_spread = 32;
+						const extra_xy_spread_step = 32;
 
 						// Around beam while it travels
-						const extra_xy_spread_middle = 64;
-						const extra_xy_spread_middle_step = 64;
+						const extra_xy_spread_middle = 32;
+						const extra_xy_spread_middle_step = 32;
 
 						if ( extra_xy_spread_step > CHUNK_SIZE )
 						throw new Error('Might jump over chunk here...');
@@ -631,7 +518,8 @@ class sdByteShifter
 
 							if ( r === undefined )
 							{
-								r = sdWorld.CheckWallExists( x * 16 + 8, y * 16 + 8, null, null, null, sdWorld.FilterVisionBlocking );
+								//r = sdWorld.CheckWallExists( x * 16 + 8, y * 16 + 8, null, null, null, sdWorld.FilterVisionBlocking );
+								r = sdWorld.CheckWallExistsBox( x * 16, y * 16, x * 16 + 16, y * 16 + 16, socket.character, null, null, sdWorld.FilterVisionBlocking );
 								hitmap.set( hash, r );
 							}
 
@@ -639,6 +527,7 @@ class sdByteShifter
 						}
 
 						const visited_hashes = new Set();
+						//const seen_hashes = [];
 
 						for ( let b = 0; b < 32; b++ )
 						{
@@ -649,6 +538,9 @@ class sdByteShifter
 
 							const dx = Math.sin( b / 32 * Math.PI * 2 ) * 16;
 							const dy = Math.cos( b / 32 * Math.PI * 2 ) * 16;
+							
+							x += dx / 2;
+							y += dy / 2;
 
 							let ttl = -1;
 
@@ -666,6 +558,8 @@ class sdByteShifter
 								const extra_xy_spread_this = ( ttl === 0 ) ? extra_xy_spread : extra_xy_spread_middle;
 								const extra_xy_spread_step_this = ( ttl === 0 ) ? extra_xy_spread_step : extra_xy_spread_middle_step;
 
+								//let xx = 0;
+								//let yy = 0;
 								for ( let xx = -extra_xy_spread_this; xx <= extra_xy_spread_this; xx += extra_xy_spread_step_this )
 								for ( let yy = -extra_xy_spread_this; yy <= extra_xy_spread_this; yy += extra_xy_spread_step_this )
 								{
@@ -677,12 +571,16 @@ class sdByteShifter
 									else
 									{
 										visited_hashes.add( hash );
-
-										const cell = sdWorld.RequireHashPosition( x+xx, y+yy );
-										const arr = cell.arr;
-
-										for ( let i2 = 0; i2 < arr.length; i2++ )
-										AddEntity( arr[ i2 ], false );
+										
+										let info = this.visited_hashes_untils.get( hash );
+										if ( info === undefined )
+										{
+											this.visited_hashes_untils.set( hash, { x:x+xx, y:y+yy, until:sdWorld.time + 5000 } ); 
+										}
+										else
+										{
+											info.until = sdWorld.time + 5000;
+										}
 									}
 								}
 
@@ -690,6 +588,56 @@ class sdByteShifter
 								y += dy;
 							}
 						}
+						
+						for ( let [ hash, info ] of this.visited_hashes_untils )
+						{
+							if ( sdWorld.time > info.until )
+							{
+								this.visited_hashes_untils.delete( hash );
+								continue;
+							}
+							
+							let x = info.x;
+							let y = info.y;
+							
+							if ( x+CHUNK_SIZE >= min_x && x-CHUNK_SIZE <= max_x && y+CHUNK_SIZE >= min_y && y-CHUNK_SIZE <= max_y )
+							{
+								visited_hashes.add( hash );
+								
+								const cell = sdWorld.RequireHashPosition( x, y );
+								const arr = cell.arr;
+
+								for ( let i2 = 0; i2 < arr.length; i2++ )
+								AddEntity( arr[ i2 ], false );
+							
+							
+							
+								snapshot.push( [ 
+									( info.until === sdWorld.time + 5000 ) ? -1 : -2,
+									hash,
+									sdWorld.FastFloor( (x) / CHUNK_SIZE ),
+									sdWorld.FastFloor( (y) / CHUNK_SIZE )
+								] );
+							}
+						}
+						/*
+						for ( let x = min_x-CHUNK_SIZE; x < max_x+CHUNK_SIZE; x += CHUNK_SIZE )
+						for ( let y = min_y-CHUNK_SIZE; y < max_y+CHUNK_SIZE; y += CHUNK_SIZE )
+						{
+							const hash = ( sdWorld.FastFloor( (y) / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( (x) / CHUNK_SIZE );
+							if ( !visited_hashes.has( hash ) )
+							{
+								visited_hashes.add( hash );
+
+								snapshot.push( [ 
+									-1,
+									hash,
+									
+									sdWorld.FastFloor( (x) / CHUNK_SIZE ),
+									sdWorld.FastFloor( (y) / CHUNK_SIZE )
+								] );
+							}
+						}*/
 					}
 					
 					for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back
@@ -704,8 +652,35 @@ class sdByteShifter
 						
 						if ( confirmed_snapshot )
 						{
-							for ( let [ ent, snap_values ] of confirmed_snapshot )
+							for ( let [ _net_id, snap_values ] of confirmed_snapshot )
 							{
+								let ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
+								
+								if ( !ent )
+								{
+									let info = sdEntity.removed_entities_info.get( _net_id );
+									if ( info === undefined )
+									{
+										// Send deletion // Almost copy [ 1 / 2 ]
+										snapshot.push([
+
+											_net_id, // 0
+											-1 // 1 - list of indexes of properties to update OR class name if it is a first sync OR -1 if removal OR -2 if broken
+
+										]);
+										
+										// Scan all snapshots into future and remove this entity, effectivaly causing full snapshot of this entity next time // Copy [ 1 / 2 ]
+										for ( let [ uid, snapshot ] of this.send_messages )
+										snapshot.delete( _net_id );
+									
+										continue;
+									}
+									else
+									{
+										ent = info.entity;
+									}
+								}
+								
 								if ( ent.is_static )
 								//if ( !sdByteShifter.simulate_all_as_non_static )
 								{
@@ -724,9 +699,7 @@ class sdByteShifter
 								{
 									ent._flag = listed_ent_flag;
 
-									//if ( ent.is( sdTask ) )
-									//trace( 'Requesting removal of task', ent._net_id );
-
+									// Send deletion // Almost copy [ 2 / 2 ]
 									snapshot.push([
 
 										ent._net_id, // 0
@@ -734,10 +707,10 @@ class sdByteShifter
 
 									]);
 									
-									// Scan all snapshots into future and remove this entity, effectivaly causing full snapshot of this entity next time
-									//for ( let i = this.sent_messages_confirmed_id_last; i < this.sent_messages_confirmed_id_last; i++ )
+									// Scan all snapshots into future and remove this entity, effectivaly causing full snapshot of this entity next time // Copy [ 2 / 2 ]
 									for ( let [ uid, snapshot ] of this.send_messages )
-									snapshot.delete( ent );
+									snapshot.delete( _net_id );
+									//snapshot.delete( ent );
 									
 									if ( ent.is_static )
 									this.known_statics_versions.delete( ent );

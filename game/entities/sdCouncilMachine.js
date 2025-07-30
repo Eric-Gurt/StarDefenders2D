@@ -341,11 +341,12 @@ class sdCouncilMachine extends sdEntity
 						desc = 'The Council is attempting to invade near the dark matter beam projector. Destroy the device!';
 
 						let diff = 0.001; // 0 sets it to 0.1 since it doesn't count as a parameter? It gets set to 0 when damaged enough before being destroyed if not the last one, just in case.
+						
 						if ( sdCouncilMachine.ents_left === 0 )
-						diff = 0.18; // Only last machine counts towards task points when destroyed, so the task is 100% complete
+						diff = 0.3; // Only last machine counts towards task points when destroyed, so the task is 100% complete
 					
 						if ( this._one_time_spawn )
-						diff = 0.05;
+						diff = 0.2;
 
 						sdTask.MakeSureCharacterHasTask({ 
 							similarity_hash:'DESTROY-'+this._net_id, 

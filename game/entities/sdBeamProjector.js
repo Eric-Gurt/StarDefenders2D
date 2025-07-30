@@ -591,7 +591,7 @@ class sdBeamProjector extends sdEntity
 					mission: sdTask.MISSION_PROTECT_ENTITY,				
 					title: 'Protect dark matter beam projector',
 					description: desc,
-					difficulty: 0.1
+					difficulty: 1
 				});
 			}
 			if ( !this._ai_told_player )

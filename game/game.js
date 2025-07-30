@@ -1082,6 +1082,25 @@ let enf_once = true;
 					let arr = snapshot[ i ];
 					
 					let _net_id = arr[ 0 ];
+					
+					if ( _net_id === -1 || _net_id === -2 ) // Invisible chunk
+					{
+						let hash = arr[ 1 ];
+						
+						let info = sdRenderer.visible_chunks.get( hash );
+						
+						if ( info === undefined )
+						sdRenderer.visible_chunks.set( hash, { x:arr[ 2 ], y:arr[ 3 ], opacity:1, last_active_visibility_time:sdWorld.time, active_visibility:( _net_id === -1 ) } );
+						else
+						{
+							info.active_visibility = ( _net_id === -1 );
+							if ( info.active_visibility )
+							info.last_active_visibility_time = sdWorld.time;
+						}
+						
+						continue;
+					}
+					
 					let properties_or_class_or_deletion_info = arr[ 1 ];
 					
 					let ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
@@ -1178,6 +1197,8 @@ let enf_once = true;
 							
 							if ( class_id_or_deletion_info === -1 )
 							{
+								//trace( 'Removing entity at .y = ' + ent.y );
+								
 								// remove
 								ent.remove();
 								ent._broken = false;
@@ -1246,7 +1267,7 @@ let enf_once = true;
 						sdEntity.TrackPotentialYRest( ent );
 					}
 				}
-					
+				
 				/*let new_snapshot_entities = [];
 				for ( var i = 0; i < snapshot.length; i++ )
 				{
@@ -1319,12 +1340,6 @@ let enf_once = true;
 				{
 					if ( typeof params.char_di !== 'undefined' )
 					{
-						//let an = Math.random() * Math.PI * 2;
-						//let xx = Math.sin( an ) * params.char_di;
-						//let yy = Math.cos( an ) * params.char_di;
-						//params.x = sdWorld.camera.x + xx;
-						//params.y = sdWorld.camera.y + yy;
-						
 						params.x = sdWorld.camera.x;
 						params.y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
 					}
@@ -1345,6 +1360,88 @@ let enf_once = true;
 					}
 					
 					sdSound.PlaySound( params );
+				}
+				else
+				if ( type === 'P' ) // Projectiles pushing ragdolls
+				{
+					/*sdWorld.SendEffect({ 
+						t: from_entity._net_id,
+						x: Math.round( this.x - from_entity.x ), 
+						y: Math.round( this.y - from_entity.y ), 
+						sx: Math.round( this.sx * Math.abs( this._damage ) * this._knock_scale ), 
+						sy: Math.round( this.sy * Math.abs( this._damage ) * this._knock_scale ) 
+					}, 'P' );*/
+					let c = sdEntity.entities_by_net_id_cache_map.get( params.t );
+					if ( c )
+					if ( c._ragdoll )
+					{
+						let bones = c._ragdoll.bones;
+						
+						let x = c.x + params.x;
+						let y = c.y + params.y;
+						let r = 10;
+						
+						for ( let i = 0; i < bones.length; i++ )
+						{
+							let b = bones[ i ];
+							
+							let di = sdWorld.Dist2D( b.x, b.y, x, y );
+							
+							if ( di < r )
+							{
+								let power = ( 1 - di / r ) * 0.07;
+								
+								b.sx += params.sx * power;
+								b.sy += params.sy * power;
+								b._local_damage_timer = 1;//Math.max( b._local_damage_timer, 0.3 + power * 0.7 );
+							}
+						}
+					}
+				}
+				else
+				if ( type === 'COPY_RAGDOLL_POSE' )
+				{
+					let f = sdEntity.entities_by_net_id_cache_map.get( params.f );
+					let t = sdEntity.entities_by_net_id_cache_map.get( params.t );
+					
+					if ( f && f._ragdoll && t && t._ragdoll )
+					{
+						t._ragdoll._local_damage_timer = f._ragdoll._local_damage_timer;
+						
+						let bones_from = f._ragdoll.bones;
+						let bones_to = t._ragdoll.bones;
+						for ( let i = 0; i < bones_from.length; i++ )
+						{
+							let bone_from = bones_from[ i ];
+							let bone_to = bones_to[ i ];
+							
+							bone_to.x =  bone_from._last_x;
+							bone_to.y =  bone_from._last_y;
+							bone_to.sx = bone_from._last_sx;
+							bone_to.sy = bone_from._last_sy;
+							bone_to._local_damage_timer = bone_from._local_damage_timer;
+							
+							//sdEntity.entities.push( new sdWorld.entity_classes.sdEffect({ x:bone_to.x, y:bone_to.y, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT }) );
+						}
+					}
+					else
+					{
+						//debugger;
+					}
+				}
+				else
+				if ( type === 'CARRY_END' )
+				{
+					let p = sdEntity.entities_by_net_id_cache_map.get( params.p );
+					let c = sdEntity.entities_by_net_id_cache_map.get( params.c );
+					if ( p && c )
+					{
+						p._previous_carrying = c;
+						p._previous_carrying_ignore_until = sdWorld.time + sdCharacter.carried_item_collision_igonre_duration;
+
+						c._last_held_by = p;
+						c._last_held_by_until = sdWorld.time + sdCharacter.carried_item_collision_igonre_duration;
+					}
 				}
 				else
 				if ( type === 'ONLINE' ) // update online stats (in-game only)

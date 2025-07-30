@@ -43,8 +43,18 @@ class sdAsteroid extends sdEntity
 	
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
+	}
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
 	}
 	
 	GetBleedEffect()
@@ -57,6 +67,16 @@ class sdAsteroid extends sdEntity
 		if ( character.build_tool_level > this._max_build_tool_level_near )
 		this._max_build_tool_level_near = character.build_tool_level;
 	}*/
+	PlayerIsHooked( character, GSPEED )
+	{
+		if ( this.type === sdAsteroid.TYPE_FLESH )
+		this.AsteroidLanded();
+	}
+	PlayerIsCarrying( character, GSPEED )
+	{
+		this.PlayerIsHooked( character, GSPEED );
+	}
+		
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
@@ -69,14 +89,14 @@ class sdAsteroid extends sdEntity
 		{
 			if ( from_entity )
 			{
-				if ( from_entity.is( sdBullet ) )
+				/*if ( from_entity.is( sdBullet ) )
 				{
 					if ( from_entity._hook )
 					{
 						this.AsteroidLanded();
 					}
 				}
-				else
+				else*/
 				if ( from_entity.Fleshify )
 				if ( !from_entity.is( sdBlock ) || from_entity.material !== sdBlock.MATERIAL_FLESH )
 				{
@@ -112,6 +132,9 @@ class sdAsteroid extends sdEntity
 	constructor( params )
 	{
 		super( params );
+		
+		// Carrying
+		this.held_by = null;
 		
 		//this._max_build_tool_level_near = 0;
 
@@ -289,6 +312,11 @@ class sdAsteroid extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		this.rotation = this._an * 100;
+	
+		if ( this.held_by )
+		{
+			return;
+		}
 		
 		if ( this.landed )
 		{
@@ -489,37 +517,51 @@ class sdAsteroid extends sdEntity
 	
 		return ('Asteroid');
 	}
-	
+	IsPhysicallyMovable()
+	{
+		return ( !this.held_by && !this.attached_to );
+	}
+	IsCarriable( by )
+	{
+		return ( this.landed && !this.attached_to );
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.landed )
-		sdEntity.TooltipUntranslated( ctx, this.title );
+		{
+			sdEntity.TooltipUntranslated( ctx, this.title );
+			
+			this.BasicCarryTooltip( ctx, 8 );
+		}
 	}
 	Draw( ctx, attached )
 	{
-		var xx = ( this.landed ? 1 : 0 ) + this.type * 2;
-		//var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
-		
-		let yy = 0;
-		
-		if ( !sdShop.isDrawing )
+		if ( this.held_by === null || attached )
 		{
-			ctx.rotate( this.rotation / 100 );
+			var xx = ( this.landed ? 1 : 0 ) + this.type * 2;
+			//var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
 
-			ctx.scale( this.scale/100, this.scale/100 );
+			let yy = 0;
+
+			if ( !sdShop.isDrawing )
+			{
+				ctx.rotate( this.rotation / 100 );
+
+				ctx.scale( this.scale/100, this.scale/100 );
+			}
+			if ( this.landed )
+			yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 3000 < 1500 ) ? 1 : 0;
+			else
+			yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 200 < 100 ) ? 1 : 0;
+
+			if ( this.matter_max > 0 )
+			ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+
+			ctx.drawImageFilterCache( sdAsteroid.img_asteroid, xx * 32, yy * 64, 32,64, -16, -32, 32,64 );
+			//ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+
+			ctx.filter = 'none';
 		}
-		if ( this.landed )
-		yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 3000 < 1500 ) ? 1 : 0;
-		else
-		yy = ( ( sdWorld.time + ( this._net_id || 0 ) ) % 200 < 100 ) ? 1 : 0;
-		
-		if ( this.matter_max > 0 )
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
-		
-		ctx.drawImageFilterCache( sdAsteroid.img_asteroid, xx * 32, yy * 64, 32,64, -16, -32, 32,64 );
-		//ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
-		
-		ctx.filter = 'none';
 	}
 	MeasureMatterCost()
 	{

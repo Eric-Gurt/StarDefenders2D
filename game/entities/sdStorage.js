@@ -233,6 +233,7 @@ class sdStorage extends sdEntity
 			if ( !this.held_by )
 			{
 				this.sy += sdWorld.gravity * GSPEED;
+				
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 			}
 		}

@@ -310,13 +310,16 @@ class sdRoach extends sdEntity
 				{
 					if ( old_walk_delay > 0 )
 					{
-						this.an = Math.random() * Math.PI * 2 * 100;
+						//this.an = Math.random() * Math.PI * 2 * 100;
+						
+						this.an = ( ( this.an + Math.random() * 60 - 30 ) % 100 );
+						
 						this.dx = -Math.sin( this.an / 100 ) * 100;
 						this.dy = -Math.cos( this.an / 100 ) * 100;
 
 						this._walk_duration = Math.random() * 50;
 						
-						if ( this._hunger > 90 || ( this._decal_to_feed_from && this._decal_to_feed_from.is( sdRoach ) ) )
+						/*if ( this._hunger > 90 || ( this._decal_to_feed_from && this._decal_to_feed_from.is( sdRoach ) ) )
 						if ( this._decal_to_feed_from )
 						{
 							let dx = this._decal_to_feed_from.x + ( this._decal_to_feed_from._hitbox_x1 + this._decal_to_feed_from._hitbox_x2 ) / 2 - this.x;
@@ -336,7 +339,7 @@ class sdRoach extends sdEntity
 								this.an = Math.random() * Math.PI * 2 * 100;
 								this._walk_duration = Math.random() * 50;
 							}
-						}
+						}*/
 						
 						if ( this.bgcrawl === 0 )
 						{

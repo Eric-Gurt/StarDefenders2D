@@ -855,7 +855,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_DESTROY_ENTITY,
-										difficulty: 0.125 * sdTask.GetTaskDifficultyScaler(),
+										difficulty: 1 * sdTask.GetTaskDifficultyScaler(),
 										title: 'Destroy planetary matter drainer',
 										description: 'There is a planetary matter drainer spotted nearby. Destroy it before it drains all our matter!'
 									});
@@ -1314,7 +1314,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_LRTP_EXTRACTION,
-										difficulty: 0.1 * sdTask.GetTaskDifficultyScaler(),
+										difficulty: 0.3 * sdTask.GetTaskDifficultyScaler(),
 										title: 'Extract alien artifact',
 										description: 'We would like to investigate this artifact you have found. Can you deliver it to the mothership using a long range teleporter?'
 									});
