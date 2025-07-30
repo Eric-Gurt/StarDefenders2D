@@ -1419,6 +1419,7 @@ class sdRenderer
 			
 			if ( sdRenderer.line_of_sight_mode )
 			if ( sdWorld.my_entity )
+			if ( !sdWorld.is_singleplayer )
 			{
 				ctx.apply_shading = false;
 				ctx.fillStyle = '#040422';

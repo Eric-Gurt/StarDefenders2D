@@ -4564,6 +4564,87 @@ class sdWorld
 		
 		return img;
 	}
+	static AttemptServerEventHandling( type, params )
+	{
+		if ( type === 'EFF' ) // particles, chat messages
+		{
+			if ( typeof params.char_di !== 'undefined' )
+			{
+				params.x = sdWorld.camera.x;
+				params.y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
+			}
+
+			var ef = new sdEffect( params );
+			sdEntity.entities.push( ef );
+		}
+		else
+		if ( type === 'P' ) // Projectiles pushing ragdolls
+		{
+//					sdWorld.SendEffect({ 
+//						t: from_entity._net_id,
+//						x: Math.round( this.x - from_entity.x ), 
+//						y: Math.round( this.y - from_entity.y ), 
+//						sx: Math.round( this.sx * Math.abs( this._damage ) * this._knock_scale ), 
+//						sy: Math.round( this.sy * Math.abs( this._damage ) * this._knock_scale ) 
+//					}, 'P' );
+
+			let c = sdEntity.entities_by_net_id_cache_map.get( params.t );
+			if ( c )
+			if ( c._ragdoll )
+			{
+				let bones = c._ragdoll.bones;
+
+				let x = c.x + params.x;
+				let y = c.y + params.y;
+				let r = 10;
+
+				for ( let i = 0; i < bones.length; i++ )
+				{
+					let b = bones[ i ];
+
+					let di = sdWorld.Dist2D( b.x, b.y, x, y );
+
+					if ( di < r )
+					{
+						let power = ( 1 - di / r ) * 0.07;
+
+						b.sx += params.sx * power;
+						b.sy += params.sy * power;
+						b._local_damage_timer = 1;
+					}
+				}
+			}
+		}
+		else
+		if ( type === 'COPY_RAGDOLL_POSE' )
+		{
+			let f = sdEntity.entities_by_net_id_cache_map.get( params.f );
+			let t = sdEntity.entities_by_net_id_cache_map.get( params.t );
+
+			if ( f && f._ragdoll && t && t._ragdoll )
+			{
+				t._ragdoll._local_damage_timer = f._ragdoll._local_damage_timer;
+
+				let bones_from = f._ragdoll.bones;
+				let bones_to = t._ragdoll.bones;
+				for ( let i = 0; i < bones_from.length; i++ )
+				{
+					let bone_from = bones_from[ i ];
+					let bone_to = bones_to[ i ];
+
+					bone_to.x =  bone_from._last_x;
+					bone_to.y =  bone_from._last_y;
+					bone_to.sx = bone_from._last_sx;
+					bone_to.sy = bone_from._last_sy;
+					bone_to._local_damage_timer = bone_from._local_damage_timer;
+				}
+			}
+		}
+		else
+		return false;
+	
+		return true;
+	}
 	static StartOffline( player_settings, full_reset=false, retry=0 )
 	{
 		let socket = globalThis.socket;
@@ -4594,9 +4675,18 @@ class sdWorld
 			
 			post_death_spectate_ttl: 12345,
 			
+			camera: sdWorld.camera,
+			
 			sd_events: {
 				push: ( arr )=>
 				{
+					let type = arr[ 0 ];
+					let params = arr[ 1 ];
+					
+					if ( sdWorld.AttemptServerEventHandling( type, params ) )
+					{
+					}
+					else
 					if ( arr[ 0 ] === 'EFF' )
 					{
 						let e = new sdEffect( arr[ 1 ] );

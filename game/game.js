@@ -1336,16 +1336,8 @@ let enf_once = true;
 					played_events.unshift( params.UC );
 				}
 
-				if ( type === 'EFF' ) // particles, chat messages
+				if ( sdWorld.AttemptServerEventHandling( type, params ) )
 				{
-					if ( typeof params.char_di !== 'undefined' )
-					{
-						params.x = sdWorld.camera.x;
-						params.y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
-					}
-					
-					var ef = new sdEffect( params );
-					sdEntity.entities.push( ef );
 				}
 				else
 				if ( type === 'S' ) // sound
@@ -1360,74 +1352,6 @@ let enf_once = true;
 					}
 					
 					sdSound.PlaySound( params );
-				}
-				else
-				if ( type === 'P' ) // Projectiles pushing ragdolls
-				{
-					/*sdWorld.SendEffect({ 
-						t: from_entity._net_id,
-						x: Math.round( this.x - from_entity.x ), 
-						y: Math.round( this.y - from_entity.y ), 
-						sx: Math.round( this.sx * Math.abs( this._damage ) * this._knock_scale ), 
-						sy: Math.round( this.sy * Math.abs( this._damage ) * this._knock_scale ) 
-					}, 'P' );*/
-					let c = sdEntity.entities_by_net_id_cache_map.get( params.t );
-					if ( c )
-					if ( c._ragdoll )
-					{
-						let bones = c._ragdoll.bones;
-						
-						let x = c.x + params.x;
-						let y = c.y + params.y;
-						let r = 10;
-						
-						for ( let i = 0; i < bones.length; i++ )
-						{
-							let b = bones[ i ];
-							
-							let di = sdWorld.Dist2D( b.x, b.y, x, y );
-							
-							if ( di < r )
-							{
-								let power = ( 1 - di / r ) * 0.07;
-								
-								b.sx += params.sx * power;
-								b.sy += params.sy * power;
-								b._local_damage_timer = 1;//Math.max( b._local_damage_timer, 0.3 + power * 0.7 );
-							}
-						}
-					}
-				}
-				else
-				if ( type === 'COPY_RAGDOLL_POSE' )
-				{
-					let f = sdEntity.entities_by_net_id_cache_map.get( params.f );
-					let t = sdEntity.entities_by_net_id_cache_map.get( params.t );
-					
-					if ( f && f._ragdoll && t && t._ragdoll )
-					{
-						t._ragdoll._local_damage_timer = f._ragdoll._local_damage_timer;
-						
-						let bones_from = f._ragdoll.bones;
-						let bones_to = t._ragdoll.bones;
-						for ( let i = 0; i < bones_from.length; i++ )
-						{
-							let bone_from = bones_from[ i ];
-							let bone_to = bones_to[ i ];
-							
-							bone_to.x =  bone_from._last_x;
-							bone_to.y =  bone_from._last_y;
-							bone_to.sx = bone_from._last_sx;
-							bone_to.sy = bone_from._last_sy;
-							bone_to._local_damage_timer = bone_from._local_damage_timer;
-							
-							//sdEntity.entities.push( new sdWorld.entity_classes.sdEffect({ x:bone_to.x, y:bone_to.y, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT }) );
-						}
-					}
-					else
-					{
-						//debugger;
-					}
 				}
 				else
 				if ( type === 'CARRY_END' )
