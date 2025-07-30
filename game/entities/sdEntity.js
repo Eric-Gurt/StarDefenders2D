@@ -218,15 +218,14 @@ class sdEntity
 	
 	static TrackPhysWakeup( bottom_ent, top_ent )
 	{
+		top_ent.SetPhysRestOn( bottom_ent );
+		
 		//var arr = sdEntity.phys_stand_on_map.get( bottom_ent );
-		let arr = bottom_ent._phys_entities_on_top;
+		/*let arr = bottom_ent._phys_entities_on_top;
 		
 		if ( arr === null )
 		{
-			arr = [ top_ent ];
-			
-			//sdEntity.phys_stand_on_map.set( bottom_ent, arr );
-			bottom_ent._phys_entities_on_top = arr;
+			top_ent.SetPhysRestOn( bottom_ent );
 		}
 		else
 		{
@@ -267,7 +266,7 @@ class sdEntity
 					debugger;
 				}
 			}
-		}
+		}*/
 	}
 	SetPhysRestOn( best_ent )
 	{
@@ -277,10 +276,42 @@ class sdEntity
 			let old_rest_on = this._phys_last_rest_on;
 
 			this._phys_last_rest_on = best_ent;
-
+			
+			if ( this._phys_last_rest_on )
+			{
+				if ( this._phys_last_rest_on._phys_entities_on_top === null )
+				{
+					this._phys_last_rest_on._phys_entities_on_top = [ this ];
+				}
+				else
+				{
+					let ind = this._phys_last_rest_on._phys_entities_on_top.indexOf( this );
+					if ( ind === -1 )
+					{
+						this._phys_last_rest_on._phys_entities_on_top.push( this );
+						
+						//this._phys_last_rest_on.CleanupOutdatedItemsOnTop();
+					}
+				}
+			}
+			
 			if ( old_rest_on )
 			if ( !old_rest_on._is_being_removed )
-			old_rest_on.ManageTrackedPhysWakeup();
+			{
+				let arr = old_rest_on._phys_entities_on_top;
+				if ( arr )
+				{
+					let ind = arr.indexOf( this );
+					if ( ind !== -1 )
+					{
+						arr.splice( ind, 1 );
+
+						if ( arr.length === 0 )
+						old_rest_on._phys_entities_on_top = null;
+					}
+				}
+				//old_rest_on.ManageTrackedPhysWakeup();
+			}
 		}
 	}
 	ManageTrackedPhysWakeup() // Can make sense to call this on entity deletion too
@@ -930,38 +961,7 @@ class sdEntity
 
 		this._phys_sleep = 10;
 	}
-	/*ForcePhysSleep( on_entity )
-	{
-		if ( typeof this._phys_last_touch === 'undefined' ) // Do not wake up non-physical bodies, such as sdAsteroid
-		return;
 	
-		this.PhysInitIfNeeded();
-
-		this._phys_sleep = 0;
-		this._phys_last_rest_on = on_entity;
-	}*/
-	/*SharePhysAwake( hit_what )
-	{
-		if ( ( typeof this.sx !== 'undefined' && typeof this.sy !== 'undefined' ) || this._is_being_removed )
-		if ( ( typeof hit_what.sx !== 'undefined' && typeof hit_what.sy !== 'undefined' ) || hit_what._is_being_removed )
-		if ( this.IsTargetable() )
-		if ( hit_what.IsTargetable() )
-		if ( this.hard_collision )
-		if ( hit_what.hard_collision )
-		{
-			this.PhysInitIfNeeded();
-			hit_what.PhysInitIfNeeded();
-			
-			//if ( this === hit_what )
-			//debugger;
-
-			if ( this._phys_sleep < hit_what._phys_sleep )
-			if ( hit_what.GetClass() === 'sdHover' || this.GetClass() === 'sdHover' )
-			console.log( hit_what.GetClass() + ' wakes up ' + this.GetClass() );
-
-			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
-		}
-	}*/
 	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic (not neede anymore if that entity has step-up logic)
 	{
 		return false;
@@ -1272,15 +1272,11 @@ class sdEntity
 		let first_collision = true;
 
 		sdWorld.last_hit_entity = null;
-		this._phys_last_rest_on = null; // Uncommented since it does not make much sense if it is never reset
+		let new_phys_last_rest_on = null;
+		//this._phys_last_rest_on = null; // Uncommented since it does not make much sense if it is never reset
+		
 		//this._phys_last_touch = null; Maybe it is best to just keep it, since movement and removal is tracked above
 		
-		/*if ( this._phys_last_rest_on )
-		{
-			if ( !this.DoesOverlapWith( this._phys_last_rest_on, 0.1 ) )
-			this._phys_last_rest_on = null;
-		}*/
-
 		const is_bg_entity = this._is_bg_entity;
 
 		const this_mass = this.mass;
@@ -2156,14 +2152,13 @@ class sdEntity
 						
 						this._phys_last_touch = best_ent;
 						
-						//this._phys_last_rest_on = best_ent; // Physics worked fine but it makes not much sense if we want to track whether entity stands on top of something for being able to walk
-						
 						// If lies on top
 						if ( best_ent )
 						if ( this.y + this._hitbox_y2 <= best_ent.y + best_ent._hitbox_y1 )
 						if ( this.x + this._hitbox_x1 <= best_ent.x + best_ent._hitbox_x2 )
 						if ( this.x + this._hitbox_x2 >= best_ent.x + best_ent._hitbox_x1 )
-						this.SetPhysRestOn( best_ent );
+						new_phys_last_rest_on = best_ent;
+						//this.SetPhysRestOn( best_ent );
 					}
 
 					GSPEED = GSPEED * ( 1 - best_t );
@@ -2206,6 +2201,8 @@ class sdEntity
 			if ( GSPEED > 0 )
 			trace('remaining GSPEED',GSPEED, this.sx, this.sy );
 		}*/
+							
+		this.SetPhysRestOn( new_phys_last_rest_on );
 						
 		if ( !sdWorld.is_server )
 		if ( this !== sdWorld.my_entity )
@@ -3471,12 +3468,6 @@ class sdEntity
 						debugger;
 						sdEntity.active_entities.splice( id, 1 );
 					}
-					
-					/*if ( v === sdEntity.HIBERSTATE_HIBERNATED )
-					{
-						if ( this._phys_last_touch )
-						sdEntity.TrackPhysWakeup( this._phys_last_touch, this );
-					}*/
 					
 					this._hiberstate = v;
 				}

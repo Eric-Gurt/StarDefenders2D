@@ -1003,21 +1003,46 @@ class sdSteeringWheel extends sdEntity
 		{
 			throw new Error( 'Unable to cache _scan_set' );
 		}
+		
+		const AddPushable = ( ent2 )=>
+		{
+			if ( scan_set.has( ent2 ) )
+			{
+				return false;
+			}
+			
+			if ( stuff_to_push.indexOf( ent2 ) === -1 )
+			{
+				stuff_to_push.push( ent2 );
+				
+				if ( ent2.is( sdWorld.entity_classes.sdStorage ) )
+				debugger;
+				
+				RecursivelyAddItemsLyingOnTop( ent2 );
+				
+				return true;
+			}
+			return false;
+		};
 
-		const Filter = ( ent2, current )=>
+		const Filter = ( ent2, current, declare_stopping=true )=>
 		{
 			if ( ent2._is_being_removed )
 			{
 				//trace( 'Skipped potentially stopping entity that is being removed', ent2 );
 				return false;
 			}
+			
+			/*if ( scan_set.has( ent2 ) )
+			return false;
+		
+			if ( stuff_to_push.indexOf( ent2 ) !== -1 )
+			return false;*/
 
 			if ( ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsPhysicallyMovable() )
 			{
-				if ( stuff_to_push.indexOf( ent2 ) === -1 )
+				if ( AddPushable( ent2 ) )
 				{
-					stuff_to_push.push( ent2 );
-
 					ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );
 				}
 			}
@@ -1040,14 +1065,22 @@ class sdSteeringWheel extends sdEntity
 					}
 
 					if ( stopping_entities.indexOf( ent2 ) === -1 )
+					if ( stuff_to_push.indexOf( ent2 ) === -1 )
 					{
-						stopping_entities.push( ent2 );
+						if ( declare_stopping )
+						{
+							stopping_entities.push( ent2 );
 
-						//trace( 'Added stopping entity', ent2 );
+							//trace( 'Added stopping entity', ent2 );
 
-						if ( !forceful )
-						if ( stopped_entities.indexOf( current ) === -1 )
-						stopped_entities.push( current );
+							if ( !forceful )
+							if ( stopped_entities.indexOf( current ) === -1 )
+							stopped_entities.push( current );
+						}
+						else
+						{
+							return true;
+						}
 					}
 				}
 			}
@@ -1063,15 +1096,15 @@ class sdSteeringWheel extends sdEntity
 			return current.GetIgnoredEntityClasses();
 		};
 
-		const AddItemToPushWithAnythingOnTop = ( ent2 )=>
+		const AddItemToPushWithAnythingOnTop = ( ent2, ignore_physically_movable_test=false )=>
 		{
 			if ( !ent2._is_being_removed )
-			if ( ent2.IsPhysicallyMovable() )
-			if ( stuff_to_push.indexOf( ent2 ) === -1 )
+			if ( ignore_physically_movable_test || ent2.IsPhysicallyMovable() )
+			AddPushable( ent2 );
+			/*if ( AddPushable( ent2 ) )
 			{
-				stuff_to_push.push( ent2 );
 				RecursivelyAddItemsLyingOnTop( ent2 );
-			}
+			}*/
 		};
 		const RecursivelyAddItemsLyingOnTop = ( current )=>
 		{
@@ -1082,11 +1115,31 @@ class sdSteeringWheel extends sdEntity
 
 				AddItemToPushWithAnythingOnTop( ent2 );
 			}
+			
+			//if ( current.is( sdWorld.entity_classes.sdMatterAmplifier ) )
+			//debugger;
+			
+			// Amplifiers and complex vehicles like sdQuadro or even sdSandWorm-s
+			let arr = current.getRequiredEntities( null );
+			if ( arr )
+			for ( let i = 0; i < arr.length; i++ )
+			{
+				let ent2 = arr[ i ];
+				if ( current.DoesOverlapWith( ent2, 8 ) )
+				AddItemToPushWithAnythingOnTop( ent2, true );
+			}
 		};
 		
 		if ( initiator.driver0 )
 		AddItemToPushWithAnythingOnTop( initiator.driver0 );
 
+		for ( let i = 0; i < scan.length; i++ )
+		{
+			let current = scan[ i ];
+			
+			RecursivelyAddItemsLyingOnTop( current ); // So they aren't hittable by some part of scan that doesn't know about them yet
+		}
+		
 		for ( let i = 0; i < scan.length; i++ )
 		{
 			let current = scan[ i ];
@@ -1102,8 +1155,6 @@ class sdSteeringWheel extends sdEntity
 				stopped_entities.push( current );
 			}
 			
-			RecursivelyAddItemsLyingOnTop( current );
-			
 			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 )
 			will_move = false;
 			else
@@ -1116,9 +1167,37 @@ class sdSteeringWheel extends sdEntity
 			if ( current.y + yy + current._hitbox_y1 < sdWorld.world_bounds.y1 )
 			will_move = false;
 		}
+		
+		let partial_push_movement = new Map();
+		let no_xx = 0;
+		let no_yy = 1;
+		
 		for ( let i = 0; i < stuff_to_push.length; i++ )
 		{
 			let current = stuff_to_push[ i ];
+			
+			if ( current.CanMoveWithoutOverlap( current.x + xx, current.y + yy, 0, ( ent2 )=>{ return Filter( ent2, current, false ); }, GetIgnoredEntityClassesFor( current ) ) )
+			{
+			}
+			else
+			{
+				if ( current.CanMoveWithoutOverlap( current.x, current.y + yy, 0, ( ent2 )=>{ return Filter( ent2, current, false ); }, GetIgnoredEntityClassesFor( current ) ) )
+				{
+					partial_push_movement.set( current, no_xx );
+				}
+				else
+				if ( current.CanMoveWithoutOverlap( current.x + xx, current.y, 0, ( ent2 )=>{ return Filter( ent2, current ); }, GetIgnoredEntityClassesFor( current ) ) )
+				{
+					partial_push_movement.set( current, no_yy );
+				}
+				else
+				{
+					// Stopped by sdDeepSleep case, they won't trigger filter
+					if ( !forceful )
+					if ( stopped_entities.indexOf( current ) === -1 )
+					stopped_entities.push( current );
+				}
+			}
 			
 			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 && !current.CanMoveWithoutOverlap( current.x - 1, current.y ) )
 			will_move = false;
@@ -1193,8 +1272,27 @@ class sdSteeringWheel extends sdEntity
 			{
 				let item = stuff_to_push[ i ];
 				
-				item.x += xx;
-				item.y += yy;
+				let partial_movement_info = partial_push_movement.get( item );
+				
+				if ( partial_movement_info === undefined )
+				{
+					item.x += xx;
+					item.y += yy;
+				}
+				else
+				if ( partial_movement_info === no_xx )
+				{
+					item.y += yy;
+				}
+				else
+				if ( partial_movement_info === no_yy )
+				{
+					item.x += xx;
+				}
+				else
+				{
+					throw new Error();
+				}
 				sdWorld.UpdateHashPosition( item, false, false );
 				item._last_x = item.x; // Hacky, prevents calling ManageTrackedPhysWakeup in sdWorld entity loop
 				item._last_y = item.y; // Hacky, prevents calling ManageTrackedPhysWakeup in sdWorld entity loop
