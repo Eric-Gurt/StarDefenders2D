@@ -847,7 +847,7 @@ class sdWeaponBench extends sdEntity
 									if ( item.biometry_lock === -1 )
 									item.biometry_lock = exectuter_character.biometry;
 									else
-									this.item.biometry_lock = -1;
+									item.biometry_lock = -1;
 							
 									for ( let i = 0; i < exectuter_character._inventory.length; i++ )
 									{
