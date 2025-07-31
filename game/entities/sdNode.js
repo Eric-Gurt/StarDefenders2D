@@ -3,7 +3,7 @@
 	Cable connection node, does nothing, stores some amount of matter just so it can transfer it
 
 */
-/* global sdShop */
+/* global sdShop, Set */
 
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
@@ -261,6 +261,7 @@ class sdNode extends sdEntity
 					if ( typeof cable_type === 'number' )
 					{
 						let set = sdCable.cables_per_entity.get( this );
+						if ( set )
 						for ( let cable of set )
 						if ( cable.t === cable_type )
 						cable.remove();
@@ -279,6 +280,7 @@ class sdNode extends sdEntity
 						this._update_version++;
 						
 						let set = sdCable.cables_per_entity.get( this );
+						if ( set )
 						for ( let cable of set )
 						if ( cable.t === sdCable.TYPE_WIRELESS )
 						{
