@@ -4892,7 +4892,7 @@ class sdWeather extends sdEntity
 													else
 													{
 														// Unmerge, check which BG was last then remove
-														sdWorld.last_hit_entity.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
+														bg_nature_ent.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
 														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
 														if ( sdWorld.last_hit_entity )
 														bg_nature_ent = sdWorld.last_hit_entity;
