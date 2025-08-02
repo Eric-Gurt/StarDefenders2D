@@ -1268,12 +1268,12 @@ class sdServerConfigFull extends sdServerConfigShort
 			for ( let i = 0; i < sdEntity.entities.length; i++ )
 			{
 				let ent = sdEntity.entities[ i ];
-				if ( ent.is( sdBlock ) )
+				if ( ent.is( sdBG ) )
 				{
 					//console.log( i +',' +  sdEntity.entities.length );
 					if ( ent._merged === false && ent.SupportsMerging() )
 					{
-						ent._hea = ent._hmax - 0.1;
+						ent._regen_timeout = 1;
 						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this
 					}
 				}
