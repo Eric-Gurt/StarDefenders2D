@@ -2555,15 +2555,38 @@ class sdEntity
 				{
 					if ( this.CanBuryIntoBlocks() === 1 ) // 1st scenario, natural blocks
 					{
-						if ( !block._is_being_removed && block._natural && !block._contains_class && block.material !== 7 && block.material !== 9 ) // Natural block, no flesh or corruption and nothing inside it?
+						if ( !block._is_being_removed && block._natural && block.material !== 7 && block.material !== 9 ) // Natural block, no flesh or corruption?
 						{
-							if ( !custom_ent_tag )
-							block._contains_class = this.GetClass(); // Put the entity in there
+							if ( !block._merged && !block._contains_class ) // Not merged block, doesn't contain anything inside?
+							{
+								if ( !custom_ent_tag )
+								block._contains_class = this.GetClass(); // Put the entity in there
+								else
+								block._contains_class = custom_ent_tag;
+								this.remove(); // Disappear
+								this._broken = false;
+								break;
+							}
 							else
-							block._contains_class = custom_ent_tag;
-							this.remove(); // Disappear
-							this._broken = false;
-							break;
+							if ( block._merged ) // Merged block? We can check if there are any "slots" left to bury in
+							{
+								for( let j = 0; j < block._contains_class.length; j++ )
+								{
+									let buried = false;
+									if ( !block._contains_class[ j ] ) // Does this work? Probably should since it works in UnmergeBlocks()
+									{
+										if ( !custom_ent_tag )
+										block._contains_class[ j ] = this.GetClass(); // Put the entity in there
+										else
+										block._contains_class[ j ] = custom_ent_tag;
+										this.remove(); // Disappear
+										this._broken = false;
+										buried = true;
+									}
+									if ( buried )
+									break;
+								}
+							}
 						}
 					}
 					if ( this.CanBuryIntoBlocks() === 2 ) // 2nd scenario, corrupted blocks

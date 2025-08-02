@@ -4867,15 +4867,17 @@ class sdWeather extends sdEntity
 											}
 											else
 											{
-												if ( sdWorld.last_hit_entity._merged === false )
+												// Maybe it's better to do this on background removal instead?
+												//if ( sdWorld.last_hit_entity._merged === false ) 
 												bg_nature_ent = sdWorld.last_hit_entity;
-												else
+												/*else
 												{
 													sdWorld.last_hit_entity.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
 													if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
 													if ( sdWorld.last_hit_entity )
 													bg_nature_ent = sdWorld.last_hit_entity;
-												}
+												}*/
+												
 											}
 										}
 
@@ -4884,7 +4886,22 @@ class sdWeather extends sdEntity
 											function ClearPlants()
 											{
 												if ( bg_nature_ent )
-												bg_nature_ent.remove();
+												{
+													if ( bg_nature_ent._merged === false ) // Not a merged background?
+													bg_nature_ent.remove();
+													else
+													{
+														// Unmerge, check which BG was last then remove
+														sdWorld.last_hit_entity.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
+														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+														if ( sdWorld.last_hit_entity )
+														bg_nature_ent = sdWorld.last_hit_entity;
+														else
+														bg_nature_ent = null; // Probably can't happen but just in case
+														if ( bg_nature_ent ) // Just in case
+														bg_nature_ent.remove();
+													}
+												}
 
 												if ( ent_below_exists )
 												if ( ent_below )
