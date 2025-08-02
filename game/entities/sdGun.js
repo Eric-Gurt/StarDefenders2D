@@ -21,6 +21,7 @@ import sdRift from './sdRift.js';
 import sdWeaponBench from './sdWeaponBench.js';
 import sdWeaponMerger from './sdWeaponMerger.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdCrystal from './sdCrystal.js';
 
 import sdGunClass from './sdGunClass.js';
 
