@@ -368,7 +368,7 @@ class sdCouncilNullifier extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: 1 * sdTask.GetTaskDifficultyScaler(),
+							difficulty: 0.3 * sdTask.GetTaskDifficultyScaler(),
 							title: 'Destroy Council nullifier',
 							description: desc
 						});
