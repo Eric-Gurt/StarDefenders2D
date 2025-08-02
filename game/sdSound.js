@@ -8,6 +8,7 @@ import sdWater from './entities/sdWater.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdEffect from './entities/sdEffect.js';
 import sdCrystal from './entities/sdCrystal.js';
+import sdSteeringWheel from './entities/sdSteeringWheel.js';
 
 /*
 
@@ -120,6 +121,7 @@ class sdSound
 			MakeLoopAmbient( 'antigravity', './audio/antigravity.wav' );
 			MakeLoopAmbient( 'fire_big', './audio/fire_big.wav' );
 			MakeLoopAmbient( 'fire_small', './audio/fire_small.wav' );
+			MakeLoopAmbient( 'motor_loop', './audio/motor_loop.wav' );
 
 
 			sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -506,6 +508,7 @@ zombie_idle`;
 		let count_water_loop = 0;
 		let count_antigravity = 0;
 		let count_fire = 0;
+		let count_motor = 0;
 		
 		// Singleplayer entities array is huge and will damage performance there otherwise
 		const entities_array = sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities;
@@ -517,43 +520,37 @@ zombie_idle`;
 			const e = entities_array[ i ];
 			
 			if ( !sdWorld.is_server || sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.camera.x, sdWorld.camera.y, 1000 ) )
-			//if ( !e.is( sdCharacterRagdoll.sdBone ) )
-			//if ( !e.is( sdEffect ) )
+		
 			switch ( e.GetClass() )
 			{
-				//if ( e.GetClass() === 'sdCharacter' )
 				case 'sdCharacter':
 				{
 					if ( e.flying )
 					count_flying += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdHover' )
+				
 				case 'sdHover':
 				{
 					if ( e.driver0 && e.matter > 1 /*&& ( e.driver0.act_x !== 0 || e.driver0.act_y !== 0 )*/ )
 					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdThruster' )
+				
 				case 'sdThruster':
 				{
 					if ( e.enabled )
 					count_hover_loop += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdMatterAmplifier' )
+				
 				case 'sdMatterAmplifier':
 				{
 					if ( e.matter_max > 0 || e.crystal )
 					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdAntigravity' )
+				
 				case 'sdAntigravity':
 				{
 					if ( e.power > 0 )
@@ -561,8 +558,7 @@ zombie_idle`;
 					count_antigravity += 0.2 * e.power * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdWater' )
+				
 				case 'sdWater':
 				{
 					if ( e.type === sdWater.TYPE_ACID || e.type === sdWater.TYPE_WATER )
@@ -583,23 +579,20 @@ zombie_idle`;
 					}
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdRift' )
+				
 				case 'sdRift':
 				{
 					count_rift_loop += 2.5 * e.scale * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdJunk' && e.type === 3 )
+				
 				case 'sdJunk':
 				{
 					if ( e.type === 3 )
 					count_anti_crystal_ambient += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
-				//else
-				//if ( e.GetClass() === 'sdCrystal' )
+				
 				case 'sdCrystal':
 				{
 					if ( e.type === sdCrystal.TYPE_CRYSTAL_BIG || e.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG)
@@ -611,10 +604,20 @@ zombie_idle`;
 					if ( e.matter_max === sdCrystal.anticrystal_value )
 					count_anti_crystal_ambient += 0.1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
+				break;
+				
 				case 'sdEffect':
 				{
 					if ( e._type === sdEffect.TYPE_FIRE )
 					count_fire += 0.05 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+				}
+				break;
+				
+				case 'sdSteeringWheel':
+				{
+					if ( e.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+					if ( e.toggle_enabled )
+					count_motor += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
 			}
@@ -651,6 +654,9 @@ zombie_idle`;
 		
 		sdSound.fire_big_volume_last = sdWorld.MorphWithTimeScale( sdSound.fire_big_volume_last, count_fire_small, 0.8, GSPEED );
 		sdSound.fire_big.volume = Math.min( 1, Math.min( 1.5, sdSound.fire_big_volume_last ) * volume_ambient );
+		
+		sdSound.motor_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.motor_loop_volume_last, count_motor, 0.8, GSPEED );
+		sdSound.motor_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.motor_loop_volume_last ) * volume_ambient );
 		
 		if ( sdWorld.my_entity )
 		{

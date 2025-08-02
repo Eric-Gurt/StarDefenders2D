@@ -393,10 +393,50 @@ class sdWorld
 		{
 			let c = sdWorld.entity_classes[ i ];
 			
-			//trace( '_class === "'+c.prototype.constructor.name+'" for ',c );
-			
 			c._class = c.prototype.constructor.name;
 			
+			let next_complain = 0;
+			
+			if ( sdWorld.is_server )
+			Object.defineProperty( globalThis, c._class, 
+			{
+				get()
+				{
+					let stack = getStackTrace();
+
+					if ( stack.indexOf( 'at <anonymous>:1:1' ) !== -1 )
+					{
+					}
+					else
+					{
+						if ( Date.now() > next_complain )
+						{
+							console.warn( 'Class '+c._class+' was accessed without being properly imported it in the new class file (example of how it shoudld be done: import '+c._class+' from \'./entities/'+c._class+'.js\';). This will most likely damage the server performnace eventually. Callstack: ' + stack );
+							debugger;
+
+							next_complain = Date.now() + 1000 * 60 * 60 * 12; // Remind in 12 hours of running server
+						}
+					}
+
+					return c;
+				},
+				set( v )
+				{
+					if ( v !== c )
+					throw new Error( 'Overshadowing global class '+c._class+' with a different value?' );
+					else
+					{
+						// Revert to regular property
+						Object.defineProperty( globalThis, c._class, {
+							value: v,
+							writable: true,
+							enumerable: true,
+							configurable: true
+						});
+					}
+				}
+			});
+
 		}
 	}
 	

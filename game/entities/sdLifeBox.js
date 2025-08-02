@@ -40,7 +40,9 @@ class sdLifeBox extends sdEntity
 	get hitbox_y2() { return 32; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ 
+		return true; 
+	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{

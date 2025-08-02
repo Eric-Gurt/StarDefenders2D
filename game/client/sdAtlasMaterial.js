@@ -8,10 +8,16 @@
 
 */
 
-/* global sdLamp, sdWeather, sdCharacter */
+/* global THREE, FakeCanvasContext, this */
 
 import sdWorld from '../sdWorld.js';
 import sdRenderer from './sdRenderer.js';
+import sdShop from './sdShop.js';
+import sdWeather from '../entities/sdWeather.js';
+import sdLamp from '../entities/sdLamp.js';
+import sdCharacter from '../entities/sdCharacter.js';
+import sdWater from '../entities/sdWater.js';
+
 
 class sdSpaceDedication
 {

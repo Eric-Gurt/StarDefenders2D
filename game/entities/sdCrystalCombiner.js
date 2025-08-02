@@ -205,6 +205,24 @@ class sdCrystalCombiner extends sdEntity
 			}
 		}
 	}
+	UpdateHeldItemPosition( slot_property_name, merge_intens=0 )
+	{
+		if ( slot_property_name === 'crystal0' )
+		{
+			this.crystal0.x = this.x - 24 + 16 + merge_intens;
+			this.crystal0.y = this.GetYFor( this.crystal0 );
+			this.crystal0.sx = 0;
+			this.crystal0.sy = 0;
+		}
+		else
+		if ( slot_property_name === 'crystal1' )
+		{
+			this.crystal1.x = this.x - 8 + 16 - merge_intens;
+			this.crystal1.y = this.GetYFor( this.crystal1 );
+			this.crystal1.sx = 0;
+			this.crystal1.sy = 0;
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
@@ -313,13 +331,22 @@ class sdCrystalCombiner extends sdEntity
 		let merge_prog = this.prog / this.GetBaseAnimDuration();
 		let merge_intens = Math.min( 1, Math.pow( merge_prog, 8 ) ) * 8;
 		
-		
 		if ( this.crystal0 )
+		{
+			can_hibernate = false;
+			this.UpdateHeldItemPosition( 'crystal0', merge_intens );
+		}
+	
+		if ( this.crystal1 )
+		{
+			can_hibernate = false;
+			this.UpdateHeldItemPosition( 'crystal1', merge_intens );
+		}
+		/*if ( this.crystal0 )
 		{
 			can_hibernate = false;
 			
 			this.crystal0.x = this.x - 24 + 16 + merge_intens;
-			//this.crystal0.y = this.y + 7 - this.crystal0._hitbox_y2;
 			this.crystal0.y = this.GetYFor( this.crystal0 );
 			this.crystal0.sx = 0;
 			this.crystal0.sy = 0;
@@ -329,11 +356,10 @@ class sdCrystalCombiner extends sdEntity
 			can_hibernate = false;
 			
 			this.crystal1.x = this.x - 8 + 16 - merge_intens;
-			//this.crystal1.y = this.y + 7 - this.crystal1._hitbox_y2;
 			this.crystal1.y = this.GetYFor( this.crystal1 );
 			this.crystal1.sx = 0;
 			this.crystal1.sy = 0;
-		}
+		}*/
 		
 		if ( this.drain_direction !== 0 )
 		{
@@ -349,6 +375,11 @@ class sdCrystalCombiner extends sdEntity
 			
 				drain_to.matter_regen += drain;
 				drain_from.matter_regen -= drain;
+				
+				if ( this.fire_detected )
+				{
+					drain = 0;
+				}
 				
 				if ( drain > 0 )
 				{
@@ -840,6 +871,7 @@ class sdCrystalCombiner extends sdEntity
 				
 					//
 				
+					this.UpdateHeldItemPosition( slot );
 					
 					from_entity.held_by = this;
 					this._update_version++;

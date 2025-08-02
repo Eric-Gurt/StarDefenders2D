@@ -5,6 +5,8 @@
 		Make use of keycard registeration, like ._net_id, could be seperated with sdInventory or sdWhateverItsCalled
 		sdCable support on sdButton
 
+	Note: sdButton-s should not be able to do damage/affect items near them unless wired. If this is no longer true - update CanAPassThroughB in sdSteeringWheel
+
 */
 
 /* global Infinity, sdModeration */
@@ -21,6 +23,7 @@ import sdTurret from './sdTurret.js';
 import sdSampleBuilder from './sdSampleBuilder.js';
 import sdSteeringWheel from './sdSteeringWheel.js';
 import sdLiquidAbsorber from './sdLiquidAbsorber.js';
+import sdConveyor from './sdConveyor.js';
 
 import sdSound from '../sdSound.js';
 
@@ -99,7 +102,7 @@ class sdButton extends sdEntity
 		return 'Name sensor';
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
-		return 'Elevator callback sensor';
+		return 'Elevator motor callback sensor';
 	
 		return 'Button';
 	}
@@ -109,7 +112,7 @@ class sdButton extends sdEntity
 		return `Directional buttons to be used along with elevator motors. Make sure your elevator motor has elevator path built with background walls.`;
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
-		return `Reacts to elevator motors. Isn\'t switched off automatically, unless one of controlled elevator stops.`;
+		return `Reacts to elevator motors. Does not switch off automatically, unless one of controlled elevators stops.`;
 	
 		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields etc.`;
 	}
@@ -179,6 +182,8 @@ class sdButton extends sdEntity
 		this.activated = false;
 		
 		this.react_to_doors = false;
+		
+		this._last_sound = 0;
 		
 		//this.owner_biometry = -1;
 		
@@ -296,6 +301,7 @@ class sdButton extends sdEntity
 					if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 					{
 						if ( e.is( sdSteeringWheel ) && e.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+						if ( Math.abs( e.x - this.x ) <= 1 && Math.abs( e.y - this.y ) <= 1 )
 						v += 1;
 					}
 					else
@@ -480,6 +486,7 @@ class sdButton extends sdEntity
 				...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), 
 				...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ), 
 				...this.FindObjectsInACableNetwork( null, sdSteeringWheel, true ), 
+				...sdConveyor.AppendConnectedConveyorsToArray( this.FindObjectsInACableNetwork( null, sdConveyor, true ) ), 
 				...this.FindObjectsInACableNetwork( null, sdLiquidAbsorber, true ) 
 			]; // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
@@ -771,19 +778,24 @@ class sdButton extends sdEntity
 				node._update_version++;
 			}
 			
-			if ( this.type === sdButton.TYPE_WALL_SWITCH )
+			if ( sdWorld.time > this._last_sound + 150 )
 			{
-				if ( v )
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.5 });
+				this._last_sound = sdWorld.time;
+				
+				if ( this.type === sdButton.TYPE_WALL_SWITCH )
+				{
+					if ( v )
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.5 });
+					else
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.5 });
+				}
 				else
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.5 });
-			}
-			else
-			{
-				if ( v )
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.1 });
-				else
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.1 });
+				{
+					if ( v )
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.1 });
+					else
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.1 });
+				}
 			}
 
 			/*if ( v )

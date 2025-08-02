@@ -326,15 +326,34 @@ class sdEntity
 				let e = arr[ i ];
 				if ( 
 						e._is_being_removed 
-						|| 
-						( 
-							e._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED 
-							&& 
-							e._phys_sleep > 0
-						)
+						||
+						!this.DoesOverlapWith( e, 1 )
 						||
 						e._phys_last_rest_on !== this
 					)
+				{
+					if ( e._phys_last_rest_on === this )
+					{
+						e._phys_last_rest_on = null;
+						
+						if ( !e._is_being_removed )
+						e.PhysWakeUp();
+					}
+					
+					if ( arr.length === 1 )
+					{
+						this._phys_entities_on_top = null;
+						break;
+					}
+					else
+					{
+						arr.splice( i, 1 );
+						i--;
+						continue;
+					}
+				}
+				else
+				if ( e._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED && e._phys_sleep > 0 ) // Active and moving
 				{
 					continue;
 				}
@@ -344,17 +363,17 @@ class sdEntity
 					e.PhysWakeUp();
 				}
 			}
-			//sdEntity.phys_stand_on_map.delete( this );
-			this._phys_entities_on_top = null;
 		}
 		
-		//if ( this._is_being_removed )
-		/*if ( this._phys_last_rest_on )
+		/*if ( this._phys_last_rest_on ) This should be actually handled by bottom entity on move/removal instead
 		{
-			this._phys_last_rest_on.ManageTrackedPhysWakeup();
-			
-			if ( this._is_being_removed )
-			this._phys_last_rest_on = null;
+			if ( this._phys_last_rest_on._is_being_removed )
+			{
+			}
+			else
+			if ( !this.DoesOverlapWith( this._phys_last_rest_on, 1 ) )
+			{
+			}
 		}*/
 	}
 	
@@ -2673,15 +2692,16 @@ class sdEntity
 		return false;
 	
 		return true;
-		/*
-		if ( this.x + this._hitbox_x1 < ent.x + ent._hitbox_x2 )
-		if ( this.x + this._hitbox_x2 > ent.x + ent._hitbox_x1 )
-		if ( this.y + this._hitbox_y1 < ent.y + ent._hitbox_y2 )
-		if ( this.y + this._hitbox_y2 > ent.y + ent._hitbox_y1 )
-		return true;
-		
+	}
+	DoesOverlapWithRect( x1,y1,x2,y2, extra_space_around=0 )
+	{
+		if ( this.x + this._hitbox_x2 <= x1 - extra_space_around ||
+			 this.x + this._hitbox_x1 >= x2 + extra_space_around ||
+			 this.y + this._hitbox_y2 <= y1 - extra_space_around ||
+			 this.y + this._hitbox_y1 >= y2 + extra_space_around )
 		return false;
-		*/
+	
+		return true;
 	}
 	
 	UpdateHitboxInitial() // Because there is no post-structors in JS, and implementing them normally would not be easy at this point...
@@ -4310,7 +4330,7 @@ class sdEntity
 	onSnapshotApplied() // To override
 	{
 	}
-	onToggleEnabledChange()
+	onToggleEnabledChange() // Called via sdButton
 	{
 	}
 	//static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases

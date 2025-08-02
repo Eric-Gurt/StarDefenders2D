@@ -780,6 +780,9 @@ class sdStatusEffect extends sdEntity
 				}
 			
 				status_entity._ttl -= GSPEED;
+				
+				if ( Math.abs( status_entity.for.x - status_entity.tx ) > 8 || Math.abs( status_entity.for.y - status_entity.ty ) > 8 )
+				return true; // Moved into amplifier/combiner or teleported
 			
 				return ( status_entity._ttl <= 0 ); // return true = delete
 			},

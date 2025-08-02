@@ -106,7 +106,8 @@ class sdCable extends sdEntity
 			'sdStorage',
 			'sdSampleBuilder',
 			'sdWorkbench',
-			'sdMothershipContainer'
+			'sdMothershipContainer',
+			'sdConveyor'
 		];
 		
 		sdCable.empty_array = [];

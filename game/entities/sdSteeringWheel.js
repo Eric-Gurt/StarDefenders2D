@@ -25,6 +25,7 @@ import sdSampleBuilder from './sdSampleBuilder.js';
 import sdButton from './sdButton.js';
 import sdNode from './sdNode.js';
 import sdCrystal from './sdCrystal.js';
+import sdTeleport from './sdTeleport.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -46,6 +47,8 @@ class sdSteeringWheel extends sdEntity
 		
 		sdSteeringWheel.TYPE_STEERING_WHEEL = 0;
 		sdSteeringWheel.TYPE_ELEVATOR_MOTOR = 1;
+		
+		sdSteeringWheel.button_filter = [ 'sdButton' ];
 		
 		/*
 		const drop_rate = 100; // 30000
@@ -185,6 +188,8 @@ class sdSteeringWheel extends sdEntity
 		this._regen_timeout = 0;
 		
 		this._last_stop_sound = 0;
+		this._last_malfunction_sound = 0;
+		this._last_movement_stop = 0;
 		
 		this.driver0 = null;
 		
@@ -199,13 +204,49 @@ class sdSteeringWheel extends sdEntity
 		this.vx = 0;
 		this.vy = 0;
 		
-		this._speed = 0; // Depends on amount of thrusters found
+		this.speed = 0; // Depends on amount of thrusters found
+		
+		if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+		this.speed = 4;
+	
+		this.stop_on_impact = true;
+		this.stop_on_track_loss = true;
+		
+		this.is_stuck = false;
 		
 		this._last_scan = 0;
 		
 		this._schedule_rounding_task = false;
 		
 		sdSteeringWheel.steering_wheels.push( this );
+	}
+	onToggleEnabledChange() // Called via sdButton
+	{
+		if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+		{
+			if ( sdWorld.time > this._last_stop_sound + 1000 )
+			{
+				if ( this.toggle_enabled )
+				{
+					if ( sdWorld.time > this._last_stop_sound - 1000 )
+					{
+						if ( sdWorld.time > this._last_malfunction_sound + 1000 )
+						{
+							this._last_malfunction_sound = sdWorld.time;
+							sdSound.PlaySound({ name:'motor_malfunction', x:this.x, y:this.y, pitch:1, volume:1 });
+						}
+					}
+					else
+					sdSound.PlaySound({ name:'motor_start', x:this.x, y:this.y, pitch:1, volume:1 });
+				}
+				else
+				{
+					if ( sdWorld.time > this._last_malfunction_sound + 1000 )
+					if ( sdWorld.time > this._last_stop_sound + 1000 )
+					sdSound.PlaySound({ name:'motor_stop', x:this.x, y:this.y, pitch:1, volume:1 });
+				}
+			}
+		}
 	}
 	RemovePointersToThisSteeringWheel()
 	{
@@ -383,7 +424,7 @@ class sdSteeringWheel extends sdEntity
 			this._scan_net_ids = net_ids;
 			this._scan_set = null;
 			
-			this._speed = speed;
+			this.speed = speed;
 			
 			//trace( collected );
 			
@@ -477,7 +518,7 @@ class sdSteeringWheel extends sdEntity
 			sdSound.PlaySound({ name:'gun_buildtool2', x:entity.x, y:entity.y, volume:1, pitch:0.5 });
 		}
 		
-		this._speed = ( this._scan.length > 0 ) ? 4 : 0;
+		this.speed = ( this._scan.length > 0 ) ? 4 : 0;
 	}
 	
 	IsVehicle()
@@ -600,17 +641,6 @@ class sdSteeringWheel extends sdEntity
 		
 		return false;
 	}
-	/*static GlobalThink( GSPEED )
-	{
-	}*/
-	
-	onToggleEnabledChange()
-	{
-		//if ( !this.toggle_enabled )
-		{
-			sdSound.PlaySound({ name:'door_start', x:this.x, y:this.y, volume:0.2 });
-		}
-	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -633,9 +663,11 @@ class sdSteeringWheel extends sdEntity
 			//this._schedule_rounding_task = true;
 		}
 		
-		// When loaded from snapshot - scan might end up being not loaded
 		if ( sdWorld.is_server )
 		{
+			this.is_stuck = ( sdWorld.time < this._last_movement_stop + 1000 );
+			
+			// When loaded from snapshot - scan might end up being not loaded
 			if ( this._scan.length !== this._scan_net_ids.length )
 			{
 				this._scan = [];
@@ -657,10 +689,7 @@ class sdSteeringWheel extends sdEntity
 					}
 				}
 			}
-		}
 		
-		if ( sdWorld.is_server )
-		{
 			if ( this._schedule_rounding_task )
 			{
 				this.VerifyMissingParts();
@@ -694,7 +723,7 @@ class sdSteeringWheel extends sdEntity
 				if ( GSPEED > 1 )
 				GSPEED = 1;
 			
-				let speed = 4;
+				let speed = this.speed;
 				
 				let dx = 0;
 				let dy = 0;
@@ -744,23 +773,102 @@ class sdSteeringWheel extends sdEntity
 					
 					//let path_bgs = sdWorld.GetAnythingNear( this.x + xx + Math.sign( xx ) * 8, this.y + yy + Math.sign( yy ) * 8, 16, null, null, filter_candidates_function );
 					
+					let full_stop = false;
 					
-
-					if ( sdWorld.CheckWallExists( this.x + xx + Math.sign( xx ) * 8, this.y + yy + Math.sign( yy ) * 8, null, null, null, filter_candidates_function ) && 
-						 //sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED, false, this ) 
-						 sdSteeringWheel.ComplexElevatorLikeMove( this._scan, undefined, xx, yy, false, GSPEED, false, this ) 
-						 )
+					//let stop_checker = sdWorld.CheckWallExists( this.x + xx, this.y + yy, null, null, null, filter_stoppers_function );
+					//let stop_checker = false;
+					let stops_collected = [];
+					let xx2 = xx;
+					let yy2 = yy;
+					//while ( xx2 !== 0 || yy2 !== 0 )
+					let iter = 0;
+					while ( ++iter < 1000 )
 					{
+						const filter_stoppers_function = ( e )=>
+						{
+							if ( e.is( sdButton ) )
+							if ( e.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+							if ( Math.abs( this.x + xx2 - e.x ) <= 1 )
+							if ( Math.abs( this.y + yy2 - e.y ) <= 1 )
+							if ( e !== this._toggle_source_current )
+							{
+								stops_collected.push( { entity:e, xx:xx2, yy:yy2 } );
+							}
+
+							return false;
+						};
+
+						sdWorld.CheckWallExists( this.x + xx2, this.y + yy2, null, null, sdSteeringWheel.button_filter, filter_stoppers_function );
+
+						if ( xx2 !== 0 )
+						xx2 = Math.sign( xx2 ) * Math.max( Math.abs( xx2 ) - 1, 0 );
+
+						if ( yy !== 0 )
+						yy2 = Math.sign( yy2 ) * Math.max( Math.abs( yy2 ) - 1, 0 );
+					
+						if ( xx2 === 0 && yy2 === 0 )
+						break;
 					}
-					else
+					let stop_button = null;
+					if ( stops_collected.length > 0 )
+					{
+						stop_button = stops_collected[ stops_collected.length - 1 ];
+						xx = stop_button.xx;
+						yy = stop_button.yy;
+					}
+					
+					let can_move_on_track = sdWorld.CheckWallExists( this.x + xx + Math.sign( xx ) * 8, this.y + yy + Math.sign( yy ) * 8, null, null, null, filter_candidates_function );
+					
+					if ( !can_move_on_track )
+					{
+						while ( xx !== 0 || yy !== 0 )
+						{
+							if ( xx !== 0 )
+							xx = Math.sign( xx ) * Math.max( Math.abs( xx ) - 1, 0 );
+						
+							if ( yy !== 0 )
+							yy = Math.sign( yy ) * Math.max( Math.abs( yy ) - 1, 0 );
+						
+							if ( xx === 0 && yy === 0 )
+							{
+								can_move_on_track = false;
+								break;
+							}
+							
+							can_move_on_track = sdWorld.CheckWallExists( this.x + xx + Math.sign( xx ) * 8, this.y + yy + Math.sign( yy ) * 8, null, null, null, filter_candidates_function );
+							
+							if ( can_move_on_track )
+							break;
+						}
+					}
+
+					if ( this.stop_on_track_loss && !can_move_on_track )
+					full_stop = true;
+
+					if ( !full_stop )
+					{
+						if ( sdSteeringWheel.ComplexElevatorLikeMove( this._scan, undefined, xx, yy, false, GSPEED, false, this ) )
+						{
+							if ( stop_button )
+							stop_button.entity.onMovementInRange( this );
+						}
+						else
+						{
+							this._last_movement_stop = sdWorld.time;
+							
+							if ( this.stop_on_impact )
+							full_stop = true;
+						}
+					}
+					
+					if ( full_stop )
 					{					
 						if ( !sdWorld.inDist2D_Boolean( 0,0, this.vx,this.vy, 1 ) )
-						if ( sdWorld.time > this._last_stop_sound - 1000 )
+						if ( sdWorld.time > this._last_malfunction_sound + 1000 )
+						if ( sdWorld.time > this._last_stop_sound + 1000 )
 						{
 							this._last_stop_sound = sdWorld.time;
-							sdSound.PlaySound({ name:'door_stop', x:this.x, y:this.y, volume:0.2 });
-							
-							
+							sdSound.PlaySound({ name:'motor_stop', x:this.x, y:this.y, pitch:1, volume:1 });
 						}
 
 						this.vx = 0;
@@ -786,8 +894,8 @@ class sdSteeringWheel extends sdEntity
 					if ( GSPEED > 1 )
 					GSPEED = 1;
 				
-					//let speed = Math.min( 1, this._speed / 4 );
-					let speed = Math.min( 2, this._speed / 4 );
+					//let speed = Math.min( 1, this.speed / 4 );
+					let speed = Math.min( 2, this.speed / 4 );
 					
 					let matter_cost = sdWorld.Dist2D_Vector( 
 							this.driver0.act_x * GSPEED * 0.25 * speed,
@@ -843,10 +951,11 @@ class sdSteeringWheel extends sdEntity
 						else
 						{					
 							if ( !sdWorld.inDist2D_Boolean( 0,0, this.vx,this.vy, 1 ) )
-							if ( sdWorld.time > this._last_stop_sound - 1000 )
+							if ( sdWorld.time > this._last_stop_sound + 1000 )
 							{
 								this._last_stop_sound = sdWorld.time;
 								sdSound.PlaySound({ name:'world_hit2', x:this.x, y:this.y, pitch:0.5, volume:1 });
+								//sdSound.PlaySound({ name:'motor_stop', x:this.x, y:this.y, pitch:1, volume:1 });
 							}
 
 							this.vx = 0;
@@ -872,7 +981,7 @@ class sdSteeringWheel extends sdEntity
 			if ( current.is( sdThruster ) )
 			{
 				if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
-				this._speed--;
+				this.speed--;
 
 				current.enabled = false;
 				current._update_version++;
@@ -1024,7 +1133,32 @@ class sdSteeringWheel extends sdEntity
 			}
 			return false;
 		};
+		
+		const CanAPassThroughB = ( a, b )=>
+		{
+			// Let sample builders go through unprotected walls since it might be the one building them
+			if ( a.is( sdSampleBuilder ) || a.is( sdTeleport ) )
+			if ( !b.is( sdSampleBuilder ) && !b.is( sdTeleport ) )
+			if ( 
+					typeof b._shielded === 'undefined' ||
+					(
+						( b._shielded === null || b._shielded === a._shielded ) // Allow going through walls that are protected with no or same BSU
+					)
+					|| 
+					b.IsPhysicallyMovable() // Let crystals be pushed into teleports
+				 )
+			{
+				return true;
+			}
 
+			if ( b.is( sdButton ) )
+			{
+				return true;
+			}
+			
+			return false;
+		};
+		
 		const Filter = ( ent2, current, declare_stopping=true )=>
 		{
 			if ( ent2._is_being_removed )
@@ -1043,7 +1177,8 @@ class sdSteeringWheel extends sdEntity
 			{
 				if ( AddPushable( ent2 ) )
 				{
-					ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );
+					//ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );
+					ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2, declare_stopping ); }, GetIgnoredEntityClassesFor( ent2 ) );
 				}
 			}
 			else
@@ -1051,18 +1186,11 @@ class sdSteeringWheel extends sdEntity
 				//if ( scan.indexOf( ent2 ) === -1 )
 				if ( !scan_set.has( ent2 ) )
 				{
-					// Let sample builders go through unprotected walls since it might be the one building them
-					if ( current.is( sdSampleBuilder ) )
-					if ( typeof ent2._shielded !== 'undefined' )
-					if ( ent2._shielded === null )
-					{
-						return false;
-					}
-
-					if ( ent2.is( sdButton ) )
-					{
-						return false;
-					}
+					if ( CanAPassThroughB( current, ent2 ) )
+					return false;
+				
+					if ( CanAPassThroughB( ent2, current ) )
+					return false;
 
 					if ( stopping_entities.indexOf( ent2 ) === -1 )
 					if ( stuff_to_push.indexOf( ent2 ) === -1 )
@@ -1329,11 +1457,19 @@ class sdSteeringWheel extends sdEntity
 			{
 				if ( !stopping_entities[ i ].is( sdBG ) || stopping_entities[ i ].material === sdBG.MATERIAL_GROUND )
 				stopping_entities[ i ].DamageWithEffect( 5 * GSPEED, initiator );
+			
+				if ( initiator )
+				if ( initiator.driver0 )
+				stopping_entities[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 2, 0.5, 0.5 ], observer: initiator.driver0 });
 			}
 			for ( let i = 0; i < stopped_entities.length; i++ )
 			{
 				if ( !stopped_entities[ i ].is( sdBG ) || stopped_entities[ i ].material === sdBG.MATERIAL_GROUND )
 				stopped_entities[ i ].DamageWithEffect( 5 * GSPEED, initiator );
+			
+				if ( initiator )
+				if ( initiator.driver0 )
+				stopped_entities[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 2, 0.5, 0.5 ], observer: initiator.driver0 });
 			}
 			
 			return false;
@@ -1367,7 +1503,17 @@ class sdSteeringWheel extends sdEntity
 		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		ctx.drawImageFilterCache( sdSteeringWheel.img_steering_wheel, - 16, - 16, 32,32 );
 		else
-		ctx.drawImageFilterCache( sdSteeringWheel.img_elevator_motor, 8,8,16,16, - 8, - 8, 16,16 );
+		{
+			let xx = 0;
+			
+			if ( this.is_stuck )
+			xx = 64;
+			else
+			if ( this.toggle_enabled )
+			xx = 32;
+			
+			ctx.drawImageFilterCache( sdSteeringWheel.img_elevator_motor, 8+xx,8,16,16, - 8, - 8, 16,16 );
+		}
 	}
 	
 	DrawIn3D()
@@ -1413,10 +1559,38 @@ class sdSteeringWheel extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdSteeringWheel.access_range ) )
 			{
-				if ( command_name === 'SCAN' )
+				if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 				{
-					if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
-					this.Scan( exectuter_character );
+					if ( command_name === 'SCAN' )
+					{
+						this.Scan( exectuter_character );
+					}
+				}
+				else
+				if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+				{
+					if ( command_name === 'SET_SPEED' )
+					{
+						for ( let i = 1; i <= 16; i *= 2 )
+						if ( i === parameters_array[ 0 ] )
+						{
+							this.speed = i;
+							this._update_version++;
+							break;
+						}
+					}
+					else
+					if ( command_name === 'TOGGLE_IMPACT_STOP' )
+					{
+						this.stop_on_impact = !this.stop_on_impact;
+						this._update_version++;
+					}
+					else
+					if ( command_name === 'TOGGLE_TRACK_LOSS_STOP' )
+					{
+						this.stop_on_track_loss = !this.stop_on_track_loss;
+						this._update_version++;
+					}
 				}
 			}
 			else
@@ -1436,7 +1610,14 @@ class sdSteeringWheel extends sdEntity
 			if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 			this.AddContextOption( 'Rescan base entities', 'SCAN', [] );
 			else
-			this.AddContextOption( 'Use cable management tool to weld objects to this elevator motor', 'DO_NOTHING', [] );
+			if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				for ( let i = 1; i <= 16; i *= 2 )
+				this.AddContextOption( 'Set motor speed to ' + i, 'SET_SPEED', [ i ], true, ( this.speed === i ) ? { color:'#00ff00' } : {} );
+			
+				this.AddContextOption( 'Stop on impact: ' + ( this.stop_on_impact ? 'Yes' : 'No' ), 'TOGGLE_IMPACT_STOP', [], true, ( this.stop_on_impact ) ? { color:'#00ff00' } : { color:'#ff0000' } );
+				this.AddContextOption( 'Stop on track end: ' + ( this.stop_on_track_loss ? 'Yes' : 'No' ), 'TOGGLE_TRACK_LOSS_STOP', [], true, ( this.stop_on_track_loss ) ? { color:'#00ff00' } : { color:'#ff0000' } );
+			}
 		}
 	}
 }

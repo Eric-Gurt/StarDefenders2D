@@ -317,11 +317,10 @@ class sdNode extends sdEntity
 					let a = Math.round( i / 8 * 360 );
 					
 					if ( a > 180 )
-					{
-						a -= 360;
-					}
+					a -= 360;
 					
-					this.AddContextOption( 'Set angle to ' + a + ' degrees', 'VARIATION', [ i ] );
+					//this.AddContextOption( 'Set angle to ' + a + ' degrees', 'VARIATION', [ i ] );
+					this.AddContextOptionNoTranslation( T('Set angle to ') + a + T(' degrees'), 'VARIATION', [ i ], true, ( this.variation === i ) ? { color:'#00ff00' } : {} );
 				}
 			}
 			if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
