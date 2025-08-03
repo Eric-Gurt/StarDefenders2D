@@ -4704,20 +4704,28 @@ class sdWeather extends sdEntity
 										else
 										if ( r === 3 )
 										y += 16;
+									
+										if ( place_near._merged )
+										y += Math.round( Math.random( ( place_near.height - 16 ) / 16 ) ) * 16; // Select random height without unmerging
 									}
 								}
 								else
 								if ( place_near.is( sdBG ) && place_near._natural )
 								{
-									if ( place_near._merged ) // Merged backgrounds?
+									/*if ( place_near._merged ) // Merged backgrounds?
 									{
 										let bgs = place_near.UnmergeBackgrounds(); // Unmerge
 										if ( bgs.length > 0 )
 										place_near = bgs[ Math.floor( Math.random() * bgs.length ) ]; // Select random background
 									}
+									*/
+									// Unmerging and removal is done when the block is already placed, instead of on BG detection to prevent unnecessary unmerging and unhibernation
 									x = Math.floor( place_near.x / 16 ) * 16;
 									y = Math.floor( place_near.y / 16 ) * 16;
+									if ( place_near._merged )
+									y += Math.round( Math.random( ( place_near.height - 16 ) / 16 ) ) * 16; // Select random height without unmerging
 								}
+								
 							}
 							
 							if ( x < sdWorld.world_bounds.x1 )
