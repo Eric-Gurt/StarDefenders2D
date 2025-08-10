@@ -14,6 +14,8 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCom from './sdCom.js';
+import sdBlock from './sdBlock.js';
+import sdDoor from './sdDoor.js';
 import sdHover from './sdHover.js';
 import sdArea from './sdArea.js';
 import sdCommandCentre from './sdCommandCentre.js';
@@ -449,7 +451,25 @@ class sdLongRangeTeleport extends sdEntity
 			     ent.x + ent.hitbox_x2 >= x1 &&
 			     ent.y + ent.hitbox_y1 <= y2 &&
 			     ent.y + ent.hitbox_y2 >= y1 &&
-			     sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
+			     sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, null, ( e )=>
+				 {
+					 if ( e.is( sdDoor ) )
+					 {
+						 return true;
+					 }
+					 
+					 if ( e.is( sdBlock ) )
+					 {
+						 if ( e._natural )
+						 {
+							 e.remove();
+							 return false;
+						 }
+						 
+						 return true;
+					 }
+					 
+				 } ) )
 			{
 			}
 			else

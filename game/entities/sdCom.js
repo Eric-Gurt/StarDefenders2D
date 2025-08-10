@@ -59,6 +59,7 @@ class sdCom extends sdEntity
 		sdCom.com_faction_attack_classes = [ 'sdManualTurret', 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab', 'sdCube', 'sdCouncilIncinerator', 'sdTzyrgMortar', 'sdStalker' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
 		
 		sdCom.com_vision_blocking_classes = [ 'sdBlock', 'sdDoor' ];
+		sdCom.com_protectable_solid_classes = [ 'sdBlock', 'sdDoor', 'sdBG' ];
 		
 		sdCom.com_visibility_unignored_classes_plus_erthals = sdCom.com_visibility_unignored_classes.slice();
 		sdCom.com_visibility_unignored_classes_plus_erthals.push( 'sdSpider', 'sdDrone' ); // All drones, but this should be enough to check if player aims as current entity
