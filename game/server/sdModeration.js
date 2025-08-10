@@ -43,7 +43,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill', 'spawnevent' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -761,6 +761,14 @@ class sdModeration
 			}
 			else
 			socket.SDServiceMessage( 'Type /chill 1 or /chill 0' );
+		}
+		else
+		if ( parts[ 0 ] === 'spawnevent' )
+		{
+			if ( parseInt( parts[ 1 ] ) !== isNaN )
+			sdWeather.only_instance.SimpleExecuteEvent( parseInt( parts[ 1 ] ) );
+			else
+			socket.SDServiceMessage( 'Type /event then number of event to execute. For example, /event 8' );
 		}
 		else
 		if ( parts[ 0 ] === 'remove' || parts[ 0 ] === 'break' )
