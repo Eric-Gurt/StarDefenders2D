@@ -291,6 +291,7 @@ class sdBaseShieldingUnit extends sdEntity
 			let s = sdBaseShieldingUnit.all_shield_units[ i ];
 
 			if ( s.enabled )
+			if ( s.type !== sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
 			{
 				if ( sdWorld.inDist2D_Boolean( s.x, s.y, x, y, sdBaseShieldingUnit.protect_distance ) )
 				{
@@ -304,16 +305,29 @@ class sdBaseShieldingUnit extends sdEntity
 					dx = dx / di * sdBaseShieldingUnit.protect_distance;
 					dy = dy / di * sdBaseShieldingUnit.protect_distance;
 					
+					// This make it impossible for it to spawn mobs in-between 2 BSUs that protect single big room, even if these BSUs are of different types
+					let all_nearby_bsus = new Set();
+					for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+					{
+						let s2 = sdBaseShieldingUnit.all_shield_units[ i ];
+
+						if ( s2.enabled )
+						if ( s2.type !== sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+						if ( sdWorld.inDist2D_Boolean( s2.x, s2.y, s.x, s.y, sdBaseShieldingUnit.protect_distance * 2 ) )
+						all_nearby_bsus.add( s2 );
+					}
+					
 					let bsu_ownership_filter = ( e )=>
 					{
 						if ( e._shielded )
-						if ( e._shielded === s )
+						if ( all_nearby_bsus.has( e._shielded ) )
+						//if ( e._shielded === s )
 						return true;
 				
 						return false;
 					};
 					
-					let hit_point = sdWorld.TraceRayPoint( s.x + dx, s.y + dy, s.x, s.y, null, null, sdCom.com_vision_blocking_classes, bsu_ownership_filter );
+					let hit_point = sdWorld.TraceRayPoint( s.x + dx, s.y + dy, s.x, s.y, null, null, sdCom.com_protectable_solid_classes, bsu_ownership_filter );
 					
 					if ( hit_point )
 					{
