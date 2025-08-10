@@ -121,7 +121,7 @@ class sdLifeBox extends sdEntity
 	onAfterDriverAdded( slot )
 	{
 		this.occupied = 1;
-		this._update_version++;
+		//this._update_version++;
 		
 		sdSound.PlaySound({ name:'hover_start', pitch: 0.6, x:this.x, y:this.y, volume:1 });
 	}
@@ -131,7 +131,7 @@ class sdLifeBox extends sdEntity
 		character.y = this.y;
 		
 		this.occupied = 0;
-		this._update_version++;
+		//this._update_version++;
 	}
 	GetDriverZoom()
 	{
