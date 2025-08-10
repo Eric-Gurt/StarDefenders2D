@@ -2052,6 +2052,9 @@ class sdWorld
 		if ( max_y === min_y )
 		max_y++;
 	
+		if ( min_x < max_x - 10000 || min_y < max_y - 10000 )
+		throw new Error( 'GetCellsInRect was called for potentially bad coordinates: ' + JSON.stringify( [ _x, _y, _x2, _y2 ] ) );
+	
 		let x, y;
 		
 		for ( x = min_x; x < max_x; x++ )
@@ -3768,6 +3771,45 @@ class sdWorld
 		}
 		return true;
 	}
+	static AccurateLineOfSightTest( x1, y1, x2, y2, custom_filtering_method, use_diagonals_only=true ) // custom_filtering_method should return true to stop search
+	{
+		if ( !use_diagonals_only )
+		throw new Error( 'Not using diagonals is not supported yet' );
+	
+		let x_min = Math.min( x1, x2 );
+		let x_max = Math.max( x1, x2 );
+		let y_min = Math.min( y1, y2 );
+		let y_max = Math.max( y1, y2 );
+	
+		let cells = sdWorld.GetCellsInRect( x_min, y_min, x_max, y_max );
+		
+		const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+		
+		for ( let i = 0; i < cells.length; i++ )
+		{
+			let arr = cells[ i ].arr;
+			
+			for ( let i2 = 0; i2 < arr.length; i2++ )
+			{
+				let e = arr[ i2 ];
+				
+				if ( e._flag !== visited_ent_flag )
+				{
+					e._flag = visited_ent_flag;
+					
+					if ( x_min < e.x + e._hitbox_x2 )
+					if ( x_max > e.x + e._hitbox_x1 )
+					if ( y_min < e.y + e._hitbox_y2 )
+					if ( y_max > e.y + e._hitbox_y1 )
+					if ( sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) || // Sight segment and entity's \ diagonal
+						 sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x2, e.y+e._hitbox_y1, e.x+e._hitbox_x1, e.y+e._hitbox_y2 ) ) // Sight segment and entity's / diagonal
+					if ( custom_filtering_method( e ) )
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	static TraceRayPoint( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
@@ -3785,6 +3827,31 @@ class sdWorld
 			}
 		}
 		return null;
+	}
+	
+	//static AreSegmentsIntersecting( p1, p2, p3, p4 )
+	static AreSegmentsIntersecting( ax, ay, bx, by, cx, cy, dx, dy ) // AB and CD are segments
+	{
+		let p1 = { x:ax, y:ay };
+		let p2 = { x:bx, y:by };
+		let p3 = { x:cx, y:cy };
+		let p4 = { x:dx, y:dy };
+		
+		// This is a simplified version of a segment intersection test.
+		// A robust algorithm would check for collinearity and other edge cases.
+		// The general idea is to use a cross-product or orientation test.
+		// A common approach involves finding the intersection point of the
+		// infinite lines and then checking if this point lies on both segments.
+		const denominator = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
+
+		if ( denominator === 0 )
+		return false; // Segments are parallel
+
+		const ua = ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / denominator;
+		const ub = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / denominator;
+
+		// The segments intersect if the intersection point lies on both.
+		return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
 	}
 	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 	{
@@ -4733,6 +4800,11 @@ class sdWorld
 						sdEntity.entities.push( e );
 					}
 					else
+					if ( arr[ 0 ] === 'CARRY_END' )
+					{
+						// Ignore
+					}
+					else
 					debugger;
 				}
 			},
@@ -4751,6 +4823,12 @@ class sdWorld
 			_SetCameraZoom: ()=>
 			{
 				
+			},
+			
+			CommandFromEntityClass: ( class_object, command_name, parameters_array )=>
+			{
+				let class_object_name = class_object.name;
+				sdWorld.entity_classes[ class_object_name ].ReceivedCommandFromEntityClass( command_name, parameters_array );
 			}
 		};
 		
@@ -4804,6 +4882,13 @@ class sdWorld
 				{
 					offline_socket.character._key_states.SetKey( command[ 1 ], ( command[ 0 ] === 'K1' ) ? 1 : 0 );
 				}
+			}
+		};
+		
+		globalThis.sdModeration = {
+			IsPhraseBad: ()=>
+			{
+				return false;
 			}
 		};
 		
@@ -4993,7 +5078,7 @@ class sdWorld
 				}
 				else
 				{
-					socket.SDServiceMessage( 'Singleplayer mode does not yet supports command "'+cmd+'"' );
+					socket.SDServiceMessage( 'Singleplayer mode does not yet support command "'+cmd+'"' );
 					debugger; // In case if it is related to context actions - these need to be moved to entity's ExecuteContextCommand and PopulateContextOptions methods
 				}
 			},

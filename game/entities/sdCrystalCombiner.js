@@ -361,7 +361,7 @@ class sdCrystalCombiner extends sdEntity
 			this.crystal1.sy = 0;
 		}*/
 		
-		if ( this.drain_direction !== 0 )
+		if ( this.drain_direction !== 0 && sdWorld.is_server )
 		{
 			if ( this.crystal0 && this.crystal1 )
 			{
@@ -372,14 +372,14 @@ class sdCrystalCombiner extends sdEntity
 				
 				if ( drain_to.matter_regen + drain > 400 )
 				drain = 400 - drain_to.matter_regen;
-			
-				drain_to.matter_regen += drain;
-				drain_from.matter_regen -= drain;
 				
 				if ( this.fire_detected )
 				{
 					drain = 0;
 				}
+			
+				drain_to.matter_regen += drain;
+				drain_from.matter_regen -= drain;
 				
 				if ( drain > 0 )
 				{
@@ -388,14 +388,34 @@ class sdCrystalCombiner extends sdEntity
 				}
 				else
 				{
-					/*this.drain_direction = 0;
-					this._update_version++;
-					sdSound.PlaySound({ name:'crystal_combiner_endB', x:this.x, y:this.y, volume:1 });
-					*/
-					this.DrainWithDirection( 0 );
-					
 					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
 					{
+						if ( !this.fire_detected )
+						{
+							//this.DrainWithDirection( 0 );
+							//this.DropCrystals();
+							//this.AttemptGrabbingNewCrystals();
+							
+							this.DrainWithDirection( 0 );
+							
+							if ( this.crystal0.matter_regen >= 400 )
+							this.DropCrystal( this.crystal0 );
+							else
+							if ( this.crystal0.matter_regen <= 0 )
+							this.DropCrystal( this.crystal0 );
+							
+							if ( this.crystal1.matter_regen >= 400 )
+							this.DropCrystal( this.crystal1 );
+							else
+							if ( this.crystal1.matter_regen <= 0 )
+							this.DropCrystal( this.crystal1 );
+							
+							this.AttemptGrabbingNewCrystals();
+						}
+					}
+					else
+					{
+						this.DrainWithDirection( 0 );
 						this.DropCrystals();
 						this.AttemptGrabbingNewCrystals();
 					}
@@ -645,10 +665,12 @@ class sdCrystalCombiner extends sdEntity
 			ent.matter = this.crystal0.matter + this.crystal1.matter;
 			ent.matter_regen = ( this.crystal0.matter_regen + this.crystal1.matter_regen ) / 2;
 			
-			if ( ( this.crystal0.speciality > 0 || this.crystal1.speciality > 0 ) && Math.random() < 0.2 ) // 20% to keep speciality
+			ent.speciality = Math.round( ( this.crystal0.speciality + this.crystal1.speciality ) / 2 * Math.random() ); // 0% if both aren't special, 25% if one is special, 50% if both are special
+			
+			/*if ( ( this.crystal0.speciality > 0 || this.crystal1.speciality > 0 ) && Math.random() < 0.2 ) // 20% to keep speciality
 			ent.speciality = 1;
 			else
-			ent.speciality = 0;
+			ent.speciality = 0;*/
 			
 			if ( ent.is_anticrystal )
 			ent.matter_regen = 100; // Reset regen in this case as it does not matter for these for them to be properly rated by Rifts, LRTPs and BSUs

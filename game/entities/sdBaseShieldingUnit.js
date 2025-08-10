@@ -284,6 +284,52 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		return true;
 	}
+	static IsMobSpawnAllowed( x, y ) // Just like TestIfPointIsOutsideOfBSURanges, except it allows mobs to be placed within range of BSU but only if furthest protected wall towards mob is closer than mob
+	{
+		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+		{
+			let s = sdBaseShieldingUnit.all_shield_units[ i ];
+
+			if ( s.enabled )
+			{
+				if ( sdWorld.inDist2D_Boolean( s.x, s.y, x, y, sdBaseShieldingUnit.protect_distance ) )
+				{
+					let dx = x - s.x;
+					let dy = y - s.y;
+					let di = sdWorld.Dist2D_Vector( dx, dy );
+					
+					if ( di < 16 )
+					return false;
+				
+					dx = dx / di * sdBaseShieldingUnit.protect_distance;
+					dy = dy / di * sdBaseShieldingUnit.protect_distance;
+					
+					let bsu_ownership_filter = ( e )=>
+					{
+						if ( e._shielded )
+						if ( e._shielded === s )
+						return true;
+				
+						return false;
+					};
+					
+					let hit_point = sdWorld.TraceRayPoint( s.x + dx, s.y + dy, s.x, s.y, null, null, sdCom.com_vision_blocking_classes, bsu_ownership_filter );
+					
+					if ( hit_point )
+					{
+						let furthest_wall_distance = sdWorld.Dist2D_Vector_pow2( hit_point.x - s.x, hit_point.y - s.y );
+						
+						let distance_towards_potential_mob = sdWorld.Dist2D_Vector_pow2( x - s.x, y - s.y );
+						
+						if ( distance_towards_potential_mob < furthest_wall_distance )
+						return false;
+					}
+				}
+			}
+		}
+		
+		return true;
+	}
 	
 	static TestIfDamageShouldPass( entity, dmg, initiator=null )
 	{

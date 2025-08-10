@@ -502,15 +502,15 @@ class sdButton extends sdEntity
 				return true;
 			};
 			
-			const MeasureDelayAndDo = ( path, ent, then )=>
+			const MeasureDelayAndDo = ( path, ent, vv, then )=>
 			{
 				let delay = 0;
 				
-				if ( !this.activated )
+				/*if ( !this.activated )
 				{
 					// Skip delays on deactivation? This will allow ping-pong movement for elevator movements when delay is added
 				}
-				else
+				else*/
 				for ( let i2 = 0; i2 < path.length; i2++ ) // 0 is button/sensor
 				{
 					let node = path[ i2 ];
@@ -520,7 +520,8 @@ class sdButton extends sdEntity
 					if ( node.is( sdNode ) )
 					if ( node.type === sdNode.TYPE_SIGNAL_DELAYER )
 					{
-						setTimeout( ()=>{
+						setTimeout( ()=>
+						{
 							
 							let fail = false;
 							for ( let i2 = 0; i2 <= i2_copy; i2++ )
@@ -533,22 +534,23 @@ class sdButton extends sdEntity
 							//if ( !node._is_being_removed )
 							if ( !fail )
 							{
-								node.variation = 1;
+								node.variation = vv ? 1 : 2;
 								node._update_version++;
 								
 								sdSound.PlaySound({ name:'sd_beacon_disarm', x:node.x, y:node.y, volume:0.5, pitch:8 });
 							}
 						}, delay );
-						setTimeout( ()=>{
+						setTimeout( ()=>
+						{
 							if ( !node._is_being_removed )
 							{
 								node.variation = 0;
 								node._update_version++;
 							}
-						}, delay + 500 );
+						}, delay + node.delay );
 
 
-						delay += 500;
+						delay += node.delay;
 					}
 				}
 				
@@ -638,7 +640,7 @@ class sdButton extends sdEntity
 				if ( !IsPathTraversable( path ) )
 				continue;
 			
-				MeasureDelayAndDo( path, door, ()=>
+				MeasureDelayAndDo( path, door, vv, ()=>
 				{
 					door.open_type = sdDoor.OPEN_TYPE_BUTTON;
 
@@ -685,7 +687,7 @@ class sdButton extends sdEntity
 					trace('visited 161235055 node');
 				}*/
 				
-				MeasureDelayAndDo( path, antigravity, ()=>
+				MeasureDelayAndDo( path, antigravity, vv, ()=>
 				{
 					if ( typeof antigravity._update_version !== 'undefined' )
 					antigravity._update_version++;
@@ -739,7 +741,7 @@ class sdButton extends sdEntity
 				continue;
 				
 				
-				MeasureDelayAndDo( path, turret, ()=>
+				MeasureDelayAndDo( path, turret, vv, ()=>
 				{
 					turret._update_version++;
 

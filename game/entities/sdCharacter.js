@@ -1967,14 +1967,28 @@ THING is cosmic mic drop!`;
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( !this.ghosting || this.carrying )
+		//if ( !this.ghosting || this.carrying )
+		//return true;
+		
+		if ( observer_character === this )
 		return true;
 		
 		if ( this.driver_of )
 		if ( !this.driver_of._is_being_removed )
-		if ( this.driver_of.VehicleHidesDrivers() )
-		if ( !this.driver_of.IsVisible( observer_character ) )
-		return false;
+		{
+			if ( this.driver_of.VehicleHidesDrivers() )
+			if ( !this.driver_of.IsVisible( observer_character ) )
+			return false;
+	
+			if ( this.driver_of.ObfuscateAnyDriverInformation() )
+			return false;
+		}
+		
+		if ( this.carrying )
+		return true;
+	
+		if ( !this.ghosting )
+		return true;
 	
 		if ( observer_character )
 		if ( observer_character.IsPlayerClass() )
@@ -5270,8 +5284,8 @@ THING is cosmic mic drop!`;
 				if ( !this._stands_on._is_being_removed )
 				if ( this._stands_on._hard_collision )
 				// Copy "stands on detection" [ 1 / 2 ]
-				if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
-				if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
+				if ( this.x + this._hitbox_x1 < this._stands_on.x + this._stands_on._hitbox_x2 )
+				if ( this.x + this._hitbox_x2 > this._stands_on.x + this._stands_on._hitbox_x1 )
 				if ( this.y + this._hitbox_y1 + max_stand_on_elevation <= this._stands_on.y + this._stands_on._hitbox_y2 )
 				if ( this.y + this._hitbox_y2 + max_stand_on_elevation >= this._stands_on.y + this._stands_on._hitbox_y1 )
 				{
@@ -6177,8 +6191,8 @@ THING is cosmic mic drop!`;
 			if ( this.x + this._hitbox_x1 < from_entity.x + from_entity._hitbox_x2 )*/
 																																	
 			// Copy "stands on detection" [ 2 / 2 ]
-			if ( this.x + this._hitbox_x1 <= from_entity.x + from_entity._hitbox_x2 )
-			if ( this.x + this._hitbox_x2 >= from_entity.x + from_entity._hitbox_x1 )
+			if ( this.x + this._hitbox_x1 < from_entity.x + from_entity._hitbox_x2 )
+			if ( this.x + this._hitbox_x2 > from_entity.x + from_entity._hitbox_x1 )
 			if ( this.y + this._hitbox_y1 + max_stand_on_elevation <= from_entity.y + from_entity._hitbox_y2 )
 			if ( this.y + this._hitbox_y2 + max_stand_on_elevation >= from_entity.y + from_entity._hitbox_y1 )
 			{
@@ -6537,8 +6551,8 @@ THING is cosmic mic drop!`;
 						if ( initiator.GetBulletSpawnOffset )
 						off = initiator.GetBulletSpawnOffset();
 
-						//if ( sdWorld.CheckLineOfSight( this.x, this.y, build_params.x, build_params.y, null, null, sdCom.com_visibility_unignored_classes ) || this._god )
-						if ( !initiator || sdWorld.CheckLineOfSight( initiator.x + off.x, initiator.y + off.y, build_params.x, build_params.y, fake_ent, null, sdCom.com_visibility_unignored_classes ) || initiator._god )
+						//if ( !initiator || sdWorld.CheckLineOfSight( initiator.x + off.x, initiator.y + off.y, build_params.x, build_params.y, fake_ent, null, sdCom.com_visibility_unignored_classes ) || initiator._god )
+						if ( !initiator || sdWorld.AccurateLineOfSightTest( initiator.x + off.x, initiator.y + off.y, build_params.x, build_params.y, sdCom.com_build_line_of_sight_filter_for_early_threats ) || initiator._god )
 						{
 						}
 						else
@@ -6894,13 +6908,17 @@ THING is cosmic mic drop!`;
 		if ( !attached )
 		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
 		{
-			//if ( this.hook_relative_to )
-			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
+			//let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
+			
+			let off = this.GetBulletSpawnOffset();
 
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = '#c0c0c0';
 			ctx.beginPath();
-			ctx.moveTo( 0,from_y - this.y );
+			
+			//ctx.moveTo( 0,from_y - this.y );
+			ctx.moveTo( off.x, off.y );
+			
 			if ( this.hook_relative_to )
 			ctx.lineTo( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
 			else
@@ -6916,9 +6934,9 @@ THING is cosmic mic drop!`;
 
 				ctx.translate( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
 
-				ctx.rotate( ( Math.atan2( this.hook_relative_to.y + this.hook_relative_y - this.y ,this.hook_relative_to.x + this.hook_relative_x - this.x ) ) );
+				ctx.rotate( ( Math.atan2( this.hook_relative_to.y + this.hook_relative_y - this.y-off.y ,this.hook_relative_to.x + this.hook_relative_x - this.x-off.x ) ) );
 
-				ctx.drawImageFilterCache( sdCharacter.img_grapple_hook, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdCharacter.img_grapple_hook, - 16, - 16 + 0.5, 32,32 );
 
 				ctx.restore();
 			}

@@ -5733,23 +5733,26 @@ class sdGunClass
 				if ( sdWorld.is_server )
 				if ( gun._held_by )
 				if ( gun._held_by.IsPlayerClass() )
-				if ( gun._held_by.matter >= 30 )
-				//if ( sdWorld.CheckLineOfSight( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, gun._held_by, sdCom.com_visibility_ignored_classes, null ) )
-				//if ( !sdWorld.CheckWallExistsBox( gun._held_by.look_x - 16, gun._held_by.look_y - 16, gun._held_by.look_x + 16, gun._held_by.look_y + 16, gun._held_by, sdCom.com_visibility_ignored_classes, null, null ) )
-				if ( sdWorld.CheckLineOfSight( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, gun._held_by, null, sdCom.com_vision_blocking_classes ) )
-				if ( gun._held_by.CanMoveWithoutOverlap( gun._held_by.look_x, gun._held_by.look_y, -8 ) )
-				if ( sdWorld.inDist2D_Boolean( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, 400 ) )
 				{
-					gun._held_by.x = gun._held_by.look_x;
-					gun._held_by.y = gun._held_by.look_y;
-					gun._held_by.sx = 0;
-					gun._held_by.sy = 0;
-					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
-					gun._held_by.matter -= 30;
-						
-					gun._held_by.PhysWakeUp();
-					
-					return true;
+					let off = gun._held_by.GetBulletSpawnOffset();
+				
+					if ( gun._held_by.matter >= 30 )
+					//if ( sdWorld.CheckLineOfSight( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, gun._held_by, null, sdCom.com_vision_blocking_classes ) )
+					if ( gun._held_by.CanMoveWithoutOverlap( gun._held_by.look_x, gun._held_by.look_y, -8 ) )
+					if ( sdWorld.inDist2D_Boolean( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, 400 ) )
+					if ( sdWorld.AccurateLineOfSightTest( gun._held_by.x + off.x, gun._held_by.y + off.y, gun._held_by.look_x, gun._held_by.look_y, sdCom.com_build_line_of_sight_filter_for_early_threats ) )
+					{
+						gun._held_by.x = gun._held_by.look_x;
+						gun._held_by.y = gun._held_by.look_y;
+						gun._held_by.sx = 0;
+						gun._held_by.sy = 0;
+						gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+						gun._held_by.matter -= 30;
+
+						gun._held_by.PhysWakeUp();
+
+						return true;
+					}
 				}
 				return false;
 			},
@@ -6657,93 +6660,7 @@ class sdGunClass
 						break;
 					}
 
-					/*if ( gun._held_by.x < gun._held_by.look_x )
-					for ( let i = gun._held_by.x; i < gun._held_by.look_x; i += dx * 4 )
-					{
-						if ( gun._held_by.CanMoveWithoutOverlap( i, j , -4 ) )
-						{
-							last_x = i;
-							last_y = j;
 
-							rail_x = i;
-							rail_y = j;
-						}
-						if ( !sdWorld.CheckLineOfSight( last_x, last_y, i, j, gun._held_by, null ) )
-						if ( sdWorld.last_hit_entity )
-						{
-							let can_damage = true;
-							let k;
-							for( k = 0; k < hit_entities.length; k++ )
-							{
-								if ( sdWorld.last_hit_entity === hit_entities[ k ] ) // Make sure we didn't hit the target already
-								can_damage = false;
-							}
-							if ( can_damage === true )
-							{
-								sdWorld.last_hit_entity.DamageWithEffect( damage_value, gun._held_by );
-								hit_entities.push( sdWorld.last_hit_entity );
-								landed_hit = true;
-								sdSound.PlaySound({ name:'cube_teleport', x:i, y:j, volume:2, pitch: 1.5 });
-								rail_x = i;
-								rail_y = j;
-							}
-							let stop_attack = false;
-							for( k = 0; k < sdCom.com_visibility_unignored_classes.length; k++ )
-							if ( sdWorld.last_hit_entity.GetClass() === sdCom.com_visibility_unignored_classes[ k ] ) // Make sure we can pass through it
-							stop_attack = true;
-
-							if ( stop_attack === true )
-							break;
-							//if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' || sdWorld.last_hit_entity.GetClass() === 'sdDoor' )
-							//break;
-						}
-
-						j += dy * 4;
-					}
-					else // If character is looking to the left
-					for ( let i = gun._held_by.x; i > gun._held_by.look_x; i += dx * 4 )
-					{
-						if ( gun._held_by.CanMoveWithoutOverlap( i, j , -4 ) )
-						{
-							last_x = i;
-							last_y = j;
-
-							rail_x = i;
-							rail_y = j;
-						}
-						if ( !sdWorld.CheckLineOfSight( last_x, last_y, i, j, gun._held_by, null ) )
-						if ( sdWorld.last_hit_entity )
-						{
-							let can_damage = true;
-							let k;
-							for( k = 0; k < hit_entities.length; k++ )
-							{
-								if ( sdWorld.last_hit_entity === hit_entities[ k ] ) // Make sure we didn't hit the target already
-								can_damage = false;
-							}
-							if ( can_damage === true )
-							{
-								sdWorld.last_hit_entity.DamageWithEffect( damage_value, gun._held_by );
-								hit_entities.push( sdWorld.last_hit_entity );
-								landed_hit = true;
-								sdSound.PlaySound({ name:'cube_teleport', x:i, y:j, volume:2, pitch: 1.5 });
-								rail_x = i;
-								rail_y = j;
-							}
-							let stop_attack = false;
-							for( k = 0; k < sdCom.com_visibility_unignored_classes.length; k++ )
-							if ( sdWorld.last_hit_entity.GetClass() === sdCom.com_visibility_unignored_classes[ k ] ) // Make sure we can pass through it
-							stop_attack = true;
-
-							if ( stop_attack === true )
-							break;
-						}
-
-						j += dy * 4;
-					}*/
-					//sdWorld.SendEffect({ x:gun._held_by.x, y:gun._held_by.y, x2:rail_x, y2:rail_y, type:sdEffect.TYPE_BEAM, color:'#CCCCCC' });
-					//gun._held_by.x = last_x;
-					//gun._held_by.y = last_y;
 					sdWorld.SendEffect({ x:gun._held_by.x, y:gun._held_by.y, x2:to_x, y2:to_y, type:sdEffect.TYPE_BEAM, color:'#CCCCCC' });
 					gun._held_by.x = to_x;
 					gun._held_by.y = to_y;
@@ -10241,10 +10158,14 @@ class sdGunClass
 			{
 				// Similar to sdPlayerDrone
 				let owner = gun._held_by;
-				let range = 24;
-				let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+				
+				let off = gun._held_by.GetBulletSpawnOffset ? gun._held_by.GetBulletSpawnOffset() : { x:0, y:0 };
+				
+				//let range = 24;
+				//let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
 				if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 400 ) )
-				if ( owner._god || sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+				//if ( owner._god || sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
+				if ( owner._god || sdWorld.AccurateLineOfSightTest( owner.x + off.x, owner.y + off.y, owner.look_x, owner.look_y, sdCom.com_build_line_of_sight_filter_for_early_threats ) )
 				if ( owner._god || sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 				{
 					if ( Math.random() < 1 / 3 )

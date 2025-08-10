@@ -408,7 +408,7 @@ class sdCouncilIncinerator extends sdEntity
 		if ( this.hea <= 0 )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
-			this.tilt += ( this.sx / 3 );
+			this.tilt += ( this.sx / 3 ) * GSPEED;
 			if ( sdWorld.is_server )
 			{
 				if ( this.hea <= 0 )
@@ -916,10 +916,15 @@ class sdCouncilIncinerator extends sdEntity
 		return false;
 	}
 	
+	get title()
+	{
+		return 'Council Incinerator';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Council Incinerator", 0, -30 );
+		sdEntity.Tooltip( ctx, this.title, 0, -30 );
 		
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}

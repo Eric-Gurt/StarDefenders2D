@@ -689,6 +689,9 @@ class sdEntity
 	onAfterDriverAdded( best_slot )
 	{
 	}
+	onAfterDriverExcluded( best_slot, character )
+	{
+	}
 	ExcludeAllDrivers()
 	{
 		const driver_slots_total = this.GetDriverSlotsCount();
@@ -712,6 +715,9 @@ class sdEntity
 	AddDriver( c, force=false ) // Uses magic property _doors_locked or doors_locked
 	{
 		if ( !sdWorld.is_server )
+		return;
+	
+		if ( c.driver_of )
 		return;
 	
 		if ( !force )// && !c._god )
@@ -793,7 +799,7 @@ class sdEntity
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
 				c.SetCameraZoom( sdWorld.default_zoom );
-
+				
 				// To prevent the teleport exploit
 				if ( this.GetDriverSlotsCount() <= 1 )
 				c.x = this.x;
@@ -817,6 +823,8 @@ class sdEntity
 				if ( c._socket )
 				c._socket.SDServiceMessage( 'Leaving vehicle' );
 		
+				this.onAfterDriverExcluded( i, c );
+
 				return;
 			}
 		}
@@ -3089,6 +3097,41 @@ class sdEntity
 	{
 		return true;
 	}
+	ObfuscateAnyDriverInformation() // In case if vehicle is supposed to hide drivers completely. Use together with altering GetSnapshot to use GetDriverObfuscatingSnapshot
+	{
+		return false;
+	}
+	GetDriverObfuscatingSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		if ( save_as_much_as_possible || observer_entity === null )
+		return sdEntity.prototype.GetSnapshot.call( this, current_frame, save_as_much_as_possible, observer_entity );
+		//return super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+	
+	
+		
+		let hide_contents = false;
+		
+		if ( observer_entity.driver_of === this ) // Let driver know what he is driving
+		{
+		}
+		else
+		{
+			current_frame -= 100; // Make it so frame is different for case of obfuscation. Otherwise 1 out of 2 players seeing this entity might get wrong mixed snapshots
+			hide_contents = true;
+		}
+		
+		let snapshot = sdEntity.prototype.GetSnapshot.call( this, current_frame, save_as_much_as_possible, observer_entity );
+		//let snapshot = super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+		
+		if ( hide_contents )
+		{
+			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+			snapshot[ 'driver' + i ] = null;
+		}
+		
+		return snapshot;
+	}
+	
 	DrawsHUDForDriver()
 	{
 		return true;

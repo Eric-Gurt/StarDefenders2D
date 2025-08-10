@@ -659,9 +659,10 @@ class sdWeather extends sdEntity
 						ok = false;
 				
 						if ( ok )
-						if ( sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( x, y ) )
+						//if ( sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( x, y ) )
 						if ( dog.CanMoveWithoutDeepSleepTriggering( x, y, -32 ) )
 						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 						if ( params.aerial || !dog.CanMoveWithoutOverlap( x, y + 5, 0 ) )
 						if ( params.aerial || sdWorld.last_hit_entity )
 						if ( params.aerial || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) )

@@ -14,6 +14,8 @@ class sdCharacterRagdoll
 {
 	static init_class()
 	{
+		sdCharacterRagdoll.debug_collisions = false;
+		
 		sdCharacterRagdoll.spring_both = 0;
 		sdCharacterRagdoll.spring_min = 1;
 		sdCharacterRagdoll.spring_max = 2;
@@ -79,8 +81,8 @@ class sdCharacterRagdoll
 		
 		for ( let i = 1; i <= 2; i++ )
 		{
-			this.AddBone( 'elbow' + i, 16, 14, 0.5 );
-			this.AddBone( 'hand' + i, 22, 14, 0.5 );
+			this.AddBone( 'elbow' + i, 16, 14, 1.5 );
+			this.AddBone( 'hand' + i, 22, 14, 1.5 );
 			
 			this.springs.push( new sdSpring( this.chest, this[ 'elbow' + i ], 'arm_upper', 0, ( i - 1.5 ) * 0.1, -Math.PI / 2, sdCharacterRagdoll.spring_both ) );
 			this.springs.push( new sdSpring( this[ 'elbow' + i ], this[ 'hand' + i ], 'arm_lower', 0, ( i - 1.5 ) * 0.1 - 0.001, -Math.PI / 2, sdCharacterRagdoll.spring_both ) );
@@ -97,7 +99,7 @@ class sdCharacterRagdoll
 			this.springs.push( new sdSpring( this.chest, this[ 'hand' + i ], null, 0, 0, 0, sdCharacterRagdoll.spring_min ) );
 			this.springs[ this.springs.length - 1 ].radius = 4;
 			
-			this.AddBone( 'knee' + i, 13, 26, 1.5 );
+			this.AddBone( 'knee' + i, 13, 26, 2 );
 			this.AddBone( 'ankle' + i, 13, 30, 2 );
 			this.AddBone( 'toes' + i, 15, 30, 2 );
 			
@@ -804,7 +806,7 @@ class sdCharacterRagdoll
 	
 		//radius *= this.character.s / 100;
 	
-		let bone = new sdBone({ x:this.character.x + x - 16, y:this.character.y + y - 16, radius:radius * 0.5, ragdoll:this, sx:this.character.sx, sy:this.character.sy, bone_name:part_name, initial_x:x, initial_y:y, bounciness:bounciness, friction_remain:friction_remain, soft_bone_of:null });
+		let bone = new sdBone({ x:this.character.x + x - 16, y:this.character.y + y - 16, radius: ( radius > 2 ) ? radius * 0.5 : radius, ragdoll:this, sx:this.character.sx, sy:this.character.sy, bone_name:part_name, initial_x:x, initial_y:y, bounciness:bounciness, friction_remain:friction_remain, soft_bone_of:null });
 		sdEntity.entities.push( bone );
 		this.bones.push( bone );
 	
@@ -1410,16 +1412,19 @@ class sdCharacterRagdoll
 			ctx.restore();
 		}
 		
+		if ( sdCharacterRagdoll.debug_collisions )
+		{
+			let old_alpha = ctx.globalAlpha;
+			ctx.globalAlpha *= 0.6;
+			for ( let i = 0; i < this.bones.length; i++ )
+			{
+				let b = this.bones[ i ];
+				ctx.fillStyle = '#00ff00';
+				ctx.fillRect( b.x - this.character.x + b._hitbox_x1, b.y - this.character.y + b._hitbox_y1, b._hitbox_x2-b._hitbox_x1, b._hitbox_y2-b._hitbox_y1 );
+			}
+			ctx.globalAlpha = old_alpha;
+		}
 		
-		
-		/*
-		sdCharacter.skin_part_indices.body_lower;
-		
-		ctx.save();
-		
-		
-		
-		ctx.restore();*/
 	}
 }
 

@@ -44,6 +44,14 @@ class sdCom extends sdEntity
 
 		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone', 'sdBeamProjector', 'sdSandWorm', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBiter', 'sdCouncilMachine', 'sdPlayerOverlord', 'sdVeloxMiner', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdSetrDestroyer', 'sdTutel', 'sdAbomination', 'sdMimic', 'sdShurgExcavator', 'sdZektaronDreadnought', 'sdCouncilIncinerator', 'sdLongRangeAntenna', 'sdVeloxFortifier', 'sdSolarMatterDistributor', 'sdCouncilNullifier', 'sdStalker' ]; // Used for sdCube pathfinding now...
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdLongRangeTeleport', 'sdManualTurret' ]; // Used for early threat logic now. Coms don't really trace raycasts anymore. These arrays are a mess though.
+		
+		sdCom.com_build_line_of_sight_filter_for_early_threats = ( e )=>
+		{
+			if ( e.is( sdBlock ) || e.is( sdDoor ) )
+			return true; // Stop search and fail line of sight test
+		
+			return false;
+		};
 
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		

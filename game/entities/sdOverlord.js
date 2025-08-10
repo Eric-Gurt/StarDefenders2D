@@ -162,7 +162,14 @@ class sdOverlord extends sdEntity
 				if ( !peaceful_mode )
 				{
 					if ( ent !== this._droppen_gun_entity )
-					this.Say( sdWorld.ClassNameToProperName( ent.GetClass() ) + ' is to be destroyed' );
+					{
+						setTimeout( ()=>
+						{
+							if ( !this._is_being_removed )
+							this.Say( sdWorld.ClassNameToProperName( ent.GetClass() ) + ' is to be destroyed' );
+						
+						}, 32 );
+					}
 				}
 				
 				this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: ( this.has_gun || peaceful_mode ) ? 350 : 32, options: ( this.has_gun && !peaceful_mode ) ? [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ] : [ sdPathFinding.OPTION_CAN_FLY ] });

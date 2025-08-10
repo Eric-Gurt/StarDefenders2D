@@ -98,6 +98,7 @@ class sdNode extends sdEntity
 		this.type = params.type || sdNode.TYPE_NODE;
 		
 		this.variation = params.variation || 0; // In case of sdNode.TYPE_SIGNAL_TURRET_ENABLER it is an angle
+		this.delay = params.delay || 500; // For sdNode.TYPE_SIGNAL_DELAYER, can't use variation because variation reflects status for these
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
@@ -242,14 +243,23 @@ class sdNode extends sdEntity
 			if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
 			{
 				if ( command_name === 'VARIATION' )
+				if ( typeof parameters_array[ 0 ] === 'number' )
+				if ( !isNaN( parameters_array[ 0 ] ) )
+				if ( parameters_array[ 0 ] >= 0 && parameters_array[ 0 ] <= 7 )
 				{
-					if ( typeof parameters_array[ 0 ] === 'number' )
-					if ( !isNaN( parameters_array[ 0 ] ) )
-					if ( parameters_array[ 0 ] >= 0 && parameters_array[ 0 ] <= 7 )
-					{
-						this.variation = ~~( parameters_array[ 0 ] );
-						this._update_version++;
-					}
+					this.variation = ~~( parameters_array[ 0 ] );
+					this._update_version++;
+				}
+			}
+			
+			if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
+			{
+				if ( command_name === 'SET_DELAY' )
+				if ( typeof parameters_array[ 0 ] === 'number' )
+				if ( !isNaN( parameters_array[ 0 ] ) )
+				{
+					this.delay = Math.max( 125, Math.min( 64000, ~~( parameters_array[ 0 ] ) ) );
+					this._update_version++;
 				}
 			}
 			
@@ -322,6 +332,11 @@ class sdNode extends sdEntity
 					//this.AddContextOption( 'Set angle to ' + a + ' degrees', 'VARIATION', [ i ] );
 					this.AddContextOptionNoTranslation( T('Set angle to ') + a + T(' degrees'), 'VARIATION', [ i ], true, ( this.variation === i ) ? { color:'#00ff00' } : {} );
 				}
+			}
+			if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
+			{
+				for ( let a = 125; a <= 64000; a *= 2 )
+				this.AddContextOptionNoTranslation( T('Set delay to') + ' ' + a/1000 + ' ' +( ( a === 1000 ) ? T('second') : T('seconds') ), 'SET_DELAY', [ a ], true, ( this.delay === a ) ? { color:'#00ff00' } : {} );
 			}
 			if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
 			{

@@ -46,7 +46,7 @@ class sdLifeBox extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdCrystal', 'sdGun', 'sdStorage' ];
+		return [ 'sdCharacter', 'sdCrystal', 'sdGun', 'sdStorage', 'sdWorkbench', 'sdHover', 'sdQuadro', 'sdJunk' ];
 	}
 	
 	/*GetRocketDamageScale()
@@ -56,6 +56,14 @@ class sdLifeBox extends sdEntity
 	IsVehicle()
 	{
 		return true;
+	}
+	ObfuscateAnyDriverInformation() // In case if vehicle is supposed to hide drivers completely. Use together with altering GetSnapshot to use GetDriverObfuscatingSnapshot
+	{
+		return true;
+	}
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		return this.GetDriverObfuscatingSnapshot( current_frame, save_as_much_as_possible, observer_entity );
 	}
 	
 	Impact( vel ) // fall damage basically
@@ -104,12 +112,36 @@ class sdLifeBox extends sdEntity
 		this.cube_shards_max = 10;
 		// 1 slot
 		this.driver0 = null; // movement
+		this.occupied = 0;
 	}
 	GetDriverSlotsCount()
 	{
 		return sdLifeBox.driver_slots;
 	}
-	AddDriver( c )
+	onAfterDriverAdded( slot )
+	{
+		this.occupied = 1;
+		this._update_version++;
+		
+		sdSound.PlaySound({ name:'hover_start', pitch: 0.6, x:this.x, y:this.y, volume:1 });
+	}
+	onAfterDriverExcluded( slot, character )
+	{
+		character.x = this.x;
+		character.y = this.y;
+		
+		this.occupied = 0;
+		this._update_version++;
+	}
+	GetDriverZoom()
+	{
+		return sdWorld.default_zoom;
+	}
+	GetDriverSlotHint( best_slot )
+	{
+		return 'Entered the life box: You should be safer inside';
+	}
+	/*AddDriver( c )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -177,7 +209,7 @@ class sdLifeBox extends sdEntity
 		
 		if ( c._socket )
 		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
-	}
+	}*/
 	GetHitDamageMultiplier( x, y )
 	{
 		if ( this.driver0 )
@@ -426,7 +458,7 @@ class sdLifeBox extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			xx = Math.min( ( this.driver0 ) ? 0 : 1 );
+			xx = Math.min( ( this.occupied ) ? 0 : 1 );
 
 			draw_turret = true;
 		}

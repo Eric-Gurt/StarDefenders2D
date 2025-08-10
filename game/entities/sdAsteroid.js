@@ -1,5 +1,5 @@
 
-/* global Infinity, sdShop */
+/* global Infinity, sdShop, sdRenderer */
 
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
@@ -310,9 +310,6 @@ class sdAsteroid extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( sdWorld.is_server )
-		this.rotation = this._an * 100;
-	
 		if ( this.held_by )
 		{
 			return;
@@ -345,7 +342,8 @@ class sdAsteroid extends sdEntity
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 				this._time_to_despawn -= GSPEED;
 
-				this._an += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
+				this._an +=		 this.sx * GSPEED * 20 / 100 / ( this.scale / 100 );
+				this.rotation += this.sx * GSPEED * 20 / 100 / ( this.scale / 100 ) * 100;
 
 				if ( sdWorld.is_server )
 				if ( this._time_to_despawn < 0 )
@@ -461,6 +459,9 @@ class sdAsteroid extends sdEntity
 				this._eff_timer = 1;
 			}
 		}
+		
+		if ( sdWorld.is_server )
+		this.rotation = this._an * 100;
 	}
 	get mass() { return 80 * this.scale/100; }
 	

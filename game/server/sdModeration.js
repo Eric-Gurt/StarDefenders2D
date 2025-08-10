@@ -702,7 +702,7 @@ class sdModeration
 				}
 				else
 				{
-					socket.SDServiceMessage( 'Server: Events have been paused and potential enemies remvoed.' );
+					socket.SDServiceMessage( 'Server: Events have been paused and potential enemies removed.' );
 					sdWeather.only_instance._chill = parseInt( parts[ 1 ] );
 				}
 					

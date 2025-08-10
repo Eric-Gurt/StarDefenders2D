@@ -138,6 +138,18 @@ class sdShop
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 2, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 2, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
 			sdShop.options.push({ _class: 'sdLifeBox', _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:0, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:30, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:60, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:90, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:120, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:150, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:180, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:210, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:240, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:270, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:300, _category:'Vehicles', _min_build_tool_level:1 });
+			sdShop.options.push({ _class: 'sdCapsulePod', hue:330, _category:'Vehicles', _min_build_tool_level:1 });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(300deg)', _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(270deg)', _category:'Vehicles' });
@@ -241,6 +253,10 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
 				sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
 				
+				sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_BASIC_SMALL, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_ARMORED_SMALL, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_CIRCULAR_LIGHTS_SMALL, _category:'Doors' });
+				
 			}
 
 			AddBuildPack( 'hue-rotate( 105deg) brightness(0.7)' );
@@ -311,6 +327,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, _category:'Base equipment', _min_build_tool_level: 35 });
+			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
+			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
 			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:0 });
 			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:1, _min_build_tool_level: 30 });
 			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:3, _min_build_tool_level: 30 });
@@ -349,7 +367,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdNode', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:4, _category:'Base equipment', _min_build_tool_level:15 });
-			sdShop.options.push({ _class: 'sdNode', type:5, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdNode', type:5, delay:500, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:6, _category:'Base equipment', _min_build_tool_level:32 });
 			sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 2, _min_build_tool_level: 3, _category:'Base equipment' });

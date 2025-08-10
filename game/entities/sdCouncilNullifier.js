@@ -17,6 +17,8 @@ import sdWeather from './sdWeather.js';
 import sdBlock from './sdBlock.js';
 import sdFactions from './sdFactions.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdArea from './sdArea.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 class sdCouncilNullifier extends sdEntity
 {
@@ -402,10 +404,11 @@ class sdCouncilNullifier extends sdEntity
 
 					while ( councils < councils_tot )
 					{
-
-						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-
-						sdEntity.entities.push( character_entity );
+						//let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+						//sdEntity.entities.push( character_entity );
+						
+						let character_entity = sdEntity.Create( sdCharacter, { x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE } );
+						
 						character_entity.s = 110;
 
 						{
@@ -430,6 +433,8 @@ class sdCouncilNullifier extends sdEntity
 
 								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+								if ( sdArea.CheckPointDamageAllowed( x, y ) )
+								if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 								{
@@ -490,9 +495,10 @@ class sdCouncilNullifier extends sdEntity
 					{
 						{
 							let drone_type = ( this.hea > this.hmax / 2 ) ? sdDrone.DRONE_COUNCIL_ATTACK : sdDrone.DRONE_COUNCIL;
-							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: drone_type });
-
-							sdEntity.entities.push( drone );
+							//let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: drone_type });
+							//sdEntity.entities.push( drone );
+							
+							let drone = sdEntity.Create( sdDrone, { x:0, y:0 , _ai_team: 3, type: drone_type } );
 
 							{
 								let x,y;
@@ -515,6 +521,8 @@ class sdCouncilNullifier extends sdEntity
 									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 									if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( sdArea.CheckPointDamageAllowed( x, y ) )
+									if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 									{
@@ -549,9 +557,14 @@ class sdCouncilNullifier extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
+	get title()
+	{
+		return 'Council nullifier';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T("Council nullifier"), 0, -24 );
+		sdEntity.Tooltip( ctx, this.title, 0, -24 );
 		this.DrawHealthBar( ctx );
 	}
 	Draw( ctx, attached )

@@ -16,6 +16,7 @@ import sdCube from './sdCube.js';
 import sdDrone from './sdDrone.js';
 import sdGib from './sdGib.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 class sdStalker extends sdEntity
 {
@@ -181,6 +182,7 @@ class sdStalker extends sdEntity
 			
 				if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 				if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+				//if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 				{
 					character_entity.x = x;
 					character_entity.y = y;

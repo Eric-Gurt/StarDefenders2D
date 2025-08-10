@@ -26,6 +26,9 @@ import sdButton from './sdButton.js';
 import sdNode from './sdNode.js';
 import sdCrystal from './sdCrystal.js';
 import sdTeleport from './sdTeleport.js';
+import sdStorage from './sdStorage.js';
+import sdMatterAmplifier from './sdMatterAmplifier.js';
+import sdCrystalCombiner from './sdCrystalCombiner.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -1147,14 +1150,31 @@ class sdSteeringWheel extends sdEntity
 					|| 
 					b.IsPhysicallyMovable() // Let crystals be pushed into teleports
 				 )
+			return true;
+			
+			// Check if storage can pick up item
+			if ( a.is( sdStorage ) )
 			{
+				a.onMovementInRange( b );
+				b.onMovementInRange( a );
+				
+				if ( b._is_being_removed )
+				return true;
+			}
+			
+			// Check if amplifier/combiner can pick crystal
+			if ( a.is( sdMatterAmplifier ) || a.is( sdCrystalCombiner ) )
+			if ( b.is( sdCrystal ) )
+			{
+				a.onMovementInRange( b );
+				b.onMovementInRange( a );
+
+				if ( b._is_being_removed || b.held_by === a )
 				return true;
 			}
 
 			if ( b.is( sdButton ) )
-			{
-				return true;
-			}
+			return true;
 			
 			return false;
 		};
@@ -1173,8 +1193,14 @@ class sdSteeringWheel extends sdEntity
 			if ( stuff_to_push.indexOf( ent2 ) !== -1 )
 			return false;*/
 
-			if ( ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsPhysicallyMovable() )
+			if ( ent2.onThink.has_ApplyVelocityAndCollisions && ( ent2.IsPhysicallyMovable() || ent2.is( sdBaseShieldingUnit ) ) )
 			{
+				if ( CanAPassThroughB( current, ent2 ) )
+				return false;
+
+				if ( CanAPassThroughB( ent2, current ) )
+				return false;
+
 				if ( AddPushable( ent2 ) )
 				{
 					//ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );

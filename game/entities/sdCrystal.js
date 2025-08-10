@@ -1819,17 +1819,17 @@ class sdCrystal extends sdEntity
 		else
 		{
 			// Limit vision to cable managment owner
-			if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
+			/*if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
 				( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
-				  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
+				  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )*/
 			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
-			else
+			/*else
 			{
 				if ( this.is_depleted )
 				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (depleted)" );
 				else
 				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
-			}
+			}*/
 		}
 
 		this.BasicCarryTooltip( ctx, 8 );

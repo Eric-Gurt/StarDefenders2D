@@ -123,6 +123,15 @@ class sdCommandCentre extends sdEntity
 	{
 		return true;
 	}
+	ObfuscateAnyDriverInformation() // In case if vehicle is supposed to hide drivers completely. Use together with altering GetSnapshot to use GetDriverObfuscatingSnapshot
+	{
+		return true;
+	}
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		return this.GetDriverObfuscatingSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+	}
+	
 	GetDriverSlotsCount()
 	{
 		return 1;
