@@ -272,7 +272,7 @@ class sdOctopus extends sdEntity
 				this.hurt_timer = 1;
 				
 				this.tenta_target = null; // Release any target that it is holding
-				trace( 'tenta_target released due to damage' );
+				//trace( 'tenta_target released due to damage' );
 				
 				if ( initiator )
 				this.SyncedToPlayer( initiator );
@@ -652,7 +652,7 @@ class sdOctopus extends sdEntity
 					this.GenericOctoAttack( from_entity, will_play_damage_effect_and_sound );
 
 					this.tenta_target = null;
-					trace( 'tenta_target released due to GenericOctoAttack being done' );
+					//trace( 'tenta_target released due to GenericOctoAttack being done' );
 				}
 			}
 		}
