@@ -23,19 +23,29 @@ class sdAntigravity extends sdEntity
 		sdAntigravity.TYPE_ADD = 0;
 		sdAntigravity.TYPE_SET = 1;
 		
-		sdAntigravity.rotations_by_type = [
-			{ dx:0, dy:-1, hitbox:[-16,-4,16,0] },
-			{ dx:1, dy:0, hitbox:[0,-16,4,16] },
-			{ dx:0, dy:1, hitbox:[-16,0,16,4] },
-			{ dx:-1, dy:0, hitbox:[-4,-16,0,16] }
+		sdAntigravity.rotations_by_kind = [
+			{ dx:0,  dy:-1, hitbox:[-16,-4,16,0] }, // up
+			{ dx:1,  dy:0,  hitbox:[0,-16,4,16]  }, // right
+			{ dx:0,  dy:1,  hitbox:[-16,0,16,4]  }, // down
+			{ dx:-1, dy:0,  hitbox:[-4,-16,0,16] } // left
 		];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return sdAntigravity.rotations_by_type[ this.kind || 0 ].hitbox[ 0 ]; }
-	get hitbox_x2() { return sdAntigravity.rotations_by_type[ this.kind || 0 ].hitbox[ 2 ]; }
-	get hitbox_y1() { return sdAntigravity.rotations_by_type[ this.kind || 0 ].hitbox[ 1 ]; }
-	get hitbox_y2() { return sdAntigravity.rotations_by_type[ this.kind || 0 ].hitbox[ 3 ]; }
+	AdjustHitboxSizeByDimension( dimension )
+	{
+		if ( dimension === 16 )
+		return dimension / 16 * this.size;
+	
+		if ( dimension === -16 )
+		return dimension / 16 * this.size;
+	
+		return dimension;
+	}
+	get hitbox_x1() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 0 ] ); }
+	get hitbox_x2() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 2 ] ); }
+	get hitbox_y1() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 1 ] ); }
+	get hitbox_y2() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 3 ] ); }
 	
 	get hard_collision()
 	{ return true; }
@@ -68,16 +78,17 @@ class sdAntigravity extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 300;
-		this._hea = this._hmax;
-		this._regen_timeout = 0;
-		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
 		this.power = 1;
 		
 		this.type = params.type || 0;
 		this.kind = params.kind || 0; // 0, 1, 2, 3, rotation
+		this.size = params.size || 16; // Half width before rotation
+		
+		this._hmax = 300 * this.size / 16;
+		this._hea = this._hmax;
+		this._regen_timeout = 0;
 		
 		this.toggle_enabled = 1; // Sets to 0 if sdButton is being pressed
 		
@@ -111,10 +122,10 @@ class sdAntigravity extends sdEntity
 	
 	SetSensorBounds( sensor_or_params, max_h )
 	{
-		if ( this.kind === 0 || this.kind === 2 )
+		if ( this.kind === 0 || this.kind === 2 ) // up or down
 		{
-			sensor_or_params.x = this.x - 16;
-			sensor_or_params.w = 32;
+			sensor_or_params.x = this.x - this.size;
+			sensor_or_params.w = this.size * 2;
 			sensor_or_params.h = max_h;
 
 			if ( this.kind === 0 )
@@ -123,10 +134,10 @@ class sdAntigravity extends sdEntity
 			sensor_or_params.y = this.y;
 		}
 		else
-		if ( this.kind === 1 || this.kind === 3 )
+		if ( this.kind === 1 || this.kind === 3 ) // right or left
 		{
-			sensor_or_params.y = this.y - 16;
-			sensor_or_params.h = 32;
+			sensor_or_params.y = this.y - this.size;
+			sensor_or_params.h = this.size * 2;
 			sensor_or_params.w = max_h;
 
 			if ( this.kind === 3 )
@@ -229,7 +240,16 @@ class sdAntigravity extends sdEntity
 
 				let an = this.kind * Math.PI / 2;
 
-				for ( var t = -1; t <= 1; t += 2 )
+				let t_from = -1;
+				let t_to = 1;
+				
+				if ( this.size === 8 )
+				{
+					t_from = 0;
+					t_to = 0;
+				}
+
+				for ( var t = t_from; t <= t_to; t += 2 )
 				{
 					let xx = this.x + Math.round( Math.cos( an ) ) * 8 * ( t );
 					let yy = this.y + Math.round( Math.sin( an ) ) * 8 * ( t );
@@ -341,10 +361,10 @@ class sdAntigravity extends sdEntity
 	get title()
 	{
 		if ( this.type === sdAntigravity.TYPE_ADD )
-		return 'Antigravity field';
+		return ( this.size === 16 ) ? 'Antigravity field' : 'Small antigravity field';
 	
 		if ( this.type === sdAntigravity.TYPE_SET )
-		return 'Stopping antigravity field';
+		return ( this.size === 16 ) ? 'Stopping antigravity field' : 'Small stopping antigravity field';
 	}
 	get description()
 	{
@@ -363,7 +383,13 @@ class sdAntigravity extends sdEntity
 		
 		let frame = 0;
 	
+		if ( this.size === 16 )
 		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, this.type*32,frame*32,32,32, -16, -16, 32,32 );
+		else
+		{
+			ctx.drawImageFilterCache( sdAntigravity.img_antigravity, this.type*32,frame*32,this.size,32, -this.size, -16, this.size,32 );
+			ctx.drawImageFilterCache( sdAntigravity.img_antigravity, this.type*32+32-this.size,frame*32,this.size,32, 0, -16, this.size,32 );
+		}
 		
 		if ( this.power !== 0 && this.toggle_enabled )
 		if ( frame === 0 )
@@ -391,7 +417,9 @@ class sdAntigravity extends sdEntity
 				if ( this.type === sdAntigravity.TYPE_SET )
 				ctx.fillStyle = '#8787e1';
 			
-				ctx.fillRect( -10 + prog * 2, -5 - prog * 20, 20 - prog * 4, 1 );
+				let s = this.size / 16;
+			
+				ctx.fillRect( -10 * s + prog * 2, -5 - prog * 20, 20 * s - prog * 4, 1 );
 			}
 
 		}
@@ -414,31 +442,8 @@ class sdAntigravity extends sdEntity
 		if ( this._sensor_area )
 		this._sensor_area.remove();
 	
-		if ( !sdWorld.is_server )
-		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 		if ( this._broken )
-		{
-			sdSound.PlaySound({ name:'blockB4', 
-				x:this.x + 32 / 2, 
-				y:this.y + 32 / 2, 
-				volume:( 32 / 32 ) * ( 16 / 32 ), 
-				pitch: ( this.material === sdAntigravity.MATERIAL_WALL ) ? 1 : 1.5,
-				_server_allowed:true });
-			
-			let x,a,s;
-			
-			let y = 0;
-			
-			let step_size = 4;
-			for ( x = step_size / 2; x < 32; x += step_size )
-			//for ( y = step_size / 2; y < 32; y += step_size )
-			{
-				a = Math.random() * 2 * Math.PI;
-				s = Math.random() * 4;
-				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
-				sdEntity.entities.push( ent );
-			}
-		}
+		sdWorld.BasicEntityBreakEffect( this, 12 );
 	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null

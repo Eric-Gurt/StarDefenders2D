@@ -329,14 +329,22 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:0 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:1, _min_build_tool_level: 30 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:3, _min_build_tool_level: 30 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:2, _min_build_tool_level: 15 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:0, _min_build_tool_level: 31 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:1, _min_build_tool_level: 32 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:3, _min_build_tool_level: 33 });
-			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:2, _min_build_tool_level: 32 });
+			for ( let size = 16; size >= 8; size /= 2 )
+			{
+				let min_level = 0;
+				
+				if ( size === 8 )
+				min_level = 45;
+				
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:0, size:size, _min_build_tool_level: Math.max( min_level, 0  ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:1, size:size, _min_build_tool_level: Math.max( min_level, 30 ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:3, size:size, _min_build_tool_level: Math.max( min_level, 30 ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:0, kind:2, size:size, _min_build_tool_level: Math.max( min_level, 15 ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:0, size:size, _min_build_tool_level: Math.max( min_level, 31 ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:1, size:size, _min_build_tool_level: Math.max( min_level, 32 ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:3, size:size, _min_build_tool_level: Math.max( min_level, 33 ) });
+				sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment', type:1, kind:2, size:size, _min_build_tool_level: Math.max( min_level, 32 ) });
+			}
 			sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'saturate(0)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'none', _category:'Base equipment' });
@@ -719,6 +727,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 5, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 6, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdMeow', _category:'Development tests' });
 				
 				{
 					let base_props = { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals' };

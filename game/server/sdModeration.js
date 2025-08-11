@@ -20,6 +20,7 @@ import sdDeepSleep from '../entities/sdDeepSleep.js';
 import sdEffect from '../entities/sdEffect.js';
 import sdBloodDecal from '../entities/sdBloodDecal.js';
 import sdCrystal from '../entities/sdCrystal.js';
+import sdBeamProjector from '../entities/sdBeamProjector.js';
 
 //import { spawn } from 'child_process';
 let spawn = globalThis.child_process_spawn;
@@ -43,7 +44,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill', 'spawnevent' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'zoom', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill', 'spawnevent' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -804,6 +805,27 @@ class sdModeration
 				num = 1000;
 		
 				socket.character.s = num;
+			}
+		}
+		else
+		if ( parts[ 0 ] === 'zoom' )
+		{
+			if ( socket.character )
+			{
+				let num = parseFloat( parts[ 1 ] ) / 100;
+				
+				if ( isNaN( num ) )
+				num = 1;
+				else
+				if ( num < 0.1 )
+				num = 0.1;
+				else
+				if ( num > 10 )
+				num = 10;
+		
+				let old_zoom = socket.character.GetCameraZoom();
+				socket.character._additional_camera_zoom_mult = num;
+				socket.character.SetCameraZoom( old_zoom );
 			}
 		}
 		else

@@ -415,7 +415,7 @@ class sdBlock extends sdEntity
 				if ( sdWorld.time > this._last_damage + 150 )
 				{
 					this._last_damage = sdWorld.time;
-					sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+					sdSound.PlaySound({ name:'shield', x:this.x+this.width/2, y:this.y+this.height/2, volume:1 });
 					
 					//if ( initiator )
 					//sdWorld.SendEffect({ x:initiator.x, y:initiator.y, type:sdEffect.TYPE_SHIELD });
@@ -1130,7 +1130,7 @@ class sdBlock extends sdEntity
 			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DEACTIVATION, 'Block is losing protection due to corruption spreading nearby' );
 			
 			this._shielded = null;
-			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x+this.width/2, y:this.y+this.height/2, volume:2, pitch:0.5 });
 		}
 		
 		return ent2;
@@ -1915,8 +1915,9 @@ class sdBlock extends sdEntity
 		{
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_SHARP )
 			if ( from_entity._is_bg_entity === this._is_bg_entity )
-			if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
-			if ( !from_entity.driver_of )
+			if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns, also ignore client-side bones and client-side effects
+			if ( from_entity.GetClass() !== 'sdBone' && from_entity.GetClass() !== 'sdEffect' )
+			if ( !from_entity.IsPlayerClass() || !from_entity.driver_of )
 			{
 				if ( this.material === sdBlock.MATERIAL_SHARP )
 				{
@@ -1925,6 +1926,7 @@ class sdBlock extends sdEntity
 						this.p = 30;
 						this._update_version++;
 
+						sdSound.PlaySound({ name:'trap', x:this.x+this.width/2, y:this.y+this.height/2, volume:1 });
 						from_entity.PlayDamageEffect( from_entity.x, from_entity.y );
 						//sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 
@@ -2392,7 +2394,7 @@ class sdBlock extends sdEntity
 			if ( this._broken )
 			{
 				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
-				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25, pitch: 0.6, _server_allowed:true });
+				sdSound.PlaySound({ name:'glass12', x:this.x+this.width/2, y:this.y+this.height/2, volume:0.25, pitch: 0.6, _server_allowed:true });
 				else
 				sdSound.PlaySound({ name:'blockB4', 
 					x:this.x + this.width / 2, 

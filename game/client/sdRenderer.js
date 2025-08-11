@@ -1010,12 +1010,14 @@ class sdRenderer
 
 						while ( xx < sdRenderer.screen_width )
 						{
+							if ( sdRenderer.dark_lands_canvases[ i ] )
 							ctx.drawImageFilterCache( sdRenderer.dark_lands_canvases[ i ], xx, yy, w, h );
 							
 							let yy2 = yy + h;
 							
 							while ( yy2 < sdRenderer.screen_height )
 							{
+								if ( sdRenderer.dark_lands_canvases_fill[ i ] )
 								ctx.drawImageFilterCache( sdRenderer.dark_lands_canvases_fill[ i ], xx, yy2, w, h );
 								
 								yy2 += h;
@@ -1603,27 +1605,28 @@ class sdRenderer
 			}				
 			ctx.globalAlpha = 1;
 			
+			let sw = sdRenderer.screen_width / sdWorld.camera.scale;
+			let sh = sdRenderer.screen_height / sdWorld.camera.scale;
 
-
-			ctx.fillRect(	sdWorld.world_bounds.x1 - sdRenderer.screen_width, 
-							sdWorld.world_bounds.y1 - sdRenderer.screen_height, 
-							sdRenderer.screen_width, 
-							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sdRenderer.screen_height * 2 );
+			ctx.fillRect(	sdWorld.world_bounds.x1 - sw, 
+							sdWorld.world_bounds.y1 - sh, 
+							sw, 
+							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sh * 2 );
 
 			ctx.fillRect(	sdWorld.world_bounds.x2, 
-							sdWorld.world_bounds.y1 - sdRenderer.screen_height, 
-							sdRenderer.screen_width, 
-							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sdRenderer.screen_height * 2 );
+							sdWorld.world_bounds.y1 - sh, 
+							sw, 
+							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sh * 2 );
 
 			ctx.fillRect(	sdWorld.world_bounds.x1, 
-							sdWorld.world_bounds.y1 - sdRenderer.screen_height, 
+							sdWorld.world_bounds.y1 - sh, 
 							sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1, 
-							sdRenderer.screen_height );
+							sh );
 
 			ctx.fillRect(	sdWorld.world_bounds.x1, 
 							sdWorld.world_bounds.y2, 
 							sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1, 
-							sdRenderer.screen_height );
+							sh );
 			
 			ctx.apply_shading = false;
 			

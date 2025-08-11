@@ -1328,7 +1328,11 @@ class sdCrystal extends sdEntity
 		if ( sdWorld.time < this._damagable_in )
 		if ( !( initiator && initiator.IsPlayerClass() && initiator.power_ef > 0 ) )
 		{
-			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			if ( sdWorld.time > this._last_damage + 75 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			}
 			return;
 		}
 
@@ -1487,7 +1491,7 @@ class sdCrystal extends sdEntity
 		}
 		else
 		{
-			if ( sdWorld.time > this._last_damage + 50 )
+			if ( sdWorld.time > this._last_damage + 75 )
 			{
 				this._last_damage = sdWorld.time;
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });

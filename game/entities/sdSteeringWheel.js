@@ -212,6 +212,8 @@ class sdSteeringWheel extends sdEntity
 		if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 		this.speed = 4;
 	
+		this._progression_unrounded = 0; // For slow motors
+	
 		this.stop_on_impact = true;
 		this.stop_on_track_loss = true;
 		
@@ -726,7 +728,10 @@ class sdSteeringWheel extends sdEntity
 				if ( GSPEED > 1 )
 				GSPEED = 1;
 			
-				let speed = this.speed;
+				this._progression_unrounded += this.speed * GSPEED / 2;
+			
+				//let speed = this.speed;
+				let speed = this._progression_unrounded;
 				
 				let dx = 0;
 				let dy = 0;
@@ -754,14 +759,16 @@ class sdSteeringWheel extends sdEntity
 					}
 				}
 				
-				this.vx = dx * GSPEED * speed;
-				this.vy = dy * GSPEED * speed;
+				this.vx = dx * speed;
+				this.vy = dy * speed;
 				
-				let xx = Math.round( this.vx * GSPEED );
-				let yy = Math.round( this.vy * GSPEED );
+				let xx = Math.round( this.vx );
+				let yy = Math.round( this.vy );
 
 				if ( xx !== 0 || yy !== 0 )
 				{
+					this._progression_unrounded -= sdWorld.Dist2D_Vector( xx, yy );
+					
 					this.VerifyMissingParts();
 					
 					const filter_candidates_function = ( e )=>
@@ -1187,6 +1194,9 @@ class sdSteeringWheel extends sdEntity
 				return false;
 			}
 			
+			if ( ent2.GetClass() === 'sdBone' )
+			return false;	
+			
 			/*if ( scan_set.has( ent2 ) )
 			return false;
 		
@@ -1597,7 +1607,7 @@ class sdSteeringWheel extends sdEntity
 				{
 					if ( command_name === 'SET_SPEED' )
 					{
-						for ( let i = 1; i <= 16; i *= 2 )
+						for ( let i = 1; i <= 32; i *= 2 )
 						if ( i === parameters_array[ 0 ] )
 						{
 							this.speed = i;
@@ -1638,8 +1648,8 @@ class sdSteeringWheel extends sdEntity
 			else
 			if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 			{
-				for ( let i = 1; i <= 16; i *= 2 )
-				this.AddContextOption( 'Set motor speed to ' + i, 'SET_SPEED', [ i ], true, ( this.speed === i ) ? { color:'#00ff00' } : {} );
+				for ( let i = 1; i <= 32; i *= 2 )
+				this.AddContextOption( 'Set motor speed to ' + i/2, 'SET_SPEED', [ i ], true, ( this.speed === i ) ? { color:'#00ff00' } : {} );
 			
 				this.AddContextOption( 'Stop on impact: ' + ( this.stop_on_impact ? 'Yes' : 'No' ), 'TOGGLE_IMPACT_STOP', [], true, ( this.stop_on_impact ) ? { color:'#00ff00' } : { color:'#ff0000' } );
 				this.AddContextOption( 'Stop on track end: ' + ( this.stop_on_track_loss ? 'Yes' : 'No' ), 'TOGGLE_TRACK_LOSS_STOP', [], true, ( this.stop_on_track_loss ) ? { color:'#00ff00' } : { color:'#ff0000' } );

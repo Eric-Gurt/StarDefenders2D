@@ -135,7 +135,7 @@ class sdBullet extends sdEntity
 		if ( this.is_grenade )
 		if ( vel > 3 )
 		{
-			if ( !sdWorld.is_server )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			sdSound.PlaySound({ name:'world_hit2', x:this.x, y:this.y, pitch:5, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
 		}
 

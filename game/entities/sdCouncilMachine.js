@@ -89,6 +89,7 @@ class sdCouncilMachine extends sdEntity
 		if ( Math.round( old_hea / ( this.hmax / 8 ) ) > Math.round( this.hea / ( this.hmax / 8 ) ) ) // Should spawn about 8 assault drones per machine
 		{
 			if ( initiator )
+			if ( !sdWeather.only_instance._chill )
 			{
 				let drone = new sdDrone({ x:0, y:0 , type: 18});
 
@@ -160,6 +161,7 @@ class sdCouncilMachine extends sdEntity
 				let instances = 0;
 				let instances_tot = 1;
 
+				if ( !sdWeather.only_instance._chill )
 				while ( instances < instances_tot && sdCouncilMachine.ents < 2 ) // Spawn another council machine until last one
 				{
 					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
@@ -390,6 +392,7 @@ class sdCouncilMachine extends sdEntity
 			if ( this._spawn_timer > 0 )
 			this._spawn_timer -= GSPEED;
 
+			if ( !sdWeather.only_instance._chill )
 			if ( this._spawn_timer <= 0 )
 			{
 				this._spawn_timer = 600; // Not too frequent spawns means players can focus on destroying the portal machine

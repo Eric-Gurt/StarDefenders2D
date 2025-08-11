@@ -170,6 +170,7 @@ class sdBeamProjector extends sdEntity
 				this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
 				
 				if ( this.progress >= 50 ) // 2nd phase? Spawn a mini Council worm aswell
+				if ( !sdWeather.only_instance._chill )
 				{
 					let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5 });
 
@@ -251,6 +252,7 @@ class sdBeamProjector extends sdEntity
 				this._spawn_drones_timer = 30 + ( Math.random() * 15 ); // Fastest
 			
 				if ( this.HasPlayersNearby() ) // Only when players are near the projector
+				if ( !sdWeather.only_instance._chill )
 				{
 					let drone = new sdDrone({ x:0, y:0 , type: 18 });
 
@@ -462,6 +464,7 @@ class sdBeamProjector extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
+			if ( !sdWeather.only_instance._chill )
 			while ( sd_soldiers < sd_soldiers_tot )
 			{
 

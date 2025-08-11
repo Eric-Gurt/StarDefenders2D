@@ -96,6 +96,7 @@ class sdCouncilNullifier extends sdEntity
 		if ( Math.round( old_hea / ( this.hmax / 10 ) ) > Math.round( this.hea / ( this.hmax / 10 ) ) ) // Should spawn about 10 assault drones per machine
 		{
 			if ( initiator )
+			if ( !sdWeather.only_instance._chill )
 			{
 				let drone = new sdDrone({ x:0, y:0 , type: sdDrone.DRONE_COUNCIL_ATTACK });
 
@@ -158,6 +159,7 @@ class sdCouncilNullifier extends sdEntity
 			}
 		}
 		if ( Math.round( old_hea / ( this.hmax / 4 ) ) > Math.round( this.hea / ( this.hmax / 4 ) ) ) // And about 4 support drones
+		if ( !sdWeather.only_instance._chill )
 		{
 			//if ( initiator )
 			{
@@ -383,6 +385,7 @@ class sdCouncilNullifier extends sdEntity
 			this._spawn_timer -= GSPEED;
 
 			if ( this._spawn_timer <= 0 )
+			if ( !sdWeather.only_instance._chill )
 			{
 				this._spawn_timer = 600; // Not too frequent spawns means players can focus on destroying the machine
 				let ais = 0;

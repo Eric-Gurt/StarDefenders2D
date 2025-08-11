@@ -549,6 +549,17 @@ class sdCharacter extends sdEntity
 			}
 		};
 		
+		/* Probably a bad idea as it will break NPCs
+		sdCharacter.player_allowed_blood_effect_types = [
+			sdEffect.TYPE_WALL_HIT,
+			sdEffect.TYPE_BLOOD_GREEN,
+			sdEffect.TYPE_BLOOD
+		];
+		sdCharacter.player_allowed_blood_effect_filters = {
+			'none':			'',
+			'clone':		'saturate(0)brightness(0.75)'
+		};*/
+		
 		sdCharacter.AI_MODEL_NONE = 0;
 		sdCharacter.AI_MODEL_FALKOK = 1;
 		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
@@ -603,10 +614,10 @@ class sdCharacter extends sdEntity
 		if ( this.hea > 0 && !this._dying )
 		return sdEffect.TYPE_WALL_HIT;
 	
-		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2'  || this._voice.variant ==='whisper' || this._voice.variant === 'clone' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant === 'm2'  || this._voice.variant === 'whisper' || this._voice.variant === 'clone' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m4' || this._voice.variant === 'swordbot' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant === 'm4' || this._voice.variant === 'swordbot' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -630,7 +641,7 @@ class sdCharacter extends sdEntity
 	GetBleedEffectFilter()
 	{
 		if ( this._voice.variant === 'clone' )
-		return 'saturate(0)brightness(0.75)'
+		return 'saturate(0)brightness(0.75)';
 	
 		return '';
 	}
@@ -1507,6 +1518,7 @@ THING is cosmic mic drop!`;
 		
 		this._allow_self_talk = true;
 		this._camera_zoom = sdWorld.default_zoom;
+		this._additional_camera_zoom_mult = 1; // Admins can change it
 		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
 
@@ -1518,8 +1530,14 @@ THING is cosmic mic drop!`;
 		
 		sdCharacter.characters.push( this );
 	}
+	GetCameraZoom()
+	{
+		return this._camera_zoom / this._additional_camera_zoom_mult;
+	}
 	SetCameraZoom( v )
 	{
+		v *= this._additional_camera_zoom_mult;
+		
 		this._camera_zoom = v;
 		
 		if ( sdWorld.my_entity === this )

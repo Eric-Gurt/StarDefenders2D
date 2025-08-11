@@ -184,8 +184,13 @@ class sdWeather extends sdEntity
 		
 		sdWeather.debug_rain = false;
 		
+		sdWeather.debug_quake = false;
+		
 		if ( sdWeather.debug_rain )
 		console.warn( 'WARNING: sdWeather.debug_rain is enabled! Rain will spawn under first socket character, where it stands only' );
+		
+		if ( sdWeather.debug_quake )
+		console.warn( 'WARNING: sdWeather.debug_quake is enabled! It will never end because of that' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -4641,7 +4646,7 @@ class sdWeather extends sdEntity
 			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
 			
 			//if ( this.quake_intensity >= 100 )
-			if ( this.quake_intensity >= 60 )
+			if ( this.quake_intensity >= 60 || sdWeather.debug_quake )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16, skip_hiberstate_and_hash_update:true });
@@ -4691,7 +4696,7 @@ class sdWeather extends sdEntity
 									{
 										let r = ~~( Math.random() * 4 );
 
-										x = Math.floor( place_near.x / 16 ) * 16;
+										/*x = Math.floor( place_near.x / 16 ) * 16;
 										y = Math.floor( place_near.y / 16 ) * 16;
 
 										if ( r === 0 )
@@ -4708,6 +4713,21 @@ class sdWeather extends sdEntity
 									
 										if ( place_near._merged )
 										y += Math.round( Math.random( ( place_near.height - 16 ) / 16 ) ) * 16; // Select random height without unmerging
+										*/
+										x = Math.floor( ( place_near.x + (place_near.width-16) * Math.random() ) / 16 ) * 16;
+										y = Math.floor( ( place_near.y + (place_near.height-16) * Math.random() ) / 16 ) * 16;
+										
+										if ( r === 0 )
+										x = place_near.x - 16;
+										else
+										if ( r === 1 )
+										x = place_near.x + place_near.width;
+										else
+										if ( r === 2 )
+										y = place_near.y - 16;
+										else
+										if ( r === 3 )
+										y = place_near.y + place_near.height;
 									}
 								}
 								else
@@ -4721,10 +4741,14 @@ class sdWeather extends sdEntity
 									}
 									*/
 									// Unmerging and removal is done when the block is already placed, instead of on BG detection to prevent unnecessary unmerging and unhibernation
-									x = Math.floor( place_near.x / 16 ) * 16;
+									/*x = Math.floor( place_near.x / 16 ) * 16;
 									y = Math.floor( place_near.y / 16 ) * 16;
 									if ( place_near._merged )
 									y += Math.round( Math.random( ( place_near.height - 16 ) / 16 ) ) * 16; // Select random height without unmerging
+									*/
+								   
+									x = Math.floor( ( place_near.x + (place_near.width-16) * Math.random() ) / 16 ) * 16;
+									y = Math.floor( ( place_near.y + (place_near.height-16) * Math.random() ) / 16 ) * 16;
 								}
 								
 							}
@@ -4776,7 +4800,7 @@ class sdWeather extends sdEntity
 									continue;
 								}
 								
-								if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, 100 ) )
+								if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, data.radius ) )
 								{
 									//hits++;
 									//if ( hits >= 3 )
@@ -4791,8 +4815,6 @@ class sdWeather extends sdEntity
 						if ( !should_skip )
 						for ( let num = 0; num < sdTzyrgAbsorber.absorbers.length; num++ )
 						{
-							//let di_absorbers = sdWorld.Dist2D( x, y, sdTzyrgAbsorber.absorbers[ num ].x, sdTzyrgAbsorber.absorbers[ num ].y );
-							//if ( di_absorbers < 800 ) // if it's too close to an absorber
 							if ( sdWorld.inDist2D_Boolean( x, y, sdTzyrgAbsorber.absorbers[ num ].x, sdTzyrgAbsorber.absorbers[ num ].y, sdTzyrgAbsorber.effect_radius ) )
 							{
 								should_skip = true;
@@ -4810,8 +4832,6 @@ class sdWeather extends sdEntity
 
 							if ( ent.CanMoveWithoutOverlap( x, y, 0.0001, sdWeather.CrystalRemovalByEearthquakeFilter ) )
 							{
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
-								//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava (liquids are caught by CrystalRemovalByEearthquakeFilter though now)
 								{
 									let ent_above = null;
@@ -4851,7 +4871,7 @@ class sdWeather extends sdEntity
 										}
 									}
 
-									if ( ent_above_exists || ent_below_exists )
+									//if ( ent_above_exists || ent_below_exists ) This prevents spawns on natural backgrounds
 									{
 										let bg_nature = true; // Or nothing or world border
 										let bg_nature_ent = null;
@@ -4877,16 +4897,7 @@ class sdWeather extends sdEntity
 											else
 											{
 												// Maybe it's better to do this on background removal instead?
-												//if ( sdWorld.last_hit_entity._merged === false ) 
 												bg_nature_ent = sdWorld.last_hit_entity;
-												/*else
-												{
-													sdWorld.last_hit_entity.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
-													if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
-													if ( sdWorld.last_hit_entity )
-													bg_nature_ent = sdWorld.last_hit_entity;
-												}*/
-												
 											}
 										}
 
@@ -4930,38 +4941,9 @@ class sdWeather extends sdEntity
 											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
 											{
 												ClearPlants();
-												this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+												this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:50 + Math.random() * 50, until:sdWorld.time + 250 + Math.random() * 250 });
 												//break; Do not skip anymore - spawn as many as there can be
 											}
-
-											/*let xx = Math.floor( x / 16 );
-											let from_y = sdWorld.GetGroundElevation( xx );
-
-											if ( y >= from_y )
-											{
-												let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
-
-												if ( r )
-												ClearPlants();
-
-												break;
-											}
-											else
-											if ( y === from_y - 8 )
-											{
-												y += 8;
-												let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
-
-												if ( r )
-												ClearPlants();
-
-												break;
-											}
-											else
-											{
-											}*/
-
-
 										}
 									}
 
@@ -4993,7 +4975,7 @@ class sdWeather extends sdEntity
 											sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
 											
 											// Do not damage something multiple times in a row
-											this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+											this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:100, until:sdWorld.time + 500 });
 										}
 									}
 								}

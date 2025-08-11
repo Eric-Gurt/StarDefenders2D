@@ -236,6 +236,8 @@ class sdWorld
 		sdWorld.offscreen_behavior_x_value = 30; // Set later
 		
 		
+		sdWorld.ground_elevation_cache = new Map();
+		
 		sdWorld.lost_images_cache = null; // Object // For sdLost entities
 		// Could be expanded further to include flip_x etc, maybe also non-JSON format could be used to optimize even further
 		sdWorld.draw_operation_command_match_table = [
@@ -595,21 +597,29 @@ class sdWorld
 	}
 	static GetGroundElevation( x )
 	{
-		let s = 0;
-		let tot = 0;
-		
-		let r = 20;
-		
-		for ( var xx = -r; xx <= r; xx++ )
+		let ret = sdWorld.ground_elevation_cache.get( x );
+		if ( ret === undefined )
 		{
-			let influence = 1;// Math.pow( 1 + r - Math.abs( xx ), 0.1 );
-			s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 1, 512 ) * influence;
-			tot += influence;
+			let s = 0;
+			let tot = 0;
+
+			let r = 40;
+
+			for ( var xx = -r; xx <= r; xx++ )
+			{
+				let influence = 1;
+				s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 1, 512 ) * influence;
+				tot += influence;
+			}
+
+			s /= tot;
+
+			ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) * 512 ) * 8;
+			//ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) / 0.5 * 1024 / 8 ) * 8;
+			
+			sdWorld.ground_elevation_cache.set( x, ret );
+			return ret;
 		}
-		
-		s /= tot;
-		
-		return sdWorld.base_ground_level - Math.round( ( s - 0.5 ) / 0.5 * 1024 / 8 ) * 8;
 	}
 	/*static GetGroundElevation( xx )
 	{
@@ -834,7 +844,8 @@ class sdWorld
 						'sdWater.toxic', 1.0,
 						'sdWater.lava', 0.5,
 						'sdWater.acid', 1.0,
-						'sdDrone.DRONE_CUT_DROID', 0.35
+						'sdDrone.DRONE_CUT_DROID', 0.35,
+						'sdMeow', 0.35
 					];
 			let really_deep_mobs = [ // Really deep
 				
