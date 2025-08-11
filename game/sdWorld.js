@@ -618,8 +618,8 @@ class sdWorld
 			//ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) / 0.5 * 1024 / 8 ) * 8;
 			
 			sdWorld.ground_elevation_cache.set( x, ret );
-			return ret;
 		}
+		return ret;
 	}
 	/*static GetGroundElevation( xx )
 	{
