@@ -736,7 +736,7 @@ class sdWeather extends sdEntity
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
-			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
+			if ( ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 ) && sdCharacter.characters[ i ]._voice.variant !== 'clone' )
 			{
 				//if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
 				//ais++;
@@ -2521,7 +2521,7 @@ class sdWeather extends sdEntity
 			if ( sdCharacter.characters[ i ]._ai )
 			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
 			{
-				if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+				if ( ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' ) && sdCharacter.characters[ i ]._voice.variant !== 'clone' )
 				ais++;
 			}
 
