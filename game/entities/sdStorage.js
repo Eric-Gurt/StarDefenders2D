@@ -781,6 +781,9 @@ class sdStorage extends sdEntity
 
 			return null;
 		}
+		
+		if ( ent.is( sdGun ) )
+		ent.ttl = sdGun.disowned_guns_ttl; // Reset despawn timer for guns
 
 		if ( initiator_character )
 		{
@@ -788,8 +791,6 @@ class sdStorage extends sdEntity
 			{
 				ent.x = initiator_character.x;
 				ent.y = initiator_character.y;
-
-				ent.ttl = sdGun.disowned_guns_ttl; // Reset despawn timer
 			}
 			else
 			{
