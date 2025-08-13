@@ -2796,7 +2796,7 @@ io.on( 'connection', ( socket )=>
 					{
 					}
 					else
-					if ( !ent.IsDamageAllowedByAdmins() )
+					if ( ent.IsInSafeArea() )
 					{
 						socket.SDServiceMessage( 'Entity is in restricted area' );
 						return;
