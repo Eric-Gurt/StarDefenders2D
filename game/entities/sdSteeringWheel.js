@@ -196,6 +196,8 @@ class sdSteeringWheel extends sdEntity
 		
 		this.driver0 = null;
 		
+		this._owner = null; // Updated when used
+		
 		this.toggle_enabled = false;
 		this._toggle_source_current = null;
 		this._toggle_direction_current = null;

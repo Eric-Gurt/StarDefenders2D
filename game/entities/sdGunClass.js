@@ -7799,15 +7799,117 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 		
+		let DrainProjectileBounceReaction = ( bullet, vel=0, hit_entity=null )=> // Also reacts to overlap
+		{
+			if ( hit_entity )
+			{
+				if ( hit_entity._is_bg_entity === bullet._is_bg_entity )
+				if ( hit_entity._hard_collision )
+				if ( bullet._owner !== hit_entity )
+				if ( bullet._owner2 !== hit_entity )
+				if ( !bullet.sticky_target )
+				{
+					bullet.sx = (hit_entity.sx||0);
+					bullet.sy = (hit_entity.sy||0);
+
+					bullet.sticky_target = hit_entity;
+					bullet.sticky_relative_x = bullet.x - hit_entity.x;
+					bullet.sticky_relative_y = bullet.y - hit_entity.y;
+				}
+			}
+			else
+			{
+				// From impact, entity is unknown
+				bullet.sx = 0;
+				bullet.sy = 0;
+			}
+		};
+		
+		let DrainProjectileThink = ( bullet, GSPEED, range=64 )=>
+		{
+			let owner = ( bullet._owner || bullet._owner2 || null );
+
+			//let range = 64;
+
+			let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
+			let blocking_nears = [];
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				let e = nears[ i ];
+
+				if ( e.is( sdBlock ) || e.is( sdDoor ) )
+				blocking_nears.push( e );
+			}
+
+			let LOS = ( ignored_entity, x1, y1, x2, y2 )=>
+			{
+				for ( let i2 = 0; i2 < blocking_nears.length; i2++ )
+				{
+					let e = blocking_nears[ i2 ];
+
+					if ( e === ignored_entity )
+					continue;
+
+					if ( !sdWorld.LineOfSightThroughEntity( e, x1, y1, x2, y2, ( e )=>true, true, true ) )
+					return false;
+				}
+				return true;
+			};
+
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				let e = nears[ i ];
+				if ( !e._is_being_removed )
+				if ( e !== bullet && e !== owner )
+				if ( e._is_bg_entity === bullet._is_bg_entity )
+				{
+					if ( e.is( sdGun ) )
+					{
+						if ( e.class === sdGun.CLASS_CRYSTAL_SHARD )
+						if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, e.x, e.x, range ) )
+						if ( LOS( e, bullet.x, bullet.y, e.x, e.y ) )
+						e.remove();
+					}
+					else
+					if ( e.IsTargetable( owner ) )
+					if ( !e.is( sdBullet ) )
+					{
+						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+						if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
+						if ( LOS( e, bullet.x, bullet.y, xx, yy ) )
+						{
+							e.DamageWithEffect( GSPEED * 4, owner, false, false );
+
+							if ( typeof e.matter !== 'undefined' )
+							e.matter = Math.max( 0, e.matter - GSPEED * 20 );
+							else
+							if ( typeof e._matter !== 'undefined' )
+							e._matter = Math.max( 0, e._matter - GSPEED * 20 );
+
+							if ( e.is( sdWorld.entity_classes.sdMatterAmplifier ) )
+							{
+								if ( e.shielded )
+								e.ToggleShields();
+							}
+							else
+							if ( e.is( sdBlock ) )
+							{
+								if ( e.material === sdBlock.MATERIAL_TRAPSHIELD )
+								if ( !e._shielded || e._shielded._is_being_removed )
+								e.remove();
+							}
+						}
+					}
+				}
+			}
+		};
 		
 		sdGun.classes[ sdGun.CLASS_DRAIN_RIFLE = 120 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'anti_rifle' ),
 			image_firing: sdWorld.CreateImageFromFile( 'anti_rifle_firing' ),
-			//image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
-			//image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
-			//image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
-			//has_images: true,
 			sound: 'gun_anti_rifle_fire',
 			sound_volume: 2,
 			title: 'Drain-rifle', // Drain rifle
@@ -7822,9 +7924,6 @@ class sdGunClass
 			
 			min_workbench_level: 3,
 			
-			//sdLost.entities_and_affection
-			
-			//projectile_properties: { 
 			projectile_properties_dynamic: ( gun )=>
 			{
 				let cur_amount = gun._held_by ? sdLost.entities_and_affection.get( gun._held_by ) : 0;
@@ -7841,105 +7940,11 @@ class sdGunClass
 					gravity_scale: 0,
 					_detonate_on_impact: false,
 
-					_custom_post_bounce_reaction:( bullet, vel=0, hit_entity=null )=> // Also reacts to overlap
+					_custom_post_bounce_reaction: DrainProjectileBounceReaction,
+
+					_custom_extra_think_logic: ( bullet, GSPEED )=>
 					{
-						if ( hit_entity )
-						{
-							if ( hit_entity._is_bg_entity === bullet._is_bg_entity )
-							if ( hit_entity._hard_collision )
-							if ( bullet._owner !== hit_entity )
-							if ( bullet._owner2 !== hit_entity )
-							{
-								bullet.sx = 0;
-								bullet.sy = 0;
-							}
-						}
-						else
-						{
-							// From impact, entity is unknown
-							bullet.sx = 0;
-							bullet.sy = 0;
-						}
-					},
-
-					_custom_extra_think_logic:( bullet, GSPEED )=>
-					{
-						let owner = ( bullet._owner || bullet._owner2 || null );
-						
-						if ( cur_amount > 0 )
-						GSPEED *= 4;
-					
-						GSPEED *= gun.extra[ ID_DAMAGE_MULT ];
-
-						let range = 64;//( cur_amount > 0 ) ? 128 : 64;
-
-						let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
-						let blocking_nears = [];
-						for ( let i = 0; i < nears.length; i++ )
-						{
-							let e = nears[ i ];
-
-							if ( e.is( sdBlock ) || e.is( sdDoor ) )
-							blocking_nears.push( e );
-						}
-						
-						let LOS = ( ignored_entity, x1, y1, x2, y2 )=>
-						{
-							for ( let i2 = 0; i2 < blocking_nears.length; i2++ )
-							{
-								let e = blocking_nears[ i2 ];
-								
-								if ( e === ignored_entity )
-								continue;
-							
-								if ( !sdWorld.LineOfSightThroughEntity( e, x1, y1, x2, y2, ( e )=>true, true, true ) )
-								return false;
-							}
-							return true;
-						};
-						
-						for ( let i = 0; i < nears.length; i++ )
-						{
-							let e = nears[ i ];
-							if ( !e._is_being_removed )
-							if ( e !== bullet && e !== owner )
-							if ( e._is_bg_entity === bullet._is_bg_entity )
-							if ( e.IsTargetable( owner ) )
-							if ( !e.is( sdGun ) )
-							if ( !e.is( sdBullet ) )
-							{
-								let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
-								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-
-								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
-								//if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
-								{
-									if ( LOS( e, bullet.x, bullet.y, xx, yy ) )
-									{
-										e.DamageWithEffect( GSPEED * 4, owner, false, false );
-
-										if ( typeof e.matter !== 'undefined' )
-										e.matter = Math.max( 0, e.matter - GSPEED * 20 );
-										else
-										if ( typeof e._matter !== 'undefined' )
-										e._matter = Math.max( 0, e._matter - GSPEED * 20 );
-
-										if ( e.is( sdWorld.entity_classes.sdMatterAmplifier ) )
-										{
-											if ( e.shielded )
-											e.ToggleShields();
-										}
-										else
-										if ( e.is( sdBlock ) )
-										{
-											if ( e.material === sdBlock.MATERIAL_TRAPSHIELD )
-											if ( !e._shielded || e._shielded._is_being_removed )
-											e.remove();
-										}
-									}
-								}
-							}
-						}
+						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ], 64 );
 					},
 
 					_custom_detonation_logic:( bullet )=>
@@ -7948,8 +7953,6 @@ class sdGunClass
 					}
 				};
 			},
-			
-			
 
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
@@ -10240,6 +10243,156 @@ class sdGunClass
 			upgrades: AddRecolorsFromColorAndCost( [], '#80ff80', 15 )
 		};
 		
+		
+		sdGun.classes[ sdGun.CLASS_DRAIN_SHOTGUN = 153 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'drain_shotgun' ),
+			image_firing: sdWorld.CreateImageFromFile( 'drain_shotgun_firing' ),
+			sound: 'gun_anti_rifle_fireB',
+			sound_volume: 2,
+			title: 'Drain-shotgun', // Drain shotgun
+			slot: 3,
+			reload_time: 20,
+			count: 5,
+			spread: 0.12,
+			muzzle_x: 14,
+			ammo_capacity: 8,
+			projectile_velocity: 15 * 1.5,
+			matter_cost: 1500,
+			min_build_tool_level: 25,
+			
+			min_workbench_level: 5,
+			
+			projectile_properties_dynamic: ( gun )=>
+			{
+				let cur_amount = gun._held_by ? sdLost.entities_and_affection.get( gun._held_by ) : 0;
+				
+				return { 
+					_damage: 0,
+					model: ( cur_amount > 0 ) ? 'drain_shotgun_projectile_overcharged' : 'drain_shotgun_projectile', 
+					_hittable_by_bullets: false,
+					is_grenade: true,
+					time_left: 60 / 1.5,
+					explosion_radius: ( cur_amount > 0 ) ? 30 : 15, 
+					color: ( cur_amount > 0 ) ? '#fff59c' : '#6ac2ff',
+
+					gravity_scale: 0,
+					_detonate_on_impact: false,
+
+					_custom_post_bounce_reaction: DrainProjectileBounceReaction,
+
+					_custom_extra_think_logic: ( bullet, GSPEED )=>
+					{
+						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ] * 0.5, 32 );
+					},
+
+					_custom_detonation_logic:( bullet )=>
+					{
+						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:bullet.x, y:bullet.y, volume:0.5, pitch:( ( cur_amount > 0 ) ? 0.5 : 1 ) * 1.5 });
+					}
+				};
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			
+			upgrades: AddGunDefaultUpgrades( [] )
+		};
+		
+		
+		sdGun.classes[ sdGun.CLASS_DRAIN_SNIPER = 154 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'drain_sniper' ),
+			image_firing: sdWorld.CreateImageFromFile( 'drain_sniper_firing' ),
+			sound: 'gun_anti_rifle_fireC',
+			sound_volume: 3,
+			title: 'Drain-sniper-rifle', // Drain shotgun
+			slot: 4,
+			reload_time: 40,
+			count: 1,
+			spread: 0,
+			muzzle_x: 14,
+			ammo_capacity: -1,
+			projectile_velocity: 15 * 2,
+			matter_cost: 1500,
+			min_build_tool_level: 35,
+			
+			min_workbench_level: 7,
+			
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 40;
+			},
+			
+			projectile_properties_dynamic: ( gun )=>
+			{
+				let cur_amount = gun._held_by ? sdLost.entities_and_affection.get( gun._held_by ) : 0;
+				
+				return { 
+					_damage: 0,
+					model: ( cur_amount > 0 ) ? 'drain_sniper_projectile_overcharged' : 'drain_sniper_projectile', 
+					_hittable_by_bullets: false,
+					is_grenade: true,
+					time_left: 60 * 2,
+					explosion_radius: ( cur_amount > 0 ) ? 120 : 60, 
+					color: ( cur_amount > 0 ) ? '#fff59c' : '#6ac2ff',
+
+					gravity_scale: 0,
+					_detonate_on_impact: false,
+
+					_custom_post_bounce_reaction: ( bullet, vel=0, hit_entity=null )=>
+					{
+						DrainProjectileBounceReaction( bullet, vel, hit_entity );
+						
+						if ( bullet.sticky_target )
+						{
+							if ( bullet.model === 'drain_sniper_projectile_overcharged' )
+							bullet.model = 'anti_rifle_projectile_overcharged';
+							else
+							if ( bullet.model === 'drain_sniper_projectile' )
+							bullet.model = 'anti_rifle_projectile';
+						}
+					},
+
+					_custom_extra_think_logic: ( bullet, GSPEED )=>
+					{
+						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ] * 1.5, 32 );
+					},
+
+					_custom_detonation_logic:( bullet )=>
+					{
+						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:bullet.x, y:bullet.y, volume:0.5, pitch:( ( cur_amount > 0 ) ? 0.5 : 1 ) * 2 });
+					}
+				};
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			
+			upgrades: AddGunDefaultUpgrades( [] )
+		};
 
 		// Add new gun classes above this line //
 

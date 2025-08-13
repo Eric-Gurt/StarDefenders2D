@@ -2042,6 +2042,51 @@ class sdWorld
 		
 		return ret;
 	}
+	static GetAnythingNearWithLOS( _x, _y, range, append_to=null, specific_classes=null, filter_candidates_function=null )
+	{
+		let nears = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
+		
+		let blocking_nears = [];
+		for ( let i = 0; i < nears.length; i++ )
+		{
+			let e = nears[ i ];
+
+			if ( e.is( sdBlock ) || e.is( sdDoor ) )
+			blocking_nears.push( e );
+		}
+
+		let LOS = ( ignored_entity, x1, y1, x2, y2 )=>
+		{
+			for ( let i2 = 0; i2 < blocking_nears.length; i2++ )
+			{
+				let e = blocking_nears[ i2 ];
+
+				if ( e === ignored_entity )
+				continue;
+
+				if ( !sdWorld.LineOfSightThroughEntity( e, x1, y1, x2, y2, ( e )=>true, true, true ) )
+				return false;
+			}
+			return true;
+		};
+		
+		for ( let i = 0; i < nears.length; i++ )
+		{
+			let e = nears[ i ];
+
+			let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+			let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+			
+			if ( !LOS( e, _x, _y, xx, yy ) )
+			{
+				nears.splice( i, 1 );
+				i--;
+				continue;
+			}
+		}
+		
+		return nears;
+	}
 	static GetCellsInRect( _x, _y, _x2, _y2 )
 	{
 		let ret = [];

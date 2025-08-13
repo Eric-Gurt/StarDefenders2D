@@ -236,6 +236,8 @@ class sdCube extends sdEntity
 		//this._last_jump = sdWorld.time;
 		//this._last_bite = sdWorld.time;
 		
+		this._last_damage = 0;
+		
 		this._invisible_until = 0;
 		this.alpha = 100; // 0...100
 		this.armor = 0;
@@ -393,6 +395,13 @@ class sdCube extends sdEntity
 				initiator._nature_damage += dmg * 8; // No mercy if a cube is attacked
 			}
 		}
+		
+		let can_play_hurt_sound = false;
+		if ( sdWorld.time > this._last_damage + 150 )
+		{
+			this._last_damage = sdWorld.time;
+			can_play_hurt_sound = true;
+		}
 	
 		//dmg = Math.abs( dmg );
 		
@@ -428,10 +437,13 @@ class sdCube extends sdEntity
 				{
 					if ( this.regen_timeout < 60 )
 					{
-						if ( this.kind === sdCube.KIND_MATTER_STEALER )
-						sdSound.PlaySound({ name:'notificator_alertE', pitch: 0.5, x:this.x, y:this.y, volume:0.66 });
-						else
-						sdSound.PlaySound({ name:'cube_hurt', pitch: this.kind === sdCube.KIND_WHITE ? 0.4 : this.kind === sdCube.KIND_YELLOW ? 0.5 : 1, x:this.x, y:this.y, volume:0.66 });
+						if ( can_play_hurt_sound )
+						{
+							if ( this.kind === sdCube.KIND_MATTER_STEALER )
+							sdSound.PlaySound({ name:'notificator_alertE', pitch: 0.5, x:this.x, y:this.y, volume:0.66 });
+							else
+							sdSound.PlaySound({ name:'cube_hurt', pitch: this.kind === sdCube.KIND_WHITE ? 0.4 : this.kind === sdCube.KIND_YELLOW ? 0.5 : 1, x:this.x, y:this.y, volume:0.66 });
+						}
 					}
 				}
 
@@ -439,6 +451,7 @@ class sdCube extends sdEntity
 			}
 			else
 			{
+				if ( can_play_hurt_sound )
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 			}
 		}

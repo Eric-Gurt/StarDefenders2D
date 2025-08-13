@@ -1464,6 +1464,12 @@ class sdEntity
 									if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
 									if ( !arr_i._is_being_removed )
 									{
+										/*if ( arr_i.is( sdBullet ) )
+										{
+											debugger
+											continue;
+										}*/
+										
 										let t = sdEntity.MovingRectIntersectionCheck(
 											hitbox_x1,
 											hitbox_y1,

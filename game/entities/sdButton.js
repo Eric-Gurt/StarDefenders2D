@@ -181,6 +181,8 @@ class sdButton extends sdEntity
 		this._regen_timeout = 0;
 		this.activated = false;
 		
+		this._owner = null; // Updated when used
+		
 		this.react_to_doors = false;
 		
 		this._last_sound = 0;
@@ -228,6 +230,15 @@ class sdButton extends sdEntity
 				//this.SetActivated( true );
 
 				this._overlapped_net_ids.push( from_entity._net_id );
+				
+				if ( from_entity.IsPlayerClass() )
+				this._owner = from_entity;
+				else
+				if ( typeof from_entity.owner !== 'undefined' && from_entity.owner !== null )
+				this._owner = from_entity.owner;
+				else
+				if ( typeof from_entity._owner !== 'undefined' && from_entity._owner !== null )
+				this._owner = from_entity._owner;
 			}
 
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -652,6 +663,8 @@ class sdButton extends sdEntity
 						{
 							door._entities_within_sensor_area.push( door._net_id );
 							door.Open();
+							
+							door._owner = this._owner;
 						}
 					}
 					else
@@ -659,6 +672,8 @@ class sdButton extends sdEntity
 					{
 						door._entities_within_sensor_area.splice( id, 1 );
 						door.opening_tim = 0.000001; // Micro value so sound can play
+						
+						door._owner = this._owner;
 					}
 				});
 			}
@@ -720,7 +735,15 @@ class sdButton extends sdEntity
 					antigravity.onToggleEnabledChange();
 					
 					if ( vv )
-					antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					{
+						antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						
+						if ( typeof antigravity._owner !== 'undefined' )
+						antigravity._owner = this._owner;
+						
+						if ( typeof antigravity.owner !== 'undefined' )
+						antigravity.owner = this.owner;
+					}
 				});
 			}
 			for ( let i = 0; i < turrets.length; i++ )
@@ -761,6 +784,8 @@ class sdButton extends sdEntity
 						}
 
 						turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						
+						turret._owner = this._owner;
 					}
 					else
 					{
@@ -821,6 +846,8 @@ class sdButton extends sdEntity
 				)
 			)
 		{
+			this._owner = exectuter_character;
+				
 			if ( this.type === sdButton.TYPE_WALL_BUTTON || this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 			{
 				if ( command_name === 'PRESS_BUTTON' )

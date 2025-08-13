@@ -148,6 +148,8 @@ class sdDoor extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
+		this._owner = null; // Overriden on each open/close action
+		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		this._reinforced_level = params._reinforced_level || 0;
 		this._max_reinforced_level = this._reinforced_level + 2;
@@ -212,6 +214,11 @@ class sdDoor extends sdEntity
 				)
 				{
 					this._entities_within_sensor_area.push( from_entity._net_id );
+					
+					if ( from_entity.IsPlayerClass() )
+					{
+						this._owner = from_entity;
+					}
 						
 					this.Open();
 				}

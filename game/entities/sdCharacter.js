@@ -4659,8 +4659,24 @@ THING is cosmic mic drop!`;
 	
 		this.ConnectedGodLogic( GSPEED );
 		
-		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
-		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+		let cube_forgiveness_rate;
+		
+		if ( this.build_tool_level > 45 )
+		cube_forgiveness_rate = 0.25;
+		else
+		if ( this.build_tool_level > 30 )
+		cube_forgiveness_rate = 0.5;
+		else
+		if ( this.build_tool_level > 15 )
+		cube_forgiveness_rate = 0.75;
+		else
+		if ( this.build_tool_level > 5 )
+		cube_forgiveness_rate = 1;
+		else
+		cube_forgiveness_rate = 2;
+
+		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED * cube_forgiveness_rate );
+		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED * cube_forgiveness_rate );
 
 		if ( sdWorld.is_server && this._hook_projectile )
 		{

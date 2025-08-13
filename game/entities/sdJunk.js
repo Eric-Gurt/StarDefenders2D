@@ -169,6 +169,7 @@ class sdJunk extends sdEntity
 		this._time_to_drain_more = 30 * 60 * 40; // 40 minutes, every 10 minutes it increases matter drain percentage
 		//this._time_to_drain_rtps = 30 * 60 * 30; // 30 minutes until it also starts draining matter from rescue teleporters
 		this._last_damage = 0; // Sound flood prevention
+		this._crystal_regen_rate_left = 50;
 
 		// Variables for Council bomb
 		this.glow_animation = 0; // Glow animation for the bomb
@@ -743,31 +744,48 @@ class sdJunk extends sdEntity
 		
 			if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT ) // Attacks everything in it's line of sight, relatively short range
 			{
-				this._time_to_drain -= GSPEED;
-				this.glow_animation -= GSPEED;
+				this._time_to_drain -= GSPEED * ( 10 - 9 * this.hea / this.hmax );
+				this.glow_animation -= GSPEED * ( 10 - 9 * this.hea / this.hmax );
+				
+				let nears = null;
+				
+				let heal_sound_once = true;
 
-				if ( this._time_to_drain <= 0 )
+				while ( this._time_to_drain <= 0 )
 				{
-					this.DamageWithEffect( 0.25 ); // Self damage, limited existence
-					this._time_to_drain = Math.max( 5, 30 * 2 * ( this.hea / this.hmax ) );
-					let nears = sdWorld.GetAnythingNear( this.x, this.y, 64 );
-					let damaged_ents = [];
+					if ( this._crystal_regen_rate_left > 0 )
+					{
+						//this.DamageWithEffect( 0.25 ); // Self damage, limited existence
+					}
+					else
+					this.DamageWithEffect( 25 ); // Self damage, limited existence
+				
+					//this._time_to_drain = Math.max( 5, 30 * 2 * ( this.hea / this.hmax ) );
+					
+					this._time_to_drain += 30;
+					
+					if ( !nears )
+					{
+						nears = sdWorld.GetAnythingNearWithLOS( this.x, this.y, 32 );
+					}
+				
+					//let damaged_ents_set = new Set();
+					
 					for ( let i = 0; i < nears.length; i++ )
 					{
 						let ent = nears[ i ];
-						
 						
 						if ( ent && ent !== this )
 						if ( ent.IsTargetable( this ) )
 						if ( ent._is_bg_entity === this._is_bg_entity )
 						{
-							if ( !sdWorld.CheckLineOfSight( this.x + this._hitbox_x1 / 2 + this._hitbox_x2 / 2, this.y + this._hitbox_y1 / 2 + this._hitbox_y2 / 2, ent.x + ent._hitbox_x1 / 2 + ent._hitbox_x2 / 2, ent.y + ent._hitbox_y1 / 2 + ent._hitbox_y2 / 2, this ) )
-							{
-								if ( sdWorld.last_hit_entity )
-								{
+							//if ( !sdWorld.CheckLineOfSight( this.x + this._hitbox_x1 / 2 + this._hitbox_x2 / 2, this.y + this._hitbox_y1 / 2 + this._hitbox_y2 / 2, ent.x + ent._hitbox_x1 / 2 + ent._hitbox_x2 / 2, ent.y + ent._hitbox_y1 / 2 + ent._hitbox_y2 / 2, this ) )
+							//{
+								//if ( sdWorld.last_hit_entity )
+								//{
 									//if ( sdWorld.last_hit_entity === ent ) 
 									// Maybe it should damage whatever it line of sight touched since it is in it's radius anyway
-									let should_damage = true;
+									/*let should_damage = true;
 									for ( let j = 0; j < damaged_ents.length; j++ ) // Check if ent was damaged before
 									if ( damaged_ents [ j ] === sdWorld.last_hit_entity )
 									{
@@ -775,22 +793,50 @@ class sdJunk extends sdEntity
 										break;
 									}
 								
-									if ( should_damage )
-									{
-										if ( sdWorld.last_hit_entity.is( sdCrystal ) ) // Crystals have unique interaction - either get charged up or lose matter regen
+									if ( should_damage )*/
+									//if ( !damaged_ents_set.has( sdWorld.last_hit_entity ) )
+									//{
+										if ( ent.is( sdCrystal ) ) // Crystals have unique interaction - either get charged up or lose matter regen
 										{
-											let ent2 = sdWorld.last_hit_entity;
+											let ent2 = ent;
 											// Essentially a 50/50 gamble for matter regen on crystals. Though it also scales how much it regenerates/loses depending on crystal max matter
-											let mult = Math.max( 0.5, 5120 / ent2.matter_max );
-											sdCrystal.Zap( this, ent2, '#7076e6' ); // Zap effect to show it's doing something
-											ent2.matter_regen = Math.max( 0, Math.min( sdCrystal.max_matter_regen, ent2.matter_regen + ( ( Math.random() - Math.random() ) * mult ) ) );
+											//let mult = Math.max( 0.5, 5120 / ent2.matter_max );
+											let mult = 5120 / ent2.matter_max;
+											
+											//ent2.matter_regen = Math.max( 0, Math.min( sdCrystal.max_matter_regen, ent2.matter_regen + ( ( Math.random() - Math.random() ) * mult ) ) );
+											
+											let regen = Math.min( 0.25, this._crystal_regen_rate_left );
+											
+											if ( ent2.matter_regen + regen * mult > sdCrystal.max_matter_regen )
+											{
+												regen = ( sdCrystal.max_matter_regen - ent2.matter_regen ) / mult;
+											}
+											
+											if ( ent.is_anticrystal )
+											regen = 0;b
+											
+											if ( regen > 0 )
+											{
+												sdCrystal.Zap( this, ent2, '#7076e6' ); // Zap effect to show it's doing something
+												
+												ent2.matter_regen = Math.min( sdCrystal.max_matter_regen, ent2.matter_regen + regen * mult );
+												this._crystal_regen_rate_left -= regen;
+
+												if ( heal_sound_once )
+												{
+													heal_sound_once = false;
+													sdSound.PlaySound({ name:'crystal_healer_ping', x:this.x, y:this.y, volume: 0.3 }); // Play once
+												}
+											}
 										}
 										else
-										sdWorld.last_hit_entity.DamageWithEffect( 5, this ); // Other things should just get damaged without any effect so it seems a little supernatural
-										damaged_ents.push( sdWorld.last_hit_entity ); // But not more than once
-									}
-								}
-							}
+										ent.DamageWithEffect( 1, this ); // Other things should just get damaged without any effect so it seems a little supernatural
+										//
+										//damaged_ents.push( sdWorld.last_hit_entity ); // But not more than once
+										//damaged_ents_set.add( sdWorld.last_hit_entity )
+									//}
+								//}
+							//}
 						}
 					}
 					this.glow_animation = this._time_to_drain / 2;
@@ -1607,7 +1653,15 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_METAL_CHUNK || this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 		{
 			if ( this._broken )
-			sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
+			{
+				if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+				sdWorld.BasicEntityBreakEffect( this, 10, 3, 1, 1, 'crystal_healer_death' );
+				else
+				sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
+				
+				//if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+				//sdSound.PlaySound({ name:'crystal_healer_death', x:this.x, y:this.y, volume: 2 });
+			}
 		}
 	}
 	MeasureMatterCost()

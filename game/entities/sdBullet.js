@@ -62,6 +62,14 @@ class sdBullet extends sdEntity
 			'mini_missile_p241': 1,
 			'f_hover_rocket': 1
 		};
+		sdBullet.images_with_no_velocity_rotation = 
+		{
+			'flare': 1,
+			'anti_rifle_projectile_overcharged': 1,
+			'anti_rifle_projectile': 1,
+			'drain_shotgun_projectile_overcharged': 1,
+			'drain_shotgun_projectile': 1
+		};
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -107,7 +115,7 @@ class sdBullet extends sdEntity
 	{ return 1; } // 3 was generally fine expect for sniper
 	*/
 	get hard_collision() // For world geometry where players can walk
-	{ return this.is_grenade; }
+	{ return this.sticky_target ? false : this.is_grenade; }
 
 	get mass() { return this.model === 'stalker_target' ? 15 : 5; }
 	Impulse( x, y )
@@ -256,6 +264,8 @@ class sdBullet extends sdEntity
 
 		this._anti_shield_damage_bonus = 0;
 		
+		this._creation_time = sdWorld.time; // Make grenades not collide with each other when fired at the same time
+		
 		//this._speculative = false; // Only exists on client-side for a short period of time
 
 		//globalThis.EnforceChangeLog( this, 'color' );
@@ -351,6 +361,10 @@ class sdBullet extends sdEntity
 		this._extra_filtering_method = null;
 		
 		this._for_ai_target = null; // Target "drone"
+		
+		this.sticky_target = null;
+		this.sticky_relative_x = 0;
+		this.sticky_relative_y = 0;
 
 		// Defining this in method that is not called on this object and passed as collision filtering thing
 		//this.BouncyCollisionFiltering = this.BouncyCollisionFiltering.bind( this ); Bad, snapshot will enumerate it
@@ -545,7 +559,16 @@ class sdBullet extends sdEntity
 				return false;
 			}
 		}
-
+		
+		if ( !sdWorld.is_server )
+		{
+			// Speculatively ignore collisions between groups of grenades fired at the same time
+			if ( from_entity.is( sdBullet ) )
+			if ( this._creation_time === from_entity._creation_time )
+			{
+				return false;
+			}
+		}
 
 		if ( this._can_hit_owner )
 		{
@@ -578,6 +601,9 @@ class sdBullet extends sdEntity
 				return false;
 			}
 		}
+
+		if ( this.sticky_target === from_entity )
+		return false;
 		
 		if ( from_entity.is( sdBlock ) && from_entity._merged )
 		return false;
@@ -597,10 +623,13 @@ class sdBullet extends sdEntity
 		if ( !from_entity.PrecieseHitDetection( this.x, this.y, this ) )
 		return false;
 	
-		//if ( this._skip_crystals )
-		//if ( from_entity.is( sdCrystal ) )
-		//return false;
-	
+		/*if ( from_entity.is( sdBullet ) )
+		if ( from_entity._owner === this._owner )
+		if ( from_entity._creation_time === this._creation_time )
+		{
+			debugger;
+			return false;
+		}*/
 
 		if ( this._extra_filtering_method )
 		return this._extra_filtering_method( from_entity, this );
@@ -819,6 +848,24 @@ class sdBullet extends sdEntity
 				this._for_ai_target._ai.target = this;
 			}
 		}	
+		
+		if ( this.sticky_target )
+		{
+			if ( this.sticky_target._is_being_removed || !sdWorld.inDist2D_Boolean( this.x, this.y, this.sticky_target.x + this.sticky_relative_x, this.sticky_target.y + this.sticky_relative_y, 100 ) )
+			{
+				this.sticky_target = null;
+				
+				if ( this.time_left > 0 )
+				this.time_left = 0;
+			}
+			else
+			{
+				this.x = this.sticky_target.x + this.sticky_relative_x;
+				this.y = this.sticky_target.y + this.sticky_relative_y;
+				this.sx = (this.sticky_target.sx||0);
+				this.sy = (this.sticky_target.sy||0);
+			}
+		}
 	}
 
 	CanBounceOff( from_entity )
@@ -957,11 +1004,16 @@ class sdBullet extends sdEntity
 			return;
 		}
 
+
+		// Moved it up because this logic prevents shotgun projectiles from reacting to each other
+		if ( !this.RegularCollisionFiltering( from_entity ) )
+		return;
+	
 		if ( this._custom_post_bounce_reaction )
 		this._custom_post_bounce_reaction( this, 0, from_entity );
 
-		if ( !this.RegularCollisionFiltering( from_entity ) )
-		return;
+		//if ( !this.RegularCollisionFiltering( from_entity ) )
+		//return;
 	
 
 		if ( this._custom_target_reaction_before_damage_tests )
@@ -1422,11 +1474,12 @@ class sdBullet extends sdEntity
 	{
 		ctx.apply_shading = false;
 		
-		if ( this.sy !== 0 || this.sx !== 0 || this.is_grenade || this.model === 'flare' )
+		if ( this.sy !== 0 || this.sx !== 0 || this.is_grenade || this.sticky_target || this.model === 'flare' )
 		{
 			if ( this.model )
 			{
-				if ( this.model !== 'flare' )
+				//if ( this.model !== 'flare' )
+				if ( sdBullet.images_with_no_velocity_rotation[ this.model ] !== 1 )
 				ctx.rotate( Math.atan2( this.sy, this.sx ) );
 
 				if ( !sdBullet.images[ this.model ] )
