@@ -813,7 +813,7 @@ class sdJunk extends sdEntity
 											}
 											
 											if ( ent.is_anticrystal )
-											regen = 0;b
+											regen = 0;
 											
 											if ( regen > 0 )
 											{
