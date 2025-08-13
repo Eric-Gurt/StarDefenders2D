@@ -907,7 +907,7 @@ class sdRenderer
 					{
 						for ( var i = 0; i < sdLamp.lamps.length; i++ )
 						if ( sdWorld.inDist2D( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, 800 ) > 0 )
-						if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, [ 'sdBlock', 'sdDoor' ] ) )
+						if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, sdCom.com_vision_blocking_classes ) )
 						{
 							br = true;
 							break;
