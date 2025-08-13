@@ -196,26 +196,35 @@ class sdByteShifter
 					
 					const CHUNK_SIZE = sdWorld.CHUNK_SIZE;
 					
-					let frame = globalThis.GetFrame();
+					const frame = globalThis.GetFrame();
+					const default_IsVisible = sdEntity.prototype.IsVisible;
+					const default_SyncedToPlayer = sdEntity.prototype.SyncedToPlayer;
+					const default_getRequiredEntitiesr = sdEntity.prototype.getRequiredEntities;
 
 					const visited_ent_flag = sdEntity.GetUniqueFlagValue();
 					const listed_ent_flag = sdEntity.GetUniqueFlagValue();
 
 					const triggers_sync = !socket.character.is( sdPlayerSpectator ); // Also used for task sync
 					
-					let current_snapshot_entities = [];
-					let snapshot = [];
-					let replacement_for_confirmed_snapshot = new Map();
+					//const current_snapshot_entities = [];
+					const snapshot = [];
+					const replacement_for_confirmed_snapshot = new Map();
+					const current_snapshot_entities_by_net_id = new Map(); // Speeds up entity lookup for removal snapshots
+					
+					const near_player_until_time = sdWorld.time + 1000;
 					
 					const AddEntity = ( ent )=>//, forced )=>
 					{
 						if ( ent._flag < visited_ent_flag )
 						{
-							if ( ( ent.IsVisible === sdEntity.prototype.IsVisible || ent.IsVisible( socket.character ) ) && !ent._is_being_removed )
+							ent._near_player_until = near_player_until_time;
+							
+							if ( ( ent.IsVisible === default_IsVisible || ent.IsVisible( socket.character ) ) && !ent._is_being_removed )
 							{
 								ent._flag = listed_ent_flag;
 							
-								current_snapshot_entities.push( ent );
+								//current_snapshot_entities.push( ent );
+								current_snapshot_entities_by_net_id.set( ent._net_id, ent );
 								
 								let is_static = ent.is_static;
 								
@@ -246,7 +255,7 @@ class sdByteShifter
 								//let confirmed_state = this.confirmed_snapshot.get( ent );
 								let confirmed_state = this.confirmed_snapshot.get( ent._net_id );
 								
-								let snap = ent.GetSnapshot( globalThis.GetFrame(), false, socket.character, false );
+								let snap = ent.GetSnapshot( frame, false, socket.character, false );
 									
 								if ( confirmed_state === undefined )
 								{
@@ -413,13 +422,13 @@ class sdByteShifter
 								
 								
 
-								if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
+								if ( ent.SyncedToPlayer !== default_SyncedToPlayer )
 								if ( ent._frozen <= 0 )
 								if ( triggers_sync )
 								ent.SyncedToPlayer( socket.character );
 
 
-								if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )
+								if ( ent.getRequiredEntities !== default_getRequiredEntitiesr )
 								{
 									let ents = ent.getRequiredEntities( socket.character );
 									for ( let i = 0; i < ents.length; i++ )
@@ -432,13 +441,20 @@ class sdByteShifter
 							}
 						}
 					};
+					
+					//let t0 = Date.now();
 
 					const VisitCell = ( x, y )=>
 					{
 						let arr = sdWorld.RequireHashPosition( x, y ).arr;
 
 						for ( let i2 = 0; i2 < arr.length; i2++ )
-						AddEntity( arr[ i2 ], false );
+						{
+							let ent = arr[ i2 ];
+							
+							if ( ent._flag < visited_ent_flag )
+							AddEntity( ent, false );
+						}
 					};
 					
 					if ( !socket.character._is_being_removed )
@@ -644,7 +660,16 @@ class sdByteShifter
 					AddEntity( sdEntity.global_entities[ i2 ] );
 					//snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
 					
+					/*let t1 = Date.now();
+					
+					if ( t1 > t0 + 4 )
+					{
+						 debugger;
+					}*/
+					
 					// ------------- End of entity adding, now sending removals -------------------------
+					
+					let net_id_onces = ( this.sent_messages_confirmed_ids.length > 1 ) ? new Set() : null;
 					
 					for ( let i = 0; i < this.sent_messages_confirmed_ids.length; i++ )
 					{
@@ -654,7 +679,20 @@ class sdByteShifter
 						{
 							for ( let [ _net_id, snap_values ] of confirmed_snapshot )
 							{
-								let ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
+								if ( net_id_onces )
+								{
+									if ( i > 0 && net_id_onces.has( _net_id ) ) // Do not check on first snapshot
+									continue;
+
+									net_id_onces.add( _net_id );
+								}
+								
+								let ent;
+								
+								ent = current_snapshot_entities_by_net_id.get( _net_id );
+								
+								if ( !ent )
+								ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
 								
 								if ( !ent )
 								{
@@ -730,6 +768,13 @@ class sdByteShifter
 							continue;
 						}
 					}
+					
+					/*let t2 = Date.now();
+					
+					if ( t2 > t1 + 4 )
+					{
+						 debugger;
+					}*/
 
 					// ------------- End of entity adding and removals data -------------------------
 					
@@ -859,10 +904,12 @@ class sdByteShifter
 					if ( socket.character )
 					{
 						socket.next_reaction_to_seen_entity_time = sdWorld.time + 100;
+						
+						let keys_arr = Array.from( current_snapshot_entities_by_net_id.values() );
 
-						let i = ~~( Math.random() * current_snapshot_entities.length );
-						if ( i < current_snapshot_entities.length )
-						socket.character.onSeesEntity( current_snapshot_entities[ i ] );
+						let i = ~~( Math.random() * keys_arr.length );
+						if ( i < keys_arr.length )
+						socket.character.onSeesEntity( keys_arr[ i ] );
 					}
 				}
 				

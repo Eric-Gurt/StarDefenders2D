@@ -8,6 +8,7 @@ import sdBullet from './sdBullet.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdGun from './sdGun.js';
 import sdTimer from './sdTimer.js';
+import sdLost from './sdLost.js';
 
 class sdCrystalCombiner extends sdEntity
 {
@@ -148,7 +149,7 @@ class sdCrystalCombiner extends sdEntity
 		
 		for ( let i = 0; i < 2; i++ )
 		if ( this[ 'crystal' + i ] )
-		matter_max += this[ 'crystal' + i ].matter_max;
+		matter_max += this.GetRealOrFakeMaxMatterOfCrystal( this[ 'crystal' + i ] );
 
 		return matter_max;
 	}
@@ -227,16 +228,15 @@ class sdCrystalCombiner extends sdEntity
 	{
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
 		
-		//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 ); // Commented to not deal with matter regen, which is probably a bad approach. Keep crystals as real entities instead?
-		
-		/*if ( this._last_matter_max !== this.matter_max )
-		{
-			 // Change will cause hash update as matter_max value specifies hitbox size
-			this._last_matter_max = this.matter_max;
-			sdWorld.UpdateHashPosition( this, false );
-		}*/
-		
 		let can_hibernate = true;
+		
+		if ( this.crystal0 )
+		if ( this.crystal0._is_being_removed )
+		this.crystal0 = null;
+		
+		if ( this.crystal1 )
+		if ( this.crystal1._is_being_removed )
+		this.crystal1 = null;
 		
 		if ( this._ignore_pickup_tim > 0 )
 		{
@@ -368,57 +368,69 @@ class sdCrystalCombiner extends sdEntity
 				let drain_from = ( this.drain_direction > 0 ) ? this.crystal0 : this.crystal1;
 				let drain_to = ( this.drain_direction > 0 ) ? this.crystal1 : this.crystal0;
 				
-				let drain = Math.min( drain_from.matter_regen, GSPEED * 0.1 / Math.sqrt( drain_from.matter_max / 40 ) );
-				
-				if ( drain_to.matter_regen + drain > 400 )
-				drain = 400 - drain_to.matter_regen;
-				
-				if ( this.fire_detected )
+				if ( drain_from.is( sdCrystal ) && drain_to.is( sdCrystal ) ) // Might be lost entities
 				{
-					drain = 0;
-				}
-			
-				drain_to.matter_regen += drain;
-				drain_from.matter_regen -= drain;
-				
-				if ( drain > 0 )
-				{
-					if ( sdWorld.is_server )
-					this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
-				}
-				else
-				{
-					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+					let drain = Math.min( drain_from.matter_regen, GSPEED * 0.1 / Math.sqrt( drain_from.matter_max / 40 ) );
+
+					if ( drain_to.matter_regen + drain > 400 )
+					drain = 400 - drain_to.matter_regen;
+
+					if ( this.fire_detected )
 					{
-						if ( !this.fire_detected )
-						{
-							//this.DrainWithDirection( 0 );
-							//this.DropCrystals();
-							//this.AttemptGrabbingNewCrystals();
-							
-							this.DrainWithDirection( 0 );
-							
-							if ( this.crystal0.matter_regen >= 400 )
-							this.DropCrystal( this.crystal0 );
-							else
-							if ( this.crystal0.matter_regen <= 0 )
-							this.DropCrystal( this.crystal0 );
-							
-							if ( this.crystal1.matter_regen >= 400 )
-							this.DropCrystal( this.crystal1 );
-							else
-							if ( this.crystal1.matter_regen <= 0 )
-							this.DropCrystal( this.crystal1 );
-							
-							this.AttemptGrabbingNewCrystals();
-						}
+						drain = 0;
+					}
+
+					drain_to.matter_regen += drain;
+					drain_from.matter_regen -= drain;
+
+					if ( drain > 0 )
+					{
+						if ( sdWorld.is_server )
+						this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
 					}
 					else
 					{
-						this.DrainWithDirection( 0 );
-						this.DropCrystals();
-						this.AttemptGrabbingNewCrystals();
+						if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )
+						{
+							if ( !this.fire_detected )
+							{
+								//this.DrainWithDirection( 0 );
+								//this.DropCrystals();
+								//this.AttemptGrabbingNewCrystals();
+
+								this.DrainWithDirection( 0 );
+
+								if ( this.crystal0.matter_regen >= 400 )
+								this.DropCrystal( this.crystal0 );
+								else
+								if ( this.crystal0.matter_regen <= 0 )
+								this.DropCrystal( this.crystal0 );
+
+								if ( this.crystal1.matter_regen >= 400 )
+								this.DropCrystal( this.crystal1 );
+								else
+								if ( this.crystal1.matter_regen <= 0 )
+								this.DropCrystal( this.crystal1 );
+
+								this.AttemptGrabbingNewCrystals();
+							}
+						}
+						else
+						{
+							this.DrainWithDirection( 0 );
+							this.DropCrystals();
+							this.AttemptGrabbingNewCrystals();
+						}
 					}
+				}
+				else
+				if ( sdWorld.is_server )
+				{
+					if ( drain_from.is( sdLost ) )
+					drain_from.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 50 * GSPEED, initiator: null }); // Burn fake crystal
+				
+					if ( drain_to.is( sdLost ) )
+					drain_to.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 50 * GSPEED, initiator: null }); // Burn fake crystal
 				}
 			}
 			else
@@ -429,11 +441,6 @@ class sdCrystalCombiner extends sdEntity
 			}
 		}
 		
-		/*if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this.prog > 0 || this._last_x !== this.x || this._last_y !== this.y )
-		{
-			this._last_sync_matter = this.matter;
-			this._update_version++;
-		}*/
 		if ( can_hibernate )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
@@ -494,16 +501,6 @@ class sdCrystalCombiner extends sdEntity
 			{
 				merge_prog = 0.05 + Math.sin( sdWorld.time / 500 ) * 0.025;
 			}
-
-			/*if ( this.crystal0 )
-			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_empty, - 24 + merge_intens, - 16 + offset_y, 32,32 );
-			
-			if ( this.crystal1 && !show_new_crystal )
-			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_empty, - 8 - merge_intens, - 16 + offset_y, 32,32 );
-			*/
-			//ctx.filter = sdWorld.GetCrystalHue( this.matter_max / this.crystals );
-
-			//ctx.globalAlpha = ( this.matter / this.matter_max );
 
 			if ( merge_prog > 0 || show_new_crystal )
 			{
@@ -646,6 +643,11 @@ class sdCrystalCombiner extends sdEntity
 		return this.y + 7 - crystal._hitbox_y2 - 0.1;
 	}
 	
+	GetRealOrFakeMaxMatterOfCrystal( c )
+	{
+		return c.is( sdCrystal ) ? c.matter_max : ( c._fake_matter_max || 0 );
+	}
+	
 	CombineCrystalsEnd()
 	{
 		if ( !sdWorld.is_server )
@@ -654,6 +656,7 @@ class sdCrystalCombiner extends sdEntity
 		if ( !this.crystal0 || !this.crystal1 )
 		return;
 	
+		if ( this.crystal0.is( sdCrystal ) && this.crystal1.is( sdCrystal ) )
 		{
 			let ent = this.crystal0;
 			
@@ -692,6 +695,15 @@ class sdCrystalCombiner extends sdEntity
 
 			this._update_version++;
 		}
+		else
+		if ( sdWorld.is_server )
+		{
+			if ( this.crystal0.is( sdLost ) )
+			this.crystal0.Damage( ( this.crystal0._hea || this.crystal0.hea || 0 ) + 1 );
+
+			if ( this.crystal1.is( sdLost ) )
+			this.crystal1.remove( ( this.crystal1._hea || this.crystal1.hea || 0 ) + 1 );
+		}
 	}
 
 	DropCrystals()
@@ -728,7 +740,7 @@ class sdCrystalCombiner extends sdEntity
 				this.crystal0.sy = 0;
 				
 				this.crystal0.held_by = null;
-				this.crystal0.PhysWakeUp();
+				this.crystal0.onCarryEnd();
 				this.crystal0 = null;
 			}
 			else
@@ -739,7 +751,7 @@ class sdCrystalCombiner extends sdEntity
 				this.crystal1.sy = 0;
 				
 				this.crystal1.held_by = null;
-				this.crystal1.PhysWakeUp();
+				this.crystal1.onCarryEnd();
 				this.crystal1 = null;
 			}
 			
@@ -798,7 +810,9 @@ class sdCrystalCombiner extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && !from_entity.is_anticrystal && from_entity.held_by === null && from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 )
+		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && 
+				( from_entity.is( sdCrystal ) || ( from_entity.is( sdLost ) && from_entity._copy_of_class === 'sdCrystal' ) ) && 
+				!from_entity.is_anticrystal && from_entity.held_by === null && from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 )
 		{
 			if ( from_entity.held_by === null )
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
@@ -826,18 +840,20 @@ class sdCrystalCombiner extends sdEntity
 
 				if ( !this.crystal0 || !this.crystal1 )
 				{
+					let from_entity_matter_max = this.GetRealOrFakeMaxMatterOfCrystal( from_entity );
+					
 					if ( this.crystal0 )
 					if ( !this.crystal1 )
-					if ( this.crystal0.matter_max !== from_entity.matter_max )
+					if ( this.GetRealOrFakeMaxMatterOfCrystal( this.crystal0 ) !== from_entity_matter_max )
 					return;
 					
 					if ( this.crystal1 )
 					if ( !this.crystal0 )
-					if ( this.crystal1.matter_max !== from_entity.matter_max )
+					if ( this.GetRealOrFakeMaxMatterOfCrystal( this.crystal1 ) !== from_entity_matter_max )
 					return;
 		
-					if ( from_entity.matter_max % 40 !== 0 ) // Make sure it is compatible with artificial one
-					if ( from_entity.matter_max + from_entity.matter_max !== 40 ) // Allow crystals that would result into 40 matter artificial crystal
+					if ( from_entity_matter_max % 40 !== 0 ) // Make sure it is compatible with artificial one
+					if ( from_entity_matter_max + from_entity_matter_max !== 40 ) // Allow crystals that would result into 40 matter artificial crystal
 					return;
 				
 					let can_put_left = ( !this.crystal0 && from_entity.CanMoveWithoutOverlap( 
@@ -896,6 +912,7 @@ class sdCrystalCombiner extends sdEntity
 					this.UpdateHeldItemPosition( slot );
 					
 					from_entity.held_by = this;
+					from_entity.onCarryStart();
 					this._update_version++;
 					
 					if ( this.type === sdCrystalCombiner.TYPE_AUTOMATED )

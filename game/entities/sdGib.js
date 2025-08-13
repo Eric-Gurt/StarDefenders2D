@@ -44,6 +44,7 @@ class sdGib extends sdEntity
 		
 		sdGibClass.init_class(); // Will populate sdGib.classes array
 
+		sdGib.as_class_list = [ 'sdGib' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -81,7 +82,7 @@ class sdGib extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdGib' ];
+		return sdGib.as_class_list;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -220,7 +221,7 @@ class sdGib extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let in_water = sdWater.all_swimmers.has( this );
 
 		if ( sdWorld.is_server )
 		{

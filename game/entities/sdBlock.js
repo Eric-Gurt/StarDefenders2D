@@ -183,6 +183,8 @@ class sdBlock extends sdEntity
 		
 		sdBlock.natural_blocks_total = 0; // Inaccurate in open-world case
 		
+		sdBlock.as_class_list = [ 'sdBlock' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -983,7 +985,7 @@ class sdBlock extends sdEntity
 	}
 	Corrupt( from=null )
 	{
-		if ( !this.IsDamageAllowedByAdmins() )
+		if ( this.IsInSafeArea() )
 		return null;
 	
 		let ent2 = sdEntity.Create( sdBlock, { 
@@ -1020,7 +1022,7 @@ class sdBlock extends sdEntity
 	}
 	Crystalize( from=null )
 	{
-		if ( !this.IsDamageAllowedByAdmins() )
+		if ( this.IsInSafeArea() )
 		return null;
 	
 		let ent2 = sdEntity.Create( sdBlock, { x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, 
@@ -1052,7 +1054,7 @@ class sdBlock extends sdEntity
 	}
 	Fleshify( from=null, force_initial_rank=undefined ) // Fleshify is reused in sdDoor, using pointer
 	{
-		if ( !this.IsDamageAllowedByAdmins() )
+		if ( this.IsInSafeArea() )
 		return null;
 	
 		if ( !sdWorld.server_config.base_degradation )
@@ -1492,8 +1494,6 @@ class sdBlock extends sdEntity
 			this._contains_class = contained_classes;
 			this._contains_class_params = contained_params;
 			this._additional_properties = additional_props;
-			
-			//this.UpdateHitbox(); // Not sure if needed.
 			
 			this._update_version++;
 			

@@ -592,21 +592,30 @@ class sdSuperTexture
 				{
 					let e = sdRenderer.known_light_sources_previous[ i2 ];
 
-					if ( e.is( sdLamp ) )
+					switch ( e._class_id )
 					{
-						range = 200;
-						intenisty = 1;
-					}
-					else
-					if ( e.is( sdWater ) )
-					{
-						range = 100;
-						intenisty = 1;
-					}
-					else
-					{
-						range = 50;
-						intenisty = 0.3;
+						//if ( e.is( sdLamp ) )
+						case sdLamp.class_id:
+						{
+							range = 200;
+							intenisty = 1;
+						}
+						break;
+						//else
+						//if ( e.is( sdWater ) )
+						case sdWater.class_id:
+						{
+							range = 100;
+							intenisty = 1;
+						}
+						break;
+						//else
+						default:
+						{
+							range = 50;
+							intenisty = 0.3;
+						}
+						break;
 					}
 
 					let di = sdWorld.inDist2D( wx, wy, e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2, range );

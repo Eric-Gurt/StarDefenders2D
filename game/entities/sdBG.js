@@ -36,6 +36,8 @@ class sdBG extends sdEntity
 		sdBG.TEXTURE_WINDOW = t++;
 		sdBG.TEXTURE_ELEVATOR_PATH = t++;
 		
+		sdBG.as_class_list = [ 'sdBG' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get title()
@@ -451,8 +453,6 @@ class sdBG extends sdEntity
 			// No Y change since we just merged below the block
 			
 			this._merged = true;
-			
-			//this.UpdateHitbox(); // Not sure if needed.
 			
 			contained_decals = contained_decals.flat(); // Prevents arrays in arrays?
 			//console.log( contained_decals );

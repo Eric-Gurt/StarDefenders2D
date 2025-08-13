@@ -604,6 +604,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
+		sdCharacter.as_class_list = [ 'sdCharacter' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -1963,7 +1965,7 @@ THING is cosmic mic drop!`;
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return ( this._key_states.GetKey('KeyX') || !this.IsDamageAllowedByAdmins() ) ? sdCharacter.ignored_classes_when_holding_x : sdCharacter.ignored_classes_when_not_holding_x;
+		return ( this._key_states.GetKey('KeyX') || !!this.IsInSafeArea() ) ? sdCharacter.ignored_classes_when_holding_x : sdCharacter.ignored_classes_when_not_holding_x;
 	}
 	
 	getRequiredEntities( observer_character )
@@ -4299,6 +4301,7 @@ THING is cosmic mic drop!`;
 		return;
 	
 		this.carrying.held_by = null;
+		this.carrying.onCarryEnd();
 			
 		if ( !this.carrying._is_being_removed )
 		{
@@ -4538,6 +4541,7 @@ THING is cosmic mic drop!`;
 					{
 						this.carrying = potential_carry_target;
 						this.carrying.held_by = this;
+						this.carrying.onCarryStart();
 
 						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 
@@ -6726,7 +6730,16 @@ THING is cosmic mic drop!`;
 	}
 	CreateBuildObject( check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
-		return sdCharacter.GeneralCreateBuildObject( this.look_x, this.look_y, this._build_params, this, this.build_tool_level, this.GetWorkBenchLevel(), check_placement_and_range, demo_mode, preview_for_shop );
+		let build_tool_level = this.build_tool_level;
+		let work_bench_level = this.GetWorkBenchLevel();
+		
+		if ( this._debug )
+		{
+			build_tool_level = 999;
+			work_bench_level = 999;
+		}
+		
+		return sdCharacter.GeneralCreateBuildObject( this.look_x, this.look_y, this._build_params, this, build_tool_level, work_bench_level, check_placement_and_range, demo_mode, preview_for_shop );
 	}
 	static GeneralCreateBuildObject( x, y, build_params, initiator, build_tool_level, workbench_level, check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Used by sdSampleBuilder now
 	{
@@ -6742,6 +6755,7 @@ THING is cosmic mic drop!`;
 			return null;
 		}
 	
+		
 		if ( ( build_params._min_build_tool_level || 0 ) > build_tool_level )
 		{
 			sdCharacter.last_build_deny_reason = 'Nice hacks bro';

@@ -276,7 +276,7 @@ class sdMimic extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let in_water = sdWater.all_swimmers.has( this );
 		
 		
 		if ( this._hea <= 0 )
@@ -412,7 +412,8 @@ class sdMimic extends sdEntity
 								{
 									this.d3d = ent.DrawIn3D();
 									this.d = d;
-									this.title_str = ent.title_str || null;
+									this.title_str = ent.title || null;
+									
 									this.sh = 1;
 
 									this.x1 = ent._hitbox_x1;
@@ -428,22 +429,11 @@ class sdMimic extends sdEntity
 
 									if ( ent.is( sdCrystal ) )
 									{
-										if ( ent.is_big )
-										this.f = sdWorld.GetCrystalHue( ent.matter_max / 4 );
-										else
-										this.f = sdWorld.GetCrystalHue( ent.matter_max );
-
-										this.title_str += ' ( ' + (~~(ent.matter)) + ' / ' + ent.matter_max + ' )';
+										this.f = ent.GetFilterForIllusions();
+										this.title_str = ent.GetTitleForIllusions();
 										
 										this.sh = 0;
 									}
-
-									/*if ( ent.is( sdGrass ) )
-									{
-										this.f = ent.filter;
-										this.hue = ent.hue;
-										this.br = ent.br;
-									}*/
 
 									break;
 								}
@@ -611,14 +601,14 @@ class sdMimic extends sdEntity
 				if ( this._hibernation_check_timer < 0 )
 				{
 					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
-+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}
 	}
 	get title()
 	{
-		return ( this.d === null ) ? "Mimic" : ( this.title_str !== null ) ? this.title_str : '';
+		return ( this.d === null || this.d === undefined ) ? "Mimic" : ( this.title_str !== null ) ? this.title_str : '';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

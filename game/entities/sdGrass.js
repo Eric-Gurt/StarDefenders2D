@@ -315,6 +315,7 @@ class sdGrass extends sdEntity
 
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 									ent.held_by = this;
+									ent.onCarryStart();
 									this.crystal = ent;
 									this._update_version++;
 
@@ -427,6 +428,7 @@ class sdGrass extends sdEntity
 			this.crystal.sx = 0;
 			this.crystal.sy = 0;
 			this.crystal.held_by = null;
+			this.crystal.onCarryEnd();
 			this.crystal = null;
 			this._update_version++;
 			

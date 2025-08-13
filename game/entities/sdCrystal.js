@@ -1096,19 +1096,20 @@ class sdCrystal extends sdEntity
 		let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
 		
 		let r = 1 - Math.pow( Math.random(), bad_luck );
-		//let r = Math.random();
 		
-		//r = 0; // Hack
-		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-		{
-			this._next_action = sdWorld.time + 2000;
-			this.walk_direction = 0;
-			this.side = -1;
-			this.blink = 0;
-			this._blink_until = 0;
-			this._last_stand_when = 0;
-			this.attack_anim = 0; // For big crystal crabs
-		}
+		
+		
+		
+		//if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) Branching is bad since it might cause property synchronization shift and cause crystals to appear with negative matter/regeneration rate
+		//{
+		this._next_action = sdWorld.time + 2000;
+		this.walk_direction = 0;
+		this.side = -1;
+		this.blink = 0;
+		this._blink_until = 0;
+		this._last_stand_when = 0;
+		this.attack_anim = 0; // For big crystal crabs
+		//}
 		
 		//if ( is_really_deep )
 		//r *= 0.25;
@@ -1914,6 +1915,37 @@ class sdCrystal extends sdEntity
 
 		ctx.filter = filter_brightness_effect( f );
 	}
+	GetFilterForIllusions()
+	{
+		let ctx = { filter:'none' };
+		let attached = false;
+
+		const setFilter = ( crystal_hue_filter )=>
+		{
+			this.SetCrystalFilter( ctx, attached, crystal_hue_filter );
+		};
+
+		setFilter( 
+					sdWorld.GetCrystalHue(
+						( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ) ? this.matter_max * 2 : 
+						this.is_big ? ent.matter_max / 4 : 
+						this.matter_max
+					)
+		);
+
+		return ctx.filter;
+	}
+	GetTitleForIllusions()
+	{
+		let t = this.title;
+		
+		if ( this.is_anticrystal )
+		t += " ( " + sdWorld.RoundedThousandsSpaces( this.matter ) + " / " + sdWorld.RoundedThousandsSpaces( this.matter_max ) + " )";
+		else
+		t += " ( " + sdWorld.RoundedThousandsSpaces( this.matter ) + " / " + sdWorld.RoundedThousandsSpaces( this.matter_max ) + " ) (matter regeneration rate: " + ~~( this.matter_regen ) + "%)";
+
+		return t;
+	}
 	_DefaultDraw( ctx, attached )
 	{
 		//let filter_brightness_effect = sdCrystal.DoNothing;
@@ -1928,30 +1960,6 @@ class sdCrystal extends sdEntity
 		const setFilter = ( crystal_hue_filter )=>
 		{
 			this.SetCrystalFilter( ctx, attached, crystal_hue_filter );
-			/*let f = crystal_hue_filter;
-			
-			
-			if ( this.speciality > 0 )
-			{
-				let tier = this.GetTier() * 40;
-				let methods = sdCrystal.spaciality_table[ tier ];
-				if ( methods && methods.GetFilterAltering )
-				{
-					f = methods.GetFilterAltering( this, f );
-				}
-			}
-			
-
-			if ( this.is_very_depleted )
-			f += 'saturate(0.15) hue-rotate(-20deg)';
-			else
-			if ( this.is_depleted )
-			f += 'saturate(0.5) hue-rotate(-20deg)';
-			else
-			if ( this.is_overcharged )
-			f += 'saturate(2) brightness(1.5)';
-
-			ctx.filter = filter_brightness_effect( f );*/
 		};
 		
 		//for ( let test = 0; test < 3; test++ )
@@ -2087,17 +2095,6 @@ class sdCrystal extends sdEntity
 		}
 		
 		//ctx.apply_shading = true;
-	}
-	DrawWithStatusEffects( ctx, attached=true )
-	{
-		let STATUS_EFFECT_LAYER_NORMAL = 1;
-		let STATUS_EFFECT_BEFORE = 0;
-		let STATUS_EFFECT_AFTER = 1;
-		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_BEFORE, ctx, false );
-
-		this.Draw( ctx, attached );
-
-		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_AFTER, ctx, false );
 	}
 	onBeforeRemove() // Class-specific, if needed
 	{

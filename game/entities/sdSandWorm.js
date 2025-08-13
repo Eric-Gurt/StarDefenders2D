@@ -1097,16 +1097,39 @@ class sdSandWorm extends sdEntity
 					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
 					
 					if ( this.kind === sdSandWorm.KIND_NORMAL_WORM || this.kind === sdSandWorm.KIND_SPIKY_WORM )
-+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 					if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
-+					this.AttemptBlockBurying( 'sdSandWorm.corrupted' );
+					this.AttemptBlockBurying( 'sdSandWorm.corrupted' );
 					if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
-+					this.AttemptBlockBurying( 'sdSandWorm.KIND_CRYSTAL_HUNTING_WORM' );
+					this.AttemptBlockBurying( 'sdSandWorm.KIND_CRYSTAL_HUNTING_WORM' );
 				}
 			}
 		}
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null );
+		/*
+		// Simulating physics by entity that is closest to the head, otherwise it will break violently offscreen // UPD: Does not work
+		let physics_handler = this;
+		while ( true )
+		{
+			if ( physics_handler.towards_head && !physics_handler.towards_head._is_being_removed )
+			physics_handler = physics_handler.towards_head;
+			else
+			break;
+		}
+		if ( physics_handler === this )
+		{
+			//this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null );
+			while ( true )
+			{
+				physics_handler.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, ( physics_handler.death_anim === 0 ) ? physics_handler.CustomGroundFiltering : null );
+				
+				if ( physics_handler.towards_tail && !physics_handler.towards_tail._is_being_removed )
+				physics_handler = physics_handler.towards_tail;
+				else
+				break;
+			}
+		}*/
 	}
 	CustomGroundFiltering( hit_entity )
 	{

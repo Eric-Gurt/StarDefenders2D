@@ -1414,49 +1414,22 @@ class sdShop
 				
 				if ( matches )
 				{
+					if ( sdWorld.my_entity._debug )
+					{
+					}
+					else
 					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
 					{
 						current_shop_options.push( sdShop.item_low_level );
-						//sdShop.item_low_level._main_array_index = i;
 						continue;
 					}
 					else
 					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
 					{
 						current_shop_options.push( sdShop.item_low_workbench_level );
-						//sdShop.item_low_workbench_level._main_array_index = i;
 						continue;
 					}
 					
-					/*
-					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
-					{
-						current_shop_options.push({
-							
-							_class: null,
-							image: 'unavailable_shop_item',
-							_category: sdShop.options[ i ]._category,
-							description: 'This item requires higher level in order to be built',
-							_main_array_index: -1,
-							
-						});
-						continue;
-					}
-
-					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
-					{
-						current_shop_options.push({
-							
-							_class: null,
-							image: 'unavailable_shop_item_blue',
-							_category: sdShop.options[ i ]._category,
-							description: 'This item requires workbench in order to be built (or higher workbench level)',
-							_main_array_index: -1,
-							
-						});
-						continue;
-					}
-					*/
 					current_shop_options.push( sdShop.options[ i ] );
 					
 					sdShop.options[ i ]._main_array_index = i;
@@ -1527,12 +1500,6 @@ class sdShop
 					else
 					{
 						// Item can not be built
-						
-						/*if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
-						sdWorld.my_entity._build_params.image = 'unavailable_shop_item';
-						else
-						if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
-						sdWorld.my_entity._build_params.image = 'unavailable_shop_item_blue';*/
 					}
 				}
 
@@ -1614,6 +1581,7 @@ class sdShop
 						ctx.drawImage( sdWorld.my_entity._build_params.image_obj, 0,0, 32,32 );
 					}
 					else
+					if ( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ] )
 					{
 						if ( !sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image.loaded )
 						{

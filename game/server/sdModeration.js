@@ -44,7 +44,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'zoom', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill', 'spawnevent' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'zoom', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill', 'spawnevent', 'event' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -764,12 +764,33 @@ class sdModeration
 			socket.SDServiceMessage( 'Type /chill 1 or /chill 0' );
 		}
 		else
-		if ( parts[ 0 ] === 'spawnevent' )
+		if ( parts[ 0 ] === 'spawnevent' || parts[ 0 ] === 'event' )
 		{
-			if ( parseInt( parts[ 1 ] ) !== isNaN )
-			sdWeather.only_instance.SimpleExecuteEvent( parseInt( parts[ 1 ] ) );
+			let num = parseInt( parts[ 1 ] );
+			
+			if ( !isNaN( num ) )
+			{
+				sdWeather.only_instance.SimpleExecuteEvent( num );
+				socket.SDServiceMessage( 'Event executed' );
+			}
 			else
-			socket.SDServiceMessage( 'Type /event then number of event to execute. For example, /event 8' );
+			{
+				let prefix = 'sdWeather.';
+				if ( parts[ 1 ].startsWith( prefix ) )
+				{
+					let property = parts[ 1 ].substring( prefix.length );
+					let value = sdWeather[ property ];
+					if ( typeof value === 'number' )
+					{
+						sdWeather.only_instance.SimpleExecuteEvent( value );
+						socket.SDServiceMessage( 'Event executed' );
+					}
+					else
+					socket.SDServiceMessage( 'Property "{1}" of object sdWeather is not a number', [ property ] );
+				}
+				else
+				socket.SDServiceMessage( 'Type /event then number of event to execute. For example, /event 8 or even /event sdWeather.EVENT_QUAKE' );
+			}
 		}
 		else
 		if ( parts[ 0 ] === 'remove' || parts[ 0 ] === 'break' )

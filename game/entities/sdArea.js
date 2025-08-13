@@ -7,6 +7,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
+import sdTimer from './sdTimer.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -22,8 +23,60 @@ class sdArea extends sdEntity
 		//sdBlock.img_area_no_dmg = sdWorld.CreateImageFromFile( 'area_no_dmg' );
 		//sdBlock.img_area_del = sdWorld.CreateImageFromFile( 'area_del' );
 		
-		sdArea.just_area = [ 'sdArea' ];
+		sdArea.as_class_list = [ 'sdArea' ];
 		//sdArea.AreaFilteringMethod = ( e ) => e.is( sdArea );
+		
+		sdArea.entity_to_protecting_areas = new Map();
+		sdArea.current_iterator = null;
+		
+		setTimeout( ()=>
+		{
+			sdTimer.ExecuteWithDelay( ( timer )=>{
+
+				if ( sdArea.current_iterator === null )
+				{
+					sdArea.current_iterator = sdArea.entity_to_protecting_areas.keys();
+				}
+
+				let iters = Math.max( 100, sdArea.entity_to_protecting_areas.size * 0.1 );
+
+				next_iter:
+				while ( iters-- > 0 )
+				{
+					let ret = sdArea.current_iterator.next();
+
+					if ( ret.done )
+					{
+						sdArea.current_iterator = null;
+						break next_iter;
+					}
+
+					let e = ret.value;
+					
+					if ( e._is_being_removed )
+					{
+						sdArea.entity_to_protecting_areas.delete( e );
+						continue next_iter;
+					}
+					
+					let areas_set = sdArea.entity_to_protecting_areas.get( e );
+					for ( let area of areas_set )
+					if ( area._is_being_removed || !area.DoesOverlapWith( e ) )
+					{
+						areas_set.delete( area );
+						if ( areas_set.size === 0 )
+						{
+							sdArea.entity_to_protecting_areas.delete( e );
+							continue next_iter;
+						}
+					}
+				}
+
+
+				timer.ScheduleAgain( 1000 );
+
+			}, 1000 );
+		}, 0 );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -60,9 +113,33 @@ class sdArea extends sdEntity
 		return false;
 	}
 	
+	onMovementInRange( from_entity )
+	{
+		if ( this.type === sdArea.TYPE_PREVENT_DAMAGE )
+		{
+			let protected_by_set = sdArea.entity_to_protecting_areas.get( from_entity );
+			
+			if ( !protected_by_set )
+			{
+				protected_by_set = new Set();
+				sdArea.entity_to_protecting_areas.set( from_entity, protected_by_set );
+			}
+			
+			if ( !protected_by_set.has( this ) )
+			{
+				protected_by_set.add( this );
+				//this._protecting.add( from_entity );
+			}
+		}
+	}
+	static IsEntityProtected( e )
+	{
+		return sdArea.entity_to_protecting_areas.has( e );
+	}
+	
 	static CheckPointDamageAllowed( x, y )
 	{
-		if ( sdWorld.CheckWallExists( x, y, null, null, sdArea.just_area ) )
+		if ( sdWorld.CheckWallExists( x, y, null, null, sdArea.as_class_list ) )
 		//if ( sdWorld.CheckWallExists( x, y, null, null, null, sdArea.AreaFilteringMethod ) )
 		if ( sdWorld.last_hit_entity )
 		if ( sdWorld.last_hit_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
@@ -86,6 +163,8 @@ class sdArea extends sdEntity
 		
 		this.type = params.type || sdArea.TYPE_NONE;
 		
+		//this._protecting = new Set();
+		
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false );
 		
@@ -100,6 +179,11 @@ class sdArea extends sdEntity
 			}, 1000 );
 		}
 	}
+	onSnapshotApplied() // To override
+	{
+		sdWorld.UpdateHashPosition( this, false, true ); // Trigger onMovementInRange for any overlapped entities
+	}
+	
 	MeasureMatterCost()
 	{
 		return Infinity;
@@ -123,7 +207,6 @@ class sdArea extends sdEntity
 	Draw( ctx, attached )
 	{
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
-		
 		
 		if ( sdWorld.time % 1000 < 500 )
 		{

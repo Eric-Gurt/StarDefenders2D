@@ -7260,12 +7260,9 @@ class sdGunClass
 				
 				if ( target_entity.is( sdCrystal ) )
 				{
-					if ( target_entity.is_big )
-					ent2.f = sdWorld.GetCrystalHue( target_entity.matter_max / 4 );
-					else
-					ent2.f = sdWorld.GetCrystalHue( target_entity.matter_max );
-
-					ent2.t += ' ( ' + (~~(target_entity.matter)) + ' / ' + target_entity.matter_max + ' )';
+					ent2.f = target_entity.GetFilterForIllusions();
+					ent2.t = target_entity.GetTitleForIllusions();
+					ent2._fake_matter_max = target_entity.matter_max;
 				}
 				
 				if ( owner._side < 0 )
@@ -7813,7 +7810,7 @@ class sdGunClass
 			//has_images: true,
 			sound: 'gun_anti_rifle_fire',
 			sound_volume: 2,
-			title: 'Drain-rifle',
+			title: 'Drain-rifle', // Drain rifle
 			slot: 5,
 			reload_time: 10,
 			muzzle_x: 14,
@@ -7877,6 +7874,30 @@ class sdGunClass
 						let range = 64;//( cur_amount > 0 ) ? 128 : 64;
 
 						let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
+						let blocking_nears = [];
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+
+							if ( e.is( sdBlock ) || e.is( sdDoor ) )
+							blocking_nears.push( e );
+						}
+						
+						let LOS = ( ignored_entity, x1, y1, x2, y2 )=>
+						{
+							for ( let i2 = 0; i2 < blocking_nears.length; i2++ )
+							{
+								let e = blocking_nears[ i2 ];
+								
+								if ( e === ignored_entity )
+								continue;
+							
+								if ( !sdWorld.LineOfSightThroughEntity( e, x1, y1, x2, y2, ( e )=>true, true, true ) )
+								return false;
+							}
+							return true;
+						};
+						
 						for ( let i = 0; i < nears.length; i++ )
 						{
 							let e = nears[ i ];
@@ -7891,30 +7912,30 @@ class sdGunClass
 								let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
 
 								if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
-								if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
+								//if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
-									e.DamageWithEffect( GSPEED * 4, owner, false, false );
-
-									if ( typeof e.matter !== 'undefined' )
-									e.matter = Math.max( 0, e.matter - GSPEED * 20 );
-									else
-									if ( typeof e._matter !== 'undefined' )
-									e._matter = Math.max( 0, e._matter - GSPEED * 20 );
-
-									//if ( e.is( sdCrystal ) )
-									//e.matter_regen = Math.max( 0, e.matter_regen - GSPEED * 1 );
-
-									if ( e.is( sdWorld.entity_classes.sdMatterAmplifier ) )
+									if ( LOS( e, bullet.x, bullet.y, xx, yy ) )
 									{
-										if ( e.shielded )
-										e.ToggleShields();
-									}
-									else
-									if ( e.is( sdBlock ) )
-									{
-										if ( e.material === sdBlock.MATERIAL_TRAPSHIELD )
-										if ( !e._shielded || e._shielded._is_being_removed )
-										e.remove();
+										e.DamageWithEffect( GSPEED * 4, owner, false, false );
+
+										if ( typeof e.matter !== 'undefined' )
+										e.matter = Math.max( 0, e.matter - GSPEED * 20 );
+										else
+										if ( typeof e._matter !== 'undefined' )
+										e._matter = Math.max( 0, e._matter - GSPEED * 20 );
+
+										if ( e.is( sdWorld.entity_classes.sdMatterAmplifier ) )
+										{
+											if ( e.shielded )
+											e.ToggleShields();
+										}
+										else
+										if ( e.is( sdBlock ) )
+										{
+											if ( e.material === sdBlock.MATERIAL_TRAPSHIELD )
+											if ( !e._shielded || e._shielded._is_being_removed )
+											e.remove();
+										}
 									}
 								}
 							}

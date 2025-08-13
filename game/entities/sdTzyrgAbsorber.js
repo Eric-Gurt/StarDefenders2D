@@ -30,6 +30,8 @@ class sdTzyrgAbsorber extends sdEntity
 		sdTzyrgAbsorber.attack_distance = 450;
 
 		sdTzyrgAbsorber.absorbers = [];
+		
+		sdTzyrgAbsorber.character_and_drone_class_name_list = [ 'sdCharacter', 'sdDrone' ];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -202,7 +204,7 @@ class sdTzyrgAbsorber extends sdEntity
 						this.side = ( dx > 0 ) ? 1 : -1;
 
 						let should_fire = true;
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone' ] ) )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, sdTzyrgAbsorber.character_and_drone_class_name_list ) )
 						{
 							if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 							should_fire = false;

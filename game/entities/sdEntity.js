@@ -23,6 +23,7 @@ let sdArea = null;
 //let sdSound = null;
 //let sdDeepSleep = null;
 //let sdKeyStates = null;
+//let sdStatusEffect = null;
 			
 class sdEntity
 {
@@ -66,6 +67,7 @@ class sdEntity
 		sdEntity.active_entities = [];
 		
 		sdEntity.to_seal_list = [];
+		sdEntity.to_finalize_list = [];
 		
 		sdEntity.HIBERSTATE_ACTIVE = 0;
 		sdEntity.HIBERSTATE_HIBERNATED = 1;
@@ -564,8 +566,19 @@ class sdEntity
 	
 	IsInSafeArea()
 	{
-		return !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 );
+		if ( !sdArea )
+		sdArea = sdWorld.entity_classes.sdArea;
+
+		return sdArea.IsEntityProtected( this );
+		//return !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 );
 	}
+	/*IsDamageAllowedByAdmins()
+	{
+		if ( !sdArea )
+		sdArea = sdWorld.entity_classes.sdArea;
+
+		return sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x2 + this._hitbox_x1 ) / 2, this.y + ( this._hitbox_y2 + this._hitbox_y1 ) / 2 );
+	}*/
 	
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
@@ -1225,6 +1238,8 @@ class sdEntity
 	
 		
 		let ignore_entity_classes = this.GetIgnoredEntityClasses();
+		let ignore_entity_classes_classes = sdWorld.GetClassListByClassNameList( ignore_entity_classes );
+		/*
 		let ignore_entity_classes_classes = null;
 		if ( ignore_entity_classes )
 		{
@@ -1241,10 +1256,11 @@ class sdEntity
 				if ( debug )
 				trace('Possibly inefficient GetIgnoredEntityClasses at ',this.GetIgnoredEntityClasses);
 			}
-		}
+		}*/
 			
 		let include_only_specific_classes = this.GetNonIgnoredEntityClasses();
-		let include_only_specific_classes_classes = null;
+		let include_only_specific_classes_classes = sdWorld.GetClassListByClassNameList( include_only_specific_classes );
+		/*let include_only_specific_classes_classes = null;
 		if ( include_only_specific_classes )
 		{
 			include_only_specific_classes_classes = include_only_specific_classes._classes;
@@ -1260,7 +1276,7 @@ class sdEntity
 				if ( debug )
 				trace('Possibly inefficient GetNonIgnoredEntityClasses at ',this.GetNonIgnoredEntityClasses);
 			}
-		}
+		}*/
 		
 		if ( this.sx !== this.sx || this.sy !== this.sy ) // NaN check
 		{
@@ -1391,189 +1407,188 @@ class sdEntity
 
 					//if ( !visited_ent.has( arr_i ) )
 					if ( arr_i._flag !== visited_ent_flag )
-					if ( !arr_i._is_being_removed )
 					{
 						//visited_ent.add( arr_i );
 						arr_i._flag = visited_ent_flag;
 
-						/*
-
-		if ( sdWorld.CheckWallExistsBox( 
-		---, 
-		---, 
-		---, 
-		---, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
-
-						*/
-						/*if ( debug )
-						if ( arr_i._class === 'sdGun' )
-						debugger;*/
-						
-		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
-		
-						let arr_i_is_bg_entity = arr_i._is_bg_entity;
-						
-						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
+						if ( !arr_i._is_being_removed )
 						{
-							// If so - wake it up as soon as possible!
-							//debugger;
-							arr_i.WakeUpArea( true, this );
-							
-							// Make it collide if it was not removed and it is meant to be threated as solid
-							if ( !arr_i._is_being_removed )
-							if ( arr_i.ThreatAsSolid() )
-							{
-								arr_i_is_bg_entity = is_bg_entity;
-							}
-						}
-		
-						if ( arr_i_is_bg_entity === is_bg_entity )
-						{
-							//if ( include_only_specific_classes_classes || arr_i.hard_collision )
-							if ( force_hit_non_hard_collision_entities || include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
-							{
-								//class_str = arr_i.GetClass();
+							/*
 
-								if ( include_only_specific_classes_classes && !include_only_specific_classes_classes.has( arr_i.__proto__.constructor ) )
-								{
-								}
-								else
-								//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
-								//if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
-								if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.constructor ) )
-								{
-								}
-								else
-								if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+			if ( sdWorld.CheckWallExistsBox( 
+			---, 
+			---, 
+			---, 
+			---, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
+
+							*/
+							/*if ( debug )
+							if ( arr_i._class === 'sdGun' )
+							debugger;*/
+
+			//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
+
+							let arr_i_is_bg_entity = arr_i._is_bg_entity;
+
+							if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
+							{
+								// If so - wake it up as soon as possible!
+								//debugger;
+								arr_i.WakeUpArea( true, this );
+
+								// Make it collide if it was not removed and it is meant to be threated as solid
 								if ( !arr_i._is_being_removed )
+								if ( arr_i.ThreatAsSolid() )
 								{
-									let t = sdEntity.MovingRectIntersectionCheck(
-										hitbox_x1,
-										hitbox_y1,
-										hitbox_x2,
-										hitbox_y2,
+									arr_i_is_bg_entity = is_bg_entity;
+								}
+							}
 
-										sx,
-										sy,
+							if ( arr_i_is_bg_entity === is_bg_entity )
+							{
+								//if ( include_only_specific_classes_classes || arr_i.hard_collision )
+								if ( force_hit_non_hard_collision_entities || include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
+								{
+									//class_str = arr_i.GetClass();
 
-										arr_i.x + arr_i._hitbox_x1,
-										arr_i.y + arr_i._hitbox_y1,
-										arr_i.x + arr_i._hitbox_x2,
-										arr_i.y + arr_i._hitbox_y2
-									);
-
-									if ( debug )
+									if ( include_only_specific_classes_classes && !include_only_specific_classes_classes.has( arr_i.__proto__.constructor ) )
 									{
-										if ( t === 0 )
-										if ( arr_i._class === 'sdBlock' )
-										if ( 
-											 !(
-												( this.x + this._hitbox_x1 <= arr_i.x + arr_i._hitbox_x2 ) &&
-												( this.x + this._hitbox_x2 >= arr_i.x + arr_i._hitbox_x1 ) &&
-												( this.y + this._hitbox_y1 <= arr_i.y + arr_i._hitbox_y2 ) &&
-												( this.y + this._hitbox_y2 >= arr_i.y + arr_i._hitbox_y1 ) 
-											 )
-										)
-										{
-											debugger;
-
-											trace(
-													'Hitting sdBlock but no real overlap: ',
-												hitbox_x1,
-												hitbox_y1,
-												hitbox_x2,
-												hitbox_y2,
-
-												sx,
-												sy,
-
-												arr_i.x + arr_i._hitbox_x1,
-												arr_i.y + arr_i._hitbox_y1,
-												arr_i.x + arr_i._hitbox_x2,
-												arr_i.y + arr_i._hitbox_y2, ' :: t = '+t
-											);
-
-											t = sdEntity.MovingRectIntersectionCheck(
-												hitbox_x1,
-												hitbox_y1,
-												hitbox_x2,
-												hitbox_y2,
-
-												sx,
-												sy,
-
-												arr_i.x + arr_i._hitbox_x1,
-												arr_i.y + arr_i._hitbox_y1,
-												arr_i.x + arr_i._hitbox_x2,
-												arr_i.y + arr_i._hitbox_y2
-											);
-										}
 									}
-									
-									/*if ( t <= 1 )
-									if ( arr_i.GetClass() === 'sdDeepSleep' )
-									if ( !arr_i.IsTargetable( this, true ) )
-									debugger;*/
-									
-
-									if ( t <= 1 )
-									if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
+									else
+									//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+									//if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
+									if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.constructor ) )
 									{
-										/*if ( this.GetClass() === 'sdQuadro' )
-										if ( arr_i.GetClass() === 'sdGun' )
-										if ( !arr_i._held_by )
-										{
-											debugger;
-										}*/
+									}
+									else
+									if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+									if ( !arr_i._is_being_removed )
+									{
+										let t = sdEntity.MovingRectIntersectionCheck(
+											hitbox_x1,
+											hitbox_y1,
+											hitbox_x2,
+											hitbox_y2,
 
-										if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
+											sx,
+											sy,
+
+											arr_i.x + arr_i._hitbox_x1,
+											arr_i.y + arr_i._hitbox_y1,
+											arr_i.x + arr_i._hitbox_x2,
+											arr_i.y + arr_i._hitbox_y2
+										);
+
+										if ( debug )
 										{
-											if ( t === best_t )
+											if ( t === 0 )
+											if ( arr_i._class === 'sdBlock' )
+											if ( 
+												 !(
+													( this.x + this._hitbox_x1 <= arr_i.x + arr_i._hitbox_x2 ) &&
+													( this.x + this._hitbox_x2 >= arr_i.x + arr_i._hitbox_x1 ) &&
+													( this.y + this._hitbox_y1 <= arr_i.y + arr_i._hitbox_y2 ) &&
+													( this.y + this._hitbox_y2 >= arr_i.y + arr_i._hitbox_y1 ) 
+												 )
+											)
 											{
-												//trace( 'it happens' );
+												debugger;
 
-												min_xy = Math.min(
+												trace(
+														'Hitting sdBlock but no real overlap: ',
+													hitbox_x1,
+													hitbox_y1,
+													hitbox_x2,
+													hitbox_y2,
 
-													Math.abs( ( hitbox_x1 + hitbox_x2 ) - ( arr_i.x + arr_i._hitbox_x1 ) + ( arr_i.x + arr_i._hitbox_x2 ) ),
-													Math.abs( ( hitbox_y1 + hitbox_y2 ) - ( arr_i.y + arr_i._hitbox_y1 ) + ( arr_i.y + arr_i._hitbox_y2 ) )
+													sx,
+													sy,
 
+													arr_i.x + arr_i._hitbox_x1,
+													arr_i.y + arr_i._hitbox_y1,
+													arr_i.x + arr_i._hitbox_x2,
+													arr_i.y + arr_i._hitbox_y2, ' :: t = '+t
+												);
+
+												t = sdEntity.MovingRectIntersectionCheck(
+													hitbox_x1,
+													hitbox_y1,
+													hitbox_x2,
+													hitbox_y2,
+
+													sx,
+													sy,
+
+													arr_i.x + arr_i._hitbox_x1,
+													arr_i.y + arr_i._hitbox_y1,
+													arr_i.x + arr_i._hitbox_x2,
+													arr_i.y + arr_i._hitbox_y2
 												);
 											}
-
-											if ( t < best_t || ( t === best_t && min_xy < best_min_xy ) )
-											{
-												//if ( arr_i._hard_collision )
-												//{
-
-													best_t = t;
-													best_ent = arr_i;
-
-													if ( t === best_t )
-													{
-														//trace( 'it happens and improvements happens too' );
-														best_min_xy = min_xy;
-													}
-
-													if ( best_t === 0 )
-													break;
-
-												//}
-												//else
-												//hits.push({ ent:arr_i, t:t });
-											}
 										}
-										else
-										if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
+
+										/*if ( t <= 1 )
+										if ( arr_i.GetClass() === 'sdDeepSleep' )
+										if ( !arr_i.IsTargetable( this, true ) )
+										debugger;*/
+
+
+										if ( t <= 1 )
+										if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
 										{
-											hits.push({ ent:arr_i, t:t });
+											/*if ( this.GetClass() === 'sdQuadro' )
+											if ( arr_i.GetClass() === 'sdGun' )
+											if ( !arr_i._held_by )
+											{
+												debugger;
+											}*/
+
+											if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
+											{
+												if ( t === best_t )
+												{
+													//trace( 'it happens' );
+
+													min_xy = Math.min(
+
+														Math.abs( ( hitbox_x1 + hitbox_x2 ) - ( arr_i.x + arr_i._hitbox_x1 ) + ( arr_i.x + arr_i._hitbox_x2 ) ),
+														Math.abs( ( hitbox_y1 + hitbox_y2 ) - ( arr_i.y + arr_i._hitbox_y1 ) + ( arr_i.y + arr_i._hitbox_y2 ) )
+
+													);
+												}
+
+												if ( t < best_t || ( t === best_t && min_xy < best_min_xy ) )
+												{
+													//if ( arr_i._hard_collision )
+													//{
+
+														best_t = t;
+														best_ent = arr_i;
+
+														if ( t === best_t )
+														{
+															//trace( 'it happens and improvements happens too' );
+															best_min_xy = min_xy;
+														}
+
+														if ( best_t === 0 )
+														break;
+
+													//}
+													//else
+													//hits.push({ ent:arr_i, t:t });
+												}
+											}
+											else
+											if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
+											{
+												hits.push({ ent:arr_i, t:t });
+											}
 										}
 									}
 								}
 							}
 						}
-						
-						
-						
 					}
 				}
 			}
@@ -2735,7 +2750,7 @@ class sdEntity
 		return true;
 	}
 	
-	UpdateHitboxInitial() // Because there is no post-structors in JS, and implementing them normally would not be easy at this point...
+	UpdateHitboxInitial() // Because there are no post-structors in JS, and implementing them normally would not be easy at this point...
 	{
 		this._hitbox_last_update = sdWorld.time;
 
@@ -2754,7 +2769,7 @@ class sdEntity
 			{
 				this._hitbox_last_update = sdWorld.time;
 			
-				// More liteweight approach. On server-side it is important to update hash position manually when hitbox offsets changes
+				// More liteweight approach. On server-side it is important to update hash position manually whenever hitbox offsets change
 				this._hitbox_x1 = this.hitbox_x1;
 				this._hitbox_y1 = this.hitbox_y1;
 				this._hitbox_x2 = this.hitbox_x2;
@@ -2827,7 +2842,7 @@ class sdEntity
 	{
 	}
 	
-	static GetUniqueFlagValue() // Whenever there happens overflow (it probably will never happen) - you can do a full cycle over all entities and reset _flag value
+	static GetUniqueFlagValue() // Whenever there happens overflow (it probably will never happen) - you can do a full cycle over all entities and reset _flag value. (sdByteShifter uses < instead of === though for flag values)
 	{
 		return sdEntity.flag_counter++;
 	}
@@ -2845,6 +2860,9 @@ class sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		this._flag2 = 0; // Used solely by client-side rendering since ._flag will often be overriden during render logic and thus cause rare flickering
+	
+		//this._flag3 = 0; // Accurate line of sight reuse cache, used on both server and client
+		this._near_player_until = 0; // Optimization for server to know if entity is near player and thus should keep high update rate - faster than looking up every nearby player to apply every single logic step
 
 		this._class = this.constructor.name;
 		
@@ -3074,11 +3092,24 @@ class sdEntity
 				this._vis_block_bottom = null;
 				//this._vis_back = ;
 			}
-		
-			sdEntity.to_seal_list.push( this );
 		}
+		sdEntity.to_seal_list.push( this );
+		sdEntity.to_finalize_list.push( this );
 	}
 	
+	onCarryStart() // For carriable items
+	{
+		if ( this.is_static )
+		this._update_version++;
+	}
+	
+	onCarryEnd() // For carriable items
+	{
+		this.PhysWakeUp();
+		
+		if ( this.is_static )
+		this._update_version++;
+	}
 	GetSteeringWheel()
 	{
 		if ( this._steering_wheel_net_id === -1 )
@@ -3768,6 +3799,9 @@ class sdEntity
 								  prop !== '_affected_hash_arrays' && 
 								  prop !== '_class_id' && 
 								  prop !== '_flag' && 
+								  prop !== '_flag2' && 
+								  //prop !== '_flag3' && 
+								  prop !== '_near_player_until' && 
 								  prop !== '_connected_ents' && 
 								  prop !== '_connected_ents_next_rethink' && 
 								  prop !== '_hitbox_x1' && 
@@ -5730,13 +5764,6 @@ class sdEntity
 		sdStatusEffect.ApplyStatusEffectForEntity( params );
 	}
 	
-	IsDamageAllowedByAdmins()
-	{
-		if ( !sdArea )
-		sdArea = sdWorld.entity_classes.sdArea;
-
-		return sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x2 + this._hitbox_x1 ) / 2, this.y + ( this._hitbox_y2 + this._hitbox_y1 ) / 2 );
-	}
 	
 	DamageWithEffect( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
@@ -5747,7 +5774,7 @@ class sdEntity
 		
 		if ( sdWorld.is_server || sdWorld.is_singleplayer )
 		{
-			if ( !this.IsDamageAllowedByAdmins() )
+			if ( !!this.IsInSafeArea() )
 			{
 				if ( initiator && initiator._god )
 				{
@@ -5826,6 +5853,22 @@ class sdEntity
 		this.sx = sx2;
 		this.sy = sy2;*/
 	}
+	
+	DrawWithStatusEffects( ctx, attached=true )
+	{
+		if ( !sdStatusEffect )
+		sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
+		
+		let STATUS_EFFECT_LAYER_NORMAL = 1;
+		let STATUS_EFFECT_BEFORE = 0;
+		let STATUS_EFFECT_AFTER = 1;
+		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_BEFORE, ctx, false );
+
+		this.Draw( ctx, attached );
+
+		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_AFTER, ctx, false );
+	}
+	
 	Draw( ctx, attached )
 	{
 	}

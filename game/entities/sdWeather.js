@@ -186,6 +186,9 @@ class sdWeather extends sdEntity
 		
 		sdWeather.debug_quake = false;
 		
+		sdWeather.rain_hit_class_list = [ 'sdBlock', 'sdDoor', 'sdWater' ];
+		sdWeather.rain_background_walls = [ 'sdBG', 'sdTheatre' ];
+		
 		if ( sdWeather.debug_rain )
 		console.warn( 'WARNING: sdWeather.debug_rain is enabled! Rain will spawn under first socket character, where it stands only' );
 		
@@ -259,7 +262,6 @@ class sdWeather extends sdEntity
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
-		this._quake_screen_shake_since = 0;
 		this._quake_temporary_not_regen_near = []; // Prevent too much ground being regenerated in same place during event
 		
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
@@ -1257,7 +1259,7 @@ class sdWeather extends sdEntity
 				steps_max-- 
 			)
 		{
-			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
+			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_hit_class_list ) )
 			{
 				if ( !sdWorld.last_hit_entity ) // sdDeepSleep or world edge likely
 				if ( y - yy > 64 ) // Not on edge between 2 sdDeepSleep areas
@@ -1288,7 +1290,7 @@ class sdWeather extends sdEntity
 				return false;
 			}
 			
-			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBG', 'sdTheatre' ] ) )
+			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_background_walls ) )
 			{
 				space_until_premature_true = consider_sky_open_height;
 			}
@@ -4877,7 +4879,7 @@ class sdWeather extends sdEntity
 										let bg_nature_ent = null;
 
 										sdWorld.last_hit_entity = null;
-										if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+										if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, sdBG.as_class_list, null ) )
 										if ( sdWorld.last_hit_entity )
 										{
 											if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
@@ -4913,7 +4915,7 @@ class sdWeather extends sdEntity
 													{
 														// Unmerge, check which BG was last then remove
 														bg_nature_ent.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
-														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, sdBG.as_class_list, null ) )
 														if ( sdWorld.last_hit_entity )
 														bg_nature_ent = sdWorld.last_hit_entity;
 														else

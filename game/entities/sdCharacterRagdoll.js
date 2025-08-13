@@ -1561,7 +1561,7 @@ class sdBone extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
 	{
-		return [ 'sdCharacter' ];
+		return sdCharacter.as_class_list;
 	}
 	
 	RelaxedPush( xx, yy )

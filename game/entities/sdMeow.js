@@ -391,6 +391,7 @@ class sdMeow extends sdEntity
 		{
 			this.carrying = from_entity;
 			from_entity.held_by = this;
+			from_entity.onCarryStart();
 			
 			this.eating_progress = 0;
 			
@@ -406,6 +407,7 @@ class sdMeow extends sdEntity
 		return;
 	
 		this.carrying.held_by = null;
+		this.carrying.onCarryEnd();
 		this.carrying = null;
 	}
 	onRemove() // Class-specific, if needed

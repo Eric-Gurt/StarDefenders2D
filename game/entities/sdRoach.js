@@ -10,6 +10,7 @@ import sdBloodDecal from './sdBloodDecal.js';
 import sdCrystal from './sdCrystal.js';
 import sdStorage from './sdStorage.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdCom from './sdCom.js';
 
 class sdRoach extends sdEntity
 {
@@ -21,6 +22,7 @@ class sdRoach extends sdEntity
 		sdRoach.TYPE_MOTH = 1;
 		
 		sdRoach.light_ents = [ 'sdLamp', 'sdCrystal' ];
+		sdRoach.ignored_ents = [ 'sdRoach' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -39,7 +41,7 @@ class sdRoach extends sdEntity
 	
 	GetIgnoredEntityClasses()
 	{
-		return [ 'sdRoach' ];
+		return sdRoach.ignored_ents;
 	}
 	
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
@@ -352,7 +354,7 @@ class sdRoach extends sdEntity
 								
 								if ( !ent._is_being_removed )
 								if ( sdRoach.light_ents.includes( ent.GetClass() ) )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, null, null, [ 'sdBlock', 'sdDoor' ] ) ) 
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, null, null, sdCom.com_vision_blocking_classes ) ) 
 								{
 									this.an = Math.atan2( this.x - ent.x, this.y - ent.y ) * 100;
 									break;

@@ -108,6 +108,8 @@ class sdCube extends sdEntity
 
 		sdCube.red_filter = sdWorld.CreateSDFilter();
 		sdWorld.ReplaceColorInSDFilter_v2( sdCube.red_filter, '#00fff6', '#400000' );
+		
+		sdCube.as_class_list = [ 'sdCube' ];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -1260,7 +1262,7 @@ class sdCube extends sdEntity
 						{
 							if ( ( target.IsPlayerClass() && target.hea < target.hmax && sdCube.IsTargetFriendly( target, this ) && target._socket ) || // Only with socket
 								 ( target.GetClass() === 'sdCube' && target.hea < target.hmax && target !== this ) )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, sdCube.as_class_list, sdCom.com_creature_attack_unignored_classes ) )
 								targets.push( target );
 						}
 						else
@@ -1268,7 +1270,7 @@ class sdCube extends sdEntity
 						{
 							if ( sdWorld.time < this._seen_high_level_player_nearby_until )
 							if ( ( target.GetClass() === 'sdCube' && target.armor < target.armor_max && target !== this ) )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, sdCube.as_class_list, sdCom.com_creature_attack_unignored_classes ) )
 								targets.push( target );
 						}
 						else
@@ -1276,7 +1278,7 @@ class sdCube extends sdEntity
 						{
 							if ( sdWorld.time < this._seen_high_level_player_nearby_until )
 							if ( ( target.GetClass() === 'sdCube' && target.kind !== sdCube.KIND_GREEN && sdWorld.time > target._invisible_until - 2000 && target !== this ) )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, sdCube.as_class_list, sdCom.com_creature_attack_unignored_classes ) )
 								targets.push( target );
 						}
 						else
@@ -1290,10 +1292,10 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdStalker' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
-								( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) )								 )
+								 ( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) )
 							{
 								if ( 
-										sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) 
+										sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, sdCube.as_class_list, sdCom.com_creature_attack_unignored_classes ) 
 										||
 										(
 											sdWorld.last_hit_entity 

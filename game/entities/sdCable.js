@@ -15,6 +15,7 @@ import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
 import sdPlayerDrone from './sdPlayerDrone.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdBlock from './sdBlock.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -618,7 +619,7 @@ class sdCable extends sdEntity
 						this._points[ i ].cache.x = xx;
 						this._points[ i ].cache.y = yy;
 						
-						this._points[ i ].cache.exists = sdWorld.CheckWallExists( this._points[ i ].x + this._points[ i ].sx, this._points[ i ].y + this._points[ i ].sy, null, null, [ 'sdBlock' ] );
+						this._points[ i ].cache.exists = sdWorld.CheckWallExists( this._points[ i ].x + this._points[ i ].sx, this._points[ i ].y + this._points[ i ].sy, null, null, sdBlock.as_class_list );
 					}
 					
 					//if ( !sdWorld.CheckWallExists( this._points[ i ].x + this._points[ i ].sx, this._points[ i ].y + this._points[ i ].sy, null, null, [ 'sdBlock' ] ) )

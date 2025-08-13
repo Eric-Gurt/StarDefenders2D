@@ -101,6 +101,8 @@ class sdGun extends sdEntity
 			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#ffffff' ) // 32
 		];
 		
+		sdGun.as_class_list = [ 'sdGun' ];
+		
 		sdGunClass.init_class(); // Will populate sdGun.classes array
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn

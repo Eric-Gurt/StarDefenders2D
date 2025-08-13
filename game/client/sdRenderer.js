@@ -41,6 +41,9 @@ class sdRenderer
 		
 		sdRenderer.dark_tint = 1;
 		
+		sdRenderer.debug_nothing_screen = false;
+		sdRenderer._quake_screen_shake_since = 0;
+		
 		sdRenderer.line_of_sight_mode = true;
 		
 		sdRenderer.single_player_visibles_array = [];
@@ -672,8 +675,22 @@ class sdRenderer
 	
 	static SaveLightSource( ent )
 	{
-		if ( sdRenderer.known_light_sources.indexOf( ent ) === -1 )
-		sdRenderer.known_light_sources.push( ent );
+		//if ( sdRenderer.known_light_sources.indexOf( ent ) === -1 )
+		{
+			for ( let i = 0; i < sdRenderer.known_light_sources.length; i++ )
+			{
+				let ent2 = sdRenderer.known_light_sources[ i ];
+				
+				if ( ent2 === ent )
+				return;
+
+				if ( ent2._class_id === ent._class_id )
+				if ( sdWorld.inDist2D_Boolean( ent.x, ent.y, ent2.x, ent2.y, 25 ) )
+				return;
+			}
+
+			sdRenderer.known_light_sources.push( ent );
+		}
 	}
 	
 	static InitVisuals()
@@ -870,12 +887,14 @@ class sdRenderer
 			//ctx.fillStyle = "#7b3219";
 			
 			
-			ctx.fillStyle = '#000000';//sdRenderer.sky_gradient;
+			ctx.fillStyle = '#000000';
+			if ( sdRenderer.debug_nothing_screen )
+			ctx.fillStyle = '#0000FF';
 			ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
 			//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
-			
+			if ( !sdRenderer.debug_nothing_screen )
 			if ( sdWeather.only_instance )
 			{
 				ctx.fillStyle = '#000000';
@@ -969,7 +988,6 @@ class sdRenderer
 					}
 				}
 				//
-				
 				
 				
 				if ( sdRenderer.dark_lands_canvases )
@@ -1083,6 +1101,7 @@ class sdRenderer
 				ctx.sd_hue_rotation = 0;
 			}
 			
+			if ( !sdRenderer.debug_nothing_screen )
 			if ( sdWorld.show_videos )
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
 			{
@@ -1179,15 +1198,18 @@ class sdRenderer
 		
 		if ( sdWorld.entity_classes.sdWeather.only_instance )
 		{
+			if ( sdRenderer._quake_screen_shake_since === 0 )
+			sdRenderer._quake_screen_shake_since = sdWorld.time;
+			
 			let quake_intensity = sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100;
 			if ( quake_intensity > 0 )
 			{
-				quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - this._quake_screen_shake_since ) / 1000 ) );
+				quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - sdRenderer._quake_screen_shake_since ) / 1000 ) );
 				ctx.translate( 0, Math.sin( sdWorld.time / 30 ) * quake_intensity );
 			}
 			else
 			{
-				this._quake_screen_shake_since = sdWorld.time;
+				sdRenderer._quake_screen_shake_since = sdWorld.time;
 			}
 		}
 		
@@ -1241,7 +1263,7 @@ class sdRenderer
 				{
 					const e = visible_entities[ i ];
 					
-					if ( !e.IsVisible( sdWorld.my_entity ) )
+					if ( !e.IsVisible( sdWorld.my_entity ) || e._is_being_removed )
 					{
 					}
 					else
@@ -1425,6 +1447,8 @@ class sdRenderer
 			{
 				ctx.apply_shading = false;
 				ctx.fillStyle = '#040422';
+				if ( sdRenderer.debug_nothing_screen )
+				ctx.fillStyle = '#FF0000';
 		
 				let z_offset_old = ctx.z_offset;
 				ctx.z_offset += 1;
@@ -1579,6 +1603,8 @@ class sdRenderer
 			
 			
 			ctx.fillStyle = '#000000';
+			if ( sdRenderer.debug_nothing_screen )
+			ctx.fillStyle = '#FFFF00';
 			for ( var step = 1; step <= 4; step++ )
 			{
 				ctx.globalAlpha = ( 1 - ( step / 5 ) ) * 0.5;

@@ -32,6 +32,8 @@ class sdStorage extends sdEntity
 		sdStorage.TYPE_CARGO = 3;
 		sdStorage.TYPE_CRYSTALS_PORTAL = 4;
 		
+		sdStorage.ignored_ents = [ 'sdLifeBox' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -15 : this.type === sdStorage.TYPE_CARGO ? -13 : this.type === sdStorage.TYPE_CRYSTALS ? -13 : this.type === sdStorage.TYPE_PORTAL ? -4 : -7; }
@@ -146,7 +148,7 @@ class sdStorage extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdLifeBox' ];
+		return sdStorage.ignored_ents;
 	}
 
 	Damage( dmg, initiator=null )

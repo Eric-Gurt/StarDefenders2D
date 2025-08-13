@@ -105,6 +105,7 @@ class sdGuanakoStructure extends sdEntity
 		
 		this.crystal = from_entity;
 		this.crystal.held_by = this;
+		this.crystal.onCarryStart();
 		
 		this.crystal.sx = 0;
 		this.crystal.sy = 0;
@@ -129,11 +130,12 @@ class sdGuanakoStructure extends sdEntity
 				this.crystal.sy = 0;
 				
 				this.crystal.held_by = null;
-				this.crystal.PhysWakeUp();
+				this.crystal.onCarryEnd();
 			}
 			else
 			{
 				this.crystal.held_by = null;
+				this.crystal.onCarryEnd();
 			}
 			this.crystal = null;
 			

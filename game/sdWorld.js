@@ -183,6 +183,7 @@ class sdWorld
 		sdWorld.img_crosshair_build = sdWorld.CreateImageFromFile( 'crosshair_build' );
 		sdWorld.img_cursor = sdWorld.CreateImageFromFile( 'cursor' );
 		
+		sdWorld.debug_sealing = false;
 		
 		//sdWorld.world_hash_positions = {};
 		sdWorld.world_hash_positions = new Map();
@@ -238,6 +239,8 @@ class sdWorld
 		
 		sdWorld.ground_elevation_cache = new Map();
 		
+		sdWorld.inefficient_ignore_unignore_array_cache = new Map();
+		
 		sdWorld.lost_images_cache = null; // Object // For sdLost entities
 		// Could be expanded further to include flip_x etc, maybe also non-JSON format could be used to optimize even further
 		sdWorld.draw_operation_command_match_table = [
@@ -254,7 +257,8 @@ class sdWorld
 			'sd_hue_rotation', 9,
 			'sd_color_mult_r', 10,
 			'sd_color_mult_g', 11,
-			'sd_color_mult_b', 12
+			'sd_color_mult_b', 12,
+			'apply_shading', 13
 		];
 		/*ctx.apply_shading = false;
 		ctx.sd_hue_rotation = 0;
@@ -299,6 +303,7 @@ class sdWorld
 		sdWorld.server_url_pending = null;
 		sdWorld.server_url_pending_code = null;
 		
+		// Sealing of classes and prototypes
 		let say_delay = true;
 		let sealing_classes = ()=>
 		{
@@ -311,6 +316,7 @@ class sdWorld
 				}
 				
 				if ( !say_delay )
+				if ( sdWorld.debug_sealing )
 				console.log( 'Classes & prototypes sealing done!' );
 			}
 			else
@@ -318,6 +324,8 @@ class sdWorld
 				if ( say_delay )
 				{
 					say_delay = false;
+					
+					if ( sdWorld.debug_sealing )
 					console.log( 'Delaying classes & prototypes sealing, pending ' + sdWorld.fastest_method_improver_info.size + ' fastest_method_improver_info items...' );
 				}
 				setTimeout( sealing_classes, 1000 );
@@ -413,7 +421,7 @@ class sdWorld
 					{
 						if ( Date.now() > next_complain )
 						{
-							console.warn( 'Class '+c._class+' was accessed without being properly imported it in the new class file (example of how it shoudld be done: import '+c._class+' from \'./entities/'+c._class+'.js\';). This will most likely damage the server performnace eventually. Callstack: ' + stack );
+							console.error( 'Class '+c._class+' was accessed without being properly imported it in the new class file (example of how it shoudld be done: import '+c._class+' from \'./entities/'+c._class+'.js\';). This will most likely damage the server performnace eventually. Callstack: ' + stack );
 							debugger;
 
 							next_complain = Date.now() + 1000 * 60 * 60 * 12; // Remind in 12 hours of running server
@@ -1302,39 +1310,24 @@ class sdWorld
 		if ( sdWorld.server_config.debug_offscreen_behavior )
 		return false;
 	
-		const x = ent.x;
-		const y = ent.y;
-		
-		for ( let i = 0; i < sdWorld.online_characters.length; i++ )
+		if ( sdWorld.is_singleplayer )
 		{
-			const c = sdWorld.online_characters[ i ];
-			if ( x > c.x - 800 )
-			if ( x < c.x + 800 )
-			if ( y > c.y - 400 )
-			if ( y < c.y + 400 )
-			return true;
+			const x = ent.x;
+			const y = ent.y;
+
+			for ( let i = 0; i < sdWorld.online_characters.length; i++ )
+			{
+				const c = sdWorld.online_characters[ i ];
+				if ( x > c.x - 800 )
+				if ( x < c.x + 800 )
+				if ( y > c.y - 400 )
+				if ( y < c.y + 400 )
+				return true;
+			}
+			return false;
 		}
-		/*
-		
-		if ( typeof ent._socket === 'object' ) // Is a connected player
-		if ( ent._socket !== null )
-		return true;
-
-		if ( sdWorld.server_config.debug_offscreen_behavior )
-		return false;
-	
-		let x = ent.x;
-		let y = ent.y;
-
-		for ( let i = 0; i < sdWorld.sockets.length; i++ )
-		{
-			let socket = sdWorld.sockets[ i ];
-
-			if ( sdWorld.CanSocketSee( socket, x, y ) )
-			return true;
-		}
-		*/
-		return false;
+		else
+		return ( sdWorld.time < ent._near_player_until );
 	}
 	static SpawnGib( x, y, sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
 	{
@@ -1708,7 +1701,7 @@ class sdWorld
 				
 				if ( sdWorld.CheckLineOfSight( params.x, params.y, params.x + dx, params.y + dy, null, null, sdCom.com_visibility_unignored_classes ) )
 				{
-					if ( sdWorld.CheckWallExists( params.x + dx, params.y + dy, null, null, [ 'sdBG' ] ) )
+					if ( sdWorld.CheckWallExists( params.x + dx, params.y + dy, null, null, sdBG.as_class_list ) )
 					if ( sdWorld.last_hit_entity )
 					{
 						//let bg = sdWorld.last_hit_entity;
@@ -2062,6 +2055,12 @@ class sdWorld
 		max_x++;
 		if ( max_y === min_y )
 		max_y++;
+	
+		/*if ( max_x <= min_x )
+		debugger;
+	
+		if ( max_y <= min_y )
+		debugger;*/
 	
 		if ( min_x < max_x - 10000 || min_y < max_y - 10000 )
 		throw new Error( 'GetCellsInRect was called for potentially bad coordinates: ' + JSON.stringify( [ _x, _y, _x2, _y2 ] ) );
@@ -2462,6 +2461,8 @@ class sdWorld
 			{
 				try
 				{
+					if ( typeof prototype[ ALTERNATIVE_METHODS[ i ].name ] !== 'undefined' )
+					if ( !Object.isSealed( prototype[ ALTERNATIVE_METHODS[ i ] ] ) )
 					delete prototype[ ALTERNATIVE_METHODS[ i ].name ];
 				}
 				catch ( e )
@@ -2469,6 +2470,7 @@ class sdWorld
 				}
 			}
 			
+			if ( sdWorld.debug_sealing )
 			console.log( 'prototype.' + CURRENT_METHOD.name + ' method replaced with version[' + smallest_i + ']', arr );
 			
 			sdWorld.fastest_method_improver_info.delete( CURRENT_METHOD );
@@ -2938,24 +2940,45 @@ class sdWorld
 		let timewarps = null;
 		let stop_motion_regions = null;
 
-		if ( sdEntity.to_seal_list.length > 0 )
+		// Adding post-entity creation properties
+		if ( sdEntity.to_finalize_list.length > 0 )
 		{
-			//if ( false )
-			for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
+			for ( i = 0; i < sdEntity.to_finalize_list.length; i++ )
 			{
-				let e = sdEntity.to_seal_list[ i ];
+				let e = sdEntity.to_finalize_list[ i ];
 
 				if ( !e._is_being_removed )
 				{
-					//sdEntity.to_seal_list[ i ].InitMatterMode();
 					e._has_matter_props = ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
-
 					e._has_liquid_props = ( typeof e.liquid !== 'undefined' || typeof e._liquid !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
-
-					Object.seal( e );
 				}
 			}
-			sdEntity.to_seal_list.length = 0;
+			sdEntity.to_finalize_list.length = 0;
+		}
+		// Sealing of created entities
+		if ( sdEntity.to_seal_list.length > 0 )
+		{
+			if ( !sdWorld.fastest_method_improver_info || sdWorld.fastest_method_improver_info.size === 0 )
+			{
+				let iterations = Math.min( 100, sdEntity.to_seal_list.length );
+				
+				iterations = Math.max( iterations, Math.floor( sdEntity.to_seal_list.length * 0.05 ) );
+				
+				for ( i = 0; i < iterations; i++ )
+				{
+					let e = sdEntity.to_seal_list[ i ];
+
+					if ( !e._is_being_removed )
+					Object.seal( e );
+				}
+			
+				//trace( iterations, sdEntity.to_seal_list.length );
+				
+				if ( iterations === sdEntity.to_seal_list.length )
+				sdEntity.to_seal_list.length = 0;
+				else
+				sdEntity.to_seal_list.splice( 0, iterations );
+			}
 		}
 
 		//if ( !sdWorld.paused )
@@ -3023,6 +3046,7 @@ class sdWorld
 
 			const bulk_exclude = sdWorld.bulk_exclude;
 			
+			// Anything distance/range base is better to handle with sdSensorArea-s, even crystal glow probably
 			const GetTimeWarpSpeedForEntity = ( e )=>
 			{
 				let best_warp = 1;
@@ -3109,7 +3133,29 @@ class sdWorld
 						else
 						if ( sdWorld.offscreen_behavior === sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE )
 						{
-							if ( sdWorld.server_config.TestIfShouldForceProperSimulation( e ) )
+							if ( sdWorld.CanAnySocketSee( e ) || 
+								 e._last_x === undefined ||  // Let it initiate without waiting
+								 sdWorld.server_config.TestIfShouldForceProperSimulation( e ) )
+							{
+							}
+							else
+							{
+								skip_frames = sdWorld.offscreen_behavior_x_value;
+
+								if ( e._net_id % skip_frames === frame % skip_frames )
+								{
+									// Simulate 30 steps
+
+									gspeed_mult = sdWorld.offscreen_behavior_x_value;
+
+									if ( e.onThink.has_ApplyVelocityAndCollisions )
+									substeps = sdWorld.offscreen_behavior_x_value;
+								}
+								else
+								continue; // Ignore
+							}
+								
+							/*if ( sdWorld.server_config.TestIfShouldForceProperSimulation( e ) )
 							{
 							}
 							else
@@ -3129,43 +3175,8 @@ class sdWorld
 								}
 								else
 								continue; // Ignore
-							}
+							}*/
 						}
-
-						/*
-						if ( sdWorld.is_server )
-						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
-						if ( e._frozen <= 0 )
-						if ( !sdWorld.CanAnySocketSee( e, arr_i === 1 ) )
-						{
-							// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
-							skip_frames = 30;
-
-							//if ( e.is( sdCharacter ) || e.is( sdGun ) )
-							//skip_frames = 5; // High values cause idling players to lose their guns
-							//else
-							if ( e.is( sdSandWorm ) )
-							skip_frames = 5; // These are just unstable on high GSPEED
-							else
-							if ( e.is( sdQuadro ) )
-							skip_frames = 2; // These are just unstable on high GSPEED
-
-							if ( e._net_id % skip_frames === frame % skip_frames )
-							{
-								gspeed_mult = skip_frames;
-
-								if ( typeof e._phys_sleep === 'undefined' || e._phys_sleep <= 0 )
-								//if ( e.is_static || typeof e.sy === 'undefined' )
-								{
-									// Single substep for amplifiers, nodes, cables etc
-								}
-								else
-								substeps = 10; // 8 and 5 were not enough for crystals in amplifiers
-								//substeps_mult = 10; // 8 and 5 were not enough for crystals in amplifiers
-							}
-							else
-							continue;
-						}*/
 
 						if ( timewarps )
 						{
@@ -3753,7 +3764,93 @@ class sdWorld
 	{
 		return ( e.is( sdBlock ) || e.is( sdDoor ) && e._shielded && !e._shielded._is_being_removed );
 	}
-	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
+	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met. custom_filtering_method is executed before hit detection
+	{
+		let r1 = true;
+		
+		//let t0 = performance.now();
+		
+		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
+		var step = 8;
+		
+		for ( var s = step / 2; s < di - step / 2; s += step )
+		{
+			var x = x1 + ( x2 - x1 ) / di * s;
+			var y = y1 + ( y2 - y1 ) / di * s;
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_class_name_strings_array, include_only_specific_class_name_strings_array, custom_filtering_method ) )
+			{
+				r1 = false;
+				break;
+			}
+		}
+		
+		return r1;
+		
+		//
+		// 154ms vs 213ms - old method was faster
+		
+		/*let t1 = performance.now();
+		
+		sdWorld.last_hit_entity = null;
+		
+		let include_only_specific_classes_set = sdWorld.GetClassListByClassNameList( include_only_specific_class_name_strings_array );
+		let ignore_entity_classes_set = sdWorld.GetClassListByClassNameList( ignore_entity_class_name_strings_array );
+		
+		let r2 = sdWorld.AccurateLineOfSightTest( x1, y1, x2, y2, ( e )=>
+		{
+			if ( e === ignore_entity )
+			return false;
+		
+			const e_is_bg_entity = e._is_bg_entity;
+			
+			if ( e_is_bg_entity === 10 ) // sdDeepSleep
+			{
+				if ( e.ThreatAsSolid() )
+				{
+					sdWorld.last_hit_entity = null;
+					return true;
+				}
+			}
+			else
+			if ( ignore_entity === null || e_is_bg_entity === ignore_entity._is_bg_entity )
+			if ( include_only_specific_classes_set || e._hard_collision )
+			{
+				if ( include_only_specific_classes_set && !include_only_specific_classes_set.has( e.constructor ) )
+				{
+				}
+				else
+				if ( ignore_entity_classes_set && ignore_entity_classes_set.has( e.constructor ) )
+				{
+				}
+				else
+				if ( custom_filtering_method === null || custom_filtering_method( e ) )
+				{
+					sdWorld.last_hit_entity = e;
+					return true;
+				}
+			}
+			
+			return false;
+			
+		}, false, true );
+		
+		let t2 = performance.now();
+		
+		if ( r1 === r2 )
+		{
+			if ( !globalThis.los_timing )
+			globalThis.los_timing = [ 0, 0 ];
+		
+			globalThis.los_timing[ 0 ] += t1-t0;
+			globalThis.los_timing[ 1 ] += t2-t1;
+			
+			if ( Math.random() < 0.0025 )
+			trace( globalThis.los_timing ); // [ 154, 213 ] - old method was faster
+		}
+		
+		return r2;*/
+	}
+	static CheckLineOfSight2( x1, y1, x2, y2, ignore_entity=null, ignore_entity2=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met. custom_filtering_method is executed before hit detection
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		var step = 8;
@@ -3762,35 +3859,95 @@ class sdWorld
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
 			var y = y1 + ( y2 - y1 ) / di * s;
-			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_class_name_strings_array, include_only_specific_class_name_strings_array, custom_filtering_method ) )
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity2, ignore_entity_class_name_strings_array, include_only_specific_class_name_strings_array, custom_filtering_method ) )
 			return false;
 		}
 		return true;
-	}
-	static CheckLineOfSight2( x1, y1, x2, y2, ignore_entity=null, ignore_entity2=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
-	{
-		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
-		var step = 8;
 		
-		for ( var s = step / 2; s < di - step / 2; s += step )
+		//
+		
+		/*sdWorld.last_hit_entity = null;
+		
+		let include_only_specific_classes_set = sdWorld.GetClassListByClassNameList( include_only_specific_class_name_strings_array );
+		let ignore_entity_classes_set = sdWorld.GetClassListByClassNameList( ignore_entity_class_name_strings_array );
+			
+		return sdWorld.AccurateLineOfSightTest( x1, y1, x2, y2, ( e )=>
 		{
-			var x = x1 + ( x2 - x1 ) / di * s;
-			var y = y1 + ( y2 - y1 ) / di * s;
-			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
-			if ( sdWorld.CheckWallExists( x, y, ignore_entity2, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
+			if ( e === ignore_entity )
+			return false;
+		
+			if ( e === ignore_entity2 )
+			return false;
+		
+			const e_is_bg_entity = e._is_bg_entity;
+			
+			if ( e_is_bg_entity === 10 ) // sdDeepSleep
+			{
+				if ( e.ThreatAsSolid() )
+				{
+					sdWorld.last_hit_entity = null;
+					return true;
+				}
+			}
+			else
+			if ( ignore_entity === null || e_is_bg_entity === ignore_entity._is_bg_entity )
+			if ( include_only_specific_classes_set || e._hard_collision )
+			{
+				if ( include_only_specific_classes_set && !include_only_specific_classes_set.has( e.constructor ) )
+				{
+				}
+				else
+				if ( ignore_entity_classes_set && ignore_entity_classes_set.has( e.constructor ) )
+				{
+				}
+				else
+				if ( custom_filtering_method === null || custom_filtering_method( e ) )
+				{
+					sdWorld.last_hit_entity = e;
+					return true;
+				}
+			}
+			
+			return false;
+			
+		//}, false, false );
+		}, false, true );*/
+	}
+	static AccurateLineOfSightTest( x1, y1, x2, y2, custom_filtering_method, use_diagonals_only=true, filtering_before_collision=false ) // custom_filtering_method should return true to stop search
+	{
+		if ( y1 < sdWorld.world_bounds.y1 || 
+			 y1 > sdWorld.world_bounds.y2 || 
+			 x1 < sdWorld.world_bounds.x1 ||
+			 x1 > sdWorld.world_bounds.x2 )
+		{
 			return false;
 		}
-		return true;
-	}
-	static AccurateLineOfSightTest( x1, y1, x2, y2, custom_filtering_method, use_diagonals_only=true ) // custom_filtering_method should return true to stop search
-	{
-		if ( !use_diagonals_only )
-		throw new Error( 'Not using diagonals is not supported yet' );
-	
+											
+		if ( y2 < sdWorld.world_bounds.y1 || 
+			 y2 > sdWorld.world_bounds.y2 || 
+			 x2 < sdWorld.world_bounds.x1 ||
+			 x2 > sdWorld.world_bounds.x2 )
+		{
+			return false;
+		}
+		
 		let x_min = Math.min( x1, x2 );
 		let x_max = Math.max( x1, x2 );
 		let y_min = Math.min( y1, y2 );
 		let y_max = Math.max( y1, y2 );
+		
+		if ( x_max - x_min > 2000 )
+		{
+			debugger; // Inefficient line of sight check? Cache these at very least?
+			return false;
+		}
+		
+		if ( y_max - y_min > 2000 )
+		{
+			debugger; // Inefficient line of sight check? Cache these at very least?
+			return false;
+		}
 	
 		let cells = sdWorld.GetCellsInRect( x_min, y_min, x_max, y_max );
 		
@@ -3812,13 +3969,54 @@ class sdWorld
 					if ( x_max > e.x + e._hitbox_x1 )
 					if ( y_min < e.y + e._hitbox_y2 )
 					if ( y_max > e.y + e._hitbox_y1 )
-					if ( sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) || // Sight segment and entity's \ diagonal
-						 sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x2, e.y+e._hitbox_y1, e.x+e._hitbox_x1, e.y+e._hitbox_y2 ) ) // Sight segment and entity's / diagonal
-					if ( custom_filtering_method( e ) )
-					return false;
+					{
+						// Copy LOS entity check [ 1 / 2 ]
+						if ( use_diagonals_only )
+						{
+							if ( filtering_before_collision ? custom_filtering_method( e ) : true )
+							if ( sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) || // Sight segment and entity's \ diagonal
+								 sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x2, e.y+e._hitbox_y1, e.x+e._hitbox_x1, e.y+e._hitbox_y2 ) )  // Sight segment and entity's / diagonal
+							if ( !filtering_before_collision ? custom_filtering_method( e ) : true )
+							return false;
+						}
+						else
+						{
+							if ( filtering_before_collision ? custom_filtering_method( e ) : true )
+							if ( ( x1 < e.x + e._hitbox_x1 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x1, e.y+e._hitbox_y2 ) ) || // Sight segment and entity's left
+								 ( y1 < e.y + e._hitbox_y1 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y1 ) ) || // Sight segment and entity's top
+								 ( x1 > e.x + e._hitbox_x2 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x2, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) ) || // Sight segment and entity's right
+								 ( y1 > e.y + e._hitbox_y2 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y2, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) ) )  // Sight segment and entity's bottom
+							if ( !filtering_before_collision ? custom_filtering_method( e ) : true )
+							return false;
+						}
+					}
 				}
 			}
 		}
+		return true;
+	}
+	static LineOfSightThroughEntity( e, x1, y1, x2, y2, custom_filtering_method, use_diagonals_only=true, filtering_before_collision=false )
+	{
+		// Copy LOS entity check [ 2 / 2 ]
+		if ( use_diagonals_only )
+		{
+			if ( filtering_before_collision ? custom_filtering_method( e ) : true )
+			if ( sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) || // Sight segment and entity's \ diagonal
+				 sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x2, e.y+e._hitbox_y1, e.x+e._hitbox_x1, e.y+e._hitbox_y2 ) )  // Sight segment and entity's / diagonal
+			if ( !filtering_before_collision ? custom_filtering_method( e ) : true )
+			return false;
+		}
+		else
+		{
+			if ( filtering_before_collision ? custom_filtering_method( e ) : true )
+			if ( ( x1 < e.x + e._hitbox_x1 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x1, e.y+e._hitbox_y2 ) ) || // Sight segment and entity's left
+				 ( y1 < e.y + e._hitbox_y1 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y1 ) ) || // Sight segment and entity's top
+				 ( x1 > e.x + e._hitbox_x2 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x2, e.y+e._hitbox_y1, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) ) || // Sight segment and entity's right
+				 ( y1 > e.y + e._hitbox_y2 && sdWorld.AreSegmentsIntersecting( x1,y1,x2,y2, e.x+e._hitbox_x1, e.y+e._hitbox_y2, e.x+e._hitbox_x2, e.y+e._hitbox_y2 ) ) )  // Sight segment and entity's bottom
+			if ( !filtering_before_collision ? custom_filtering_method( e ) : true )
+			return false;
+		}
+		
 		return true;
 	}
 	static TraceRayPoint( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
@@ -3843,6 +4041,18 @@ class sdWorld
 	//static AreSegmentsIntersecting( p1, p2, p3, p4 )
 	static AreSegmentsIntersecting( ax, ay, bx, by, cx, cy, dx, dy ) // AB and CD are segments
 	{
+		const denominator = (dy - cy) * (bx - ax) - (dx - cx) * (by - ay);
+
+		if ( denominator === 0 )
+		return false; // Segments are parallel
+
+		const ua = ((dx - cx) * (ay - cy) - (dy - cy) * (ax - cx)) / denominator;
+		const ub = ((bx - ax) * (ay - cy) - (by - ay) * (ax - cx)) / denominator;
+
+		// The segments intersect if the intersection point lies on both.
+		return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+		
+		/*
 		let p1 = { x:ax, y:ay };
 		let p2 = { x:bx, y:by };
 		let p3 = { x:cx, y:cy };
@@ -3862,9 +4072,44 @@ class sdWorld
 		const ub = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / denominator;
 
 		// The segments intersect if the intersection point lies on both.
-		return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+		return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;*/
 	}
-	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
+	static GetClassListByClassNameList( class_names_array )
+	{
+		let classes = null;
+		if ( class_names_array )
+		{
+			classes = class_names_array._classes;
+			if ( classes === undefined )
+			{
+				let stack = globalThis.getStackTrace();
+				
+				let hits = ( sdWorld.inefficient_ignore_unignore_array_cache.get( stack ) || 0 );
+				
+				if ( hits === 10 )
+				{
+					console.error( 'Inefficient class name list ('+JSON.stringify( class_names_array )+') to class object list conversion detected - you are likely creating a new array in entity methods like .GetIgnoredEntityClasses() every time method is calling. Caching requires arrays to be reused, for example pre-made in static init_class() methods. Otherwise fallback to filtering methods, although they can be slower' );
+					debugger;
+				}
+				
+				hits++;
+				
+				classes = new Set();
+
+				for ( let i = 0; i < class_names_array.length; i++ )
+				classes.add( sdWorld.entity_classes[ class_names_array[ i ] ] );
+				
+				class_names_array._classes = classes;
+				
+				//trace( 'Generating GetClassListByClassNameList cache for ', class_names_array );
+				
+				sdWorld.inefficient_ignore_unignore_array_cache.set( stack, hits );
+				
+			}
+		}
+		return classes;
+	}
+	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null )
 	{
 		if ( y < sdWorld.world_bounds.y1 || 
 			 y > sdWorld.world_bounds.y2 || 
@@ -3878,10 +4123,12 @@ class sdWorld
 		let arr;
 		let i;
 		let arr_i;
-		let class_str;
+		//let class_str;
 		let arr_i_x;
 		let arr_i_y;
-	
+		
+		let include_only_specific_classes_set = sdWorld.GetClassListByClassNameList( include_only_specific_class_name_strings_array );
+		let ignore_entity_classes_set = sdWorld.GetClassListByClassNameList( ignore_entity_class_name_strings_array );
 		//for ( var xx = -1; xx <= 2; xx++ )
 		//for ( var yy = -1; yy <= 2; yy++ )
 		//for ( var xx = -1; xx <= 0; xx++ ) Was not enough for doors, sometimes they would have left vertical part lacking collision with players
@@ -3925,16 +4172,20 @@ class sdWorld
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity._is_bg_entity )
-							if ( include_only_specific_classes || arr_i._hard_collision )
+							//if ( include_only_specific_classes || arr_i._hard_collision )
+							if ( include_only_specific_classes_set || arr_i._hard_collision )
 							{
-								if ( include_only_specific_classes || ignore_entity_classes )
-								class_str = arr_i.GetClass();
+								//if ( include_only_specific_classes || ignore_entity_classes )
+								//if ( include_only_specific_classes_set || ignore_entity_classes )
+								//class_str = arr_i.GetClass();
 
-								if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+								//if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+								if ( include_only_specific_classes_set && !include_only_specific_classes_set.has( arr_i.constructor ) )
 								{
 								}
 								else
-								if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								if ( ignore_entity_classes_set && ignore_entity_classes_set.has( arr_i.constructor ) )
 								{
 								}
 								else
@@ -5549,8 +5800,8 @@ class sdWorld
 			}
 		);
 
-		ent.Draw( fake_ctx, false );
-		ent.DrawFG( fake_ctx, false );
+		ent.Draw( fake_ctx, ent.held_by );
+		ent.DrawFG( fake_ctx, ent.held_by );
 		
 		/*if ( output.length === 0 ) Something like held crystals
 		{
