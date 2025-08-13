@@ -3333,6 +3333,12 @@ class sdWorld
 
 				if ( sdWorld.my_entity )
 				{
+					if ( sdWorld.my_entity.is( sdPlayerSpectator ) )
+					{
+						sdWorld.camera.x = sdWorld.my_entity.x;
+						sdWorld.camera.y = sdWorld.my_entity.y;
+					}
+					else
 					if ( sdWorld.mobile )
 					{
 						sdWorld.camera.x = sdWorld.my_entity.x;
