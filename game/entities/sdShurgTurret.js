@@ -33,6 +33,8 @@ class sdShurgTurret extends sdEntity
 
 		sdShurgTurret.TURRET_GROUND = 0;
 		sdShurgTurret.TURRET_FLYING = 1;
+		
+		sdShurgTurret.fire_tracing_classes = [ 'sdCharacter', 'sdDrone', 'sdShurgConverter', 'sdShurgTurret', 'sdShurgExcavator' ];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -247,7 +249,7 @@ class sdShurgTurret extends sdEntity
 							this.side = ( dx > 0 ) ? 1 : -1;
 
 							let should_fire = true;
-							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone', 'sdShurgConverter', 'sdShurgTurret', 'sdShurgExcavator' ] ) )
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, sdShurgTurret.fire_tracing_classes ) )
 							{
 								if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 								should_fire = false;

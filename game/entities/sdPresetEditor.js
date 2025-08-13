@@ -634,7 +634,7 @@ class sdPresetEditor extends sdEntity
 				if ( e.IsPlayerClass() || 
 					 ( e._shielded && !e._shielded._is_being_removed ) || 
 					 ( e.is( sdRescueTeleport ) && e.owner_biometry !== -1 ) ||
-					 !e.IsDamageAllowedByAdmins() ||
+					 e.IsInSafeArea() ||
 					 ( e.is( sdStorage ) && e._stored_items.length > 0 ) ||
 					 e.IsVehicle() ||
 					 e.is( sdBeacon ) )

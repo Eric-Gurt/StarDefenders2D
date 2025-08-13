@@ -458,7 +458,7 @@ class sdSteeringWheel extends sdEntity
 			return;
 		}
 		
-		if ( !entity.IsDamageAllowedByAdmins() )
+		if ( entity.IsInSafeArea() )
 		{
 			if ( character_to_tell_result_to )
 			character_to_tell_result_to.Say( 'This entity is in admin restricted area' );

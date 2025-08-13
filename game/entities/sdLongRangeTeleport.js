@@ -101,13 +101,20 @@ class sdLongRangeTeleport extends sdEntity
 			}
 		}
 	}
-	IsDamageAllowedByAdmins() // Extra check used by steering wheel elevators
+	IsInSafeArea()
+	{
+		if ( this.is_server_teleport )
+		return true;
+	
+		return super.IsInSafeArea();
+	}
+	/*IsDamageAllowedByAdmins() // Extra check used by steering wheel elevators
 	{
 		if ( !this.is_server_teleport )
 		return super.IsDamageAllowedByAdmins();
 	
 		return false;
-	}
+	}*/
 	Activation()
 	{
 		this._is_busy_since = sdWorld.time;

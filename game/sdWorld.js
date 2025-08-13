@@ -4139,7 +4139,7 @@ class sdWorld
 				
 				if ( hits === 10 )
 				{
-					console.error( 'Inefficient class name list ('+JSON.stringify( class_names_array )+') to class object list conversion detected - you are likely creating a new array in entity methods like .GetIgnoredEntityClasses() every time method is calling. Caching requires arrays to be reused, for example pre-made in static init_class() methods. Otherwise fallback to filtering methods, although they can be slower' );
+					console.error( 'Inefficient class name list ('+JSON.stringify( class_names_array )+') to class object list conversion detected - you are likely creating a new array in entity methods like .GetIgnoredEntityClasses() every time method is calling. Caching requires arrays to be reused, for example pre-made in static init_class() methods. Otherwise fallback to filtering methods, although they can be slower:\n' + stack );
 					debugger;
 				}
 				
