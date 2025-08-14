@@ -762,6 +762,8 @@ class sdJunk extends sdEntity
 				
 					//this._time_to_drain = Math.max( 5, 30 * 2 * ( this.hea / this.hmax ) );
 					
+					let no_crystals = true;
+					
 					this._time_to_drain += 30;
 					
 					if ( !nears )
@@ -826,6 +828,8 @@ class sdJunk extends sdEntity
 												{
 													heal_sound_once = false;
 													sdSound.PlaySound({ name:'crystal_healer_ping', x:this.x, y:this.y, volume: 0.3 }); // Play once
+												
+													no_crystals = false;
 												}
 											}
 										}
@@ -840,6 +844,11 @@ class sdJunk extends sdEntity
 						}
 					}
 					this.glow_animation = this._time_to_drain / 2;
+					
+					if ( no_crystals )
+					{
+						this.DamageWithEffect( 0.1 ); // Self damage, grants limited existence. Will also prevent it from digging into the ground indefinitely
+					}
 				}
 			}
 
