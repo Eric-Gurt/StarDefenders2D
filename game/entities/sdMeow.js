@@ -47,7 +47,7 @@ class sdMeow extends sdEntity
 		
 		this._talk_frame_until = 0;
 		
-		this._current_target = null;
+		this.current_target = null;
 		
 		this._next_target_lookup = 0;
 		
@@ -69,11 +69,11 @@ class sdMeow extends sdEntity
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdMeow.max_seek_range )
-			if ( this._current_target === null || 
-				 ( this._current_target.hea || this._current_target._hea || 0 ) <= 0 || 
-				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+			if ( this.current_target === null || 
+				 ( this.current_target.hea || this.current_target._hea || 0 ) <= 0 || 
+				 di < sdWorld.Dist2D(this.current_target.x,this.current_target.y,this.x,this.y) )
 			{
-				this._current_target = character;
+				this.current_target = character;
 			}
 		}
 	}*/
@@ -149,7 +149,7 @@ class sdMeow extends sdEntity
 				bullet_obj.x += Math.cos( rand_an ) * 3;
 				bullet_obj.y += Math.sin( rand_an ) * 3;
 
-				bullet_obj.explosion_radius = 15;
+				bullet_obj.explosion_radius = 20; // 15 was not deadly enough
 				bullet_obj.time_left = 30 * 3 + Math.random() * 30 * 3;
 				bullet_obj.model = 'meow_grenade'; 
 				bullet_obj.color = sdEffect.default_explosion_color;
@@ -187,10 +187,10 @@ class sdMeow extends sdEntity
 			if ( this.not_hungry_timer > 0 )
 			this.not_hungry_timer -= GSPEED;
 			
-			if ( this._current_target )
+			if ( this.current_target )
 			{
-				if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea || 0 ) <= 0 || !sdWorld.inDist2D_Boolean( this.x, this.y, this._current_target.x, this._current_target.y, sdMeow.max_seek_range ) )
-				this._current_target = null;
+				if ( this.current_target._is_being_removed || ( this.current_target.hea || this.current_target._hea || 0 ) <= 0 || !sdWorld.inDist2D_Boolean( this.x, this.y, this.current_target.x, this.current_target.y, sdMeow.max_seek_range ) )
+				this.current_target = null;
 				else
 				{
 					if ( this.not_hungry_timer > 0 )
@@ -221,32 +221,31 @@ class sdMeow extends sdEntity
 							}
 						}
 
-						if ( sdWorld.is_server )
+
+						let dx = this.current_target.x - this.x;
+						let dy = this.current_target.y - this.y;
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+
+						let range = this.CanEatEntity( this.current_target ) ? 1 : 64;
+
+						if ( di > range )
 						{
-							let dx = this._current_target.x - this.x;
-							let dy = this._current_target.y - this.y;
-							let di = sdWorld.Dist2D_Vector( dx, dy );
-							
-							let range = this.CanEatEntity( this._current_target ) ? 1 : 64;
-							
-							if ( di > range )
-							{
-								dx /= di;
-								dy /= di;
+							dx /= di;
+							dy /= di;
 
-								let speed = 0.1 + this.hunger / 700 * 0.2;
+							let speed = 0.1 + this.hunger / 700 * 0.2;
 
-								this.sx += dx * speed * GSPEED;
-								this.sy += dy * speed * GSPEED;
-								this.PhysWakeUp();
-							}
-							
-							this.side = ( dx > 0 ) ? 1 : -1;
-							
-							if ( this.hunger >= 700 )
-							{
-								this.Damage( this._hea + 1 );
-							}
+							this.sx += dx * speed * GSPEED;
+							this.sy += dy * speed * GSPEED;
+							this.PhysWakeUp();
+						}
+
+						this.side = ( dx > 0 ) ? 1 : -1;
+
+						if ( sdWorld.is_server )
+						if ( this.hunger >= 700 )
+						{
+							this.Damage( this._hea + 1 );
 						}
 					}
 				}
@@ -275,10 +274,10 @@ class sdMeow extends sdEntity
 						 e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || 
 						 e.GetBleedEffect() === sdEffect.TYPE_BLOOD )
 					{
-						this._current_target = e;
+						this.current_target = e;
 					}
 					
-					if ( !this._current_target )
+					if ( !this.current_target )
 					if ( this.random_move_timer <= 0 )
 					{
 						this.random_move_timer = 90 + Math.random() * 90;
@@ -307,7 +306,11 @@ class sdMeow extends sdEntity
 					this.carrying.DamageWithEffect( ( 0.5 + 9.5 * ( this.eating_progress / max_progress ) ) * GSPEED, this );
 					
 					this.hunger = 0;
-					this.not_hungry_timer = 30 * 60 * 60; // Not hungry for an hour
+					
+					if ( this.current_target && this.current_target.IsPlayerClass() ) // It only makes sense for meow drone to not be hungry if players gave it food, otherwise it stays hungry
+					this.not_hungry_timer = Math.max( this.not_hungry_timer, 30 * 60 * 30 ); // Not hungry for 30 minutes
+					else
+					this.not_hungry_timer = Math.max( this.not_hungry_timer, 30 * 5 ); // Not hungry for 5 seconds
 					
 					if ( !this.carrying || this.carrying._is_being_removed )
 					sdSound.PlaySound({ name:'meow_purring', x:this.x, y:this.y, volume: 2 });
@@ -325,7 +328,7 @@ class sdMeow extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.death_anim === 0 )
+		if ( !this.is_dead )
 		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )

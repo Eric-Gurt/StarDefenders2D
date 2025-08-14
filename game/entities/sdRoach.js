@@ -452,6 +452,7 @@ class sdRoach extends sdEntity
 					let speed = this.type === sdRoach.TYPE_MOTH ? 1 : 0.5
 					this.sx += this.dx / 100 * GSPEED * speed;
 					this.sy += this.dy / 100 * GSPEED * speed;
+					this.PhysWakeUp();
 
 					let vel = sdWorld.Dist2D_Vector_pow2( this.sx, this.sy );
 
@@ -473,6 +474,7 @@ class sdRoach extends sdEntity
 				else
 				{
 					this.sx += this.dx / 100 * GSPEED * 0.1;
+					this.PhysWakeUp();
 					
 					this.sy += sdWorld.gravity * GSPEED;
 			
