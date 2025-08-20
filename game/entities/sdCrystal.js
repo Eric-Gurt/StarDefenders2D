@@ -1928,7 +1928,7 @@ class sdCrystal extends sdEntity
 		setFilter( 
 					sdWorld.GetCrystalHue(
 						( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ) ? this.matter_max * 2 : 
-						this.is_big ? ent.matter_max / 4 : 
+						this.is_big ? this.matter_max / 4 : 
 						this.matter_max
 					)
 		);
