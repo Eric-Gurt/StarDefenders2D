@@ -413,16 +413,24 @@
 		<section id="screen_servers" style="width:60%; padding-bottom: 30vh;">
 		    <section_header>Servers</section_header>
 		    <div style="height:3vh"></div>
+		    
 		    Official servers group (cross-connected):
 		    <div class="server_group">
 			<menu_button onclick="ServerButtonPressed( this );" class="server_button server_right_connect">stardefenders.io:4000<server_details><div>Default config, larger world</div>Location: Canada, Quebec<br>Hosted by: MrMcShroom<br>Admins: Booraz</server_details></menu_button>
 			<menu_button onclick="ServerButtonPressed( this );" class="server_button server_right_connect">gevanni.com:3000<server_details><div>Low player capacity server</div>Location: Europe, Ukraine<br>Hosted by: Eric Gurt<br>Admins: Eric Gurt</server_details></menu_button>
 			<menu_button onclick="ServerButtonPressed( this );" class="server_button">plazmaburst2.com:8443<server_details><div>Default config</div>Location: USA, California<br>Hosted by: Coolbuddy.com<br>Admins: Eric Gurt</server_details></menu_button>
 		    </div>
+		    
 		    Server that might be running on your PC:
 		    <div class="server_group">
 			<menu_button onclick="ServerButtonPressed( this, true );" class="server_button">localhost:3000<server_details>This is a default server URL.<br>It becomes available whenever you download project files and start server locally</server_details></menu_button>
 		    </div>
+		    
+		    Public player-hosted servers:
+		    <div class="server_group">
+			<menu_button onclick="ServerButtonPressed( this, true );" class="server_button">prosuwanted.ru:3000<server_details><div>Default config</div>Location: Russia<br>Hosted by: prosuwanted</server_details></menu_button>
+		    </div>
+		    
 		    Contact us to get your server listed!<br>Check <a href="https://github.com/Eric-Gurt/StarDefenders2D">Github</a> page of the project for more information on how you can host your own server.
 		</section>
 	    </div>
