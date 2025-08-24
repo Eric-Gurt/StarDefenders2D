@@ -58,7 +58,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 15000;
+		this._hmax = 12000;
 		this.hea = this._hmax;
 
 		this._ai_team = 7;
@@ -125,80 +125,36 @@ class sdSetrDestroyer extends sdEntity
 	{
 		return this.filter;
 	}*/
-	FireDirectionalProjectiles( diagonal = ( this.hea % 2000 < 1000 ) ? true: false ) // Fire 4 projectiles, up, left, down and right or diagonally, depends on parameter
+	FireDirectionalProjectiles() // Fire 2 projectiles in opposite directions at angles changing over time
 	{
 		if ( !sdWorld.is_server )
 		return;
 
-		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj1._owner = this;
-					bullet_obj1.sx = -1;
-					bullet_obj1.sy = diagonal ? -1 : 0;
-					//bullet_obj1.x += bullet_obj1.sx * 5;
-					//bullet_obj1.y += bullet_obj1.sy * 5;
+		let an = ( ( sdWorld.time / 1000 ) % 20 ) / 20 * Math.PI * 2;
 
-					bullet_obj1.sx *= 11;
-					bullet_obj1.sy *= 11;
+		for ( let i = 0; i < 2; i++ )
+		{
+			let dir = ( i === 0 ) ? 1 : -1;
 
-					bullet_obj1.explosion_radius = 8; 
-					bullet_obj1.model = 'ball';
-					bullet_obj1._damage= 5;
-					bullet_obj1.color ='#0000c8';
-					bullet_obj1._dirt_mult = 1;
+			let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
 
-					sdEntity.entities.push( bullet_obj1 );
+			bullet_obj1._owner = this;
+			bullet_obj1.sx = Math.cos( an ) * dir;
+			bullet_obj1.sy = Math.sin( an ) * dir;
+			//bullet_obj1.x += bullet_obj1.sx * 5;
+			//bullet_obj1.y += bullet_obj1.sy * 5;
 
-		let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj2._owner = this;
-					bullet_obj2.sx = diagonal ? -1 : 0;
-					bullet_obj2.sy = 1;
-					//bullet_obj2.x += bullet_obj2.sx * 5;
-					//bullet_obj2.y += bullet_obj2.sy * 5;
+			bullet_obj1.sx *= 10;
+			bullet_obj1.sy *= 10;
 
-					bullet_obj2.sx *= 11;
-					bullet_obj2.sy *= 11;
+			bullet_obj1.explosion_radius = 8; 
+			bullet_obj1.model = 'ball';
+			bullet_obj1._damage= 5;
+			bullet_obj1.color ='#0000c8';
+			bullet_obj1._dirt_mult = 1;
 
-					bullet_obj2.explosion_radius = 8; 
-					bullet_obj2.model = 'ball';
-					bullet_obj2._damage= 5;
-					bullet_obj2.color ='#0000c8';
-					bullet_obj2._dirt_mult = 1;
-					sdEntity.entities.push( bullet_obj2 );
-
-		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj3._owner = this;
-					bullet_obj3.sx = 1;
-					bullet_obj3.sy = diagonal ? -1 : 0;
-					//bullet_obj3.x += bullet_obj3.sx * 5;
-					//bullet_obj3.y += bullet_obj3.sy * 5;
-
-					bullet_obj3.sx *= 11;
-					bullet_obj3.sy *= 11;
-
-					bullet_obj3.explosion_radius = 8; 
-					bullet_obj3.model = 'ball';
-					bullet_obj3._damage= 5;
-					bullet_obj3.color ='#0000c8';
-					bullet_obj3._dirt_mult = 1;
-
-					sdEntity.entities.push( bullet_obj3 );
-
-		let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj4._owner = this;
-					bullet_obj4.sx = diagonal ? 1 : 0;
-					bullet_obj4.sy = -1;
-					//bullet_obj4.x += bullet_obj4.sx * 5;
-					//bullet_obj4.y += bullet_obj4.sy * 5;
-
-					bullet_obj4.sx *= 11;
-					bullet_obj4.sy *= 11;
-
-					bullet_obj4.explosion_radius = 8; 
-					bullet_obj4.model = 'ball';
-					bullet_obj4._damage= 5;
-					bullet_obj4.color ='#0000c8';
-					bullet_obj4._dirt_mult = 1;
-					sdEntity.entities.push( bullet_obj4 );
+			sdEntity.entities.push( bullet_obj1 );
+		}
 	}
 	CanAttackEnt( ent )
 	{
@@ -281,6 +237,9 @@ class sdSetrDestroyer extends sdEntity
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
+
+		if ( dmg > 0 && this._projectile_attack_timer > 0 )
+		this._projectile_attack_timer -= dmg * 0.25
 		
 		if ( this.hea > 0 )
 		{
@@ -673,7 +632,7 @@ class sdSetrDestroyer extends sdEntity
 						if ( this._follow_target )
 						{
 							this.FireDirectionalProjectiles();
-							this._projectile_attack_timer = 15;
+							this._projectile_attack_timer = 10;
 						}
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
@@ -770,10 +729,10 @@ class sdSetrDestroyer extends sdEntity
 
 							bullet_obj._homing = true;
 							bullet_obj._homing_mult = 0.04;
-							bullet_obj.ac = 0.02;
+							bullet_obj.ac = 0.01;
 						}, 200 + Math.random() * 200 );
 
-						bullet_obj.time_left = 30 * 3;
+						bullet_obj.time_left = 30 * 5;
 
 						sdEntity.entities.push( bullet_obj );
 

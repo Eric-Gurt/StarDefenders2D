@@ -218,7 +218,7 @@ class sdAsp extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= -10 && this.tier === 2 ) ) // Tier 2 will not break on fall
 		this.remove();
 	}
-	get mass() { return 300; }
+	get mass() { return 40; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;

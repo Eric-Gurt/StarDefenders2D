@@ -313,7 +313,7 @@ class sdBullet extends sdEntity
 			y:this.y,
 			radius:this.explosion_radius,
 			//damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ),
-			damage_scale: 2,
+			damage_scale: 1,
 			type:sdEffect.TYPE_EXPLOSION,
 			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
@@ -447,6 +447,9 @@ class sdBullet extends sdEntity
 				if ( !this._hittable_by_bullets || !from_entity._hittable_by_bullets )
 				return false;
 			}
+
+			if ( this._owner && from_entity._ai_team && from_entity._ai_team === this._owner._ai_team )
+			return false;
 
 
 			// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method

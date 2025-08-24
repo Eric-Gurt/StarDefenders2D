@@ -69,6 +69,8 @@ class sdVirus extends sdEntity
 		this._last_grow = sdWorld.time;
 		this._last_target_change = 0;
 		
+		this._last_move = sdWorld.time;
+
 		this._hibernation_check_timer = 30;
 		
 		this.side = 1;
@@ -283,7 +285,7 @@ class sdVirus extends sdEntity
 		this.remove();
 	}
 	
-	get mass() { return 30 * this.hmax / sdVirus.normal_max_health; }
+	get mass() { return 20 * this.hmax / sdVirus.normal_max_health; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -330,28 +332,48 @@ class sdVirus extends sdEntity
 				this._current_target = null;
 				else
 				{
+					if ( this.sx !== 0 )
+					this.side = ( this.sx > 0 ) ? 1 : -1;
+					else
 					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 			
+					if ( this.sx !== 0 )
+					this._last_move = sdWorld.time;
+					
 					if ( this.hurt_timer <= 0.5 )
-					if ( this._last_jump < sdWorld.time - 100 * this.hmax / sdVirus.normal_max_health )
+					if ( this._last_jump < sdWorld.time - 300 - 100 * this.hmax / sdVirus.normal_max_health )
 					//if ( this._last_stand_on )
-					if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+					if ( !this.CanMoveWithoutOverlap( this.x, this.y, -2 ) )
 					{
 						this._last_jump = sdWorld.time;
-					
+
 						let dx = ( this._current_target.x - this.x ) * 0.1;
 						let dy = ( this._current_target.y - this.y ) * 0.1;
+
+						if ( this._last_move < sdWorld.time - 1000 * 5 )
+						{
+							if ( dy > -3 && Math.random() < 0.75 )
+							dy -= Math.abs( dx );
+							else
+							{
+								let an = Math.random() * Math.PI * 2;
+
+								dx = Math.cos( an ) * 5;
+								dy = Math.sin( an ) * 5;
+							}
+						}
 					
+						dx += Math.sign( dx );
 						dy -= Math.abs( dx ) * 0.5;
 					
 						let di = sdWorld.Dist2D_Vector( dx, dy );
-						if ( di > 7 )
+						if ( di > 5 )
 						{
 							dx /= di;
 							dy /= di;
 							
-							dx *= 7;
-							dy *= 7;
+							dx *= 5;
+							dy *= 5;
 						}
 						
 						this.sx = dx;

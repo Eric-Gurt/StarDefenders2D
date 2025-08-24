@@ -548,6 +548,8 @@ class sdCharacter extends sdEntity
 
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
+		sdCharacter.energy_max = 30 * 5;
+		
 		//sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
 		sdCharacter.bullet_y_spawn_offset = -5; // Not only used for sword attacks
 		
@@ -1431,6 +1433,8 @@ THING is cosmic mic drop!`;
 		this._matter_capacity_boosters = 0; // Cube shards are increasing this value
 		this._matter_capacity_boosters_max = 20 * 45;
 		
+		this.energy = sdCharacter.energy_max;
+
 		//this.stim_ef = 0; // Stimpack effect
 		this.power_ef = 0; // Damage multiplication effect
 		this.time_ef = 0; // GSPEED manipulations
@@ -5339,20 +5343,21 @@ THING is cosmic mic drop!`;
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
 			
 			let x_force = this.act_x / di * 0.1;
-			let y_force = ( ( this.act_y * this._jetpack_power ) / di ) / Math.max( 1, -this.sy * 0.8 ) * 0.75 - sdWorld.gravity;
+			let y_force = ( ( this.act_y * this._jetpack_power ) ) / Math.max( 1, -this.sy * 1 ) * 0.75 - sdWorld.gravity;
 			
-			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			//let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			let fuel_cost = GSPEED;
 
-			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 || this._frozen > 0 )
+			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.energy < fuel_cost || this.hea <= 0 || this._frozen > 0 )
 			this.flying = false;
 			else
 			{
-				this.matter -= fuel_cost;
+				this.energy -= fuel_cost;
 			
 				let di = sdWorld.Dist2D_Vector( this.act_x, this.act_y );
 				if ( di > 0 )
 				{
-					this.sx += x_force * GSPEED;
+					//this.sx += x_force * GSPEED;
 					this.sy += y_force * GSPEED;
 				}
 			}
@@ -5364,7 +5369,7 @@ THING is cosmic mic drop!`;
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
 				 !in_water &&
-				 this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
+				// this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
 				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
 				 this._frozen <= 0 &&
@@ -5654,9 +5659,9 @@ THING is cosmic mic drop!`;
 						let same_dir = ( Math.sign( this.act_x ) === Math.sign( this.sx ) );
 
 						if ( same_dir )
-						this.sx += this.act_x * 0.3 / ( 1 + Math.abs( this.sx * 0.1 ) ) * GSPEED;
+						this.sx += this.act_x * 0.4 / ( 1 + Math.abs( this.sx * 0.2 ) ) * GSPEED;
 						else
-						this.sx += this.act_x * 0.3 * GSPEED;
+						this.sx += this.act_x * 0.5 * GSPEED;
 
 						if ( this.act_y === 1 && this.sy < 2 )
 						this.sy += this.act_y * 0.5 * GSPEED;
@@ -5756,6 +5761,18 @@ THING is cosmic mic drop!`;
 			else
 			this._ragdoll.Think( GSPEED );
 		}
+
+		if ( this.energy < sdCharacter.energy_max )
+		{
+			let regen_rate = 0.1;
+
+			if ( ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._ledge_holding ) && 
+				 ( !this.hook_relative_to || this._stands_on !== this.hook_relative_to ) )
+			regen_rate = 4;
+
+			this.energy = Math.min( this.energy + regen_rate * GSPEED, sdCharacter.energy_max );
+		}
+
 									
 		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{
@@ -6213,6 +6230,14 @@ THING is cosmic mic drop!`;
 			
 				ctx.fillText( t, 0, -raise - 5 - 10, 50 );
 			}
+
+			let show_energy = false;
+
+			if ( sdWorld.my_entity == this )
+			if ( this.energy < sdCharacter.energy_max )
+			{
+				show_energy = true;
+			}
 			
 			let snap_frame = ( ~~( this.death_anim / 10 ) ) * 10 / 20;
 			
@@ -6249,6 +6274,15 @@ THING is cosmic mic drop!`;
 			{
 				ctx.fillStyle = '#aaaaff';
 				ctx.fillRect( 1 - w / 2, 5 - raise, ( w - 2 ) * Math.max( 0, this.air / sdCharacter.air_max ), 1 );
+			}
+
+			if ( show_energy )
+			{
+				ctx.fillStyle = '#000000';
+				ctx.fillRect( 0 - w / 2, 20 - 1, w, 3 );
+
+				ctx.fillStyle = '#ffff00';
+				ctx.fillRect( 1 - w / 2, 20, ( w - 2 ) * Math.max( 0, this.energy / sdCharacter.energy_max ), 1 );
 			}
 			
 			//
