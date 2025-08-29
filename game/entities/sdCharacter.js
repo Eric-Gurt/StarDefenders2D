@@ -5546,7 +5546,7 @@ THING is cosmic mic drop!`;
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
 			
 			let x_force = this.act_x / di * 0.1;
-			let y_force = ( ( this.act_y * this._jetpack_power ) ) / Math.max( 1, -this.sy * 1 ) * 0.75 - sdWorld.gravity;
+			let y_force = ( ( this.act_y * this._jetpack_power ) ) / Math.max( 1, -this.sy * 1 ) * 0.4 - sdWorld.gravity;
 			
 			//let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 			let fuel_cost = GSPEED;
@@ -5590,7 +5590,7 @@ THING is cosmic mic drop!`;
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
 				 !in_water &&
-				// this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
+				 this._in_air_timer > 100 / 1000 * 30 && // after 100 ms
 				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
 				 this._frozen <= 0 &&
@@ -5880,12 +5880,12 @@ THING is cosmic mic drop!`;
 						let same_dir = ( Math.sign( this.act_x ) === Math.sign( this.sx ) );
 
 						if ( same_dir )
-						this.sx += this.act_x * 0.4 / ( 1 + Math.abs( this.sx * 0.2 ) ) * GSPEED;
+						this.sx += this.act_x * 0.3 / ( 1 + Math.abs( this.sx * 0.2 ) ) * GSPEED;
 						else
-						this.sx += this.act_x * 0.5 * GSPEED;
+						this.sx += this.act_x * 0.4 * GSPEED;
 
 						if ( this.act_y === 1 && this.sy < 2 )
-						this.sy += this.act_y * 0.5 * GSPEED;
+						this.sy += this.act_y * 0.25 * GSPEED;
 					}
 
 					if ( this.sy >= 0 || this._in_air_timer > 300 / 1000 * 30 || act_y_or_unstable !== -1 )
@@ -6314,9 +6314,10 @@ THING is cosmic mic drop!`;
 		{
 			if ( from_entity.is( sdBlock ) )
 			{
-				if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'sdFaceCrab' || from_entity._contains_class === 'weak_ground' )
+				//if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'sdFaceCrab' || from_entity._contains_class === 'weak_ground' )
+				if ( sdCom.com_faction_attack_classes.indexOf( from_entity._contains_class ) !== -1 )
 				{
-					from_entity.DamageWithEffect( 1 ); // Will break
+					from_entity.DamageWithEffect( from_entity._hea + 1 ); // Will break
 				}
 			}
 			else

@@ -1059,13 +1059,61 @@ class sdCrystal extends sdEntity
 		return this.matter_max / 40;
 	}
 	
+	static GenerateMatterMax( depth, is_deep, full_tiers=false )
+	{
+		let bad_luck = full_tiers ? 1.45 : 1.1; // 1.45; // High value crystals are more rare if this value is high
+		
+		let r = 1 - Math.pow( Math.random(), bad_luck );
+
+		let depth_tier = Math.max( 0, Math.floor( depth / 2000 ) );
+		//r /= Math.pow( 2, Math.random() * depth_tier );
+		r /= Math.pow( 2, Math.pow( Math.random(), 2 ) * depth_tier );
+		
+		let matter_max = 40;
+
+		if ( r < 0.00390625 / 8 && is_deep && full_tiers ) // matter consuming crystal
+		matter_max *= 2048;
+		else
+		if ( r < 0.00390625 / 4 && is_deep && full_tiers ) // new 2022
+		matter_max *= 1024;
+		else
+		if ( r < 0.00390625 / 2 && is_deep && full_tiers ) // new 2022
+		matter_max *= 512;
+		else
+		if ( r < 0.00390625 && is_deep && full_tiers ) // new 2022
+		matter_max *= 256;
+		else
+		if ( r < 0.0078125 && is_deep && full_tiers ) // glowing, new
+		matter_max *= 128;
+		else
+		if ( r < 0.015625 && is_deep && full_tiers ) // Red, new
+		matter_max *= 64;
+		else
+		if ( r < 0.03125 && is_deep ) // Pink variation, new (old red)
+		matter_max *= 32;
+		else
+		if ( r < 0.0625 && is_deep )
+		matter_max *= 16;
+		else
+		if ( r < 0.125 && is_deep )
+		matter_max *= 8;
+		else
+		if ( r < 0.25 )
+		matter_max *= 4;
+		else
+		if ( r < 0.5 )
+		matter_max *= 2;
+
+		return matter_max;
+	}
+
 	constructor( params )
 	{
 		super( params );
 		
 		//let is_really_deep = params.tag && params.tag.indexOf( 'really_deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
 		
-		let is_deep = params.tag && params.tag.indexOf( 'deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
+		//let is_deep = params.tag && params.tag.indexOf( 'deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
 		
 		if ( params.tag )
 		{
@@ -1093,9 +1141,9 @@ class sdCrystal extends sdEntity
 		this.held_by = null; // For amplifiers
 		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
 		
-		let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
+		//let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
 		
-		let r = 1 - Math.pow( Math.random(), bad_luck );
+		//let r = 1 - Math.pow( Math.random(), bad_luck );
 		
 		
 		
@@ -1114,8 +1162,7 @@ class sdCrystal extends sdEntity
 		//if ( is_really_deep )
 		//r *= 0.25;
 		
-		
-		let depth_tier = Math.max( 0, Math.floor( params.y / 2000 ) );
+		/*let depth_tier = Math.max( 0, Math.floor( params.y / 2000 ) );
 		//r /= Math.pow( 2, Math.random() * depth_tier );
 		r /= Math.pow( 2, Math.pow( Math.random(), 2 ) * depth_tier );
 		
@@ -1150,7 +1197,7 @@ class sdCrystal extends sdEntity
 		this.matter_max *= 4;
 		else
 		if ( r < 0.5 )
-		this.matter_max *= 2;
+		this.matter_max *= 2;*/
 		
 		this._last_damage = 0; // Sound flood prevention
 

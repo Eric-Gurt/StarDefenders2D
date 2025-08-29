@@ -1573,6 +1573,10 @@ class sdAtlasMaterial
 		const cb = ctx.sd_color_mult_b;
 		const ca = ctx.globalAlpha / opacity_div;
 		const hue_rotation = ctx.sd_hue_rotation / 180 * Math.PI;
+
+		const side_mult = 0.8;
+		const top_mult = 1.1;
+		const bottom_mult = 0.6;
 		
 		
 		//const a = new THREE.Vector2( dx, dy ); // Left-top
@@ -1738,7 +1742,7 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 							uv_d.x, uv_d.y,
 
-							cr,cg,cb,ca,hue_rotation,
+							cr*side_mult,cg*side_mult,cb*side_mult,ca,hue_rotation,
 							
 							a_wx, a_wy, a_cache_slot,
 							a_wx, a_wy, a_cache_slot,
@@ -1786,7 +1790,7 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 							uv_d.x, uv_d.y,
 
-							cr,cg,cb,ca,hue_rotation,
+							cr*side_mult,cg*side_mult,cb*side_mult,ca,hue_rotation,
 							
 							b_wx, b_wy, b_cache_slot,
 							b_wx, b_wy, b_cache_slot,
@@ -1834,7 +1838,7 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 							uv_d.x, uv_d.y,
 
-							cr,cg,cb,ca,hue_rotation,
+							cr*bottom_mult,cg*bottom_mult,cb*bottom_mult,ca,hue_rotation,
 							
 							c_wx, c_wy, c_cache_slot,
 							d_wx, d_wy, d_cache_slot,
@@ -1884,7 +1888,7 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 							uv_d.x, uv_d.y,
 
-							cr,cg,cb,ca,hue_rotation,
+							cr*top_mult,cg*top_mult,cb*top_mult,ca,hue_rotation,
 							
 							a_wx, a_wy, a_cache_slot,
 							b_wx, b_wy, b_cache_slot,

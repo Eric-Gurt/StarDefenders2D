@@ -133,14 +133,19 @@ class sdServerConfigFull extends sdServerConfigShort
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
 	static player_vs_player_damage_scale = 3;
+
+	static allow_underground_mob_spawns = true; // Common ground mobs will periodically spawn inside caves near online players
+	static underground_mob_spawn_rate = 30 * 3; // Lower values will populate caves faster, higher values won't repopulate already-cleared areas as quickly
+	static underground_mob_spawn_density = 20; // How many mobs must occupy a given (800px) area to prevent further spawns there
 	
 	static ShouldBlockContainAnything ( x,y,hp_mult )
 	{
-		return ( Math.random() > 0.85 / hp_mult ); // hp_mult scales with hitpoints of a sdBlock, usually depth-dependant
+		return ( Math.random() > Math.max( 0.5 / Math.min( hp_mult, 1 + hp_mult * 0.01 ), 0.1 ) ); // hp_mult scales with hitpoints of a sdBlock, usually depth-dependant
 	}
 	static ShouldBlockContainMobRatherThanCrystal( x,y,hp_mult )
 	{
-		return ( Math.random() < Math.min( 0.725, 0.3 * ( 0.75 + hp_mult * 0.25 ) ) );
+		return ( Math.random() < 0.06 );
+		//return ( Math.random() < Math.min( 0.725, 0.3 * ( 0.75 + hp_mult * 0.25 ) ) );
 	}
 	static ModifyDugOutCrystalProperties( crystal, from_ground, from_tree )
 	{
@@ -158,6 +163,15 @@ class sdServerConfigFull extends sdServerConfigShort
 		crystal.matter_max = limit;
 		
 		*/
+	}
+	static CrystalTierInBlockIncreaseChance( block )
+	{
+		return ( 0.5 / ( 1 + block._crystal_tier / ( 1 + block.y * 0.01 ) ) ); // Crystal tiers inside dirt blocks are more likely to increase the closer this is to 1
+	}
+	static CrystalTierInBlockIncreaseRate()
+	{
+		//return ( 1000 + 1000 * Math.random() ); // Hack
+		return ( 1000 * 60 * 20 + Math.random() * 1000 * 60 * 60 * 2 ); // Dirt blocks will attempt to increase their held crystal tier this often
 	}
 	
 	static LinkPlayerMatterCapacityToScore( character )

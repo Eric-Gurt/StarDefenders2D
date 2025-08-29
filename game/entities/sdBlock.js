@@ -24,6 +24,7 @@ import sdRenderer from '../client/sdRenderer.js';
 import sdBitmap from '../client/sdBitmap.js';
 
 import sdSound from '../sdSound.js';
+import sdCom from './sdCom.js';
 
 class sdBlock extends sdEntity
 {
@@ -182,6 +183,11 @@ class sdBlock extends sdEntity
 		sdBlock.max_flesh_rank_asteroid = 12;
 		
 		sdBlock.natural_blocks_total = 0; // Inaccurate in open-world case
+
+		sdBlock.next_mob_spawn = 0;
+
+		sdBlock.minimum_visible_crystal_tier = 32; // Based on crystal's GetTier() value
+		//sdBlock.minimum_visible_crystal_tier = 0;
 		
 		sdBlock.as_class_list = [ 'sdBlock' ];
 		
@@ -461,7 +467,7 @@ class sdBlock extends sdEntity
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 				}
 
-				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				/*if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				{
 					if ( this._contains_class === 'sdCrystal' )
 					{
@@ -476,7 +482,7 @@ class sdBlock extends sdEntity
 							8
 						); // Spawn some shards
 					}
-				}
+				}*/
 				if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL ) // Ancient walls chain explode, they explode for more than 200 damage
 				{
 					sdWorld.SendEffect({ 
@@ -723,6 +729,9 @@ class sdBlock extends sdEntity
 									params[ i ] = this._contains_class_params[ i ];
 								}
 
+								if ( this._contains_class.indexOf( 'sdCrystal' ) !== -1 )
+								params.matter_max = this._crystal_tier * 40;
+
 								ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 								sdEntity.entities.push( ent );
 
@@ -862,6 +871,23 @@ class sdBlock extends sdEntity
 		this._next_attack = 0; // Only used by Corruption
 		this._next_spread = -1; // Only used by Corruption
 		
+		this.t = 0; // Crystal tier
+
+		if ( this._contains_class && this._contains_class.indexOf( 'sdCrystal' ) !== -1 )
+		{
+			this._crystal_tier = sdCrystal.GenerateMatterMax( params.y, params.contains_class.indexOf( 'deep' ) !== -1, false ) / 40;
+
+			this._next_tier_increase = sdWorld.time + sdWorld.server_config.CrystalTierInBlockIncreaseRate();
+
+			if ( this._crystal_tier >= sdBlock.minimum_visible_crystal_tier )
+			this.t = this._crystal_tier;
+		}
+		else
+		{
+			this._crystal_tier = 0;
+			this._next_tier_increase = 0;
+		}
+
 		this._merged = false; // Has this block merged with any other blocks?
 
 		this._ai_team === params._ai_team || 0; // For faction outposts, so AI doesn't attack their own bases
@@ -950,7 +976,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' || prop === '_contains_class' || prop === '_additional_properties' );
+		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' || prop === '_contains_class' || prop === '_additional_properties' || prop === '_crystal_tier' || prop === '_next_tier_increase' );
 	}
 	ValidatePlants( must_include=null ) // foliage / grass
 	{
@@ -1883,6 +1909,47 @@ class sdBlock extends sdEntity
 			}
 		}
 	}
+
+	static GlobalThink( GSPEED )
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+
+		if ( sdEntity.entities.length <= 0 )
+		return;
+
+		let i = Math.floor( Math.random() * sdEntity.entities.length );
+		let tr = 1000;
+		while ( tr > 0 )
+		{
+			let e = sdEntity.entities[ i ];
+
+			if ( e && !e._is_being_removed )
+			if ( e.is( sdBlock ) && e._natural )
+			if ( e._contains_class && e._contains_class.indexOf( 'sdCrystal' ) !== -1 )
+			if ( e._crystal_tier < 2048 )
+			if ( e._next_tier_increase < sdWorld.time )
+			{
+				e._next_tier_increase = sdWorld.time + sdWorld.server_config.CrystalTierInBlockIncreaseRate();
+
+				if ( Math.random() < sdBlock.CrystalTierIncreaseChance( e, true ) )
+				{
+					e._crystal_tier *= 2;
+
+					if ( e._crystal_tier >= sdBlock.minimum_visible_crystal_tier )
+					{
+						e.t = e._crystal_tier;
+						e._update_version++;
+					}
+				}
+			}
+
+			i = ( i + 1 ) % sdEntity.entities.length;
+
+			tr--;
+		}
+	}
 	
 	static GetGroundObjectAt( nx, ny, strict = true ) // for corruption
 	{
@@ -1910,6 +1977,37 @@ class sdBlock extends sdEntity
 		}
 		
 		return null;
+	}
+	static CrystalTierIncreaseChance( block, check_surrounding=false )
+	{
+		let threshold = sdWorld.server_config.CrystalTierInBlockIncreaseChance( block );
+
+		if ( check_surrounding )
+		{
+			let add = 0;
+
+			for ( let i = 0; i < 8; i++ )
+			{
+				let an = i / 8 * Math.PI * 2;
+
+				let xx = Math.round( Math.sin( an ) ) * 16;
+				let yy = Math.round( Math.cos( an ) ) * 16;
+
+				if ( !sdBlock.GetGroundObjectAt( block.x + xx, block.y + yy ) )
+				{
+					add++;
+					if ( add >= 4 )
+					break;
+				}
+			}
+
+			threshold += add * threshold;
+		}
+
+		if ( block._contains_class.indexOf( 'deep' ) === -1 )
+		threshold *= 0.25;
+
+		return threshold;
 	}
 	onMovementInRange( from_entity )
 	{
@@ -2127,7 +2225,7 @@ class sdBlock extends sdEntity
 			
 				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
-			if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+			/*if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
 				ctx.apply_shading = false;
 				
@@ -2137,6 +2235,30 @@ class sdBlock extends sdEntity
 				ctx.sd_color_mult_b = 1;
 				
 				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ), 0.2 );
+
+				let old_scale = ctx.camera_relative_world_scale;
+				ctx.camera_relative_world_scale *= 0.999;
+				{
+					let old_mode = ctx.volumetric_mode;
+					ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+					{
+						ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+					}
+					ctx.volumetric_mode = old_mode;
+				}
+				ctx.camera_relative_world_scale = old_scale;
+			}*/
+
+			if ( this.t > 0 )
+			{
+				ctx.apply_shading = false;
+				
+				ctx.sd_hue_rotation = 0;
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+				
+				ctx.filter = sdWorld.GetCrystalHue( 40 * this.t, 0.2 );
 
 				let old_scale = ctx.camera_relative_world_scale;
 				ctx.camera_relative_world_scale *= 0.999;

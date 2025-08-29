@@ -698,6 +698,8 @@ class sdWorld
 		var r = 10;
 		var r_plus = r + 1;
 		
+		let deep_ground = 256 + 128;
+
 		//let x_scale = 4;
 		
 		//for ( var xx = -r * x_scale; xx <= r * x_scale; xx++ )
@@ -765,7 +767,7 @@ class sdWorld
 		s3 /= s3_tot;
 		s4 /= s4_tot;
 		
-		if ( s < 0.49 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
+		if ( s < 0.498 - ( 1 + Math.sin( y / 70 + x / 100 ) ) * 0.001 )
 		//if ( s < 0.5 )
 		{
 			allow_block = false;
@@ -773,11 +775,11 @@ class sdWorld
 			
 			//if ( y > 500 ) // What is it?
 			{
-				if ( s < 0.485 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
+				if ( s < 0.483 - ( 1 + Math.sin( y / 100 ) ) * 0.01 + Math.max( 0, 0.1 - y / 600 ) )
 				{
 					allow_water = true;
 					
-					allow_lava = ( s2 < 0.5 );
+					allow_lava = ( s2 < 0.48 + y / 300000 ); // Lava becomes increasingly more common further down
 				}
 			}
 		}
@@ -814,9 +816,9 @@ class sdWorld
 		
 		f = 'hue-rotate('+( ~~sdWorld.mod( x / 16 + ( s4 - 0.5 ) * 1000, 360 ) )+'deg)';
 
-		if ( y > from_y + 256 )
+		if ( y > from_y + deep_ground )
 		{
-			hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
+			hp_mult = 1 + Math.ceil( ( y - from_y - deep_ground ) / 400 * 3 ) / 3;
 			//f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
 			f = 'brightness(0.5) saturate(0.2)';
 		}
@@ -841,19 +843,19 @@ class sdWorld
 						'sdAmphid', 3 / hp_mult,
 						'sdSlug', 2 / hp_mult,
 						'sdGrub', 2 / hp_mult,
-						'sdJunk', 4,
-						'sdWater.water', 3
+						'sdJunk', 4000,
+						'sdWater.water', 300
 					];
 			let deep_mobs = [ // Deep
 						'sdSandWorm', 1.0,
 						'sdOctopus', 1.5,
 						'sdFaceCrab', 1.5,
 						'sdTutel', 1.5,
-						'sdWater.toxic', 1.0,
-						'sdWater.lava', 0.5,
-						'sdWater.acid', 1.0,
+						'sdWater.toxic', 100.0,
+						'sdWater.lava', 50,
+						'sdWater.acid', 100.0,
 						'sdDrone.DRONE_CUT_DROID', 0.35,
-						'sdMeow', 0.35
+						'sdMeow', 35
 					];
 			let really_deep_mobs = [ // Really deep
 				
@@ -894,21 +896,23 @@ class sdWorld
 				}
 			}
 			
-			//let potential_crystal = ( y > 1500 ) ? 'sdCrystal.really_deep' : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
-			let potential_crystal = ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
+			//let potential_crystal = ( y > 1500 ) ? 'sdCrystal.really_deep' : ( ( y > from_y + deep_ground ) ? 'sdCrystal.deep' : 'sdCrystal' );
+			let potential_crystal = ( ( y > from_y + deep_ground ) ? 'sdCrystal.deep' : 'sdCrystal' );
 			
 			if ( Math.random() < 0.1 )
 			{
-				if ( y > from_y + 256 )
+				if ( y > from_y + deep_ground )
 				potential_crystal = 'sdCrystal.deep_crab';
 				else
 				potential_crystal = 'sdCrystal.crab';
 			}
 			
+			let should_contain_mob = sdWorld.server_config.ShouldBlockContainMobRatherThanCrystal( x, y, hp_mult );
+
 			//let contains_class = ( !half && Math.random() > 0.85 / hp_mult ) ? 
 			let contains_class = ( !half && sdWorld.server_config.ShouldBlockContainAnything( x, y, hp_mult ) ) ? 
 									//( ( Math.random() < Math.min( 0.725, 0.3 * ( 0.75 + hp_mult * 0.25 ) ) ) ? random_enemy : potential_crystal ) : 
-									( sdWorld.server_config.ShouldBlockContainMobRatherThanCrystal( x, y, hp_mult ) ? random_enemy : potential_crystal ) : 
+									( should_contain_mob ? random_enemy : potential_crystal ) : 
 									( 
 										( Math.random() < 0.1 ) ? 'weak_ground' : null 
 									);
@@ -976,7 +980,7 @@ class sdWorld
 				filter: f,
 				natural: true,
 				plants: plants
-				//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
+				//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - deep_ground ) - y ) * 0.005 )*360))+'deg)' 
 			});
 			
 			if ( plants_objs )
@@ -1045,6 +1049,98 @@ class sdWorld
 		}
 		
 		return ent;
+	}
+	static SpawnGroundMobs( near_entity, radius )
+	{
+		let hp_mult = 1 + ( near_entity._hmax || near_entity.hmax || 0 ) * 0.004;
+
+		let random_enemy = null;
+		let spawn_count = 0;
+		
+		// Format is [ type, relative probability, max spawn count ]
+		let surface_mobs = 	[ // Surface
+					'sdBadDog', 2, 1
+				];
+		
+		let general_mobs = [
+			
+					'sdVirus', 5 / hp_mult, 10,
+					'sdQuickie', 5 / hp_mult, 10,
+					'sdAsp', 4 / hp_mult, 8,
+					'sdBiter', 4 / hp_mult, 13,
+					'sdAmphid', 3 / hp_mult, 5,
+					'sdSlug', 2 / hp_mult, 3,
+					'sdGrub', 2 / hp_mult, 2
+				];
+		let deep_mobs = [ // Deep
+					'sdSandWorm', 0.1, 1,
+					'sdOctopus', 1.4, 1,
+					'sdFaceCrab', 1.0, 2,
+					'sdTutel', 1.5, 3,
+					'sdDrone.DRONE_CUT_DROID', 0.03, 1
+				];
+		let really_deep_mobs = [ // Really deep
+			
+					'sdSandWorm.KIND_CRYSTAL_HUNTING_WORM', 0.1, 1,
+					'sdCube.KIND_ANCIENT', 0.06, 1,
+					'sdBiter.TYPE_LARGE', 0.2, 1
+
+				];
+		
+		//if ( Math.random() < 0.2 )
+		{
+			let chances = [];
+			
+			if ( hp_mult <= 1 )
+			chances.push( ...surface_mobs );
+			else
+			chances.push( ...deep_mobs ); // Deep mobs
+			if ( hp_mult >= 9 )
+			chances.push( ...really_deep_mobs ); // Really deep mobs
+			// Add general creatures
+			chances.push( ...general_mobs );
+			
+			let sum_chance = 0;
+			for ( let i = 0; i < chances.length; i += 3 )
+			sum_chance += chances[ i + 1 ];
+		
+			let r = Math.random() * sum_chance;
+			
+			for ( let i = 0; i < chances.length; i += 3 )
+			{
+				if ( r < chances[ i + 1 ] )
+				{
+					random_enemy = chances[ i ];
+					spawn_count = chances[ i + 2 ];
+					break;
+				}
+				else
+				r -= chances[ i + 1 ];
+			}
+		}
+
+		let parts = random_enemy.split( '.' );
+		let _class = parts[ 0 ];
+
+		sdWeather.SimpleSpawner({
+
+			count: [ 1, Math.max( spawn_count * radius / 800 ) ],
+			class: sdWorld.entity_classes[ _class ],
+			params: { x:0, y:0, tag:( parts.length > 1 )?parts[1]:null },
+			//evalute_params: [ 'kind' ],
+			
+			aerial: ( _class === 'sdAsp' ||
+					  _class === 'sdBiter' ||
+					  _class === 'sdDrone' ||
+					  _class === 'sdCube' 
+					),
+			
+			near_entity: near_entity,
+			group_radius: radius
+			
+
+		});
+		console.log(spawn_count);
 	}
 	
 	static ChangeWorldBounds( x1, y1, x2, y2 ) // BoundsMove // MoveBounds
@@ -3637,6 +3733,11 @@ class sdWorld
 
 			let t12 = Date.now();
 			IncludeTimeCost( 'sdTask', t12 - t11 );
+			
+			sdBlock.GlobalThink( GSPEED );
+
+			let t13 = Date.now();
+			IncludeTimeCost( 'sdBlock', t13 - t12 );
 
 			// Keep it last:
 			sdWorld.frame++;
