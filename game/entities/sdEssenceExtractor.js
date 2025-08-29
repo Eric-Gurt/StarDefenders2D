@@ -381,7 +381,7 @@ class sdEssenceExtractor extends sdEntity
 				this.crystal.sy = 0;
 				
 				this.crystal.held_by = null;
-				this.crystal.PhysWakeUp();
+				this.crystal.onCarryEnd();
 				this.crystal = null;
 				
 			}
@@ -495,6 +495,7 @@ class sdEssenceExtractor extends sdEntity
 				if ( can_put )
 				{
 					from_entity.held_by = this;
+					from_entity.onCarryStart();
 					this.crystal = from_entity;
 
 					this._hitbox_y1 = this.hitbox_y1;

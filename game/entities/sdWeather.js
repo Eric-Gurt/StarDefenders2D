@@ -87,6 +87,7 @@ import sdWanderer from './sdWanderer.js';
 import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
 import sdMothershipContainer from './sdMothershipContainer.js';
+import sdStalker from './sdStalker.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -169,6 +170,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
+		sdWeather.EVENT_STALKER =				event_counter++; // 58
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -182,8 +184,16 @@ class sdWeather extends sdEntity
 		
 		sdWeather.debug_rain = false;
 		
+		sdWeather.debug_quake = false;
+		
+		sdWeather.rain_hit_class_list = [ 'sdBlock', 'sdDoor', 'sdWater' ];
+		sdWeather.rain_background_walls = [ 'sdBG', 'sdTheatre' ];
+		
 		if ( sdWeather.debug_rain )
 		console.warn( 'WARNING: sdWeather.debug_rain is enabled! Rain will spawn under first socket character, where it stands only' );
+		
+		if ( sdWeather.debug_quake )
+		console.warn( 'WARNING: sdWeather.debug_quake is enabled! It will never end because of that' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -252,7 +262,6 @@ class sdWeather extends sdEntity
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
-		this._quake_screen_shake_since = 0;
 		this._quake_temporary_not_regen_near = []; // Prevent too much ground being regenerated in same place during event
 		
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
@@ -657,9 +666,10 @@ class sdWeather extends sdEntity
 						ok = false;
 				
 						if ( ok )
-						if ( sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( x, y ) )
+						//if ( sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( x, y ) )
 						if ( dog.CanMoveWithoutDeepSleepTriggering( x, y, -32 ) )
 						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 						if ( params.aerial || !dog.CanMoveWithoutOverlap( x, y + 5, 0 ) )
 						if ( params.aerial || sdWorld.last_hit_entity )
 						if ( params.aerial || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) )
@@ -728,7 +738,7 @@ class sdWeather extends sdEntity
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
-			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
+			if ( ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 ) && sdCharacter.characters[ i ]._voice.variant !== 'clone' )
 			{
 				//if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
 				//ais++;
@@ -746,7 +756,7 @@ class sdWeather extends sdEntity
 							target: sdCharacter.characters[ i ],
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.4,
 							//lrtp_ents_needed: 1,
 							title: 'Rescue Star Defender',
 							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
@@ -765,7 +775,7 @@ class sdWeather extends sdEntity
 							target: sdCharacter.characters[ i ],
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.4,
 							//lrtp_ents_needed: 1,
 							title: 'Arrest Star Defender',
 							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -1249,7 +1259,7 @@ class sdWeather extends sdEntity
 				steps_max-- 
 			)
 		{
-			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
+			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_hit_class_list ) )
 			{
 				if ( !sdWorld.last_hit_entity ) // sdDeepSleep or world edge likely
 				if ( y - yy > 64 ) // Not on edge between 2 sdDeepSleep areas
@@ -1280,7 +1290,7 @@ class sdWeather extends sdEntity
 				return false;
 			}
 			
-			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBG', 'sdTheatre' ] ) )
+			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_background_walls ) )
 			{
 				space_until_premature_true = consider_sky_open_height;
 			}
@@ -2513,7 +2523,7 @@ class sdWeather extends sdEntity
 			if ( sdCharacter.characters[ i ]._ai )
 			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
 			{
-				if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+				if ( ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' ) && sdCharacter.characters[ i ]._voice.variant !== 'clone' )
 				ais++;
 			}
 
@@ -2614,7 +2624,7 @@ class sdWeather extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.4,
 								//lrtp_ents_needed: 1,
 								title: 'Arrest Star Defender',
 								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -2629,7 +2639,7 @@ class sdWeather extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.4,
 								//lrtp_ents_needed: 1,
 								title: 'Rescue Star Defender',
 								description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
@@ -2756,18 +2766,30 @@ class sdWeather extends sdEntity
 					drones++;
 				}
 				if ( drones < this._max_drone_count ) // Sometimes it can go a little over the cap, can be changed later if needed.
-				sdWeather.SimpleSpawner({
+				{
+					sdWeather.SimpleSpawner({
+						count: [ 2, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-					count: [ 3, 6 ],
-					class: sdDrone,
-					params: { _ai_team: 7, type: sdDrone.DRONE_SETR },
-					aerial: true,
-					near_entity: near_ent,
-					group_radius: group_rad,
-					unlimited_range: inf_range,
-					target: target_ent
+					});
+					sdWeather.SimpleSpawner({
+						count: [ 1, 3 ],
+						class: sdDrone,
+						params: { _ai_team: 7, type: sdDrone.DRONE_SETR_SCOUT },
+						aerial: true,
+						near_entity: near_ent,
+						group_radius: group_rad,
+						unlimited_range: inf_range,
+						target: target_ent
 
-				});
+					});
+				}
 				
 			}
 			else
@@ -2976,7 +2998,7 @@ class sdWeather extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						lrtp_class_proprty_value_array: [ 'sdLandScanner', 'scanned_ents', 350 ],
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
-						difficulty: 0.14,
+						difficulty: 0.3,
 						lrtp_matter_capacity_needed: 1,
 						title: 'Planet scan',
 						time_left: 30 * 60 * 15,
@@ -3781,7 +3803,7 @@ class sdWeather extends sdEntity
 							mission: sdTask.MISSION_PROTECT_ENTITY,
 							protect_type: 1, // 0 = wait until objective is completed, 1 = entity must survive for the time given on Task
 							time_left: 30 * 60 * 5, // 5 minutes
-							difficulty: 0.075,
+							difficulty: 0.2,
 							title: 'Protect a drone',
 							description: 'We found an old drone stockpile and would like to see if these drones are efficient enough on this planet to complement your and other Star Defenders objective. We deployed it near you, all you have to do is make sure it does not get destroyed too quickly.'
 						});
@@ -3933,6 +3955,20 @@ class sdWeather extends sdEntity
 				if ( tasks_total < 5 )
 				sdWeather.GivePlayerTask( character );
 			}
+		}
+		if ( r === sdWeather.EVENT_STALKER ) 
+		{
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdStalker,
+				
+				aerial: true,
+				aerial_radius: 800,
+				near_entity: near_ent,
+				group_radius: group_rad
+				
+			});
 		}
 	}
 	static GivePlayerTask( initiator ) // AssignTasks // GiveTasks
@@ -4181,6 +4217,16 @@ class sdWeather extends sdEntity
 						`Oh, I see you are doing great. How about another Octopus? It is just what we need. Use the long-range teleporter and try not to get eaten.`
 					]);
 					template.lrtp_class_proprty_value_array = [ 'sdOctopus', 'is_alive', true ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 2 + Math.round( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.4;
+					
+					template.title = 'Extract fallen missiles';
+					template.description = 'Extract fallen missiles by using a long range teleporter.';
+					template.lrtp_class_proprty_value_array = [ 'sdAsteroid', 'type', sdAsteroid.TYPE_MISSILE ];
 				});
 				/*
 				task_options.push(()=>
@@ -4514,6 +4560,7 @@ class sdWeather extends sdEntity
 									}
 									
 									if ( e )
+									if ( e.y - 4 > sdWorld.world_bounds.y1 )
 									{
 										if ( e.material === sdBlock.MATERIAL_SNOW && e.height < 16 )
 										{
@@ -4617,7 +4664,7 @@ class sdWeather extends sdEntity
 			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
 			
 			//if ( this.quake_intensity >= 100 )
-			if ( this.quake_intensity >= 60 )
+			if ( this.quake_intensity >= 60 || sdWeather.debug_quake )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16, skip_hiberstate_and_hash_update:true });
@@ -4667,7 +4714,7 @@ class sdWeather extends sdEntity
 									{
 										let r = ~~( Math.random() * 4 );
 
-										x = Math.floor( place_near.x / 16 ) * 16;
+										/*x = Math.floor( place_near.x / 16 ) * 16;
 										y = Math.floor( place_near.y / 16 ) * 16;
 
 										if ( r === 0 )
@@ -4681,20 +4728,47 @@ class sdWeather extends sdEntity
 										else
 										if ( r === 3 )
 										y += 16;
+									
+										if ( place_near._merged )
+										y += Math.round( Math.random( ( place_near.height - 16 ) / 16 ) ) * 16; // Select random height without unmerging
+										*/
+										x = Math.floor( ( place_near.x + (place_near.width-16) * Math.random() ) / 16 ) * 16;
+										y = Math.floor( ( place_near.y + (place_near.height-16) * Math.random() ) / 16 ) * 16;
+										
+										if ( r === 0 )
+										x = place_near.x - 16;
+										else
+										if ( r === 1 )
+										x = place_near.x + place_near.width;
+										else
+										if ( r === 2 )
+										y = place_near.y - 16;
+										else
+										if ( r === 3 )
+										y = place_near.y + place_near.height;
 									}
 								}
 								else
 								if ( place_near.is( sdBG ) && place_near._natural )
 								{
-									if ( place_near._merged ) // Merged backgrounds?
+									/*if ( place_near._merged ) // Merged backgrounds?
 									{
 										let bgs = place_near.UnmergeBackgrounds(); // Unmerge
 										if ( bgs.length > 0 )
 										place_near = bgs[ Math.floor( Math.random() * bgs.length ) ]; // Select random background
 									}
-									x = Math.floor( place_near.x / 16 ) * 16;
+									*/
+									// Unmerging and removal is done when the block is already placed, instead of on BG detection to prevent unnecessary unmerging and unhibernation
+									/*x = Math.floor( place_near.x / 16 ) * 16;
 									y = Math.floor( place_near.y / 16 ) * 16;
+									if ( place_near._merged )
+									y += Math.round( Math.random( ( place_near.height - 16 ) / 16 ) ) * 16; // Select random height without unmerging
+									*/
+								   
+									x = Math.floor( ( place_near.x + (place_near.width-16) * Math.random() ) / 16 ) * 16;
+									y = Math.floor( ( place_near.y + (place_near.height-16) * Math.random() ) / 16 ) * 16;
 								}
+								
 							}
 							
 							if ( x < sdWorld.world_bounds.x1 )
@@ -4744,7 +4818,7 @@ class sdWeather extends sdEntity
 									continue;
 								}
 								
-								if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, 100 ) )
+								if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, data.radius ) )
 								{
 									//hits++;
 									//if ( hits >= 3 )
@@ -4759,8 +4833,6 @@ class sdWeather extends sdEntity
 						if ( !should_skip )
 						for ( let num = 0; num < sdTzyrgAbsorber.absorbers.length; num++ )
 						{
-							//let di_absorbers = sdWorld.Dist2D( x, y, sdTzyrgAbsorber.absorbers[ num ].x, sdTzyrgAbsorber.absorbers[ num ].y );
-							//if ( di_absorbers < 800 ) // if it's too close to an absorber
 							if ( sdWorld.inDist2D_Boolean( x, y, sdTzyrgAbsorber.absorbers[ num ].x, sdTzyrgAbsorber.absorbers[ num ].y, sdTzyrgAbsorber.effect_radius ) )
 							{
 								should_skip = true;
@@ -4778,8 +4850,6 @@ class sdWeather extends sdEntity
 
 							if ( ent.CanMoveWithoutOverlap( x, y, 0.0001, sdWeather.CrystalRemovalByEearthquakeFilter ) )
 							{
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
-								//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava (liquids are caught by CrystalRemovalByEearthquakeFilter though now)
 								{
 									let ent_above = null;
@@ -4819,13 +4889,13 @@ class sdWeather extends sdEntity
 										}
 									}
 
-									if ( ent_above_exists || ent_below_exists )
+									//if ( ent_above_exists || ent_below_exists ) This prevents spawns on natural backgrounds
 									{
 										let bg_nature = true; // Or nothing or world border
 										let bg_nature_ent = null;
 
 										sdWorld.last_hit_entity = null;
-										if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+										if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, sdBG.as_class_list, null ) )
 										if ( sdWorld.last_hit_entity )
 										{
 											if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
@@ -4844,15 +4914,8 @@ class sdWeather extends sdEntity
 											}
 											else
 											{
-												if ( sdWorld.last_hit_entity._merged === false )
+												// Maybe it's better to do this on background removal instead?
 												bg_nature_ent = sdWorld.last_hit_entity;
-												else
-												{
-													sdWorld.last_hit_entity.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
-													if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
-													if ( sdWorld.last_hit_entity )
-													bg_nature_ent = sdWorld.last_hit_entity;
-												}
 											}
 										}
 
@@ -4861,7 +4924,22 @@ class sdWeather extends sdEntity
 											function ClearPlants()
 											{
 												if ( bg_nature_ent )
-												bg_nature_ent.remove();
+												{
+													if ( bg_nature_ent._merged === false ) // Not a merged background?
+													bg_nature_ent.remove();
+													else
+													{
+														// Unmerge, check which BG was last then remove
+														bg_nature_ent.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
+														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, sdBG.as_class_list, null ) )
+														if ( sdWorld.last_hit_entity )
+														bg_nature_ent = sdWorld.last_hit_entity;
+														else
+														bg_nature_ent = null; // Probably can't happen but just in case
+														if ( bg_nature_ent ) // Just in case
+														bg_nature_ent.remove();
+													}
+												}
 
 												if ( ent_below_exists )
 												if ( ent_below )
@@ -4881,38 +4959,9 @@ class sdWeather extends sdEntity
 											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
 											{
 												ClearPlants();
-												this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+												this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:50 + Math.random() * 50, until:sdWorld.time + 250 + Math.random() * 250 });
 												//break; Do not skip anymore - spawn as many as there can be
 											}
-
-											/*let xx = Math.floor( x / 16 );
-											let from_y = sdWorld.GetGroundElevation( xx );
-
-											if ( y >= from_y )
-											{
-												let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
-
-												if ( r )
-												ClearPlants();
-
-												break;
-											}
-											else
-											if ( y === from_y - 8 )
-											{
-												y += 8;
-												let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
-
-												if ( r )
-												ClearPlants();
-
-												break;
-											}
-											else
-											{
-											}*/
-
-
 										}
 									}
 
@@ -4944,7 +4993,7 @@ class sdWeather extends sdEntity
 											sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
 											
 											// Do not damage something multiple times in a row
-											this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+											this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:100, until:sdWorld.time + 500 });
 										}
 									}
 								}

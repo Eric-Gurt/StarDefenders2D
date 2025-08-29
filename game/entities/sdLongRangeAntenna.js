@@ -306,7 +306,7 @@ class sdLongRangeAntenna extends sdEntity
 					mission: sdTask.MISSION_PROTECT_ENTITY,				
 					title: 'Protect long range frequency antenna',
 					description: desc,
-					difficulty: 0.075
+					difficulty: 0.2
 				});
 			}
 			this.has_players_nearby = false;

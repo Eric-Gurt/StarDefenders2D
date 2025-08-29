@@ -1082,6 +1082,25 @@ let enf_once = true;
 					let arr = snapshot[ i ];
 					
 					let _net_id = arr[ 0 ];
+					
+					if ( _net_id === -1 || _net_id === -2 ) // Invisible chunk
+					{
+						let hash = arr[ 1 ];
+						
+						let info = sdRenderer.visible_chunks.get( hash );
+						
+						if ( info === undefined )
+						sdRenderer.visible_chunks.set( hash, { x:arr[ 2 ], y:arr[ 3 ], opacity:1, last_active_visibility_time:sdWorld.time, active_visibility:( _net_id === -1 ) } );
+						else
+						{
+							info.active_visibility = ( _net_id === -1 );
+							if ( info.active_visibility )
+							info.last_active_visibility_time = sdWorld.time;
+						}
+						
+						continue;
+					}
+					
 					let properties_or_class_or_deletion_info = arr[ 1 ];
 					
 					let ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
@@ -1178,6 +1197,8 @@ let enf_once = true;
 							
 							if ( class_id_or_deletion_info === -1 )
 							{
+								//trace( 'Removing entity at .y = ' + ent.y );
+								
 								// remove
 								ent.remove();
 								ent._broken = false;
@@ -1246,7 +1267,7 @@ let enf_once = true;
 						sdEntity.TrackPotentialYRest( ent );
 					}
 				}
-					
+				
 				/*let new_snapshot_entities = [];
 				for ( var i = 0; i < snapshot.length; i++ )
 				{
@@ -1315,22 +1336,8 @@ let enf_once = true;
 					played_events.unshift( params.UC );
 				}
 
-				if ( type === 'EFF' ) // particles, chat messages
+				if ( sdWorld.AttemptServerEventHandling( type, params ) )
 				{
-					if ( typeof params.char_di !== 'undefined' )
-					{
-						//let an = Math.random() * Math.PI * 2;
-						//let xx = Math.sin( an ) * params.char_di;
-						//let yy = Math.cos( an ) * params.char_di;
-						//params.x = sdWorld.camera.x + xx;
-						//params.y = sdWorld.camera.y + yy;
-						
-						params.x = sdWorld.camera.x;
-						params.y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
-					}
-					
-					var ef = new sdEffect( params );
-					sdEntity.entities.push( ef );
 				}
 				else
 				if ( type === 'S' ) // sound
@@ -1345,6 +1352,20 @@ let enf_once = true;
 					}
 					
 					sdSound.PlaySound( params );
+				}
+				else
+				if ( type === 'CARRY_END' )
+				{
+					let p = sdEntity.entities_by_net_id_cache_map.get( params.p );
+					let c = sdEntity.entities_by_net_id_cache_map.get( params.c );
+					if ( p && c )
+					{
+						p._previous_carrying = c;
+						p._previous_carrying_ignore_until = sdWorld.time + sdCharacter.carried_item_collision_igonre_duration;
+
+						c._last_held_by = p;
+						c._last_held_by_until = sdWorld.time + sdCharacter.carried_item_collision_igonre_duration;
+					}
 				}
 				else
 				if ( type === 'ONLINE' ) // update online stats (in-game only)

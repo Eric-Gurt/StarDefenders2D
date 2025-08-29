@@ -36,6 +36,9 @@ class sdBomb extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		// Carrying
+		this.held_by = null;
+		
 		this.type = params.type || 0;
 		
 		this.detonation_in = 30 * 25; // 25 seconds, was 45
@@ -80,8 +83,18 @@ class sdBomb extends sdEntity
 	}
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x * 0.03;
 		this.sy += y * 0.03;
+	}
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -89,9 +102,11 @@ class sdBomb extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		if ( !this.held_by )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		}
 		
 		let GSPEED_scaled = sdGun.HandleTimeAmplification( this, GSPEED );
 		
@@ -139,6 +154,7 @@ class sdBomb extends sdEntity
 					owner: this._owner,
 					can_hit_owner: true,
 					color:sdEffect.default_explosion_color,
+					shrapnel: true,
 					
 					anti_shield: ( this.type === sdBomb.TYPE_ANTI_BASE )
 				});
@@ -166,37 +182,38 @@ class sdBomb extends sdEntity
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + Math.ceil( this.detonation_in / 30 ) + "s )" );
 		else
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + T("disarmed") + " )" );
+	
+		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		
-		let xx = 0;
+		if ( this.held_by === null || attached )
+		{
+			let xx = 0;
 
-		if ( this.hea <= 0 )
-		{
-			if ( this.hea < -70 )
-			ctx.globalAlpha = 0.5;
-				
-			xx = 1;
-			//ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
-			
-			ctx.globalAlpha = 1;
-		}
-		else
-		if ( this.detonation_in < 30 )
-		xx = 2;
-		//ctx.drawImageFilterCache( sdBomb.img_beacon3, - 16, - 16, 32,32 );
-		else
-		{
-			if ( this.detonation_in % this._rate < this._rate / 2 )
-			xx = 0;
-			//ctx.drawImageFilterCache( sdBomb.img_beacon, - 16, - 16, 32,32 );
+			if ( this.hea <= 0 )
+			{
+				if ( this.hea < -70 )
+				ctx.globalAlpha = 0.5;
+
+				xx = 1;
+
+				ctx.globalAlpha = 1;
+			}
 			else
-			xx = 1;
-			//ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
+			if ( this.detonation_in < 30 )
+			xx = 2;
+			else
+			{
+				if ( this.detonation_in % this._rate < this._rate / 2 )
+				xx = 0;
+				else
+				xx = 1;
+			}
+			ctx.drawImageFilterCache( sdBomb.img_beacon, xx * 32, this.type * 32, 32,32, -16, -16, 32,32 );
 		}
-		ctx.drawImageFilterCache( sdBomb.img_beacon, xx * 32, this.type * 32, 32,32, -16, -16, 32,32 );
 	}
 	onRemove() // Class-specific, if needed
 	{

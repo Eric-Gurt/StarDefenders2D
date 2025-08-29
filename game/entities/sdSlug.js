@@ -53,6 +53,8 @@ class sdSlug extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this.held_by = null;
+		
 		this._hmax = 150; // Still can kill new players at 300 if player does not run away or does not have medikit // 500
 		this._hea = this._hmax;
 		this._move_timer = 30; // Timer used for moving when unprovoked
@@ -138,21 +140,24 @@ class sdSlug extends sdEntity
 	get mass() { return 30; } // 75
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 		//this.sy += y / ( this.mass / 2 ); // Impulse is something that defines how entity bounces off damage. Scaling Y impulse can cause it to be knocked into wrong direction?
 	}
-	/* Default fall damage
-	Impact( vel ) // fall damage basically
+	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
-		if ( vel > 10 ) // less fall damage
-		{
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
-		}
-	}*/
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let in_water = sdWater.all_swimmers.has( this );
 		
 		
 		if ( this._hea <= 0 )
@@ -294,14 +299,17 @@ class sdSlug extends sdEntity
 			this.sy -= sdWorld.gravity * GSPEED * 2;
 		}
 		
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		sdWorld.last_hit_entity = null;
-		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-		
-		if ( sdWorld.last_hit_entity ) // ApplyVelocityAndCollisions sets value to sdWorld.last_hit_entity which can be reused to figure out if Slug collides with something. It can also set nothing if it entity physically sleeps, which is another sign of collision 
-		this._last_stand_when = sdWorld.time;
+		if ( !this.held_by )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+
+			sdWorld.last_hit_entity = null;
+
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+
+			if ( sdWorld.last_hit_entity ) // ApplyVelocityAndCollisions sets value to sdWorld.last_hit_entity which can be reused to figure out if Slug collides with something. It can also set nothing if it entity physically sleeps, which is another sign of collision 
+			this._last_stand_when = sdWorld.time;
+		}
 		
 		if ( this._hea < this._hmax && this._hea > 0 ) // If provoked then become hostile
 		//if ( this.death_anim === 0 )
@@ -361,7 +369,7 @@ class sdSlug extends sdEntity
 				if ( this._hibernation_check_timer < 0 )
 				{
 					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
-+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}
@@ -373,7 +381,11 @@ class sdSlug extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, this.title );
+		{
+			sdEntity.Tooltip( ctx, this.title );
+
+			this.BasicCarryTooltip( ctx, 8 );
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -387,66 +399,69 @@ class sdSlug extends sdEntity
 			ctx.filter = 'hue-rotate(' + this.hue + 'deg)';
 		}
 
-		ctx.scale( this.side, 1 );
-		
-		let xx = 0;
-		let yy = 0;
-		
-		let draw_eyes = false;
-
-		if ( this.death_anim > 0 )
+		if ( this.held_by === null || attached )
 		{
-			if ( this.death_anim > sdSlug.death_duration + sdSlug.post_death_ttl - 30 )
-			{
-				ctx.globalAlpha = 0.5;
-			}
-			
-			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdSlug.death_duration ) * 4 ) );
-			yy = 1;
+			ctx.scale( this.side, 1 );
 
-			/*
-			if ( xx === 3 ) // 4 makes it disappear
-			{
-				yy = 2;
-				xx = 0;
-			}
-			*/
+			let xx = 0;
+			let yy = 0;
 
-			//let frame = Math.min( sdSlug.death_imgs.length - 1, ~~( ( this.death_anim / sdSlug.death_duration ) * sdSlug.death_imgs.length ) );
-			//ctx.drawImageFilterCache( sdSlug.death_imgs[ frame ], - 16, - 16, 32,32 );
-		}
-		else
-		{
-			//if ( Math.abs( this.sx ) < 2 )
-			//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
-			if ( this.time_since_jump < 400 / 1000 * 30 )
+			let draw_eyes = false;
+
+			if ( this.death_anim > 0 )
 			{
-				xx = Math.min( ( this.time_since_jump < 200 / 1000 * 30 ) ? 1 : 2 );
-				yy = 0;
-				//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
-				//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+				if ( this.death_anim > sdSlug.death_duration + sdSlug.post_death_ttl - 30 )
+				{
+					ctx.globalAlpha = 0.5;
+				}
+
+				xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdSlug.death_duration ) * 4 ) );
+				yy = 1;
+
+				/*
+				if ( xx === 3 ) // 4 makes it disappear
+				{
+					yy = 2;
+					xx = 0;
+				}
+				*/
+
+				//let frame = Math.min( sdSlug.death_imgs.length - 1, ~~( ( this.death_anim / sdSlug.death_duration ) * sdSlug.death_imgs.length ) );
+				//ctx.drawImageFilterCache( sdSlug.death_imgs[ frame ], - 16, - 16, 32,32 );
 			}
 			else
 			{
-				//ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
-				draw_eyes = true;
+				//if ( Math.abs( this.sx ) < 2 )
+				//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
+				if ( this.time_since_jump < 400 / 1000 * 30 )
+				{
+					xx = Math.min( ( this.time_since_jump < 200 / 1000 * 30 ) ? 1 : 2 );
+					yy = 0;
+					//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+					//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+				}
+				else
+				{
+					//ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
+					draw_eyes = true;
 
-				//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
+					//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
+				}
 			}
-		}
-		ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
-		
-		if ( draw_eyes )
-		{
-			let locations = [
-				-22,
-				-16,
-				-10
-			];
-			
-			for ( let i = 0; i < 3; i++ )
-			if ( this.blinks[ i ] )
-			ctx.drawImageFilterCache( sdSlug.img_slug, 96,0,32,32,  locations[ i ], -16, 32,32 );
+			ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
+
+			if ( draw_eyes )
+			{
+				let locations = [
+					-22,
+					-16,
+					-10
+				];
+
+				for ( let i = 0; i < 3; i++ )
+				if ( this.blinks[ i ] )
+				ctx.drawImageFilterCache( sdSlug.img_slug, 96,0,32,32,  locations[ i ], -16, 32,32 );
+			}
 		}
 		
 		ctx.globalAlpha = 1;

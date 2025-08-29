@@ -15,6 +15,7 @@ import sdSandWorm from './sdSandWorm.js';
 import sdJunk from './sdJunk.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdCouncilMachine from './sdCouncilMachine.js';
+import sdCouncilNullifier from './sdCouncilNullifier.js';
 import sdWeather from './sdWeather.js';
 
 
@@ -160,6 +161,7 @@ class sdBeamProjector extends sdEntity
 		if ( !this._last_event_entity || this._last_event_entity._is_being_removed )
 		{
 			this._last_event_entity = null;
+			this.enabled = true;
 			if ( this._add_difficulty ) // Add difficulty? Only if event entity spawned and was destroyed.
 			{
 				this._add_difficulty = false;
@@ -168,6 +170,7 @@ class sdBeamProjector extends sdEntity
 				this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
 				
 				if ( this.progress >= 50 ) // 2nd phase? Spawn a mini Council worm aswell
+				if ( !sdWeather.only_instance._chill )
 				{
 					let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5 });
 
@@ -249,6 +252,7 @@ class sdBeamProjector extends sdEntity
 				this._spawn_drones_timer = 30 + ( Math.random() * 15 ); // Fastest
 			
 				if ( this.HasPlayersNearby() ) // Only when players are near the projector
+				if ( !sdWeather.only_instance._chill )
 				{
 					let drone = new sdDrone({ x:0, y:0 , type: 18 });
 
@@ -359,25 +363,30 @@ class sdBeamProjector extends sdEntity
 		else
 		{
 			this._spawn_event_timer = 30 * 60 * 8 + ( Math.random() * 30 * 60 * 4 ); // 8-12 minutes per event
-			let event_type = Math.floor( Math.random() * 3 );
+			let event_type = Math.floor( Math.random() * 4 );
 			let ents = 0;
 			let ents_tot = 1;
+			let spawned_event = false;
 
 			while ( ents < ents_tot )
 			{
 				let ent;
-				if ( event_type === 0 ) // Council bomb?
+				
+				// Event type 0 is Council Nullifier, which spawns in the distance rather than next to the beam projector.
+				
+				if ( event_type === 1 ) // Council bomb?
 				ent = new sdJunk({ x:0, y:0, type: sdJunk.TYPE_COUNCIL_BOMB });
 				
-				if ( event_type === 1 ) // Council incinerator?
+				if ( event_type === 2 ) // Council incinerator?
 				ent = new sdCouncilIncinerator({ x:0, y:0 });
 				
-				if ( event_type >= 2 ) // Council portal machine?
+				if ( event_type >= 3 ) // Council portal machine?
 				ent = new sdCouncilMachine({ x:0, y:0, one_time_spawn: true, detonation_in: 30 * 60 * 3 });
+				
 
-				sdEntity.entities.push( ent );
-
+				if ( event_type !== 0 ) // Not a Council Nullifier?
 					{
+						sdEntity.entities.push( ent );
 						let x,y;
 						let tr = 100;
 						do
@@ -404,7 +413,7 @@ class sdBeamProjector extends sdEntity
 								ent.y = y;
 								this._last_event_entity = ent;
 								this._add_difficulty = true;
-								
+								spawned_event = true;
 								sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5 });
 								sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 								break;
@@ -415,12 +424,36 @@ class sdBeamProjector extends sdEntity
 							{
 								ent.remove();
 								ent._broken = false;
-										
+								spawned_event = false;
 								break;
 							}
 						} while( true );
 					}
 				ents++;
+			}
+			if ( !spawned_event || event_type === 0 ) // Didn't spawn one of the regular events (or event_type is 0)? Spawn a nullifier to halt progress instead
+			{
+				let nullifier = [];
+					
+					sdWeather.SimpleSpawner({
+						count: [ 1, 1 ],
+						class: sdCouncilNullifier,
+						store_ents: nullifier,
+						aerial: true,
+						aerial_radius: 128
+					})
+				if ( nullifier.length !== 0 ) // Spawned succesfully?
+				{
+					nullifier[ 0 ]._ent_to_nullify = this;
+					this._last_event_entity = nullifier[ 0 ]; // Set as event entity
+					this.enabled = false; // And disable itself until it nullifier is destroyed
+					this._add_difficulty = true;
+					sdSound.PlaySound({ name:'council_teleport', x:nullifier[ 0 ].x, y:nullifier[ 0 ].y, volume:0.5 });
+					sdWorld.SendEffect({ x:nullifier[ 0 ].x, y:nullifier[ 0 ].y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+				}
+				else // Try again in a minute
+				this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
+					
 			}
 		}
 		
@@ -431,6 +464,7 @@ class sdBeamProjector extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
+			if ( !sdWeather.only_instance._chill )
 			while ( sd_soldiers < sd_soldiers_tot )
 			{
 
@@ -560,7 +594,7 @@ class sdBeamProjector extends sdEntity
 					mission: sdTask.MISSION_PROTECT_ENTITY,				
 					title: 'Protect dark matter beam projector',
 					description: desc,
-					difficulty: 0.1
+					difficulty: 1
 				});
 			}
 			if ( !this._ai_told_player )

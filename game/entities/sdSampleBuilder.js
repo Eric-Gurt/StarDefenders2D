@@ -39,10 +39,10 @@ class sdSampleBuilder extends sdEntity
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return -16; }
-	get hitbox_y2() { return 16; }
+	get hitbox_x1() { return -this.half_size; }
+	get hitbox_x2() { return this.half_size; }
+	get hitbox_y1() { return -this.half_size; }
+	get hitbox_y2() { return this.half_size; }
 	
 	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
 	{
@@ -132,6 +132,8 @@ class sdSampleBuilder extends sdEntity
 		this.error_text = '';
 		
 		this.last_cost = 1;
+		
+		this.half_size = params.half_size || 16; // or 8
 		
 		this.matter = 0;
 		this.matter_max = ( this.type === sdSampleBuilder.TYPE_BUILDER ) ? 500 : 0;
@@ -336,8 +338,12 @@ class sdSampleBuilder extends sdEntity
 		return `Connect sample area to sample builder and use connected button or switch to start building. Requires matter to build. Sample builder can alternatively extract items from cable-connected storages (starting with oldest).`;
 	}
 	
+	get spawn_align_x(){ return this.half_size; };
+	get spawn_align_y(){ return this.half_size; };
+	
 	Draw( ctx, attached )
 	{
+		let xx = 0;
 		let yy = 0;
 		
 		if ( this.type === sdSampleBuilder.TYPE_SAMPLER )
@@ -367,8 +373,19 @@ class sdSampleBuilder extends sdEntity
 				}
 			}
 		}
+		
+		if ( this.half_size === 16 )
+		{
+		}
+		else
+		if ( this.half_size === 8 )
+		{
+			xx += 1;
+		}
+		else
+		debugger;
 
-		ctx.drawImageFilterCache( sdSampleBuilder.img_sample_builder, 0, yy * 32, 32, 32, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdSampleBuilder.img_sample_builder, xx * 32, yy * 32, this.half_size*2, this.half_size*2, - this.half_size, - this.half_size, this.half_size*2,this.half_size*2 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -516,13 +533,13 @@ class sdSampleBuilder extends sdEntity
 			
 			let x,y,a,s;
 			let step_size = 4;
-			for ( x = step_size / 2; x < 32; x += step_size )
-			for ( y = step_size / 2; y < 32; y += step_size )
-			if ( Math.abs( 16 - x ) > 7 && Math.abs( 16 - y ) > 7 )
+			for ( x = -this.half_size + step_size / 2; x < this.half_size; x += step_size )
+			for ( y = -this.half_size + step_size / 2; y < this.half_size; y += step_size )
+			//if ( Math.abs( 16 - x ) > 7 && Math.abs( 16 - y ) > 7 )
 			{
 				a = Math.random() * 2 * Math.PI;
 				s = Math.random() * 4;
-				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
+				let ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
 				sdEntity.entities.push( ent );
 			}
 		}
@@ -536,7 +553,7 @@ class sdSampleBuilder extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if (
 				(
-					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 )
+					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, this.half_size + 30 )
 					&&
 					executer_socket.character.canSeeForUse( this )
 				)
@@ -548,11 +565,13 @@ class sdSampleBuilder extends sdEntity
 				{
 					this.admin_mode = 1 - this.admin_mode;
 					this._update_version++;
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				}
 				if ( command_name === 'TOGGLE_ENABLED' )
 				{
 					this.toggle_enabled = !this.toggle_enabled;
 					this._update_version++;
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				}
 			}
 		}
@@ -563,7 +582,7 @@ class sdSampleBuilder extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, this.half_size + 30 ) )
 		if ( exectuter_character.canSeeForUse( this ) )
 		{
 			if ( exectuter_character._god )

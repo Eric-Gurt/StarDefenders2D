@@ -175,12 +175,10 @@ class sdMusic
 		// Needs some cutting at the start and end
 		// Can use commercially without contacting author for now
 		
-		/*
-		Some scary/creepy monsters (flesh-based?)
-		https://www.newgrounds.com/audio/listen/1355583
-		// Author needs to be contacted, uses some 3rd party samples?
-		// Sent DM on Newgrounds
-		*/
+		// Some scary/creepy monsters (flesh-based?)
+		CreateSituationalSong({ title: 'AnxLyen - Behold, Death', url: 'https://www.newgrounds.com/audio/listen/1355583', file: '1355583_Behold-Death', tags: 'flesh, abomination, mimic, worm, lost' });
+		// UPD 2025: AnxLyen replied with: SURE THING! You can use it
+		
 	   
 		// Add songs at the end, above this line
 		

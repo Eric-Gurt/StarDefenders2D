@@ -149,7 +149,8 @@ class sdTutel extends sdEntity
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					can_hit_owner: false,
-					color:'#51b5ad' 
+					color:'#51b5ad',
+					no_smoke: true
 				});
 			}
 		}
@@ -188,7 +189,7 @@ class sdTutel extends sdEntity
 		sdWorld.last_hit_entity = null;
 		
 		let in_water = sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1, this.x + this._hitbox_x2, this.y + this._hitbox_y2, null, null, sdWater.water_class_array );
-		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		//let in_water = sdWater.all_swimmers.has( this );
 		
 		
 		if ( this._hea <= 0 )

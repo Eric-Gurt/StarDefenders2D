@@ -90,6 +90,7 @@ class sdGuanako extends sdEntity
 		
 		this.crystal = from_entity;
 		this.crystal.held_by = this;
+		this.crystal.onCarryStart();
 	}
 	DropCrystal( throw_away=false )
 	{
@@ -110,11 +111,12 @@ class sdGuanako extends sdEntity
 				}
 				
 				this.crystal.held_by = null;
-				this.crystal.PhysWakeUp();
+				this.crystal.onCarryEnd();
 			}
 			else
 			{
 				this.crystal.held_by = null;
+				this.crystal.onCarryEnd();
 			}
 			this.crystal = null;
 		}

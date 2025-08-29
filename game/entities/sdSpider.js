@@ -248,7 +248,7 @@ class sdSpider extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let in_water = sdWater.all_swimmers.has( this );
 		
 		if ( this._hea <= 0 )
 		{

@@ -5,6 +5,8 @@
 		Make use of keycard registeration, like ._net_id, could be seperated with sdInventory or sdWhateverItsCalled
 		sdCable support on sdButton
 
+	Note: sdButton-s should not be able to do damage/affect items near them unless wired. If this is no longer true - update CanAPassThroughB in sdSteeringWheel
+
 */
 
 /* global Infinity, sdModeration */
@@ -21,6 +23,7 @@ import sdTurret from './sdTurret.js';
 import sdSampleBuilder from './sdSampleBuilder.js';
 import sdSteeringWheel from './sdSteeringWheel.js';
 import sdLiquidAbsorber from './sdLiquidAbsorber.js';
+import sdConveyor from './sdConveyor.js';
 
 import sdSound from '../sdSound.js';
 
@@ -99,7 +102,7 @@ class sdButton extends sdEntity
 		return 'Name sensor';
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
-		return 'Elevator callback sensor';
+		return 'Elevator motor callback sensor';
 	
 		return 'Button';
 	}
@@ -109,7 +112,7 @@ class sdButton extends sdEntity
 		return `Directional buttons to be used along with elevator motors. Make sure your elevator motor has elevator path built with background walls.`;
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
-		return `Reacts to elevator motors. Isn\'t switched off automatically, unless one of controlled elevator stops.`;
+		return `Reacts to elevator motors. Does not switch off automatically, unless one of controlled elevators stops.`;
 	
 		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields etc.`;
 	}
@@ -178,7 +181,11 @@ class sdButton extends sdEntity
 		this._regen_timeout = 0;
 		this.activated = false;
 		
+		this._owner = null; // Updated when used
+		
 		this.react_to_doors = false;
+		
+		this._last_sound = 0;
 		
 		//this.owner_biometry = -1;
 		
@@ -223,6 +230,15 @@ class sdButton extends sdEntity
 				//this.SetActivated( true );
 
 				this._overlapped_net_ids.push( from_entity._net_id );
+				
+				if ( from_entity.IsPlayerClass() )
+				this._owner = from_entity;
+				else
+				if ( typeof from_entity.owner !== 'undefined' && from_entity.owner !== null )
+				this._owner = from_entity.owner;
+				else
+				if ( typeof from_entity._owner !== 'undefined' && from_entity._owner !== null )
+				this._owner = from_entity._owner;
 			}
 
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -296,6 +312,7 @@ class sdButton extends sdEntity
 					if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 					{
 						if ( e.is( sdSteeringWheel ) && e.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+						if ( Math.abs( e.x - this.x ) <= 1 && Math.abs( e.y - this.y ) <= 1 )
 						v += 1;
 					}
 					else
@@ -480,6 +497,7 @@ class sdButton extends sdEntity
 				...this.FindObjectsInACableNetwork( null, sdAntigravity, true ), 
 				...this.FindObjectsInACableNetwork( null, sdSampleBuilder, true ), 
 				...this.FindObjectsInACableNetwork( null, sdSteeringWheel, true ), 
+				...sdConveyor.AppendConnectedConveyorsToArray( this.FindObjectsInACableNetwork( null, sdConveyor, true ) ), 
 				...this.FindObjectsInACableNetwork( null, sdLiquidAbsorber, true ) 
 			]; // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
@@ -495,15 +513,15 @@ class sdButton extends sdEntity
 				return true;
 			};
 			
-			const MeasureDelayAndDo = ( path, ent, then )=>
+			const MeasureDelayAndDo = ( path, ent, vv, then )=>
 			{
 				let delay = 0;
 				
-				if ( !this.activated )
+				/*if ( !this.activated )
 				{
 					// Skip delays on deactivation? This will allow ping-pong movement for elevator movements when delay is added
 				}
-				else
+				else*/
 				for ( let i2 = 0; i2 < path.length; i2++ ) // 0 is button/sensor
 				{
 					let node = path[ i2 ];
@@ -513,7 +531,8 @@ class sdButton extends sdEntity
 					if ( node.is( sdNode ) )
 					if ( node.type === sdNode.TYPE_SIGNAL_DELAYER )
 					{
-						setTimeout( ()=>{
+						setTimeout( ()=>
+						{
 							
 							let fail = false;
 							for ( let i2 = 0; i2 <= i2_copy; i2++ )
@@ -526,22 +545,23 @@ class sdButton extends sdEntity
 							//if ( !node._is_being_removed )
 							if ( !fail )
 							{
-								node.variation = 1;
+								node.variation = vv ? 1 : 2;
 								node._update_version++;
 								
 								sdSound.PlaySound({ name:'sd_beacon_disarm', x:node.x, y:node.y, volume:0.5, pitch:8 });
 							}
 						}, delay );
-						setTimeout( ()=>{
+						setTimeout( ()=>
+						{
 							if ( !node._is_being_removed )
 							{
 								node.variation = 0;
 								node._update_version++;
 							}
-						}, delay + 500 );
+						}, delay + node.delay );
 
 
-						delay += 500;
+						delay += node.delay;
 					}
 				}
 				
@@ -631,7 +651,7 @@ class sdButton extends sdEntity
 				if ( !IsPathTraversable( path ) )
 				continue;
 			
-				MeasureDelayAndDo( path, door, ()=>
+				MeasureDelayAndDo( path, door, vv, ()=>
 				{
 					door.open_type = sdDoor.OPEN_TYPE_BUTTON;
 
@@ -643,6 +663,8 @@ class sdButton extends sdEntity
 						{
 							door._entities_within_sensor_area.push( door._net_id );
 							door.Open();
+							
+							door._owner = this._owner;
 						}
 					}
 					else
@@ -650,6 +672,8 @@ class sdButton extends sdEntity
 					{
 						door._entities_within_sensor_area.splice( id, 1 );
 						door.opening_tim = 0.000001; // Micro value so sound can play
+						
+						door._owner = this._owner;
 					}
 				});
 			}
@@ -678,7 +702,7 @@ class sdButton extends sdEntity
 					trace('visited 161235055 node');
 				}*/
 				
-				MeasureDelayAndDo( path, antigravity, ()=>
+				MeasureDelayAndDo( path, antigravity, vv, ()=>
 				{
 					if ( typeof antigravity._update_version !== 'undefined' )
 					antigravity._update_version++;
@@ -711,7 +735,15 @@ class sdButton extends sdEntity
 					antigravity.onToggleEnabledChange();
 					
 					if ( vv )
-					antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					{
+						antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						
+						if ( typeof antigravity._owner !== 'undefined' )
+						antigravity._owner = this._owner;
+						
+						if ( typeof antigravity.owner !== 'undefined' )
+						antigravity.owner = this.owner;
+					}
 				});
 			}
 			for ( let i = 0; i < turrets.length; i++ )
@@ -732,7 +764,7 @@ class sdButton extends sdEntity
 				continue;
 				
 				
-				MeasureDelayAndDo( path, turret, ()=>
+				MeasureDelayAndDo( path, turret, vv, ()=>
 				{
 					turret._update_version++;
 
@@ -752,6 +784,8 @@ class sdButton extends sdEntity
 						}
 
 						turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						
+						turret._owner = this._owner;
 					}
 					else
 					{
@@ -771,19 +805,24 @@ class sdButton extends sdEntity
 				node._update_version++;
 			}
 			
-			if ( this.type === sdButton.TYPE_WALL_SWITCH )
+			if ( sdWorld.time > this._last_sound + 150 )
 			{
-				if ( v )
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.5 });
+				this._last_sound = sdWorld.time;
+				
+				if ( this.type === sdButton.TYPE_WALL_SWITCH )
+				{
+					if ( v )
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.5 });
+					else
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.5 });
+				}
 				else
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.5 });
-			}
-			else
-			{
-				if ( v )
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.1 });
-				else
-				sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.1 });
+				{
+					if ( v )
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3.5, x:this.x, y:this.y, volume:0.1 });
+					else
+					sdSound.PlaySound({ name:'cut_droid_alert', pitch: 3, x:this.x, y:this.y, volume:0.1 });
+				}
 			}
 
 			/*if ( v )
@@ -807,6 +846,8 @@ class sdButton extends sdEntity
 				)
 			)
 		{
+			this._owner = exectuter_character;
+				
 			if ( this.type === sdButton.TYPE_WALL_BUTTON || this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 			{
 				if ( command_name === 'PRESS_BUTTON' )

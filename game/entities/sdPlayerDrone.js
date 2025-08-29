@@ -19,7 +19,7 @@ class sdPlayerDrone extends sdCharacter
 	static init_class()
 	{
 		//sdPlayerDrone.img_player_drone = sdWorld.CreateImageFromFile( 'drone_robot2' );
-		sdPlayerDrone.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
+		//sdPlayerDrone.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 		
 		sdPlayerDrone.drone_helmets = [
 			null, // 0
@@ -291,7 +291,7 @@ class sdPlayerDrone extends sdCharacter
 		{
 			this.ManagePlayerFlashLight();
 			
-			this.ManagePlayerVehicleEntrance();
+			this.ManagePlayerVehicleEntrance( GSPEED );
 			
 			if ( this._key_states.GetKey( 'KeyV' ) )
 			this.MatterGlow( 0.1, 30, GSPEED );
@@ -585,7 +585,9 @@ class sdPlayerDrone extends sdCharacter
 
 						this.grabbed.Impulse( dx * p, 
 											  dy * p );
-
+											  
+						if ( this.grabbed.is( sdBullet ) )
+						this.grabbed._owner = this;
 
 						if ( this.grabbed.is( sdCube ) )
 						this.grabbed.PlayerIsHooked( this, GSPEED );
@@ -603,6 +605,18 @@ class sdPlayerDrone extends sdCharacter
 			
 			if ( this.act_x !== 0 || this.act_y !== 0 )
 			this.PhysWakeUp();
+
+			if ( Math.random() < 1 / 3 )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( this.grabbed )
+			{
+				let ent = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.grabbed.x, y:this.grabbed.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' }); // Different color to be distinguishable from gravity gun
+				let ent2 = new sdEffect({ type: sdEffect.TYPE_GLOW_ALT, x:this.x, y:this.y, sx:0, sy:0, scale:1, radius:1, color:'#80ffff' });
+				
+				sdSound.PlaySound({ name:'gravity_gun', x:this.x, y:this.y, volume:1.25, pitch:0.8, _server_allowed: true });
+				
+				sdEntity.entities.push( ent, ent2 )
+			}
 		}
 		
 		this.HandlePlayerPowerups( GSPEED );
@@ -657,11 +671,11 @@ class sdPlayerDrone extends sdCharacter
 			ctx.filter = 'none';
 			ctx.globalAlpha = 0.5;
 			
-			ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
+			/*ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
 			
 			ctx.translate( this.grabbed.x + ( this.grabbed._hitbox_x1 + this.grabbed._hitbox_x2 ) / 2 - this.x, this.grabbed.y + ( this.grabbed._hitbox_y1 + this.grabbed._hitbox_y2 ) / 2 - this.y );
 			
-			ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
+			ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );*/
 			
 			ctx.globalAlpha = 1;
 			ctx.blend_mode = THREE.NormalBlending;
@@ -726,9 +740,9 @@ class sdPlayerDrone extends sdCharacter
 					{
 						ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
 					}
-					else
+					/*else
 					if ( this.grabbed )
-					ctx.filter = 'brightness(3)';
+					ctx.filter = 'brightness(3)';*/
 					else
 					ctx.filter = 'none';
 

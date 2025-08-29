@@ -24,6 +24,7 @@ import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
 import sdDoor from './sdDoor.js';
 import sdCamera from './sdCamera.js';
+import sdAsteroid from './sdAsteroid.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBG from './sdBG.js';
@@ -85,6 +86,10 @@ class sdBaseShieldingUnit extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return false; }
 	
+	IsPhysicallyMovable() // By physics (not steering wheels). Incorrect value can crash the game or cause players to stuck in place when trying to push entity
+	{
+		return !this.enabled;
+	}
 	
 	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	//{ return true; }
@@ -99,6 +104,18 @@ class sdBaseShieldingUnit extends sdEntity
 	}
 	RequireSpawnAlign() 
 	{ return false; }
+	
+	onFleshifyAttempted()
+	{
+		if ( this._flesh_infestation_counter === 0 )
+		{
+			this._flesh_infestation_allowed_in = sdWorld.time + sdAsteroid.GetProtetedBlockInfestationDelay();
+		}
+		
+		this._flesh_infestation_counter++;
+		
+		return ( sdWorld.time >= this._flesh_infestation_allowed_in );
+	}
 
 	constructor( params )
 	{
@@ -110,6 +127,9 @@ class sdBaseShieldingUnit extends sdEntity
 		this.sy = 0;
 		
 		this._time_amplification = 0;
+		
+		this._flesh_infestation_counter = 0; // Grows up overtime if something tries to infestate it, resets on re-enabling BSU
+		this._flesh_infestation_allowed_in = 0; // Becomes timestamp once counter becomes 1 or more
 		
 		this._connected_cameras_cache = [];
 		this._connected_cameras_cache_last_rethink = 0;
@@ -259,6 +279,66 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				if ( sdWorld.inDist2D_Boolean( s.x, s.y, x, y, sdBaseShieldingUnit.protect_distance ) )
 				return false;
+			}
+		}
+		
+		return true;
+	}
+	static IsMobSpawnAllowed( x, y ) // Just like TestIfPointIsOutsideOfBSURanges, except it allows mobs to be placed within range of BSU but only if furthest protected wall towards mob is closer than mob
+	{
+		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+		{
+			let s = sdBaseShieldingUnit.all_shield_units[ i ];
+
+			if ( s.enabled )
+			if ( s.type !== sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+			{
+				if ( sdWorld.inDist2D_Boolean( s.x, s.y, x, y, sdBaseShieldingUnit.protect_distance ) )
+				{
+					let dx = x - s.x;
+					let dy = y - s.y;
+					let di = sdWorld.Dist2D_Vector( dx, dy );
+					
+					if ( di < 16 )
+					return false;
+				
+					dx = dx / di * sdBaseShieldingUnit.protect_distance;
+					dy = dy / di * sdBaseShieldingUnit.protect_distance;
+					
+					// This make it impossible for it to spawn mobs in-between 2 BSUs that protect single big room, even if these BSUs are of different types
+					let all_nearby_bsus = new Set();
+					for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+					{
+						let s2 = sdBaseShieldingUnit.all_shield_units[ i ];
+
+						if ( s2.enabled )
+						if ( s2.type !== sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+						if ( sdWorld.inDist2D_Boolean( s2.x, s2.y, s.x, s.y, sdBaseShieldingUnit.protect_distance * 2 ) )
+						all_nearby_bsus.add( s2 );
+					}
+					
+					let bsu_ownership_filter = ( e )=>
+					{
+						if ( e._shielded )
+						if ( all_nearby_bsus.has( e._shielded ) )
+						//if ( e._shielded === s )
+						return true;
+				
+						return false;
+					};
+					
+					let hit_point = sdWorld.TraceRayPoint( s.x + dx, s.y + dy, s.x, s.y, null, null, sdCom.com_protectable_solid_classes, bsu_ownership_filter );
+					
+					if ( hit_point )
+					{
+						let furthest_wall_distance = sdWorld.Dist2D_Vector_pow2( hit_point.x - s.x, hit_point.y - s.y );
+						
+						let distance_towards_potential_mob = sdWorld.Dist2D_Vector_pow2( x - s.x, y - s.y );
+						
+						if ( distance_towards_potential_mob < furthest_wall_distance )
+						return false;
+					}
+				}
 			}
 		}
 		
@@ -659,6 +739,9 @@ class sdBaseShieldingUnit extends sdEntity
 			return;
 		}
 		
+		this._flesh_infestation_counter = 0;
+		this._flesh_infestation_allowed_in = 0;
+		
 		if ( enable )
 		{
 			this._protected_entities_when_disabled = null;
@@ -846,6 +929,10 @@ class sdBaseShieldingUnit extends sdEntity
 			
 			sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 		}
+	}
+	IsPhysicallyMovable()
+	{
+		return !this.enabled;
 	}
 	get mass() { return ( this.enabled ) ? 500 : 35; }
 	Impulse( x, y )

@@ -2016,6 +2016,7 @@ io.on( 'connection', ( socket )=>
 			{
 				if ( url.indexOf( 'localhost' ) === -1 ) // No point in these as they can't be accessed from outside anyway
 				if ( url.indexOf( '127.0.0.1' ) === -1 ) // No point in these as they can't be accessed from outside anyway
+				if ( url.indexOf( '[::1]' ) === -1 ) // No point in these as they can't be accessed from outside anyway
 				sdWorld.server_url = url;
 			}
 		}
@@ -2628,9 +2629,11 @@ io.on( 'connection', ( socket )=>
 							corrected = true;
 
 							const overlap = 0.001; // 1
+							
+							let filter = socket.character.GetCurrentCollisionFilter();
 
 							for ( let i = 1; i > 0; i -= 1 / steps )
-							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy * i, overlap ) )
+							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy * i, overlap, filter ) )
 							{
 								corrected = false;
 								break;
@@ -2642,7 +2645,7 @@ io.on( 'connection', ( socket )=>
 
 								// Up
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x, socket.character.y + dy * i, overlap ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x, socket.character.y + dy * i, overlap, filter ) )
 								{
 									corrected = false;
 									break;
@@ -2651,7 +2654,7 @@ io.on( 'connection', ( socket )=>
 								// Then to right
 								if ( corrected )
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy, overlap ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy, overlap, filter ) )
 								{
 									corrected = false;
 									break;
@@ -2665,7 +2668,7 @@ io.on( 'connection', ( socket )=>
 
 								// Right
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y, overlap ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y, overlap, filter ) )
 								{
 									corrected = false;
 									break;
@@ -2674,7 +2677,7 @@ io.on( 'connection', ( socket )=>
 								// Then to up
 								if ( corrected )
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy * i, overlap ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy * i, overlap, filter ) )
 								{
 									corrected = false;
 									break;
@@ -2793,7 +2796,7 @@ io.on( 'connection', ( socket )=>
 					{
 					}
 					else
-					if ( !ent.IsDamageAllowedByAdmins() )
+					if ( ent.IsInSafeArea() )
 					{
 						socket.SDServiceMessage( 'Entity is in restricted area' );
 						return;

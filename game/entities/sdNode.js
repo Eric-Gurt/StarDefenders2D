@@ -3,9 +3,12 @@
 	Cable connection node, does nothing, stores some amount of matter just so it can transfer it
 
 */
+/* global sdShop, Set */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdCable from './sdCable.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
@@ -21,6 +24,7 @@ class sdNode extends sdEntity
 		sdNode.TYPE_SIGNAL_ONCE_OFF = 3; // Stops working after any signal was transmitted once
 		sdNode.TYPE_SIGNAL_TURRET_ENABLER = 4; // Makes turret shoot in specified direction
 		sdNode.TYPE_SIGNAL_DELAYER = 5;
+		sdNode.TYPE_SIGNAL_WIRELESS = 6;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -51,6 +55,9 @@ class sdNode extends sdEntity
 	
 		if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
 		return 'Signal-delaying cable connection node';
+	
+		if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
+		return 'Wireless connection node';
 	
 		return 'Cable connection node';
 	}
@@ -91,6 +98,7 @@ class sdNode extends sdEntity
 		this.type = params.type || sdNode.TYPE_NODE;
 		
 		this.variation = params.variation || 0; // In case of sdNode.TYPE_SIGNAL_TURRET_ENABLER it is an angle
+		this.delay = params.delay || 500; // For sdNode.TYPE_SIGNAL_DELAYER, can't use variation because variation reflects status for these
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
@@ -161,8 +169,24 @@ class sdNode extends sdEntity
 		
 		if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
 		xx = this.variation * 16;
+	
+		if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
+		{
+			if ( sdShop.isDrawing )
+			xx = 16;
+			else
+			xx = ( ( sdWorld.time + this._net_id * 482 ) % 5000 < 200 ) ? 0: 16;
+			
+			if ( this.variation === 1 ) ctx.sd_hue_rotation = -90;
+			if ( this.variation === 2 ) ctx.sd_hue_rotation = 120;
+			if ( this.variation === 3 ) ctx.filter = 'saturate(0)'; 
+			if ( this.variation === 4 ) ctx.sd_hue_rotation = 60;
+			if ( this.variation === 5 ) ctx.sd_hue_rotation = -60;
+		}
 		
 		ctx.drawImageFilterCache( sdNode.img_node, xx,this.type * 16,16,16, -8, -8, 16,16 );
+		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	MeasureMatterCost()
 	{
@@ -219,13 +243,60 @@ class sdNode extends sdEntity
 			if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
 			{
 				if ( command_name === 'VARIATION' )
+				if ( typeof parameters_array[ 0 ] === 'number' )
+				if ( !isNaN( parameters_array[ 0 ] ) )
+				if ( parameters_array[ 0 ] >= 0 && parameters_array[ 0 ] <= 7 )
 				{
-					if ( typeof parameters_array[ 0 ] === 'number' )
-					if ( !isNaN( parameters_array[ 0 ] ) )
-					if ( parameters_array[ 0 ] >= 0 && parameters_array[ 0 ] <= 7 )
+					this.variation = ~~( parameters_array[ 0 ] );
+					this._update_version++;
+				}
+			}
+			
+			if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
+			{
+				if ( command_name === 'SET_DELAY' )
+				if ( typeof parameters_array[ 0 ] === 'number' )
+				if ( !isNaN( parameters_array[ 0 ] ) )
+				{
+					this.delay = Math.max( 125, Math.min( 64000, ~~( parameters_array[ 0 ] ) ) );
+					this._update_version++;
+				}
+			}
+			
+			if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
+			{
+				if ( command_name === 'CUT_CABLES_BY_TYPE' )
+				{
+					let cable_type = parameters_array[ 0 ];
+					if ( typeof cable_type === 'number' )
 					{
-						this.variation = ~~( parameters_array[ 0 ] );
+						let set = sdCable.cables_per_entity.get( this );
+						if ( set )
+						for ( let cable of set )
+						if ( cable.t === cable_type )
+						cable.remove();
+					}
+				}
+				if ( command_name === 'WIRELESS_COLOR' )
+				{
+					let v = ~~( parameters_array[ 0 ] );
+					
+					if ( typeof v === 'number' )
+					if ( v >= 0 )
+					if ( v < 6 )
+					if ( !isNaN( v ) )
+					{
+						this.variation = v;
 						this._update_version++;
+						
+						let set = sdCable.cables_per_entity.get( this );
+						if ( set )
+						for ( let cable of set )
+						if ( cable.t === sdCable.TYPE_WIRELESS )
+						{
+							cable.v = this.variation;
+							cable._update_version++;
+						}
 					}
 				}
 			}
@@ -256,12 +327,26 @@ class sdNode extends sdEntity
 					let a = Math.round( i / 8 * 360 );
 					
 					if ( a > 180 )
-					{
-						a -= 360;
-					}
+					a -= 360;
 					
-					this.AddContextOption( 'Set angle to ' + a + ' degrees', 'VARIATION', [ i ] );
+					//this.AddContextOption( 'Set angle to ' + a + ' degrees', 'VARIATION', [ i ] );
+					this.AddContextOptionNoTranslation( T('Set angle to ') + a + T(' degrees'), 'VARIATION', [ i ], true, ( this.variation === i ) ? { color:'#00ff00' } : {} );
 				}
+			}
+			if ( this.type === sdNode.TYPE_SIGNAL_DELAYER )
+			{
+				for ( let a = 125; a <= 64000; a *= 2 )
+				this.AddContextOptionNoTranslation( T('Set delay to') + ' ' + a/1000 + ' ' +( ( a === 1000 ) ? T('second') : T('seconds') ), 'SET_DELAY', [ a ], true, ( this.delay === a ) ? { color:'#00ff00' } : {} );
+			}
+			if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
+			{
+				this.AddContextOption( 'Terminate all connections', 'CUT_CABLES_BY_TYPE', [ sdCable.TYPE_WIRELESS ] );
+				this.AddContextOption( 'Show connections as green', 'WIRELESS_COLOR', [ 0 ] );
+				this.AddContextOption( 'Show connections as red', 'WIRELESS_COLOR', [ 1 ] );
+				this.AddContextOption( 'Show connections as blue', 'WIRELESS_COLOR', [ 2 ] );
+				this.AddContextOption( 'Show connections as white', 'WIRELESS_COLOR', [ 3 ] );
+				this.AddContextOption( 'Show connections as cyan', 'WIRELESS_COLOR', [ 4 ] );
+				this.AddContextOption( 'Show connections as yellow', 'WIRELESS_COLOR', [ 5 ] );
 			}
 		}
 	}

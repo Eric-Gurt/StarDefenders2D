@@ -262,7 +262,7 @@ class sdPlayerOverlord extends sdCharacter
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 		
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let in_water = sdWater.all_swimmers.has( this );
 
 		if ( sdWorld.is_server )
 		{

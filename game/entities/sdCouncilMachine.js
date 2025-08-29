@@ -89,6 +89,7 @@ class sdCouncilMachine extends sdEntity
 		if ( Math.round( old_hea / ( this.hmax / 8 ) ) > Math.round( this.hea / ( this.hmax / 8 ) ) ) // Should spawn about 8 assault drones per machine
 		{
 			if ( initiator )
+			if ( !sdWeather.only_instance._chill )
 			{
 				let drone = new sdDrone({ x:0, y:0 , type: 18});
 
@@ -160,6 +161,7 @@ class sdCouncilMachine extends sdEntity
 				let instances = 0;
 				let instances_tot = 1;
 
+				if ( !sdWeather.only_instance._chill )
 				while ( instances < instances_tot && sdCouncilMachine.ents < 2 ) // Spawn another council machine until last one
 				{
 					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
@@ -209,9 +211,9 @@ class sdCouncilMachine extends sdEntity
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
 					{
 						if ( this._one_time_spawn === false )
-						task._difficulty = 0.18;
+						task._difficulty = 0.40;
 						else
-						task._difficulty = 0.05; // Beam projector scenario
+						task._difficulty = 0.10; // Beam projector scenario
 					}
 				}
 
@@ -341,11 +343,12 @@ class sdCouncilMachine extends sdEntity
 						desc = 'The Council is attempting to invade near the dark matter beam projector. Destroy the device!';
 
 						let diff = 0.001; // 0 sets it to 0.1 since it doesn't count as a parameter? It gets set to 0 when damaged enough before being destroyed if not the last one, just in case.
+						
 						if ( sdCouncilMachine.ents_left === 0 )
-						diff = 0.18; // Only last machine counts towards task points when destroyed, so the task is 100% complete
+						diff = 0.3; // Only last machine counts towards task points when destroyed, so the task is 100% complete
 					
 						if ( this._one_time_spawn )
-						diff = 0.05;
+						diff = 0.2;
 
 						sdTask.MakeSureCharacterHasTask({ 
 							similarity_hash:'DESTROY-'+this._net_id, 
@@ -389,6 +392,7 @@ class sdCouncilMachine extends sdEntity
 			if ( this._spawn_timer > 0 )
 			this._spawn_timer -= GSPEED;
 
+			if ( !sdWeather.only_instance._chill )
 			if ( this._spawn_timer <= 0 )
 			{
 				this._spawn_timer = 600; // Not too frequent spawns means players can focus on destroying the portal machine
@@ -455,7 +459,7 @@ class sdCouncilMachine extends sdEntity
 										if ( character_entity.hea <= 0 )
 										if ( !character_entity._is_being_removed )
 										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
 											character_entity.remove();
 										}
@@ -471,7 +475,7 @@ class sdCouncilMachine extends sdEntity
 							
 										if ( !character_entity._is_being_removed )
 										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
 											character_entity.remove();
 
@@ -531,7 +535,7 @@ class sdCouncilMachine extends sdEntity
 										drone.x = x;
 										drone.y = y;
 
-										sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
+										sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
 										sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
 										drone.SetTarget( this );
@@ -588,7 +592,7 @@ class sdCouncilMachine extends sdEntity
 										worm.x = x;
 										worm.y = y;
 
-										sdSound.PlaySound({ name:'teleport', x:worm.x, y:worm.y, volume:0.5 });
+										sdSound.PlaySound({ name:'council_teleport', x:worm.x, y:worm.y, volume:0.5 });
 										sdWorld.SendEffect({ x:worm.x, y:worm.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
 										//worm.SetTarget( this );

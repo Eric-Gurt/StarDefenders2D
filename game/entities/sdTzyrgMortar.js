@@ -302,7 +302,7 @@ class sdTzyrgMortar extends sdEntity
 
 									bullet_obj.sx *= 16 + ( Math.random() * 6 ); // Add some "spread" so it's not ideal
 									bullet_obj.sy *= 16 + ( Math.random() * 6 );
-									bullet_obj.model = 'rocket_proj';
+									bullet_obj.model = 'mortar_shell';
 									
 									bullet_obj._damage = 2;
 									bullet_obj.explosion_radius = 30;
@@ -366,7 +366,7 @@ class sdTzyrgMortar extends sdEntity
 								executer: sdWorld.sockets[ i ].character,
 								target: this,
 								mission: sdTask.MISSION_DESTROY_ENTITY,
-								difficulty: 0.05 * sdTask.GetTaskDifficultyScaler(),
+								difficulty: 0.3 * sdTask.GetTaskDifficultyScaler(),
 								title: 'Destroy Tzyrg mortar',
 								description: desc
 							});

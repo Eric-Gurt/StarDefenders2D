@@ -194,7 +194,7 @@ class sdDropPod extends sdEntity
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
 				if ( sdCharacter.characters[ i ]._ai )
-				if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
+				if ( ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 ) && sdCharacter.characters[ i ]._voice.variant !== 'clone' )
 				{
 					if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
 					ais++;
@@ -289,7 +289,7 @@ class sdDropPod extends sdEntity
 							target: character_entity,
 							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 							mission: sdTask.MISSION_LRTP_EXTRACTION,
-							difficulty: 0.14,
+							difficulty: 0.40,
 							//lrtp_ents_needed: 1,
 							title: 'Rescue Star Defender',
 							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'

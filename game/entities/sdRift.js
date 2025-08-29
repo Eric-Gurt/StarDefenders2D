@@ -193,7 +193,7 @@ class sdRift extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.1 * sdTask.GetTaskDifficultyScaler(),		
+						difficulty: 1 * sdTask.GetTaskDifficultyScaler(),		
 						title: 'Close the dimensional tear',
 						description: potential_description
 					});
@@ -643,7 +643,9 @@ class sdRift extends sdEntity
 						damage_scale: 0.01, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#33FFFF' 
+						color:'#33FFFF',
+						no_smoke: true,
+						shrapnel: true
 					});
 					from_entity.remove();
 				
@@ -661,7 +663,9 @@ class sdRift extends sdEntity
 					damage_scale: 0.01, // Just a decoration effect
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
-					color:'#33FFFF' 
+					color:'#33FFFF' ,
+					no_smoke: true,
+					shrapnel: true
 				});
 				//Relocate the anomaly
 				this.teleport_alpha = 0;
@@ -768,7 +772,9 @@ class sdRift extends sdEntity
 			damage_scale: 0.01, // Just a decoration effect
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this,
-			color:'#FFFFFF' 
+			color:'#FFFFFF',
+			no_smoke: true,
+			shrapnel: true
 		});
 	}
 	onRemoveAsFakeEntity()

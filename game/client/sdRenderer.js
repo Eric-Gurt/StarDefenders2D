@@ -41,6 +41,9 @@ class sdRenderer
 		
 		sdRenderer.dark_tint = 1;
 		
+		sdRenderer.debug_nothing_screen = false;
+		sdRenderer._quake_screen_shake_since = 0;
+		
 		sdRenderer.line_of_sight_mode = true;
 		
 		sdRenderer.single_player_visibles_array = [];
@@ -99,8 +102,10 @@ class sdRenderer
 		//sdRenderer._visual_settings = 0;
 		sdRenderer.visual_settings = 0; // 0; // Still used at some parts of code
 		sdRenderer.shading = true; // New approach, affects shading and line of sight stuff
+		sdRenderer.effects_quality = 2; // Smoke and gore
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
+		sdRenderer.display_coords = 0;
 		
 		//sdRenderer.ctx = canvas.getContext("2d");
 		//sdRenderer.ctx = canvas.getContext('webgl-2d');
@@ -114,6 +119,8 @@ class sdRenderer
 		
 		sdRenderer.known_light_sources_previous = [];
 		sdRenderer.known_light_sources = []; // Array of entities
+		
+		sdRenderer.visible_chunks = new Map(); // hash -> { x, y, last_active_visibility_time, active_visibility, opacity }
 		
 		if ( typeof window !== 'undefined' )
 		{
@@ -668,8 +675,22 @@ class sdRenderer
 	
 	static SaveLightSource( ent )
 	{
-		if ( sdRenderer.known_light_sources.indexOf( ent ) === -1 )
-		sdRenderer.known_light_sources.push( ent );
+		//if ( sdRenderer.known_light_sources.indexOf( ent ) === -1 )
+		{
+			for ( let i = 0; i < sdRenderer.known_light_sources.length; i++ )
+			{
+				let ent2 = sdRenderer.known_light_sources[ i ];
+				
+				if ( ent2 === ent )
+				return;
+
+				if ( ent2._class_id === ent._class_id )
+				if ( sdWorld.inDist2D_Boolean( ent.x, ent.y, ent2.x, ent2.y, 25 ) )
+				return;
+			}
+
+			sdRenderer.known_light_sources.push( ent );
+		}
 	}
 	
 	static InitVisuals()
@@ -866,12 +887,14 @@ class sdRenderer
 			//ctx.fillStyle = "#7b3219";
 			
 			
-			ctx.fillStyle = '#000000';//sdRenderer.sky_gradient;
+			ctx.fillStyle = '#000000';
+			if ( sdRenderer.debug_nothing_screen )
+			ctx.fillStyle = '#0000FF';
 			ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
 			//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
-			
+			if ( !sdRenderer.debug_nothing_screen )
 			if ( sdWeather.only_instance )
 			{
 				ctx.fillStyle = '#000000';
@@ -884,7 +907,7 @@ class sdRenderer
 					{
 						for ( var i = 0; i < sdLamp.lamps.length; i++ )
 						if ( sdWorld.inDist2D( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, 800 ) > 0 )
-						if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, [ 'sdBlock', 'sdDoor' ] ) )
+						if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, sdCom.com_vision_blocking_classes ) )
 						{
 							br = true;
 							break;
@@ -967,7 +990,6 @@ class sdRenderer
 				//
 				
 				
-				
 				if ( sdRenderer.dark_lands_canvases )
 				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
 				{
@@ -1006,12 +1028,14 @@ class sdRenderer
 
 						while ( xx < sdRenderer.screen_width )
 						{
+							if ( sdRenderer.dark_lands_canvases[ i ] )
 							ctx.drawImageFilterCache( sdRenderer.dark_lands_canvases[ i ], xx, yy, w, h );
 							
 							let yy2 = yy + h;
 							
 							while ( yy2 < sdRenderer.screen_height )
 							{
+								if ( sdRenderer.dark_lands_canvases_fill[ i ] )
 								ctx.drawImageFilterCache( sdRenderer.dark_lands_canvases_fill[ i ], xx, yy2, w, h );
 								
 								yy2 += h;
@@ -1077,6 +1101,7 @@ class sdRenderer
 				ctx.sd_hue_rotation = 0;
 			}
 			
+			if ( !sdRenderer.debug_nothing_screen )
 			if ( sdWorld.show_videos )
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
 			{
@@ -1173,15 +1198,18 @@ class sdRenderer
 		
 		if ( sdWorld.entity_classes.sdWeather.only_instance )
 		{
+			if ( sdRenderer._quake_screen_shake_since === 0 )
+			sdRenderer._quake_screen_shake_since = sdWorld.time;
+			
 			let quake_intensity = sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100;
 			if ( quake_intensity > 0 )
 			{
-				quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - this._quake_screen_shake_since ) / 1000 ) );
+				quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - sdRenderer._quake_screen_shake_since ) / 1000 ) );
 				ctx.translate( 0, Math.sin( sdWorld.time / 30 ) * quake_intensity );
 			}
 			else
 			{
-				this._quake_screen_shake_since = sdWorld.time;
+				sdRenderer._quake_screen_shake_since = sdWorld.time;
 			}
 		}
 		
@@ -1235,20 +1263,7 @@ class sdRenderer
 				{
 					const e = visible_entities[ i ];
 					
-					/*if (	e.is( sdEffect ) &&
-								( e._type === sdEffect.TYPE_BEAM || e._type === sdEffect.TYPE_BEAM_CIRCLED ) )
-					{
-						trace( e );
-					}*/
-
-					//e._flag2 = 0; // Visibility detection
-					
-					/*if ( e.is( sdStatusEffect ) )
-					{
-						debugger;
-					}*/
-
-					if ( !e.IsVisible( sdWorld.my_entity ) )
+					if ( !e.IsVisible( sdWorld.my_entity ) || e._is_being_removed )
 					{
 					}
 					else
@@ -1261,15 +1276,16 @@ class sdRenderer
 								( 
 									sdWorld.my_entity === e || 
 									sdWorld.my_entity.driver_of === e || 
-									//sdWorld.my_entity._god ||
-									!sdRenderer.line_of_sight_mode
+									
+									true
+									//!sdRenderer.line_of_sight_mode
 								) 
 							) 
 						)
 					{
 						e._flag2 = frame_flag_reference;
 					}
-					else
+					/*else
 					if ( sdWorld.my_entity )
 					if ( sdRenderer.old_visibility_map )
 					{
@@ -1281,8 +1297,6 @@ class sdRenderer
 							let ex = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 							let ey = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
 
-							//let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
-							
 							let m = angles / ( Math.PI * 2 );
 							
 							let furthest_an = Math.max(
@@ -1294,7 +1308,6 @@ class sdRenderer
 
 							let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
 
-							//if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
 							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, furthest_an + sdRenderer.visibility_falloff + max_dimension + 32 ) )
 							e._flag2 = frame_flag_reference;
 						}
@@ -1320,7 +1333,7 @@ class sdRenderer
 								e._flag2 = frame_flag_reference;
 							}
 						}
-					}
+					}*/
 				}
 			}
 			
@@ -1429,13 +1442,85 @@ class sdRenderer
 			}
 			
 			if ( sdRenderer.line_of_sight_mode )
+			if ( sdWorld.my_entity )
+			if ( !sdWorld.is_singleplayer )
+			{
+				ctx.apply_shading = false;
+				ctx.fillStyle = '#040422';
+				if ( sdRenderer.debug_nothing_screen )
+				ctx.fillStyle = '#FF0000';
+		
+				let z_offset_old = ctx.z_offset;
+				ctx.z_offset += 1;
+		
+				//ctx.draw_offset = 1;
+				{
+																					
+					let CHUNK_SIZE = sdWorld.CHUNK_SIZE;
+					
+					//for ( let [ hash, info ] of sdRenderer.visible_chunks )
+					for ( let x = min_x-CHUNK_SIZE; x < max_x+CHUNK_SIZE; x += CHUNK_SIZE )
+					for ( let y = min_y-CHUNK_SIZE; y < max_y+CHUNK_SIZE; y += CHUNK_SIZE )
+					{
+						const hash = ( sdWorld.FastFloor( (y) / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( (x) / CHUNK_SIZE );
+						
+						let info = sdRenderer.visible_chunks.get( hash );
+						
+						let opacity = 1;
+
+						sdRenderer.ctx.box_caps.top =
+						sdRenderer.ctx.box_caps.right =
+						sdRenderer.ctx.box_caps.bottom =
+						sdRenderer.ctx.box_caps.left = true;
+						
+						if ( info !== undefined )
+						{
+							if ( info.active_visibility || sdWorld.time < info.last_active_visibility_time + 3000 )
+							info.opacity = Math.max( 0, info.opacity - GSPEED / 30 * 3 );
+							else
+							info.opacity = Math.min( 1, info.opacity + GSPEED / 30 / 2 );
+							
+							opacity = info.opacity;
+							
+							if ( opacity < 1 )
+							{
+								sdRenderer.ctx.box_caps.top =
+								sdRenderer.ctx.box_caps.right =
+								sdRenderer.ctx.box_caps.bottom =
+								sdRenderer.ctx.box_caps.left = false;
+							}
+						}
+						
+						if ( opacity <= 0 )
+						continue;
+						
+						ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+
+						ctx.globalAlpha = opacity;
+						
+						let xx = sdWorld.FastFloor( ( x ) / CHUNK_SIZE ) * CHUNK_SIZE;
+						let yy = sdWorld.FastFloor( ( y ) / CHUNK_SIZE ) * CHUNK_SIZE;
+
+						ctx.fillRect( 
+							xx,
+							yy,
+							CHUNK_SIZE,
+							CHUNK_SIZE );
+					}
+				}
+				
+				ctx.globalAlpha = 1;
+				ctx.z_offset = z_offset_old;
+				ctx.apply_shading = true;
+			}
+			/*if ( sdRenderer.line_of_sight_mode )
 			{
 				ctx.apply_shading = false;
 				// Line of sight take 2
 				sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
 
 				ctx.apply_shading = true;
-			}
+			}*/
 			
 			
 			
@@ -1518,6 +1603,8 @@ class sdRenderer
 			
 			
 			ctx.fillStyle = '#000000';
+			if ( sdRenderer.debug_nothing_screen )
+			ctx.fillStyle = '#FFFF00';
 			for ( var step = 1; step <= 4; step++ )
 			{
 				ctx.globalAlpha = ( 1 - ( step / 5 ) ) * 0.5;
@@ -1544,27 +1631,28 @@ class sdRenderer
 			}				
 			ctx.globalAlpha = 1;
 			
+			let sw = sdRenderer.screen_width / sdWorld.camera.scale;
+			let sh = sdRenderer.screen_height / sdWorld.camera.scale;
 
-
-			ctx.fillRect(	sdWorld.world_bounds.x1 - sdRenderer.screen_width, 
-							sdWorld.world_bounds.y1 - sdRenderer.screen_height, 
-							sdRenderer.screen_width, 
-							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sdRenderer.screen_height * 2 );
+			ctx.fillRect(	sdWorld.world_bounds.x1 - sw, 
+							sdWorld.world_bounds.y1 - sh, 
+							sw, 
+							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sh * 2 );
 
 			ctx.fillRect(	sdWorld.world_bounds.x2, 
-							sdWorld.world_bounds.y1 - sdRenderer.screen_height, 
-							sdRenderer.screen_width, 
-							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sdRenderer.screen_height * 2 );
+							sdWorld.world_bounds.y1 - sh, 
+							sw, 
+							sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 + sh * 2 );
 
 			ctx.fillRect(	sdWorld.world_bounds.x1, 
-							sdWorld.world_bounds.y1 - sdRenderer.screen_height, 
+							sdWorld.world_bounds.y1 - sh, 
 							sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1, 
-							sdRenderer.screen_height );
+							sh );
 
 			ctx.fillRect(	sdWorld.world_bounds.x1, 
 							sdWorld.world_bounds.y2, 
 							sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1, 
-							sdRenderer.screen_height );
+							sh );
 			
 			ctx.apply_shading = false;
 			
@@ -1998,23 +2086,36 @@ class sdRenderer
 
 			ctx.fillStyle = '#ffff00';
 			ctx.fillText( T("Level") + ": " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
-
-			const gun = sdWorld.my_entity._inventory[sdWorld.my_entity.gun_slot];
-			ctx.fillStyle = '#ffffff';
-			ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ), 15 + 345 * scale, 40 ); // Hey, don't close to my debug mode!  --- Alone Guitar
-
+			
+			if ( sdRenderer.display_coords )
+			{
+				ctx.fillStyle = '#ffffaa';
+				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 465 * scale, 17 );
+			}
+			
+			const gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
+			
+			if ( gun )
+			if ( !sdGun.classes[ gun.class ].is_build_gun  )
+			{
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( gun.GetAmmoCapacity() ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
+			}
 			if ( globalThis.enable_debug_info )
 			{
-				ctx.fillStyle = '#AAAAff';
-				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 5 + 445 * scale, 17 );
 				
-				ctx.fillStyle = '#AAAAff'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
+				ctx.fillStyle = '#ffffaa'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
            		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
-           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );
 				
-				ctx.fillText("Framerate: "+sdRenderer.last_frame_times.length+" FPS", 5 + 445 * scale, 47 );
+				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 70 );
 				
-				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 5 + 445 * scale, 47 + 17 );
+				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " / " + sdEntity.global_entities.length + " :: total / active / global" , 10 * scale, sdRenderer.screen_height - 55 );
+				
+				ctx.fillText("Mouse Coordinates: X = " + sdWorld.my_entity.look_x.toFixed(0) + ", Y = " + sdWorld.my_entity.look_y.toFixed(0), 10 * scale, sdRenderer.screen_height - 40 );
+				
+				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 10 * scale, sdRenderer.screen_height - 25 );
+				
+				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 10 * scale, sdRenderer.screen_height - 10 );
 			}
 			
 			ctx.save();
@@ -2348,7 +2449,6 @@ class sdRenderer
 				xx = sdWorld.my_entity.x;
 				yy = sdWorld.my_entity.y + ( sdWorld.my_entity._hitbox_y1 + sdWorld.my_entity._hitbox_y2 ) / 2;
 				
-				//if ( sdWorld.my_entity._god || !sdRenderer.line_of_sight_mode )
 				if ( !sdRenderer.line_of_sight_mode )
 				{
 					darkest_alpha = 0.6;

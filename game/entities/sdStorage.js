@@ -32,6 +32,8 @@ class sdStorage extends sdEntity
 		sdStorage.TYPE_CARGO = 3;
 		sdStorage.TYPE_CRYSTALS_PORTAL = 4;
 		
+		sdStorage.ignored_ents = [ 'sdLifeBox' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -15 : this.type === sdStorage.TYPE_CARGO ? -13 : this.type === sdStorage.TYPE_CRYSTALS ? -13 : this.type === sdStorage.TYPE_PORTAL ? -4 : -7; }
@@ -146,7 +148,7 @@ class sdStorage extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdLifeBox' ];
+		return sdStorage.ignored_ents;
 	}
 
 	Damage( dmg, initiator=null )
@@ -233,6 +235,7 @@ class sdStorage extends sdEntity
 			if ( !this.held_by )
 			{
 				this.sy += sdWorld.gravity * GSPEED;
+				
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 			}
 		}
@@ -520,7 +523,10 @@ class sdStorage extends sdEntity
 					( 
 						from_entity.type === sdJunk.TYPE_ALIEN_BATTERY || 
 						from_entity.type === sdJunk.TYPE_LOST_CONTAINER || 
-						from_entity.type === sdJunk.TYPE_FREEZE_BARREL 
+						from_entity.type === sdJunk.TYPE_FREEZE_BARREL ||
+						from_entity.type === sdJunk.TYPE_FIRE_BARREL ||
+						from_entity.type === sdJunk.TYPE_METAL_CHUNK /* ||
+						from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT */
 					)
 				) 
 
@@ -620,6 +626,21 @@ class sdStorage extends sdEntity
 							else
 							if ( from_entity.type === sdJunk.TYPE_FREEZE_BARREL )
 							name = ( 'Cryo-substance barrel' );
+							else
+							if ( from_entity.type === sdJunk.TYPE_FIRE_BARREL )
+							name = ( 'Flammable-substance barrel' );
+							else
+							if ( from_entity.type === sdJunk.TYPE_METAL_CHUNK )
+							{
+								name = ( 'Metal chunk' );
+								is_armable = 0;
+							}
+							/* else
+							if ( from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+							{
+								name = ( '???' );
+								is_armable = 0;
+							} */
 					
 						}
 						else
@@ -760,6 +781,9 @@ class sdStorage extends sdEntity
 
 			return null;
 		}
+		
+		if ( ent.is( sdGun ) )
+		ent.ttl = sdGun.disowned_guns_ttl; // Reset despawn timer for guns
 
 		if ( initiator_character )
 		{
@@ -767,8 +791,6 @@ class sdStorage extends sdEntity
 			{
 				ent.x = initiator_character.x;
 				ent.y = initiator_character.y;
-
-				ent.ttl = sdGun.disowned_guns_ttl; // Reset despawn timer
 			}
 			else
 			{

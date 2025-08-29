@@ -275,7 +275,13 @@ class sdCrystal extends sdEntity
 			
 			ImpactAltering: ( e, vel )=>
 			{
-				return vel * 0.1;
+				vel *= 0.075;
+				e._bounce_anim = Math.min( 0.5, vel );
+
+				if ( vel > 0.5 )
+				sdSound.PlaySound({ name:'slug_jump', x:e.x, y:e.y, volume: 1 / 3 });
+
+				return vel;
 			},
 			
 			BouncinessAltering: ( e )=>
@@ -295,7 +301,18 @@ class sdCrystal extends sdEntity
 			GetFilterAltering: ( e, ctx_filter )=>
 			{
 				return ctx_filter + 'hue-rotate(10deg)contrast(0.3)brightness(1.2)saturate(0.7)contrast(4)';
-			}
+			},
+			
+			onDraw: ( e, ctx, attached )=>
+			{
+				ctx.scale( 1 + e._bounce_anim / 2, 1 - e._bounce_anim )
+				e._DefaultDraw( ctx, attached );
+			},
+			
+			onThink: ( e, GSPEED )=>
+			{
+				e._bounce_anim = Math.max( 0, e._bounce_anim - GSPEED * 0.15 );
+			},
 		};
 		sdCrystal.spaciality_table[ 640 ] = {
 			
@@ -472,7 +489,7 @@ class sdCrystal extends sdEntity
 							{
 								const Check = ()=>
 								{
-									return ( !e._is_being_removed && !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x, e2.y, e,e2, null, sdCom.com_visibility_unignored_classes ) )
+									return ( !e._is_being_removed && !e2._is_being_removed && sdWorld.inDist2D_Boolean( e.x, e.y, e2.x, e2.y, 300 ) && e2.IsTargetable( e ) && sdWorld.CheckLineOfSight2( e.x, e.y, e2.x+(e2.hitbox_x1+e2.hitbox_x2)/2, e2.y+(e2.hitbox_y1+e2.hitbox_y2)/2, e,e2, null, sdCom.com_visibility_unignored_classes ) )
 								};
 
 								if ( Check() )
@@ -673,7 +690,9 @@ class sdCrystal extends sdEntity
 								damage_scale: 0, // Just a decoration effect
 								type:sdEffect.TYPE_EXPLOSION, 
 								owner:e,
-								color:'#ffff66' 
+								color:'#ffff66',
+								no_smoke:true,
+								shrapnel:true
 							});
 
 							for ( let i = 0; i < e._anything_near.length; i++ )
@@ -794,7 +813,9 @@ class sdCrystal extends sdEntity
 						damage_scale: 0,
 						type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 						owner:initiator,
-						color:'#000000' 
+						color:'#000000',
+						no_smoke:true,
+						shrapnel:true
 					});
 				}
 			},
@@ -834,7 +855,7 @@ class sdCrystal extends sdEntity
 									aerial: true,
 
 									near_entity: e,
-									group_radius: 16,
+									group_radius: e._hitbox_x2 + 16,
 
 									allow_near_player: true
 								});
@@ -1075,19 +1096,20 @@ class sdCrystal extends sdEntity
 		let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
 		
 		let r = 1 - Math.pow( Math.random(), bad_luck );
-		//let r = Math.random();
 		
-		//r = 0; // Hack
-		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-		{
-			this._next_action = sdWorld.time + 2000;
-			this.walk_direction = 0;
-			this.side = -1;
-			this.blink = 0;
-			this._blink_until = 0;
-			this._last_stand_when = 0;
-			this.attack_anim = 0; // For big crystal crabs
-		}
+		
+		
+		
+		//if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) Branching is bad since it might cause property synchronization shift and cause crystals to appear with negative matter/regeneration rate
+		//{
+		this._next_action = sdWorld.time + 2000;
+		this.walk_direction = 0;
+		this.side = -1;
+		this.blink = 0;
+		this._blink_until = 0;
+		this._last_stand_when = 0;
+		this.attack_anim = 0; // For big crystal crabs
+		//}
 		
 		//if ( is_really_deep )
 		//r *= 0.25;
@@ -1157,17 +1179,17 @@ class sdCrystal extends sdEntity
 			this._hea = 15;
 			this._spawn_anim = 0;
 		}
-		
+
 		if ( this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ )
 		{
 			this._hea = 200;
 		}
 		
-		this._hmax = this._hea; // For repair logic
-		
 		// Crabs can be healed x2 from original health (from grass)
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-		this._hmax *= 2; 
+		this._hea *= 2; 
+		
+		this._hmax = this._hea; // For repair logic
 
 		this._current_target = null; // For big crystal crabs
 		
@@ -1175,6 +1197,8 @@ class sdCrystal extends sdEntity
 		this.speciality = ( ( params.from_ground || params.from_tree ) && Math.random() < 0.05 ) ? 1 : 0; // How much special is this crystal? Each matter_max crystal might have unique abilities
 		if ( params.speciality !== undefined )
 		this.speciality = params.speciality;
+	
+		this._bounce_anim = 0;
 	
 		this._private_props = {};
 		this.extra = {};
@@ -1307,7 +1331,11 @@ class sdCrystal extends sdEntity
 		if ( sdWorld.time < this._damagable_in )
 		if ( !( initiator && initiator.IsPlayerClass() && initiator.power_ef > 0 ) )
 		{
-			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			if ( sdWorld.time > this._last_damage + 75 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			}
 			return;
 		}
 
@@ -1364,8 +1392,6 @@ class sdCrystal extends sdEntity
 				let replacement_entity = null;
 				let drop_reward = true;
 				
-				// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null )
-				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) // Big crystals/big crystal crabs
 				{
 					let xx_tot = 1;
@@ -1413,14 +1439,16 @@ class sdCrystal extends sdEntity
 						replacement_entity = ent;
 					}
 
-					
+					// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=false )
 					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ) * ( 4 - xx_tot * yy_tot ),
 						this.matter_max / 160,
 						8,
 						undefined,
 						undefined,
-						replacement_entity
+						replacement_entity,
+						null,
+						this.speciality
 					);
 				}
 				else
@@ -1430,14 +1458,16 @@ class sdCrystal extends sdEntity
 					5,
 					undefined,
 					undefined,
-					replacement_entity
+					replacement_entity,
+					null,
+					this.speciality
 				);
 		
 				if ( drop_reward )
 				{
 					let reward_amount = sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL * this.matter_max / 5120;
 
-					reward_amount *= this.matter_regen / 100;
+					reward_amount *= Math.min ( sdCrystal.max_matter_regen / 100, this.matter_regen / 100 );
 
 					if ( this.is_crab ) // Give 40k large crab and 40k large crystal a love.
 					{
@@ -1447,10 +1477,10 @@ class sdCrystal extends sdEntity
 						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
 					}
 
-					if ( this.matter_max >= 90000 || this.matter_regen >= 401 || this.is_anticrystal ) // Too high matter and regeneration will crash the server ( Preset Editor ), also spamming for score shards is not good.
+					if ( this.is_anticrystal )
 					reward_amount = 0;
 
-					reward_amount = ~~( reward_amount );
+					reward_amount = Math.min( 700, ~~( reward_amount ) );
 
 					if ( reward_amount > 0 )
 					{
@@ -1464,7 +1494,7 @@ class sdCrystal extends sdEntity
 		}
 		else
 		{
-			if ( sdWorld.time > this._last_damage + 50 )
+			if ( sdWorld.time > this._last_damage + 75 )
 			{
 				this._last_damage = sdWorld.time;
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
@@ -1798,17 +1828,17 @@ class sdCrystal extends sdEntity
 		else
 		{
 			// Limit vision to cable managment owner
-			if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
+			/*if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
 				( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
-				  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
+				  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )*/
 			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
-			else
+			/*else
 			{
 				if ( this.is_depleted )
 				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (depleted)" );
 				else
 				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
-			}
+			}*/
 		}
 
 		this.BasicCarryTooltip( ctx, 8 );
@@ -1889,6 +1919,37 @@ class sdCrystal extends sdEntity
 
 		ctx.filter = filter_brightness_effect( f );
 	}
+	GetFilterForIllusions()
+	{
+		let ctx = { filter:'none' };
+		let attached = false;
+
+		const setFilter = ( crystal_hue_filter )=>
+		{
+			this.SetCrystalFilter( ctx, attached, crystal_hue_filter );
+		};
+
+		setFilter( 
+					sdWorld.GetCrystalHue(
+						( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ) ? this.matter_max * 2 : 
+						this.is_big ? this.matter_max / 4 : 
+						this.matter_max
+					)
+		);
+
+		return ctx.filter;
+	}
+	GetTitleForIllusions()
+	{
+		let t = this.title;
+		
+		if ( this.is_anticrystal )
+		t += " ( " + sdWorld.RoundedThousandsSpaces( this.matter ) + " / " + sdWorld.RoundedThousandsSpaces( this.matter_max ) + " )";
+		else
+		t += " ( " + sdWorld.RoundedThousandsSpaces( this.matter ) + " / " + sdWorld.RoundedThousandsSpaces( this.matter_max ) + " ) (matter regeneration rate: " + ~~( this.matter_regen ) + "%)";
+
+		return t;
+	}
 	_DefaultDraw( ctx, attached )
 	{
 		//let filter_brightness_effect = sdCrystal.DoNothing;
@@ -1903,30 +1964,6 @@ class sdCrystal extends sdEntity
 		const setFilter = ( crystal_hue_filter )=>
 		{
 			this.SetCrystalFilter( ctx, attached, crystal_hue_filter );
-			/*let f = crystal_hue_filter;
-			
-			
-			if ( this.speciality > 0 )
-			{
-				let tier = this.GetTier() * 40;
-				let methods = sdCrystal.spaciality_table[ tier ];
-				if ( methods && methods.GetFilterAltering )
-				{
-					f = methods.GetFilterAltering( this, f );
-				}
-			}
-			
-
-			if ( this.is_very_depleted )
-			f += 'saturate(0.15) hue-rotate(-20deg)';
-			else
-			if ( this.is_depleted )
-			f += 'saturate(0.5) hue-rotate(-20deg)';
-			else
-			if ( this.is_overcharged )
-			f += 'saturate(2) brightness(1.5)';
-
-			ctx.filter = filter_brightness_effect( f );*/
 		};
 		
 		//for ( let test = 0; test < 3; test++ )
@@ -2063,17 +2100,6 @@ class sdCrystal extends sdEntity
 		
 		//ctx.apply_shading = true;
 	}
-	DrawWithStatusEffects( ctx, attached=true )
-	{
-		let STATUS_EFFECT_LAYER_NORMAL = 1;
-		let STATUS_EFFECT_BEFORE = 0;
-		let STATUS_EFFECT_AFTER = 1;
-		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_BEFORE, ctx, false );
-
-		this.Draw( ctx, attached );
-
-		sdStatusEffect.DrawEffectsFor( this, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_AFTER, ctx, false );
-	}
 	onBeforeRemove() // Class-specific, if needed
 	{
 		if ( this.held_by )
@@ -2097,6 +2123,10 @@ class sdCrystal extends sdEntity
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 	
+	IsPhysicallyMovable()
+	{
+		return !this.held_by;
+	}
 }
 //sdCrystal.init_class();
 

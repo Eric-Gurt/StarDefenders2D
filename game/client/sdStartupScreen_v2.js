@@ -500,6 +500,21 @@
 				],
 				default_option: 1
 			});
+			AddOption({ caption: `Effects quality`, prefix: `effects_quality`,
+				options: [
+					[ 1, `Low` ], 
+					[ 2, `Medium` ],
+					[ 3, `High` ]
+				],
+				default_option: 2
+			});
+			AddOption({ caption: `Display coordinates`, prefix: `coords`,
+				options: [
+					[ 2, `Disabled` ], 
+					[ 1, `Enabled` ]
+				],
+				default_option: 2
+			});
 			AddOption({ caption: `UI style`, prefix: `ui_style`,
 				options: [
 					[ 1, `Default` ], 
@@ -1046,29 +1061,6 @@
 			}
 	    };
 	    
-	    globalThis.preview_fnc = ()=>{ 
-			{
-				let menu_defender = document.getElementById( 'menu_defender' );
-				let pre = menu_defender.getAttribute( 'precached' );
-				if ( pre !== 'null' ) 
-				{ 
-					menu_defender.setAttribute( 'precached', 'null' ); 
-					eval( atob( pre ) ); 
-				}
-			}
-			
-			document.getElementById( 'server_playing' ).textContent = format( globalThis.players_playing ) + ' ' + T( 'playing' );
-			document.getElementById( 'server_online' ).textContent = format( globalThis.players_online ) + ' ' + T( 'online' );
-
-			if ( skin_preview.checkVisibility() )
-			globalThis.DrawPreview( hovered_preview, forced_time, ctx, cursor_x, cursor_y, inputs, hovered_color );
-
-			if ( globalThis.preview_interval )
-			requestAnimationFrame( globalThis.preview_fnc );
-	    };
-	    globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );
-		globalThis.preview_fnc();
-	    
 	    let conditional_elements = [];
 
 	    let NO_DEFAULT_VALUE_PTR = {};
@@ -1246,6 +1238,8 @@
 			JustOne( ret, 'selftalk', last_changed_el );
 			JustOne( ret, 'music', last_changed_el );
 			JustOne( ret, 'shading', last_changed_el );
+			JustOne( ret, 'effects_quality', last_changed_el );
+			JustOne( ret, 'coords', last_changed_el );
 
 			for ( let i = 0; i < conditional_elements.length; i++ )
 			{
@@ -1417,6 +1411,31 @@
 				crashed = true;
 			};
 	    }
+		
+		
+	    
+	    globalThis.preview_fnc = ()=>{ 
+			{
+				let menu_defender = document.getElementById( 'menu_defender' );
+				let pre = menu_defender.getAttribute( 'precached' );
+				if ( pre !== 'null' ) 
+				{ 
+					menu_defender.setAttribute( 'precached', 'null' ); 
+					eval( atob( pre ) ); 
+				}
+			}
+			
+			document.getElementById( 'server_playing' ).textContent = format( globalThis.players_playing ) + ' ' + T( 'playing' );
+			document.getElementById( 'server_online' ).textContent = format( globalThis.players_online ) + ' ' + T( 'online' );
+
+			if ( skin_preview.checkVisibility() )
+			globalThis.DrawPreview( hovered_preview, forced_time, ctx, cursor_x, cursor_y, inputs, hovered_color );
+
+			if ( globalThis.preview_interval )
+			requestAnimationFrame( globalThis.preview_fnc );
+	    };
+	    globalThis.preview_interval = requestAnimationFrame( globalThis.preview_fnc );
+		globalThis.preview_fnc();
 	    
 	    /*function Reporter() // Simple DevTools detector, disabled for now
 	    {

@@ -106,7 +106,7 @@ class sdExcavator extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdGun' ];
+		return sdGun.as_class_list;
 	}
 
 	/*onBuilt()

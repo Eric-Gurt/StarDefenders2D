@@ -7,6 +7,7 @@ import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdBullet from './sdBullet.js';
+import sdLost from './sdLost.js';
 
 //import sdWorld.entity_classes.sdPlayerDrone from './sdWorld.entity_classes.sdPlayerDrone.js';
 
@@ -65,12 +66,6 @@ class sdMatterAmplifier extends sdEntity
 	constructor( params )
 	{
 		super( params );
-		
-		/*this.matter_max = 0;
-		this._last_matter_max = this.matter_max; // Change will cause hash update
-		this.matter = this.matter_max;
-		this.matter_regen = 0; // Matter regen rate taken from crystals that are put into amplifiers
-		this._last_sync_matter = this.matter;*/
 		
 		// Buffer for being able to give away matter from crystal
 		this._matter_max = 20;
@@ -224,16 +219,7 @@ class sdMatterAmplifier extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		/*if ( this.crystal )
-		this.crystal.DrawHUD( ctx, attached );
-		else*/
 		sdEntity.Tooltip( ctx, this.title );
-		
-		/*if ( this.matter_max === 0 )
-		sdEntity.Tooltip( ctx, "Matter amplifier (no crystal)" );
-		else
-		sdEntity.Tooltip( ctx, "Matter amplifier ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (" + ~~(this.matter_regen ) + "%)" );*/
-		//sdEntity.Tooltip( ctx, "Matter amplifier ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
 	{
@@ -297,17 +283,6 @@ class sdMatterAmplifier extends sdEntity
 	{
 		if ( this._broken )
 		{
-			/*
-			if ( this.matter_max > 0 )
-			{
-				sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
-
-				sdWorld.DropShards( this.x, this.y, 0, 0, 
-					Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-					this.matter_max / 40
-				);
-			}
-			*/
 			sdWorld.BasicEntityBreakEffect( this, 10 );
 		}
 	}
@@ -336,7 +311,7 @@ class sdMatterAmplifier extends sdEntity
 				this.crystal.sy = 0;
 				
 				this.crystal.held_by = null;
-				this.crystal.PhysWakeUp();
+				this.crystal.onCarryEnd();
 				this.crystal = null;
 				
 				this._matter_max = 0;
@@ -381,7 +356,7 @@ class sdMatterAmplifier extends sdEntity
 		if ( !this.crystal && !from_entity.held_by && !from_entity._is_being_removed )
 		{
 			if ( this._ignore_pickup_tim === 0 )
-			if ( from_entity.is( sdCrystal ) )
+			if ( from_entity.is( sdCrystal ) || ( from_entity.is( sdLost ) && from_entity._copy_of_class === 'sdCrystal' ) )
 			//if ( from_entity._held_by === null && from_entity.type === 1 ) // Prevent crystals which are stored in a crate
 			if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate/other amplifier
 			if ( from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 * this.width ) // Only small enough ones
@@ -420,6 +395,7 @@ class sdMatterAmplifier extends sdEntity
 				if ( can_put )
 				{
 					from_entity.held_by = this;
+					from_entity.onCarryStart();
 					this.crystal = from_entity;
 
 					this._matter_max = 20; // Math.max( 20, this.crystal.matter_max / 10 ); What was this for?

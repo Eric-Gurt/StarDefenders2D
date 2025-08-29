@@ -72,6 +72,8 @@ class sdHover extends sdEntity
 		sdHover.TYPE_BIKE = 3;
 		sdHover.TYPE_FALKOK_HOVER = 4;
 		
+		sdHover.debug_hitboxes = false;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -191,6 +193,9 @@ class sdHover extends sdEntity
 		
 		if ( this._spawn_with_ents )
 		this.matter = this.matter_max; // Let AI have more matter
+	
+		// client-sided
+		this._eff_timer = 0;
 	}
 	
 	
@@ -356,7 +361,7 @@ class sdHover extends sdEntity
 
 			if ( this.hea <= 0 )
 			{
-				const break_at_hp = -400;
+				const break_at_hp = -this.hmax / 2;
 
 				if ( old_hea > 0 )
 				if ( this.matter > 25 )
@@ -542,7 +547,7 @@ class sdHover extends sdEntity
 								target: character_entity,
 								//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 								mission: sdTask.MISSION_LRTP_EXTRACTION,
-								difficulty: 0.14,
+								difficulty: 0.2,
 								//lrtp_ents_needed: 1,
 								title: 'Arrest Star Defender',
 								description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
@@ -977,6 +982,23 @@ class sdHover extends sdEntity
 			}
 		}
 		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( this.hea < 0 && this.hea > -300 || this.driver0 && this.hea < this.hmax / 5 )
+			{
+				if ( this._eff_timer > 0 )
+				this._eff_timer -= GSPEED;
+			
+				if ( this._eff_timer <= 0 )
+				{
+					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 3, scale:1, radius:0.25, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
+					sdEntity.entities.push( e );
+					
+					this._eff_timer = 1;
+				}
+			}
+		}
+		
 		sdWorld.last_hit_entity = null;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 5 );
@@ -1081,6 +1103,12 @@ class sdHover extends sdEntity
 		{
 			if ( this.type !== sdHover.TYPE_BIKE )
 			ctx.scale( 0.5, 0.5 );
+		}
+		
+		if ( sdHover.debug_hitboxes )
+		{
+			ctx.fillStyle = '#00ff00';
+			ctx.fillRect( this.hitbox_x1, this.hitbox_y1, this.hitbox_x2-this.hitbox_x1, this.hitbox_y2-this.hitbox_y1 );
 		}
 		
 		ctx.rotate( this._tilt / 100 );

@@ -52,6 +52,7 @@ import sdVeloxMiner from './sdVeloxMiner.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdStealer from './sdStealer.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
+import sdMeow from './sdMeow.js';
 
 class sdTurret extends sdEntity
 {
@@ -110,7 +111,8 @@ class sdTurret extends sdEntity
 			sdWorld.entity_classes.sdShurgTurret,
 			sdZektaronDreadnought,
 			sdStealer,
-			sdCouncilIncinerator
+			sdCouncilIncinerator,
+			sdMeow
 			
 		] ); // Module random load order that causes error prevention
 		
@@ -176,8 +178,8 @@ class sdTurret extends sdEntity
 		return `Automatic turrets require matter and cable connection with access management node. Access management node specifies which entities turrets won't be attacking.`;
 	}
 	
-	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
-	//{ return true; }
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return !this.is_static; }
 	
 	GetComWiredCache( ...args ) // Cretes .cio property for clients to know if com exists
 	{
@@ -308,7 +310,8 @@ class sdTurret extends sdEntity
 				( e.hea || e._hea ) > 0 && 
 				( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
 				( !e.is( sdMimic ) || e.morph < 100 ) && 
-				( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
+				( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) &&
+				( typeof e.held_by === 'undefined' || e.held_by === null )
 			)
 		{
 			if ( this.type === 1 )
@@ -435,6 +438,15 @@ class sdTurret extends sdEntity
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	}
+	onThinkFrozen( GSPEED )
+	{
+		if ( !this.is_static ) // Likely is capable of falling
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -816,6 +828,10 @@ class sdTurret extends sdEntity
 		//this.DrawConnections( ctx );
 	}
 	get mass() { return this.is_static ? 100 : 60; }
+	IsPhysicallyMovable()
+	{
+		return !this.is_static;
+	}
 	Impulse( x, y )
 	{
 		if ( this.is_static )

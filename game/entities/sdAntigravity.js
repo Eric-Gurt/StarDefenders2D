@@ -7,6 +7,8 @@ import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdStatusEffect from './sdStatusEffect.js';
+import sdSensorArea from './sdSensorArea.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -18,12 +20,32 @@ class sdAntigravity extends sdEntity
 	{
 		sdAntigravity.img_antigravity = sdWorld.CreateImageFromFile( 'sdAntigravity' );
 		
+		sdAntigravity.TYPE_ADD = 0;
+		sdAntigravity.TYPE_SET = 1;
+		
+		sdAntigravity.rotations_by_kind = [
+			{ dx:0,  dy:-1, hitbox:[-16,-4,16,0] }, // up
+			{ dx:1,  dy:0,  hitbox:[0,-16,4,16]  }, // right
+			{ dx:0,  dy:1,  hitbox:[-16,0,16,4]  }, // down
+			{ dx:-1, dy:0,  hitbox:[-4,-16,0,16] } // left
+		];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return -4; }
-	get hitbox_y2() { return 0; }
+	AdjustHitboxSizeByDimension( dimension )
+	{
+		if ( dimension === 16 )
+		return dimension / 16 * this.size;
+	
+		if ( dimension === -16 )
+		return dimension / 16 * this.size;
+	
+		return dimension;
+	}
+	get hitbox_x1() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 0 ] ); }
+	get hitbox_x2() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 2 ] ); }
+	get hitbox_y1() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 1 ] ); }
+	get hitbox_y2() { return this.AdjustHitboxSizeByDimension( sdAntigravity.rotations_by_kind[ this.kind || 0 ].hitbox[ 3 ] ); }
 	
 	get hard_collision()
 	{ return true; }
@@ -56,22 +78,33 @@ class sdAntigravity extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 300;
-		this._hea = this._hmax;
-		this._regen_timeout = 0;
-		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
 		this.power = 1;
+		
+		this.type = params.type || 0;
+		this.kind = params.kind || 0; // 0, 1, 2, 3, rotation
+		this.size = params.size || 16; // Half width before rotation
+		
+		this._hmax = 300 * this.size / 16;
+		this._hea = this._hmax;
+		this._regen_timeout = 0;
 		
 		this.toggle_enabled = 1; // Sets to 0 if sdButton is being pressed
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
+		this._sensor_area = null;
+		this._entities_within_sensor_area = []; // _net_ids
+		
 		//this.matter = 0;
 		//this._matter_max = 20;
 		
 		//this._update_version++
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_shielded' || prop === '_sensor_area' || prop === '_entities_within_sensor_area' );
 	}
 	MeasureMatterCost()
 	{
@@ -80,6 +113,40 @@ class sdAntigravity extends sdEntity
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
+	
+	SensorAreaMovementCallback( from_entity )
+	{
+		if ( this._entities_within_sensor_area.indexOf( from_entity._net_id ) === -1 )
+		this._entities_within_sensor_area.push( from_entity._net_id );
+	}
+	
+	SetSensorBounds( sensor_or_params, max_h )
+	{
+		if ( this.kind === 0 || this.kind === 2 ) // up or down
+		{
+			sensor_or_params.x = this.x - this.size;
+			sensor_or_params.w = this.size * 2;
+			sensor_or_params.h = max_h;
+
+			if ( this.kind === 0 )
+			sensor_or_params.y = this.y - max_h;
+			else
+			sensor_or_params.y = this.y;
+		}
+		else
+		if ( this.kind === 1 || this.kind === 3 ) // right or left
+		{
+			sensor_or_params.y = this.y - this.size;
+			sensor_or_params.h = this.size * 2;
+			sensor_or_params.w = max_h;
+
+			if ( this.kind === 3 )
+			sensor_or_params.x = this.x - max_h;
+			else
+			sensor_or_params.x = this.x;
+		}
+		return sensor_or_params;
+	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -91,107 +158,199 @@ class sdAntigravity extends sdEntity
 			this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		}
 		
-		var non_recursive = new WeakSet();
-		
 		if ( this.power !== 0 && this.toggle_enabled )
-		//if ( this.matter > 0 )
-		for ( var t = 0; t < 2; t++ )
 		{
-			var x1 = this.x + this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2 * t;
-			var y1 = this.y - 16;
-			
-			var x2 = x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2;
-			var y2 = y1 + 16;
-			
-			var max_h = this.power === -1 ? 3 : 16;
-		
-			for ( var s = 0; s < max_h; s++ )
+			let max_h_steps = ( this.power === -1 ? 3 : 16 );
+			let max_h = max_h_steps * 16;
+
+			if ( !this._sensor_area || this._sensor_area._is_being_removed )
 			{
-				let xx_from = sdWorld.FastFloor( x1 / 32 );
-				let yy_from = sdWorld.FastFloor( y1 / 32 );
-				let xx_to = sdWorld.FastCeil( x2 / 32 );
-				let yy_to = sdWorld.FastCeil( y2 / 32 );
-				
-				for ( var xx = xx_from; xx < xx_to; xx++ )
-				for ( var yy = yy_from; yy < yy_to; yy++ )
+				if ( sdWorld.is_server )
 				{
-					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 ).arr;
-					
-					for ( var i = 0; i < arr.length; i++ )
-					if ( !arr[ i ]._is_being_removed )
-					if ( arr[ i ]._is_bg_entity === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
-					if ( !non_recursive.has( arr[ i ] ) )
+					this._sensor_area = sdEntity.Create( sdSensorArea, this.SetSensorBounds({ x: this.x, y: this.y, w: 0, h: 0, on_movement_target: this }, max_h ) );
+				}
+				else
+				{
+					this._sensor_area = null;
+				}
+			}
+			
+			if ( this._sensor_area )
+			{
+				let old_x = this._sensor_area.x;
+				let old_y = this._sensor_area.y;
+				let old_w = this._sensor_area.w;
+				let old_h = this._sensor_area.h;
+				
+				this.SetSensorBounds( this._sensor_area, max_h );
+
+				if ( old_x !== this._sensor_area.x || old_y !== this._sensor_area.y ||
+					 old_w !== this._sensor_area.w || old_h !== this._sensor_area.h )
+				{
+					this._sensor_area._update_version++;
+					this._sensor_area.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
+				}
+				
+				let targets = [];
+				let walls = [];
+
+				for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
+				{
+					let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
+
+					if ( e && !e._is_being_removed && e.DoesOverlapWith( this._sensor_area ) )
 					{
-						if ( x2 > arr[ i ].x + arr[ i ]._hitbox_x1 )
-						if ( x1 < arr[ i ].x + arr[ i ]._hitbox_x2 )
-						if ( y2 > arr[ i ].y + arr[ i ]._hitbox_y1 )
-						if ( y1 < arr[ i ].y + arr[ i ]._hitbox_y2 )
+						if ( e.is( sdBlock ) || e.is( sdDoor ) )
 						{
-							if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-							{
-								max_h = 0; // Stop elevation
+							walls.push( e );
+						}
+						else
+						{
+							if ( e.IsPhysicallyMovable() )
+							targets.push( e );
+						}
+					}
+					else
+					{
+						this._entities_within_sensor_area.splice( i2, 1 );
+						i2--;
+						continue;
+					}
+				}
 
-								//if ( Math.random() < 0.01 )
-								//sdWorld.SendEffect({ x:x1+(x2-x1)*Math.round(Math.random()), y:y1+(y2-y1)*Math.round(Math.random()), type:sdEffect.TYPE_WALL_HIT });
+				let WithinLimits = ( e )=>
+				{
+					if ( this.kind === 0 || this.kind === 2 )
+					{
+						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+						
+						if ( xx < this.x - 16 || xx >= this.x + 16 )
+						return false;
+					}
+					else
+					if ( this.kind === 1 || this.kind === 3 )
+					{
+						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+						
+						if ( yy < this.y - 16 || yy >= this.y + 16 )
+						return false;
+					}
+					return true;
+				};
+
+				let an = this.kind * Math.PI / 2;
+
+				let t_from = -1;
+				let t_to = 1;
+				
+				if ( this.size === 8 )
+				{
+					t_from = 0;
+					t_to = 0;
+				}
+
+				for ( var t = t_from; t <= t_to; t += 2 )
+				{
+					let xx = this.x + Math.round( Math.cos( an ) ) * 8 * ( t );
+					let yy = this.y + Math.round( Math.sin( an ) ) * 8 * ( t );
+
+					let dx = Math.round( Math.sin( an ) );
+					let dy = -Math.round( Math.cos( an ) );
+
+					xx += dx * 8;
+					yy += dy * 8;
+					
+					steps_loop:
+					for ( let steps = 0; steps < max_h_steps; steps++ )
+					{
+						for ( let i = 0; i < walls.length; i++ )
+						{
+							let w = walls[ i ];
+							if ( w.DoesOverlapWithRect( xx-8, yy-8, xx+8, yy+8 ) )
+							{
+								//w.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 0.5, 2, 0.5 ] });
+
+								break steps_loop;
 							}
-							else
+						}
+
+						for ( let i = 0; i < targets.length; i++ )
+						{
+							let e = targets[ i ];
+
+							if ( e.DoesOverlapWithRect( xx-8, yy-8, xx+8, yy+8 ) )
 							{
-								non_recursive.add( arr[ i ] );
+								if ( WithinLimits( e ) )
+								{
+									let is_player = ( e.is( sdCharacter ) && e.hea > 0 );
 
-								let mass_capped = Math.min( arr[ i ].mass, 80 ); // Anti-tank raiding (tank would damage walls its' being pushed into, without any damage to tank itself)
-
-								//let matter_cost = mass_capped * 0.0001 * Math.max( 1, this.power ) * GSPEED;
-								
-								//if ( this.matter > matter_cost )
-								//{
-									//this.matter -= matter_cost;
-
-									if ( Math.abs( arr[ i ].x - this.x ) < 16 )
+									if ( sdWorld.is_server || !is_player )
 									{
-										if ( arr[ i ].is( sdCharacter ) )
+										let old_sx = e.sx;
+										let old_sy = e.sy;
+
+										let mass_capped = Math.min( e.mass, 80 ); // Anti-tank raiding (tank would damage walls its' being pushed into, without any damage to tank itself)
+
+										if ( this.power === -1 )
 										{
-											if ( sdWorld.is_server )
-											{
-												let old_sy = arr[ i ].sy;
-
-												if ( this.power === -1 )
-												arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
-												else
-												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * mass_capped );
-
-												if ( arr[ i ].hea > 0 )
-												{
-													if ( this.power !== -1 )
-													arr[ i ].Impulse( 0, ( GSPEED * arr[ i ].act_y * 0.1 ) * mass_capped );
-													else
-													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy ); // It happens as part of .Impulse now
-												}
-											}
+											if ( this.kind === 0 || this.kind === 2 )
+											e.sy = sdWorld.MorphWithTimeScale( e.sy, 0, 0.75, GSPEED );
+											else
+											e.sx = sdWorld.MorphWithTimeScale( e.sx, 0, 0.75, GSPEED );
 										}
 										else
 										{
-											if ( this.power === -1 )
-											arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
-											else
+											let force = ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * mass_capped;
+											e.Impulse( force * dx, force * dy );
+											
+											if ( e._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP )
+											e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+										
+											e.PhysWakeUp();
+										}
+
+
+										if ( this.type === sdAntigravity.TYPE_SET )
+										{
+											e.sy = sdWorld.MorphWithTimeScale( e.sy, 0, 0.75, GSPEED );
+											e.sx = sdWorld.MorphWithTimeScale( e.sx, 0, 0.75, GSPEED );
+										}
+
+
+										if ( is_player )
+										{
+											if ( this.power !== -1 )
 											{
-												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * mass_capped );
+												if ( this.type === sdAntigravity.TYPE_ADD )
+												if ( this.kind === 0 )
+												e.Impulse( 0, ( GSPEED * e.act_y * 0.1 ) * mass_capped );
 											}
+											else
+											e.ApplyServerSidePositionAndVelocity( false, e.sx - old_sx, e.sy - old_sy ); // It happens as part of .Impulse now
 										}
 									}
-								/*}
-								else
-								{
-									this.matter = 0;
-								}*/
+								}
+
+
+
+								targets.splice( i, 1 );
+								i--;
+								continue;
 							}
 						}
+						
+						//if ( Math.random() < 0.01 )
+						//sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_WALL_HIT });
+						
+						xx += dx * 16;
+						yy += dy * 16;
 					}
 				}
-				
-				y1 -= 16;
-				y2 -= 16;
+
 			}
+			
 		}
+		
 				
 		if ( this._hea >= this._hmax )
 		//if ( this.matter <= 0 || this.power === 0 )
@@ -199,29 +358,38 @@ class sdAntigravity extends sdEntity
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	
-	/*onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
-	{
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-	}*/
 	get title()
 	{
-		return 'Antigravity field';
+		if ( this.type === sdAntigravity.TYPE_ADD )
+		return ( this.size === 16 ) ? 'Antigravity field' : 'Small antigravity field';
+	
+		if ( this.type === sdAntigravity.TYPE_SET )
+		return ( this.size === 16 ) ? 'Stopping antigravity field' : 'Small stopping antigravity field';
 	}
+	get description()
+	{
+		if ( this.type === sdAntigravity.TYPE_ADD )
+		return 'Creates force field that applies force to any movable entities in it. Does not work through walls or doors.';
+	
+		if ( this.type === sdAntigravity.TYPE_SET )
+		return 'Creates force field that attempts to override velocity of any movable entities in it. Does not work through walls or doors.';
+	}
+	
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		
-		let frame = 0;
+		ctx.rotate( this.kind * Math.PI / 2 );
 		
-		/*if ( this.matter > 0 || sdShop.isDrawing )
-		frame = 0;
-		else
-		if ( sdWorld.time % 4000 < 2000 )
-		frame = 1;
-		else
-		frame = 2;*/
+		let frame = 0;
 	
-		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, 0,frame*32,32,32, -16, -16, 32,32 );
+		if ( this.size === 16 )
+		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, this.type*32,frame*32,32,32, -16, -16, 32,32 );
+		else
+		{
+			ctx.drawImageFilterCache( sdAntigravity.img_antigravity, this.type*32,frame*32,this.size,32, -this.size, -16, this.size,32 );
+			ctx.drawImageFilterCache( sdAntigravity.img_antigravity, this.type*32+32-this.size,frame*32,this.size,32, 0, -16, this.size,32 );
+		}
 		
 		if ( this.power !== 0 && this.toggle_enabled )
 		if ( frame === 0 )
@@ -242,8 +410,16 @@ class sdAntigravity extends sdEntity
 				prog = Math.round( prog * 40 ) / 40;
 
 				ctx.globalAlpha = ( 1 - prog ) * 0.4 * Math.abs( this.power );
+				
+				if ( this.type === sdAntigravity.TYPE_ADD )
 				ctx.fillStyle = '#ffffff';
-				ctx.fillRect( -10 + prog * 2, -5 - prog * 20, 20 - prog * 4, 1 );
+			
+				if ( this.type === sdAntigravity.TYPE_SET )
+				ctx.fillStyle = '#8787e1';
+			
+				let s = this.size / 16;
+			
+				ctx.fillRect( -10 * s + prog * 2, -5 - prog * 20, 20 * s - prog * 4, 1 );
 			}
 
 		}
@@ -256,33 +432,18 @@ class sdAntigravity extends sdEntity
 		//else
 		//sdEntity.Tooltip( ctx, this.title + ' ( no matter )' );
 	}
+	onRemoveAsFakeEntity() // Class-specific, if needed
+	{
+		if ( this._sensor_area )
+		this._sensor_area.remove();
+	}
 	onRemove() // Class-specific, if needed
 	{
-		if ( !sdWorld.is_server )
-		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
+		if ( this._sensor_area )
+		this._sensor_area.remove();
+	
 		if ( this._broken )
-		{
-			sdSound.PlaySound({ name:'blockB4', 
-				x:this.x + 32 / 2, 
-				y:this.y + 32 / 2, 
-				volume:( 32 / 32 ) * ( 16 / 32 ), 
-				pitch: ( this.material === sdAntigravity.MATERIAL_WALL ) ? 1 : 1.5,
-				_server_allowed:true });
-			
-			let x,a,s;
-			
-			let y = 0;
-			
-			let step_size = 4;
-			for ( x = step_size / 2; x < 32; x += step_size )
-			//for ( y = step_size / 2; y < 32; y += step_size )
-			{
-				a = Math.random() * 2 * Math.PI;
-				s = Math.random() * 4;
-				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
-				sdEntity.entities.push( ent );
-			}
-		}
+		sdWorld.BasicEntityBreakEffect( this, 12 );
 	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
@@ -305,10 +466,13 @@ class sdAntigravity extends sdEntity
 						if ( i !== -1 )
 						{
 							i = velocities[ i ];
-							this.power = i;
-							this._update_version++;
-							
-							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+							if ( this.power !== i )
+							{
+								this.power = i;
+								this._update_version++;
+
+								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+							}
 						}
 					}
 				}
@@ -333,7 +497,7 @@ class sdAntigravity extends sdEntity
 				let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
 
 				for ( let i = 0; i < velocities.length; i++ )
-				this.AddContextOptionNoTranslation( T('Set intensity to ') + ( i === 0 ? T('impact prevention') : velocities[ i ] ), 'SETPOWER', [ velocities[ i ] ] );
+				this.AddContextOptionNoTranslation( T('Set intensity to ') + ( i === 0 ? T('impact prevention') : velocities[ i ] ), 'SETPOWER', [ velocities[ i ] ], true, ( this.power === velocities[ i ] ) ? { color:'#00ff00' } : {} );
 			}
 		}
 	}

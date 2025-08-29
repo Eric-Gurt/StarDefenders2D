@@ -443,7 +443,7 @@ class sdCouncilIncinerator extends sdEntity
 		if ( this.hea <= 0 )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
-			this.tilt += ( this.sx / 3 );
+			this.tilt += ( this.sx / 3 ) * GSPEED;
 			if ( sdWorld.is_server )
 			{
 				if ( this.hea <= 0 )
@@ -558,10 +558,12 @@ class sdCouncilIncinerator extends sdEntity
 				if ( this._max_drone_spawns > 0 )
 				if ( this.hea < this._hmax / 2 )
 				{	
-					this._next_drone_spawn = 300 + ( Math.random() * 150 ); // 10 - 15 seconds
+					this._next_drone_spawn = 450 + ( Math.random() * 150 ); // 15 - 20 seconds
 					this._max_drone_spawns--;
 					
-					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: sdDrone.DRONE_COUNCIL, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
+					let drone_type = ( this.hea <= this._hmax / 2 ) ? sdDrone.DRONE_COUNCIL : sdDrone.DRONE_COUNCIL_ATTACK; // If it has enough health, spawn attack drones, else spawn healers
+					
+					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: drone_type, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 					sdEntity.entities.push( drone );
 
 					// Make sure drone has any speed when deployed so drones don't get stuck into each other
@@ -580,6 +582,7 @@ class sdCouncilIncinerator extends sdEntity
 
 						sdWorld.UpdateHashPosition( drone, false );
 						//this._current_minions_count++; // Bad - increase minion count from sdDrone instead
+						if ( drone.type === sdDrone.DRONE_COUNCIL )
 						drone.SetTarget( this ); // Make sure drones stay near the immolator
 					}
 					else
@@ -647,7 +650,7 @@ class sdCouncilIncinerator extends sdEntity
 
 						this._move_dir_x = Math.cos( an_desired );
 						this._move_dir_y = Math.sin( an_desired );
-						this._move_dir_speed_scale = 10;
+						this._move_dir_speed_scale = ( this.hea < this._hmax / 2 ) ? 10 : 5;
 						
 						if ( this._incinerate_attack_timer > 30 * 5 )
 						if ( closest_di_real < sdCouncilIncinerator.attack_range ) // close enough to dodge obstacles
@@ -656,7 +659,7 @@ class sdCouncilIncinerator extends sdEntity
 
 							this._move_dir_x = Math.cos( an );
 							this._move_dir_y = Math.sin( an );
-							this._move_dir_speed_scale = 4;
+							this._move_dir_speed_scale =  ( this.hea < this._hmax / 2 ) ? 4 : 2;
 
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
@@ -676,7 +679,7 @@ class sdCouncilIncinerator extends sdEntity
 
 											this._move_dir_x = Math.cos( a1 );
 											this._move_dir_y = Math.sin( a1 );
-											this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 8 : 4;
+											this._move_dir_speed_scale =  ( this.hea < this._hmax / 2 ) ? 8 : 4;
 
 											this._move_dir_timer = r1;
 
@@ -698,7 +701,7 @@ class sdCouncilIncinerator extends sdEntity
 
 													this._move_dir_x = Math.cos( a1 );
 													this._move_dir_y = Math.sin( a1 );
-													this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 8 : 4;
+													this._move_dir_speed_scale =  ( this.hea < this._hmax / 2 ) ? 8 : 4;
 
 													this._move_dir_timer = r1;
 													
@@ -723,7 +726,7 @@ class sdCouncilIncinerator extends sdEntity
 
 						this._move_dir_x = Math.cos( an );
 						this._move_dir_y = Math.sin( an );
-						this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 1 : 0.5;
+						this._move_dir_speed_scale =  ( this.hea < this._hmax / 2 ) ? 1 : 0.5;
 					}
 				}
 				else
@@ -797,7 +800,7 @@ class sdCouncilIncinerator extends sdEntity
 						an_desired = Math.random() * Math.PI * 2;
 						this._move_dir_x = Math.cos( an_desired );
 						this._move_dir_y = Math.sin( an_desired );
-						this._move_dir_speed_scale =  ( this.hea < this.hmax / 2 ) ? 4 : 2;
+						this._move_dir_speed_scale =  ( this.hea < this._hmax / 2 ) ? 4 : 2;
 						
 						this._move_dir_timer = 10 + ( Math.random() * 20 );
 					}
@@ -805,7 +808,7 @@ class sdCouncilIncinerator extends sdEntity
 					let v = 0.1;
 					
 					if ( this.incinerator_attack_anim > 0 ) // Slow down the entity during incinerator attack
-					v *= ( this.incinerator_attack_anim / 90 );
+					v *= ( this.incinerator_attack_anim / 150 );
 				
 					this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 					this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
@@ -966,10 +969,15 @@ class sdCouncilIncinerator extends sdEntity
 		return false;
 	}
 	
+	get title()
+	{
+		return 'Council Incinerator';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Council Incinerator", 0, -30 );
+		sdEntity.Tooltip( ctx, this.title, 0, -30 );
 		
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}

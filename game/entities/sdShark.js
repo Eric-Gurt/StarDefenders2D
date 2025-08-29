@@ -3,7 +3,6 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
-import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 
 import sdBlock from './sdBlock.js';

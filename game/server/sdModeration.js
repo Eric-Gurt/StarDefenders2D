@@ -20,6 +20,7 @@ import sdDeepSleep from '../entities/sdDeepSleep.js';
 import sdEffect from '../entities/sdEffect.js';
 import sdBloodDecal from '../entities/sdBloodDecal.js';
 import sdCrystal from '../entities/sdCrystal.js';
+import sdBeamProjector from '../entities/sdBeamProjector.js';
 
 //import { spawn } from 'child_process';
 let spawn = globalThis.child_process_spawn;
@@ -43,7 +44,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'zoom', 'admin', 'boundsmove', 'worldresize', 'qs', 'quickstart', 'db', 'database', 'eval', 'password', 'logentitycount', 'chill', 'spawnevent', 'event' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -702,7 +703,7 @@ class sdModeration
 				}
 				else
 				{
-					socket.SDServiceMessage( 'Server: Events have been paused and potential enemies remvoed.' );
+					socket.SDServiceMessage( 'Server: Events have been paused and potential enemies removed.' );
 					sdWeather.only_instance._chill = parseInt( parts[ 1 ] );
 				}
 					
@@ -763,6 +764,35 @@ class sdModeration
 			socket.SDServiceMessage( 'Type /chill 1 or /chill 0' );
 		}
 		else
+		if ( parts[ 0 ] === 'spawnevent' || parts[ 0 ] === 'event' )
+		{
+			let num = parseInt( parts[ 1 ] );
+			
+			if ( !isNaN( num ) )
+			{
+				sdWeather.only_instance.SimpleExecuteEvent( num );
+				socket.SDServiceMessage( 'Event executed' );
+			}
+			else
+			{
+				let prefix = 'sdWeather.';
+				if ( parts[ 1 ].startsWith( prefix ) )
+				{
+					let property = parts[ 1 ].substring( prefix.length );
+					let value = sdWeather[ property ];
+					if ( typeof value === 'number' )
+					{
+						sdWeather.only_instance.SimpleExecuteEvent( value );
+						socket.SDServiceMessage( 'Event executed' );
+					}
+					else
+					socket.SDServiceMessage( 'Property "{1}" of object sdWeather is not a number', [ property ] );
+				}
+				else
+				socket.SDServiceMessage( 'Type /event then number of event to execute. For example, /event 8 or even /event sdWeather.EVENT_QUAKE' );
+			}
+		}
+		else
 		if ( parts[ 0 ] === 'remove' || parts[ 0 ] === 'break' )
 		{
 			if ( !sdWorld.entity_classes[ parts[ 1 ] ] && parts[ 1 ] !== '*' )
@@ -796,6 +826,27 @@ class sdModeration
 				num = 1000;
 		
 				socket.character.s = num;
+			}
+		}
+		else
+		if ( parts[ 0 ] === 'zoom' )
+		{
+			if ( socket.character )
+			{
+				let num = parseFloat( parts[ 1 ] ) / 100;
+				
+				if ( isNaN( num ) )
+				num = 1;
+				else
+				if ( num < 0.1 )
+				num = 0.1;
+				else
+				if ( num > 10 )
+				num = 10;
+		
+				let old_zoom = socket.character.GetCameraZoom();
+				socket.character._additional_camera_zoom_mult = num;
+				socket.character.SetCameraZoom( old_zoom );
 			}
 		}
 		else

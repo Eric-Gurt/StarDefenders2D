@@ -51,6 +51,15 @@ class sdOctopus extends sdEntity
 	{
 		return ( this.type === sdOctopus.TYPE_PLAYER_TAKER );
 	}
+	ObfuscateAnyDriverInformation() // In case if vehicle is supposed to hide drivers completely. Use together with altering GetSnapshot to use GetDriverObfuscatingSnapshot
+	{
+		return true;
+	}
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		return this.GetDriverObfuscatingSnapshot( current_frame, save_as_much_as_possible, observer_entity );
+	}
+	
 	GetDriverPositionOffset( character )
 	{
 		return sdOctopus.driver_position_offset;
@@ -114,6 +123,9 @@ class sdOctopus extends sdEntity
 		this._tenta_hold_duration = 0; // For gun disabling
 		
 		this.attack_warning = false;
+		
+		//this._debug_tenta_tim_decrease_reason_old = '';
+		//this._debug_tenta_tim_decrease_reason = '';
 
 		this.type = ( params.type !== undefined ) ? params.type : ~~( Math.random() * 2 );
 		
@@ -133,6 +145,18 @@ class sdOctopus extends sdEntity
 		if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
 		this.filter = 'saturate(0.25)';
 	}
+	/*set _debug_tenta_tim_decrease_reason( v )
+	{
+		if ( this._debug_tenta_tim_decrease_reason_old !== v )
+		{
+			this._debug_tenta_tim_decrease_reason_old = v;
+			//trace( 'tenta_tim_decrease_reason: ' + v );
+		}
+	}
+	get _debug_tenta_tim_decrease_reason()
+	{
+		return this._debug_tenta_tim_decrease_reason_old;
+	}*/
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_consumed_guns_snapshots' );
@@ -254,6 +278,7 @@ class sdOctopus extends sdEntity
 				this.hurt_timer = 1;
 				
 				this.tenta_target = null; // Release any target that it is holding
+				//trace( 'tenta_target released due to damage' );
 				
 				if ( initiator )
 				this.SyncedToPlayer( initiator );
@@ -341,7 +366,7 @@ class sdOctopus extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let in_water = sdWater.all_swimmers.has( this );
 		
 		
 		if ( this._hea <= 0 )
@@ -483,7 +508,6 @@ class sdOctopus extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
-		//if ( sdWorld.is_server )
 		if ( this.tenta_tim > 0 )
 		{
 			let old_tenta_tim = this.tenta_tim;
@@ -492,7 +516,10 @@ class sdOctopus extends sdEntity
 			
 			if ( this.tenta_target )
 			if ( this.tenta_target._is_being_removed )
-			this.tenta_target = null;
+			{
+				this.tenta_target = null;
+				//trace( 'tenta_target released due to being removed' );
+			}
 	
 			let will_damage = true;
 			let will_play_damage_effect_and_sound = true;
@@ -509,7 +536,11 @@ class sdOctopus extends sdEntity
 					 sdWorld.inDist2D_Boolean( this.x, this.y, xx, yy, this.GetRange() + 64 ) &&
 					 sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
+					//if ( sdWorld.is_server )
 					this.tenta_tim = Math.max( hit_time, this.tenta_tim - GSPEED * 5 );
+				
+					//this._debug_tenta_tim_decrease_reason = 'tenta_tim >= hit_time AND within range AND line of sight test passed';
+					
 					this._last_bite = sdWorld.time;
 
 					this.tenta_x = xx - this.x;
@@ -564,10 +595,52 @@ class sdOctopus extends sdEntity
 					}
 				}
 				else
-				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+				{
+					//if ( sdWorld.is_server )
+					this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+					
+					/*if ( this.tenta_tim < hit_time )
+					this._debug_tenta_tim_decrease_reason = 'tenta_tim below hit_time';
+					else
+					if ( !sdWorld.inDist2D_Boolean( this.x, this.y, xx, yy, this.GetRange() + 64 ) )
+					this._debug_tenta_tim_decrease_reason = 'out of range';
+					else
+					if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+					this._debug_tenta_tim_decrease_reason = 'line of sight test failed';*/
+				}
 			}
 			else
-			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+			{
+				if ( sdWorld.is_server )
+				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+				
+				/*if ( this.type === sdOctopus.TYPE_GUN_TAKER )
+				{
+					if ( this._hea > 0 )
+					{
+						if ( this.tenta_target )
+						{
+							if ( this.tenta_target.is( sdGun ) )
+							{
+								if ( this.tenta_target._held_by )
+								{
+									this._debug_tenta_tim_decrease_reason = 'unknown';
+								}
+								else
+								this._debug_tenta_tim_decrease_reason = 'tenta_target is not held by anyone';
+							}
+							else
+							this._debug_tenta_tim_decrease_reason = 'tenta_target isn\'t a gun';
+						}
+						else
+						this._debug_tenta_tim_decrease_reason = 'no tenta_target';
+					}
+					else
+					this._debug_tenta_tim_decrease_reason = '_hea is negative';
+				}
+				else
+				this._debug_tenta_tim_decrease_reason = 'not a gun taker';*/
+			}
 			
 			if ( sdWorld.is_server )
 			if ( will_damage )
@@ -586,6 +659,7 @@ class sdOctopus extends sdEntity
 					this.GenericOctoAttack( from_entity, will_play_damage_effect_and_sound );
 
 					this.tenta_target = null;
+					//trace( 'tenta_target released due to GenericOctoAttack being done' );
 				}
 			}
 		}
@@ -776,6 +850,12 @@ class sdOctopus extends sdEntity
 			else
 			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
 		}
+		
+		/*sdEntity.TooltipUntranslated( ctx, 'tenta_tim: ' + this.tenta_tim, 50, 0 );
+		sdEntity.TooltipUntranslated( ctx, 'tenta_target: ' + this.tenta_target, 50, 10 );
+		sdEntity.TooltipUntranslated( ctx, 'tenta_tim_decrease_reason: ' + this._debug_tenta_tim_decrease_reason, 50, 20 );
+		*/
+		
 		
 		ctx.scale( this.side, 1 );
 		

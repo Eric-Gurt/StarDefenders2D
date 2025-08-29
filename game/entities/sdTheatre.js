@@ -2,6 +2,7 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdEffect from './sdEffect.js';
 import sdSound from '../sdSound.js';
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -562,7 +563,7 @@ class sdTheatre extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 10 );
+		sdWorld.BasicEntityBreakEffect( this, 20, 3, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
 	
 		this.onRemoveAsFakeEntity();
 	}

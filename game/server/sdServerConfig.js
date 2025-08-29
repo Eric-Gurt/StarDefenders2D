@@ -80,40 +80,34 @@ class sdServerConfigFull extends sdServerConfigShort
 	static debug_offscreen_behavior = false; // If you want to see how everything moves offscreen - set this to true
 	static TestIfShouldForceProperSimulation( ent ) // Some entities must be synced accurately even if they are offscreen, for example crystals in amplifiers, sdSandWorm, sdQuadro
 	{
-		if ( ent.is( sdCrystal ) )
+		switch ( ent._class_id )
 		{
-			if ( ent.held_by && ent.held_by.is( sdMatterAmplifier ) )
-			return true;
+			case sdCrystal.class_id:
+			{
+				if ( ent.held_by && ent.held_by.is( sdMatterAmplifier ) )
+				return true;
+			}
+			break;
+			
+			case sdSandWorm.class_id: // These get too unstable without it
+			{
+				if ( sdWorld.offscreen_behavior === sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE )
+				if ( ( ent.towards_tail && !ent.towards_tail._is_being_removed ) || ( ent.towards_head && !ent.towards_head._is_being_removed ) )
+				if ( ent._phys_sleep > 0 )
+				return true;
+			}
+			break;
+			
+			default:
+			{
+				if ( ent.onThink.has_MatterGlow || ent.onThink.has_GiveLiquid )
+				if ( sdCable.connected_entities_per_entity.has( ent ) )
+				return true;
+				
+				return false;
+			}
+			break;
 		}
-		else
-		//if ( ent.is( sdCube ) || ent.is( sdHover ) || ent.is( sdMatterContainer ) || ent.is( sdSunPanel ) )
-		if ( ent.onThink.has_MatterGlow )
-		{
-			if ( sdCable.connected_entities_per_entity.has( ent ) )
-			return true;
-		}
-		else
-		if ( ent.onThink.has_GiveLiquid )
-		{
-			if ( sdCable.connected_entities_per_entity.has( ent ) )
-			return true;
-		}
-		else
-		if ( ent.is( sdSandWorm ) )
-		{
-			if ( ( ent.towards_tail && !ent.towards_tail._is_being_removed ) || ( ent.towards_head && !ent.towards_head._is_being_removed ) )
-			if ( ent._phys_sleep > 0 )
-			return true;
-		}
-		/*else
-		if ( ent.is( sdQuadro ) )
-		{
-			if ( ent.w1 || ent.w2 || ent.p )
-			if ( ent._phys_sleep > 0 )
-			return true;
-		}*/
-		else
-		return false;
 	}
 	
 	static base_degradation = true; // False will disable roach attacks, BSU value decrease, flesh corruption removing protection off blocks
@@ -1266,12 +1260,12 @@ class sdServerConfigFull extends sdServerConfigShort
 			for ( let i = 0; i < sdEntity.entities.length; i++ )
 			{
 				let ent = sdEntity.entities[ i ];
-				if ( ent.is( sdBlock ) )
+				if ( ent.is( sdBG ) )
 				{
 					//console.log( i +',' +  sdEntity.entities.length );
 					if ( ent._merged === false && ent.SupportsMerging() )
 					{
-						ent._hea = ent._hmax - 0.1;
+						ent._regen_timeout = 1;
 						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this
 					}
 				}
@@ -1953,25 +1947,25 @@ class sdServerConfigFull extends sdServerConfigShort
 		};
 
 		setInterval( ()=>{
-
 			if ( sdWorld.world_has_unsaved_changes )
 			if ( !sdWorld.paused || !sdWorld.is_singleplayer )
 			{
 				sdWorld.world_has_unsaved_changes = false;
 
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
-
-				SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
-				{
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup will be initiated in 1 minute' );
+				setTimeout(()=>{
 					for ( var i = 0; i < sdWorld.sockets.length; i++ )
-					sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
-				});
+					sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
+
+					SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
+					{
+						for ( var i = 0; i < sdWorld.sockets.length; i++ )
+						sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
+					});
+				}, 1000 * 60 );
 			}
-
 		}, 1000 * sdWorld.server_config.backup_interval_seconds ); // Once per 30 minutes
-
-
 
 		/*setInterval( ()=>{
 

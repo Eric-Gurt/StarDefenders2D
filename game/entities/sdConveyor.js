@@ -5,6 +5,8 @@
 	Implemented by Eric Gurt
 
 */
+/* global FakeCanvasContext */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 //import sdCrystal from './sdCrystal.js';
@@ -15,6 +17,8 @@ import sdEffect from './sdEffect.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
+import sdButton from './sdButton.js';
+import sdNode from './sdNode.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -103,6 +107,10 @@ class sdConveyor extends sdEntity
 		
 		this.dir = 0;
 		
+		this.toggle_enabled = true;
+		this._toggle_source_current = null;
+		this._toggle_direction_current = null;
+		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
 		
@@ -114,6 +122,76 @@ class sdConveyor extends sdEntity
 	{
 		this.RequireBelt( -1 );
 		this.RequireBelt( 1 );
+	}
+	static AppendConnectedConveyorsToArray( arr ) // Used by sdButton
+	{
+		
+		let visited = new Set();
+		for ( let i = 0; i < arr.length; i++ )
+		visited.add( arr[ i ].entity );
+	
+		let Append = ( e, details_reference )=>
+		{
+			if ( e )
+			if ( !e._is_being_removed )
+			//if ( arr.indexOf( e ) === -1 )
+			if ( !visited.has( e ) )
+			{
+				let details = Object.assign( {}, details_reference );
+				details.entity = e;
+				
+				visited.add( e );
+				
+				arr.push( details );
+			}
+		};
+		
+		for ( let i = 0; i < arr.length; i++ )
+		{
+			let details = arr[ i ];
+			
+			Append( details.entity._left_belt, details );
+			Append( details.entity._right_belt, details );
+		}
+		return arr;
+	}
+	onToggleEnabledChange() // Called via sdButton
+	{
+		/*if ( this.toggle_enabled )
+		{
+			if ( this._toggle_source_current )
+			{
+				if ( this._toggle_source_current.is( sdButton ) )
+				{
+				}
+			}
+		}*/
+		if ( this._toggle_direction_current )
+		{
+			if ( this._toggle_direction_current.is( sdButton ) )
+			{
+				if ( this._toggle_direction_current.type === sdButton.TYPE_WALL_BUTTON )
+				{
+					if ( this._toggle_direction_current.kind === sdButton.BUTTON_KIND_TAP_LEFT )
+					this.dir = -Math.abs( this.dir );
+					else
+					if ( this._toggle_direction_current.kind === sdButton.BUTTON_KIND_TAP_RIGHT )
+					this.dir = Math.abs( this.dir );
+				}
+			}
+			else
+			if ( this._toggle_direction_current.is( sdNode ) )
+			{
+				if ( this._toggle_direction_current.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+				{
+					if ( this._toggle_direction_current.variation === 6 ) // Left
+					this.dir = -Math.abs( this.dir );
+					else
+					if ( this._toggle_direction_current.variation === 2 ) // Right
+					this.dir = Math.abs( this.dir );
+				}
+			}
+		}
 	}
 	MeasureMatterCost()
 	{
@@ -199,6 +277,8 @@ class sdConveyor extends sdEntity
 			}
 		}
 		
+		let recheck_nearby_belts_once = true;
+		
 		for ( let i = 0; i < this._transported_entities.length; i++ )
 		{
 			let another_entity = this._transported_entities[ i ];
@@ -209,7 +289,7 @@ class sdConveyor extends sdEntity
 				 this.y + this._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 - 3 &&
 				 this.y + this._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 + 3 )
 			{
-				if ( this.dir !== 0 )
+				if ( this.dir !== 0 && this.toggle_enabled )
 				{
 					if ( Math.abs( this.dir ) >= 10 )
 					if ( another_entity.is( sdCharacter ) )
@@ -219,6 +299,29 @@ class sdConveyor extends sdEntity
 					}
 					
 					another_entity.PhysWakeUp();
+					
+					if ( recheck_nearby_belts_once )
+					{
+						recheck_nearby_belts_once = false;
+						
+						if ( this._right_belt )
+						if ( this._right_belt._is_being_removed || !this.DoesOverlapWith( this._right_belt, 4 ) )
+						{
+							if ( this._right_belt._left_belt === this )
+							this._right_belt._left_belt = null;
+							
+							this._right_belt = null;
+						}
+						
+						if ( this._left_belt )
+						if ( this._left_belt._is_being_removed || !this.DoesOverlapWith( this._left_belt, 4 ) )
+						{
+							if ( this._left_belt._right_belt === this )
+							this._left_belt._right_belt = null;
+						
+							this._left_belt = null;
+						}
+					}
 					
 					if ( another_entity.y + another_entity._hitbox_y2 < this.y + 4 ) // On top
 					{
@@ -253,23 +356,6 @@ class sdConveyor extends sdEntity
 			}
 			else
 			{
-				/*let from_entity = another_entity;
-				
-				// Fix for player not sliding after the first belt
-				if ( this._right_belt && this._right_belt.DoesOverlapWith( from_entity, 3 ) )
-				{
-					let ind_in_right = this._right_belt._transported_entities.indexOf( from_entity );
-					if ( ind_in_right !== -1 )
-					this._right_belt._transported_entities.splice( ind_in_right, 1 );
-				}
-					
-				if ( this._left_belt && this._right_belt.DoesOverlapWith( from_entity, 3 ) )
-				{
-					let ind_in_left = this._left_belt._transported_entities.indexOf( from_entity );
-					if ( ind_in_left !== -1 )
-					this._left_belt._transported_entities.splice( ind_in_left, 1 );
-				}*/
-				
 				this._transported_entities.splice( i, 1 );
 				i--;
 				continue;
@@ -365,6 +451,9 @@ class sdConveyor extends sdEntity
 		
 		let offset_x;
 		
+		if ( !this.toggle_enabled )
+		offset_x = 0;
+		else
 		if ( this.dir >= 0 )
 		offset_x = Math.floor( ( sdWorld.time * Math.abs( this.dir ) % 250 ) / 250 * 4 );
 		else
@@ -524,7 +613,8 @@ class sdConveyor extends sdEntity
 				let velocities = [ -20, -10, -5, -2, -1, 0, 1, 2, 5, 10, 20 ];
 				
 				for ( let i = 0; i < velocities.length; i++ )
-				this.AddContextOption( 'Set direction to ' + velocities[ i ], 'SET_DIR', [ velocities[ i ] ] );
+				//this.AddContextOption( 'Set direction to ' + velocities[ i ], 'SET_DIR', [ velocities[ i ] ] );
+				this.AddContextOptionNoTranslation( T('Set direction to ') + velocities[ i ], 'SET_DIR', [ velocities[ i ] ], true, ( this.dir === velocities[ i ] ) ? { color:'#00ff00' } : {} );
 			}
 		}
 	}
