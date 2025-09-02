@@ -131,7 +131,7 @@ class sdAntigravity extends sdEntity
 			{
 				let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
 
-				if ( e && !e._is_being_removed && e.DoesOverlapWith( this._sensor_area ) ) // Copy [ 1 / 2 ]
+				if ( e && !e._is_being_removed && this._sensor_area && e.DoesOverlapWith( this._sensor_area ) ) // Copy [ 1 / 2 ]
 				{
 					if ( e.is( sdBlock ) || e.is( sdDoor ) )
 					walls.push( e );
@@ -157,7 +157,7 @@ class sdAntigravity extends sdEntity
 				
 				let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
 
-				if ( e && !e._is_being_removed && e.DoesOverlapWith( this._sensor_area ) ) // Copy [ 1 / 2 ]
+				if ( e && !e._is_being_removed && this._sensor_area && e.DoesOverlapWith( this._sensor_area ) ) // Copy [ 1 / 2 ]
 				{
 				}
 				else
