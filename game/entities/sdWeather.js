@@ -189,6 +189,10 @@ class sdWeather extends sdEntity
 		sdWeather.rain_hit_class_list = [ 'sdBlock', 'sdDoor', 'sdWater' ];
 		sdWeather.rain_background_walls = [ 'sdBG', 'sdTheatre' ];
 		
+		sdWeather.blocks = [ 'sdBlock' ];
+		sdWeather.blocks_and_water = [ 'sdBlock', 'sdWater' ];
+		sdWeather.water = [ 'sdWater' ];
+		
 		if ( sdWeather.debug_rain )
 		console.warn( 'WARNING: sdWeather.debug_rain is enabled! Rain will spawn under first socket character, where it stands only' );
 		
@@ -677,7 +681,7 @@ class sdWeather extends sdEntity
 								x + dog._hitbox_x1 - 16, 
 								y + dog._hitbox_y1 - 16, 
 								x + dog._hitbox_x2 + 16, 
-								y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+								y + dog._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 
@@ -829,7 +833,7 @@ class sdWeather extends sdEntity
 							x + ent._hitbox_x1 - 16, 
 							y + ent._hitbox_y1 - 64, 
 							x + ent._hitbox_x2 + 16, 
-							y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+							y + ent._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 					{
 						let proper_distnace = true;
 
@@ -880,7 +884,7 @@ class sdWeather extends sdEntity
 					x + ent._hitbox_x1 - 16, 
 					y + ent._hitbox_y1 - 116, 
 					x + ent._hitbox_x2 + 16, 
-					y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+					y + ent._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 			{
 				let proper_distnace = true;
 										
@@ -1689,7 +1693,7 @@ class sdWeather extends sdEntity
 									x + portal._hitbox_x1 - 8, 
 									y + portal._hitbox_y1 - 8, 
 									x + portal._hitbox_x2 + 8, 
-									y + portal._hitbox_y2 + 8, null, null, [ 'sdWater' ], null ) )
+									y + portal._hitbox_y2 + 8, null, null, sdWeather.water, null ) )
 							{
 								portal.x = x;
 								portal.y = y;
@@ -1873,7 +1877,7 @@ class sdWeather extends sdEntity
 								x + obelisk._hitbox_x1 - 16, 
 								y + obelisk._hitbox_y1 - 16, 
 								x + obelisk._hitbox_x2 + 16, 
-								y + obelisk._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+								y + obelisk._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 										
@@ -2024,7 +2028,7 @@ class sdWeather extends sdEntity
 								x + anticrystal._hitbox_x1 - 16, 
 								y + anticrystal._hitbox_y1 - 16, 
 								x + anticrystal._hitbox_x2 + 16, 
-								y + anticrystal._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+								y + anticrystal._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 									
@@ -2232,7 +2236,7 @@ class sdWeather extends sdEntity
 								x + council_bomb._hitbox_x1 - 16, 
 								y + council_bomb._hitbox_y1 - 16, 
 								x + council_bomb._hitbox_x2 + 16, 
-								y + council_bomb._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+								y + council_bomb._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 									
@@ -2357,7 +2361,7 @@ class sdWeather extends sdEntity
 								x + erthal_beacon._hitbox_x1 - 16, 
 								y + erthal_beacon._hitbox_y1 - 16, 
 								x + erthal_beacon._hitbox_x2 + 16, 
-								y + erthal_beacon._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+								y + erthal_beacon._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 									
@@ -2913,7 +2917,7 @@ class sdWeather extends sdEntity
 							x + amphid._hitbox_x1 - 16, 
 							y + amphid._hitbox_y1 - 16, 
 							x + amphid._hitbox_x2 + 16, 
-							y + amphid._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+							y + amphid._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 							
@@ -3404,7 +3408,7 @@ class sdWeather extends sdEntity
 								x + ent._hitbox_x1 - 16, 
 								y + ent._hitbox_y1 - 16, 
 								x + ent._hitbox_x2 + 16, 
-								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+								y + ent._hitbox_y2 + 16, null, null, sdWeather.water, null ) )
 						{
 							let proper_distnace = true;
 									
@@ -3934,7 +3938,11 @@ class sdWeather extends sdEntity
 				
 				let tasks_total = 0;
 				
-				sdTask.PerformActionOnTasksOf( character, ( task )=>{ tasks_total++; } );
+				sdTask.PerformActionOnTasksOf( character, ( task )=>
+				{ 
+					if ( task._tag === 'RandomEventTask' )
+					tasks_total++; 
+				} );
 				
 				if ( tasks_total < 5 )
 				sdWeather.GivePlayerTask( character );
@@ -3974,7 +3982,8 @@ class sdWeather extends sdEntity
 					time_left: -1,
 					lrtp_ents_needed: 1,
 					lrtp_class_proprty_value_array: [ 'sdCrystal' ],
-					description: 'Extract X by using a long range teleporter.'
+					description: 'Extract X by using a long range teleporter.',
+					tag: 'RandomEventTask'
 				};
 				
 				let task_options = [];
@@ -4041,7 +4050,7 @@ class sdWeather extends sdEntity
 					[
 						`Could you get us Mitosis crystals using a long range teleporter? We need to study whether they hold they key to unlimited matter.`
 					]);
-					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'speciality', 1, 'spaciality_tier', 40 ];
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'speciality', 1, 'speciality_tier', 40 ];
 				});
 				task_options.push(()=>
 				{
@@ -4081,7 +4090,7 @@ class sdWeather extends sdEntity
 					[
 						`Could you get us soul taking crystal using a long range teleporter? Be very careful, they kill Star Defenders way too often.`
 					]);
-					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'speciality', 1, 'spaciality_tier', 2560 ];
+					template.lrtp_class_proprty_value_array = [ 'sdCrystal', 'speciality', 1, 'speciality_tier', 2560 ];
 				});
 				task_options.push(()=>
 				{
@@ -4211,6 +4220,16 @@ class sdWeather extends sdEntity
 					template.title = 'Extract fallen missiles';
 					template.description = 'Extract fallen missiles by using a long range teleporter.';
 					template.lrtp_class_proprty_value_array = [ 'sdAsteroid', 'type', sdAsteroid.TYPE_MISSILE ];
+				});
+				task_options.push(()=>
+				{
+					num_ents = 1 + Math.floor( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract cryo-substance barrel';
+					template.description = 'We need you to extract a highly-concentrated cryo-substance barrel. The Science Division wants to use it to fix the Mothership\'s main server\'s AI unit, which is currently so hot it\'s trying to melt through the floor.';
+					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', sdJunk.TYPE_FREEZE_BARREL ];
 				});
 				/*
 				task_options.push(()=>
@@ -4518,7 +4537,7 @@ class sdWeather extends sdEntity
 								{
 									// Try to find higher block since they are too tiny sky tracer might skip them
 									
-									let arr = [ 'sdBlock' ];
+									let arr = sdWeather.blocks;
 									
 									let tr = 0;
 									while ( true )
@@ -4834,7 +4853,7 @@ class sdWeather extends sdEntity
 
 							if ( ent.CanMoveWithoutOverlap( x, y, 0.0001, sdWeather.CrystalRemovalByEearthquakeFilter ) )
 							{
-								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava (liquids are caught by CrystalRemovalByEearthquakeFilter though now)
+								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, sdWeather.blocks_and_water ) ) // Extra check for spike blocks and water/lava (liquids are caught by CrystalRemovalByEearthquakeFilter though now)
 								{
 									let ent_above = null;
 									let ent_above_exists = false;
@@ -4956,7 +4975,7 @@ class sdWeather extends sdEntity
 							if ( sdWeather.last_crystal_near_quake )
 							{
 								sdWorld.last_hit_entity = null;
-								if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && 
+								if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, sdWeather.blocks ) && 
 										( sdWorld.last_hit_entity === null || 
 											(	sdWorld.last_hit_entity.is( sdBlock ) && 
 												sdWorld.last_hit_entity.DoesRegenerate() && 

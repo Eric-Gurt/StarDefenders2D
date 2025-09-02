@@ -1,6 +1,6 @@
 
 
-/* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat */
+/* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat, Map */
 
 import sdWorld from '../sdWorld.js';
 //import sdKeyStates from '../sdKeyStates.js';
@@ -559,7 +559,7 @@ class sdEntity
 		return ( !this.onThink.has_ApplyVelocityAndCollisions );
 	}
 	
-	get is_alive() // For tasks
+	get is_alive() // For tasks, also for entities like sdSandWorm to override
 	{
 		return ( this.hea || this._hea || 0 ) > 0;
 	}

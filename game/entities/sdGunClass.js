@@ -9165,25 +9165,31 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
 		};
 		
+		// TODO: Could be nice to have same but for BSU management
 		const weld_reaction_method = ( bullet, target_entity )=>
 		{
 			if ( bullet._owner._current_built_entity )
 			if ( !bullet._owner._current_built_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
 			bullet._owner._current_built_entity = null;
 			
-			if ( target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) && target_entity.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			if ( target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
 			{
-				bullet._owner.Say( 'Elevator motor set. Let\'s pick parts to weld to it' );
+				if ( target_entity.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+				bullet._owner.Say( 'Elevator motor selected. Let\'s pick parts to weld to it' );
+				else
+				bullet._owner.Say( 'Steering wheel selected. Let\'s pick parts to weld to it' );
+			
 				bullet._owner._current_built_entity = target_entity;
 				return;
 			}
 			
 			if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
 			{
+				if ( !target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) ) // Do no allow steering wheels to be weld to elevator motors as it may cause bugs
 				bullet._owner._current_built_entity.ToggleSingleScanItem( target_entity, bullet._owner );
 			}
 			else
-			bullet._owner.Say( 'Elevator motor is not yet set' );
+			bullet._owner.Say( 'Elevator motor or steering wheel is not yet selected' );
 		};
 		sdGun.classes[ sdGun.CLASS_WELD_TOOL = 136 ] = 
 		{

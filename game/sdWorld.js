@@ -1466,7 +1466,7 @@ class sdWorld
 			player_entity.onScoreChange();
 		}
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=false ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=0 ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
 	{
 		if ( sdWorld.is_server )
 		{
@@ -1484,7 +1484,7 @@ class sdWorld
 				if ( ent.extra ) // Might not be needed anymore - keep it just in case to prevent crashes
 				{
 					ent.extra[ 0 ] = value_mult * sdWorld.crystal_shard_value;
-					ent.extra [ 1 ] = speciality;
+					ent.extra[ 1 ] = speciality;
 				}
 			
 				ent._ignore_collisions_with = ignore_collisions_with;
@@ -2187,6 +2187,10 @@ class sdWorld
 					{
 						console.warn('Entity pointer could not be resolved even at later stage (can be unimportant but usually is worth attention) for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
 						//debugger;
+					}
+					else
+					{
+						//trace( 'Network entity pointer was not resolved: ', arr[ 0 ], '.' + arr[ 1 ] );
 					}
 				}
 			}
@@ -3639,7 +3643,7 @@ class sdWorld
 	}
 	
 	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
-	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
+	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
 	{
 		if ( y1 < sdWorld.world_bounds.y1 || 
 			 y2 > sdWorld.world_bounds.y2 || 
@@ -3653,7 +3657,7 @@ class sdWorld
 		let arr;
 		let i;
 		let arr_i;
-		let class_str;
+		//let class_str;
 		let arr_i_x;
 		let arr_i_y;
 		
@@ -3668,6 +3672,9 @@ class sdWorld
 		if ( yy_to === yy_from )
 		yy_to++;
 	
+		let include_only_specific_classes_set = sdWorld.GetClassListByClassNameList( include_only_specific_class_name_strings_array );
+		let ignore_entity_classes_set = sdWorld.GetClassListByClassNameList( ignore_entity_class_name_strings_array );
+		
 		let xx,yy;
 		for ( xx = xx_from; xx < xx_to; xx++ )
 		for ( yy = yy_from; yy < yy_to; yy++ )
@@ -3711,17 +3718,20 @@ class sdWorld
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity._is_bg_entity )
 							//if ( include_only_specific_classes || arr_i._hard_collision )
-							if ( include_only_specific_classes || custom_filtering_method || arr_i._hard_collision ) // custom_filtering_method is needed here to prevent sdButton overlap during building
+							//if ( include_only_specific_classes || custom_filtering_method || arr_i._hard_collision ) // custom_filtering_method is needed here to prevent sdButton overlap during building
+							if ( include_only_specific_classes_set || custom_filtering_method || arr_i._hard_collision ) // custom_filtering_method is needed here to prevent sdButton overlap during building
 							if ( !arr_i._is_being_removed )
 							{
-								if ( include_only_specific_classes || ignore_entity_classes )
-								class_str = arr_i.GetClass();
+								//if ( include_only_specific_classes || ignore_entity_classes )
+								//class_str = arr_i.GetClass();
 
-								if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+								//if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+								if ( include_only_specific_classes_set && !include_only_specific_classes_set.has( arr_i.constructor ) )
 								{
 								}
 								else
-								if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								if ( ignore_entity_classes_set && ignore_entity_classes_set.has( arr_i.constructor ) )
 								{
 								}
 								else

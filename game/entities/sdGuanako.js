@@ -29,6 +29,8 @@ class sdGuanako extends sdEntity
 		sdGuanako.ACTION_HURT = 4;
 		sdGuanako.ACTION_DIES = 5;
 		
+		sdGuanako.ignored_classes = [ 'sdCrystal', 'sdGuanakoStructure' ];
+		
 		sdGuanako.action_durations = [
 			30 * 3,
 			10,
@@ -74,7 +76,7 @@ class sdGuanako extends sdEntity
 	
 	GetIgnoredEntityClasses()
 	{
-		return [ 'sdCrystal', 'sdGuanakoStructure' ];
+		return sdGuanako.ignored_classes;
 	}
 	
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players

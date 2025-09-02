@@ -570,10 +570,10 @@ class sdGrass extends sdEntity
 			{
 				let coefficient = ( sdGrass.heights[ this.variation ] / 27 );
 
-				if ( from_entity.matter_regen < sdCrystal.max_matter_regen )
-				from_entity.matter_regen = Math.min( from_entity.matter_regen + 8 * coefficient, sdCrystal.max_matter_regen );
+				if ( from_entity.matter_regen < from_entity.max_matter_regen )
+				from_entity.matter_regen = Math.min( from_entity.matter_regen + 16 * coefficient, from_entity.max_matter_regen );
 
-				from_entity._hea = Math.min( from_entity._hea + 10 * coefficient, from_entity._hmax );
+				from_entity._hea = Math.min( from_entity._hea + 20 * coefficient, from_entity._hmax );
 
 				sdSound.PlaySound({ name:'popcorn', x:from_entity.x, y:from_entity.y, volume:0.3, pitch:1.5 });
 

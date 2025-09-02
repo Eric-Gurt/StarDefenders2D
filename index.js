@@ -360,6 +360,7 @@ import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
 import sdTask from './game/entities/sdTask.js';
 import sdPortal from './game/entities/sdPortal.js';
 import sdPlayerSpectator from './game/entities/sdPlayerSpectator.js';
+import sdStatusEffect from './game/entities/sdStatusEffect.js';
 
 import { createRequire } from 'module';
 const require = createRequire( import.meta.url );

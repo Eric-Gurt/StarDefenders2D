@@ -383,7 +383,7 @@ class sdSolarMatterDistributor extends sdEntity
 				}
 			}
 			if ( this.has_players_nearby )
-			this.progress = Math.min( this.progress + 0.45, 100 );
+			this.progress = Math.min( this.progress + 1.35, 100 ); // 0.45 feels painfully slow
 		}
 	}
 	onMovementInRange( from_entity )

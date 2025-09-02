@@ -30,6 +30,7 @@ class sdCouncilNullifier extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
 	get hitbox_x1() { return -14; }
 	get hitbox_x2() { return 14; }
 	get hitbox_y1() { return -16; }
@@ -125,6 +126,8 @@ class sdCouncilNullifier extends sdEntity
 
 					if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
 					if ( sdWorld.CheckLineOfSight( x, y, initiator.x, initiator.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+					if ( sdArea.CheckPointDamageAllowed( x, y ) )
+					if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 					{
@@ -190,6 +193,8 @@ class sdCouncilNullifier extends sdEntity
 
 					if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
 					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+					if ( sdArea.CheckPointDamageAllowed( x, y ) )
+					if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 					{

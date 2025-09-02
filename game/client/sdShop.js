@@ -730,10 +730,24 @@ class sdShop
 				sdShop.options.push({ _class: 'sdMeow', _category:'Development tests' });
 				
 				{
+					// Testing potential new specialities
+					/*sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:40, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:80, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:160, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:320, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:640, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:1280, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:2560, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:5120, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:10240, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:20480, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:40960, speciality:2 } );
+					sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:81920, speciality:2 } );*/
+						
 					let base_props = { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals' };
 					let type = [ undefined, 1, 2, 3, 4, 5, 6, 7, 8 ];
 					let matter_max = [ 40, 80, 160, 320, 640, 1280, 2560, 5120, 5120 * 2, 5120 * 4, 5120 * 8, sdCrystal.anticrystal_value ];
-					let speciality = [ undefined, 1 ];
+					let speciality = [ undefined, 1, 2 ];
 					for ( let s of speciality )
 					for ( let t of type )
 					for ( let m of matter_max )

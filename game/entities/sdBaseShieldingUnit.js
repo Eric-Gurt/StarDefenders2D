@@ -105,16 +105,35 @@ class sdBaseShieldingUnit extends sdEntity
 	RequireSpawnAlign() 
 	{ return false; }
 	
-	onFleshifyAttempted()
+	onFleshifyAttempted( from_entity )
 	{
-		if ( this._flesh_infestation_counter === 0 )
+		/*if ( this._flesh_infestation_counter === 0 )
 		{
 			this._flesh_infestation_allowed_in = sdWorld.time + sdAsteroid.GetProtetedBlockInfestationDelay();
 		}
 		
-		this._flesh_infestation_counter++;
+		this._flesh_infestation_counter++;*/
 		
-		return ( sdWorld.time >= this._flesh_infestation_allowed_in );
+		//return ( sdWorld.time >= this._flesh_infestation_allowed_in );
+		
+		let net_id_to_time = this._flesh_infestation_net_id_to_allowed_after;
+		
+		if ( net_id_to_time[ from_entity._net_id ] === undefined )
+		{
+			// Remove outdated
+			for ( let _net_id in net_id_to_time )
+			{
+				_net_id = parseInt( _net_id );
+				
+				let e = sdEntity.entities_by_net_id_cache_map.get( _net_id );
+				if ( !e || e._is_being_removed )
+				delete net_id_to_time[ _net_id ];
+			}
+			
+			net_id_to_time[ from_entity._net_id ] = sdWorld.time + sdAsteroid.GetProtetedBlockInfestationDelay();
+		}
+		
+		return ( sdWorld.time > net_id_to_time[ from_entity._net_id ] );
 	}
 
 	constructor( params )
@@ -128,8 +147,9 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this._time_amplification = 0;
 		
-		this._flesh_infestation_counter = 0; // Grows up overtime if something tries to infestate it, resets on re-enabling BSU
-		this._flesh_infestation_allowed_in = 0; // Becomes timestamp once counter becomes 1 or more
+		//this._flesh_infestation_counter = 0; // Grows up overtime if something tries to infestate it, resets on re-enabling BSU
+		//this._flesh_infestation_allowed_in = 0; // Becomes timestamp once counter becomes 1 or more
+		this._flesh_infestation_net_id_to_allowed_after = {};
 		
 		this._connected_cameras_cache = [];
 		this._connected_cameras_cache_last_rethink = 0;
@@ -259,7 +279,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_protected_entities' );
+		return ( prop === '_protected_entities' || prop === '_flesh_infestation_net_id_to_allowed_after' );
 	}
 	
 	MeasureProtectionPercentage()
@@ -739,8 +759,8 @@ class sdBaseShieldingUnit extends sdEntity
 			return;
 		}
 		
-		this._flesh_infestation_counter = 0;
-		this._flesh_infestation_allowed_in = 0;
+		//this._flesh_infestation_counter = 0;
+		//this._flesh_infestation_allowed_in = 0;
 		
 		if ( enable )
 		{

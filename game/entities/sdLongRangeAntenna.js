@@ -343,7 +343,7 @@ class sdLongRangeAntenna extends sdEntity
 				}
 			}
 			if ( this.has_players_nearby )
-			this.progress = Math.min( this.progress + 0.5, 100 );
+			this.progress = Math.min( this.progress + 1.5, 100 ); // 0.5 feels painfully slow
 		}
 		
 	}

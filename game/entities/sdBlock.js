@@ -1820,7 +1820,7 @@ class sdBlock extends sdEntity
 							{
 								if ( ent._shielded )
 								{
-									if ( ent._shielded.onFleshifyAttempted() )
+									if ( ent._shielded.onFleshifyAttempted( ent ) )
 									ent.Fleshify( this );
 								}
 								else
@@ -2152,8 +2152,15 @@ class sdBlock extends sdEntity
 		else
 		if ( this.material === sdBlock.MATERIAL_FLESH )
 		{
-			//ctx.filter = 'none';
-			ctx.drawImageFilterCache( sdBlock.img_flesh, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+			//ctx.drawImageFilterCache( sdBlock.img_flesh, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+			
+			for ( let xx = 0; xx < w; xx += 16 )
+			for ( let yy = 0; yy < h; yy += 16 )
+			{
+				let w2 = Math.min( 16, w - xx );
+				let h2 = Math.min( 16, h - yy );
+				ctx.drawImageFilterCache( sdBlock.img_flesh, this.x+xx - Math.floor( (this.x+xx) / 128 ) * 128, this.y+yy - Math.floor( (this.y+yy) / 128 ) * 128, w2,h2, xx,yy, w2,h2 );
+			}
 		}
 		else
 		if ( this.material === sdBlock.MATERIAL_WALL ||

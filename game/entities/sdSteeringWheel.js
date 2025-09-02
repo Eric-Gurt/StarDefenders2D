@@ -306,7 +306,7 @@ class sdSteeringWheel extends sdEntity
 		
 		let collected = [ this ];
 		
-		const overlap = ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? sdSteeringWheel.overlap : -1;
+		const overlap = sdSteeringWheel.overlap;//( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) ? sdSteeringWheel.overlap : -1;
 		
 		let reason = null;
 		
@@ -346,7 +346,7 @@ class sdSteeringWheel extends sdEntity
 									   ( !ent2.is( sdBlock ) || !ent2._natural ) &&
 									   
 									   (
-											( ent2.is( sdBG ) && ent2.material !== sdBG.MATERIAL_GROUND ) 
+											( ent2.is( sdBG ) && ent2.material !== sdBG.MATERIAL_GROUND && this.type === sdSteeringWheel.TYPE_STEERING_WHEEL ) 
 											||
 											!ent2.is( sdBG ) 
 										)
@@ -364,7 +364,11 @@ class sdSteeringWheel extends sdEntity
 								if ( ent2._shielded.enabled )
 								if ( allowed_bsu_list.indexOf( ent2._shielded ) === -1 )
 								{
+									if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 									reason = 'Steering wheel can not move entities that are protected by base shielding units that are not wired to this steering wheel';
+									else
+									reason = 'Elevator motor can not move entities that are protected by base shielding units that are not wired to this elevator motor';
+								
 									collected = null;
 									break out;
 								}
@@ -379,14 +383,18 @@ class sdSteeringWheel extends sdEntity
 								
 								if ( collected.length > LIMIT )
 								{
+									if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 									reason = 'Skybase is likely stuck or too big to move (over ' + LIMIT + ' entities in a scan)';
+									else
+									reason = 'Entities groups is likely stuck or too big to move (over ' + LIMIT + ' entities in a scan)';
+								
 									collected = null;
 									break out;
 								}
 								
 								if ( ent2.is( sdSteeringWheel ) && ent2 !== this )
 								{
-									reason = 'Only one steering wheel is allowed';
+									reason = 'Only one steering wheel/elevator motor is allowed';
 									collected = null;
 									break out;
 								}
@@ -1600,13 +1608,14 @@ class sdSteeringWheel extends sdEntity
 				if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 				{
 					if ( command_name === 'SCAN' )
-					{
-						this.Scan( exectuter_character );
-					}
+					this.Scan( exectuter_character );
 				}
 				else
 				if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 				{
+					if ( command_name === 'SCAN' )
+					this.Scan( exectuter_character );
+				
 					if ( command_name === 'SET_SPEED' )
 					{
 						for ( let i = 1; i <= 32; i *= 2 )
@@ -1650,6 +1659,8 @@ class sdSteeringWheel extends sdEntity
 			else
 			if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 			{
+				this.AddContextOption( 'Re-weld nearby entities', 'SCAN', [] );
+			
 				for ( let i = 1; i <= 32; i *= 2 )
 				this.AddContextOption( 'Set motor speed to ' + i/2, 'SET_SPEED', [ i ], true, ( this.speed === i ) ? { color:'#00ff00' } : {} );
 			

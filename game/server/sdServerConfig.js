@@ -1685,7 +1685,21 @@ class sdServerConfigFull extends sdServerConfigShort
 				return Math.ceil( v ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 			}
 
-			console.log('Snapshot save started... Memory usage :: Current: ' + RoundThousandSpaces( ( os.totalmem() - os.freemem() ) / (1024 * 1024) ) + ' Mb / Total: ' + RoundThousandSpaces( os.totalmem() / (1024 * 1024) ) + ' Mb / Available: ' + RoundThousandSpaces( os.freemem() / (1024 * 1024) ) + ' Mb / Entities: ' + sdEntity.entities.length + ' / Active entities: ' + sdEntity.active_entities.length + ' / entities_by_net_id_cache_map: ' + sdEntity.entities_by_net_id_cache_map.size + ' / removed_entities_info: ' + sdEntity.removed_entities_info.size + ' / sockets: ' + sdWorld.sockets.length );
+			console.log('Snapshot save started... Memory usage :: Current: ' + RoundThousandSpaces( ( os.totalmem() - os.freemem() ) / (1024 * 1024) ) + ' Mb / '+
+					'Total: ' + RoundThousandSpaces( os.totalmem() / (1024 * 1024) ) + ' Mb / '+
+					'Available: ' + RoundThousandSpaces( os.freemem() / (1024 * 1024) ) + ' Mb / '+
+					'Entities: ' + sdEntity.entities.length + ' / '+
+					'Active entities: ' + sdEntity.active_entities.length + ' / '+
+					'entities_by_net_id_cache_map: ' + sdEntity.entities_by_net_id_cache_map.size + ' / '+
+					'removed_entities_info: ' + sdEntity.removed_entities_info.size + ' / '+
+					'sdPathFinding.rect_space_maps: ' + sdPathFinding.rect_space_maps.length + ' / '+
+					'world_hash_positions: ' + sdWorld.world_hash_positions.size + ' / '+
+					'recent_built_item_net_ids_by_hash: ' + sdWorld.recent_built_item_net_ids_by_hash.size + ' / '+
+					'status_effects: ' + sdStatusEffect.status_effects.length + ' / '+
+					'tasks: ' + sdTask.tasks.length + ' / '+
+					'global_entities: ' + sdEntity.global_entities.length + ' / '+
+					'sockets: ' + sdWorld.sockets.length 
+			);
 
 			let start_time = Date.now();
 

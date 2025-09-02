@@ -246,9 +246,10 @@ class sdRift extends sdEntity
 							{
 								e.stability = Math.max( -1, e.stability - strength );
 
+								/* EG: I don't think players like this
 								if ( e.gun_slot !== 9 )
 								if ( sdWorld.Dist2D_Vector( e.sx, e.sy ) > 10 )
-								e.DropWeapon( e.gun_slot );
+								e.DropWeapon( e.gun_slot );*/
 							}
 
 							if ( e.IsPlayerClass() )

@@ -11,6 +11,7 @@ import sdCrystal from './sdCrystal.js';
 import sdStorage from './sdStorage.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCom from './sdCom.js';
+import sdLamp from './sdLamp.js';
 
 class sdRoach extends sdEntity
 {
@@ -21,10 +22,14 @@ class sdRoach extends sdEntity
 		sdRoach.TYPE_ROACH = 0;
 		sdRoach.TYPE_MOTH = 1;
 		
-		sdRoach.light_ents = [ 'sdLamp', 'sdCrystal' ];
+		sdRoach.light_ents = [ 'sdLamp', 'sdCrystal' ]; // Same classes [ 1 / 2 ]
 		sdRoach.ignored_ents = [ 'sdRoach' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	static IsLightSource( ent )
+	{
+		return ( ent.is( sdLamp ) || ent.is( sdCrystal ) ); // Same classes [ 2 / 2 ]
 	}
 	get hitbox_x1() { return ( this.bgcrawl === 1 && this.fr <= 2 ) ? -5 : -5; }
 	get hitbox_x2() { return ( this.bgcrawl === 1 && this.fr <= 2 ) ? 5 : 5; }
@@ -196,7 +201,7 @@ class sdRoach extends sdEntity
 			if ( from_entity.IsTargetable( this ) )
 			if ( ( this.nick.length === 0 && !from_entity.is( sdRoach ) ) || ( this.nick.length > 0 && from_entity.is( sdRoach ) && from_entity.nick.length === 0 ) )
 			{
-				if ( this.type === sdRoach.TYPE_MOTH && sdRoach.light_ents.includes( from_entity.GetClass() ) )
+				if ( this.type === sdRoach.TYPE_MOTH && sdRoach.IsLightSource( from_entity ) )
 				{
 					this._walk_duration = 0;
 					return;
@@ -342,24 +347,28 @@ class sdRoach extends sdEntity
 					{
 						if ( this.type === sdRoach.TYPE_ROACH )
 						{
-							this.an = ( ( this.an + Math.random() * 60 - 30 ) % 100 );
+							this.an = ( ( this.an + Math.random() * 120 - 60 ) % ( Math.PI * 2 * 100 ) );
 						}
 						else
 						if ( this.type === sdRoach.TYPE_MOTH ) // Attracted to light sources
 						{
-							let nears = sdWorld.GetAnythingNear( this.x, this.y, 192, null, null );
+							this.an = Math.random() * Math.PI * 2 * 100;
+							
+							let nears = sdWorld.GetAnythingNearWithLOS( this.x, this.y, 192, null, sdRoach.light_ents );
+							//let nears = sdWorld.GetAnythingNear( this.x, this.y, 192, null, null, sdRoach.IsLightSource );
 							for ( let i = 0; i < nears.length; i++ )
 							{
-								let ent = nears [ i ];
+								let ent = nears[ i ];
 								
 								if ( !ent._is_being_removed )
-								if ( sdRoach.light_ents.includes( ent.GetClass() ) )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, null, null, sdCom.com_vision_blocking_classes ) ) 
+								//if ( sdRoach.light_ents.includes( ent.GetClass() ) )
+								//if ( ent.is( sdLamp ) || ent.is( sdCrystal ) )
+								//if ( sdRoach.IsLightSource( ent ) )
+								//if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, null, null, sdCom.com_vision_blocking_classes ) ) 
 								{
 									this.an = Math.atan2( this.x - ent.x, this.y - ent.y ) * 100;
 									break;
 								}
-								this.an = Math.random() * Math.PI * 2 * 100;
 							}
 						}
 						

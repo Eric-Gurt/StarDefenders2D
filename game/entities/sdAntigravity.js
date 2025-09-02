@@ -117,7 +117,57 @@ class sdAntigravity extends sdEntity
 	SensorAreaMovementCallback( from_entity )
 	{
 		if ( this._entities_within_sensor_area.indexOf( from_entity._net_id ) === -1 )
-		this._entities_within_sensor_area.push( from_entity._net_id );
+		{
+			this._entities_within_sensor_area.push( from_entity._net_id );
+		
+			this.CleanupOrFilterTrackedEntities();
+		}
+	}
+	CleanupOrFilterTrackedEntities( targets=null, walls=null ) // Leave targets & walls empty to only do cleanup
+	{
+		if ( walls )
+		{
+			for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
+			{
+				let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
+
+				if ( e && !e._is_being_removed && e.DoesOverlapWith( this._sensor_area ) ) // Copy [ 1 / 2 ]
+				{
+					if ( e.is( sdBlock ) || e.is( sdDoor ) )
+					walls.push( e );
+					else
+					if ( e.IsPhysicallyMovable() )
+					targets.push( e );
+				}
+				else
+				{
+					this._entities_within_sensor_area.splice( i2, 1 );
+					i2--;
+					continue;
+				}
+			}
+		}
+		else
+		{
+			// Check random 20%
+			for ( let i = this._entities_within_sensor_area.length * 0.2; i > 0; i-- )
+			//for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
+			{
+				let i2 = Math.floor( Math.random() * this._entities_within_sensor_area.length );
+				
+				let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
+
+				if ( e && !e._is_being_removed && e.DoesOverlapWith( this._sensor_area ) ) // Copy [ 1 / 2 ]
+				{
+				}
+				else
+				{
+					this._entities_within_sensor_area.splice( i2, 1 );
+					//i2--;
+					continue;
+				}
+			}
+		}
 	}
 	
 	SetSensorBounds( sensor_or_params, max_h )
@@ -193,30 +243,7 @@ class sdAntigravity extends sdEntity
 				
 				let targets = [];
 				let walls = [];
-
-				for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
-				{
-					let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
-
-					if ( e && !e._is_being_removed && e.DoesOverlapWith( this._sensor_area ) )
-					{
-						if ( e.is( sdBlock ) || e.is( sdDoor ) )
-						{
-							walls.push( e );
-						}
-						else
-						{
-							if ( e.IsPhysicallyMovable() )
-							targets.push( e );
-						}
-					}
-					else
-					{
-						this._entities_within_sensor_area.splice( i2, 1 );
-						i2--;
-						continue;
-					}
-				}
+				this.CleanupOrFilterTrackedEntities( targets, walls );
 
 				let WithinLimits = ( e )=>
 				{
@@ -348,8 +375,11 @@ class sdAntigravity extends sdEntity
 				}
 
 			}
-			
+			else
+			this.CleanupOrFilterTrackedEntities();
 		}
+		else
+		this.CleanupOrFilterTrackedEntities();
 		
 				
 		if ( this._hea >= this._hmax )

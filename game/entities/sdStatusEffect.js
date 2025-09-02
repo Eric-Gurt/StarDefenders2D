@@ -5,6 +5,8 @@
 	These can maybe even work as held item containers + multipliers? If these will work well across long-range teleporters.
 
 */
+/* global FakeCanvasContext, sdSound, THREE */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
@@ -18,6 +20,7 @@ import sdCable from './sdCable.js';
 import sdBG from './sdBG.js';
 import sdBlock from './sdBlock.js';
 import sdWater from './sdWater.js';
+import sdCharacter from './sdCharacter.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -37,7 +40,7 @@ class sdStatusEffect extends sdEntity
 		
 		sdStatusEffect.types[ sdStatusEffect.TYPE_DAMAGED = 0 ] = 
 		{
-			remove_if_for_removed: false,
+			remove_if_for_removed: false, // Damage numbers can stay for a little while, they are removed eventually
 	
 			is_emote: false,
 			
@@ -627,7 +630,7 @@ class sdStatusEffect extends sdEntity
 				ctx.sd_status_effect_tint_filter = null;
 				
 				sdWorld.time = status_entity._saved_world_time;
-			},
+			}
 		};
 		
 		sdStatusEffect.types[ sdStatusEffect.TYPE_STEERING_WHEEL_PING = 3 ] = 
@@ -1340,29 +1343,7 @@ class sdStatusEffect extends sdEntity
 			{
 				status_entity.t -= GSPEED;
 				
-				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-				{
-				}
-			
 				return ( status_entity.t <= 0 ); // return true = delete
-			},
-			onBeforeRemove: ( status_entity )=>
-			{
-			},
-			onBeforeEntityRender: ( status_entity, ctx, attached )=>
-			{
-				//if ( !status_entity.for )
-				//return;
-				//ctx.sd_status_effect_tint_filter = [ sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale ];
-			},
-			onAfterEntityRender: ( status_entity, ctx, attached )=>
-			{
-				//ctx.sd_status_effect_filter = null;
-				//ctx.sd_status_effect_tint_filter = null;
-				//ctx.filter = 'none';
-			},
-			DrawFG: ( status_entity, ctx, attached )=>
-			{
 			}
 		};
 
@@ -1534,7 +1515,7 @@ class sdStatusEffect extends sdEntity
 				{
 					status_entity._ttl -= GSPEED;
 
-					if ( status_entity._ttl <= 0 ) status_entity.remove()
+					if ( status_entity._ttl <= 0 ) status_entity.remove();
 				}
 			},
 
@@ -1651,13 +1632,13 @@ class sdStatusEffect extends sdEntity
 				status_entity._owner = params.owner || null;
 				status_entity._controllable = params.controllable || false;
 				
-				status_entity.visual = params.visual || false // Ignore extra logic and only show blinking light sprite
+				status_entity.visual = params.visual || false; // Ignore extra logic and only show blinking light sprite
 				
 				if ( status_entity.for )
 				if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
 				{
 					status_entity._first_chat_color = status_entity.for._chat_color;
-					status_entity.for._chat_color = '#ff0000'
+					status_entity.for._chat_color = '#ff0000';
 					
 					if ( status_entity.visual ) return; // No need for AI logic
 					
@@ -1814,7 +1795,7 @@ class sdStatusEffect extends sdEntity
 
 				if ( status_entity.for && !status_entity.for._is_being_removed )
 				{
-					status_entity.for._chat_color = status_entity._first_chat_color
+					status_entity.for._chat_color = status_entity._first_chat_color;
 					if ( status_entity.visual ) return;
 					
 					if ( status_entity.for._ai_enabled )
@@ -1865,6 +1846,61 @@ class sdStatusEffect extends sdEntity
 				ctx.globalAlpha = 1;
 			}
 		};
+		
+		/*sdStatusEffect.types[ sdStatusEffect.TYPE_VOID_SHARD_EFFECT = 15 ] = 
+		{
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: true,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.t = params.t;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity.t = params.t;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return status_entity.for.IsVisible( observer_entity );
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity.t -= GSPEED;
+				
+				if ( typeof status_entity.for.matter !== 'undefined' )
+				{
+					status_entity.for.matter = 0;
+				}
+				
+				if ( typeof status_entity.for._matter !== 'undefined' )
+				{
+					status_entity.for._matter = 0;
+				}
+				
+				return ( status_entity.t <= 0 ); // return true = delete
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//ctx.filter = 'brightness(0)blur(2px)opacity(0.5)';
+				ctx.sd_status_effect_tint_filter = [ 0.3,0.3,0.3 ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//ctx.filter = 'none';
+				ctx.sd_status_effect_tint_filter = null;
+			}
+		};*/
 
 		sdStatusEffect.status_effects = [];
 		

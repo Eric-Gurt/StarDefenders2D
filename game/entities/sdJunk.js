@@ -802,17 +802,13 @@ class sdJunk extends sdEntity
 										{
 											let ent2 = ent;
 											// Essentially a 50/50 gamble for matter regen on crystals. Though it also scales how much it regenerates/loses depending on crystal max matter
-											//let mult = Math.max( 0.5, 5120 / ent2.matter_max );
-											let mult = 5120 / ent2.matter_max;
 											
-											//ent2.matter_regen = Math.max( 0, Math.min( sdCrystal.max_matter_regen, ent2.matter_regen + ( ( Math.random() - Math.random() ) * mult ) ) );
+											let mult = 5120 / ent2.matter_max;
 											
 											let regen = Math.min( 0.25, this._crystal_regen_rate_left );
 											
-											if ( ent2.matter_regen + regen * mult > sdCrystal.max_matter_regen )
-											{
-												regen = ( sdCrystal.max_matter_regen - ent2.matter_regen ) / mult;
-											}
+											if ( ent2.matter_regen + regen * mult > ent2.max_matter_regen )
+											regen = ( ent2.max_matter_regen - ent2.matter_regen ) / mult;
 											
 											if ( ent.is_anticrystal )
 											regen = 0;
@@ -821,7 +817,7 @@ class sdJunk extends sdEntity
 											{
 												sdCrystal.Zap( this, ent2, '#7076e6' ); // Zap effect to show it's doing something
 												
-												ent2.matter_regen = Math.min( sdCrystal.max_matter_regen, ent2.matter_regen + regen * mult );
+												ent2.matter_regen = Math.min( ent2.max_matter_regen, ent2.matter_regen + regen * mult );
 												this._crystal_regen_rate_left -= regen;
 
 												if ( heal_sound_once )
@@ -900,10 +896,20 @@ class sdJunk extends sdEntity
 								else
 								if ( di < 1200 )
 								di_mult = 0.9;
-
+						
 								if ( di < 1500 )
 								{
-									sdWorld.sockets[ i ].character.matter = sdWorld.sockets[ i ].character.matter * multiplier * di_mult;
+									let char = sdWorld.sockets[ i ].character;
+									
+									char.matter = char.matter * multiplier * di_mult;
+									
+									let c = '#000000';
+									
+									sdCrystal.Zap( this, char, c );
+									sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:c, scale:2, radius:10 });
+									sdWorld.SendEffect({ x:char.x, y:char.y, type:sdEffect.TYPE_GLOW_HIT, color:c, scale:2, radius:10 });
+
+									//sdSound.PlaySound({ name:'bsu_attack', x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y, volume:0.2, pitch:0.2 });
 									
 									sdTask.MakeSureCharacterHasTask({ 
 										similarity_hash:'DESTROY-'+this._net_id, 

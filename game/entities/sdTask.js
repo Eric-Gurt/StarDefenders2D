@@ -696,6 +696,7 @@ class sdTask extends sdEntity
 		//this.extract_target = params.extract_target || 0; // For "Extract entity tasks" , like "Rescue / Arrest Star Defender" event
 		
 		this._similarity_hash = params.similarity_hash; // In some cases it can be used to prevent spawning of similar tasks. For example it can be called 'Destroy-1239123921'
+		this._tag = params.tag || ''; // Can be used to identify randomly assigned tasks, so other tasks like "Destroy X" aren't preventing regular random tasks
 		
 		this.mission = params.mission || 0;
 		

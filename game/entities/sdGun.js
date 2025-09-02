@@ -465,7 +465,14 @@ class sdGun extends sdEntity
 	{
 		return sdGun.classes[ this.class ].ammo_capacity_dynamic ? sdGun.classes[ this.class ].ammo_capacity_dynamic( this ) : sdGun.classes[ this.class ].ammo_capacity;
 	}
+	get speciality()
+	{
+		// Assuming it is a crystal shard
+		if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
+		return this.extra[ 1 ];
 	
+		return 0;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -1767,10 +1774,10 @@ class sdGun extends sdEntity
 
 					ctx.filter = sdWorld.GetCrystalHue( v );
 					
-					if ( this.extra[ 1 ] )
+					if ( this.extra[ 1 ] > 0 )
 					{
-						if ( sdCrystal.spaciality_table[ v ] && sdCrystal.spaciality_table[ v ].GetFilterAltering )
-						ctx.filter = sdCrystal.spaciality_table[ v ].GetFilterAltering( this, ctx.filter )
+						if ( sdCrystal.speciality_table[ v ] && sdCrystal.speciality_table[ v ].GetFilterAltering )
+						ctx.filter = sdCrystal.speciality_table[ v ].GetFilterAltering( this, ctx.filter );
 					}
 				}
 

@@ -279,6 +279,11 @@ class sdLost extends sdEntity
 	/* Causes client-side falling through unsynced ground, probably bad thing to do and it won't be complex entity after sdSnapPack is added
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }*/
+		
+	IsPhysicallyMovable()
+	{
+		return !this.s;
+	}
 	
 	constructor( params )
 	{

@@ -41,6 +41,8 @@ class sdByteShifter
 		sdByteShifter.simulate_packet_shuffle = false;
 		sdByteShifter.simulate_packet_delay = false;
 		
+		sdByteShifter.events_overflow_warning_next_time = 0;
+		
 		if ( sdByteShifter.simulate_packet_shuffle || sdByteShifter.simulate_packet_delay )
 		console.warn( 'sdByteShifter debug features are enabled' );
 		
@@ -174,6 +176,8 @@ class sdByteShifter
 			{
 				socket.sync_busy = true;
 				
+				let allow_silent_event_skip = ( sdWorld.time > socket.last_sync + 1000 );
+				
 				socket.last_sync = sdWorld.time;
 				socket.waiting_on_M_event_until = sdWorld.time + 1000;
 				
@@ -213,6 +217,16 @@ class sdByteShifter
 					
 					const near_player_until_time = sdWorld.time + 1000;
 					
+					const IncludeRequiredEntitiesOf = ( ent )=>
+					{
+						if ( ent.getRequiredEntities !== default_getRequiredEntitiesr )
+						{
+							let ents = ent.getRequiredEntities( socket.character );
+							for ( let i = 0; i < ents.length; i++ )
+							AddEntity( ents[ i ], true );
+						}
+					};
+					
 					const AddEntity = ( ent )=>//, forced )=>
 					{
 						if ( ent._flag < visited_ent_flag )
@@ -247,6 +261,7 @@ class sdByteShifter
 											//replacement_for_confirmed_snapshot.set( ent, snap );
 											replacement_for_confirmed_snapshot.set( ent._net_id, snap );
 
+											IncludeRequiredEntitiesOf( ent ); // Crystal combiners need this, many other items too
 											return; // Skip
 										}
 									}
@@ -427,13 +442,7 @@ class sdByteShifter
 								if ( triggers_sync )
 								ent.SyncedToPlayer( socket.character );
 
-
-								if ( ent.getRequiredEntities !== default_getRequiredEntitiesr )
-								{
-									let ents = ent.getRequiredEntities( socket.character );
-									for ( let i = 0; i < ents.length; i++ )
-									AddEntity( ents[ i ], true );
-								}
+								IncludeRequiredEntitiesOf( ent );
 							}
 							else
 							{
@@ -801,6 +810,14 @@ class sdByteShifter
 
 					if ( socket.sd_events.length > 100 )
 					{
+						if ( !allow_silent_event_skip )
+						if ( Date.now() > sdByteShifter.events_overflow_warning_next_time )
+						{
+							// Once in 6 hours
+							sdByteShifter.events_overflow_warning_next_time = Date.now() + 1000 * 60 * 60 * 6;
+							trace( '.sd_events overflow: ' + JSON.stringify( socket.sd_events ) );
+						}
+						
 						//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
 
 						//debugger;

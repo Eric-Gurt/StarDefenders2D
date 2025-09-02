@@ -75,6 +75,9 @@ class sdMothershipContainer extends sdEntity
 		
 		this._regen_timeout = 0;
 		
+		this._council_bombs_to_spawn = 8;
+		this._nullifiers_to_spawn = 15;
+		
 		this._spawned_ai = false;
 		
 		this._time_until_remove = 30 * 60 * 60 * 24 * 7; // One week of gameplay until it despawns
@@ -248,6 +251,7 @@ class sdMothershipContainer extends sdEntity
 						if ( has_players_nearby || ( !this._last_spawned_distributor || ( this._last_spawned_distributor && this._last_spawned_distributor.progress >= 100 ) ) ) // Spawn it anywhere, because players are near the container, or it did not spawn despite nothing near it
 						{
 							let distributors = [];
+							
 							sdWeather.SimpleSpawner({
 								count: [ 1, 1 ],
 								class: sdSolarMatterDistributor,
@@ -268,7 +272,7 @@ class sdMothershipContainer extends sdEntity
 					this._next_council_bomb = sdWorld.time + ( 1000 * 60 * 58 + ( Math.random() * 1000 * 60 * 4 ) ); // Spawn one every 58-62 minutes
 				
 					let ents = 0;
-					let ents_tot = 1;
+					let ents_tot = ( this._council_bombs_to_spawn > 0 ) ? 1 : 0;
 					
 					let spawned_event = false; // If remains false, will spawn a nullifier randomly on the map to halt container progress
 					// Will also force nullifiers every 30% of progress
@@ -284,7 +288,6 @@ class sdMothershipContainer extends sdEntity
 
 					while ( ents < ents_tot )
 					{
-
 						let ent = new sdJunk({ x:0, y:0, type: sdJunk.TYPE_COUNCIL_BOMB });
 
 						sdEntity.entities.push( ent );
@@ -315,6 +318,7 @@ class sdMothershipContainer extends sdEntity
 									ent.x = x;
 									ent.y = y;
 									spawned_event = true;
+									this._council_bombs_to_spawn--;
 									break;
 								}
 
@@ -333,16 +337,19 @@ class sdMothershipContainer extends sdEntity
 					if ( !spawned_event ) // Didn't spawn one of the regular events? Spawn a nullifier to halt progress instead
 					{
 						let nullifier = [];
-							
-							sdWeather.SimpleSpawner({
-								count: [ 1, 1 ],
-								class: sdCouncilNullifier,
-								store_ents: nullifier,
-								aerial: true,
-								aerial_radius: 128
-							})
+						
+						if ( this._nullifiers_to_spawn > 0 )
+						sdWeather.SimpleSpawner({
+							count: [ 1, 1 ],
+							class: sdCouncilNullifier,
+							store_ents: nullifier,
+							aerial: true,
+							aerial_radius: 128
+						});
+						
 						if ( nullifier.length !== 0 ) // Spawned succesfully?
 						{
+							this._nullifiers_to_spawn--;
 							nullifier[ 0 ]._ent_to_nullify = this;
 							nullifier[ 0 ]._set_matter_to = this.matter; // Halt progress
 						}

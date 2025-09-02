@@ -570,6 +570,11 @@ class sdSandWorm extends sdEntity
 		return ( this.death_anim === 0 ) ? sdSandWorm.ignoring : sdSandWorm.ignoring_dead;
 	}
 	
+	get is_alive() // For tasks, also for entities like sdSandWorm to override
+	{
+		return ( this.death_anim === 0 );
+	}
+	
 	onThinkFrozen( GSPEED )
 	{
 		this.onThink( GSPEED );

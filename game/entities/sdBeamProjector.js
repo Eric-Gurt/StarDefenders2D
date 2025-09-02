@@ -99,6 +99,8 @@ class sdBeamProjector extends sdEntity
 		
 		this.progress = 0; // Task progress - needed for "Protect" task types
 		
+		this._nullifiers_to_spawn = 3;
+		
 		this._spawned_ai = false; // Spawn SD AI
 		
 		//this.matter_max = 5500;
@@ -434,16 +436,20 @@ class sdBeamProjector extends sdEntity
 			if ( !spawned_event || event_type === 0 ) // Didn't spawn one of the regular events (or event_type is 0)? Spawn a nullifier to halt progress instead
 			{
 				let nullifier = [];
-					
-					sdWeather.SimpleSpawner({
-						count: [ 1, 1 ],
-						class: sdCouncilNullifier,
-						store_ents: nullifier,
-						aerial: true,
-						aerial_radius: 128
-					})
+
+				if ( this._nullifiers_to_spawn > 0 )
+				sdWeather.SimpleSpawner({
+					count: [ 1, 1 ],
+					class: sdCouncilNullifier,
+					store_ents: nullifier,
+					aerial: true,
+					aerial_radius: 128
+				});
+			
 				if ( nullifier.length !== 0 ) // Spawned succesfully?
 				{
+					this._nullifiers_to_spawn--;
+					
 					nullifier[ 0 ]._ent_to_nullify = this;
 					this._last_event_entity = nullifier[ 0 ]; // Set as event entity
 					this.enabled = false; // And disable itself until it nullifier is destroyed

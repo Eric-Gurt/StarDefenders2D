@@ -97,6 +97,12 @@ class sdCrystalCombiner extends sdEntity
 		this.crystal0 = null;
 		this.crystal1 = null;
 		
+		//if ( !sdWorld.is_server )
+		{
+			globalThis.EnforceChangeLog( this, 'crystal0', false );
+			globalThis.EnforceChangeLog( this, 'crystal1', false );
+		}
+		
 		this.drain_direction = 0;
 	   
 		this._hmax = 600 * 4;
@@ -330,6 +336,13 @@ class sdCrystalCombiner extends sdEntity
 		
 		let merge_prog = this.prog / this.GetBaseAnimDuration();
 		let merge_intens = Math.min( 1, Math.pow( merge_prog, 8 ) ) * 8;
+		
+		if ( isNaN( merge_prog ) || isNaN( merge_intens ) )
+		{
+			debugger;
+			merge_prog = this.prog / this.GetBaseAnimDuration();
+			merge_intens = Math.min( 1, Math.pow( merge_prog, 8 ) ) * 8;
+		}
 		
 		if ( this.crystal0 )
 		{
@@ -686,6 +699,9 @@ class sdCrystalCombiner extends sdEntity
 			
 			ent.type = sdCrystal.TYPE_CRYSTAL_ARTIFICIAL;
 			ent._hea = ent._hmax = sdCrystal.hitpoints_artificial;
+			
+			if ( ent.matter_regen > ent.max_matter_regen )
+			ent.matter_regen = ent.max_matter_regen;
 			
 			let c = this.crystal1;
 			c.remove();
