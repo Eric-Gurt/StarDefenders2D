@@ -9,6 +9,8 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdGun from './sdGun.js';
 import sdTimer from './sdTimer.js';
 import sdLost from './sdLost.js';
+import sdWater from './sdWater.js';
+import sdEffect from './sdEffect.js';
 
 class sdCrystalCombiner extends sdEntity
 {
@@ -34,6 +36,8 @@ class sdCrystalCombiner extends sdEntity
 			'Drain left mode',
 			'Drain right mode'
 		];
+
+		sdCrystalCombiner.water_cooling_consumption_rate = 0.03;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -120,7 +124,27 @@ class sdCrystalCombiner extends sdEntity
 		
 		this._time_amplification = 0;
 		
+		this.liquid = {
+			max: 1, 
+			amount: 0, 
+			type: -1, 
+			extra: 0 // Used for essence
+		};
+
+		this._next_steam_spawn = 0;
+
 		this.SetMethod( 'MergeCollisionTest', this.MergeCollisionTest ); // Here it used for "this" binding so method can be passed to collision logic
+	}
+	LiquidTransferMode() // 0 - balance liquids, 1 - only give liquids, 2 - only take liquids
+	{
+		return 2;
+	}
+	IsLiquidTypeAllowed( type )
+	{
+		if ( this.liquid.type !== -1 && this.liquid.type !== type )
+		return false;
+
+		return ( type === sdWater.TYPE_WATER || type === sdWater.TYPE_ACID );
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -451,6 +475,35 @@ class sdCrystalCombiner extends sdEntity
 				/*this.drain_direction = 0;
 				this._update_version++;*/
 				this.DrainWithDirection( 0 );
+			}
+		}
+
+		if ( this.liquid.amount > 0 )
+		{
+			let temp = sdStatusEffect.GetTemperature( this );
+
+			if ( sdWorld.is_server )
+			if ( temp > sdStatusEffect.temperature_normal )
+			{
+				let loss = ( temp - sdStatusEffect.temperature_normal ) / sdStatusEffect.temperature_normal * sdCrystalCombiner.water_cooling_consumption_rate;
+
+				this.liquid.amount = Math.max( this.liquid.amount - loss * GSPEED, 0 );
+				if ( this.liquid.amount <= 0 )
+				this.liquid.type = -1;
+
+				this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:sdStatusEffect.temperature_normal, remain_part: 0.5, GSPEED:GSPEED }); // Neutralize hot values
+
+				can_hibernate = false;
+			}
+
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( this._next_steam_spawn < sdWorld.time )
+			if ( this.prog > 0 || this.drain_direction !== 0 )
+			{
+				this._next_steam_spawn = sdWorld.time + 1000 * 2 + 1000 * 2 * Math.random();
+
+				let ent = new sdEffect({ x: this.x + ( this.hitbox_x2 - this.hitbox_x1 ) * ( Math.random() - 0.5 ), y: this.y, sy:-2, type:sdEffect.TYPE_SMOKE, color:'#eeeeee' });
+				sdEntity.entities.push( ent );
 			}
 		}
 		
