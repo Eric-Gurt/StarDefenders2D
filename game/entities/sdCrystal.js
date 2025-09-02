@@ -2542,8 +2542,8 @@ class sdCrystal extends sdEntity
 	}
 	onBeforeRemove() // Class-specific, if needed
 	{
-		if ( !sdWorld.is_server )
-		console.warn( 'Crystal ('+this.matter_max+') removed' );
+		//if ( !sdWorld.is_server )
+		//console.warn( 'Crystal ('+this.matter_max+') removed' );
 		
 		if ( this.held_by )
 		if ( typeof this.held_by.DropCrystal !== 'undefined' )

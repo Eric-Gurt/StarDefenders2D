@@ -102,10 +102,10 @@ class sdCrystalCombiner extends sdEntity
 		this.crystal1 = null;
 		
 		//if ( !sdWorld.is_server )
-		{
+		/*{
 			globalThis.EnforceChangeLog( this, 'crystal0', false );
 			globalThis.EnforceChangeLog( this, 'crystal1', false );
-		}
+		}*/
 		
 		this.drain_direction = 0;
 	   
