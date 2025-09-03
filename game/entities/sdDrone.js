@@ -383,11 +383,14 @@ class sdDrone extends sdEntity
 								if ( ent._private_props.sdbg_duped !== 1 )
 								{
 									ent._private_props.sdbg_duped = 1;
-									ent.matter_regen = Math.min( 
+									
+									ent.matter_regen = Math.min( ent.matter_regen + Math.min( 400 / 1.5, ent.matter_regen * 1.5 ), ent.max_matter_regen ); // Prevent overchargable crystals from being to abusable
+									
+									/*ent.matter_regen = Math.min( 
 											ent.matter_regen + 400 / 2.5, // Prevent overchargable crystals from being to abusable
 											ent.matter_regen * 2.5, 
 											ent.max_matter_regen 
-									);
+									);*/
 									ent.matter = Math.min( ent.matter * 5, ent.matter_max );
 								}
 							}
