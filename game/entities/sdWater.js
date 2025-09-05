@@ -30,7 +30,7 @@ class sdWater extends sdEntity
 		sdWater.TYPE_ANTIMATTER = 5;
 		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2', '#b0ffff', '#040408' ]; // For liquid carrier recolors
 		
-		sdWater.damage_by_type = [ 0, 1, 5, 0, 0, 0 ];
+		sdWater.damage_by_type = [ 0, 1, 4, 0, 0, 0 ];
 		sdWater.never_sleep_by_type = [ 0, 0, 0, 1, 0, 0 ];
 		//sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
 		
@@ -521,7 +521,7 @@ class sdWater extends sdEntity
 								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 								
 								if ( this.type === sdWater.TYPE_LAVA )
-								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED });
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 60 * GSPEED });
 							}
 
 							if ( this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_WATER )

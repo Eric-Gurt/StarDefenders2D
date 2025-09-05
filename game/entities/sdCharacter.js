@@ -45,8 +45,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.climb_filter = [ 'sdBlock', 'sdLost', 'sdBarrel', 'sdCrystal', 'sdCharacter', 'sdDoor', 'sdMatterContainer', 'sdCube' ];
 		
-		sdCharacter.stability_damage_from_damage_scale = 1.25;
-		sdCharacter.stability_damage_from_velocity_changes_scale = 128 / 6;
+		sdCharacter.stability_damage_from_damage_scale = 0.5;
+		sdCharacter.stability_damage_from_velocity_changes_scale = 128 / 10;
 	
 		// Add new values at the end. This list will be automatically sorted
 		sdCharacter.helmet_file_names_with_actual_names = [
@@ -578,6 +578,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.img_grapple_hook = sdWorld.CreateImageFromFile( 'grapple_hook' );
 
 		sdCharacter.air_max = 30 * 30; // 30 sec
+		
+		sdCharacter.energy_max = 30 * 5;
 		
 		//sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
 		sdCharacter.bullet_y_spawn_offset = -5; // Not only used for sword attacks
@@ -1298,6 +1300,7 @@ THING is cosmic mic drop!`;
 		this._ai_dive_suggestion_y = 0;
 		this._ai_dive_suggestion_rethink_in = 0;
 		this._ai_force_fire = false; // For possessed AIs
+		this._ai_attack_time = 0;
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -1483,6 +1486,8 @@ THING is cosmic mic drop!`;
 		this._matter_capacity_boosters = 0; // Cube shards are increasing this value
 		this._matter_capacity_boosters_max = 20 * 45;
 		
+		this.energy = sdCharacter.energy_max;
+
 		//this.stim_ef = 0; // Stimpack effect
 		this.power_ef = 0; // Damage multiplication effect
 		this.time_ef = 0; // GSPEED manipulations
@@ -2097,6 +2102,7 @@ THING is cosmic mic drop!`;
 			}
 		
 			if ( potential_target.IsVehicle() )
+			if ( potential_target.nick !== 'Extraction Hover' )
 			{
 				if ( typeof potential_target.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
 				{
@@ -2325,7 +2331,7 @@ THING is cosmic mic drop!`;
 	Impact( vel, initiator=null ) // fall damage basically
 	{
 		//if ( vel > 7 )
-		if ( vel > 6.5 ) // For new mass-based model
+		if ( vel > 6.8 ) // For new mass-based model
 		{
 			/*if ( sdWorld.is_server )
 			if ( this._socket )
@@ -3440,6 +3446,9 @@ THING is cosmic mic drop!`;
 			if ( typeof this._ai.direction === 'undefined' )
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 
+			if ( this._ai_attack_time > 0 )
+			this._ai_attack_time -= GSPEED;
+
 			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
 				if ( this._ai_team !== 0 && this._ai_team !== 6 && this._ai_team !== 10 && !this.driver_of )// Prevent SD, Instructor and Time Shifter from disappearing
@@ -3780,8 +3789,8 @@ THING is cosmic mic drop!`;
 			
 					let allow_random_movements = true;
 					
-					if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 || // Don't shoot if you're not looking near or at the target
-						 this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 )
+					if ( this.look_x - this._ai.target.x > 160 || this.look_x - this._ai.target.x < -160 || // Don't shoot if you're not looking near or at the target
+						 this.look_y - this._ai.target.y > 160 || this.look_y - this._ai.target.y < -160 )
 					{
 					}
 					else
@@ -4045,8 +4054,12 @@ THING is cosmic mic drop!`;
 
 			if ( this._ai.target && this._ai.target.IsVisible( this ) )
 			{
-				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x + ( ( this._ai.target._hitbox_x1 + this._ai.target._hitbox_x2 ) / 2 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
-				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
+				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, 
+														  this._ai.target.x + ( ( this._ai.target._hitbox_x1 + this._ai.target._hitbox_x2 ) / 2 ), 
+														  Math.max( 0.82, ( 0.9 - 0.05 * this._ai_level ) ), GSPEED );
+				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, 
+														  this._ai.target.y + ( this._ai.target_local_y || 0 ), 
+														  Math.max( 0.82, ( 0.9 - 0.05 * this._ai_level ) ), GSPEED );
 			}
 			else
 			{
@@ -4064,6 +4077,21 @@ THING is cosmic mic drop!`;
 		{
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
+		
+		if ( this._auto_shoot_in > 0 )
+		if ( this._ai_attack_time < this._auto_shoot_in )
+		{
+			this._ai_attack_time += this._auto_shoot_in;
+		}
+
+		if ( ai_will_fire && this._ai_attack_time <= 0 )
+		{
+			let fire_rate = this._inventory[ this.gun_slot ] ? this._inventory[ this.gun_slot ]._reload_time : 1;
+
+			this._ai_attack_time = Math.max( 1, 30 - fire_rate );
+		}
+		
+		ai_will_fire = ( ai_will_fire || this._ai_attack_time > 0 );
 		
 		if ( ai_will_fire && sdWorld.time > this._ai_post_alert_fire_prevention_until || this._ai_force_fire )
 		this._key_states.SetKey( 'Mouse1', 1 );
@@ -5447,7 +5475,7 @@ THING is cosmic mic drop!`;
 			}
 		}
 		
-		let in_water = sdWater.all_swimmers.has( this );
+		let in_water = sdWater.all_swimmers.has( this ) && sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2 * 0.5, null, null, sdWater.water_class_array );
 		
 		this._in_water = in_water;
 		
@@ -5518,20 +5546,21 @@ THING is cosmic mic drop!`;
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
 			
 			let x_force = this.act_x / di * 0.1;
-			let y_force = ( this.act_y * this._jetpack_power ) / di * 0.1 - sdWorld.gravity;
+			let y_force = ( ( this.act_y * this._jetpack_power ) ) / Math.max( 1, -this.sy * 1 ) * 0.4 - sdWorld.gravity;
 			
-			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			//let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			let fuel_cost = GSPEED;
 
-			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 || this._frozen > 0 )
+			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.energy < fuel_cost || this.hea <= 0 || this._frozen > 0 )
 			this.flying = false;
 			else
 			{
-				this.matter -= fuel_cost;
+				this.energy -= fuel_cost;
 			
 				let di = sdWorld.Dist2D_Vector( this.act_x, this.act_y );
 				if ( di > 0 )
 				{
-					this.sx += x_force * GSPEED;
+					//this.sx += x_force * GSPEED;
 					this.sy += y_force * GSPEED;
 				}
 			}
@@ -5561,7 +5590,7 @@ THING is cosmic mic drop!`;
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
 				 !in_water &&
-				 this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
+				 this._in_air_timer > 100 / 1000 * 30 && // after 100 ms
 				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
 				 this._frozen <= 0 &&
@@ -5659,8 +5688,8 @@ THING is cosmic mic drop!`;
 
 		if ( in_water )
 		{
-			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
-			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
+			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.95, GSPEED );
+			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.95, GSPEED );
 			
 			let x_force = this.act_x;
 			let y_force = this.act_y;
@@ -5683,6 +5712,12 @@ THING is cosmic mic drop!`;
 				this.sy = -3;
 			}
 			else*/
+
+			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2 + 4, this, sdWater.water_class_array ) )
+			{
+				if ( this.act_y === -1 )
+				this.sy = -2;
+			}
 					
 			if ( can_breathe )
 			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y1, null, null, sdWater.water_class_array ) )
@@ -5781,7 +5816,9 @@ THING is cosmic mic drop!`;
 					}
 					else
 					{
-						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.8, GSPEED );
+						let remain = ( Math.sign( this.act_x ) !== Math.sign( this.sx ) ) ? 0.6 : 0.8;
+
+						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, remain, GSPEED );
 						
 						if ( !this.driver_of )
 						this.sx += this.act_x * 1.25 * GSPEED * walk_speed_scale;
@@ -5825,20 +5862,33 @@ THING is cosmic mic drop!`;
 					//this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
 					//this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
 
-					if ( this.flying )
-					{
-					}
-					else
+					//if ( this.flying )
+					//{
+					//}
+					//else
 					{
 						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
 						this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
 					
-						if ( !this.driver_of )
-						this.sx += this.act_x * 0.15 * GSPEED;
+						//if ( !this.driver_of )
+						//this.sx += this.act_x * 0.15 * GSPEED;
 						//this.sx += this.act_x * 0.2 * GSPEED;
 					}
 
+					if ( !this.driver_of )
+					{
+						let same_dir = ( Math.sign( this.act_x ) === Math.sign( this.sx ) );
 
+						if ( same_dir )
+						this.sx += this.act_x * 0.3 / ( 1 + Math.abs( this.sx * 0.2 ) ) * GSPEED;
+						else
+						this.sx += this.act_x * 0.4 * GSPEED;
+
+						if ( this.act_y === 1 && this.sy < 2 )
+						this.sy += this.act_y * 0.25 * GSPEED;
+					}
+
+					if ( this.sy >= 0 || this._in_air_timer > 300 / 1000 * 30 || act_y_or_unstable !== -1 )
 					this.sy += sdWorld.gravity * GSPEED;
 				}
 			}
@@ -5932,6 +5982,18 @@ THING is cosmic mic drop!`;
 			else
 			this._ragdoll.Think( GSPEED );
 		}
+
+		if ( this.energy < sdCharacter.energy_max )
+		{
+			let regen_rate = 0.1;
+
+			if ( ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._ledge_holding ) && 
+				 ( !this.hook_relative_to || this._stands_on !== this.hook_relative_to ) )
+			regen_rate = 4;
+
+			this.energy = Math.min( this.energy + regen_rate * GSPEED, sdCharacter.energy_max );
+		}
+
 									
 		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{
@@ -5960,7 +6022,7 @@ THING is cosmic mic drop!`;
 	}
 	GetStepHeight()
 	{
-		return ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0;
+		return ( this.hea > 0 && ( !this.flying || this.sy >= 0 ) ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0;
 	}
 	onThinkFrozen( GSPEED )
 	{
@@ -6252,9 +6314,10 @@ THING is cosmic mic drop!`;
 		{
 			if ( from_entity.is( sdBlock ) )
 			{
-				if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'sdFaceCrab' || from_entity._contains_class === 'weak_ground' )
+				//if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'sdFaceCrab' || from_entity._contains_class === 'weak_ground' )
+				if ( sdCom.com_faction_attack_classes.indexOf( from_entity._contains_class ) !== -1 )
 				{
-					from_entity.DamageWithEffect( 1 ); // Will break
+					from_entity.DamageWithEffect( from_entity._hea + 1 ); // Will break
 				}
 			}
 			else
@@ -6399,6 +6462,14 @@ THING is cosmic mic drop!`;
 			
 				ctx.fillText( t, 0, -raise - 5 - 10, 50 );
 			}
+
+			let show_energy = false;
+
+			if ( sdWorld.my_entity == this )
+			if ( this.energy < sdCharacter.energy_max )
+			{
+				show_energy = true;
+			}
 			
 			let snap_frame = ( ~~( this.death_anim / 10 ) ) * 10 / 20;
 			
@@ -6435,6 +6506,15 @@ THING is cosmic mic drop!`;
 			{
 				ctx.fillStyle = '#aaaaff';
 				ctx.fillRect( 1 - w / 2, 5 - raise, ( w - 2 ) * Math.max( 0, this.air / sdCharacter.air_max ), 1 );
+			}
+
+			if ( show_energy )
+			{
+				ctx.fillStyle = '#000000';
+				ctx.fillRect( 0 - w / 2, 20 - 1, w, 3 );
+
+				ctx.fillStyle = '#ffff00';
+				ctx.fillRect( 1 - w / 2, 20, ( w - 2 ) * Math.max( 0, this.energy / sdCharacter.energy_max ), 1 );
 			}
 			
 			//
