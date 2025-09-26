@@ -108,8 +108,8 @@ class sdWeather extends sdEntity
 		
 		sdWeather.only_instance = null;
 		
-		sdWeather.min_distance_from_online_players_for_entity_events = 500;
-		sdWeather.max_distance_from_online_players_for_entity_events = 3000;
+		sdWeather.min_distance_from_online_players_for_entity_events = 800;
+		sdWeather.max_distance_from_online_players_for_entity_events = 6000;
 		
 		let event_counter = 0;
 		sdWeather.EVENT_ACID_RAIN =				event_counter++; // 0
@@ -291,6 +291,8 @@ class sdWeather extends sdEntity
 		
 		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
 		this._wanderer_models = [ 0, 1, 2 ]; // These refresh whenever daily events appear. 0, 1 and 2 value are standard SD vehicles. They kinda tell which enemies can spawn on the planet at the moment.
+
+		this._mob_spawn_timer = 0;
 		
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
@@ -3914,7 +3916,23 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CUBE_BOSS )
 		{
+			let can_spawn = false;
 
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				let ent = sdWorld.sockets[ i ].character;
+
+				if ( !ent._is_being_removed )
+				if ( ( ent.hea || ent._hea ) > 0 )
+				if ( ent.build_tool_level >= 10 )
+				{
+					can_spawn = true;
+					break;
+				}
+			}
+
+			if ( can_spawn )
 			if ( sdCube.alive_red_cube_counter < sdCube.GetMaxAllowedCubesOfKind( sdCube.KIND_RED ) )
 			sdWeather.SimpleSpawner({
 
@@ -5103,6 +5121,41 @@ class sdWeather extends sdEntity
 					
 					allowed_event_ids.splice( event, 1 );
 					//console.log( 'Executed event ' + r +', current available events:' + this._daily_sd_task_events );
+				}
+			}
+
+			if ( sdWorld.server_config.allow_underground_mob_spawns )
+			{
+				this._mob_spawn_timer += GSPEED;
+				if ( this._mob_spawn_timer > sdWorld.server_config.underground_mob_spawn_rate )
+				{
+					this._mob_spawn_timer = 0;
+
+					let mob_radius = 400;
+
+					let i = Math.floor( Math.random() * sdEntity.entities.length );
+					let tr = 1000;
+					while ( tr > 0 )
+					{
+						let e = sdEntity.entities[ i ];
+
+						if ( e && !e._is_being_removed )
+						if ( e.is( sdBlock ) && e._natural )
+						if ( e.y > 100 + mob_radius )
+						{
+							let mobs = sdWorld.GetAnythingNearOnlyNonHibernated( e.x, e.y, mob_radius + 32, null, sdCom.com_faction_attack_classes );
+							let allowed_density = sdWorld.server_config.underground_mob_spawn_density * mob_radius / 800;
+
+							if ( mobs.length < allowed_density )
+							{
+								sdWorld.SpawnGroundMobs( e, mob_radius );
+								break;
+							}
+						}
+
+						i = ( i + 1 ) % sdEntity.entities.length;
+						tr--;
+					}
 				}
 			}
 		}
