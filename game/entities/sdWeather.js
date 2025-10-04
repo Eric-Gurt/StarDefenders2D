@@ -171,9 +171,17 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
 		sdWeather.EVENT_STALKER =				event_counter++; // 58
+
+		let disabled_events = [
+			sdWeather.EVENT_CRYSTAL_BLOCKS,
+			sdWeather.EVENT_CRYSTALS_MATTER,
+			sdWeather.EVENT_FLESH_DIRT,
+			sdWeather.EVENT_MOTHERSHIP_CONTAINER
+		];
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
+		if ( disabled_events[ i ] === -1 )
 		sdWeather.supported_events.push( i );
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
@@ -288,8 +296,6 @@ class sdWeather extends sdEntity
 		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
 		this._wanderer_models = [ 0, 1, 2 ]; // These refresh whenever daily events appear. 0, 1 and 2 value are standard SD vehicles. They kinda tell which enemies can spawn on the planet at the moment.
 
-		this._mob_spawn_timer = 0;
-		
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -4958,7 +4964,7 @@ class sdWeather extends sdEntity
 												}
 											}
 
-											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
+											if ( sdWorld.AttemptWorldBlockSpawn( x, y, true, false ) )
 											{
 												ClearPlants();
 												this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:50 + Math.random() * 50, until:sdWorld.time + 250 + Math.random() * 250 });
@@ -4995,7 +5001,7 @@ class sdWeather extends sdEntity
 											sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
 											
 											// Do not damage something multiple times in a row
-											this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:100, until:sdWorld.time + 500 });
+											this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:150, until:sdWorld.time + 1000 });
 										}
 									}
 								}
@@ -5102,41 +5108,6 @@ class sdWeather extends sdEntity
 					
 					allowed_event_ids.splice( event, 1 );
 					//console.log( 'Executed event ' + r +', current available events:' + this._daily_sd_task_events );
-				}
-			}
-
-			if ( sdWorld.server_config.allow_underground_mob_spawns )
-			{
-				this._mob_spawn_timer += GSPEED;
-				if ( this._mob_spawn_timer > sdWorld.server_config.underground_mob_spawn_rate )
-				{
-					this._mob_spawn_timer = 0;
-
-					let mob_radius = 400;
-
-					let i = Math.floor( Math.random() * sdEntity.entities.length );
-					let tr = 1000;
-					while ( tr > 0 )
-					{
-						let e = sdEntity.entities[ i ];
-
-						if ( e && !e._is_being_removed )
-						if ( e.is( sdBlock ) && e._natural )
-						if ( e.y > 100 + mob_radius )
-						{
-							let mobs = sdWorld.GetAnythingNearOnlyNonHibernated( e.x, e.y, mob_radius + 32, null, sdCom.com_faction_attack_classes );
-							let allowed_density = sdWorld.server_config.underground_mob_spawn_density * mob_radius / 800;
-
-							if ( mobs.length < allowed_density )
-							{
-								sdWorld.SpawnGroundMobs( e, mob_radius );
-								break;
-							}
-						}
-
-						i = ( i + 1 ) % sdEntity.entities.length;
-						tr--;
-					}
 				}
 			}
 		}

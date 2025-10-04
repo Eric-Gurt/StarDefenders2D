@@ -673,9 +673,7 @@ class sdSetrDestroyer extends sdEntity
 					//if ( this.hea < ( this._hmax / 2 ) ) // Second phase of the mech, rocket launcher can fire now
 					for ( let i = 0; i < targets.length; i++ )
 					{
-						if ( this._follow_target && targets[ i ] !== this._follow_target && Math.random() > 0.1 )
-						continue;
-
+						if ( !this._follow_target || ( targets[ i ] !== this._follow_target && Math.random() < 0.1 ) )
 						this._follow_target = targets[ i ];
 
 

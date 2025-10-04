@@ -432,57 +432,30 @@ class sdAbomination extends sdEntity
 				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 				sdSound.PlaySound({ name:'abomination_attack', x:this.x, y:this.y });
 
-				let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-				let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
+				for ( let i = 0; i < 3; i++ )
+				{
+					let bullet_obj = new sdBullet({ x:this.x, y:this.y });
 
-				bullet_obj._owner = this;
+					bullet_obj._owner = this;
 
-				bullet_obj2._owner = this;
+					bullet_obj.sx = ( Math.random() - 0.5 ) * 0.5;
+					bullet_obj.sy = -Math.random() * 0.25 - 0.75;
 
-				bullet_obj3._owner = this;
+					bullet_obj.x += bullet_obj.sx * 3;
+					bullet_obj.y += bullet_obj.sy * 3;
 
-				bullet_obj.sx = dx;
-				bullet_obj.sy = dy;
-				bullet_obj.x += bullet_obj.sx * 3;
-				bullet_obj.y += bullet_obj.sy * 3;
+					bullet_obj.sx *= 12;
+					bullet_obj.sy *= 12;
 
-				bullet_obj.sx *= 12;
-				bullet_obj.sy *= 12;
+					bullet_obj._damage = 20;
 
-				bullet_obj._damage = 15;
-						
-				bullet_obj.model = 'ab_tooth';
+					bullet_obj._affected_by_gravity = true;
+					bullet_obj.time_left = 60;
 
-				sdEntity.entities.push( bullet_obj );
+					bullet_obj.model = 'ab_tooth';
 
-				bullet_obj2.sx = dx + ( Math.random() * 2 ) - ( Math.random() * 2 );
-				bullet_obj2.sy = dy + ( Math.random() * 2 ) - ( Math.random() * 2 );
-				bullet_obj2.x += bullet_obj2.sx * 3;
-				bullet_obj2.y += bullet_obj2.sy * 3;
-
-				bullet_obj2.sx *= 12 + ( Math.random() * 2 ) - ( Math.random() * 2 );
-				bullet_obj2.sy *= 12 + ( Math.random() * 2 ) - ( Math.random() * 2 );
-
-				bullet_obj2._damage = 15;
-						
-				bullet_obj2.model = 'ab_tooth';
-
-				sdEntity.entities.push( bullet_obj2 );
-
-				bullet_obj3.sx = dx + Math.random() - Math.random();
-				bullet_obj3.sy = dy + Math.random() - Math.random();
-				bullet_obj3.x += bullet_obj3.sx * 3;
-				bullet_obj3.y += bullet_obj3.sy * 3;
-
-				bullet_obj3.sx *= 12 + Math.random() - Math.random();
-				bullet_obj3.sy *= 12 + Math.random() - Math.random();
-
-				bullet_obj3._damage = 15;
-						
-				bullet_obj3.model = 'ab_tooth';
-
-				sdEntity.entities.push( bullet_obj3 );
+					sdEntity.entities.push( bullet_obj );
+				}
 						
 				this.attack_timer = 30;
 						

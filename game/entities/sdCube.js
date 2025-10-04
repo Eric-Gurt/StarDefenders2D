@@ -47,6 +47,7 @@ class sdCube extends sdEntity
 		*/
 		
 		sdCube.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
+		sdCube.img_directional_glow = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
 		
 		sdCube.alive_cube_counter = 0;
 		sdCube.alive_huge_cube_counter = 0; // 1
@@ -79,7 +80,7 @@ class sdCube extends sdEntity
 			1,
 			// Just in case to prevent bugs from newer versions:
 			1,
-			4,
+			3.5,
 			1,
 			1,
 			1,
@@ -216,7 +217,7 @@ class sdCube extends sdEntity
 		//this.is_pink = ( this.kind === sdCube.KIND_PINK ) ? true : false;
 		
 		this.hmax = 
-				this.kind === sdCube.KIND_RED ? 8000 : 
+				this.kind === sdCube.KIND_RED ? 3000 : 
 				this.kind === sdCube.KIND_WHITE ? 1600 : 
 				this.kind === sdCube.KIND_YELLOW ? 800 : 
 				this.kind === sdCube.KIND_MATTER_STEALER ? 1200 : 
@@ -253,7 +254,7 @@ class sdCube extends sdEntity
 		this._attack_timer = 0;
 		this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._charged_shots = 3;
+		this._charged_shots = ( this.kind === sdCube.KIND_WHITE || sdCube.KIND_RED ) ? 6 : 3;
 
 		this.special_attack_active = false;
 
@@ -482,9 +483,9 @@ class sdCube extends sdEntity
 			{
 				setTimeout( ()=>
 				{
-					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, [ 'sdCube' ] );
+					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, sdCube.as_class_list );
 					
-					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 8 : 4;
+					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 6 : 4;
 					
 					if ( this.kind === sdCube.KIND_ANCIENT )
 					to_spawn = 1;
@@ -541,7 +542,7 @@ class sdCube extends sdEntity
 									kinds.push( sdCube.KIND_YELLOW );
 
 									// if ( Math.random() < 0.5 )
-									kinds.push( sdCube.KIND_WHITE );
+									//kinds.push( sdCube.KIND_WHITE );
 									
 									if ( Math.random() < 0.01 )
 									kinds.push( sdCube.KIND_GREEN );
@@ -689,7 +690,7 @@ class sdCube extends sdEntity
 							let gun;
 
 							const probability_lost_converter = 0.075;
-							const probability_void_capacitor = 0.08; // This cube is already rare enough
+							const probability_void_capacitor = 0; // 0.08; // This cube is already rare enough
 							const probability_shotgun = 0.1;
 							const probability_triple_rail = 0.233;
 							const probability_teleporter = 0.233;
@@ -727,7 +728,8 @@ class sdCube extends sdEntity
 								if ( this.kind === sdCube.KIND_WHITE )
 								{
 									if ( random_value < probability_lost_converter )
-									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SPEAR });
+									//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SPEAR });
+									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_LOST_CONVERTER });
 									else
 									if ( random_value < probability_lost_converter + probability_shotgun )
 									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
@@ -740,9 +742,9 @@ class sdCube extends sdEntity
 								else
 								if ( this.kind === sdCube.KIND_RED ) // Higher drop rates
 								{
-									if ( random_value < probability_void_capacitor )
-									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_VOID_CAPACITOR });
-									else
+									//if ( random_value < probability_void_capacitor )
+									//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_VOID_CAPACITOR });
+									//else
 									if ( random_value < probability_void_capacitor + probability_shotgun )
 									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
 									else
@@ -751,8 +753,8 @@ class sdCube extends sdEntity
 								else
 								if ( this.kind === sdCube.KIND_ANCIENT )
 								{
-									if ( random_value < probability_lost_triple_rail )
-									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ANCIENT_TRIPLE_RAIL });
+									//if ( random_value < probability_lost_triple_rail )
+									//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ANCIENT_TRIPLE_RAIL });
 								}
 								else
 								{
@@ -857,7 +859,7 @@ class sdCube extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		let spear_targer_reaction = ( bullet, target_entity )=>
+		/*let spear_targer_reaction = ( bullet, target_entity )=>
 		{
 			
 			if ( target_entity.is( sdLost ) )
@@ -879,96 +881,34 @@ class sdCube extends sdEntity
 
 				sdLost.ApplyAffection( target_entity, is_void ? 30 : 14, bullet, is_void ? sdLost.FILTER_VOID : sdLost.FILTER_WHITE );
 			}
-		};
+		};*/
 
+		for ( let x = -1; x <= 1; x++ )
+		for ( let y = -1; y <= 1; y++ )
+		if ( x === 0 || y === 0 )
+		{
+			let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
+			bullet_obj1._owner = this;
+			bullet_obj1.sx = x;
+			bullet_obj1.sy = y;
+			//bullet_obj1.x += bullet_obj1.sx * 5;
+			//bullet_obj1.y += bullet_obj1.sy * 5;
 
-		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj1._owner = this;
-					bullet_obj1.sx = -1;
-					bullet_obj1.sy = 0;
-					//bullet_obj1.x += bullet_obj1.sx * 5;
-					//bullet_obj1.y += bullet_obj1.sy * 5;
+			bullet_obj1.sx *= 16;
+			bullet_obj1.sy *= 16;
+				
+			bullet_obj1.time_left = 30;
 
-					bullet_obj1.sx *= 16;
-					bullet_obj1.sy *= 16;
-						
-					bullet_obj1.time_left = 20;
+			bullet_obj1._rail = true;
+			if ( is_void ) bullet_obj1._rail_circled = true;
+			bullet_obj1.color = is_void ? '#000000' : '#888888';
 
-					bullet_obj1._rail = true;
-					if ( is_void ) bullet_obj1._rail_circled = true;
-					bullet_obj1.color = is_void ? '#000000' : '#888888';
+			bullet_obj1._damage = 22;
 
-					bullet_obj1._damage = 1;
+			//bullet_obj1._custom_target_reaction = spear_targer_reaction; // Lost rails not so fun
 
-					bullet_obj1._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj1 );
-
-		let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj2._owner = this;
-					bullet_obj2.sx = 0;
-					bullet_obj2.sy = 1;
-					//bullet_obj2.x += bullet_obj2.sx * 5;
-					//bullet_obj2.y += bullet_obj2.sy * 5;
-
-					bullet_obj2.sx *= 16;
-					bullet_obj2.sy *= 16;
-						
-					bullet_obj2.time_left = 20;
-
-					bullet_obj2._rail = true;
-					if ( is_void ) bullet_obj2._rail_circled = true;
-					bullet_obj2.color = is_void ? '#000000' : '#888888';
-
-					bullet_obj2._damage = 1;
-
-					bullet_obj2._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj2 );
-
-		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj3._owner = this;
-					bullet_obj3.sx = 1;
-					bullet_obj3.sy = 0;
-					//bullet_obj3.x += bullet_obj3.sx * 5;
-					//bullet_obj3.y += bullet_obj3.sy * 5;
-
-					bullet_obj3.sx *= 16;
-					bullet_obj3.sy *= 16;
-						
-					bullet_obj3.time_left = 20;
-
-					bullet_obj3._rail = true
-					if ( is_void ) bullet_obj3._rail_circled = true;
-					bullet_obj3.color = is_void ? '#000000' : '#888888';
-
-					bullet_obj3._damage = 1;
-
-					bullet_obj3._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj3 );
-
-		let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj4._owner = this;
-					bullet_obj4.sx = 0;
-					bullet_obj4.sy = -1;
-					//bullet_obj4.x += bullet_obj4.sx * 5;
-					//bullet_obj4.y += bullet_obj4.sy * 5;
-
-					bullet_obj4.sx *= 16;
-					bullet_obj4.sy *= 16;
-						
-					bullet_obj4.time_left = 20;
-
-					bullet_obj4._rail = true;
-					if ( is_void ) bullet_obj4._rail_circled = true;
-					bullet_obj4.color = is_void ? '#000000' : '#888888';
-
-					bullet_obj4._damage = 1;
-
-					bullet_obj4._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj4 );
+			sdEntity.entities.push( bullet_obj1 );
+		}
 	}
 	TeleportSomewhere( dist = 1, add_x = 0, add_y = 0 ) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
 	{
@@ -978,7 +918,7 @@ class sdCube extends sdEntity
 		let xx = this.x + ( this.sx * dist ) + add_x;
 		let yy = this.y + ( this.sy * dist ) + add_y;
 
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCube.as_class_list, sdCom.cos_vision_blocking_classes ) )
 		if ( this.CanMoveWithoutOverlap( xx, yy, 0 ) )
 		{
 			setTimeout(()=>
@@ -988,7 +928,7 @@ class sdCube extends sdEntity
 
 				this.x = xx;
 				this.y = yy;
-			}, 200 );
+			}, 400 );
 			
 			sdWorld.SendEffect({ x:this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM_CIRCLED, color:"#ffffff" });
 			sdSound.PlaySound({ name:'cube_teleport', pitch: ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:1 });
@@ -1156,9 +1096,13 @@ class sdCube extends sdEntity
 					this._teleport_timer = 30 + ( Math.random() * 60 );
 				}
 				else
+				if ( this._attack_timer > 10 )
 				{
 					this._teleport_timer = Math.max( this._teleport_timer - GSPEED, 0 );
 				}
+				else
+				this._teleport_timer = 30;
+
 				if ( this._move_dir_timer <= 0 )
 				{
 					this._move_dir_timer = 15 + Math.random() * 45;
@@ -1388,8 +1332,8 @@ class sdCube extends sdEntity
 									bullet_obj.sx = Math.cos( an );
 									bullet_obj.sy = Math.sin( an );
 
-									bullet_obj.sx *= 16;
-									bullet_obj.sy *= 16;
+									bullet_obj.sx *= 12;
+									bullet_obj.sy *= 12;
 
 									//bullet_obj.time_left = 60;
 									bullet_obj.time_left = 90; // overriden later
@@ -1452,16 +1396,16 @@ class sdCube extends sdEntity
 	
 									bullet_obj._rail = true;
 	
-									bullet_obj._damage = 15;
+									bullet_obj._damage = 20;
 									
 									if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
 									{
-										bullet_obj._damage = 18;
+										bullet_obj._damage = 22;
 									}
 									
 									if ( this.kind === sdCube.KIND_PINK )
 									{
-										bullet_obj._damage = -15;
+										bullet_obj._damage = -20;
 									}
 									
 									if ( this.kind === sdCube.KIND_BLUE )
@@ -1547,8 +1491,8 @@ class sdCube extends sdEntity
 
 							if ( this._charged_shots <= 0 )
 							{
-								this._charged_shots = this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 5 : 3;
-								this._attack_timer = 45 * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
+								this._charged_shots = this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 9 : 3;
+								this._attack_timer = 15 * this._charged_shots;// * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
 
 								if ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
 								this.special_attack_active = Math.random() > 0.75;
@@ -1560,7 +1504,12 @@ class sdCube extends sdEntity
 					}
 
 					if ( targets.length === 0 ) // lower seek rate when no targets around
-					this._attack_timer = 25 + Math.random() * 10;
+					{
+						this._attack_timer = 25 + Math.random() * 10;
+
+						if ( this.special_attack_active )
+						this.special_attack_active = false;
+					}
 					else
 					{
 						if ( this._alert_intensity === 0 )
@@ -1804,19 +1753,37 @@ class sdCube extends sdEntity
 
 		
 		if ( this.hea > 0 )
-		if ( this.special_attack_active && this.attack_anim > 0 )
+		if ( this.special_attack_active )
 		{
-			ctx.save();
-			ctx.blend_mode = THREE.AdditiveBlending;
+			//ctx.save();
+			//ctx.blend_mode = THREE.AdditiveBlending;
 			
-			ctx.filter = 'none';
-			ctx.globalAlpha = 0.5;
+			ctx.filter = 'drop-shadow(0px 0px 4px #7ebeff)';
+			ctx.globalAlpha = 0.25;
 			
+			if ( this.kind === sdCube.KIND_YELLOW )
 			ctx.drawImageFilterCache( sdCube.img_glow, - 16, - 16, 32, 32 );
+			else
+			if ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
+			{
+				for ( let i = 0; i < 2; i++ )
+				{
+					ctx.save();
+
+					if ( i === 0 )
+					ctx.scale( 10, 0.25 );
+					else
+					ctx.scale( 0.25, 10 );
+
+					ctx.drawImageFilterCache( sdCube.img_glow, - 16, - 16, 32, 32 );
+
+					ctx.restore();
+				}
+			}
 			
 			ctx.globalAlpha = 1;
-			ctx.blend_mode = THREE.NormalBlending;
-			ctx.restore();
+			//ctx.blend_mode = THREE.NormalBlending;
+			//ctx.restore();
 		}
 		
 		ctx.globalAlpha = 1;

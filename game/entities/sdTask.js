@@ -62,7 +62,7 @@ class sdTask extends sdEntity
 				return -1;
 			},
 			
-		letion_condition: ( task )=>
+			completion_condition: ( task )=>
 			{
 				return false;
 			},
@@ -1194,6 +1194,10 @@ class sdTask extends sdEntity
 				}
 			}
 			
+			let last_style = ctx.fillStyle;
+			ctx.fillStyle = '#000000';
+			ctx.fillText( text, subtext ? 5 * scale : 1, 1 );
+			ctx.fillStyle = last_style;
 			ctx.fillText( text, subtext ? 5 * scale : 0, 0 );
 			ctx.translate( 0, ( 11 + 5 ) * scale );
 			
@@ -1238,6 +1242,7 @@ class sdTask extends sdEntity
 		}
 		
 		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 		ctx.translate( 0, ( 11 + 5 ) * scale );
 	}
 }

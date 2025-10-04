@@ -35,10 +35,10 @@ class sdStalker extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -44 }
-	get hitbox_x2() { return 44 }
-	get hitbox_y1() { return -19; }
-	get hitbox_y2() { return 19; }
+	get hitbox_x1() { return -38; }
+	get hitbox_x2() { return 38; }
+	get hitbox_y1() { return -38; }
+	get hitbox_y2() { return 38; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -86,9 +86,11 @@ class sdStalker extends sdEntity
 		this._move_dir_timer = 0;
 		
 		this._attack_timer = 0;
-		this._laser_timer = 0;
-		this._bfg_timer = 0;
-		this._possession_attack_timer = 500;
+		//this._laser_timer = 0;
+		this._ammo = 15;
+		this.bfg_attack = false;
+		//this._bfg_timer = 0;
+		this._possession_attack_timer = 400;
 		this._charged = false;
 		
 		this._ai_team = 11;
@@ -132,8 +134,8 @@ class sdStalker extends sdEntity
 			let character_entity = new sdCharacter({ x:this.x, y:this.y + 16, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 			sdEntity.entities.push( character_entity );
 		
-			character_entity.hea = 1000;
-			character_entity.hmax = 1000;
+			character_entity.hea = 400;
+			character_entity.hmax = 400;
 		
 			character_entity.title = entity.title;
 			character_entity.helmet = entity.helmet;
@@ -149,7 +151,7 @@ class sdStalker extends sdEntity
 			character_entity.sd_filter = entity.sd_filter;
 		
 			character_entity._ai_team = 11;
-			character_entity._ai_level = 10;
+			character_entity._ai_level = 1;
 			character_entity._ai_stay_near_entity = this;
 			character_entity._ai_stay_distance = 256;
 		
@@ -161,6 +163,8 @@ class sdStalker extends sdEntity
 			character_entity.s = entity.s;
 			
 			character_entity._chat_color = '#ff0000';
+
+			let spawn_homing = Math.random() > 0.5;
 	
 			let x,y;
 			let tr = 100;
@@ -200,26 +204,35 @@ class sdStalker extends sdEntity
 					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_RIFLE });
 					sdEntity.entities.push( gun );
 					
-					gun.fire_mode = Math.random() > 0.5 ? 1 : 2;
+					gun.fire_mode = spawn_homing ? 2 : 1;
 					
-					setTimeout(()=> {
+					const logic = ()=> {
 						if ( !character_entity._is_being_removed )
 						{
-							sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y }); // We desperately need more sound effects
-							sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
-							
-							for( let i = 0; i < character_entity._inventory.length; i++ ) // Prevent loot from being stolen and disappearing
-							{
-								let item = character_entity._inventory[ i ];
+							character_entity._regen_timeout = 30 * 10;
+							character_entity.hea -= Math.min( 10, character_entity.hea / 10 ); // Allow players to get the finishing hit
 
-								if ( i !== character_entity.gun_slot )
-								character_entity.DropWeapon( i );
+							if ( character_entity.hea <= 0 )
+							{
+								sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y }); // We desperately need more sound effects
+								sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
+								
+								/*for( let i = 0; i < character_entity._inventory.length; i++ ) // Prevent loot from being stolen and disappearing
+								{
+									let item = character_entity._inventory[ i ];
+
+									if ( i !== character_entity.gun_slot )
+									character_entity.DropWeapon( i );
+								}*/
+								
+								character_entity.remove();
+								character_entity._broken = false;
 							}
-							
-							character_entity.remove();
-							character_entity._broken = false;
+							else
+							setTimeout( logic, 1000 );
 						}	
-					}, 1000 * 20 );
+					};
+					setTimeout( logic, 1000 );
 					
 					if ( drone )
 					{
@@ -236,7 +249,7 @@ class sdStalker extends sdEntity
 						bullet_obj.explosion_radius = 20;
 						bullet_obj.model = 'stalker_target';
 						bullet_obj.color = sdEffect.default_explosion_color;
-						bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
+						bullet_obj.time_left = 30 * 10;
 						bullet_obj._hea = 100;
 
 						sdEntity.entities.push( bullet_obj )
@@ -252,6 +265,9 @@ class sdStalker extends sdEntity
 					break;
 				}
 			} while( true );
+
+			if ( spawn_homing )
+			break;
 		}
 	}
 	Boost( x, y, speed )
@@ -323,6 +339,22 @@ class sdStalker extends sdEntity
 				return ent; // Target it
 			}
 		return null;
+	}
+	GetHitDamageMultiplier( x, y )
+	{
+		if ( this.hea > 0 )
+		if ( this.bfg_attack )
+		{
+			var an = Math.atan2( this.look_y - this.y, this.look_x - this.x );
+			let di_to_head = sdWorld.Dist2D( x, y, this.x + Math.cos( an ) * this._hitbox_x2, this.y + Math.sin( an ) * this.hitbox_x2 );
+			sdWorld.SendEffect({ x:this.x + Math.cos( an ) * this._hitbox_x2, y:this.y + Math.sin( an ) * this.hitbox_x2, type:sdEffect.TYPE_TELEPORT });
+			// let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
+
+			if ( di_to_head < 12 )
+			return 2;
+		}
+
+		return 1;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -481,8 +513,11 @@ class sdStalker extends sdEntity
 				
 				if ( this._current_target )
 				{
-					this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._current_target.x + ( ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 ), 0.95, GSPEED * 2 );
-					this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 ), 0.98, GSPEED * 2 );
+					let xx = this._current_target.x + ( ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 );
+					let yy = this._current_target.y + ( ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 );
+
+					this.look_x = sdWorld.MorphWithTimeScale( this.look_x, xx, 0.95, GSPEED * 2 );
+					this.look_y = sdWorld.MorphWithTimeScale( this.look_y, yy, 0.98, GSPEED * 2 );
 					let an = Math.atan2( this.look_y - this.y, Math.abs( this.look_x - this.x ));
 					this.tilt = an * 100;
 				}
@@ -505,7 +540,7 @@ class sdStalker extends sdEntity
 
 				if ( this._regen_timeout <= 0 )
 				if ( this.hea < this._hmax ) 
-				this.hea += GSPEED * 10; // Give them health regen if not taking damage over min
+				this.hea += GSPEED * 1; // Give them health regen if not taking damage over min
 			
 				if ( this._regen_timeout > 0 )
 				this._regen_timeout -= GSPEED;
@@ -665,13 +700,14 @@ class sdStalker extends sdEntity
 				if ( this._attack_timer <= 0 )
 				{
 					this._attack_timer = 3;
+
 					if ( this._possession_attack_timer <= 0 )
 					{
 						// if ( this._current_target && !this._current_target._is_being_removed )
 						// this.PossessClone( this._current_target, 1 );
 					
 						let nears = sdWorld.GetAnythingNear( this.x, this.y, 386 );
-						let count = 3;
+						let count = 1;
 						for ( let i = 0; i < nears.length; i++ )
 						{
 							let e = nears[ i ];
@@ -687,27 +723,28 @@ class sdStalker extends sdEntity
 						this._possession_attack_timer = 500;
 					}
 
-					if ( this._laser_timer <= 0 )
+					//if ( this._laser_timer <= 0 )
 					for ( let i = 0; i < targets.length; i++ )
 					{
-						if ( !this._charged )
+						//if ( !this._charged )
 						this._current_target = targets[ i ];
 					
-						if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) > sdStalker.attack_range )
+						if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) > sdStalker.attack_range && !this.bfg_attack )
 						break;
 
 						if ( this._alert_intensity < 45 )// Delay attack
 						break;
 
-						this._laser_timer = 1;
-						let dx = ( targets[ i ].sx || 0 );
-						let dy = ( targets[ i ].sy || 0 );
+						//this._laser_timer = 1;
+						//let dx = ( targets[ i ].sx || 0 );
+						//let dy = ( targets[ i ].sy || 0 );
 						
 						let an = Math.atan2( 
-							targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y - dy * 3, 
-							targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x - dx * 3 
+							this.look_y - this.y,// - dy * 3, 
+							this.look_x - this.x// - dx * 3 
 						)
-						setTimeout( ()=> {
+
+						//setTimeout( ()=> {
 							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 							bullet_obj._owner = this;
 							bullet_obj.sx = Math.cos( an );
@@ -716,28 +753,89 @@ class sdStalker extends sdEntity
 							bullet_obj.sx *= 15;
 							bullet_obj.sy *= 15;
 
-							bullet_obj._damage = 15;
-							bullet_obj.color = '#00FFFF';
-							bullet_obj._rail = true;
-							bullet_obj._rail_alt = true;
-						
-							bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+							if ( !this.bfg_attack )
 							{
-								if ( target_entity.IsPlayerClass() )
+								bullet_obj._damage = 15;
+								bullet_obj.color = '#00FFFF';
+								bullet_obj._rail = true;
+								bullet_obj._rail_alt = true;
+						
+								bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
 								{
-									target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
-								}
+									if ( target_entity.IsPlayerClass() )
+									{
+										target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									}
+								};
+							}
+							else
+							{
+								bullet_obj._damage = 500;
+								bullet_obj.color = '#FF0000';
+								bullet_obj.model = 'ball_large'
+								
+								bullet_obj._custom_detonation_logic = ( bullet )=>
+								{
+									if ( bullet._owner )
+									{
+										sdWorld.SendEffect({ 
+											x:bullet.x, 
+											y:bullet.y, 
+											radius:48,
+											damage_scale: 5,
+											type:sdEffect.TYPE_EXPLOSION, 
+											owner:bullet._owner,
+											color:'#FF0000',
+											shrapnel: true
+										});
+
+										let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
+
+										for ( let i = 0; i < nears.length; i++ )
+										{
+											if ( nears[ i ].IsPlayerClass() )
+											{
+												nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+											}
+										}
+									}
+								};
+
+								sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1, pitch: 0.2 });
 							}
 						
 							sdEntity.entities.push( bullet_obj );
 						
 							//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
-						}, 200 )
+						//}, 200 );
+
+						this._ammo--;
+						if ( this._ammo <= 0 )
+						{
+							if ( this.bfg_attack )
+							this.bfg_attack = false;
+							else
+							if ( Math.random() < 0.3 )
+							this.bfg_attack = true;
+
+							if ( this.bfg_attack )
+							{
+								this._attack_timer = 30 * 3;
+								this._ammo = 1;
+
+								this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PULSE_EFFECT, duration: 1000 * 3, scale: 4, reverse: true, filter: 'hue-rotate(180deg)' });
+							}
+							else
+							{
+								this._attack_timer = 60;
+								this._ammo = 15;
+							}
+						}
 
 						break;
 					}
 					
-					if ( this._bfg_timer <= 0 && !this._charged )
+					/*if ( this._bfg_timer <= 0 && !this._charged )
 					{
 						this._bfg_timer = 50 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:this.x, y:this.y, volume: 1.5, pitch: 0.75 });
@@ -807,7 +905,7 @@ class sdStalker extends sdEntity
 						sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1, pitch: 0.2 });
 						
 						break;
-					}
+					}*/
 
 					if ( targets.length === 0 ) // lower seek rate when no targets around
 					this._attack_timer = 25 + Math.random() * 10;
@@ -819,20 +917,20 @@ class sdStalker extends sdEntity
 						}
 					}
 				}
-				else
+				//else
 				{
 					this._attack_timer -= GSPEED;
 					
-					if ( this._laser_timer > 0 )
-					this._laser_timer -= GSPEED;
+					//if ( this._laser_timer > 0 )
+					//this._laser_timer -= GSPEED;
 				
 					if ( this._possession_attack_timer > 0 )
 					this._possession_attack_timer -= GSPEED;
 				
-					if ( this._bfg_timer > 0 )
-					this._bfg_timer -= GSPEED;
+					//if ( this._bfg_timer > 0 )
+					//this._bfg_timer -= GSPEED;
 				
-					if ( this._laser_timer > 0 )
+					/*if ( this._laser_timer > 0 )
 					{
 						let an_desired;
 						if ( this._move_dir_timer <= 0 )
@@ -848,7 +946,7 @@ class sdStalker extends sdEntity
 				
 						this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 						this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
-					}
+					}*/
 				}
 			}
 			this.PhysWakeUp();
@@ -888,14 +986,34 @@ class sdStalker extends sdEntity
 		ctx.rotate( this.tilt / 100 );
 		let xx = this.hea <= this._hmax / 3;
 
+		if ( this.hea > 0 )
+		if ( this.bfg_attack )
+		{
+			ctx.apply_shading = false;
+			ctx.globalAlpha = this.alpha / 100 * Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+
+			ctx.sd_color_mult_r = 1;
+			ctx.sd_color_mult_g = 0;
+			ctx.sd_color_mult_b = 0;
+
+			ctx.drawImageFilterCache( sdStalker.img_stalker, 0, 48, 96*2, 48, - 48, - 24, 96*2, 48 );
+
+			ctx.apply_shading = true;
+			ctx.sd_color_mult_r = 1;
+			ctx.sd_color_mult_g = 1;
+			ctx.sd_color_mult_b = 1;
+		}
+
 		ctx.globalAlpha = this.alpha / 100;
 		ctx.drawImageFilterCache( sdStalker.img_stalker, xx * 96, 0, 96, 48, - 48, - 24, 96, 48);
 		
 		if ( this.hea > 0 )
 		{	
+
+			let blink = 100 + this.hea / 2;
 	
 			ctx.blend_mode = THREE.AdditiveBlending;
-			ctx.globalAlpha = Math.sin( ( sdWorld.time % 1000 ) / 1000 * Math.PI );
+			ctx.globalAlpha = Math.sin( ( sdWorld.time % blink ) / blink * Math.PI );
 			
 			if ( this.hea < this._hmax / 3 )
 			{

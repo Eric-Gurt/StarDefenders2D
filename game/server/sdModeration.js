@@ -652,25 +652,45 @@ class sdModeration
 						//for ( let i = 0; i < sdWorld.sockets.length; i++ )
 						//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
 
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
+						//sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
+						//sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
+						//sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
+						//sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
+						//sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
 
-						socket.character.InstallUpgrade( 'upgrade_jetpack' );
-						socket.character.InstallUpgrade( 'upgrade_hook' );
-						socket.character.InstallUpgrade( 'upgrade_hook' );
+						let classes = [
+							sdGun.CLASS_ADMIN_REMOVER,
+							sdGun.CLASS_ADMIN_TELEPORTER,
+							sdGun.CLASS_ADMIN_DAMAGER,
+							sdGun.CLASS_BUILD_TOOL,
+							sdGun.CLASS_ADMIN_MASS_DELETER
+						];
+
+						for ( let i = 0; i < classes.length; i++ )
+						{
+							let slot = sdGun.classes[ classes[ i ] ].slot;
+							if ( !socket.character._inventory[ slot ] || socket.character._inventory[ slot ].class !== classes[ i ] )
+							{
+								//socket.character.DropWeapon( slot );
+
+								let gun = sdEntity.Create( sdGun, { x:socket.character.x, y:socket.character.y, class:classes[ i ] });
+								socket.character.onMovementInRange( gun );
+							}
+						}
+
+						//socket.character.InstallUpgrade( 'upgrade_jetpack' );
+						//socket.character.InstallUpgrade( 'upgrade_hook' );
+						//socket.character.InstallUpgrade( 'upgrade_hook' );
 						socket.character.InstallUpgrade( 'upgrade_invisibility' );
-						socket.character.InstallUpgrade( 'upgrade_grenades' );
+						//socket.character.InstallUpgrade( 'upgrade_grenades' );
 
-						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
-						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
-						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+						//socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+						//socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+						//socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
 
-						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
-						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
-						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+						//socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+						//socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+						//socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
 					}
 					
 					socket.emit('SET sdWorld.my_entity._god', socket.character._god, socket.character._debug );

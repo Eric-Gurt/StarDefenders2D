@@ -564,21 +564,22 @@ class sdOctopus extends sdEntity
 							this.GenericOctoAttack( from_entity._held_by, true );
 						}
 						
-						if ( this._tenta_hold_duration > 30 && old_tenta_hold_duration <= 30 )
+						/*if ( this._tenta_hold_duration > 30 && old_tenta_hold_duration <= 30 )
+						this.tenta_target._held_by.Say( [ 
+						][ ~~( Math.random() * 8 ) ] );*/
+						
+
+						if ( this._tenta_hold_duration > 30 * 3 && old_tenta_hold_duration <= 30 * 3 )
 						this.tenta_target._held_by.Say( [ 
 									'Hey, how about releasing my gun?',
 									'It holds my weapon',
 									'Hey, let it go!',
 									'And what do you think you are doing?',
-									'Can\'t shoot',
+									//'Can\'t shoot',
 									'Give it back, you!',
 									'Disgusting!',
-									'It tries to take my gun!'
-						][ ~~( Math.random() * 8 ) ] );
-						
+									'It takes my gun!',
 
-						if ( this._tenta_hold_duration > 30 * 4.7 && old_tenta_hold_duration <= 30 * 4.7 )
-						this.tenta_target._held_by.Say( [ 
 									'Hey, it took my gun',
 									'No, my gun!',
 									'I lost a gun',
@@ -587,7 +588,7 @@ class sdOctopus extends sdEntity
 									'Here goes my gun'
 						][ ~~( Math.random() * 6 ) ] );
 
-						if ( this._tenta_hold_duration > 30 * 5 )
+						if ( this._tenta_hold_duration > 30 * 3 )
 						{
 							will_damage = true;
 							will_play_damage_effect_and_sound = false;
@@ -822,7 +823,7 @@ class sdOctopus extends sdEntity
 								if ( di > 0 )
 								from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );*/
 							}
-						}, 500 );
+						}, 400 );
 
 						break;
 					}

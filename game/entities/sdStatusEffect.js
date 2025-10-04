@@ -138,14 +138,14 @@ class sdStatusEffect extends sdEntity
 				ctx.textAlign = 'center';
 				ctx.font = ( status_entity.crit ? "7" : "5" ) + "px Verdana";
 				
-				/*for ( let sh = 0; sh < 1; sh++ )
+				for ( let sh = 0; sh <= 1; sh++ )
 				for ( let x = -1; x <= 1; x++ )
-				for ( let y = -1; y <= 1; y++ )*/
+				for ( let y = -1; y <= 1; y++ )
 				{
-					//if ( x === 0 && y === 0 )
+					if ( x === 0 && y === 0 )
 					{
-						//if ( sh !== 1 )
-						//continue;
+						if ( sh !== 1 )
+						continue;
 					
 						if ( status_entity.dmg > 200 )
 						ctx.fillStyle = '#ff0000';
@@ -161,18 +161,18 @@ class sdStatusEffect extends sdEntity
 						else
 						ctx.fillStyle = '#aaffaa';
 					}
-					/*else
+					else
 					{
 						if ( sh !== 0 )
 						continue;
 					
 						ctx.fillStyle = '#000000';
-					}*/
+					}
 
 					ctx.globalAlpha = Math.min( 1, ( 1 - status_entity._progress / status_entity._max_progress ) * 2 );
 					
-					let xx = 0;
-					let yy = -2.5 - status_entity._progress * 1 + Math.pow( status_entity._progress, 2 ) * 0.1;
+					let xx = x * 0.5;
+					let yy = y * 0.5 + -2.5 - status_entity._progress * 1 + Math.pow( status_entity._progress, 2 ) * 0.1;
 					
 					ctx.apply_shading = false;
 
@@ -326,6 +326,7 @@ class sdStatusEffect extends sdEntity
 				trace( 'onStatusOfSameTypeApplied' );*/
 				
 				if ( params.t )
+				if ( status_entity.t > temperature_frozen || params.t >= 0 ) // Do not keep frozen
 				{
 					status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
 					status_entity._update_version++;
@@ -558,6 +559,10 @@ class sdStatusEffect extends sdEntity
 						}
 				
 						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment
+
+						if ( status_entity.t < temperature_frozen - 30 ) // Limit freeze time
+						status_entity.t = temperature_frozen - 30;
+
 						status_entity._update_version++;
 					}
 				}
@@ -1378,12 +1383,16 @@ class sdStatusEffect extends sdEntity
 			onMade: ( status_entity, params )=>
 			{
 				status_entity.t = sdWorld.time; // Gets removed after 1 pulse, which is about 3 seconds.
+				status_entity.duration = params.duration || 3000;
+				status_entity.scale = params.scale || 0.8;
+				status_entity.reverse = params.reverse || false;
+
 				status_entity.filter = params.filter || 'none';
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
 				//status_entity.t = params.t;
-				status_entity._update_version++;
+				//status_entity._update_version++;
 
 				return true; // Cancel merge process
 			},
@@ -1407,7 +1416,7 @@ class sdStatusEffect extends sdEntity
 					status_entity.y = status_entity.for.y;
 				}
 			
-				return ( status_entity.t + 3000 <= sdWorld.time ); // return true = delete
+				return ( status_entity.t + status_entity.duration <= sdWorld.time ); // return true = delete
 			},
 			onBeforeRemove: ( status_entity )=>
 			{
@@ -1427,13 +1436,18 @@ class sdStatusEffect extends sdEntity
 				return;
 			
 				ctx.filter = status_entity.filter;
-			
-				if ( sdWorld.time - status_entity.t <= 1500 )
-				ctx.globalAlpha = ( 0.9 * ( sdWorld.time - status_entity.t ) / 1500 );
+
+				let rate = ( sdWorld.time - status_entity.t ) / status_entity.duration;
+
+				if ( sdWorld.time - status_entity.t <= status_entity.duration / 2 )
+				ctx.globalAlpha = ( 0.9 * rate );
 				else
-				ctx.globalAlpha = 1.8 - ( 0.9 * ( sdWorld.time - status_entity.t ) / 1500 );
+				ctx.globalAlpha = 1.0 - ( 0.9 * rate );
 			
-				ctx.scale( ( 0.8 * ( sdWorld.time - status_entity.t ) / 1500 ), ( 0.8 * ( sdWorld.time - status_entity.t ) / 1500 ) );
+				if ( status_entity.reverse )
+				rate = 1 - rate;
+
+				ctx.scale( ( status_entity.scale * rate ), ( status_entity.scale * rate ) );
 				ctx.drawImageFilterCache( sdStatusEffect.img_pulse, 0, 0, 32, 32, - 16, - 16, 32, 32 );
 				
 				ctx.filter = 'none';
@@ -1487,12 +1501,13 @@ class sdStatusEffect extends sdEntity
 
 							e._owner = status_entity.for;
 
-							e.sx = -e.sx;
-							e.sy = -e.sy;
+							e.sx = -e.sx * 0.5;
+							e.sy = -e.sy * 0.5;
 							e.time_left *= 2;
 
 							e.Damage( 20 ); // Prevent bullet from being endlessly reflected between 2 entities with this effect
 
+							if ( status_entity.for.IsPlayerClass() )
 							sdLost.ApplyAffection( status_entity.for, 2.5, null, sdLost.FILTER_VOID );
 							//e.remove();
 						}

@@ -132,20 +132,15 @@ class sdServerConfigFull extends sdServerConfigShort
 	static open_world_max_distance_from_zero_coordinates_y_min = -6000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
-	static player_vs_player_damage_scale = 3;
-
-	static allow_underground_mob_spawns = true; // Common ground mobs will periodically spawn inside caves near online players
-	static underground_mob_spawn_rate = 30 * 3; // Lower values will populate caves faster, higher values won't repopulate already-cleared areas as quickly
-	static underground_mob_spawn_density = 20; // How many mobs must occupy a given (800px) area to prevent further spawns there
+	static player_vs_player_damage_scale = 1;
 	
 	static ShouldBlockContainAnything ( x,y,hp_mult )
 	{
-		return ( Math.random() > Math.max( 0.5 / Math.min( hp_mult, 1 + hp_mult * 0.01 ), 0.1 ) ); // hp_mult scales with hitpoints of a sdBlock, usually depth-dependant
+		return ( Math.random() > Math.max( 0.75 / Math.min( hp_mult, 1 + hp_mult * 0.01 ), 0.1 ) ); // hp_mult scales with hitpoints of a sdBlock, usually depth-dependant
 	}
 	static ShouldBlockContainMobRatherThanCrystal( x,y,hp_mult )
 	{
-		return ( Math.random() < 0.06 );
-		//return ( Math.random() < Math.min( 0.725, 0.3 * ( 0.75 + hp_mult * 0.25 ) ) );
+		return ( Math.random() < Math.min( 0.4, 0.1 * ( 0.75 + hp_mult * 0.5 ) ) );
 	}
 	static ModifyDugOutCrystalProperties( crystal, from_ground, from_tree )
 	{
@@ -164,14 +159,19 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		*/
 	}
-	static CrystalTierInBlockIncreaseChance( block )
+	static CrystalTierInBlockIncreaseChance( x,y, hp_mult, current_tier )
 	{
-		return ( 0.5 / ( 1 + block._crystal_tier / ( 1 + block.y * 0.01 ) ) ); // Crystal tiers inside dirt blocks are more likely to increase the closer this is to 1
+		return ( ( 0.5 + hp_mult * 0.006 ) / Math.max( 1, current_tier ) ); // Crystal tiers inside dirt blocks are more likely to increase the closer this is to 1
 	}
-	static CrystalTierInBlockIncreaseRate()
+	static CrystalTierInBlockIncreaseRate( x,y, hp_mult, current_tier )
 	{
-		//return ( 1000 + 1000 * Math.random() ); // Hack
-		return ( 1000 * 60 * 20 + Math.random() * 1000 * 60 * 60 * 2 ); // Dirt blocks will attempt to increase their held crystal tier this often
+		//return ( 1000 + 1000 * 10 * Math.random() ); // Hack
+		return ( 1000 * 60 * 30 + Math.random() * 1000 * 60 * 60 * 3.5 ); // Dirt blocks will attempt to increase their held crystal tier this often
+	}
+
+	static UndergroundMobRespawnRate( x,y, hp_mult )
+	{
+		return 1000 * 30; // How frequently mob classes will repopulate exposed ground blocks that don't contain anything
 	}
 	
 	static LinkPlayerMatterCapacityToScore( character )
@@ -337,8 +337,8 @@ class sdServerConfigFull extends sdServerConfigShort
 		// Player just fully respawned. Best moment to give him guns for example. Alternatively onReconnect can be called
 		sdWorld.server_config.GiveStarterRespawnItems( character_entity, player_settings, skip_arrival_sequence );
 
-		character_entity.InstallUpgrade( 'upgrade_jetpack' );
-		character_entity.InstallUpgrade( 'upgrade_hook' );
+		//character_entity.InstallUpgrade( 'upgrade_jetpack' );
+		//character_entity.InstallUpgrade( 'upgrade_hook' );
 	}
 	static GiveStarterRespawnItems( character_entity, player_settings, skip_arrival_sequence )
 	{
@@ -361,7 +361,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		
 		// Spawn starter items based off what player wants to spawn with
-		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_ARMOR_STARTER, sdGun.CLASS_RIFLE ];
+		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL, /*sdGun.CLASS_ARMOR_STARTER,*/ sdGun.CLASS_RIFLE ];
 		
 		if ( player_settings.start_with1 )
 		guns.unshift( sdGun.CLASS_SWORD );
@@ -514,7 +514,7 @@ class sdServerConfigFull extends sdServerConfigShort
 			
 			// Let's go with less text for a while. Telling players about rescue teleports is way too confusing. Move extra replies to sdCharacter.RegisterTalkIfNear
 			intro_to_speak.push( ...[
-					'Press B key to open build menu.',
+					'Press Tab key to open build menu.',
 					'You can drag objects with grappling hook.',
 					'Once you\'ve got grappling hook upgrade - press C key or press Mouse Wheel to drag items.',
 					'Look for crystals to get Matter. Matter is a primary resource here.',
@@ -1583,7 +1583,11 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		if ( icy )
 		{
+			if ( ent.is( sdBG ) )
+			ent.filter = 'contrast(0.8) saturate(0.3)';
+			else
 			ent.filter = 'saturate(0.3)';
+
 			ent.br *= 4;
 			ent.hue = 180;
 

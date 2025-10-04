@@ -104,8 +104,8 @@ class sdBiter extends sdEntity
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			if ( this._unlimited_range || 
-				 sdWorld.CheckLineOfSight( this.x + + ( Math.random() * 2 - 1 ) * 16, 
-										   this.y + + ( Math.random() * 2 - 1 ) * 16, 
+				 sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
 										   character.x + ( Math.random() * 2 - 1 ) * 16, 
 										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
@@ -364,7 +364,7 @@ class sdBiter extends sdEntity
 						
 						if ( from_entity.is( sdCharacter ) )
 						{
-							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 30;
+							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 50;
 							from_entity._sickness += sickness;
 							from_entity._last_sickness_from_ent = this;
 						}

@@ -156,7 +156,7 @@ class sdUpgradeStation extends sdEntity
 		this.matter = 100;
 		this.level = 1;
 		
-		this.armor_to_build = sdGun.CLASS_ARMOR_STARTER; // Standard armor defined at start, so players can know it can spawn armor now.
+		this.armor_to_build = -1;//sdGun.CLASS_ARMOR_STARTER; // Standard armor defined at start, so players can know it can spawn armor now.
 		this._armor_cooldown = 0; // Cooldown for armor spawning
 		
 		this._armor_protection_level = 0;

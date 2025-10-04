@@ -805,7 +805,7 @@ class sdGunClass
 			reload_time: 3,
 			muzzle_x: 7,
 			ammo_capacity: 30,
-			spread: 0.01, // 0.03
+			spread: 0.06, // 0.03
 			count: 1,
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
@@ -9564,7 +9564,8 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 100,
+			//matter_cost: 100,
+			spawnable: false,
 			armor_properties: { armor: 100, _armor_absorb_perc: 0.2, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
@@ -9883,7 +9884,7 @@ class sdGunClass
 			slot: 2,
 			reload_time: 2,
 			muzzle_x: 8,
-			ammo_capacity: -1,
+			ammo_capacity: 40,
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
@@ -9892,7 +9893,7 @@ class sdGunClass
 			projectile_properties: { color: '#00FFFF', _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { time_left: 40, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -9903,8 +9904,8 @@ class sdGunClass
 				if ( gun.fire_mode === 2 )
 				{
 					obj._homing = true;
-					obj._homing_mult = 0.1;
-					obj.ac = 0.2;
+					obj._homing_mult = 0.06;
+					obj.ac = 0.02;
 				}
 				
 				return obj;
@@ -9919,7 +9920,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 15; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -9990,8 +9991,8 @@ class sdGunClass
 									sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
 								
-									ent.hea = 1000;
-									ent.hmax = 1000;
+									ent.hea = 400;
+									ent.hmax = 400;
 									ent.helmet = target_entity.helmet;
 									ent.body = target_entity.body;
 									ent.legs = target_entity.legs;

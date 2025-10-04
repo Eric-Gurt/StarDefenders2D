@@ -1464,6 +1464,10 @@ let enf_once = true;
 
 			sdWorld.ResolveMyEntityByNetId();
 		});
+		socket.on( 'SET sdWorld.my_entity_has_rtp', ( has_rtp )=>
+		{
+			sdWorld.my_entity_has_rtp = has_rtp;
+		});
 		
 		socket.on( 'REMOVE sdWorld.my_entity', ( _net_id )=>
 		{
@@ -2145,7 +2149,7 @@ let enf_once = true;
 			sdWorld.my_inputs_and_gspeeds.push( [ 1, code ] );
 		}
 	
-		if ( code === 'Tab' )
+		if ( code === 'KeyT' )
 		if ( sdWorld.my_entity )
 		{
 			sdRenderer.show_leader_board++;
@@ -2156,7 +2160,7 @@ let enf_once = true;
 			return;
 		}
 		
-		if ( code === 'KeyB' )
+		if ( code === 'Tab' )
 		{
 			// Equip build tool, suggested by Maxteabag
 			if ( sdWorld.my_entity )
@@ -2177,11 +2181,17 @@ let enf_once = true;
 				sdShop.Open();
 				//sdRenderer.UpdateCursor();
 			}
+			e.preventDefault();
 			return;
 		}
 		else
 		if ( code === 'Escape' || code === 'Space' || ( code === 'KeyR' && sdWorld.mobile ) )
 		{
+			if ( sdWorld.my_entity_has_rtp && ( sdWorld.my_entity && sdWorld.my_entity.hea <= 0 ) )
+			{
+				socket.emit( 'RESPAWN', null ); // Respawn at cloner, settings not needed
+			}
+			else
 			//if ( sdWorld.my_entity === null || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
 			if ( sdWorld.my_entity_net_id === -101 || ( sdWorld.my_entity && sdWorld.my_entity.hea <= 0 ) )
 			if ( sdRenderer.canvas.style.display === 'block' )

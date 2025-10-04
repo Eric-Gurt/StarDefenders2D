@@ -45,7 +45,7 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.climb_filter = [ 'sdBlock', 'sdLost', 'sdBarrel', 'sdCrystal', 'sdCharacter', 'sdDoor', 'sdMatterContainer', 'sdCube' ];
 		
-		sdCharacter.stability_damage_from_damage_scale = 0.5;
+		sdCharacter.stability_damage_from_damage_scale = 0.25;
 		sdCharacter.stability_damage_from_velocity_changes_scale = 128 / 10;
 	
 		// Add new values at the end. This list will be automatically sorted
@@ -588,13 +588,13 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.disowned_body_ttl = 30 * 60 * 1; // 1 min
 	
-		sdCharacter.starter_matter = 50;
+		sdCharacter.starter_matter = 300;
 		sdCharacter.matter_required_to_destroy_command_center = 300; // Will be used to measure command centres' self-destruct if no characters with enough matter will showup near them
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
-		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
-		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine', 'sdRescueTeleport' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine', 'sdRescueTeleport' ];
 
 		sdCharacter.max_level = 60;
 		
@@ -782,7 +782,7 @@ class sdCharacter extends sdEntity
 		{
 			let old_matter_max = this.matter_max;
 
-			this.matter_max = Math.min( 50 + Math.max( 0, this._score * 20 ), 1850 ) + this._matter_capacity_boosters;
+			this.matter_max = Math.min( sdCharacter.starter_matter + Math.max( 0, this._score * 10 ), 1850 ) + this._matter_capacity_boosters;
 			
 			// Keep matter multiplied when low score or else it feels like matter gets removed
 			if ( this._score < 100 )
@@ -797,6 +797,8 @@ class sdCharacter extends sdEntity
 	}
 	onSeesEntity( ent ) // Only gets triggered for connected characters that have active socket connection, with delay (each 1000th entity is seen per sync)
 	{
+		return;
+
 		if ( !this.is( sdCharacter ) )
 		return;
 	
@@ -1358,8 +1360,8 @@ THING is cosmic mic drop!`;
 		this.pain_anim = 0;
 		this.death_anim = 0;
 		
-		this.flashlight = 0;
-		this.has_flashlight = 0;
+		this.flashlight = 1;
+		this.has_flashlight = 1;
 		this._last_f_state = 0;
 
 		this.act_x = 0;
@@ -1398,8 +1400,8 @@ THING is cosmic mic drop!`;
 
 		this._jetpack_power = 1; // Through upgrade
 		
-		this._hook_allowed = false; // Through upgrade
-		this._jetpack_allowed = false; // Through upgrade
+		this._hook_allowed = true; // Enabled automatically for now
+		this._jetpack_allowed = true; // Enabled automatically for now
 		this._ghost_allowed = false; // Through upgrade
 		//this._coms_allowed = false; // Through upgrade, only non-proximity one
 		this._damage_mult = 2; // Through upgrade. Has no effect anymore, but level of 3 allows damaging some buildings
@@ -1534,6 +1536,8 @@ THING is cosmic mic drop!`;
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
 		this._jetpack_effect_timer = 0; // Client-side
+
+		this._next_ground_mob_spawn = 0;
 		
 		sdCharacter.characters.push( this );
 	}
@@ -2345,7 +2349,7 @@ THING is cosmic mic drop!`;
 			this.DamageStability( vel * sdCharacter.stability_damage_from_velocity_changes_scale );
 		}
 	}
-	AttemptTeleportOut( from_ent=null, lost_effect=false, assumed_health_after_damage=0 )
+	AttemptTeleportOut( from_ent=null, lost_effect=false, assumed_health_after_damage=0, allow_cloners=false )
 	{
 		if ( from_ent )
 		if ( from_ent._is_being_removed )
@@ -2355,6 +2359,9 @@ THING is cosmic mic drop!`;
 		{
 			return false;
 		}
+
+		if ( this.driver_of && this.driver_of.is( sdRescueTeleport ) )
+		return false;
 
 		/*let tele_cost = sdRescueTeleport.max_matter;
 		
@@ -2396,24 +2403,26 @@ THING is cosmic mic drop!`;
 			}*/
 			
 			if ( t.allowed )
-			if ( !lost_effect || t.IsCloner() )
-			if ( close_enough )
+			if ( t.enabled )
+			if ( !t._is_being_removed )
 			if ( t._owner === this || t.owner_biometry === this.biometry )
 			//if ( t.owner_biometry === this.biometry )
-			if ( t.delay <= 0 )
-			if ( t.matter >= t._matter_max ) // Fully charged
-			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
-			if ( !t._is_being_removed )
+			if ( 
+				( t.IsCloner() && allow_cloners && ( !best_t || best_t.IsCloner() ) ) 
+				||
+				( !t.IsCloner() && !lost_effect && close_enough && t.delay <= 0 && t.matter >= t._matter_max / ( t.HasPassiveDrain() ? 2 : 1 ) && t.matter >= tele_cost )
+			)
 			//if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, this ) ) // Make sure it isn't blocked by anything
 			//if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
 			if ( t.GetRTPPotentialPlayerPlacementTestResult( this ) )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
-				if ( 
+				/*if ( 
 						( di < best_di && tele_cost <= best_cost ) 
 						||
 						tele_cost < best_cost 
-				   )
+					)*/
+				if ( di < best_di )
 				{
 					best_t = t;
 					best_di = di;
@@ -2461,6 +2470,9 @@ THING is cosmic mic drop!`;
 								}, 'COPY_RAGDOLL_POSE' );
 								
 						
+			if ( assumed_health_after_damage < -400 )
+			copy_ent.DamageWithEffect( 1 );
+
 			if ( this.hook_relative_to )
 			{
 				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:1, pitch:2 });
@@ -2850,7 +2862,7 @@ THING is cosmic mic drop!`;
 		return;
 		
 		// No healing for frozen players - prevent cube & freezing turret traps
-		if ( this._frozen > 0 )
+		if ( this._frozen > 0 || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
 		dmg = Math.abs( dmg );
 		
 		dmg /= this.s / 100;
@@ -3176,6 +3188,7 @@ THING is cosmic mic drop!`;
 			if ( this.hea < -400 )
 			{
 				//if ( this.death_anim <= sdCharacter.disowned_body_ttl )
+				if ( !this.AttemptTeleportOut( null, false, this.hea, true ) )
 				{
 					let a,s,x,y,k;
 
@@ -3216,14 +3229,15 @@ THING is cosmic mic drop!`;
 							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
 						}
 					}
+
+					this.remove();
 				}
-				this.remove();
 			}
 			
-			this._regen_timeout = 30;
-			if ( this.hea < 30 )
-			if ( this._ai_enabled )
-			this._dying = true; // Maybe it is more of confusing than a good feature in the game like this
+			this._regen_timeout = 30 * 3;
+			//if ( this.hea < 30 )
+			//if ( this._ai_enabled )
+			//this._dying = true; // Maybe it is more of confusing than a good feature in the game like this
 		}
 		else
 		if ( this._socket !== null || this._my_hash !== undefined || !this.IsHostileAI() ) // Allow healing disconnected players
@@ -4054,12 +4068,17 @@ THING is cosmic mic drop!`;
 
 			if ( this._ai.target && this._ai.target.IsVisible( this ) )
 			{
+				let look_speed = Math.max( 0.82, ( 0.9 - 0.05 * this._ai_level ) );
+
+				if ( this._ai_attack_time > 0 )
+				look_speed *= 0.5;
+
 				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, 
 														  this._ai.target.x + ( ( this._ai.target._hitbox_x1 + this._ai.target._hitbox_x2 ) / 2 ), 
-														  Math.max( 0.82, ( 0.9 - 0.05 * this._ai_level ) ), GSPEED );
+														  look_speed, GSPEED );
 				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, 
 														  this._ai.target.y + ( this._ai.target_local_y || 0 ), 
-														  Math.max( 0.82, ( 0.9 - 0.05 * this._ai_level ) ), GSPEED );
+														  look_speed, GSPEED );
 			}
 			else
 			{
@@ -4628,6 +4647,7 @@ THING is cosmic mic drop!`;
 			this.air = sdCharacter.air_max; // Hack
 			this._nature_damage = 0; // Hack
 			this._player_damage = 0; // Hack
+			this.energy = sdCharacter.energy_max; // Hack
 		}
 	}
 	
@@ -4748,6 +4768,7 @@ THING is cosmic mic drop!`;
 				}
 				else
 				if ( this._socket === null )
+				if ( !this._has_rtp_in_range )
 				{
 					// Normal players and simple AI like starter instructor, perhaps
 					this.death_anim += GSPEED;
@@ -4759,6 +4780,40 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
+			if ( sdWorld.is_server )
+			if ( this._socket )
+			if ( this.IsVisible() )
+			if ( this._next_ground_mob_spawn < sdWorld.time )
+			{
+				let an = Math.random() * Math.PI * 2;
+
+				let xx = this.x + Math.random() * 100 - 50;
+				let yy = this.y + Math.random() * 100 - 50;
+
+				let dx = Math.sin( an ) * 200;
+				let dy = Math.cos( an ) * 200;
+
+				//let p = sdWorld.TraceRayPoint( xx, yy, xx + dx, yy + dy, this, null, sdCom.com_vision_blocking_classes );
+				//if ( !p )
+				//p = { x:xx + dx, y: yy + dy };
+
+				if ( !sdWorld.CheckLineOfSight( xx, yy, xx + dx, yy + dy, this, null, sdCom.com_vision_blocking_classes ) )
+				if ( sdWorld.last_hit_entity )
+				if ( sdWorld.last_hit_entity.is( sdBlock ) )
+				{
+					let ent = sdWorld.last_hit_entity;
+
+					if ( !ent._is_being_removed )
+					if ( ent._contains_hostile_mob )
+					{
+						ent.DamageWithEffect( ent._hea + 1 ); // Will break
+
+						this._next_ground_mob_spawn = sdWorld.time + 1000 * 3 * Math.random();
+						//sdWorld.SendEffect({ x:xx, y:yy, x2:p.x, y2:p.y, type:sdEffect.TYPE_ALT_RAIL });
+					}
+				}
+			}
+
 			if ( this._ai_enabled > 0 )
 			{
 				if ( !this._ai )
@@ -4993,7 +5048,7 @@ THING is cosmic mic drop!`;
 		//let new_y = this.y + this.sy * GSPEED;
 		
 		let speed_scale = 1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
-		speed_scale *= Math.max( 0.3, this.stability / 100 );
+		speed_scale *= Math.max( 0.5, this.stability / 100 );
 		
 		let walk_speed_scale = speed_scale;
 		walk_speed_scale *= ( this.mobility / 100 );
@@ -5004,7 +5059,7 @@ THING is cosmic mic drop!`;
 		let can_uncrouch = -1;
 		
 		//let target_crouch = ( this.stability < 50 ) ? 3 : Math.max( 0, act_y_or_unstable );
-		let target_crouch = ( this.stability < 50 ) ? 3 : Math.max( 0, act_y_or_unstable );
+		let target_crouch = ( this.stability < 50 ) ? 4 : Math.max( 0, act_y_or_unstable );
 		
 		if ( this._crouch_intens !== target_crouch )
 		{
@@ -5199,7 +5254,7 @@ THING is cosmic mic drop!`;
 		
 			let max_length = 8.5 * 48;
 		
-			if ( this._upgrade_counters.upgrade_hook > 1 )
+			//if ( this._upgrade_counters.upgrade_hook > 1 )
 			if ( this._key_states.GetKey( 'Mouse3' ) )
 			{
 				//let off = this.GetBulletSpawnOffset();
@@ -5541,6 +5596,8 @@ THING is cosmic mic drop!`;
 		
 		//this.flying = true; // Hack
 		
+		let last_flying = this.flying;
+
 		if ( this.flying )
 		{
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
@@ -5898,7 +5955,7 @@ THING is cosmic mic drop!`;
 		if ( can_breathe )
 		{
 			if ( this.air < sdCharacter.air_max )
-			this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 5 );
+			this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 8 );
 		}
 		else
 		{
@@ -5984,12 +6041,13 @@ THING is cosmic mic drop!`;
 		}
 
 		if ( this.energy < sdCharacter.energy_max )
+		if ( !this.flying && !last_flying )
 		{
-			let regen_rate = 0.1;
+			let regen_rate = 0.5;
 
 			if ( ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._ledge_holding ) && 
 				 ( !this.hook_relative_to || this._stands_on !== this.hook_relative_to ) )
-			regen_rate = 4;
+			regen_rate = 6;
 
 			this.energy = Math.min( this.energy + regen_rate * GSPEED, sdCharacter.energy_max );
 		}
@@ -6510,11 +6568,15 @@ THING is cosmic mic drop!`;
 
 			if ( show_energy )
 			{
+				let ww = w * 1.25;
+
 				ctx.fillStyle = '#000000';
-				ctx.fillRect( 0 - w / 2, 20 - 1, w, 3 );
+				ctx.globalAlpha = 0.5;
+				ctx.fillRect( 0 - ww / 2, 30 - 1, ww, 3 );
 
 				ctx.fillStyle = '#ffff00';
-				ctx.fillRect( 1 - w / 2, 20, ( w - 2 ) * Math.max( 0, this.energy / sdCharacter.energy_max ), 1 );
+				ctx.globalAlpha = 1;
+				ctx.fillRect( 1 - ww / 2, 30, ( ww - 2 ) * Math.max( 0, this.energy / sdCharacter.energy_max ), 1 );
 			}
 			
 			//

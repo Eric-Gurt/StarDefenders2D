@@ -1210,7 +1210,7 @@ class sdGun extends sdEntity
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale * self_recoil_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale * self_recoil_scale );
 						
-						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
+						//bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
 
 						bullet_obj._bg_shooter = background_shoot ? true : false;
 						

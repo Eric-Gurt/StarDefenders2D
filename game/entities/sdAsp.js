@@ -81,7 +81,7 @@ class sdAsp extends sdEntity
 		if ( this.tier === 3 ) // Anti-crystal asps
 		this._hmax = 160 * 2;
 		else
-		this._hmax = 10;
+		this._hmax = 30;
 	
 		this._hea = this._hmax;
 		
@@ -136,8 +136,8 @@ class sdAsp extends sdEntity
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			if ( this._unlimited_range || 
-				 sdWorld.CheckLineOfSight( this.x + + ( Math.random() * 2 - 1 ) * 16, 
-										   this.y + + ( Math.random() * 2 - 1 ) * 16, 
+				 sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
 										   character.x + ( Math.random() * 2 - 1 ) * 16, 
 										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
@@ -237,9 +237,9 @@ class sdAsp extends sdEntity
 		if ( this.tier === 2 && this._hea <= 0 )
 		this.DamageWithEffect( Math.max( 10, vel - 3 ) * 15 );
 		else
-		if ( vel > 6 ) // For new mass-based model
+		if ( vel > 8 ) // For new mass-based model
 		{
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 6 ) * 10 );
 		}
 	}
 	CanBuryIntoBlocks()
@@ -356,6 +356,7 @@ class sdAsp extends sdEntity
 					if ( sdWorld.sockets[ i ].character.hea > 0 )
 					if ( !sdWorld.sockets[ i ].character._is_being_removed )
 					if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
+					if ( this.y < 100 )
 					{
 					
 						let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
@@ -458,7 +459,7 @@ class sdAsp extends sdEntity
 							//dx += ( from_entity.sx || 0 ) * di / 12;
 							//dy += ( from_entity.sy || 0 ) * di / 12;
 							
-							di = sdWorld.Dist2D_Vector( dx, dy );
+							//di = sdWorld.Dist2D_Vector( dx, dy );
 							
 							if ( di > 1 )
 							{
@@ -496,7 +497,7 @@ class sdAsp extends sdEntity
 								bullet_obj.sx *= 12;
 								bullet_obj.sy *= 12;
 	
-								bullet_obj._damage = 20;
+								bullet_obj._damage = 40;
 								bullet_obj.color = '#00ff00';
 								bullet_obj.model = 'ball_g';
 								
@@ -531,6 +532,16 @@ class sdAsp extends sdEntity
 	
 										return false; // Go right through everything including walls
 									};
+								}
+								else
+								{
+									bullet_obj._extra_filtering_method = ( hit_entity, bullet )=>
+									{
+										if ( hit_entity.is( sdAsp ) )
+										return false;
+
+										return true;
+									}
 								}
 	
 								sdEntity.entities.push( bullet_obj );

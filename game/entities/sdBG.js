@@ -141,7 +141,7 @@ class sdBG extends sdEntity
 		
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;
-		this.filter = params.filter || '';
+		this.filter = ( this._natural ? 'contrast(0.8) ' : '' ) + params.filter || '';
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		

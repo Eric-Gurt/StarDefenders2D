@@ -169,7 +169,8 @@ class sdWeaponBench extends sdEntity
 	get description()
 	{
 		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-		return `Can be used to customize appearance and upgrade properties of your weapons. In order to drop weapon onto weapon modification bench - press V. Then right click on weapon modification bench for more options.`;
+		//return `Can be used to customize appearance and upgrade properties of your weapons. In order to drop weapon onto weapon modification bench - press V. Then right click on weapon modification bench for more options.`;
+		return `Can be used to customize appearance of your weapons. In order to drop weapon onto weapon modification bench - press V. Then right click on weapon modification bench for more options.`;
 	
 		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 		return `Allows for secure item storage, can be locked via access keys and will self destruct in case of an intrusion attempt. Right click on weapon display locker for configuration and more options.`;
@@ -712,7 +713,7 @@ class sdWeaponBench extends sdEntity
 							return;
 						}
 						
-						if ( command_name === 'UPGRADE' )
+						/*if ( command_name === 'UPGRADE' )
 						{
 							let upgrades = sdGun.classes[ item.class ].upgrades;
 
@@ -805,7 +806,7 @@ class sdWeaponBench extends sdEntity
 								executer_socket.SDServiceMessage( 'Not enough matter' );
 							}
 						}
-						else
+						else*/
 						if ( command_name === 'INCREASE_HP' )
 						{
 							if ( item )
@@ -949,7 +950,7 @@ class sdWeaponBench extends sdEntity
 					
 					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 					{
-						let upgrades = sdGun.classes[ item.class ].upgrades;
+						/*let upgrades = sdGun.classes[ item.class ].upgrades;
 				
 						if ( upgrades )
 						for ( let i in upgrades )
@@ -1006,7 +1007,7 @@ class sdWeaponBench extends sdEntity
 									this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 								}
 							}
-						}
+						}*/
 						if ( item.class === sdGun.CLASS_ACCESS_KEY )
 						{
 							this.AddPromptContextOption( 'Set keycard access ID', 'SET_KEY_ID', [ undefined ], 'Enter new ID', ( this.gun_password || '' ), 32 );

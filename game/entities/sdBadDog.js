@@ -150,8 +150,8 @@ class sdBadDog extends sdEntity
 			if ( this._current_target === null || 
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
-			if ( sdWorld.CheckLineOfSight( this.x + + ( Math.random() * 2 - 1 ) * 16, 
-										   this.y + + ( Math.random() * 2 - 1 ) * 16, 
+			if ( sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
 										   character.x + ( Math.random() * 2 - 1 ) * 16, 
 										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{

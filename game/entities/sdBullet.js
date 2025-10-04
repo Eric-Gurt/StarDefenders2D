@@ -1291,8 +1291,7 @@ class sdBullet extends sdEntity
 								if ( from_entity.is( sdBlock ) && (
 										from_entity.DoesRegenerate() ) ) // Dirt damage bonus multiplier (relative to initial damage)
 								{
-									dmg *= 0.5; // Less damage toward dirt from non-digging tools
-									dmg += base_damage * 0.5 * this._dirt_mult;
+									dmg += base_damage * this._dirt_mult;
 								}
 								//from_entity.DamageWithEffect( dmg * this._dirt_mult, this._owner );
 
