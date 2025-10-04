@@ -10,6 +10,8 @@ import sdBlock from './sdBlock.js';
 import sdWeather from './sdWeather.js';
 import sdBullet from './sdBullet.js';
 import sdDeepSleep from './sdDeepSleep.js';
+import sdStatusEffect from './sdStatusEffect.js';
+import sdCom from './sdCom.js';
 
 class sdAsteroid extends sdEntity
 {
@@ -395,6 +397,7 @@ class sdAsteroid extends sdEntity
 				if ( !c._is_being_removed )
 				if ( !this._witnessers.has( c ) )
 				if ( sdWorld.inDist2D_Boolean( c.x, c.y, this.x + this.sx * 60, this.y + this.sy * 60, 500 ) )
+				if ( sdWorld.CheckLineOfSight( this.x, this.y, ( this.x + c.x ) / 2, ( this.y + c.y ) / 2, this, null, sdCom.com_vision_blocking_classes ) )
 				{
 					this._witnessers.add( c );
 					
@@ -404,6 +407,8 @@ class sdAsteroid extends sdEntity
 					sdSound.PlaySound({ name:'missile_incoming', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v*2, pitch:1 }, [ c._socket ] );
 					else
 					sdSound.PlaySound({ name:'asteroid', x:((this.x + this.sx * 60)+c.x)/2, y:((this.y + this.sy * 60)+c.y)/2, volume:v, pitch:1 / ( ( this.scale + 100 ) / 200 ) }, [ c._socket ] );
+
+					c.ApplyStatusEffect({ type:sdStatusEffect.TYPE_ASTEROID_WARNING, asteroid:this });
 				}
 			}
 

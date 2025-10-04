@@ -35,6 +35,7 @@ class sdStatusEffect extends sdEntity
 		sdStatusEffect.img_attack_indicator_beam = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
 		sdStatusEffect.img_pulse = sdWorld.CreateImageFromFile( 'em_anomaly' );
 		sdStatusEffect.img_light = sdWorld.CreateImageFromFile( 'lens_flare' );
+		sdStatusEffect.img_warning = sdWorld.CreateImageFromFile( 'warning' );
 		
 		sdStatusEffect.types = [];
 		
@@ -1901,6 +1902,74 @@ class sdStatusEffect extends sdEntity
 				ctx.sd_status_effect_tint_filter = null;
 			}
 		};*/
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_ASTEROID_WARNING = 16 ] = 
+		{
+			remove_if_for_removed: true,
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._asteroid = params.asteroid || null;
+
+				status_entity.x2 = 0;
+				status_entity.y2 = 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				{
+					let ent = status_entity._asteroid;
+
+					let for_y = status_entity.for.y;
+
+					if ( ent && !ent._is_being_removed && !ent.landed )
+					{
+						status_entity.x2 = ent.x + ent.sx * Math.abs( ent.y - for_y ) / ent.sy;
+						status_entity.y2 = ent.y;
+					}
+					else
+					return true;
+				}
+
+				return false;
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				ctx.apply_shading = false;
+
+				let yy = sdWorld.camera.y - status_entity.for.y + 20 - sdRenderer.screen_height / sdWorld.camera.scale / 2;
+
+				if ( status_entity.y2 > sdWorld.my_entity.y - 100 )
+				ctx.globalAlpha = 0;
+				else
+				if ( status_entity.y2 > sdWorld.my_entity.y - 600 )
+				ctx.globalAlpha = ( 1 + Math.sin( ( ( sdWorld.time / 75 ) % 75 ) ) ) / 2;
+
+				ctx.translate( status_entity.x2 - status_entity.for.x, yy );
+
+				ctx.drawImageFilterCache( sdStatusEffect.img_warning, -16,-16, 32,32 );
+
+				ctx.globalAlpha = 1;
+			}
+		};
 
 		sdStatusEffect.status_effects = [];
 		
