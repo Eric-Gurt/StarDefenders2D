@@ -1481,6 +1481,10 @@ io.on( 'connection', ( socket )=>
 	socket.last_player_settings = null;
 	socket.Respawn = ( player_settings, force_allow=false )=>
 	{ 
+		if ( socket.character )
+		if ( socket.character.AttemptTeleportOut( null, false, socket.character.hea, true ) )
+		return;
+
 		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
 	

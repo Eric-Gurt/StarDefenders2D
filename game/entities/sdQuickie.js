@@ -9,6 +9,7 @@ import sdGib from './sdGib.js';
 import sdBlock from './sdBlock.js';
 import sdVirus from './sdVirus.js';
 import sdAsp from './sdAsp.js';
+import sdCom from './sdCom.js';
 
 class sdQuickie extends sdEntity
 {
@@ -90,6 +91,10 @@ class sdQuickie extends sdEntity
 			if ( this._current_target === null || 
 				 this._current_target.hea <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+			if ( sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
+										   character.x + ( Math.random() * 2 - 1 ) * 16, 
+										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
 				this._current_target = character;
 				
@@ -97,6 +102,10 @@ class sdQuickie extends sdEntity
 				
 			}
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
 	}
 	
 	GetBleedEffect()
@@ -201,7 +210,7 @@ class sdQuickie extends sdEntity
 					dx = -5;
 					
 					if ( dy > 0 )
-					dy = 1;
+					dy = 4;
 					else
 					dy = -1;
 					
@@ -291,7 +300,7 @@ class sdQuickie extends sdEntity
 						from_entity.DamageWithEffect( 15 * this._tier, this );
 					}
 					else
-					from_entity.DamageWithEffect( 15 * this._tier, this );
+					from_entity.DamageWithEffect( 18 * this._tier, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + ( 7 * this._tier ) );
 

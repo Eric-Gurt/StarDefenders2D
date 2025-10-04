@@ -1924,7 +1924,10 @@ class sdEntity
 										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.00001; // There was a case where standing on a turret would instantly stuck player to it
 
 										if ( this.CanMoveWithoutOverlap( this.x, y_risen, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
-										this.y = y_risen;
+										{
+											this.y = y_risen;
+											this.sy = 0;
+										}
 									}
 								}
 								break;

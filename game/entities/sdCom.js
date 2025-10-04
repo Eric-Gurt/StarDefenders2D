@@ -42,7 +42,46 @@ class sdCom extends sdEntity
 		
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
 
-		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone', 'sdBeamProjector', 'sdSandWorm', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBiter', 'sdCouncilMachine', 'sdPlayerOverlord', 'sdVeloxMiner', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdSetrDestroyer', 'sdTutel', 'sdAbomination', 'sdMimic', 'sdShurgExcavator', 'sdZektaronDreadnought', 'sdCouncilIncinerator', 'sdLongRangeAntenna', 'sdVeloxFortifier', 'sdSolarMatterDistributor', 'sdCouncilNullifier', 'sdStalker' ]; // Used for sdCube pathfinding now...
+		sdCom.com_visibility_ignored_classes = [ // Used for sdCube pathfinding now...
+			'sdBG', 
+			'sdWater', 
+			'sdCom', 
+			'sdDoor', 
+			'sdTurret', 
+			'sdCharacter', 
+			'sdVirus', 
+			'sdQuickie', 
+			'sdOctopus', 
+			'sdTeleport', 
+			'sdCube', 
+			'sdEnemyMech', 
+			'sdBadDog', 
+			'sdShark', 
+			'sdDrone', 
+			'sdBeamProjector', 
+			'sdSandWorm', 
+			'sdAmphid', 
+			'sdAbomination', 
+			'sdAsp', 
+			'sdBiter', 
+			'sdCouncilMachine', 
+			'sdPlayerOverlord', 
+			'sdVeloxMiner', 
+			'sdShurgTurret', 
+			'sdTzyrgAbsorber', 
+			'sdSetrDestroyer', 
+			'sdTutel', 
+			'sdAbomination', 
+			'sdMimic', 
+			'sdShurgExcavator', 
+			'sdZektaronDreadnought', 
+			'sdCouncilIncinerator', 
+			'sdLongRangeAntenna', 
+			'sdVeloxFortifier', 
+			'sdSolarMatterDistributor', 
+			'sdCouncilNullifier', 
+			'sdStalker' 
+			];
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdLongRangeTeleport', 'sdManualTurret' ]; // Used for early threat logic now. Coms don't really trace raycasts anymore. These arrays are a mess though.
 		
 		sdCom.com_build_line_of_sight_filter_for_early_threats = ( e )=>
@@ -56,8 +95,69 @@ class sdCom extends sdEntity
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
 		//sdCom.com_faction_attack_classes = [ 'sdManualTurret', 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
-		sdCom.com_faction_attack_classes = [ 'sdManualTurret', 'sdTurret', 'sdCharacter', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdSetrDestroyer', 'sdVeloxMiner', 'sdShurgExcavator', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdZektaronDreadnought', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBadDog', 'sdBiter', 'sdOctopus', 'sdQuickie', 'sdSandWorm', 'sdVirus', 'sdTutel', 'sdFaceCrab', 'sdCube', 'sdCouncilIncinerator', 'sdTzyrgMortar', 'sdStalker' ]; // Classes which factions can attack (sdDrones, sdCharacters, etc...)
+		sdCom.com_faction_attack_classes = [ // Classes which factions can attack (sdDrones, sdCharacters, etc...)
+			'sdManualTurret', 
+			'sdTurret', 
+			'sdCharacter', 
+			'sdDrone', 
+			'sdEnemyMech', 
+			'sdSpider', 
+			'sdSetrDestroyer', 
+			'sdVeloxMiner', 
+			'sdShurgExcavator', 
+			'sdShurgTurret', 
+			'sdTzyrgAbsorber', 
+			'sdZektaronDreadnought', 
+			'sdPlayerDrone', 
+			'sdPlayerOverlord', 
+			'sdAmphid', 
+			'sdAbomination', 
+			'sdAsp', 
+			'sdBadDog', 
+			'sdBiter', 
+			'sdOctopus', 
+			'sdQuickie', 
+			'sdSandWorm', 
+			'sdVirus', 
+			'sdTutel', 
+			'sdFaceCrab', 
+			'sdCube', 
+			'sdCouncilIncinerator', 
+			'sdTzyrgMortar', 
+			'sdStalker' 
+			];
 		
+		sdCom.com_creature_collision_ignored_classes = [
+			//'sdDrone',
+			'sdAmphid',
+			//'sdAbomination',
+			'sdAsp',
+			'sdBadDog',
+			'sdBiter',
+			//'sdOctopus',
+			'sdQuickie',
+			//'sdSandWorm',
+			'sdVirus',
+			'sdTutel',
+			'sdFaceCrab'
+		];
+
+		sdCom.com_hostile_ground_mob_classes = [
+			'sdBadDog',
+			'sdVirus',
+			'sdQuickie',
+			'sdAsp',
+			'sdBiter',
+			'sdAmphid',
+			'sdSandWorm',
+			'sdOctopus',
+			'sdFaceCrab',
+			'sdTutel',
+			'sdDrone',
+			'sdMeow',
+			'sdCube'
+		];
+
 		sdCom.com_vision_blocking_classes = [ 'sdBlock', 'sdDoor' ];
 		sdCom.com_protectable_solid_classes = [ 'sdBlock', 'sdDoor', 'sdBG' ];
 		

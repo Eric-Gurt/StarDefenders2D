@@ -781,8 +781,8 @@ class sdGun extends sdEntity
 		if ( this.class === sdGun.CLASS_SWORD )
 		return 0;
 		
-		//if ( this.class === sdGun.CLASS_SABER )
-		//return 2;
+		if ( this.class === sdGun.CLASS_SABER )
+		return 0;
 		
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
@@ -794,7 +794,7 @@ class sdGun extends sdEntity
 		return 0;
 
 		if ( this.class === sdGun.CLASS_SHOVEL_MK2 )
-		return 2;
+		return 0;
 		
 		let projectile_properties = this.GetProjectileProperties();
 				
@@ -1145,8 +1145,8 @@ class sdGun extends sdEntity
 							bullet_obj[ p ] = projectile_properties[ p ];
 						}
 						
-						//if ( bullet_obj.is_grenade )
-						if ( !bullet_obj._rail )
+						if ( bullet_obj.is_grenade )
+						//if ( !bullet_obj._rail )
 						{
 							bullet_obj.sx += bullet_obj._owner.sx;
 							bullet_obj.sy += bullet_obj._owner.sy;
@@ -1217,7 +1217,7 @@ class sdGun extends sdEntity
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale * self_recoil_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale * self_recoil_scale );
 						
-						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
+						//bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
 
 						bullet_obj._bg_shooter = background_shoot ? true : false;
 						

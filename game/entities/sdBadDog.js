@@ -150,6 +150,10 @@ class sdBadDog extends sdEntity
 			if ( this._current_target === null || 
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+			if ( sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
+										   character.x + ( Math.random() * 2 - 1 ) * 16, 
+										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
 				//this._current_target = character;
 				this.SetTarget( character );
@@ -157,6 +161,10 @@ class sdBadDog extends sdEntity
 				sdSound.PlaySound({ name:'bad_dog_alert', x:this.x, y:this.y, volume: 0.5 });
 			}
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
 	}
 	GetBleedEffect()
 	{
@@ -705,7 +713,7 @@ class sdBadDog extends sdEntity
 						from_entity.flying = false;*/
 							
 						from_entity.flying = false;
-						from_entity.DamageStability( 100 );
+						from_entity.DamageStability( 50 );
 						from_entity._in_air_timer = 0;
 					}
 					

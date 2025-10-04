@@ -97,7 +97,6 @@ class sdShop
 			sdShop.options.push( sdShop.item_low_level );
 			sdShop.options.push( sdShop.item_low_workbench_level );
 			
-			sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'root', _opens_category:'Background walls' });
 			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, _category:'root', _opens_category:'Doors' });
@@ -114,6 +113,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', tag:'deep', matter_max:5120, _category:'root', _godmode_only: true, _opens_category:'Development tests crystals' });
 			sdShop.options.push({ _class: 'sdCharacter', _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
 			sdShop.options.push({ _class: 'sdFactionSpawner', _category:'root', _godmode_only: true, _opens_category:'Faction outpost tools' });
+			sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 			
 			//
 
@@ -316,6 +316,32 @@ class sdShop
 
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, _category:'Walls' });
+			
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:1, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:1, _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:1, _category:'Base equipment', _min_build_tool_level: 9 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:1, _category:'Base equipment', _min_build_tool_level: 18 });
+			
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:2, _category:'Base equipment', _min_build_tool_level: 22, _min_workbench_level: 1 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:2, _category:'Base equipment', _min_build_tool_level: 24, _min_workbench_level: 2 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:2, _category:'Base equipment', _min_build_tool_level: 27, _min_workbench_level: 3 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:2, _category:'Base equipment', _min_build_tool_level: 30, _min_workbench_level: 4 });
+			
+			if ( sdWorld.server_config.allow_rescue_teleports )
+			{
+				if ( sdWorld.server_config.allowed_rescue_teleports !== null && sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_RESPAWN_POINT ) !== -1 )
+				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_RESPAWN_POINT, _category:'Base equipment'});
+			
+				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_CLONER ) !== -1 )
+				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_CLONER, _category:'Base equipment', _min_build_tool_level: 0 });
+
+				if ( sdWorld.server_config.allowed_rescue_teleports !== null && sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_SHORT_RANGE ) !== -1 )
+				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment', _min_build_tool_level: 10 });
+			
+				if ( sdWorld.server_config.allowed_rescue_teleports !== null && sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_INFINITE_RANGE ) !== -1 )
+				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_INFINITE_RANGE, _category:'Base equipment', _min_build_tool_level: 20 });
+			}
+
 			sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment', _min_build_tool_level:2 });
 			sdShop.options.push({ _class: 'sdCom', variation: 2, _category:'Base equipment', _min_build_tool_level:4 });
@@ -324,11 +350,32 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCom', variation: 5, _category:'Base equipment', _min_build_tool_level:10 });
 			sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:12 });
 			sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:14 });
+
+			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null )
+			{
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base equipment' });
+			}
+			else
+			{
+				for ( let i = 0; i < sdWorld.server_config.allowed_base_shielding_unit_types.length; i++ )
+				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:sdWorld.server_config.allowed_base_shielding_unit_types[ i ], _category:'Base equipment' });
+			}
+
+			sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 1, _min_workbench_level: 3, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 2, _min_workbench_level: 8, _category:'Base equipment' });
+
 			sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
+
 			for ( let size = 16; size >= 8; size /= 2 )
 			{
 				let min_level = 0;
@@ -418,58 +465,17 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:20480 * 2, _category:'Base equipment', _min_build_tool_level: 18 });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:40960 * 2, _category:'Base equipment', _min_build_tool_level: 24, _min_workbench_level: 4 });
 
-			sdShop.options.push({ _class: 'sdLiquidAbsorber', _category:'Base equipment' });
-			
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:1, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:1, _category:'Base equipment', _min_build_tool_level: 3 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:1, _category:'Base equipment', _min_build_tool_level: 9 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:1, _category:'Base equipment', _min_build_tool_level: 18 });
-			
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:2, _category:'Base equipment', _min_build_tool_level: 22, _min_workbench_level: 1 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:2, _category:'Base equipment', _min_build_tool_level: 24, _min_workbench_level: 2 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:2, _category:'Base equipment', _min_build_tool_level: 27, _min_workbench_level: 3 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:2, _category:'Base equipment', _min_build_tool_level: 30, _min_workbench_level: 4 });
+			sdShop.options.push({ _class: 'sdLiquidAbsorber', type:0, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdLiquidAbsorber', type:1, _category:'Base equipment' });
 			
 			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
 			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
 
-			if ( sdWorld.server_config.do_green_base_shielding_units_consume_essence )
+			/*if ( sdWorld.server_config.do_green_base_shielding_units_consume_essence )
 			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( 0 ) !== -1 )
 			{
 				sdShop.options.push({ _class: 'sdEssenceExtractor', _category:'Base equipment', });
-			}
-			sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 1, _min_workbench_level: 3, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 2, _min_workbench_level: 8, _category:'Base equipment' });
-
-			if ( sdWorld.server_config.allow_rescue_teleports )
-			{
-				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_SHORT_RANGE ) !== -1 )
-				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment'});
-			
-				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_INFINITE_RANGE ) !== -1 )
-				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_INFINITE_RANGE, _category:'Base equipment', _min_build_tool_level: 10 });
-			
-				if ( sdWorld.server_config.allowed_rescue_teleports === null || sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_CLONER ) !== -1 )
-				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_CLONER, _category:'Base equipment', _min_build_tool_level: 20 });
-			
-				if ( sdWorld.server_config.allowed_rescue_teleports !== null && sdWorld.server_config.allowed_rescue_teleports.indexOf( sdRescueTeleport.TYPE_RESPAWN_POINT ) !== -1 )
-				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_RESPAWN_POINT, _category:'Base equipment'});
-			}
-			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null )
-			{
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base equipment' });
-			}
-			else
-			{
-				for ( let i = 0; i < sdWorld.server_config.allowed_base_shielding_unit_types.length; i++ )
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:sdWorld.server_config.allowed_base_shielding_unit_types[ i ], _category:'Base equipment' });
-			}
+			}*/
 			sdShop.options.push({ _class: 'sdConveyor', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(30deg) brightness(0.8)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.5) hue-rotate(170deg) brightness(0.7)', _category:'Base equipment' });
@@ -505,7 +511,7 @@ class sdShop
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 			sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
 
-			sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 3  });
+			sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 0  });
 			//sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 11  });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdBotFactory', _category:'Base equipment', _min_build_tool_level: 7  });
@@ -1021,7 +1027,7 @@ class sdShop
 					character.matter_max = Math.round( 50 + level_purchased * 45 ); // Max is 1850
 				}
 			},*/
-			upgrade_hook:
+			/*upgrade_hook:
 			{
 				max_level: 2,
 				matter_cost: 75,
@@ -1030,8 +1036,8 @@ class sdShop
 				{
 					character._hook_allowed = true;
 				}
-			},
-			upgrade_jetpack:
+			},*/
+			/*upgrade_jetpack:
 			{
 				max_level: 1,
 				matter_cost: 75,
@@ -1040,7 +1046,7 @@ class sdShop
 				{
 					character._jetpack_allowed = true;
 				}
-			},
+			},*/
 			upgrade_invisibility:
 			{
 				max_level: 1,
@@ -1057,7 +1063,7 @@ class sdShop
 					character.TogglePlayerAbility();
 				}
 			},
-			upgrade_flashlight:
+			/*upgrade_flashlight:
 			{
 				max_level: 1,
 				matter_cost: 50,
@@ -1067,7 +1073,7 @@ class sdShop
 					character.has_flashlight = 1;
 					character.flashlight = 1;
 				}
-			},
+			},*/
 			/*upgrade_coms:
 			{
 				max_level: 1,
@@ -1110,7 +1116,7 @@ class sdShop
 					character._air_upgrade = 1 + level_purchased ; // 
 				}
 			},*/
-			upgrade_jetpack_fuel_cost_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			/*upgrade_jetpack_fuel_cost_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 5,
 				matter_cost: 150,
@@ -1122,7 +1128,7 @@ class sdShop
 				{
 					character._jetpack_fuel_multiplier = 1 - ( 0.09 * level_purchased ); // Max 90% fuel cost reduction
 				}
-			},
+			},*/
 			upgrade_matter_regeneration_speed: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 3,
@@ -1421,6 +1427,7 @@ class sdShop
 				{
 					if ( sdShop.options[ i ]._godmode_only !== true || ( sdWorld.my_entity && sdWorld.my_entity._god ) )
 					if ( sdShop.options[ i ]._category === sdShop.current_category || 
+						 sdShop.options[ i ]._category === 'root' || 
 						 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
 					matches = true;
 				}
@@ -1434,13 +1441,13 @@ class sdShop
 					else
 					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
 					{
-						current_shop_options.push( sdShop.item_low_level );
+						//current_shop_options.push( sdShop.item_low_level );
 						continue;
 					}
 					else
 					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
 					{
-						current_shop_options.push( sdShop.item_low_workbench_level );
+						//current_shop_options.push( sdShop.item_low_workbench_level );
 						continue;
 					}
 					
@@ -1721,7 +1728,7 @@ class sdShop
 				ctx.restore();
 
 				xx += ( 32 + 16 ) * 2;
-				if ( xx + ( 32 ) * 2 > sdRenderer.screen_width - 40 )
+				if ( xx + ( 32 ) * 2 > sdRenderer.screen_width - 40 || sdWorld.my_entity._build_params._opens_category === 'root' )
 				{
 					xx = 40;
 					yy += ( 32 + 16 ) * 2;

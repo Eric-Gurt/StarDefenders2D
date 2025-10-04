@@ -81,7 +81,7 @@ class sdAsp extends sdEntity
 		if ( this.tier === 3 ) // Anti-crystal asps
 		this._hmax = 160 * 2;
 		else
-		this._hmax = 10;
+		this._hmax = 30;
 	
 		this._hea = this._hmax;
 		
@@ -135,6 +135,11 @@ class sdAsp extends sdEntity
 			if ( this._current_target === null || 
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+			if ( this._unlimited_range || 
+				 sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
+										   character.x + ( Math.random() * 2 - 1 ) * 16, 
+										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
 				this._current_target = character;
 
@@ -143,6 +148,10 @@ class sdAsp extends sdEntity
 				sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.5, pitch: 2 });
 			}
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
 	}
 	GetBleedEffect()
 	{
@@ -228,9 +237,9 @@ class sdAsp extends sdEntity
 		if ( this.tier === 2 && this._hea <= 0 )
 		this.DamageWithEffect( Math.max( 10, vel - 3 ) * 15 );
 		else
-		if ( vel > 6 ) // For new mass-based model
+		if ( vel > 8 ) // For new mass-based model
 		{
-			this.DamageWithEffect( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 6 ) * 10 );
 		}
 	}
 	CanBuryIntoBlocks()
@@ -347,6 +356,7 @@ class sdAsp extends sdEntity
 					if ( sdWorld.sockets[ i ].character.hea > 0 )
 					if ( !sdWorld.sockets[ i ].character._is_being_removed )
 					if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
+					if ( this.y < 100 )
 					{
 					
 						let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
@@ -431,99 +441,115 @@ class sdAsp extends sdEntity
 				{
 					from_entity = nears[ i ].ent;
 					
-					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
-					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2 + ( from_entity.sx || 0 ) * 0.3 * 30;
+					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 + ( from_entity.sy || 0 ) * 0.3 * 30;
 
 					if ( ( this._attack_through_walls && from_entity === this._current_target ) || sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						let dx = xx - this.x;
-						let dy = yy - this.y;
-						
-						let di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						dx += ( from_entity.sx || 0 ) * di / 12;
-						dy += ( from_entity.sy || 0 ) * di / 12;
-						
-						di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						if ( di > 1 )
+						setTimeout(()=>
 						{
-							dx /= di;
-							dy /= di;
-						}
-						
-						this.side = ( dx > 0 ) ? 1 : -1;
-						
-						//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
-						
-						//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
-						sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:2.8 });
+							if ( this._is_being_removed || this._hea <= 0 || this._frozen > 0 ) // Not disabled in time
+							return;
 
-						for ( let p = 0; p < projectiles; p++ )
-						{
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-
-							bullet_obj._owner = this;
-
-							bullet_obj.sx = dx;
-							bullet_obj.sy = dy;
+							let dx = xx - this.x;
+							let dy = yy - this.y;
 							
-							let a = offset + p * spread_per_projectile;
-							// Rotate
-							let cos = Math.cos( a );
-							let sin = Math.sin( a );
-							let nx = cos * bullet_obj.sx - sin * bullet_obj.sy;
-							bullet_obj.sy = sin * bullet_obj.sx + cos * bullet_obj.sy;
-							bullet_obj.sx = nx;
+							let di = sdWorld.Dist2D_Vector( dx, dy );
 							
-							bullet_obj.x += bullet_obj.sx * 3;
-							bullet_obj.y += bullet_obj.sy * 3;
-
-							bullet_obj.sx *= 12;
-							bullet_obj.sy *= 12;
-
-							bullet_obj._damage = 15;
-							bullet_obj.color = '#00ff00';
-							bullet_obj.model = 'ball_g';
+							//dx += ( from_entity.sx || 0 ) * di / 12;
+							//dy += ( from_entity.sy || 0 ) * di / 12;
 							
-							if ( this.tier === 3 )
+							//di = sdWorld.Dist2D_Vector( dx, dy );
+							
+							if ( di > 1 )
 							{
-								bullet_obj.sx *= 0.25;
-								bullet_obj.sy *= 0.25;
-								bullet_obj.time_left /= 0.25;
-								bullet_obj._damage *= 1.5; // /= 0.25;
-								bullet_obj.color = '#000000';
-								bullet_obj.model = 'ball_anti';
-								bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
-								{
-									if ( target_entity )
-									{
-										if ( typeof target_entity._matter !== 'undefined' )
-										target_entity._matter = Math.max( 0, target_entity._matter - 300 );
-									
-										if ( typeof target_entity.matter !== 'undefined' )
-										target_entity.matter = Math.max( 0, target_entity.matter - 300 );
-									}
-								};
-								
-								bullet_obj._extra_filtering_method = ( hit_entity, bullet )=>
-								{
-									if ( from_entity.driver_of )
-									if ( hit_entity === from_entity.driver_of )
-									return true; // Only hit destination targets
-									
-									if ( hit_entity === from_entity )
-									return true; // Only hit destination targets
-
-									return false; // Go right through everything including walls
-								};
+								dx /= di;
+								dy /= di;
 							}
+							
+							this.side = ( dx > 0 ) ? 1 : -1;
+							
+							//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
+							
+							//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
+							sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:2.8 });
+	
+							for ( let p = 0; p < projectiles; p++ )
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+	
+								bullet_obj._owner = this;
+	
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								
+								let a = offset + p * spread_per_projectile;
+								// Rotate
+								let cos = Math.cos( a );
+								let sin = Math.sin( a );
+								let nx = cos * bullet_obj.sx - sin * bullet_obj.sy;
+								bullet_obj.sy = sin * bullet_obj.sx + cos * bullet_obj.sy;
+								bullet_obj.sx = nx;
+								
+								bullet_obj.x += bullet_obj.sx * 3;
+								bullet_obj.y += bullet_obj.sy * 3;
+	
+								bullet_obj.sx *= 12;
+								bullet_obj.sy *= 12;
+	
+								bullet_obj._damage = 40;
+								bullet_obj.color = '#00ff00';
+								bullet_obj.model = 'ball_g';
+								
+								if ( this.tier === 3 )
+								{
+									bullet_obj.sx *= 0.25;
+									bullet_obj.sy *= 0.25;
+									bullet_obj.time_left /= 0.25;
+									bullet_obj._damage *= 1.5; // /= 0.25;
+									bullet_obj.color = '#000000';
+									bullet_obj.model = 'ball_anti';
+									bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+									{
+										if ( target_entity )
+										{
+											if ( typeof target_entity._matter !== 'undefined' )
+											target_entity._matter = Math.max( 0, target_entity._matter - 300 );
+										
+											if ( typeof target_entity.matter !== 'undefined' )
+											target_entity.matter = Math.max( 0, target_entity.matter - 300 );
+										}
+									};
+									
+									bullet_obj._extra_filtering_method = ( hit_entity, bullet )=>
+									{
+										if ( from_entity.driver_of )
+										if ( hit_entity === from_entity.driver_of )
+										return true; // Only hit destination targets
+										
+										if ( hit_entity === from_entity )
+										return true; // Only hit destination targets
+	
+										return false; // Go right through everything including walls
+									};
+								}
+								else
+								{
+									bullet_obj._extra_filtering_method = ( hit_entity, bullet )=>
+									{
+										if ( hit_entity.is( sdAsp ) )
+										return false;
 
-							sdEntity.entities.push( bullet_obj );
-						}
-						
-						this.attack_frame = 3;
-						this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+										return true;
+									}
+								}
+	
+								sdEntity.entities.push( bullet_obj );
+							}
+							
+							this.attack_frame = 3;
+							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+						}, 300 );
 						
 						break;
 					}

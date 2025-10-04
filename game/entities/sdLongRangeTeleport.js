@@ -742,7 +742,7 @@ class sdLongRangeTeleport extends sdEntity
 			}
 		}
 		else
-		if ( rewards === 'CLAIM_REWARD_CRYSTALS' )
+		/*if ( rewards === 'CLAIM_REWARD_CRYSTALS' )
 		{
 			for( let i = 0; i < 3; i++ )
 			{
@@ -750,7 +750,7 @@ class sdLongRangeTeleport extends sdEntity
 				sdEntity.entities.push( crystal );
 			}
 		}
-		else
+		else*/
 		if ( rewards === 'CLAIM_REWARD_CONTAINER' )
 		{
 			let container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
@@ -1184,7 +1184,7 @@ class sdLongRangeTeleport extends sdEntity
 						// All possible reward claims - maybe no need to copy same code multiple times
 						command_name === 'CLAIM_REWARD_SHARDS' ||
 						command_name === 'CLAIM_REWARD_WEAPON' ||
-						command_name === 'CLAIM_REWARD_CRYSTALS' ||
+						//command_name === 'CLAIM_REWARD_CRYSTALS' ||
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
 						command_name === 'CLAIM_REWARD_AD' ||
 						command_name === 'CLAIM_MERGER_CORE' ||
@@ -1781,7 +1781,7 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
 							this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
-							this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
+							//this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
 							this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
 							this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
 							this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );

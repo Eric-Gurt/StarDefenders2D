@@ -108,8 +108,8 @@ class sdWeather extends sdEntity
 		
 		sdWeather.only_instance = null;
 		
-		sdWeather.min_distance_from_online_players_for_entity_events = 500;
-		sdWeather.max_distance_from_online_players_for_entity_events = 3000;
+		sdWeather.min_distance_from_online_players_for_entity_events = 800;
+		sdWeather.max_distance_from_online_players_for_entity_events = 6000;
 		
 		let event_counter = 0;
 		sdWeather.EVENT_ACID_RAIN =				event_counter++; // 0
@@ -171,9 +171,17 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
 		sdWeather.EVENT_STALKER =				event_counter++; // 58
+
+		let disabled_events = [
+			sdWeather.EVENT_CRYSTAL_BLOCKS,
+			sdWeather.EVENT_CRYSTALS_MATTER,
+			sdWeather.EVENT_FLESH_DIRT,
+			sdWeather.EVENT_MOTHERSHIP_CONTAINER
+		];
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
+		if ( disabled_events[ i ] === -1 )
 		sdWeather.supported_events.push( i );
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
@@ -291,7 +299,7 @@ class sdWeather extends sdEntity
 		
 		this._next_wanderer_spawn = 30 * 30 + ( Math.random() * 30 * 90 ); // Test value, spawn one wanderer each 30-120 seconds
 		this._wanderer_models = [ 0, 1, 2 ]; // These refresh whenever daily events appear. 0, 1 and 2 value are standard SD vehicles. They kinda tell which enemies can spawn on the planet at the moment.
-		
+
 		
 		this.air = 1; // Can happen to be 0, which means planet has no breathable air
 		this._no_air_duration = 0; // Usually no-air times will be limited
@@ -3914,7 +3922,23 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CUBE_BOSS )
 		{
+			let can_spawn = false;
 
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				let ent = sdWorld.sockets[ i ].character;
+
+				if ( !ent._is_being_removed )
+				if ( ( ent.hea || ent._hea ) > 0 )
+				if ( ent.build_tool_level >= 10 )
+				{
+					can_spawn = true;
+					break;
+				}
+			}
+
+			if ( can_spawn )
 			if ( sdCube.alive_red_cube_counter < sdCube.GetMaxAllowedCubesOfKind( sdCube.KIND_RED ) )
 			sdWeather.SimpleSpawner({
 
@@ -4959,7 +4983,7 @@ class sdWeather extends sdEntity
 												}
 											}
 
-											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
+											if ( sdWorld.AttemptWorldBlockSpawn( x, y, true, false ) )
 											{
 												ClearPlants();
 												this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:50 + Math.random() * 50, until:sdWorld.time + 250 + Math.random() * 250 });
@@ -4996,7 +5020,7 @@ class sdWeather extends sdEntity
 											sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
 											
 											// Do not damage something multiple times in a row
-											this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:100, until:sdWorld.time + 500 });
+											this._quake_temporary_not_regen_near.push({ x:x, y:y, radius:150, until:sdWorld.time + 1000 });
 										}
 									}
 								}

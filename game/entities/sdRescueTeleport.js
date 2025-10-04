@@ -10,6 +10,7 @@ import sdArea from './sdArea.js';
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
+import sdMatterAmplifier from './sdMatterAmplifier.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -30,13 +31,13 @@ class sdRescueTeleport extends sdEntity
 		*/
 		sdRescueTeleport.max_matter = 1700;
 		sdRescueTeleport.max_matter_short = 400;
-		sdRescueTeleport.max_matter_cloner = 40000 * 3; // 40k can be charged rather quickly. It is a last resort escape thing after all.
+		sdRescueTeleport.max_matter_cloner = 400; //40000 * 3; // 40k can be charged rather quickly. It is a last resort escape thing after all.
 		sdRescueTeleport.max_matter_respawn_point = 100;
 		
-		sdRescueTeleport.clonning_time = 30 * 60 * 3;// 3 minutes
+		sdRescueTeleport.clonning_time = 30 * 5; //30 * 60 * 3;// 3 minutes
 
-		sdRescueTeleport.max_short_range_distance = 2400;
-		sdRescueTeleport.max_default_range_distance = 10000;
+		sdRescueTeleport.max_short_range_distance = 1200;
+		sdRescueTeleport.max_default_range_distance = 8000;
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
@@ -85,13 +86,17 @@ class sdRescueTeleport extends sdEntity
 						let character = sdWorld.sockets[ i ].character;
 
 						if ( character )
-						if ( character.hea > 0 )
+						//if ( character.hea > 0 )
 						if ( character.is( sdCharacter ) )
 						{
 							let available_rtps = [];
 							let is_suitable = [];
 
 							let any_is_suitable = false;
+
+							let best_type = -1;
+
+							let has_unavailable_rtp = false;
 
 							let is_deeply_within_range = false;
 
@@ -110,10 +115,10 @@ class sdRescueTeleport extends sdEntity
 								let rtp = available_rtps[ i2 ];
 
 								let range = rtp.GetRTPRange( character );
-								let cost = rtp.GetRTPMatterCost( character );
+								let cost = ( rtp.HasPassiveDrain() ? rtp._matter_max / 2 : rtp.GetRTPMatterCost( character ) );
 
 								//let suits = ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
-								let suits = !rtp.IsCloner() && ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+								let suits = /*!rtp.IsCloner() && */( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost ) && rtp.enabled;
 
 								// Warn about cloner-only RTPs being available
 
@@ -126,25 +131,46 @@ class sdRescueTeleport extends sdEntity
 										is_suitable[ i2 ] = suits;
 										any_is_suitable = true;
 
+										if ( best_type === -1 || 
+											 rtp.type === sdRescueTeleport.TYPE_INFINITE_RANGE || 
+											 ( !rtp.IsCloner() && best_type === sdRescueTeleport.TYPE_CLONER ) )
+										best_type = rtp.type;
+
 										if ( !is_deeply_within_range )
-										if ( sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
+										if ( !rtp.IsCloner() && sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
 										is_deeply_within_range = true;
 									}
 								}
+								else
+								if ( !rtp.IsCloner() )
+								has_unavailable_rtp = true;
 							}
 
 							character._has_rtp_in_range = any_is_suitable;
+							character._socket.emit( 'SET sdWorld.my_entity_has_rtp', any_is_suitable );
 
 							if ( any_is_suitable )
 							{
-								if ( !is_deeply_within_range )
-								sdTask.MakeSureCharacterHasTask({ 
-									similarity_hash:'RTP-HINT', 
-									executer: character,
-									mission: sdTask.MISSION_GAMEPLAY_HINT,
-									title: 'Rescue Teleport signal is weak',
-									description: 'You are likely leaving effective range of your Rescue Teleport.'
-								});
+								if ( best_type !== sdRescueTeleport.TYPE_CLONER )
+								{
+									if ( !is_deeply_within_range )
+									sdTask.MakeSureCharacterHasTask({ 
+										similarity_hash:'RTP-HINT', 
+										executer: character,
+										mission: sdTask.MISSION_GAMEPLAY_HINT,
+										title: 'Rescue Teleport signal is weak',
+										description: 'You are likely leaving effective range of your Rescue Teleport.'
+									});
+									else
+									if ( has_unavailable_rtp )
+									sdTask.MakeSureCharacterHasTask({ 
+										similarity_hash:'RTP-HINT', 
+										executer: character,
+										mission: sdTask.MISSION_GAMEPLAY_HINT,
+										title: 'Rescue Teleport signals lost',
+										description: 'Signals with your Rescue Teleports have been lost.'
+									});
+								}
 							}
 							else
 							{
@@ -153,16 +179,16 @@ class sdRescueTeleport extends sdEntity
 									similarity_hash:'RTP-HINT', 
 									executer: character,
 									mission: sdTask.MISSION_GAMEPLAY_HINT,
-									title: 'Rescue Teleport required',
-									description: 'You\'ll need a Rescue Teleport to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (B key) to build.'
+									title: 'Rescue Cloner required',
+									description: 'You\'ll need a Rescue Cloner to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (Tab key) to build.'
 								});
 								else
 								sdTask.MakeSureCharacterHasTask({ 
 									similarity_hash:'RTP-HINT', 
 									executer: character,
 									mission: sdTask.MISSION_GAMEPLAY_HINT,
-									title: 'Rescue Teleport signal lost',
-									description: 'Signal with your Rescue Teleport has been lost.'
+									title: 'No Rescue Cloner available',
+									description: 'Consider building and charging a Rescue Cloner.'
 								});
 							}
 						}
@@ -175,6 +201,21 @@ class sdRescueTeleport extends sdEntity
 	IsCloner()
 	{
 		return ( this.type === sdRescueTeleport.TYPE_CLONER );
+	}
+
+	HasPassiveDrain()
+	{
+		return ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE || this.type === sdRescueTeleport.TYPE_SHORT_RANGE );
+	}
+	PassiveDrainPerMinute()
+	{
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		return 2000;
+
+		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
+		return 800;
+
+		return 0;
 	}
 	
 	IsVehicle()
@@ -220,17 +261,45 @@ class sdRescueTeleport extends sdEntity
 
 				if ( this.cloning_progress >= sdRescueTeleport.clonning_time )
 				{
-					if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x1 - c.hitbox_x2, c.y, 1 ) )
-					c.x = this.x + this.hitbox_x1 - c.hitbox_x2;
-					else
-					if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
-					c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+					if ( c.is( sdCharacter ) )
+					{
+						let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE ];
+			
+						if ( c._socket.last_player_settings.start_with1 )
+						guns.unshift( sdGun.CLASS_SWORD );
+						else
+						if ( c._socket.last_player_settings.start_with2 )
+						guns.unshift( sdGun.CLASS_SHOVEL );
+
+						if ( c.is( sdCharacter ) )
+						for ( var i = 0; i < sdGun.classes.length; i++ )
+						if ( guns.indexOf( i ) !== -1 )
+						if ( !c._inventory[ sdGun.classes[ i ].slot ] )
+						{
+							let gun = new sdGun({ x:c.x, y:c.y, class: i });
+							sdEntity.entities.push( gun );
+
+							//if ( i !== sdGun.CLASS_BUILD_TOOL )
+							//c.gun_slot = sdGun.classes[ i ].slot;
+						
+							c.onMovementInRange( gun );
+						}
+					}
+
+					if ( !c.CanMoveWithoutOverlap( c.x, c.y, 1 ) )
+					{
+						if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x1 - c.hitbox_x2, c.y, 1 ) )
+						c.x = this.x + this.hitbox_x1 - c.hitbox_x2;
+						else
+						if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
+						c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+					}
 				}
 				else
 				{
 					//if ( this._rescuing_from_lost_effect )
 					//{
-						c.remove();
+						//c.remove();
 					//}
 					/*else No because it causes abuse of cloner in a way where player could get into cloner and then to short range teleports - effectively RTP-ing for free after dying far from the base
 					{
@@ -358,6 +427,8 @@ class sdRescueTeleport extends sdEntity
 		
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+
+		this.enabled = true;
 		
 		
 		//this._is_cable_priority = true;
@@ -383,6 +454,7 @@ class sdRescueTeleport extends sdEntity
 			sdRescueTeleport.max_matter_short;*/
 	
 		this.matter = 100; // When built it now has 100 starting matter so the first charge is easier to achieve
+		this.timer_to_expect_matter = 30 * 10; // To speed up the cloning process a bit
 		
 		this.allowed = true;
 		
@@ -392,6 +464,9 @@ class sdRescueTeleport extends sdEntity
 	}
 	UpdateMaxMatter()
 	{
+		if ( this.HasPassiveDrain() )
+		this._matter_max = this.PassiveDrainPerMinute() / 60;
+		else
 		this._matter_max = 
 			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
 			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
@@ -417,13 +492,15 @@ class sdRescueTeleport extends sdEntity
 	}
 	GetRTPMatterCost( character )
 	{
-		let tele_cost = 
+		/*let tele_cost = 
 			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
 			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
 			sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
 
 		if ( !character.is( sdCharacter ) )
-		tele_cost = 100;
+		tele_cost = 100;*/
+
+		let tele_cost = 0;
 	
 		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
 		tele_cost = sdRescueTeleport.max_matter_respawn_point;
@@ -460,6 +537,12 @@ class sdRescueTeleport extends sdEntity
 		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
 		return this._hmax * sdWorld.damage_to_matter + 200; 
 		
+		if ( this.type === sdRescueTeleport.TYPE_CLONER )
+		return this._hmax * sdWorld.damage_to_matter + 200;
+		
+		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
+		return this._hmax * sdWorld.damage_to_matter + 1000;
+
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE || this.type === sdRescueTeleport.TYPE_CLONER )
 		return this._hmax * sdWorld.damage_to_matter + 2000;
 		else
@@ -505,8 +588,10 @@ class sdRescueTeleport extends sdEntity
 		this.ExcludeDriver( this.driver0, true );
 		
 		let cloner_sequence_active = this.IsCloner() && this.driver0;
+
+		let should_drain = this.HasPassiveDrain() && this.enabled;
 		
-		if ( this.matter >= this._matter_max || cloner_sequence_active )
+		if ( this.matter >= this._matter_max || cloner_sequence_active || should_drain )
 		{
 			if ( this.delay > 0 )
 			{
@@ -530,9 +615,42 @@ class sdRescueTeleport extends sdEntity
 						
 						this._update_version++;
 					}
+					else
+					if ( this.timer_to_expect_matter > 0 )
+					{
+						let previous_value = this.timer_to_expect_matter;
+						this.timer_to_expect_matter -= GSPEED;
+						
+						if ( ~~( this.timer_to_expect_matter / 30 ) !== ~~( previous_value / 30 ) )
+						{
+							let pitch = 0.5 * ( 0.9 + 0.1 * this.timer_to_expect_matter / ( 30 * 10 ) );
+							
+							if ( pitch > 0 )
+							sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch: pitch });
+						}
+						
+						let amps = this.FindObjectsInACableNetwork( null, sdMatterAmplifier );
+						for ( let i = 0; i < amps.length; i++ )
+						if ( amps[ i ].crystal )
+						{
+							amps[ i ].crystal._last_amplification_until = sdWorld.time + 1000;
+						}
+					}
 				}
 				else
 				this.SetDelay( this.delay - GSPEED );
+			}
+			else
+			if ( should_drain )
+			{
+				let delta = GSPEED * this.PassiveDrainPerMinute() / ( 30 * 60 );
+
+				if ( this.matter - delta >= 0 )
+				{
+					this.matter -= delta;
+
+					this._update_version++;
+				}
 			}
 			else
 			can_hibernateB = true;
@@ -562,13 +680,16 @@ class sdRescueTeleport extends sdEntity
 	get description()
 	{
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
-		return 'Don\'t you hate dying? This rescue teleport can teleport you back to it when you are in critical state, essentially saving you in exchange for '+sdRescueTeleport.max_matter+' matter. Works on long ranges but still has limited range. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
+		//return 'Don\'t you hate dying? This rescue teleport can teleport you back to it when you are in critical state, essentially saving you in exchange for '+sdRescueTeleport.max_matter+' matter. Works on long ranges but still has limited range. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
+		return 'Don\'t you hate dying? This rescue teleport will teleport you back to it just before death, passively draining ' + this.PassiveDrainPerMinute() + ' matter per minute when enabled. Works on longer ranges, will be prioritized. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
 
 		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
-		return 'Don\'t you hate dying? This rescue teleport can teleport you back to it when you are in critical state, essentially saving you in exchange for '+sdRescueTeleport.max_matter_short+' matter. Only works on short ranges, will be prioritized. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
+		//return 'Don\'t you hate dying? This rescue teleport can teleport you back to it when you are in critical state, essentially saving you in exchange for '+sdRescueTeleport.max_matter_short+' matter. Only works on short ranges, will be prioritized. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
+		return 'Don\'t you hate dying? This rescue teleport will teleport you back to it just before death, passively draining ' + this.PassiveDrainPerMinute() + ' matter per minute when enabled. Only works on short ranges, will be prioritized. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
 
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
-		return 'Prints a new you in case you die. Costs a lot of matter and 20 minutes to fully restore you. Your items won\'t be kept, only upgrades. It makes sense to wire this cloner to matter amplifiers using cable management tool.';
+		return 'Prints a new you in case you die. Your items won\'t be kept, only upgrades. It makes sense to wire this cloner to matter amplifiers using cable management tool.';
+		//return 'Prints a new you in case you die. Costs a lot of matter and 20 minutes to fully restore you. Your items won\'t be kept, only upgrades. It makes sense to wire this cloner to matter amplifiers using cable management tool.';
 	
 		if ( this.type === sdRescueTeleport.TYPE_RESPAWN_POINT )
 		return 'This is a respawn point. It does not save you from dying, but will bring you back to your base with no items nor score.';
@@ -591,7 +712,7 @@ class sdRescueTeleport extends sdEntity
 		{
 			ctx.apply_shading = false;
 			
-			if ( this.delay === 0 || sdShop.isDrawing )
+			if ( ( this.delay === 0 || this.IsCloner() || sdShop.isDrawing ) && this.enabled )
 			xx = 0;
 			else
 			xx = 1;
@@ -638,7 +759,18 @@ class sdRescueTeleport extends sdEntity
 			if ( this.driver0 )
 			postfix = " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
 			else
-			postfix = "  ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this._matter_max) + " )";
+			{
+				
+				if ( this.HasPassiveDrain() )
+				{
+					if ( this.enabled )
+					postfix = " ( drain per minute: " + sdWorld.RoundedThousandsSpaces(this.PassiveDrainPerMinute()) + " )";
+					else
+					postfix = " ( disabled )";
+				}
+				else
+				postfix = "  ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this._matter_max) + " )";
+			}
 
 			if ( this.owner_biometry === -1 )
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + postfix );
@@ -660,7 +792,12 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.rescue_teleports.splice( i, 1 );
 	
 		if ( this.driver0 )
-		this.ExcludeDriver( this.driver0, true );
+		{
+			let c = this.driver0;
+
+			this.ExcludeDriver( this.driver0, true );
+			c.DamageWithEffect( c.hea + 1000 );
+		}
 	
 		if ( !sdWorld.is_server )
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shope
@@ -705,10 +842,10 @@ class sdRescueTeleport extends sdEntity
 					{
 						if ( this.driver0 !== exectuter_character )
 						{
-							if ( command_name === 'SABOTAGE' )
+							/*if ( command_name === 'SABOTAGE' )
 							{
 								this.ExcludeDriver( this.driver0, true );
-							}
+							}*/
 						}
 						else
 						{
@@ -762,6 +899,18 @@ class sdRescueTeleport extends sdEntity
 						//else
 						//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
 					}
+
+					if ( this.HasPassiveDrain() )
+					{
+						if ( command_name === 'TOGGLE_ENABLED' )
+						{
+							this.enabled = !this.enabled;
+							this._update_version++;
+
+							if ( this.enabled )
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
+					}
 				}
 				else
 				executer_socket.SDServiceMessage( this.title+' is behind wall' );
@@ -779,10 +928,15 @@ class sdRescueTeleport extends sdEntity
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		if ( exectuter_character.canSeeForUse( this ) )
 		{
+			if ( this.HasPassiveDrain() )
+			this.AddContextOption( ( this.enabled ? 'Disable' : 'Enable' ), 'TOGGLE_ENABLED', [] );
+
 			if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
 			{
 				if ( this.driver0 !== exectuter_character )
-				this.AddContextOption( 'Sabotage cloning', 'SABOTAGE', [] );
+				{
+					//this.AddContextOption( 'Sabotage cloning', 'SABOTAGE', [] ); // Players should not be removed if they have other cloners available, so just destroying cloners should be enough
+				}
 				else
 				this.AddContextOption( 'Continue at rescue teleport instead', 'CANCEL', [] );
 			}

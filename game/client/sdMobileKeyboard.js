@@ -347,7 +347,7 @@ class sdMobileKeyboard
 		MakeButton({ key:'KeyF', x: 1 + ( KEY_SIZE + KEY_SPACE ) * 3,	y: -1 - ( KEY_SIZE + KEY_SPACE ) * 1 });
 		MakeButton({ key:'KeyR', x: 1 + ( KEY_SIZE + KEY_SPACE ) * 3,	y: -1 - ( KEY_SIZE + KEY_SPACE ) * 2 });
 		
-		MakeButton({ key:'KeyB', x: 1 + ( KEY_SIZE + KEY_SPACE ) * 4,	y: -1 - ( KEY_SIZE * 0.5 + KEY_SPACE ) });
+		MakeButton({ key:'Tab', x: 1 + ( KEY_SIZE + KEY_SPACE ) * 4,	y: -1 - ( KEY_SIZE * 0.5 + KEY_SPACE ) });
 		MakeButton({ key:'KeyN', x: 1 + ( KEY_SIZE + KEY_SPACE ) * 5,	y: -1 - ( KEY_SIZE * 0.5 + KEY_SPACE ) });
 		
 		MakeButton({ key:'Space', x: 1 + ( KEY_SIZE + KEY_SPACE ) * 4,	y: -1 - ( KEY_SIZE + KEY_SPACE ) * 0, w: 2 * KEY_SIZE + KEY_SPACE, h:KEY_SIZE * 0.5 });

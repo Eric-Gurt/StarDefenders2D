@@ -103,6 +103,11 @@ class sdBiter extends sdEntity
 			if ( this._current_target === null || 
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+			if ( this._unlimited_range || 
+				 sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
+										   character.x + ( Math.random() * 2 - 1 ) * 16, 
+										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
 				this._current_target = character;
 
@@ -111,6 +116,10 @@ class sdBiter extends sdEntity
 				sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.5, pitch: 2 });
 			}
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
 	}
 	GetBleedEffect()
 	{
@@ -183,9 +192,9 @@ class sdBiter extends sdEntity
 	Impact( vel ) // fall damage basically
 	{
 		// less fall damage
-		if ( vel > 10 )
+		if ( vel > 20 )
 		{
-			this.Damage( ( vel - 5 ) * 5 );
+			this.Damage( ( vel - 15 ) * 5 );
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -355,7 +364,7 @@ class sdBiter extends sdEntity
 						
 						if ( from_entity.is( sdCharacter ) )
 						{
-							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 30;
+							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 50;
 							from_entity._sickness += sickness;
 							from_entity._last_sickness_from_ent = this;
 						}

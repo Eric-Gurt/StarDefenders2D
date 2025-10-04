@@ -24,6 +24,7 @@ import sdRenderer from '../client/sdRenderer.js';
 import sdBitmap from '../client/sdBitmap.js';
 
 import sdSound from '../sdSound.js';
+import sdCom from './sdCom.js';
 
 class sdBlock extends sdEntity
 {
@@ -182,6 +183,11 @@ class sdBlock extends sdEntity
 		sdBlock.max_flesh_rank_asteroid = 12;
 		
 		sdBlock.natural_blocks_total = 0; // Inaccurate in open-world case
+
+		sdBlock.last_mob_spawn = 0;
+
+		sdBlock.minimum_visible_crystal_tier = 0; // 16; // Based on crystal's GetTier() value
+		//sdBlock.minimum_visible_crystal_tier = 0;
 		
 		sdBlock.as_class_list = [ 'sdBlock' ];
 		
@@ -407,7 +413,8 @@ class sdBlock extends sdEntity
 		if ( affects_armor )
 		dmg = Math.abs( dmg / ( 1 + this._reinforced_level ) ); // Reinforced blocks have damage reduction
 		
-		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdFaceCrab' || this._contains_class === 'sdAsp' || this._contains_class === 'sdBiter' || this._contains_class === 'weak_ground' )
+		//if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdFaceCrab' || this._contains_class === 'sdAsp' || this._contains_class === 'sdBiter' || this._contains_class === 'weak_ground' )
+		if ( this._contains_class === 'weak_ground' || sdCom.com_faction_attack_classes.indexOf( this._contains_class ) !== -1 )
 		dmg = this._hea + 1;
 		
 		if ( this._hea > 0 )
@@ -461,7 +468,7 @@ class sdBlock extends sdEntity
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 				}
 
-				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				/*if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				{
 					if ( this._contains_class === 'sdCrystal' )
 					{
@@ -476,7 +483,7 @@ class sdBlock extends sdEntity
 							8
 						); // Spawn some shards
 					}
-				}
+				}*/
 				if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL ) // Ancient walls chain explode, they explode for more than 200 damage
 				{
 					sdWorld.SendEffect({ 
@@ -723,6 +730,9 @@ class sdBlock extends sdEntity
 									params[ i ] = this._contains_class_params[ i ];
 								}
 
+								if ( this._contains_class.indexOf( 'sdCrystal' ) !== -1 )
+								params.matter_max = this._crystal_tier * 40;
+
 								ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 								sdEntity.entities.push( ent );
 
@@ -759,6 +769,9 @@ class sdBlock extends sdEntity
 	
 		if ( sdWorld.is_server )
 		{
+			if ( this._natural && this._contains_class && this.IsDefaultGround() )
+			this._contains_hostile_mob = ( sdCom.com_hostile_ground_mob_classes.indexOf( this._contains_class.split( '.' )[ 0 ] ) !== -1 );
+
 			if ( sdWorld.server_config.enable_block_merging )
 			{
 				if ( this._hea === this._hmax )
@@ -850,6 +863,8 @@ class sdBlock extends sdEntity
 		this._contains_class_params = params.contains_class_params || null; // Parameters that are passed to this._contains_class entity
 		//this._hidden_crystal = params.hidden_crystal || false;
 		//this._hidden_virus = params.hidden_virus || false;
+
+		this._contains_hostile_mob = false;
 		
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;
@@ -862,6 +877,11 @@ class sdBlock extends sdEntity
 		this._next_attack = 0; // Only used by Corruption
 		this._next_spread = -1; // Only used by Corruption
 		
+		this.t = 0; // Crystal tier
+
+		this._crystal_tier = 0;
+		this._next_tier_increase = 0;
+
 		this._merged = false; // Has this block merged with any other blocks?
 
 		this._ai_team === params._ai_team || 0; // For faction outposts, so AI doesn't attack their own bases
@@ -950,7 +970,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' || prop === '_contains_class' || prop === '_additional_properties' );
+		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' || prop === '_owner' || prop === '_contains_class' || prop === '_additional_properties' || prop === '_crystal_tier' || prop === '_next_tier_increase' );
 	}
 	ValidatePlants( must_include=null ) // foliage / grass
 	{
@@ -1012,6 +1032,12 @@ class sdBlock extends sdEntity
 
 		if ( this._contains_class === 'sdCrystal.deep' ) // Is there a worm spawn inside this block?
 		ent2._contains_class = 'sdCrystal.deep_corrupted'; // Corrupt the worm aswell
+
+		if ( this._crystal_tier > 0 )
+		ent2._crystal_tier = this._crystal_tier;
+
+		if ( ent2._crystal_tier > sdBlock.minimum_visible_crystal_tier )
+		ent2.t = ent2._crystal_tier;
 
 		//sdEntity.entities.push( ent2 );
 
@@ -1083,24 +1109,26 @@ class sdBlock extends sdEntity
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
 
-		if ( Math.random() < 0.5 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
+		if ( this.width >= 16 && this.height >= 16 && Math.random() < 0.15 ) // Now acts as the block itself so it can attack in any direction
 		{
-			let side = Math.round( Math.random() * 3 );
+			//let side = Math.round( Math.random() * 3 );
 			let spawn_x = this.x + ( this.width / 2 );
 			let spawn_y = this.y + ( this.height / 2 );
-			if ( side === 0 )
+			let an = Math.random() * Math.PI * 2;
+			/*if ( side === 0 )
 			spawn_y -= 1 + this.height / 2;
 			if ( side === 1 )
 			spawn_x -= 1 + this.width / 2;
 			if ( side === 2 )
 			spawn_y += 1 + this.height / 2;
 			if ( side === 3 )
-			spawn_x += 1 + this.width / 2;
+			spawn_x += 1 + this.width / 2;*/
 			let grabber = sdEntity.Create( sdFleshGrabber, { 
 				x: spawn_x, 
 				y: spawn_y, 
 				_attached_to: ent2,
-				side: side
+				an: an
+				//side: side
 			});
 		}
 
@@ -1881,10 +1909,111 @@ class sdBlock extends sdEntity
 			}
 		}
 	}
+
+	static GlobalThink( GSPEED )
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+
+		if ( sdEntity.entities.length <= 0 )
+		return;
+
+		let i = Math.floor( Math.random() * sdEntity.entities.length );
+		//let tr = 1;
+		//while ( tr > 0 )
+		{
+			let e = sdEntity.entities[ i ];
+
+			if ( e && !e._is_being_removed )
+			if ( e.is( sdBlock ) && e._natural )
+			{
+				if ( 
+					!e._contains_hostile_mob &&
+					sdWorld.server_config.CrystalTierInBlockIncreaseChance( e.x, e.y, e._hmax, e._crystal_tier ) > 0 &&
+					e._contains_class && e._contains_class.indexOf( 'sdCrystal' ) !== -1 
+				)
+				{
+					if ( e._crystal_tier < 2048 )
+					if ( e._next_tier_increase < sdWorld.time )
+					{
+						e._next_tier_increase = sdWorld.time + sdWorld.server_config.CrystalTierInBlockIncreaseRate( e.x, e.y, e._hmax, e._crystal_tier );
+
+						if ( Math.random() < sdWorld.server_config.CrystalTierInBlockIncreaseChance( e.x, e.y, e._hmax, e._crystal_tier ) )
+						{
+							e._crystal_tier *= 2;
+
+							if ( e._crystal_tier >= sdBlock.minimum_visible_crystal_tier )
+							{
+								e.t = e._crystal_tier;
+								e._update_version++;
+
+								//break;
+								//tr -= 100;
+							}
+						}
+					}
+				}
+				else
+				if ( sdBlock.last_mob_spawn < sdWorld.time - sdWorld.server_config.UndergroundMobRespawnRate( e.x, e.y, e._hmax ) / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 + sdWorld.world_bounds.y2 ) / 1200 ) )
+				if ( !e._contains_class && e.IsDefaultGround() && e.height >= 16 )
+				{
+					sdBlock.last_mob_spawn = sdWorld.time;
+
+					let proper_distance = true;
+
+					for ( let i2 = 0; i2 < sdWorld.sockets.length; i2++ )
+					if ( sdWorld.sockets[ i2 ].character )
+					if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i2 ].character.x, sdWorld.sockets[ i2 ].character.y, e.x, e.y, 400 ) )
+					{
+						proper_distance = false;
+						break;
+					}
+
+					if ( proper_distance )
+					{
+						let surrounded = true;
+						let mobs_near = 0;
+
+						for ( var xx = -1; xx <= 1; xx++ )
+						for ( var yy = -1; yy <= 1; yy++ )
+						if ( ( xx === 0 ) || ( yy === 0 ) )
+						{
+							let block = sdBlock.GetGroundObjectAt( e.x + xx * 16, e.y + yy * 16 );
+
+							if ( block && block._natural )
+							{
+								if ( block._contains_hostile_mob )
+								mobs_near++;
+							}
+							else
+							if ( ( xx === 0 ) !== ( yy === 0 ) )
+							surrounded = false;
+						}
+
+						if ( !surrounded && mobs_near <= 2 )
+						{
+							let deep_ground = 256 + 128;
+							var xx = Math.floor( e.x / 16 );
+
+							let depth = 1 + Math.ceil( ( e.y - sdWorld.GetGroundElevation( xx ) - deep_ground ) / 400 * 3 ) / 3;
+
+							sdWorld.PutMobClassInGround( e, depth );
+							//e.br = 1000;
+							//e._update_version++;
+						}
+					}
+				}
+			}
+
+			//i = ( i + 1 ) % sdEntity.entities.length;
+			//tr--;
+		}
+	}
 	
 	static GetGroundObjectAt( nx, ny, strict = true ) // for corruption
 	{
-		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
+		if ( nx >= sdWorld.world_bounds.x2 || nx < sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
 		return null;
 	
@@ -2125,7 +2254,7 @@ class sdBlock extends sdEntity
 			
 				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
-			if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+			/*if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
 				ctx.apply_shading = false;
 				
@@ -2135,6 +2264,30 @@ class sdBlock extends sdEntity
 				ctx.sd_color_mult_b = 1;
 				
 				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ), 0.2 );
+
+				let old_scale = ctx.camera_relative_world_scale;
+				ctx.camera_relative_world_scale *= 0.999;
+				{
+					let old_mode = ctx.volumetric_mode;
+					ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+					{
+						ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+					}
+					ctx.volumetric_mode = old_mode;
+				}
+				ctx.camera_relative_world_scale = old_scale;
+			}*/
+
+			if ( this.t > 0 )
+			{
+				ctx.apply_shading = false;
+				
+				ctx.sd_hue_rotation = 0;
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+				
+				ctx.filter = sdWorld.GetCrystalHue( 40 * this.t, 0.2 );
 
 				let old_scale = ctx.camera_relative_world_scale;
 				ctx.camera_relative_world_scale *= 0.999;

@@ -65,7 +65,7 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.max_seek_range = 500; // For big crystal crabs
 
-		sdCrystal.recharges_until_depleated = 100;
+		sdCrystal.recharges_until_depleated = 50;
 		
 		sdCrystal.hitpoints_artificial = 140;
 		
@@ -1478,6 +1478,62 @@ class sdCrystal extends sdEntity
 		return methods;
 	}
 	
+	static GenerateMatterMax( hp_mult, is_deep )
+	{
+		let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
+
+		let r = 1 - Math.pow( Math.random(), bad_luck );
+
+		//r = Math.pow( r, Math.min( 1, r * hp_mult * 10 + 0.4 ) + hp_mult * 0.01 );
+		r = Math.pow( r, Math.min( 1, r * 2 + 0.5 ) );
+
+		r /= 1 + ( hp_mult - 1 ) * 1;
+
+		
+		/*let r = 1 - Math.pow( Math.random(), bad_luck );
+
+		let depth_tier = Math.max( 0, Math.floor( hp_mult / 1000 ) );
+		//r /= Math.pow( 2, Math.random() * depth_tier );
+		r /= Math.pow( 2, Math.pow( Math.random(), 2 ) * depth_tier );*/
+		
+		let matter_max = 40;
+
+		if ( r < 0.00390625 / 8 && is_deep ) // matter consuming crystal
+		matter_max *= 2048;
+		else
+		if ( r < 0.00390625 / 4 && is_deep ) // new 2022
+		matter_max *= 1024;
+		else
+		if ( r < 0.00390625 / 2 && is_deep ) // new 2022
+		matter_max *= 512;
+		else
+		if ( r < 0.00390625 && is_deep ) // new 2022
+		matter_max *= 256;
+		else
+		if ( r < 0.0078125 && is_deep ) // glowing, new
+		matter_max *= 128;
+		else
+		if ( r < 0.015625 && is_deep ) // Red, new
+		matter_max *= 64;
+		else
+		if ( r < 0.03125 && is_deep ) // Pink variation, new (old red)
+		matter_max *= 32;
+		else
+		if ( r < 0.0625 && is_deep )
+		matter_max *= 16;
+		else
+		if ( r < 0.125 && is_deep )
+		matter_max *= 8;
+		else
+		if ( r < 0.25 )
+		matter_max *= 4;
+		else
+		if ( r < 0.5 )
+		matter_max *= 2;
+
+		return matter_max;
+	}
+
 	constructor( params )
 	{
 		super( params );
@@ -1501,10 +1557,23 @@ class sdCrystal extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		this.type = params.type || 1;
-		this.matter_max = ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? 160 : 40;
+		//this.matter_max = ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? 160 : 40;
 		
-		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
-		this.matter_max	= 10;
+		//if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
+		//this.matter_max	= 10;
+		if ( typeof params.matter_max !== 'undefined' )
+		this.matter_max = params.matter_max * ( this.is_big ? 4 : ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ) ? 0.25 : 1 );
+		else
+		{
+			if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
+			this.matter_max = sdCrystal.GenerateMatterMax( 4000, true ) / 4;
+			else
+			{
+				this.matter_max = sdCrystal.GenerateMatterMax( params.y, is_deep );
+				this.matter_max *= ( this.is_big ) ? 4 : ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON ) ? 0.25 : 1;
+			}
+		}
+	
 			
 		this._time_amplification = 0;
 		
@@ -1515,9 +1584,9 @@ class sdCrystal extends sdEntity
 		this.held_by = null; // For amplifiers
 		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
 		
-		let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
+		//let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
 		
-		let r = 1 - Math.pow( Math.random(), bad_luck );
+		//let r = 1 - Math.pow( Math.random(), bad_luck );
 		
 		
 		
@@ -1536,8 +1605,7 @@ class sdCrystal extends sdEntity
 		//if ( is_really_deep )
 		//r *= 0.25;
 		
-		
-		let depth_tier = Math.max( 0, Math.floor( params.y / 2000 ) );
+		/*let depth_tier = Math.max( 0, Math.floor( params.y / 2000 ) );
 		//r /= Math.pow( 2, Math.random() * depth_tier );
 		r /= Math.pow( 2, Math.pow( Math.random(), 2 ) * depth_tier );
 		
@@ -1572,15 +1640,12 @@ class sdCrystal extends sdEntity
 		this.matter_max *= 4;
 		else
 		if ( r < 0.5 )
-		this.matter_max *= 2;
+		this.matter_max *= 2;*/
 		
 		this._last_damage = 0; // Sound flood prevention
 
 		this.matter_regen = params.matter_regen || 100; // Matter regeneration rate/percentage, depends on crystal and drains as crystal regenerates matter
 		
-		if ( typeof params.matter_max !== 'undefined' )
-		this.matter_max = params.matter_max;
-	
 		if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type === 1 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ) )
 		{
 			this.matter = 0;
@@ -1592,8 +1657,10 @@ class sdCrystal extends sdEntity
 			this.matter = this.matter_max;
 			this._hea = this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ? 300 : this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 240 : this.type === sdCrystal.TYPE_EXCAVATOR_QUARTZ ? 200 : 60;
 			this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
+
+			this._hea = ~~( this._hea * ( 1 + this.matter_max / 5000 ) );
 		}
-		
+
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
 		{
 			this._hea = 15;
@@ -2029,11 +2096,10 @@ class sdCrystal extends sdEntity
 		this.HeldByLogic( GSPEED_scaled );
 		else
 		{
+			let in_water = sdWater.all_swimmers.has( this );
 			
 			if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
 			{
-				let in_water = sdWater.all_swimmers.has( this );
-				
 				if ( in_water )
 				this.sy -= sdWorld.gravity * GSPEED;
 				else
@@ -2045,6 +2111,9 @@ class sdCrystal extends sdEntity
 			else
 			{
 				this.sy += sdWorld.gravity * GSPEED;
+
+				if ( in_water && this.sy > 0 )
+				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.95, GSPEED );
 			}
 		}
 		

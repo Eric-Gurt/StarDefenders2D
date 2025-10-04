@@ -181,7 +181,7 @@ class sdJunk extends sdEntity
 		this._current_minions_count = 0; // Minion counter
 		//
 		this.hea = this.hmax;
-		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 * 10 ) : 320; // Why take 40k container when 3 5K's generate over 1 million matter overall? Make them 400k and they're sort of a short-term reward / good matter storage.
+		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 * 1 ) : 320; // Why take 40k container when 3 5K's generate over 1 million matter overall? Make them 400k and they're sort of a short-term reward / good matter storage.
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
@@ -1025,7 +1025,8 @@ class sdJunk extends sdEntity
 					//if ( sdWorld.sockets[ i ].character )
 					//sdWorld.sockets[ i ].character._nature_damage += 100000;
 					
-					for ( let i = 0; i < sdCharacter.characters.length; i++ )
+					// Unintuitive and unfair, all players should not be punished for ignoring some random event they possibly can't even do anything about
+					/*for ( let i = 0; i < sdCharacter.characters.length; i++ )
 					sdCharacter.characters[ i ]._nature_damage += 100000;
 
 					if ( sdWeather.only_instance._daily_events.length > 0 )
@@ -1059,7 +1060,7 @@ class sdJunk extends sdEntity
 								group_radius: 3000
 							});
 						}
-					}
+					}*/
 					
 
 					this.remove();

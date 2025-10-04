@@ -137,8 +137,10 @@ class sdSandWorm extends sdEntity
 			this.scale = 0.6;
 		}
 
-		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? ( this.scale >= 1 ? 12 : 4 ) : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
+		this._hmax = 300 + ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? ( this.scale >= 1 ? 8 : 4 ) : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 600 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
+
+		this.h = this._hmax;
 
 		this._regen_timeout = 0; // For council worm HP regen, for some reason it claims object is not extensible if placed in brackets below which check if the worm is council one.
 
@@ -147,6 +149,8 @@ class sdSandWorm extends sdEntity
 		this._time_until_full_remove = 30 * 10 + Math.random() * 30 * 10; // 10-20 seconds to get removed
 		
 		this._current_target = null;
+
+		this.attack_timer = 0;
 		
 		this.death_anim = 0;
 		
@@ -165,6 +169,9 @@ class sdSandWorm extends sdEntity
 		this._in_surface_time = sdWorld.time;
 		this._in_surface = null;
 		this._in_water = null;
+
+		this._move_offset_x = ~~( 500 + Math.random() * 1500 ); // Move pattern
+		this._move_offset_y = ~~( 500 + Math.random() * 1500 ); // Move pattern
 		
 		this._last_attack = sdWorld.time;
 		
@@ -297,8 +304,25 @@ class sdSandWorm extends sdEntity
 		dmg = dmg * 0.15; // 85% damage reduction to body damage for spiky worms, to force players to shoot them in the head
 
 	
-		if ( head_entity !== this && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Is this the council worm?
-		dmg = dmg * 0.15; // 85% damage reduction to body damage for council worms, they are sort of a boss after all
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Is this the council worm?
+		{
+			if ( head_entity !== this )
+			dmg = dmg * 0.15; // 85% damage reduction to body damage for council worms, they are sort of a boss after all
+			else
+			if ( sdWorld.is_server )
+			if ( Math.random() < 0.1 + dmg * 0.01 ) // Emphasize head damage
+			sdWorld.SendEffect({ 
+				x:this.x,
+				y:this.y,
+				radius:16,
+				damage_scale: 0, // Just a decoration effect
+				type:sdEffect.TYPE_EXPLOSION,
+				owner:this,
+				color:'#00b0b0',
+				no_smoke: true
+				
+			});
+		}
 		
 		if ( initiator )
 		//if ( !initiator.is( sdSandWorm ) )
@@ -833,8 +857,11 @@ class sdSandWorm extends sdEntity
 		an_x += this.forced_x;
 		an_y += this.forced_y;
 		
-		this.forced_x = sdWorld.MorphWithTimeScale( this.forced_x, 0, 0.7, GSPEED );
-		this.forced_y = sdWorld.MorphWithTimeScale( this.forced_y, 0, 0.7, GSPEED );
+		if ( this.attack_timer <= 0 )
+		{
+			this.forced_x = sdWorld.MorphWithTimeScale( this.forced_x, 0, 0.9, GSPEED );
+			this.forced_y = sdWorld.MorphWithTimeScale( this.forced_y, 0, 0.9, GSPEED );
+		}
 		
 		if ( an_x !== 0 || an_y !== 0 )
 		this._an = -Math.atan2( an_x, an_y ) - Math.PI / 2;
@@ -882,8 +909,16 @@ class sdSandWorm extends sdEntity
 					this._current_target = null;
 					else
 					{
-						let dx = ( this._current_target.x - this.x ) + Math.sin( sdWorld.time / 600 ) * 40;
-						let dy = ( this._current_target.y - this.y ) + Math.sin( sdWorld.time / 400 ) * 40;
+						let head_entity = this.GetHeadEntity();
+
+						if ( this._move_offset_x !== head_entity._move_offset_x )
+						this._move_offset_x = head_entity._move_offset_x;
+
+						if ( this._move_offset_y !== head_entity._move_offset_y )
+						this._move_offset_y = head_entity._move_offset_y;
+
+						let dx = ( this._current_target.x - this.x ) + Math.sin( this._move_offset_x + sdWorld.time / this._move_offset_x ) * 100 * this.scale;
+						let dy = ( this._current_target.y - this.y ) + Math.sin( this._move_offset_y + sdWorld.time / this._move_offset_y ) * 100 * this.scale;
 
 						//let power = 1;
 
@@ -906,9 +941,11 @@ class sdSandWorm extends sdEntity
 							for ( let i = 0; i < arr.length; i++ )
 							{
 								let vel_scale = arr[ i ]._in_water ? 0.05 : 1;
+
+								vel_scale /= ( this.scale < 1 ) ? this.scale : ( 0.5 + this.scale * 0.5 );
 								
-								if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
-								vel_scale *= 1.5; // Faster so it eats crystals faster
+								//if ( this.kind === sdSandWorm.KIND_CRYSTAL_HUNTING_WORM )
+								//vel_scale *= 1.5; // Faster so it eats crystals faster
 								
 								let dx2 = 0;
 								let dy2 = 0;
@@ -951,51 +988,67 @@ class sdSandWorm extends sdEntity
 
 							}
 						}
-						let head_entity = this.GetHeadEntity();
 
-						if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM && head_entity === this ) // Council worm head fires yellow beams at visible target it's approaching
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + ( Math.cos( this._an + Math.PI ) * 360 ), this.y + ( Math.sin( this._an + Math.PI ) * 360 ), this ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity === this._current_target ||
-						 ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && !sdWorld.last_hit_entity.DoesRegenerate() ) ||
-						sdWorld.last_hit_entity.IsVehicle() ) // Shoot any kind of sdBlock if it's not dirt 
-						//if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) <= 380 )
-						if ( sdWorld.time > this._last_attack + 100 )
+						if ( this.attack_timer <= 0 )
 						{
-						
-							//let an = Math.atan2( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y, this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x );
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-							bullet_obj._owner = this;
+							if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM && head_entity === this ) // Council worm head fires yellow beams at visible target it's approaching
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + ( Math.cos( this._an + Math.PI ) * 360 ), this.y + ( Math.sin( this._an + Math.PI ) * 360 ), this ) )
+							if ( sdWorld.last_hit_entity )
+							if ( sdWorld.last_hit_entity === this._current_target ||
+							( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && !sdWorld.last_hit_entity.DoesRegenerate() ) ||
+							sdWorld.last_hit_entity.IsVehicle() ) // Shoot any kind of sdBlock if it's not dirt 
+							//if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) <= 380 )
+							{
+								this.attack_timer = 30 * 4;
+
+								this.forced_x = Math.cos( this._an + Math.PI ) * 100;
+								this.forced_y = Math.sin( this._an + Math.PI ) * 100;
+							}
+						}
+						else
+						if ( this.attack_timer > 0 )
+						{
+							this.attack_timer -= GSPEED;
 
 
-							bullet_obj.sx = Math.cos( this._an + Math.PI );
-							bullet_obj.sy = Math.sin( this._an + Math.PI );
-							bullet_obj.x += 3 * Math.cos( this._an + Math.PI );
-							bullet_obj.y += 3 * Math.sin( this._an + Math.PI );
+							if ( this.attack_timer < 30 * 3 )
+							if ( sdWorld.time > this._last_attack + 100 )
+							{
+							
+								//let an = Math.atan2( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y, this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x );
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+								bullet_obj._owner = this;
 
-							bullet_obj.sx *= 16;
-							bullet_obj.sy *= 16;
 
-							bullet_obj._dirt_mult = 12;
-							bullet_obj._temperature_addition = 200; // Set stuff on fire
-							bullet_obj._shield_block_mult = 4;
-							bullet_obj._vehicle_mult = 4;
+								bullet_obj.sx = Math.cos( this._an + Math.PI );
+								bullet_obj.sy = Math.sin( this._an + Math.PI );
+								bullet_obj.x += 3 * Math.cos( this._an + Math.PI );
+								bullet_obj.y += 3 * Math.sin( this._an + Math.PI );
 
-							bullet_obj.time_left = 20;
+								bullet_obj.sx *= 16;
+								bullet_obj.sy *= 16;
 
-							bullet_obj._rail = true;
-							bullet_obj._rail_alt = true;
+								bullet_obj._dirt_mult = 12;
+								bullet_obj._temperature_addition = 200; // Set stuff on fire
+								bullet_obj._shield_block_mult = 4;
+								bullet_obj._vehicle_mult = 4;
 
-							bullet_obj._damage = 20;
+								bullet_obj.time_left = 20;
 
-							bullet_obj.color = '#ffff00'; // Yellow color
+								bullet_obj._rail = true;
+								bullet_obj._rail_alt = true;
 
-							sdEntity.entities.push( bullet_obj );
-							this._last_attack = sdWorld.time;
+								bullet_obj._damage = 20;
 
-							sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:this.x, y:this.y, volume:0.8 });
-							//this.forced_x = ( this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x ) * 10;
-							//this.forced_y = ( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y ) * 10;
+								bullet_obj.color = '#ffff00'; // Yellow color
+
+								sdEntity.entities.push( bullet_obj );
+								this._last_attack = sdWorld.time;
+
+								sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:this.x, y:this.y, volume:0.8 });
+								//this.forced_x = ( this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x ) * 10;
+								//this.forced_y = ( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y ) * 10;
+							}
 						}
 						// Reset target from time to time if in seek mode
 						if ( Math.random() < 0.0001 )
@@ -1109,6 +1162,9 @@ class sdSandWorm extends sdEntity
 					this.AttemptBlockBurying( 'sdSandWorm.KIND_CRYSTAL_HUNTING_WORM' );
 				}
 			}
+
+			if ( this.h !== this._hea )
+			this.h = this._hea;
 		}
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null );
@@ -1179,6 +1235,25 @@ class sdSandWorm extends sdEntity
 		if ( this.death_anim === 0 && ( !this._in_surface || this._in_water ) )
 		{
 			sdEntity.Tooltip( ctx, this.title );
+		}
+
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		if ( this.model !== 2 )
+		if ( this.h > 0 )
+		{
+			let w = ~~Math.max( ( this._hitbox_x2 - this._hitbox_x1 ) * 1.25, ( this._hitbox_y2 - this._hitbox_y1 ) * 0.75 );
+
+			let h = this._hitbox_y1;
+
+			ctx.globalAlpha = 1;
+
+			ctx.fillStyle = '#000000';
+			ctx.fillRect( 0 - w / 2, 0 + h - 10, w, 3 );
+
+			ctx.fillStyle = '#FFAA00';
+		
+			ctx.fillRect( 1 - w / 2, 1 + h - 10, ( w - 2 ) * Math.max( 0, this.h / this._hp_main_max ), 1 );
+			console.log(this.h, this._hp_main_max);
 		}
 	}
 	Draw( ctx, attached )
@@ -1337,7 +1412,7 @@ class sdSandWorm extends sdEntity
 					from_entity.DamageWithEffect( 300 * this.scale, this );
 				}
 				else*/
-				from_entity.DamageWithEffect( 300 * this.scale, this );
+				from_entity.DamageWithEffect( 150 * this.scale, this );
 				
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
@@ -1374,7 +1449,9 @@ class sdSandWorm extends sdEntity
 					from_entity.DamageWithEffect( 20 * this.scale, this );
 				}
 				else*/
-				from_entity.DamageWithEffect( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
+				if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
+				from_entity.DamageWithEffect( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 5 * this.scale, this );
+
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
 				{

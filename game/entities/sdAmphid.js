@@ -85,6 +85,10 @@ class sdAmphid extends sdEntity
 			if ( this._current_target === null || 
 				 this._current_target.hea <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+			if ( sdWorld.CheckLineOfSight( this.x + ( Math.random() * 2 - 1 ) * 16, 
+										   this.y + ( Math.random() * 2 - 1 ) * 16, 
+										   character.x + ( Math.random() * 2 - 1 ) * 16, 
+										   character.y + ( Math.random() * 2 - 1 ) * 16, this, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
 				this._current_target = character;
 				
@@ -93,6 +97,10 @@ class sdAmphid extends sdEntity
 				sdSound.PlaySound({ name:'bad_dog_hurt', x:this.x, y:this.y, volume: 1, pitch: 0.6 });
 			}
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return sdCom.com_creature_collision_ignored_classes;
 	}
 	GetBleedEffect()
 	{
@@ -200,7 +208,7 @@ class sdAmphid extends sdEntity
 					{
 						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 					}
-					if ( this._last_jump < sdWorld.time - ( in_water ? 500 : 1500 ) )
+					if ( this._last_jump < sdWorld.time - ( in_water ? 500 : 1200 ) )
 					//if ( this._last_stand_on )
 					{
 						this._last_jump = sdWorld.time;

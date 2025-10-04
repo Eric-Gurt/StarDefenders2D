@@ -430,7 +430,7 @@ class sdBullet extends sdEntity
 			y:this.y,
 			radius:this.explosion_radius,
 			//damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ),
-			damage_scale: 2 * this._explosion_mult,
+			damage_scale: 1 * this._explosion_mult,
 			type:sdEffect.TYPE_EXPLOSION,
 			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
@@ -591,6 +591,9 @@ class sdBullet extends sdEntity
 				if ( !this._hittable_by_bullets || !from_entity._hittable_by_bullets )
 				return false;
 			}
+
+			if ( this._owner && from_entity._ai_team && from_entity._ai_team === this._owner._ai_team )
+			return false;
 
 
 			// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
@@ -1104,10 +1107,25 @@ class sdBullet extends sdEntity
 									else
 									{
 										if ( typeof this._owner._nature_damage !== 'undefined' )
-										this._owner._nature_damage += dmg;
+										this._owner._nature_damage += dmg * 0.1;
 									}
 								}
 
+							}
+							
+							if ( from_entity.is( sdCharacter ) )
+							{
+								if ( from_entity._god && from_entity._socket )
+								{
+								}
+								else
+								sdWorld.SendEffect({ 
+									t: from_entity._net_id,
+									x: Math.round( this.x - from_entity.x ), 
+									y: Math.round( this.y - from_entity.y ), 
+									sx: Math.round( this.sx * Math.abs( this._damage ) * this._knock_scale ), 
+									sy: Math.round( this.sy * Math.abs( this._damage ) * this._knock_scale ) 
+								}, 'P' );
 							}
 							
 							if ( from_entity.is( sdCharacter ) )
@@ -1272,7 +1290,9 @@ class sdBullet extends sdEntity
 
 								if ( from_entity.is( sdBlock ) && (
 										from_entity.DoesRegenerate() ) ) // Dirt damage bonus multiplier (relative to initial damage)
-								dmg += base_damage * this._dirt_mult;
+								{
+									dmg += base_damage * this._dirt_mult;
+								}
 								//from_entity.DamageWithEffect( dmg * this._dirt_mult, this._owner );
 
 								if ( from_entity.IsVehicle() && ( typeof from_entity.sx !== 'undefined' && typeof from_entity.sy !== 'undefined' ) ) // All vehicles except for static ones like sdLifeBox
@@ -1296,7 +1316,7 @@ class sdBullet extends sdEntity
 									//if ( from_entity.is( sdCube ) || from_entity.is( sdCrystal ) )
 									if ( from_entity.is( sdCrystal ) )
 									if ( typeof this._owner._nature_damage !== 'undefined' )
-									this._owner._nature_damage += dmg;
+									this._owner._nature_damage += dmg * 0.75;
 								}
 								
 								

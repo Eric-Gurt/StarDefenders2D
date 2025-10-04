@@ -979,10 +979,15 @@ class sdRenderer
 					
 						ctx.globalAlpha = 1; // Just in case
 						
+						let di = 1 / ( 2 + wanderer.layer * 0.1 );
+						ctx.filter = 'contrast('+di+') brightness('+di*0.75+')';
+
 						//ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( 'fmech_boost' ), xx, yy, 64 * scale, 64 * scale );
 						ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( wanderer.GetImageFromModel() ), wanderer.GetXOffsetFromModel(),wanderer.GetYOffsetFromModel(),
 						wanderer.GetWidthFromModel(), wanderer.GetHeightFromModel(), xx, yy,
 						wanderer.GetWidthFromModel() * scale * wanderer.side, wanderer.GetHeightFromModel() * scale );
+
+						ctx.filter = 'none';
 						
 						// Not ideal but it works? - Booraz149
 					}
@@ -1868,11 +1873,15 @@ class sdRenderer
 						ctx.translate( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
 						
 						//let s = 1 + ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] && sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].muzzle > 0 ? 0.3 : 0 );
-						//ctx.scale( s, s );
+						let s = Math.min( 4, Math.pow( sdWorld.my_entity._recoil * 10, 2 ) );
+						ctx.scale( 1 + s, 1 + s );
+						ctx.globalAlpha = 1 / ( 1 + s * 4 );
 						
 						ctx.drawImageFilterCache( sdWorld.img_crosshair, 
 							- 16, 
 							- 16, 32,32 );
+
+						ctx.globalAlpha = 1;
 					}
 					ctx.restore();
 				}
@@ -2021,14 +2030,16 @@ class sdRenderer
 				if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] )
 				keySuggestions.push({ title: 'Drop weapon', key: 'V' });
 				
-				if ( sdWorld.my_entity._upgrade_counters.upgrade_hook )
+				//if ( sdWorld.my_entity._upgrade_counters.upgrade_hook )
 				keySuggestions.push({ title: 'Grappling hook', key: 'C' });
 			
 				if ( sdWorld.my_entity._inventory[ 9 ] )
-				keySuggestions.push({ title: 'Select build item', key: 'B' });
+				keySuggestions.push({ title: 'Select build item', key: 'Tab' });
 				else
 				keySuggestions.push({ title: 'Select build item', key: T('- no build tool -') });
 			
+				keySuggestions.push({ title: 'Leaderboard/tasks', key: 'T' });
+
 				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
 			
 				if ( sdWorld.my_entity.is( sdCharacter ) )
@@ -2050,14 +2061,14 @@ class sdRenderer
 
 					ctx.fillStyle = '#ffffff';
 					ctx.textAlign = 'center';
-					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 15 );
+					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 130 + 50 ) * scale, sdRenderer.screen_height - 15 );
 
 					if ( s.key.charAt( 0 ) === '-' )
 					ctx.fillStyle = '#ff6666';
 					else
 					ctx.fillStyle = '#ffff00';
 				
-					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 28 );
+					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 130 + 50 ) * scale, sdRenderer.screen_height - 28 );
 				}
 			}
 			else
@@ -2242,6 +2253,12 @@ class sdRenderer
 			{
 				//trace( 'sdWorld.my_entity_net_id whenever death message is visible is ',sdWorld.my_entity_net_id  );
 				ctx.fillText( T('Waiting for character sync...'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			}
+			else
+			if ( sdWorld.my_entity_has_rtp )
+			{
+				ctx.fillStyle = '#00ff00';
+				ctx.fillText( T('Your character has died but still can be revived. Press Space to respawn at Cloner (will happen automatically if destroyed)'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 			}
 			else
 			ctx.fillText( T('Your character has died but still can be revived (it will vanish within a minute if you disconnect). Press Space to restart or press Esc to return to main menu'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
