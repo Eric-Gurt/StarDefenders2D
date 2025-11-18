@@ -148,8 +148,6 @@ class sdWeaponMerger extends sdEntity
 			this.item2.remove();
 			let dps_proportions = this.item1._max_dps / ( this.item0._max_dps / ( this.item0.extra[ 21 ] || 1 ) ); // Basically DPS of the right item should be measured / divided by one on the left
 			
-			if ( dps_proportions > 600 )
-			dps_proportions = 600; // Temporary cap
 			// But don't allow the left time to merge multiple times to increase DPS beyond the 2x cap
 			
 			dps_proportions *= 0.95; // 95% of max DPS of other gun.
@@ -186,16 +184,21 @@ class sdWeaponMerger extends sdEntity
 			}
 		
 			dps_proportions *= mult;
-			if ( !this.item0.extra[ 21 ] ) // DPS buff from weapon merging is now a separate multiplier
-			this.item0.extra[ 21 ] = 1;
-		
-			if ( this.item0.GetSlot() === 4 && dps_proportions > 2 ) // Cap DPS increase to 2x of initial for slot 4 weapons, to prevent low DPS weapons become too powerful
-			dps_proportions = 2;
 			
-			this.item0.extra[ 21 ] = 1;
+			
 		
 			if ( this.item0.class !== sdGun.CLASS_UNSTABLE_CORE )
 			{
+				if ( !this.item0.extra[ 21 ] ) // DPS buff from weapon merging is now a separate multiplier
+				this.item0.extra[ 21 ] = 1;
+			
+				if ( this.item0.GetSlot() === 4 && dps_proportions > 2 ) // Cap DPS increase to 2x of initial for slot 4 weapons, to prevent low DPS weapons become too powerful
+				dps_proportions = 2;
+				
+				this.item0.extra[ 21 ] = 1;
+				
+				if ( this.item0._max_dps * dps_proportions > 600 )
+				dps_proportions = 600 / this.item0._max_dps;
 				this.item0.extra[ 21 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
 				this.item0._max_dps *= dps_proportions; // Even out max DPS
 			}
