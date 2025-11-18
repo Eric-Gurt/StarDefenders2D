@@ -3948,7 +3948,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 			
-				return 4;
+				return 3.25;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -3993,11 +3993,11 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 2 / ( 1 + gun.overheat / 180 ) ); // Faster rate of fire when shooting more
+						gun._held_by._auto_shoot_in = ( 3 / ( 1 + Math.min(1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 30 per second? (GSPEED limit?)
 						gun._held_by.matter -= matter_cost;
 						
 						if ( gun.overheat < 300 )
-						gun.overheat += 3.33; // Speed up rate of fire, the longer it shoots
+						gun.overheat += 5.5; // Speed up rate of fire, the longer it shoots
 						else
 						{
 							gun._overheat_cooldown = 50;
@@ -4053,7 +4053,7 @@ class sdGunClass
 					//gun.extra[ ID_SLOT ] = 1;
 					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					
-					gun._max_dps = ( 30 / ( 2 / ( 1 + ( 60 / 90 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
+					gun._max_dps = ( 30 / ( 3 / ( 1 + Math.min(1, 300 / 100 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value. Needs manual update every time auto_shoot is changed.
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},

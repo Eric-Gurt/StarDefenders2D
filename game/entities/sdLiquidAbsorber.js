@@ -15,6 +15,7 @@ import sdWater from './sdWater.js';
 import sdQuickie from './sdQuickie.js';
 import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -79,6 +80,8 @@ class sdLiquidAbsorber extends sdEntity
 		this.matter = 0;
 		this._allow_liquid_removal = true;
 		
+		this._shielded = null; // Is this entity protected by a base defense unit?
+		
 		this.toggle_enabled = false; // sdButton thing, makes it work indefinitely
 		
 		// 1 slot
@@ -124,8 +127,16 @@ class sdLiquidAbsorber extends sdEntity
 		
 		//let old_hea = this._hea;
 		
-		this._hea -= dmg;
-
+		if ( this._hea > 0 )
+		{
+			if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				this._hea -= dmg;
+				
+				this._regen_timeout = 60;
+			}
+		}
+		
 		if ( this._hea <= 0 )
 		this.remove();
 	
@@ -175,6 +186,23 @@ class sdLiquidAbsorber extends sdEntity
 						let gas_y = Math.floor( this.y / 16 ) * 16;
 						let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
 						sdEntity.entities.push( gas );
+						
+						this._allow_liquid_removal = false;
+						sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:15 });
+						this.matter = Math.max( 0, this.matter - sdLiquidAbsorber.cost_per_absorption );
+						if ( this.matter <= 0 )
+						this.SetState();
+						break;
+						
+					}
+					if ( ( liquids[ i ].type === sdWater.TYPE_LAVA ) && this._allow_liquid_removal )
+					{
+						// Lava gets converted into a solid block, by creating a water block and merging them. Though should probably just do it some other way.
+						let water_x = Math.floor( liquids[ i ].x / 16 ) * 16;
+						let water_y = Math.floor( liquids[ i ].y / 16 ) * 16;
+						let water = new sdWater ({ x: water_x, y: water_y, volume: 0.01, type: sdWater.TYPE_WATER }); // Is 0.01 volume legal?
+						sdEntity.entities.push( water );
+						liquids[ i ].BlendWith( water );
 						
 						this._allow_liquid_removal = false;
 						sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:15 });
