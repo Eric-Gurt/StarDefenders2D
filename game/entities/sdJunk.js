@@ -1025,10 +1025,10 @@ class sdJunk extends sdEntity
 					//if ( sdWorld.sockets[ i ].character )
 					//sdWorld.sockets[ i ].character._nature_damage += 100000;
 					
-					for ( let i = 0; i < sdCharacter.characters.length; i++ )
-					sdCharacter.characters[ i ]._nature_damage += 100000;
+					//for ( let i = 0; i < sdCharacter.characters.length; i++ )
+					//sdCharacter.characters[ i ]._nature_damage += 100000;
 
-					if ( sdWeather.only_instance._daily_events.length > 0 )
+					/*if ( sdWeather.only_instance._daily_events.length > 0 )
 					{
 						let n = 0;
 						let spawn_cubes = false;
@@ -1059,7 +1059,7 @@ class sdJunk extends sdEntity
 								group_radius: 3000
 							});
 						}
-					}
+					}*/
 					
 
 					this.remove();
@@ -1069,110 +1069,23 @@ class sdJunk extends sdEntity
 
 				if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
 				{
-					this._spawn_ent_in = 660 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() ); // Was 330 but made council a bit too annoying since they spawned too frequently and could not be killed as fast
-					let ais = 0;
-					//let percent = 0;
-					for ( var i = 0; i < sdCharacter.characters.length; i++ )
-					{
-						if ( sdCharacter.characters[ i ].hea > 0 )
-						if ( !sdCharacter.characters[ i ]._is_being_removed )
-						if ( sdCharacter.characters[ i ]._ai_team === 3 )
-						{
-							ais++;
-							//console.log(ais);
-						}
-					}
-					{
-
-						let councils = 0;
-						let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
-
-						let left_side = ( Math.random() < 0.5 );
-
-						while ( councils < councils_tot ) // No need for capping spawns since they despawn after 30 seconds anyway
-						{
-
-							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-
-							sdEntity.entities.push( character_entity );
-							character_entity.s = 110;
-
-							{
-								let x,y;
-								let tr = 100;
-								do
-								{
-									x = this.x + 192 - ( Math.random() * 384 );
-
-									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
-
-									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
-
-									y = this.y + 192 - ( Math.random() * ( 384 ) );
-									if ( y < sdWorld.world_bounds.y1 + 32 )
-									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-									if ( y > sdWorld.world_bounds.y2 - 32 )
-									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-									if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
-									//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-									{
-										character_entity.x = x;
-										character_entity.y = y;
-										sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_COUNCIL );
-										character_entity._ai_stay_near_entity = this;
-										character_entity._ai_stay_distance = 128; // A little closer than to the portal machine
-
-										const logic = ()=>
-										{
-											if ( character_entity.hea <= 0 )
-											if ( !character_entity._is_being_removed )
-											{
-												sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-												sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-												character_entity.remove();
-											}
-
-										};
+					this._spawn_ent_in = 450; // 15 seconds plus time for flare to arrive I guess
+					// Spawn a flare which summons a Council humanoid squad
+					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+					bullet_obj._owner = this;
 
 
-										setInterval( logic, 1000 );
-										setTimeout(()=>
-										{
-											clearInterval( logic );
+					bullet_obj.sx = 1 - Math.random() * 2;
+					bullet_obj.sy = -6 - Math.random () * 6;
+					bullet_obj.model = 'flare';
 
-
-											if ( !character_entity._is_being_removed )
-											{
-												sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-												sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-												character_entity.remove();
-
-												character_entity._broken = false;
-											}
-										}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
-
-										break;
-									}
-
-									tr--;
-									if ( tr < 0 )
-									{
-										character_entity.remove();
-										character_entity._broken = false;
-										break;
-									}
-								} while( true );
-							}
-							councils++;
-							ais++;
-						}
-					}
+					bullet_obj._damage = this._ai_team; // Used to determine which faction the drone will spawn
+					bullet_obj.color = '#ffff00';
+					bullet_obj.time_left = 90 + Math.random() * 60; // 3-5 seconds after flare spawn to summon the humanoids
+					bullet_obj._bouncy = true;
+									
+					sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
+					sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5, pitch:2 });
 					{
 						// Spawn a council support drone
 						if ( this.hea < ( this.hmax * 0.85 ) )

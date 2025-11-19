@@ -248,6 +248,103 @@ class sdBullet extends sdEntity
 				} while( true );
 			}
 		}
+		if ( this._damage === 3 ) // AI team 3 is for Council faction, so a Council faction Spawn
+		{
+			// Attempt spawning 2 humanoids on a timer
+			for ( let i = 0; i < 2; i++ )
+			{
+				let ent;
+				if ( i < 2 ) // Humanoid
+				{
+					ent = sdEntity.Create( sdCharacter, { x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE } );
+					sdFactions.SetHumanoidProperties( ent, sdFactions.FACTION_COUNCIL );
+				}
+				/*else // Drone
+				{
+					ent = sdEntity.Create( sdDrone, { x:this.x, y:this.y, type: sdDrone.DRONE_SETR } );
+					ent._look_x = this.x;
+					ent._look_y = this.y;
+				}*/
+				
+				let x,y;
+				let tr = 100;
+				do
+				{
+					{
+						x = this.x + 128 - ( Math.random() * 256 );
+
+						if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+						x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+						if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+						x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+					}
+
+					y = this.y + 128 - ( Math.random() * ( 256 ) );
+					if ( y < sdWorld.world_bounds.y1 + 32 )
+					y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+					if ( y > sdWorld.world_bounds.y2 - 32 )
+					y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+					if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, ent, sdCom.com_visibility_ignored_classes, null ) )
+					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+					{
+						ent.x = x;
+						ent.y = y;
+							
+						if ( ent.is( sdCharacter ) ) // Humanoid default logic
+						{
+							if ( this._owner && !this._owner._is_being_removed ) // Entity that spawned the flare exists?
+							{
+								ent._ai_stay_near_entity = this._owner; // Guard it
+								ent._ai_stay_distance = 192;
+							}
+
+							const logic = ()=>
+							{
+								if ( ent.hea <= 0 )
+								if ( !ent._is_being_removed )
+								{
+									sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5 });
+									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+									ent.remove();
+								}
+								
+											
+							};
+							
+							setInterval( logic, 1000 );
+							setTimeout(()=>
+							{
+								clearInterval( logic );
+								
+								
+								if ( !ent._is_being_removed )
+								{
+									sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5 });
+									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+									ent.remove();
+
+									ent._broken = false;
+								}
+							}, 20000 ); // Despawn the Council if they are in world longer than intended
+						}
+						break;
+					}
+
+					tr--;
+					if ( tr < 0 )
+					{
+						ent.remove();
+						ent._broken = false;
+						break;
+					}
+				} while( true );
+			}
+		}
 	}
 	constructor( params )
 	{
