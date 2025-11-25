@@ -40,8 +40,8 @@ class sdExcavator extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -15; }
-	get hitbox_x2() { return 15; }
+	get hitbox_x1() { return -13; }
+	get hitbox_x2() { return 13; }
 	get hitbox_y1() { return -18; }
 	get hitbox_y2() { return 16; }
 	
@@ -56,7 +56,7 @@ class sdExcavator extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		dmg = Math.abs( dmg );
+		dmg = Math.min( 100, Math.abs( dmg ) ); // Capping damage it can take in a single hit so it is less prone to one shots
 
 		if ( this.hea > 0 )
 		{
@@ -76,8 +76,7 @@ class sdExcavator extends sdEntity
 
 		this.sx = 0;
 		this.sy = 0;
-		
-		this.hmax = 5000;
+		this.hmax = 6000;
 		this.hea = this.hmax;
 		this._check_for_players = 30;
 		this._next_dig_in = 30;
