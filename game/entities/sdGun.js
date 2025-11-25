@@ -532,7 +532,7 @@ class sdGun extends sdEntity
 		
 		this._max_dps = 1; // Should be decided when class parameters are given. Usually it should be 30 / reload time * gun.extra[ ID_DAMAGE_MULT ].
 		// However in some cases like charge up weapons it can't be decided like that so manual override works too.
-		// Will be used for weapon merger, which will equalize one gun's DPS with other. Only same slot guns though. Probably no slots 8 because I think slot 8 guns are a mess - Booraz149
+		// Will be used for weapon merger, which will equalize one gun's DPS with other. Only same slot guns though. Probably no slots 8 because I think slot 8 guns are a mess to calculate DPS - Booraz149
 		
 		
 		this._unblocked_for_drones = false; // Only to prevent bug that is making server restart drop all guns of all players
@@ -787,14 +787,10 @@ class sdGun extends sdEntity
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
 
-		if ( this.class === sdGun.CLASS_LASER_DRILL )
-		return 6;
 
 		if ( this.class === sdGun.CLASS_SHOVEL )
 		return 0;
 
-		if ( this.class === sdGun.CLASS_SHOVEL_MK2 )
-		return 2;
 		
 		let projectile_properties = this.GetProjectileProperties();
 				
@@ -1172,6 +1168,17 @@ class sdGun extends sdEntity
 					
 						if ( this.extra[ 19 ] ) // Has exalted core infused?
 						bullet_obj._damage *= 1.25; // Increase damage by 25%
+						
+						// Weapon merging DPS application
+						if ( this.extra[ 21 ] ) // Has weapon merging been used to alter DPS?
+						bullet_obj._damage *= this.extra[ 21 ]; // Multiply the DPS overall with the stored value
+						/*
+							It is now a separate multiplier instead of directly changing this.extra damage value
+							so that the slow firing weapons, small DPS weapons have capped DPS increase
+							to prevent stuff like 1200 damage sniper rifles
+							(and to not allow merging those weapons multiple times to bypass this logic)
+						*/
+						
 						// Why didn't I think of this earlier? - Booraz
 					
 						/*if ( globalThis.CATCH_ERRORS )
