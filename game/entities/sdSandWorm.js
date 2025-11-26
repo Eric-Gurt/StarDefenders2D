@@ -294,11 +294,11 @@ class sdSandWorm extends sdEntity
 		let head_entity = this.GetHeadEntity();
 
 		if ( head_entity !== this && this.kind === sdSandWorm.KIND_SPIKY_WORM ) // Is this the spiky worm?
-		dmg = dmg * 0.15; // 85% damage reduction to body damage for spiky worms, to force players to shoot them in the head
+		dmg = dmg * 0.50; // 50% damage reduction to body damage for spiky worms, to reward headshots
 
 	
 		if ( head_entity !== this && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Is this the council worm?
-		dmg = dmg * 0.15; // 85% damage reduction to body damage for council worms, they are sort of a boss after all
+		dmg = dmg * 0.75; // 75% damage reduction to body damage for council worms, they are sort of a boss after all
 		
 		if ( initiator )
 		//if ( !initiator.is( sdSandWorm ) )

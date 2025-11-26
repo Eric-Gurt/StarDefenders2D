@@ -35,7 +35,7 @@ class sdMeow extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 1200;
+		this._hmax = 1000;
 		this._hea = this._hmax;
 		
 		this.is_dead = 0;

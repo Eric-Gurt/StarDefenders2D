@@ -151,9 +151,9 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
-		this.hmax = 10000;
+		this.hmax = 7000;
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
-		this.hmax = 30000;
+		this.hmax = 20000;
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) // Large anti-crystal and the high yield rocket
 		this.hmax = 1000;
 		else

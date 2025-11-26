@@ -177,8 +177,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 150;
 			character_entity.matter_max = 150;
 
-			character_entity.hea = 500;
-			character_entity.hmax = 500;
+			character_entity.hea = 360;
+			character_entity.hmax = 360;
 	
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };			
 			character_entity._ai_level = 4;
@@ -212,8 +212,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 300;
 			character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-			character_entity.hea = 650;
-			character_entity.hmax = 650;
+			character_entity.hea = 430;
+			character_entity.hmax = 430;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = 10;
@@ -253,8 +253,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 300;
 			character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-			character_entity.hea = 800;
-			character_entity.hmax = 800;
+			character_entity.hea = 500;
+			character_entity.hmax = 500;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = 10;
@@ -294,8 +294,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 350;
 			character_entity.matter_max = 350;
 
-			character_entity.hea = 350;
-			character_entity.hmax = 350;
+			character_entity.hea = 280;
+			character_entity.hmax = 280;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -329,8 +329,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 350;
 			character_entity.matter_max = 350;
 
-			character_entity.hea = 350;
-			character_entity.hmax = 350;
+			character_entity.hea = 300;
+			character_entity.hmax = 300;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -364,8 +364,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 200;
 			character_entity.matter_max = 200;
 
-			character_entity.hea = 500;
-			character_entity.hmax = 500;
+			character_entity.hea = 350;
+			character_entity.hmax = 350;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -401,8 +401,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 200;
 			character_entity.matter_max = 200;
 
-			character_entity.hea = 500;
-			character_entity.hmax = 500;
+			character_entity.hea = 350;
+			character_entity.hmax = 350;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -438,8 +438,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 400;
 			character_entity.matter_max = 400;
 
-			character_entity.hea = 900;
-			character_entity.hmax = 900;
+			character_entity.hea = 600;
+			character_entity.hmax = 600;
 			character_entity.s = 110; // Tougher so bigger target
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
@@ -475,8 +475,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 150;
 			character_entity.matter_max = 150;
 
-			character_entity.hea = 560;
-			character_entity.hmax = 560;
+			character_entity.hea = 380;
+			character_entity.hmax = 380;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -510,8 +510,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 100;
 			character_entity.matter_max = 100;
 
-			character_entity.hea = 200;
-			character_entity.hmax = 200;
+			character_entity.hea = 180;
+			character_entity.hmax = 180;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
@@ -545,8 +545,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 85;
 			character_entity.matter_max = 85;
 
-			character_entity.hea = 200;
-			character_entity.hmax = 200;
+			character_entity.hea = 180;
+			character_entity.hmax = 180;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
@@ -579,8 +579,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 125;
 			character_entity.matter_max = 125;
 
-			character_entity.hea = 350;
-			character_entity.hmax = 350;
+			character_entity.hea = 300;
+			character_entity.hmax = 300;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
@@ -613,8 +613,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 800;
 			character_entity.matter_max = 800;
 
-			character_entity.hea = 1000;
-			character_entity.hmax = 1000;
+			character_entity.hea = 800;
+			character_entity.hmax = 800;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 
@@ -864,8 +864,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 500;
 			character_entity.matter_max = 500;
 
-			character_entity.hea = 600;
-			character_entity.hmax = 600;
+			character_entity.hea = 400;
+			character_entity.hmax = 400;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
@@ -899,8 +899,8 @@ class sdFactionskin extends sdEntity
 			character_entity.matter = 500;
 			character_entity.matter_max = 500;
 
-			character_entity.hea = 600;
-			character_entity.hmax = 600;
+			character_entity.hea = 400;
+			character_entity.hmax = 400;
 
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels

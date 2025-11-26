@@ -90,7 +90,7 @@ class sdMatterAmplifier extends sdEntity
 	}
 	UpdatePropertiesDueToUpgrade()
 	{
-		this._hmax = ( 160 + ( 160 * this.multiplier ) ) * 4 * this.width; // Regular matter amplifier has 160 + 160 hp which is 320
+		this._hmax = ( 320 + ( 40 * this.multiplier ) ) * 4 * this.width; // Regular matter amplifier has 160 + 160 hp which is 320
 	}
 	onSnapshotApplied() // To override
 	{

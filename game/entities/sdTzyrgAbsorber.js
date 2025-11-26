@@ -50,7 +50,7 @@ class sdTzyrgAbsorber extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 6000;
+		this.hmax = 4000;
 		this.hea = this.hmax;
 		this._spawn_timer = 30 * 60 * 5; // Spawn Tzyrgs timer
 		this._regen_timeout = 0; // Regen timeout;

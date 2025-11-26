@@ -46,7 +46,7 @@ class sdCouncilNullifier extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 12000;
+		this.hmax = 8000;
 		this.hea = this.hmax;
 
 		this.glow_animation = 0; // Glow animation for the jnullifier

@@ -55,7 +55,7 @@ class sdShurgTurret extends sdEntity
 
 		this.type = params.type || 0;
 
-		this.hmax = 550;
+		this.hmax = 400;
 		this.hea = this.hmax;
 		this._regen_timeout = 0; // Regen timeout;
 		this._notify_players = 0;

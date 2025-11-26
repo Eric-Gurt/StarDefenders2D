@@ -101,7 +101,7 @@ class sdOctopus extends sdEntity
 		this.driver1 = null;
 		this.driver2 = null;
 		
-		this._hmax = 1000; // Was 2000, but too boring to kill them
+		this._hmax = 700; // Was 2000, but too boring to kill them
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;

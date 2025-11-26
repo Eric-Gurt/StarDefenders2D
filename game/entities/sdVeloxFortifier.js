@@ -44,7 +44,7 @@ class sdVeloxFortifier extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 15000;
+		this.hmax = 10000;
 		this.hea = this.hmax;
 		
 		this._ai_team = 5;
@@ -64,12 +64,18 @@ class sdVeloxFortifier extends sdEntity
 		
 		let was_alive = this.hea > 0;
 		
-		let half_hp = this.hea > this.hmax / 2;
+		let spawn_hp = -1; // Velox soldiers will now spawn 3 times instead of once, every time 25% health is reduced
+		if ( this.hea > this.hmax * 0.25 )
+		spawn_hp = this.hmax * 0.25;
+		if ( this.hea > this.hmax * 0.5 )
+		spawn_hp = this.hmax * 0.50;
+		if ( this.hea > this.hmax * 0.75 )
+		spawn_hp = this.hmax * 0.75;
 		
 		this.hea -= dmg;
 		
-		if ( ( this.hea < this.hmax / 2 ) && half_hp )
-		this._spawn_velox = true; // Spawn Velox one more time
+		if ( this.hea < spawn_hp && spawn_hp !== -1 ) // Reached spawn threshold?
+		this._spawn_velox = true; // Spawn Velox
 		
 		if ( this.hea <= 0 && was_alive )
 		{
@@ -149,7 +155,7 @@ class sdVeloxFortifier extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.2,
+						difficulty: 0.3,
 						title: 'Destroy Velox Fortifier',
 						description: 'Velox have placed a device which grants them shielding capabilities. It is imperative that you destroy it, they are already a nuisance without shields!'
 					});

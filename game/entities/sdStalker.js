@@ -66,7 +66,7 @@ class sdStalker extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 10000;
+		this._hmax = 8000;
 		this.hea = this._hmax;
 
 		this.tilt = 0;

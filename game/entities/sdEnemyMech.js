@@ -67,7 +67,7 @@ class sdEnemyMech extends sdEntity
 		this._regen_timeout = 0;
 		
 		//this._hmax = 15000; // Was 6000 but even 12000 is easy
-		this._hmax = 6000; // EG: It feels like a sponge boss unfortunately. Maybe it needs to become more complex mechanics-wise and much more rare in order to have high hitpoints. Meanwhile I'm raising his damage instead
+		this._hmax = 5000; // EG: It feels like a sponge boss unfortunately. Maybe it needs to become more complex mechanics-wise and much more rare in order to have high hitpoints. Meanwhile I'm raising his damage instead
 		this.hea = this._hmax;
 
 		this._ai_team = 5;
@@ -438,7 +438,7 @@ class sdEnemyMech extends sdEntity
 							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							//else
 							{
-								if ( random_value > 0.88 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
+								if ( random_value > 0.8 ) // 1 in 5 drops, so 20% of 35% which is about 7% on average
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
@@ -733,7 +733,7 @@ class sdEnemyMech extends sdEntity
 						//bullet_obj._rail = true;
 
 						//bullet_obj._damage = 25;
-						bullet_obj._damage = 75;
+						bullet_obj._damage = 30; // 75 is a bit much, players get RTP'd almost instantly
 						bullet_obj.color = '#ffaa00';
 
 						sdEntity.entities.push( bullet_obj );

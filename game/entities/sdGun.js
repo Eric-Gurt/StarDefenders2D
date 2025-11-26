@@ -607,6 +607,50 @@ class sdGun extends sdEntity
 		}
 	}
 	
+	onSnapshotApplied() // Remove after June 2026 (or if a server wipe/reset happens)
+	{
+		//this.ResetInheritedGunClassProperties(); // Not good, missing params from constructor
+		/* Better to just cap DPS of old unnerfed guns
+			Reminder: Velox Minigun is now at 420 DPS
+			Zektaron focus beam is now at ~~ 600 DPS
+			Task ops shotgun (strongest slot 3) is now at 236.25 DPS instead of ~~282
+			
+			Will need to rewrite sdGunClass to give damage value separately, outside onMade function. Or just have ID_DAMAGE_VALUE be a HUD display element and damage value put inside projectile properties - Booraz149
+		*/
+
+		if ( sdGun.classes[ this.class ].slot === 2 )
+		{
+			if ( this._max_dps > 420 )
+			{
+				this.extra[ 17 ] = this.extra[ 17 ] * ( 420 / this._max_dps );
+				this._max_dps = 420;
+			}
+		}
+		if ( sdGun.classes[ this.class ].slot === 3 )
+		{
+			if ( this._max_dps > 236.25 ) // Task ops shotgun value
+			{
+				this.extra[ 17 ] = this.extra[ 17 ] * ( 236.25 / this._max_dps );
+				this._max_dps = 236.25;
+			}
+		}
+		if ( sdGun.classes[ this.class ].slot === 1 )
+		{
+			if ( this._max_dps > 236.85 ) // KVT SMG value which has max DPS value of all slot 1 weapons
+			{
+				this.extra[ 17 ] = this.extra[ 17 ] * ( 236.85 / this._max_dps );
+				this._max_dps = 236.85;
+			}
+		}
+		// Strongest slot 8 is Zektaron Focus Beam, others were untouched
+		if ( this.class === sdGun.CLASS_ZEKTARON_FOCUS_BEAM && this.extra[ 17 ] > 10.5 ) // Update old damage value
+		this.extra[ 17 ] = 10.5;
+		
+		// Also cap the unstable cores to 450 DPS
+		if ( this.class === sdGun.CLASS_UNSTABLE_CORE && this._max_dps > 450 )
+		this._max_dps = 450;
+	}
+	
 	CollisionFiltering( from_entity )
 	{
 		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
@@ -682,10 +726,7 @@ class sdGun extends sdEntity
 	ReloadStart() // Can happen multiple times
 	{
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
-		if ( this._max_dps < 300 )
 		this._held_by.reload_anim = 15;
-		else
-		this._held_by.reload_anim = 30; // Slow down reload on high DPS weapons
 	}
 	ChangeFireModeStart() // Can happen multiple times
 	{
@@ -799,7 +840,14 @@ class sdGun extends sdEntity
 			return Infinity;
 		}
 		
+		
 		let mult = ( this.extra[ 20 ] ) ? 0.75 : 1; // Cube fusion core merging reduces weapon matter cost by 25%
+		
+		if ( sdGun.classes[ this.class ].slot === 1 ) // Slot 1 weapons get additional 50% matter cost reduction
+		mult = mult * 0.5;
+		
+		if ( sdGun.classes[ this.class ].bullet_cost_multiplier ) // In some cases this is better than GetAmmoCost()
+		mult = mult * sdGun.classes[ this.class ].bullet_cost_multiplier;
 		
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
 		return mult * sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
@@ -882,9 +930,9 @@ class sdGun extends sdEntity
 				this._temperature_addition = 0;
 				this.extra[ 11 ] = 0;
 			}
-			if ( this.extra[ 7 ] > 3 )
+			if ( this.extra[ 7 ] > 2 )
 			{
-				this.extra[ 7 ] = 3;
+				this.extra[ 7 ] = 2;
 			}
 			if ( this.extra[ 9 ] > 2 )
 			{

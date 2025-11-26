@@ -31,7 +31,7 @@ class sdTutel extends sdEntity
 		sdTutel.max_seek_range = 600;
 		
 		sdTutel.normal_max_health = [
-			600,
+			400,
 			200
 		];
 

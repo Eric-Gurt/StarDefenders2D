@@ -53,7 +53,7 @@ class sdCouncilIncinerator extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 18000;
+		this._hmax = 12000;
 		this.hea = this._hmax;
 
 		this._ai_team = 3;

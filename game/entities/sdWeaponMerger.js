@@ -162,13 +162,13 @@ class sdWeaponMerger extends sdEntity
 			let mult = 1;
 			if ( this.item1.class === sdGun.CLASS_UNSTABLE_CORE ) // Adjust multiplier/power depending on weapon slot
 			{
-				if ( sdGun.classes[ this.item0.class ].slot === 3 || sdGun.classes[ this.item0.class ].slot === 4 )
-				mult = 0.5;
-				if ( sdGun.classes[ this.item0.class ].slot === 1 )
-				mult = 0.35;
+				if ( sdGun.classes[ this.item0.class ].slot === 4 )
+				mult = 0.8; // 360 max DPS at max power cores.
+				if ( sdGun.classes[ this.item0.class ].slot === 1 || sdGun.classes[ this.item0.class ].slot === 3 )
+				mult = 0.6; // 270 max DPS at max power cores
 			
 				// Unstable core + unstable core scenario
-				// Take stronger core's power and add 15% value of the weaker, capping at 600 power
+				// Take stronger core's power and add 15% value of the weaker, capping at 450 power
 				if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE )
 				{
 					if ( this.item0._max_dps < this.item1._max_dps ) // Less power than the other core?
@@ -179,7 +179,7 @@ class sdWeaponMerger extends sdEntity
 					else
 					this.item0._max_dps += this.item1._max_dps * 0.2; // Just add 20% of the other core
 				
-					this.item0._max_dps = Math.min( 600, this.item0._max_dps ); // Cap the power
+					this.item0._max_dps = Math.min( 450, this.item0._max_dps ); // Cap the power
 				}
 			}
 		
@@ -197,8 +197,8 @@ class sdWeaponMerger extends sdEntity
 				
 				this.item0.extra[ 21 ] = 1;
 				
-				if ( this.item0._max_dps * dps_proportions > 600 )
-				dps_proportions = 600 / this.item0._max_dps;
+				if ( this.item0._max_dps * dps_proportions > ( 450 * 0.95 ) )
+				dps_proportions = ( 450 * 0.95 ) / this.item0._max_dps;
 				this.item0.extra[ 21 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
 				this.item0._max_dps *= dps_proportions; // Even out max DPS
 			}
@@ -336,7 +336,7 @@ class sdWeaponMerger extends sdEntity
 			ctx.translate( -16, -1 );
 			this.item0.Draw( ctx, true );
 			if ( this.power0 !== -1 )
-			sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power0, -5, -10, '#ffffff' );
+			sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + Math.round( this.power0 ), -10, -10, '#ffffff' );
 			ctx.restore();
 		}
 		if ( this.item1 )
@@ -346,8 +346,9 @@ class sdWeaponMerger extends sdEntity
 			this.item1.Draw( ctx, true );
 			if ( this.power1 !== -1 )
 			{
+				let max = ( this.power1 === 450 ) ? '(max)': '';
 				if ( this.item1.class !== sdGun.CLASS_UNSTABLE_CORE )
-				sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1, 5, -10, '#ffffff' );
+				sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + Math.round( this.power1 ) + ' ' + max, 10, -10, '#ffffff' );
 				else
 				{
 					if ( !this.item0 )
@@ -355,11 +356,11 @@ class sdWeaponMerger extends sdEntity
 					else
 					{
 						let mult = 1;
-						if ( sdGun.classes[ this.item0.class ].slot === 3 || sdGun.classes[ this.item0.class ].slot === 4 )
-						mult = 0.5;
-						if ( sdGun.classes[ this.item0.class ].slot === 1 )
-						mult = 0.35;
-						sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + this.power1 * mult, 5, -10, '#ffffff' );
+						if ( sdGun.classes[ this.item0.class ].slot === 4 )
+						mult = 0.8;
+						if ( sdGun.classes[ this.item0.class ].slot === 1 || sdGun.classes[ this.item0.class ].slot === 3 )
+						mult = 0.6;
+						sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + Math.round( this.power1 * mult ) + ' ' + max, 10, -10, '#ffffff' );
 					}
 					
 				}
@@ -495,6 +496,9 @@ class sdWeaponMerger extends sdEntity
 				
 					if ( from_entity.x >= ( this.x + 8 ) ) // Slot 2 goes to the right
 					free_slot = 1;
+					
+					if ( from_entity.class === sdGun.CLASS_MERGER_CORE ) // Merger core
+					from_entity._max_dps = Math.min( 450, from_entity._max_dps );
 				
 					if ( from_entity.class === sdGun.CLASS_MERGER_CORE ) // Merger core
 					free_slot = 2; // Slot 3 item goes in the middle
