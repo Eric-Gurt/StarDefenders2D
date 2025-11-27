@@ -1665,6 +1665,9 @@ class sdWorld
 				
 				if ( params.reinforced_level !== undefined )
 				bullet_obj._reinforced_level = params.reinforced_level;
+			
+				if ( params.dirt_multiplier !== undefined )
+				bullet_obj._dirt_mult = params.dirt_multiplier;
 				
 				//bullet_obj._damage = 80 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._damage = 140 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
