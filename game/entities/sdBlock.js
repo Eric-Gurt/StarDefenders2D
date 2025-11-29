@@ -470,7 +470,7 @@ class sdBlock extends sdEntity
 					}
 					else
 					{
-						sdWorld.DropShards( this.x, this.y, 0, 0, 
+						sdWorld.DropShards( this.x+this.width/2, this.y+this.height/2, 0, 0, 
 							10,
 							Math.pow( 2, this.p ),
 							8

@@ -95,8 +95,21 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._last_seen_player = 0;
 
+		//this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic 
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
+	/*CollisionFiltering( from_entity )
+	{
+		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
+		return false;
+		
+		if ( from_entity.is( sdDrone ) )
+		{
+			if ( from_entity.type === sdDrone.DRONE_SETR || from_entity.type === sdDrone.DRONE_SETR_SCOUT )
+			return false;
+		}
+		return true;
+	}*/
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this.hea > 0 )
@@ -116,7 +129,7 @@ class sdSetrDestroyer extends sdEntity
 	{
 		return this.filter;
 	}*/
-	FireDirectionalProjectiles( diagonal = ( this.hea % 2000 < 1000 ) ? true: false ) // Fire 4 projectiles, up, left, down and right or diagonally, depends on parameter
+	FireDirectionalProjectiles( diagonal = ( sdWorld.time % 4000 < 2000 ) ? true : false ) // Fire 4 projectiles, up, left, down and right or diagonally, depends on parameter
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -283,25 +296,27 @@ class sdSetrDestroyer extends sdEntity
 			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
-
-				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR, _ai_team: this._ai_team }); // We do a little trolling
-
-				drone.sx = ( Math.random() - Math.random() ) * 10;
-				drone.sy = ( Math.random() - Math.random() ) * 10;
-
-				// Make sure drone has any speed when deployed so drones don't get stuck into each other
-				if ( Math.abs( drone.sx ) < 0.5 )
-				drone.sx *= 10;
-				if ( Math.abs( drone.sy ) < 0.5 )
-				drone.sy *= 10;
-
-				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
-
-				sdEntity.entities.push( drone );
-
-				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}
-			
+			if ( Math.ceil( this.hea / this._hmax * 4 ) !== Math.ceil( old_hp / this._hmax * 4 ) ) // At each 25% HP lost, do something
+			{
+				// Fire a flare like the scout drone, summons a Setr squad
+				let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+				bullet_obj._owner = this;
+
+
+				bullet_obj.sx = 0;
+				bullet_obj.sy = -12;
+				bullet_obj.model = 'flare';
+
+				bullet_obj._damage = this._ai_team; // Used to determine which faction the drone will spawn
+				bullet_obj.color = '#aa00aa';
+				bullet_obj.time_left = 60;
+				bullet_obj._bouncy = true;
+									
+				sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
+				sdEntity.entities.push( bullet_obj );
+			}
 			
 			if ( sdWorld.time > this._last_damage + 50 )
 			{

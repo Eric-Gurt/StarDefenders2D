@@ -19,7 +19,7 @@ import sdRenderer from '../client/sdRenderer.js';
 /*
 	Excavator is an entity which digs below it as long as it's powered.
 	Occasionally the Mothership will send an excavator to the planet
-	and SD's will need to start it up. The excavator only has power to run for 3 minutes
+	and SD's will need to start it up. The excavator only has power to run for 2 minutes
 	but players can power it up with Cube shards and Erthal energy cells so it can last longer (1 minute per shard).
 	They can also repair it with metal shards should it lose health.
 	
@@ -40,8 +40,8 @@ class sdExcavator extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -13; }
-	get hitbox_x2() { return 13; }
+	get hitbox_x1() { return -15; }
+	get hitbox_x2() { return 15; }
 	get hitbox_y1() { return -18; }
 	get hitbox_y2() { return 16; }
 	
@@ -94,7 +94,7 @@ class sdExcavator extends sdEntity
 		
 		this.time_left = 30 * 60 * 2; // Default excavation time is 2 minutes
 		
-		
+		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 		//sdExcavator.panels.push( this );
 		//this._regen_mult = 1;
 	}
@@ -107,6 +107,20 @@ class sdExcavator extends sdEntity
 	{
 		return sdGun.as_class_list;
 	}
+	
+	CollisionFiltering( from_entity )
+	{
+		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
+		return false;
+		
+		if ( from_entity.is( sdSandWorm ) ) // Worm?
+		{
+			if ( from_entity.death_anim === 1 ) // Dead worm?
+			return false; // Pass through
+		}
+		
+		return true;
+	}
 
 	/*onBuilt()
 	{
@@ -118,7 +132,7 @@ class sdExcavator extends sdEntity
 	{
 		this.sy += sdWorld.gravity * GSPEED;
 		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
 
 		if ( !sdWorld.is_server )
 		return;
@@ -250,8 +264,8 @@ class sdExcavator extends sdEntity
 				};
 				
 				sdEntity.entities.push( bullet_obj2 );
-				
-				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y + 8, time_left: 1 }); // Center
+				// Center excavating point
+				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y + 8, time_left: 1 }); // Center left
 
 				bullet_obj3._owner = this;
 				bullet_obj3.sx = 0;
@@ -297,7 +311,22 @@ class sdExcavator extends sdEntity
 						//this._update_version++;
 						from_entity.remove();
 					}
-				}	
+				}
+			}
+			if ( from_entity.is( sdGun ) )
+			{
+				if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD && ( from_entity.extra && from_entity.extra[ 0 ] ) )
+				{
+					if ( !from_entity._is_being_removed )
+					{
+						//sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2, pitch:2 });
+				
+						let matter_to_feed = Math.max(1, (from_entity.extra[ 0 ] * 0.1 ) );
+						this.crystal_matter = Math.min( this.crystal_matter_max, this.crystal_matter + matter_to_feed ); // Drain the shard for it's max value and destroy it
+						//this._update_version++;
+						from_entity.remove();
+					}
+				}
 			}
 			
 			if ( from_entity.is( sdLost ) || from_entity.is( sdGib ) )
