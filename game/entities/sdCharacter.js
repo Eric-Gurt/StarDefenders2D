@@ -1567,6 +1567,25 @@ THING is cosmic mic drop!`;
 		debugger; // sdCharacter\'s property _an is obsolete now
 		//console.log( 'sdCharacter\'s property _an is obsolete now' );
 	}*/
+	UpdateClaimRewardsTaskCounter() // Updates value for "Claim rewards" task assigned to this character
+	{	// Is there a better way to do display "X rewards left" inside the "Claim rewards" task?
+		if ( this._task_reward_counter < 1 )
+		return;
+	
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			let task = sdTask.tasks[ i ];
+			if ( task._executer === this ) // Make sure this is the executer/correct individual's values updated.
+			{
+				if ( sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD ] ) // Make sure this is the proper task
+				{
+					task.SetClaimRewardsProgress( Math.floor( task._executer._task_reward_counter ) ); // Update value
+					return;
+				}
+			}
+		}
+	}
+	
 	GetLookAngle( for_visuals=false )
 	{
 		if ( for_visuals )

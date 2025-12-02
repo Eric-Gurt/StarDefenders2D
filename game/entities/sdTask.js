@@ -118,6 +118,7 @@ class sdTask extends sdEntity
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+				task._executer.UpdateClaimRewardsTaskCounter();
 			},
 			failure_condition: ( task )=>
 			{
@@ -200,7 +201,9 @@ class sdTask extends sdEntity
 			{
 				return -1;
 			},
-			
+			onTaskMade: ( task, params )=>{
+				task.SetClaimRewardsProgress( Math.floor( task._executer._task_reward_counter ) ); // Also needs to update when players complete tasks, and claim rewards.
+			},
 			completion_condition: ( task )=>
 			{
 				if ( task._executer._task_reward_counter < 1 ) //sdTask.reward_claim_task_amount )
@@ -264,6 +267,7 @@ class sdTask extends sdEntity
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+				task._executer.UpdateClaimRewardsTaskCounter(); // Update values of "Claim rewards" task (if player has it)
 			},
 			failure_condition: (task ) =>
 			{
@@ -306,7 +310,7 @@ class sdTask extends sdEntity
 					// Specific entity
 					if ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
 					task.remove();
-					// Maybe this should be considrered a failure condition instead? - Booraz
+					// Maybe this should be considrered a failure condition instead? - Booraz149
 				}*/
 			
 				return false;
@@ -471,6 +475,7 @@ class sdTask extends sdEntity
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+				task._executer.UpdateClaimRewardsTaskCounter(); // Update values of "Claim rewards" task (if player has it)
 			},
 			failure_condition: ( task )=>
 			{
@@ -665,6 +670,12 @@ class sdTask extends sdEntity
 	SetBasicProgress( current, total )
 	{
 		this.progress = '( ' + current + ' / ' + total + '; '+Math.round((this._difficulty*100*1000)/1000)+'% rewards )';
+		this._update_version++;
+	}
+	
+	SetClaimRewardsProgress( current ) // For "Claim rewards" task, don't want to make a mess of SetBasicProgress function - Booraz149
+	{
+		this.progress = '( ' + current + ' rewards left )';
 		this._update_version++;
 	}
 	

@@ -1228,6 +1228,7 @@ class sdLongRangeTeleport extends sdEntity
 										
 										this.GiveRewards( command_name, executer_socket );
 										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
+										exectuter_character.UpdateClaimRewardsTaskCounter();
 									};
 								}
 								else

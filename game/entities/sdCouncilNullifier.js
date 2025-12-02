@@ -51,11 +51,11 @@ class sdCouncilNullifier extends sdEntity
 
 		this.glow_animation = 0; // Glow animation for the jnullifier
 		this._glow_fade = 0; // Should the glow fade or not?
-		this._spawn_effect = 10; // Timer that spawns pulse status effect on entity
+		this._spawn_effect = sdWorld.time + 2000; // Timer that spawns pulse status effect on entity. Uses sdWorld.time now to be consistent with world hibernation
 		this._spawn_timer = 60; // Spawn Council timer
 		this._regen_timeout = 0; // Regen timeout;
 		
-		this._notify_players_in = 60; // Timer to notify players about the task
+		this._notify_players_in = 2; // Timer to notify players about the task
 		
 		this._ent_to_nullify = params.ent_to_nullify || null;
 		
@@ -305,15 +305,14 @@ class sdCouncilNullifier extends sdEntity
 				if ( this._ent_to_nullify.matter > this._set_matter_to )
 				this._ent_to_nullify.matter = sdWorld.MorphWithTimeScale( this._ent_to_nullify.matter, this._set_matter_to, 0.85, GSPEED );
 			
-				this._spawn_effect -= GSPEED;
-				if ( this._spawn_effect <= 0 )
+				if ( this._spawn_effect < sdWorld.time )
 				{
 						
 					if ( this._ent_to_nullify.GetClass() === 'sdBeamProjector' ) // Just in case
 					this._ent_to_nullify.enabled = false;
 					
-					this._spawn_effect = 90;
-					this._ent_to_nullify.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PULSE_EFFECT, filter: 'hue-rotate(' + 195 + 'deg)' }); // Circular pulse appears on nullified object as an indicator it is nullified
+					this._spawn_effect = sdWorld.time + 3000;
+					this._ent_to_nullify.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PULSE_EFFECT, filter: 'hue-rotate(' + 195 + 'deg)', zap_color:'#FCBA03' }); // Circular pulse appears on nullified object as an indicator it is nullified
 				}
 			}
 			if ( !this._ent_to_nullify || this._ent_to_nullify._is_being_removed )

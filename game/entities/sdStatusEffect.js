@@ -1361,6 +1361,8 @@ class sdStatusEffect extends sdEntity
 			{
 				status_entity.t = sdWorld.time; // Gets removed after 1 pulse, which is about 3 seconds.
 				status_entity.filter = params.filter || 'none';
+				status_entity.next_pulse = sdWorld.time + 800;
+				status_entity.zap_color = params.zap_color || 'FFFFFF';
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
@@ -1383,6 +1385,11 @@ class sdStatusEffect extends sdEntity
 				{
 				}
 				
+				if ( status_entity.next_pulse < sdWorld.time )
+				{
+					sdCrystal.ZapLine( status_entity.x, status_entity.y, status_entity.x - 64 + Math.random() * 128, status_entity.y - 64 + Math.random() * 128, status_entity.zap_color );
+					status_entity.next_pulse = sdWorld.time + 800;
+				}
 				if ( status_entity.for )
 				{
 					status_entity.x = status_entity.for.x;
