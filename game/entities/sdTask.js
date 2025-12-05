@@ -115,7 +115,6 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
-				console.log( task._difficulty );
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
@@ -609,7 +608,7 @@ class sdTask extends sdEntity
 					task._update_version++;
 					task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					
-					console.log('Difficulty: ' + task._difficulty);
+					//console.log('Difficulty: ' + task._difficulty);
 				}
 			}
 		}

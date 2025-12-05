@@ -199,6 +199,8 @@ class sdLongRangeTeleport extends sdEntity
 		
 		this._is_busy_since = 0; // Used to prevent activations whenever data is being sent/received
 		
+		this._current_category_stack = [];
+		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdLongRangeTeleport.long_range_teleports.push( this );
@@ -726,6 +728,76 @@ class sdLongRangeTeleport extends sdEntity
 			}
 		}
 		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_1' ) // Probably too much el-ifs. Should address later. - Booraz
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_2' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_3' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_4' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_5' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_6' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_7' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_8' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_9' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_PLASMA_RIFLE });
+			sdEntity.entities.push( gun );
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_10' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TELEKINETICS });
+			sdEntity.entities.push( gun );
+		}
+		/*else
 		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
 			for( let i = 0; i < 2; i++ ) // Task rewards now drop 2 items. Kind of painful to recieve only one item when you can get 15K worth of crystals - Booraz149
@@ -740,13 +812,42 @@ class sdLongRangeTeleport extends sdEntity
 		
 				sdEntity.entities.push( gun );
 			}
+			
 		}
+		*/
 		else
-		if ( rewards === 'CLAIM_REWARD_CRYSTALS' )
+		if ( rewards === 'CLAIM_REWARD_CRYSTALS_1x' )
 		{
 			for( let i = 0; i < 3; i++ )
 			{
 				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+				sdEntity.entities.push( crystal );
+			}
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_CRYSTALS_2x' )
+		{
+			for( let i = 0; i < 3; i++ )
+			{
+				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 10240, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+				sdEntity.entities.push( crystal );
+			}
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_CRYSTALS_4x' )
+		{
+			for( let i = 0; i < 3; i++ )
+			{
+				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 20480, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+				sdEntity.entities.push( crystal );
+			}
+		}
+		else
+		if ( rewards === 'CLAIM_REWARD_CRYSTALS_8x' )
+		{
+			for( let i = 0; i < 3; i++ )
+			{
+				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 40960, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 				sdEntity.entities.push( crystal );
 			}
 		}
@@ -1183,8 +1284,9 @@ class sdLongRangeTeleport extends sdEntity
 				if (	
 						// All possible reward claims - maybe no need to copy same code multiple times
 						command_name === 'CLAIM_REWARD_SHARDS' ||
-						command_name === 'CLAIM_REWARD_WEAPON' ||
-						command_name === 'CLAIM_REWARD_CRYSTALS' ||
+						command_name === 'CLAIM_REWARD_WEAPON_1' || command_name === 'CLAIM_REWARD_WEAPON_2' || command_name === 'CLAIM_REWARD_WEAPON_3' || command_name === 'CLAIM_REWARD_WEAPON_4' || command_name === 'CLAIM_REWARD_WEAPON_5' ||
+						command_name === 'CLAIM_REWARD_WEAPON_6' || command_name === 'CLAIM_REWARD_WEAPON_7' || command_name === 'CLAIM_REWARD_WEAPON_8' || command_name === 'CLAIM_REWARD_WEAPON_9' || command_name === 'CLAIM_REWARD_WEAPON_10' ||
+						command_name === 'CLAIM_REWARD_CRYSTALS_1x' || command_name === 'CLAIM_REWARD_CRYSTALS_2x' || command_name === 'CLAIM_REWARD_CRYSTALS_4x' || command_name === 'CLAIM_REWARD_CRYSTALS_8x' ||
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
 						command_name === 'CLAIM_REWARD_AD' ||
 						command_name === 'CLAIM_MERGER_CORE' ||
@@ -1201,6 +1303,15 @@ class sdLongRangeTeleport extends sdEntity
 							{
 								let claim_cost = ( command_name === 'CLAIM_REWARD_AD' ) ? 0 : 1;
 								
+								if ( command_name === 'CLAIM_REWARD_CRYSTALS_2x' )
+								claim_cost = 2;
+							
+								if ( command_name === 'CLAIM_REWARD_CRYSTALS_4x' )
+								claim_cost = 4;
+							
+								if ( command_name === 'CLAIM_REWARD_CRYSTALS_8x' )
+								claim_cost = 8;
+								
 								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{
 									this.Activation();
@@ -1216,6 +1327,9 @@ class sdLongRangeTeleport extends sdEntity
 										
 										if ( exectuter_character._task_reward_counter < claim_cost ) // Prevent claiming reward on multiple long-range teleports
 										{
+											if ( exectuter_character._task_reward_counter >= 1 )
+											executer_socket.SDServiceMessage( 'Reward claim was rejected - not enough rewards earned' );
+											else
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - reward was claimed somewhere else' );
 											return;
 										}
@@ -1232,7 +1346,10 @@ class sdLongRangeTeleport extends sdEntity
 									};
 								}
 								else
+								if ( exectuter_character._task_reward_counter >= claim_cost )
 								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
+								else
+								executer_socket.SDServiceMessage( 'Not enough rewards for this option' );
 							}
 							else
 							executer_socket.SDServiceMessage( 'Not enough matter' );
@@ -1769,23 +1886,73 @@ class sdLongRangeTeleport extends sdEntity
 			
 			if ( !this.is_server_teleport )
 			{
+				if ( this._current_category_stack.length === 0 )
 				this.AddContextOption( 'Send items for task completion ( 300 matter )', 'TELEPORT_STUFF', [] );
 				
 				//Allow regular LRTP to teleport near antennas
+				if ( this._current_category_stack.length === 0 )
 				this.AddContextOption( 'Teleport to nearest long range frequency antenna', 'TELEPORT_ANTENNA', [] );
 				
+				if ( this._current_category_stack.length > 0 )
+					this.AddClientSideActionContextOption( 'Go back...', ()=>
+					{
+						this._current_category_stack.pop();
+						this.RebuildContextMenu();
+					}, false );
+					
+					
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					if ( sdTask.tasks[ i ].mission )
 					{
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
 						{
-							this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
-							this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
-							this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
-							this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
-							this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
-							this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
+							if ( this._current_category_stack.length === 0 )
+							{
+								this.AddClientSideActionContextOption( 'Claim rewards...', ()=>
+								{
+									this._current_category_stack.push( 'rewards_select' );
+									this.RebuildContextMenu();
+								}, false );
+							}
+							if ( this._current_category_stack[ 0 ] === 'rewards_select' && this._current_category_stack.length === 1 ) // Selected "Claim rewards..."?
+							{
+								this.AddClientSideActionContextOption( 'Claim rewards ( crystals )', ()=>
+								{
+									this._current_category_stack.push( 'crystals_select' );
+									this.RebuildContextMenu();
+								}, false );
+								this.AddClientSideActionContextOption( 'Claim rewards ( weapon )', ()=>
+								{
+									this._current_category_stack.push( 'weapon_select' );
+									this.RebuildContextMenu();
+								}, false );
+								//this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
+								//this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
+								this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
+								this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
+								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
+							}
+							if ( this._current_category_stack[ 1 ] === 'crystals_select' ) // Selected " Claim rewards ( crystals ) "?
+							{
+								this.AddContextOption( 'Claim crystals ( 5120 matter ) ( 1 reward cost )', 'CLAIM_REWARD_CRYSTALS_1x', [] );
+								this.AddContextOption( 'Claim crystals ( 10240 matter ) ( 2 reward cost )', 'CLAIM_REWARD_CRYSTALS_2x', [] );
+								this.AddContextOption( 'Claim crystals ( 20480 matter ) ( 4 reward cost )', 'CLAIM_REWARD_CRYSTALS_4x', [] );
+								this.AddContextOption( 'Claim crystals ( 40960 matter ) ( 8 reward cost )', 'CLAIM_REWARD_CRYSTALS_8x', [] );
+							}
+							if ( this._current_category_stack[ 1 ] === 'weapon_select' ) // Selected " Claim rewards ( weapon ) "?
+							{
+								this.AddContextOption( 'Claim Task Ops DMR', 'CLAIM_REWARD_WEAPON_1', [] );
+								this.AddContextOption( 'Claim Task Ops Shotgun', 'CLAIM_REWARD_WEAPON_2', [] );
+								this.AddContextOption( 'Claim Combat Instructor', 'CLAIM_REWARD_WEAPON_3', [] );
+								this.AddContextOption( 'Claim Zapper', 'CLAIM_REWARD_WEAPON_4', [] );
+								this.AddContextOption( 'Claim Ray Rifle', 'CLAIM_REWARD_WEAPON_5', [] );
+								this.AddContextOption( 'Claim Area Amplifier', 'CLAIM_REWARD_WEAPON_6', [] );
+								this.AddContextOption( 'Claim Illusion Maker', 'CLAIM_REWARD_WEAPON_7', [] );
+								this.AddContextOption( 'Claim Level 4 Armor Regen Module', 'CLAIM_REWARD_WEAPON_8', [] );
+								this.AddContextOption( 'Claim Task Ops Plasma Rifle', 'CLAIM_REWARD_WEAPON_9', [] );
+								this.AddContextOption( 'Claim Gravity Gun', 'CLAIM_REWARD_WEAPON_10', [] );
+							}
 						}
 
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
@@ -1794,33 +1961,37 @@ class sdLongRangeTeleport extends sdEntity
 							{
 								if ( task.title === 'Planet scan' ) // This variable / property is the only way I got the context option to work, and that's after 6 beers and 3 hours - Booraz149
 								{
+									if ( this._current_category_stack.length === 0 )
 									this.AddContextOption( 'Recieve the land scanner', 'CLAIM_SCANNER', [] );
 								}
 							}
 						}
 					}
 				}
-				
+				if ( this._current_category_stack.length === 0 )
 				this.AddPromptContextOption( 'Send items to private storage on Mothership', 'SAVE_STUFF', [ undefined ], 'Enter name for item group', '', 100 );
 				
 				//sdMotherShipStorageManager.Open()
-				
+				if ( this._current_category_stack.length === 0 )
 				this.AddClientSideActionContextOption( 'Manage private storage on Mothership', ()=>
 				{
 					sdMotherShipStorageManager.Close();
 					sdMotherShipStorageManager.Open({ lrtp: this });
 				}, true );
-				
-				if ( sdWorld.my_entity )
-				if ( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ] === null )
-				this.AddContextOption( 'Ask Mothership for build tool', 'CLAIM_BUILD_TOOL', [] );
-		
-				this.AddContextOption( 'Ask Mothership for Hover', 'CLAIM_HOVER', [] );
-									
-				this.AddContextOption( 'Ask Mothership for crystals ( watch ad )', 'AD_REWARD_START', [] );
+				if ( this._current_category_stack.length === 0 )
+				{
+					if ( sdWorld.my_entity )
+					if ( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ] === null )
+					this.AddContextOption( 'Ask Mothership for build tool', 'CLAIM_BUILD_TOOL', [] );
+			
+					this.AddContextOption( 'Ask Mothership for Hover', 'CLAIM_HOVER', [] );
+										
+					this.AddContextOption( 'Ask Mothership for crystals ( watch ad )', 'AD_REWARD_START', [] );
+				}
 			}
 			else
 			{
+				if ( this._current_category_stack.length === 0 )
 				this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
 			}
 		}
