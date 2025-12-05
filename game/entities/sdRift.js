@@ -193,7 +193,7 @@ class sdRift extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 1 * sdTask.GetTaskDifficultyScaler(),		
+						difficulty: 1, // Task difficulty scaling now scales when someone is "eligible" for reward	
 						title: 'Close the dimensional tear',
 						description: potential_description
 					});

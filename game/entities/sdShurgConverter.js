@@ -178,7 +178,7 @@ class sdShurgConverter extends sdEntity
 				{
 					let task = sdTask.tasks[ i ];
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
-					task._difficulty = 0.2;
+					task._difficulty = 0.2 * task.GetContributingPlayers(); // Make sure it's divded between those that "contributed"
 				}
 
 				{
@@ -250,14 +250,14 @@ class sdShurgConverter extends sdEntity
 
 					let diff = 0.001; // 0 sets it to 0.1 since it doesn't count as a parameter? It gets set to 0 when damaged enough before being destroyed if not the last one, just in case.
 					if ( sdShurgConverter.ents_left === 0 )
-					diff = 0.15; // Only last machine counts towards task points when destroyed, so the task is 100% complete
+					diff = 0.2; // Only last machine counts towards task points when destroyed, so the task is 100% complete
 
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'DESTROY-'+this._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: diff * sdTask.GetTaskDifficultyScaler(),
+						difficulty: diff,
 						title: 'Destroy Shurg Converter',
 						description: desc
 					});

@@ -115,6 +115,7 @@ class sdTask extends sdEntity
 			},
 			onCompletion: ( task )=>
 			{
+				console.log( task._difficulty );
 				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
 				sdTask.completed_tasks_count++;
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
@@ -576,6 +577,45 @@ class sdTask extends sdEntity
 		return 1 / players;
 	}
 	
+	GetContributingPlayers() // Alternative version of GetTaskDifficultyScaler(), instead it just checks for players eligible for reward, called when someone contributes towards task
+	{
+		let players = 0;
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			let task = sdTask.tasks[ i ];
+			if ( task._similarity_hash === this._similarity_hash ) // Same hash? Same objective, different players probably
+			{
+				if ( task._approached_target )
+				players++;
+			}
+		}
+		
+		if ( players <= 1 )
+		return 1;
+		
+		return 1 / players;
+	}
+	UpdateTaskRewardsForContributors() // Update task reward values when someone is flagged "eligible" for task rewards
+	{
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			let task = sdTask.tasks[ i ];
+			if ( task._similarity_hash === this._similarity_hash ) // Same hash? Same objective, different players probably
+			{
+				if ( task._approached_target && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
+				{
+					task._difficulty = task._initial_difficulty * task.GetContributingPlayers();
+					task.SetBasicProgress(0, 1); // Update rewards displayed
+					task._update_version++;
+					task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+					console.log('Difficulty: ' + task._difficulty);
+				}
+			}
+		}
+		
+	}
+	
 	static MakeSureCharacterHasTask( params )
 	{
 		if ( params.similarity_hash === undefined )
@@ -619,6 +659,7 @@ class sdTask extends sdEntity
 
 					if ( typeof params.difficulty !== 'undefined' )
 					{
+						if ( !task._approached_target ) // Shouldn't reset difficulty back up, especially when it divides every time a new player contributes
 						task._difficulty = params.difficulty;
 					}
 					
@@ -690,6 +731,8 @@ class sdTask extends sdEntity
 
 
 		this._difficulty = Math.ceil( ( params.difficulty || 0 ) * 1000 ) / 1000; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
+		
+		this._initial_difficulty = this._difficulty; // Used for dividing rewards between contributing players
 		
 		this._allow_task_hibernation = params.allow_hibernation || true; // Comment below, set "false" only for long tasks like the mothership container
 		/*
@@ -833,6 +876,10 @@ class sdTask extends sdEntity
 						if ( sdWorld.Dist2D( this._executer.x, this._executer.y, this._target.x, this._target.y ) < 600 ) // Is player close enough?
 						{
 							this._approached_target = true;
+							
+							if ( sdTask.missions[ this.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
+							this.UpdateTaskRewardsForContributors();
+						
 							this._update_version++;
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						}

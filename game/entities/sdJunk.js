@@ -916,7 +916,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_DESTROY_ENTITY,
-										difficulty: 1 * sdTask.GetTaskDifficultyScaler(),
+										difficulty: 1, // Task difficulty scaling now scales when someone is "eligible" for reward
 										title: 'Destroy planetary matter drainer',
 										description: 'There is a planetary matter drainer spotted nearby. Destroy it before it drains all our matter!'
 									});
@@ -988,7 +988,7 @@ class sdJunk extends sdEntity
 								executer: sdWorld.sockets[ i ].character,
 								target: this,
 								mission: sdTask.MISSION_DESTROY_ENTITY,
-								difficulty: 3 * sdTask.GetTaskDifficultyScaler(),
+								difficulty: 3, // Task difficulty scaling now scales when someone is "eligible" for reward
 								time_left: ( this.detonation_in - 30 * 2 ),
 								title: 'Disarm Council bomb',
 								description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'
@@ -1227,7 +1227,7 @@ class sdJunk extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: 1 * sdTask.GetTaskDifficultyScaler(),
+							difficulty: 1, // Task difficulty scaling now scales when someone is "eligible" for reward
 							title: 'Destroy Erthal distress beacon',
 							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
 						});
@@ -1288,7 +1288,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_LRTP_EXTRACTION,
-										difficulty: 0.3 * sdTask.GetTaskDifficultyScaler(),
+										difficulty: 0.3, // If object is extracted, only the player that extracts it gets the reward
 										title: 'Extract alien artifact',
 										description: 'We would like to investigate this artifact you have found. Can you deliver it to the mothership using a long range teleporter?'
 									});

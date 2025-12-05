@@ -366,7 +366,7 @@ class sdTzyrgMortar extends sdEntity
 								executer: sdWorld.sockets[ i ].character,
 								target: this,
 								mission: sdTask.MISSION_DESTROY_ENTITY,
-								difficulty: 0.3 * sdTask.GetTaskDifficultyScaler(),
+								difficulty: 0.3, // Task difficulty scaling now scales when someone is "eligible" for reward
 								title: 'Destroy Tzyrg mortar',
 								description: desc
 							});

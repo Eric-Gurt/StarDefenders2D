@@ -211,9 +211,9 @@ class sdCouncilMachine extends sdEntity
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
 					{
 						if ( this._one_time_spawn === false )
-						task._difficulty = 0.40;
+						task._difficulty = 0.40 * task.GetContributingPlayers(); // Make sure it's divded between those that "contributed"
 						else
-						task._difficulty = 0.10; // Beam projector scenario
+						task._difficulty = 0.10 * task.GetContributingPlayers(); // Make sure it's divded between those that "contributed", Beam projector scenario
 					}
 				}
 
@@ -355,7 +355,7 @@ class sdCouncilMachine extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: diff * sdTask.GetTaskDifficultyScaler(),
+							difficulty: diff, // Task difficulty scaling now scales when someone is "eligible" for reward
 							time_left: ( this.detonation_in - 30 * 2 ),
 							title: 'Destroy Council portal machine',
 							description: desc
