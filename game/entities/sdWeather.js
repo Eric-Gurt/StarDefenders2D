@@ -88,6 +88,7 @@ import sdShurgManualTurret from './sdShurgManualTurret.js';
 import sdHover from './sdHover.js';
 import sdMothershipContainer from './sdMothershipContainer.js';
 import sdStalker from './sdStalker.js';
+import sdSetrBeholder from './sdSetrBeholder.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -2707,26 +2708,39 @@ class sdWeather extends sdEntity
 			}
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
 			{
-				if ( ais < this._max_ai_count )
+				if ( Math.random() < 0.6 ) // 60% chance to spawn humanoids
 				{
-					let max_ai = Math.min( 6, this._max_ai_count - ais );
-					let min_ai = Math.min( 3, this._max_ai_count );
-					let character_ents = [];
-					
-					sdWeather.SimpleSpawner({
+					if ( ais < this._max_ai_count )
+					{
+						let max_ai = Math.min( 6, this._max_ai_count - ais );
+						let min_ai = Math.min( 3, this._max_ai_count );
+						let character_ents = [];
+						
+						sdWeather.SimpleSpawner({
 
-						count: [ min_ai, max_ai ],
-						class: sdCharacter,
-						params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
-						aerial: true,
-						store_ents: character_ents,
-						near_entity: near_ent,
-						group_radius: group_rad
+							count: [ min_ai, max_ai ],
+							class: sdCharacter,
+							params: { _ai_enabled:sdCharacter.AI_MODEL_FALKOK },
+							aerial: true,
+							store_ents: character_ents,
+							near_entity: near_ent,
+							group_radius: group_rad
 
-					});
-					for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
-					sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_SETR ); // And give them Setr properties
+						});
+						for ( let i = 0; i < character_ents.length; i++ ) // Cycle through spawned humanoids
+						sdFactions.SetHumanoidProperties( character_ents[ i ], sdFactions.FACTION_SETR ); // And give them Setr properties
+					}
 				}
+				else // Spawn 1-2 Beholder vehicles with a pilot
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 2 ],
+					class: sdSetrBeholder,
+					aerial: true,
+					params: { spawn_with_pilot: true },
+					near_entity: near_ent,
+					group_radius: group_rad
+				});
 				/*let instances = 0;
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
