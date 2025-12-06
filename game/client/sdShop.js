@@ -728,6 +728,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdRift', type: 5, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRift', type: 6, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMeow', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSetrBeholder', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSetrBeholder', spawn_with_pilot: true, _category:'Development tests' });
 				
 				{
 					// Testing potential new specialities
