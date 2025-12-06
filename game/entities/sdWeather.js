@@ -2962,7 +2962,7 @@ class sdWeather extends sdEntity
 			if ( sdBiter.biters_counter < 35 || sdWorld.server_config.aggressive_hibernation )
 			sdWeather.SimpleSpawner({
 				
-				count: [ 2, 2 + Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ],
+				count: [ 3, 3 + Math.ceil( Math.random() * 3 * sdWorld.GetPlayingPlayersCount() ) ],
 				class: sdBiter,
 				
 				aerial: true,

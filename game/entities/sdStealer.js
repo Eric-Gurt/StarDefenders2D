@@ -23,8 +23,6 @@ class sdStealer extends sdEntity
 		sdStealer.death_duration = 30;
 		sdStealer.post_death_ttl = 120;
 		
-		sdStealer.attack_range = 375;
-		
 		sdStealer.debug = false; // Debug mode allows stealer to ignore players, BSUs. Enabled at your own risk
 		
 		if ( sdStealer.debug )
@@ -61,7 +59,7 @@ class sdStealer extends sdEntity
 		this._move_dir_timer = 0;
 		
 		this.attack_anim = 0;
-		this._attack_timer = 30;
+		this._attack_timer = sdWorld.time + 2000; // Uses sdWorld.time so it is consistent regardless of hibernation
 		
 		this._current_target = null;
 		
@@ -144,9 +142,17 @@ class sdStealer extends sdEntity
 		let ent = sdEntity.GetRandomActiveEntity();
 		if ( ent )
 		{
-			if ( ent.is( sdCrystal ) || ent.is( sdGun ) ) // Is it a crystal or a weapon? 
+			if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
-				if ( this.IsEntFarEnough( ent ) && ent.held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character/amplifier )
+				if ( this.IsEntFarEnough( ent ) && ent.held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Amplifier )
+				{
+					this._last_found_target = 0;
+					return ent; // Target it
+				}
+			}
+			if ( ent.is( sdGun ) ) // Is it a weapon?
+			{
+				if ( this.IsEntFarEnough( ent ) && ent._held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character )
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
@@ -200,9 +206,14 @@ class sdStealer extends sdEntity
 						else // Nothing colliding between stealer and entity?
 						{
 							let can_steal = true;
-							if ( e.is( sdCrystal ) || e.is( sdGun ) )
+							if ( e.is( sdCrystal ) )
 							{
 								if ( e.held_by ) // Is object held by something?
+								can_steal = false; // Don't allow stealing
+							}
+							if ( e.is( sdGun ) ) // ( e.held_by is invalid for sdGun, which let stealer steal equipped weapons in debug mode )
+							{
+								if ( e._held_by ) // Is object held by something?
 								can_steal = false; // Don't allow stealing
 							}
 							if ( sdArea.CheckPointDamageAllowed( xx, yy ) && can_steal )
@@ -363,11 +374,9 @@ class sdStealer extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
-			if ( this._attack_timer > 0 )
-			this._attack_timer -= GSPEED;
-			else
+			if ( this._attack_timer < sdWorld.time )
 			{
-				this._attack_timer = 60; // Every 2 seconds it should either look for a new crystal, steal one near it or teleport away
+				this._attack_timer = sdWorld.time + 2000; // Every 2 seconds it should either look for a new crystal, steal one near it or teleport away
 				/* It should probably teleport away from players and teleport crystals, aswell as check if it can teleport to a new location
 				where crystals are outside of BSU and player range. Should be much more efficient at doing that rather than 
 				the crystal hunting worm, which would become obsolete since this entity will replace it.
@@ -407,7 +416,7 @@ class sdStealer extends sdEntity
 						}
 						else
 						{
-							this._attack_timer = 15 + Math.random() * 15; // Speed up stealing
+							this._attack_timer = sdWorld.time + 1000 + ( Math.random() * 1000 );
 							this._last_found_target = 0; // It should not disappear if it teleported something
 						}
 					}

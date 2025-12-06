@@ -242,6 +242,9 @@ class sdJunk extends sdEntity
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
+		
+		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
+		this._rate = Math.max( 0, this._rate - dmg ); // Spawn 2 Erthals near the beacon after certain health thresholds
 
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
@@ -1248,6 +1251,88 @@ class sdJunk extends sdEntity
 					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )
 					{
 						this.remove(); // Remove and maybe give task reward
+					}
+				}
+				if ( this._rate === 0 ) // Spawn Erthals (when some damage thresholds are reached)
+				{
+					// Didn't want to create a new variable for this part - Booraz
+					this._rate = ( this.hmax / 4 ) - 50; // Reset threshold
+					{
+
+						let erthal_soldiers = 0;
+						let erthal_soldiers_tot = 2;
+
+						let left_side = ( Math.random() < 0.5 );
+
+						while ( erthal_soldiers < erthal_soldiers_tot )
+						{
+
+							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+							sdEntity.entities.push( character_entity );
+
+							{
+								let x,y;
+								let tr = 1000;
+								do
+								{
+									if ( left_side )
+									{
+										x = this.x + 16 + 16 * erthal_soldiers + ( Math.random() * 192 );
+
+										if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * erthal_soldiers + ( Math.random() * 192 );
+
+										if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * erthal_soldiers - ( Math.random() * 192 );
+									}
+									else
+									{
+										x = this.x - 16 - 16 * erthal_soldiers - ( Math.random() * 192 );
+
+										if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * erthal_soldiers + ( Math.random() * 192 );
+
+										if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * erthal_soldiers - ( Math.random() * 192 );
+									}
+
+									y = this.y + 192 - ( Math.random() * ( 384 ) );
+									if ( y < sdWorld.world_bounds.y1 + 32 )
+									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+									if ( y > sdWorld.world_bounds.y2 - 32 )
+									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+									if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+									//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+									{
+										character_entity.x = x;
+										character_entity.y = y;
+
+										sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_ERTHAL );
+										character_entity._ai_stay_near_entity = this;
+										character_entity._ai_stay_distance = 64;
+										
+										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+										sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
+										
+										break;
+									}
+
+									tr--;
+									if ( tr < 0 )
+									{
+										character_entity.remove();
+										character_entity._broken = false;
+										break;
+									}
+								} while( true );
+							}
+							erthal_soldiers++;
+						}
 					}
 				}
 			}

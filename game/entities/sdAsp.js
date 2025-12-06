@@ -134,7 +134,7 @@ class sdAsp extends sdEntity
 			if ( di < sdAsp.max_seek_range || this._unlimited_range )
 			if ( this._current_target === null || 
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
-				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) || this._unlimited_range )
 			{
 				this._current_target = character;
 

@@ -174,7 +174,7 @@ class sdFleshGrabber extends sdEntity
 
 						if ( this._tenta_target && this.tenta_tim > 10 && this.tenta_tim < 90 )
 						{
-							let dir_mult = 1 / Math.max( 16, sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) );
+							let dir_mult = 0.25 / Math.max( 16, sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) ); // Even 0.5 seems like too much of pull at longer ranges
 							
 							let add_x = - this.tenta_x * dir_mult;
 							let add_y = - this.tenta_y * dir_mult;
@@ -188,7 +188,7 @@ class sdFleshGrabber extends sdEntity
 							if ( typeof this._tenta_target.sy !== 'undefined' )
 							{
 								add_y -= this._tenta_target.sy * 0.01; // Acceleration stopping force
-								this._tenta_target.sy += add_y;
+								this._tenta_target.sy += add_y; // Pull it in
 							}
 
 							if ( this._tenta_target.IsPlayerClass() )
