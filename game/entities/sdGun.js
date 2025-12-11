@@ -548,6 +548,8 @@ class sdGun extends sdEntity
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		
 		this._access_id = params.access_id || null; // For keycards
+
+		this._anim = 0; // Client side animations
 		
 		this.overheat = 0; // Used by minigun-like weapons
 		this._overheat_cooldown = 0;
@@ -1630,6 +1632,13 @@ class sdGun extends sdEntity
 				this.held_by_net_id = this._held_by._net_id;
 				this.held_by_class = this._held_by.GetClass();
 			}
+		}
+
+		let known_class = sdGun.classes[ this.class ];
+        if ( known_class && known_class.onThink )
+        {
+            known_class.onThink( this, GSPEED );
+            
 		}
 		
 		if ( sdWorld.is_server )
