@@ -1650,7 +1650,7 @@ class sdStatusEffect extends sdEntity
 					
 					if ( status_entity.visual ) return; // No need for AI logic
 					
-					if ( status_entity.for._ai_enabled )
+					if ( status_entity.for._ai_enabled && ( status_entity._ttl > status_entity.for.hea || status_entity.ttl <= 0 ) ) // Buildup accumulated?
 					{
 						status_entity._first_team = status_entity.for._ai_team; // Fix client-side errors
 					
@@ -1675,9 +1675,8 @@ class sdStatusEffect extends sdEntity
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
-				status_entity._ttl = params.ttl;
+				status_entity._ttl += params.ttl; // Extend time/buildup
 				status_entity._update_version++;
-
 				return true; // Cancel merge process
 			},
 			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
@@ -1692,32 +1691,41 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( status_entity._ttl > 0 )
 				{
+					if ( status_entity.for )
+					{
+						if ( status_entity._ttl > status_entity.for.hea )
+						status_entity._ttl -= GSPEED / 2; // Slower drain of the effect if it's active
+					}
+					else
 					status_entity._ttl -= GSPEED;
-
+				
 					if ( status_entity._ttl <= 0 )
 					status_entity.remove();
 				}
 				if ( sdWorld.is_server )
-				if ( status_entity._controllable )
-				if ( status_entity._owner && status_entity._owner._key_states.GetKey( 'Mouse1' ) )
+				if ( status_entity.for )
+				if ( status_entity._ttl > status_entity.for.hea || status_entity.ttl <= 0 ) // Buildup accumulated?
 				{
-					if ( status_entity.for )
-					if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
-					if ( status_entity.for._ai_enabled )
+					if ( status_entity._controllable )
+					if ( status_entity._owner && status_entity._owner._key_states.GetKey( 'Mouse1' ) )
 					{
-						if ( status_entity.for._ai && status_entity.for._ai.target )
-						status_entity.for._ai.target = null; // Reset current target before doing anything
-					
-						status_entity.for.look_x = status_entity._owner.look_x;
-						status_entity.for.look_y = status_entity._owner.look_y;
+						//if ( status_entity.for )
+						if ( status_entity.for.is( sdWorld.entity_classes.sdCharacter ) )
+						if ( status_entity.for._ai_enabled )
+						{
+							if ( status_entity.for._ai && status_entity.for._ai.target )
+							status_entity.for._ai.target = null; // Reset current target before doing anything
 						
-						if ( !status_entity._is_being_removed ) // Prevents infinite fire
-						status_entity.for._ai_force_fire = true;
+							status_entity.for.look_x = status_entity._owner.look_x;
+							status_entity.for.look_y = status_entity._owner.look_y;
+							
+							if ( !status_entity._is_being_removed ) // Prevents infinite fire
+							status_entity.for._ai_force_fire = true;
+						}
 					}
+					else
+					status_entity.for._ai_force_fire = false;
 				}
-				else
-				status_entity.for._ai_force_fire = false;
-			
 				if ( status_entity.visual ) return;
 				
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )

@@ -846,8 +846,8 @@ class sdGun extends sdEntity
 		if ( sdGun.classes[ this.class ].slot === 1 ) // Slot 1 weapons get additional 50% matter cost reduction
 		mult = mult * 0.5;
 		
-		if ( sdGun.classes[ this.class ].bullet_cost_multiplier ) // In some cases this is better than GetAmmoCost()
-		mult = mult * sdGun.classes[ this.class ].bullet_cost_multiplier;
+		if ( sdGun.classes[ this.class ].BulletCostMultiplier ) // In some cases this is better than GetAmmoCost()
+		mult = mult * sdGun.classes[ this.class ].BulletCostMultiplier( this );
 		
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
 		return mult * sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );

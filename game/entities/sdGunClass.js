@@ -1786,17 +1786,17 @@ class sdGunClass
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { _rail: true, _rail_circled: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 75, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, _rail_circled: true, _damage: 62, color: '#FF0000' };
+				let obj = { _rail: true, _rail_circled: true, _damage: 75, color: '#FF0000' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				obj._damage *= 1 + ( gun._combo / 45 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
+				obj._damage *= 1 + ( gun._combo / 48 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
 				
 				if ( gun._combo >= 360 ) // Full charge?
 				{
@@ -1822,9 +1822,9 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 62; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 75; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
-					gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 45 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds
+					gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 48 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds. Regular fire mode is weaker in DPS.
 				}
 			},
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -1845,7 +1845,14 @@ class sdGunClass
 				{
 					if ( gun._held_by )
 					{
-						if ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by._auto_shoot_in <= 0 ) // Build up damage when holding the Button
+						// Normal fire mode, rail without charge.
+						if ( gun.fire_mode === 1 && gun._held_by._auto_shoot_in <= 0 )
+						{
+							gun._combo = 0;
+							gun._held_by._auto_shoot_in = 1;
+						}
+						// Alt fire mode, charge up then fire.
+						if ( gun.fire_mode !== 1 && ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by._auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
 						{
 							if ( gun._combo === 20 || ( gun._combo === 360 && gun._combo_timer < 5 ) ) // Started charging?
 							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
@@ -1874,18 +1881,35 @@ class sdGunClass
 				
 				
 					let matter_cost = gun.GetBulletCost();
-					
-					if ( gun._held_by.matter >= matter_cost )
-					if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
+					if ( gun.fire_mode === 1 ) // Normal fire mode?
 					{
-						gun._held_by.matter -= matter_cost;
-						if ( gun._combo !== 360 )
-						gun._combo_timer = 1;
-						else
-						gun._combo_timer = 21; // This way combo is kept and next shot sets it to 180
+						if ( gun._held_by.matter >= matter_cost )
+						if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+						{
+							gun._held_by.matter -= matter_cost;
+							gun._held_by._auto_shoot_in = 18;
+						}
+					}
+					if ( gun.fire_mode !== 1 ) // Alt fire mode?
+					{
+						if ( gun._held_by.matter >= matter_cost )
+						if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
+						{
+							gun._held_by.matter -= matter_cost;
+							if ( gun._combo !== 360 )
+							gun._combo_timer = 1;
+							else
+							gun._combo_timer = 21; // This way combo is kept and next shot sets it to 180
+						}
 					}
 				}
-				return true;
+				if ( ( gun.fire_mode === 1 && gun._held_by._key_states.GetKey( 'Mouse1' ) ) || ( gun.fire_mode !== 1 && !gun._held_by._key_states.GetKey( 'Mouse1' ) ) )
+				{
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					return true;
+				}
+				else
+				return false;
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30 ) )
 		};
@@ -7487,7 +7511,7 @@ class sdGunClass
 				{
 					let temp = sdStatusEffect.GetTemperature( target_entity ) || 0; // Check entity temperature
 					if ( temp > 700 ) // On fire?
-					obj._damage = obj._damage * 1.25; // 25% more damage on targets set on fire
+					bullet._damage = obj._damage * 1.25; // 25% more damage on targets set on fire
 				};
 				
 				return obj;
@@ -9820,6 +9844,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'stalker_beam' ),
 			image_alt: sdWorld.CreateImageFromFile( 'stalker_beam2' ),
 			sound: 'cube_attack',
+			sound_pitch: 1.5,
 			title: 'Stalker Psychotic Beam',
 			slot: 4,
 			reload_time: 3,
@@ -9830,6 +9855,14 @@ class sdGunClass
 			spawnable: false,
 			fire_mode: 1,
 			has_alt_fire_mode: true,
+			BulletCostMultiplier: ( gun )=>
+			{
+				// Can handle fire modes this way.
+				if ( gun.fire_mode === 2 )
+				return 2.5;
+				
+				return 1.5;
+			},
 			projectile_properties_dynamic: ( gun )=> { 
 				
 				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ], _custom_target_reaction:( bullet, target_entity )=>
@@ -9837,9 +9870,8 @@ class sdGunClass
 					if ( target_entity.IsPlayerClass() )
 					{
 						let owner = gun._held_by;
-						
 						if ( owner && !owner._is_being_removed )
-						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20, owner: owner, controllable: gun.fire_mode === 2 });
+						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 35, owner: owner, controllable: gun.fire_mode === 2 });
 					}
 				} };
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
@@ -9887,7 +9919,14 @@ class sdGunClass
 			spawnable: false,
 			fire_mode: 1,
 			has_alt_fire_mode: true,
-			bullet_cost_multiplier: 2, // Infinite ammo should have some drawback
+			BulletCostMultiplier: ( gun )=>
+			{
+				// Can handle fire modes this way.
+				if ( gun.fire_mode === 2 )
+				return 4; // Homing bullets should cost more matter
+				
+				return 2; // Infinite ammo should have some drawback
+			},
 			projectile_properties: { color: '#00FFFF', _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
