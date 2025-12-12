@@ -1676,6 +1676,11 @@ class sdStatusEffect extends sdEntity
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
 				status_entity._ttl += params.ttl; // Extend time/buildup
+				if ( status_entity.for )
+				{
+					if ( status_entity._ttl > status_entity.hmax * 2 )
+					status_entity._ttl = status_entity.hmax;
+				}
 				status_entity._update_version++;
 				return true; // Cancel merge process
 			},

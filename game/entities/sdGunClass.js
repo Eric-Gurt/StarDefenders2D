@@ -7511,7 +7511,7 @@ class sdGunClass
 				{
 					let temp = sdStatusEffect.GetTemperature( target_entity ) || 0; // Check entity temperature
 					if ( temp > 700 ) // On fire?
-					bullet._damage = obj._damage * 1.25; // 25% more damage on targets set on fire
+					bullet._damage = bullet._damage * 1.25; // 25% more damage on targets set on fire
 				};
 				
 				return obj;
@@ -9696,7 +9696,7 @@ class sdGunClass
 						
 						if ( sdWorld.is_server )
 						if ( gun.fire_mode === 2 )
-						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 150 });
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
 					}
@@ -9777,7 +9777,7 @@ class sdGunClass
 									{
 										if ( sdWorld.is_server )
 										if ( gun.fire_mode === 2 )
-										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+										e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 150 });
 									}
 								}
 							}
@@ -9806,7 +9806,7 @@ class sdGunClass
 								{
 									if ( nears[ i ].IsPlayerClass() )
 									{
-										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 150 });
 									}
 								}
 							}
