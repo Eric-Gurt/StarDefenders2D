@@ -21,6 +21,7 @@ class sdBot extends sdEntity
 	static init_class()
 	{
 		//sdBot.img_beacon = sdWorld.CreateImageFromFile( 'beacon' );
+		sdBot.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 		
 		// Additionally hardcoded into sdBotFactory's ._program_globals
 		sdBot.BOT_KIND_REPAIR = 0;
@@ -34,6 +35,7 @@ class sdBot extends sdEntity
 		sdBot.function_descriptions = sdProgram.PrepareFunctionDescriptions( obj );
 		
 		sdBot.ignored_classes = [ 'sdBotFactory', 'sdBotCharger' ];
+		sdBot.just_sdBot = [ 'sdBot' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -944,7 +946,7 @@ class sdBot extends sdEntity
 				if ( !this.carrying.CanMoveWithoutOverlap( this.carrying.x + disp_x, this.carrying.y + disp_y ) )
 				if ( this.carrying.CanMoveWithoutOverlap( xx, yy ) )
 				{
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this.carrying, [ 'sdBot' ] ) )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this.carrying, sdBot.just_sdBot ) )
 					{
 						wants_teleport = true;
 					}
@@ -1094,11 +1096,11 @@ class sdBot extends sdEntity
 				ctx.filter = 'none';
 				ctx.globalAlpha = 0.5;
 
-				ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdBot.img_glow, - 16, - 16, 32, 32 );
 
 				ctx.translate( this.carrying.x + ( this.carrying._hitbox_x1 + this.carrying._hitbox_x2 ) / 2 - this.x, this.carrying.y + ( this.carrying._hitbox_y1 + this.carrying._hitbox_y2 ) / 2 - this.y );
 
-				ctx.drawImageFilterCache( sdPlayerDrone.img_glow, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdBot.img_glow, - 16, - 16, 32, 32 );
 
 				ctx.globalAlpha = 1;
 				ctx.blend_mode = THREE.NormalBlending;

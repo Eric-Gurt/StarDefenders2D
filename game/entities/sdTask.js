@@ -777,7 +777,7 @@ class sdTask extends sdEntity
 				this.description = 'Error during mission construction';
 				this.time_left = -1;
 				
-				trace( 'sdTask construction error in mission functions. params:', params );
+				trace( 'sdTask construction error in mission functions. params:', params, e );
 			}
 		}
 		
