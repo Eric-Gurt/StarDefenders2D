@@ -486,18 +486,6 @@ class sdLongRangeTeleport extends sdEntity
 				return false;
 			}
 			
-			// Disable teleporting items which have a "Protect" task on them, aswell as "Destroy"
-			for ( let i = 0; i < sdTask.tasks.length; i++ )
-			{
-				let task = sdTask.tasks[ i ];
-				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_PROTECT_ENTITY ] )
-				return false;
-			
-				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
-				return false;
-			}
-
-
 			if ( use_task_filter )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
@@ -628,6 +616,20 @@ class sdLongRangeTeleport extends sdEntity
 				{
 					return IsTeleportable( ent._held_by || ent.held_by );
 				}
+			}
+			
+			/* Disable teleporting items which have a "Protect" task on them, aswell as "Destroy"
+				... But make sure we checked if the item belongs to an extraction task beforehand
+			*/
+			
+			for ( let i = 0; i < sdTask.tasks.length; i++ )
+			{
+				let task = sdTask.tasks[ i ];
+				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_PROTECT_ENTITY ] )
+				return false;
+			
+				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
+				return false;
 			}
 			
 			return true;
@@ -1937,8 +1939,8 @@ class sdLongRangeTeleport extends sdEntity
 							{
 								this.AddContextOption( 'Claim crystals ( 5120 matter ) ( 1 reward cost )', 'CLAIM_REWARD_CRYSTALS_1x', [] );
 								this.AddContextOption( 'Claim crystals ( 10240 matter ) ( 2 reward cost )', 'CLAIM_REWARD_CRYSTALS_2x', [] );
-								this.AddContextOption( 'Claim crystals ( 20480 matter ) ( 4 reward cost )', 'CLAIM_REWARD_CRYSTALS_4x', [] );
-								this.AddContextOption( 'Claim crystals ( 40960 matter ) ( 8 reward cost )', 'CLAIM_REWARD_CRYSTALS_8x', [] );
+								this.AddContextOption( 'Claim crystals ( 20480 matter ) ( 5 reward cost )', 'CLAIM_REWARD_CRYSTALS_4x', [] );
+								this.AddContextOption( 'Claim crystals ( 40960 matter ) ( 10 reward cost )', 'CLAIM_REWARD_CRYSTALS_8x', [] );
 							}
 							if ( this._current_category_stack[ 1 ] === 'weapon_select' ) // Selected " Claim rewards ( weapon ) "?
 							{
