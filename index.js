@@ -892,7 +892,8 @@ let busy_tot = 0;
 		{
 			let path2 = path.split('?')[0];
 
-			fs.access( path2, fs.F_OK, (err) => 
+			//fs.access( path2, fs.F_OK, (err) => Deprecated in new version
+			fs.access( path2, fs.constants.F_OK, (err) => 
 			{
 				//let t3 = Date.now();
 
