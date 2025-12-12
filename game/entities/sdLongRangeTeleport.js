@@ -1307,10 +1307,10 @@ class sdLongRangeTeleport extends sdEntity
 								claim_cost = 2;
 							
 								if ( command_name === 'CLAIM_REWARD_CRYSTALS_4x' )
-								claim_cost = 4;
+								claim_cost = 5; // Makes sense for additional cost due to being already combined
 							
 								if ( command_name === 'CLAIM_REWARD_CRYSTALS_8x' )
-								claim_cost = 8;
+								claim_cost = 10; // Same as above
 								
 								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{
