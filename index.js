@@ -1,5 +1,5 @@
 
-/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase, Buffer, Infinity, sdServerConfigFull, sdInterface, sdLongRangeTeleport, sdServerToServerProtocol, sdCharacter, sdDeepSleep, sdPlayerSpectator, sdStorage, os, sdGun, sdMemoryLeakSeeker, zlib, Promise, sdDictionaryWords, sdSound, LZW, sdEffect, sdTask, WorkerServiceLogic, await, imported, FakeCanvasContext, Server, geckos, https, spawn, http */
+/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase, Buffer, Infinity, sdServerConfigFull, sdInterface, sdLongRangeTeleport, sdServerToServerProtocol, sdCharacter, sdDeepSleep, sdPlayerSpectator, sdStorage, os, sdGun, sdMemoryLeakSeeker, zlib, Promise, sdDictionaryWords, sdSound, LZW, sdEffect, sdTask, WorkerServiceLogic, await, imported, FakeCanvasContext, Server, geckos, https, spawn, http, sdKeyStates, sdByteShifter, sdRenderer */
 
 let port0 = 3000;
 let CloudFlareSupport = false;
@@ -783,6 +783,8 @@ let busy_tot = 0;
 	{
 		const fullPath = req.url;
 		
+		//trace( 'fullPath', fullPath );
+		
 		if ( fullPath.indexOf( '..' ) !== -1 ) // Doesn't happen really
 		return;
 		
@@ -985,11 +987,14 @@ let busy_tot = 0;
 				Finalize();
 			});
 		}
-	}
+	};
 	//app.get('/', cb );
 	//app.get('/*fullPath', cb );
+	//app.get('/*', ); No longer supported in Node v22
+	
 	app.get('/{*fullPath}', cb );
-	//app.get('/*', ); No longer supported
+	
+	//trace( 'app.get callback set' );
 }
 
 

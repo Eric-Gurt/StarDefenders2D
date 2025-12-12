@@ -4,7 +4,8 @@
   "description": "my first socket.io app",
   "type": "module",
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^5.2.1",
+    "mime": "^4.1.0",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2"
   },
