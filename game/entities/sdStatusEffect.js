@@ -1678,8 +1678,8 @@ class sdStatusEffect extends sdEntity
 				status_entity._ttl += params.ttl; // Extend time/buildup
 				if ( status_entity.for )
 				{
-					if ( status_entity._ttl > status_entity.hmax * 2 )
-					status_entity._ttl = status_entity.hmax;
+					if ( status_entity._ttl > status_entity.for.hmax * 2 )
+					status_entity._ttl = status_entity.for.hmax;
 				}
 				status_entity._update_version++;
 				return true; // Cancel merge process
