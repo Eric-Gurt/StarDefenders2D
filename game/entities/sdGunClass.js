@@ -124,6 +124,51 @@ class sdGunClass
 			
 			return arr;
 		}
+		function AddProjectileRecolor( arr, from_color, cost, category='' )
+		{
+			
+			arr.push(
+			{ 
+				title: 'Customize projectile color',
+				cost: cost,
+				category: category,
+				//hint_color: '#ff0000', // Should be guessed from gun
+				color_picker_for: from_color,
+				action: ( gun, initiator=null, hex_color=null )=> // action method is called with 3rd parameter only because .color_picker_for is causing sdWeaponBench to send extra parameters at .AddColorPickerContextOption . It does not send first parameter from "parameters_array" which is passed to .ExecuteContextCommand as it contains just upgrade ID, which is pointless here (yes, it converts array into function arguments)
+				{ 
+					if ( hasNoExtra( gun, initiator ) )
+					return false;
+					
+					if ( typeof hex_color === 'string' && hex_color.length === 7 ) // ReplaceColorInSDFilter_v2 does the type check but just in case
+					{
+						gun.extra[ ID_PROJECTILE_COLOR ] = hex_color;
+					}
+				}
+			});
+			
+			/*
+			for ( let i = 0; i < arr.length; i++ )
+			if ( arr[ i ].title === 'Reset projectile color' )
+			if ( arr[ i ].category === category )
+			{
+				arr.splice( i, 1 );
+				i--;
+				continue;
+			}
+			*/
+			arr.push(
+			{ 
+				title: 'Reset projectile color',
+				cost: cost,
+				category: category,
+				action: ( gun, initiator=null )=>
+				{ 
+					gun.extra[ ID_PROJECTILE_COLOR ] = null;
+				}
+			});
+			
+			return arr;
+		}
 		function AppendBasicCubeGunRecolorUpgrades( arr )
 		{
 			AddRecolorsFromColorAndCost( arr, '#00fff6', 100 );
@@ -597,15 +642,45 @@ class sdGunClass
 
 		// Function below for regular non custom guns
 
-		function AddGunDefaultUpgrades( normal_rifle_upgrades=[] )
+		function AddGunDefaultUpgrades( normal_rifle_upgrades = [] )
 		{
+			// Projectile colors
+			normal_rifle_upgrades.push(
+			{ 
+				title: 'Customize projectile color',
+				cost: 30,
+				//hint_color: '#ff0000', // Should be guessed from gun
+				color_picker_for: '#ffffff', // What am I doing here - Booraz
+				action: ( gun, initiator=null, hex_color=null )=> // action method is called with 3rd parameter only because .color_picker_for is causing sdWeaponBench to send extra parameters at .AddColorPickerContextOption . It does not send first parameter from "parameters_array" which is passed to .ExecuteContextCommand as it contains just upgrade ID, which is pointless here (yes, it converts array into function arguments)
+				{ 
+					if ( hasNoExtra( gun, initiator ) )
+					return false;
+					
+					if ( typeof hex_color === 'string' && hex_color.length === 7 ) // ReplaceColorInSDFilter_v2 does the type check but just in case
+					{
+						gun.extra[ ID_PROJECTILE_COLOR ] = hex_color;
+					}
+				}
+			});
+			normal_rifle_upgrades.push(
+			{ 
+				title: 'Reset projectile color',
+				cost: 30,
+				action: ( gun, initiator=null )=>
+				{ 
+					if ( hasNoExtra( gun, initiator ) )
+					return false;
+				
+					gun.extra[ ID_PROJECTILE_COLOR ] = null;
+				}
+			});
 			normal_rifle_upgrades.push(
 				{
 					title: 'Customize properties...', 
 					represents_category: 'customize_properties'
 				} 
 			);
-			normal_rifle_upgrades.push(
+			/*normal_rifle_upgrades.push(
 				{
 					title: 'Randomize projectile color', 
 					cost: 0, 
@@ -621,6 +696,7 @@ class sdGunClass
 					} 
 				} 
 			);
+			*/
 
 			normal_rifle_upgrades.push(
 				{

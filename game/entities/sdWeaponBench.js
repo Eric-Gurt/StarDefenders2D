@@ -969,15 +969,35 @@ class sdWeaponBench extends sdEntity
 								else
 								if ( upgrade.color_picker_for )
 								{
-									if ( upgrade.color_picker_for.length === 7 )
-									upgrade.color_picker_for = upgrade.color_picker_for.substring( 1 ); // Skip #
+									// Once again butchering code - Booraz
+									if ( upgrade.title ==='Customize projectile color' )
+									{
+										if ( upgrade.color_picker_for.length === 7 )
+										upgrade.color_picker_for = upgrade.color_picker_for.substring( 1 ); // Skip #
+								
+										let color = 'ffffff'; // Default value
+								
+										if ( item.extra[ 16 ] ) // Replace with whatever is currently picked
+										{
+											color = item.extra[ 16 ];
+											color = color.substring( 1 );
+											upgrade.color_picker_for = color;
+										}
 							
-									let color = upgrade.color_picker_for;
+										this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+									}
+									else // Normal weapon recoloring
+									{
+										if ( upgrade.color_picker_for.length === 7 )
+										upgrade.color_picker_for = upgrade.color_picker_for.substring( 1 ); // Skip #
+								
+										let color = upgrade.color_picker_for;
+								
+										if ( item.sd_filter ) // Replace with whatever is currently picked
+										color = sdWorld.GetColorOfSDFilter( item.sd_filter, color );
 							
-									if ( item.sd_filter ) // Replace with whatever is currently picked
-									color = sdWorld.GetColorOfSDFilter( item.sd_filter, color );
-						
-									this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+										this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+									}
 								}
 								else
 								if ( upgrade.title === "Increase damage" && upgrade.cost === 2 ) // Non "custom" gun damage
