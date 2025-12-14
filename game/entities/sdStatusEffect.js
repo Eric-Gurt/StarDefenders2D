@@ -1566,6 +1566,11 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
+				if ( status_entity.for )
+				{
+					if ( status_entity._ttl > status_entity.for.hmax * 2 )
+					status_entity._ttl = status_entity.for.hmax;
+				}
 				if ( status_entity._attacker )
 				{
 					let ent = status_entity._attacker;
@@ -1575,6 +1580,7 @@ class sdStatusEffect extends sdEntity
 
 					status_entity.x2 = status_entity._attacker.GetCenterX();
 					status_entity.y2 = status_entity._attacker.GetCenterY();
+					
 				}
 				else
 				if ( sdWorld.is_server )
@@ -1675,7 +1681,7 @@ class sdStatusEffect extends sdEntity
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
-				status_entity._ttl += params.ttl; // Extend time/buildup
+				status_entity._ttl += params.ttl || 0; // Extend time/buildup
 				if ( status_entity.for )
 				{
 					if ( status_entity._ttl > status_entity.for.hmax * 2 )
@@ -1700,6 +1706,8 @@ class sdStatusEffect extends sdEntity
 					{
 						if ( status_entity._ttl > status_entity.for.hea )
 						status_entity._ttl -= GSPEED / 2; // Slower drain of the effect if it's active
+						else
+						status_entity._ttl -= GSPEED;
 					}
 					else
 					status_entity._ttl -= GSPEED;
