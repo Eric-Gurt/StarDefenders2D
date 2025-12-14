@@ -124,7 +124,7 @@ class sdGunClass
 			
 			return arr;
 		}
-		function AddProjectileRecolor( arr, from_color, cost, category='' )
+		/*function AddProjectileRecolor( arr, from_color, cost, category='' )
 		{
 			
 			arr.push(
@@ -146,7 +146,7 @@ class sdGunClass
 				}
 			});
 			
-			/*
+			
 			for ( let i = 0; i < arr.length; i++ )
 			if ( arr[ i ].title === 'Reset projectile color' )
 			if ( arr[ i ].category === category )
@@ -155,7 +155,7 @@ class sdGunClass
 				i--;
 				continue;
 			}
-			*/
+			
 			arr.push(
 			{ 
 				title: 'Reset projectile color',
@@ -169,6 +169,7 @@ class sdGunClass
 			
 			return arr;
 		}
+		*/
 		function AppendBasicCubeGunRecolorUpgrades( arr )
 		{
 			AddRecolorsFromColorAndCost( arr, '#00fff6', 100 );
