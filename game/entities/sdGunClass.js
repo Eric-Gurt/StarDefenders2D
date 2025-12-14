@@ -1662,7 +1662,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 20 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_FALKOK_PSI_CUTTER = 19 ] = 
@@ -1812,6 +1812,12 @@ class sdGunClass
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				return obj;
+			},
+			onPickupAttempt: ( character, gun )=> // Hints at being able to switch firemodes.
+			{ 
+				character.Say( "I think there's a switch somewhere to change firemodes.." );
+
+				return true;
 			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
@@ -2343,7 +2349,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddShotgunAmmoTypes( [] ) )
+			upgrades: AddGunDefaultUpgrades( AddShotgunAmmoTypes( ( AddRecolorsFromColorAndCost( [], '#ff0000', 30, 'laser' ) ) ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LASER_DRILL = 30 ] = { // Sprite made by Silk1 / AdibAdrian
@@ -2395,7 +2401,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( ( AddRecolorsFromColorAndCost( [], '#ff6f00', 30 ) ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SMG = 31 ] = { // Sprite made by LazyRain
@@ -2645,7 +2651,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 20 ) )
 		};
 
 
@@ -2709,7 +2715,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( 
+						AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [], '#ffffff', 30 ), '#0000ff', 30 )
+					)
 		};
 
 		sdGun.classes[ sdGun.CLASS_DECONSTRUCTOR_HAMMER = 37 ] = { // Sprite by LazyRain
@@ -4195,7 +4203,12 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#767676', 15, 'barrel' ),
+				'#232323', 15, 'main body' ),
+				'#323232', 15, 'alt body 1' ),
+				'#4A4A4A', 15, 'alt body 2' ), 
+				'#00FFFF', 15, 'scope reticle' ) )
 		};
     
 		sdGun.classes[ sdGun.CLASS_VELOX_PISTOL = 65 ] = 
@@ -4248,7 +4261,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#01ffff', 15, 'energy' ),
+				'#c0c0c0', 15, 'main body' ),
+				'#808080', 15, 'alt body' ),
+				'#565656', 15, 'detail' ) )
 		};
     
 		sdGun.classes[ sdGun.CLASS_SARRONIAN_GAUSS_RIFLE = 66 ] = 
@@ -4385,7 +4402,8 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
+				( [], '#00ff00', 15, 'laser' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_MISSILE_LAUNCHER = 68 ] = // sprite by Ghost581
@@ -4515,7 +4533,11 @@ class sdGunClass
 					gun._max_dps = ( 30 / 2 ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot ( and we fire 2 projectiles instead of 1 ) then multiplied with damage value.
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00a6d0', 15, 'main energy' ),
+				'#006480', 15, 'alt energy' ),
+				'#940000', 15, 'main body' ),
+				'#690000', 15, 'alt body' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_ZAPPER = 70 ] = 
@@ -4601,7 +4623,7 @@ class sdGunClass
 			title: 'Council Pistol',
 			slot: 1,
 			reload_time: 8,
-			muzzle_x: 7,
+			muzzle_x: 6,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
@@ -4640,7 +4662,12 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00243F', 15, 'main body' ),
+				'#00457A', 15, 'alt body' ),
+				'#00ffdf', 15, 'main detail' ),
+				'#d7d133', 15, 'alt detail' ),
+				'#b0a527', 15, 'alt detail 2' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_BURST_RAIL = 72 ] = 
@@ -4689,7 +4716,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ebe547', 15, 'main body' ),
+				'#b0a527', 15, 'alt body' ),
+				'#00ffdf', 15, 'main detail' ),
+				'#00457a', 15, 'alt detail' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_METAL_SHARD = 73 ] = 
@@ -5694,7 +5725,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#0000c8', 15, 'main body' ),
+				'#191919', 15, 'alt body' ),
+				'#1d1d1d', 15, 'alt body 2' ),
+				'#2f2f2f', 15, 'alt body 3' ) )
 		};
 		sdGun.classes[ sdGun.CLASS_SETR_ROCKET = 92 ] = 
 		{
@@ -5738,7 +5773,12 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#0000c8', 15, 'main body' ),
+				'#191919', 15, 'alt body' ),
+				'#1d1d1d', 15, 'alt body 2' ),
+				'#2f2f2f', 15, 'alt body 3' ),
+				'#ffff00', 15, 'detail' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_CUBE_TELEPORTER = 93 ] = 
@@ -6779,7 +6819,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddShotgunAmmoTypes( [] ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( AddShotgunAmmoTypes( [] ), '#3f3f3f', 15, 'main body' ),
+				'#232323', 15, 'alt body' ),
+				'#0f0f0f', 15, 'main detail' ),
+				'#ff7c00', 15, 'pointer' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_SHOTGUN = 103 ] = 
@@ -6875,7 +6919,12 @@ class sdGunClass
 					gun._max_dps = ( 30 / ( 14 / ( 1 + ( 10 / 10 ) ) ) ) * gun.extra[ ID_DAMAGE_VALUE ] * 2; // Max ROF + damage + bullet count
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00243F', 15, 'main body' ),
+				'#00457A', 15, 'alt body' ),
+				'#00ffdf', 15, 'main detail' ),
+				'#d7d133', 15, 'alt detail' ),
+				'#b0a527', 15, 'alt detail 2' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_RIFLE = 104 ] = // sprite made by Ghost581
@@ -7066,7 +7115,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#44ff00', 15, 'main energy' ),
+				'#418200', 15, 'alt energy' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_ZEKTARON_FOCUS_BEAM = 108 ] =
@@ -7392,7 +7443,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#008000', 15, 'main body' ),
+				'#004000', 15, 'alt body' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SETR_REPULSOR = 113 ] = 
@@ -7412,7 +7465,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 5, _rail: true, color: '#0000c8' };
-				obj._knock_scale = 1.8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 1.8 * 20; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -7435,6 +7488,12 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#2f2f2f', 15, 'main body' ),
+				'#191919', 15, 'alt body' ),
+				'#0000c8', 15, 'detail' ),
+				'#000084', 15, 'alt detail' ),	
+				'#ffff00', 15, 'alt detail 2' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_IMMOLATOR = 114 ] = // Sprite by Flora/Gravel
@@ -7531,7 +7590,11 @@ class sdGunClass
 					gun._max_dps = ( 30 / ( 3 ) ) * gun.extra[ ID_DAMAGE_VALUE ]; // Copied from _auto_shoot then multiplied with damage value.
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ebe547', 15, 'main body' ),
+				'#b0a527', 15, 'alt body' ),
+				'#00ffdf', 15, 'main detail' ),
+				'#00457a', 15, 'alt detail' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHURG_SNIPER = 115 ] = 
@@ -7581,7 +7644,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( [] )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#008000', 15, 'main body' ),
+				'#004000', 15, 'alt body' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SETR_LMG = 116 ] = 
@@ -7681,7 +7746,11 @@ class sdGunClass
 					
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#0000c8', 15, 'main body' ),
+				'#191919', 15, 'alt body' ),
+				'#1d1d1d', 15, 'alt body 2' ),
+				'#2f2f2f', 15, 'alt body 3' ) )
 		};
 
 
@@ -7830,7 +7899,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#3f3f3f', 15, 'main body' ),
+				'#232323', 15, 'alt body' ),
+				'#0f0f0f', 15, 'main detail' ),
+				'#ff7c00', 15, 'pointer' ) )
 		};
 		
 		let DrainProjectileBounceReaction = ( bullet, vel=0, hit_entity=null )=> // Also reacts to overlap
@@ -8002,7 +8075,9 @@ class sdGunClass
 				}
 			},
 			
-			upgrades: AddGunDefaultUpgrades( [] )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#655873', 15, 'main body' ),
+				'#382f3b', 15, 'alt body' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SARRONIAN_SMG = 121 ] = {
@@ -9196,7 +9271,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			( [], '#37a3ff', 15, 'energy color' ),
+			'#1665a8', 15, 'secondary energy color' ) )
 		};
 		
 		// TODO: Could be nice to have same but for BSU management
@@ -10363,7 +10440,9 @@ class sdGunClass
 				}
 			},
 			
-			upgrades: AddGunDefaultUpgrades( [] )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#655873', 15, 'main body' ),
+				'#382f3b', 15, 'alt body' ) )
 		};
 		
 		
@@ -10447,7 +10526,9 @@ class sdGunClass
 				}
 			},
 			
-			upgrades: AddGunDefaultUpgrades( [] )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#655873', 15, 'main body' ),
+				'#382f3b', 15, 'alt body' ) )
 		};
 
 		// Add new gun classes above this line //
