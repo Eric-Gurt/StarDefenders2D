@@ -209,6 +209,8 @@ class sdWeaponBench extends sdEntity
 							let gun = item;
 
 							let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+							
+							let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
 				
 							let ID_MAGAZINE = 2;
 		
@@ -222,7 +224,7 @@ class sdWeaponBench extends sdEntity
 							let ID_SLOT = 14;
 
 							//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
-							sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 25 * item.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
+							sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 30 * item.extra[ ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
 							sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
 				
 							let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
@@ -245,6 +247,8 @@ class sdWeaponBench extends sdEntity
 							let gun = this.item0;
 				
 							let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+							
+							let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
 				
 							//let ID_MAGAZINE = 2;
 		
@@ -255,10 +259,10 @@ class sdWeaponBench extends sdEntity
 							let ID_ALT_DAMAGE_VALUE = 18;
 
 							if ( item.extra[ ID_DAMAGE_VALUE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
+							sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
 					
 							if ( item.extra[ ID_ALT_DAMAGE_VALUE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
+							sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult ), 0, -50, '#ffaaaa' );
 					
 							if ( item.extra[ ID_RECOIL_SCALE ] )
 							sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
