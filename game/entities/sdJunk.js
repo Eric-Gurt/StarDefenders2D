@@ -1694,7 +1694,7 @@ class sdJunk extends sdEntity
 						if ( parameters_array[ 0 ] === 0 || parameters_array[ 0 ] === 1 || parameters_array[ 0 ] === 2 )
 						{
 							this.glow_animation = parameters_array[ 0 ]; // I don't want to create new public variables, so I use this - Booraz
-							this._update_version++;
+							//this._update_version++;
 						}
 					}
 				}
