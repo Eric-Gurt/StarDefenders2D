@@ -1712,9 +1712,9 @@ class sdJunk extends sdEntity
 			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 			{
 				let active_mode_text = ' ( ' + T( 'active' ) + ' )';
-				this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.mode === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );
-				this.AddContextOptionNoTranslation( T( 'Set mode to Collect' ) + (( this.mode === 1 ) ? active_mode_text : ''), 'MODE', [ 1 ] );
-				this.AddContextOptionNoTranslation( T( 'Set mode to Release' ) + (( this.mode === 2 ) ? active_mode_text : ''), 'MODE', [ 2 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.glow_animation === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Collect' ) + (( this.glow_animation === 1 ) ? active_mode_text : ''), 'MODE', [ 1 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Release' ) + (( this.glow_animation === 2 ) ? active_mode_text : ''), 'MODE', [ 2 ] );
 			}
 		}
 	}
