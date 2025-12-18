@@ -1863,17 +1863,17 @@ class sdGunClass
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { _rail: true, _rail_circled: true, _damage: 75, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 80, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, _rail_circled: true, _damage: 75, color: '#FF0000' };
+				let obj = { _rail: true, _rail_circled: true, _damage: 80, color: '#FF0000' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				obj._damage *= 1 + ( gun._combo / 48 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
+				obj._damage *= 1 + ( gun._combo / 60 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
 				
 				if ( gun._combo >= 360 ) // Full charge?
 				{
@@ -1905,9 +1905,9 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 75; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 80; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
-					gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 48 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds. Regular fire mode is weaker in DPS.
+					gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 60 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds. Regular fire mode is weaker in DPS.
 				}
 			},
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
