@@ -274,7 +274,7 @@ class sdBullet extends sdEntity
 			for ( let i = 0; i < 2; i++ )
 			{
 				let ent;
-				if ( Math.random() < 1.01 ) // 1% to spawn High Councilor from flares, capped to 1 per map.
+				if ( Math.random() < 0.01 ) // 1% to spawn High Councilor from flares, capped to 1 per map.
 				{
 					let councilor_exists = false;
 					for( let i = 0; i < sdCharacter.characters.length; i++ )
