@@ -21,6 +21,7 @@ import sdBG from './sdBG.js';
 import sdBlock from './sdBlock.js';
 import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
+import sdBubbleShield from './sdBubbleShield.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -1241,9 +1242,10 @@ class sdStatusEffect extends sdEntity
 							][ ~~( Math.random() * 4 ) ], false, false, false );
 							status_entity.for._ai_gun_slot = -1;
 							status_entity.for.gun_slot = -1; // Hide the equipped weapon
+							status_entity.for._ai_allow_weapon_switch = false;
 							sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
 						}
-						// Spawn the weapon for players to pick up if they "beat" the Time Shifter
+						else
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
 						status_entity.for.Say( [ 
 							'I have to go, my planet needs me.',
@@ -1996,6 +1998,395 @@ class sdStatusEffect extends sdEntity
 				ctx.drawImageFilterCache( sdStatusEffect.img_warning, -16,-16, 32,32 );
 
 				ctx.globalAlpha = 1;
+			}
+		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_HIGH_COUNCILOR_PROPERTIES = 17 ] = 
+		{
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: true,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.phase = 0;
+				status_entity.low_hp = false; // Has High Councilor reached low HP after losing all "shields"?
+				status_entity.time_to_defeat = 30 * 60 * 10; // 10 minutes
+				status_entity._next_shields = 8000;
+				
+				status_entity._veh_check_timer = 5; // Check for turrets, vehicles to disable them.
+				
+				status_entity._next_banish_attack = -100; // Disabled as long as it's below -60
+				status_entity._banish_store_timer = 0; // Timer which stores coordinates for banish attacks
+				status_entity._banish_x = [];
+				status_entity._banish_y = [];
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				{
+					/*if ( status_entity.for )
+					{
+						status_entity.x = status_entity.for.x;
+						status_entity.y = status_entity.for.y;
+					}*/
+					if ( status_entity._veh_check_timer > 0 ) // Vehicle and turret disabling mechanic
+					status_entity._veh_check_timer = Math.max( 0, status_entity._veh_check_timer - GSPEED );
+					else
+					if ( status_entity._veh_check_timer === 0 ) // This fight should be more personal. Vehicles and turrets are too easy to use.
+					{
+						status_entity._veh_check_timer = 4;
+						if ( status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ) // Target exists?
+						{
+							if ( status_entity.for._ai.target )
+							{
+								let target_ent = status_entity.for._ai.target;
+								let disabled_ent = false;
+								if ( target_ent.driver_of && typeof target_ent.driver_of.matter !== 'undefined' )
+								{
+									if ( target_ent.driver_of.matter > 0 )
+									{
+										target_ent.driver_of.matter = 0;
+										sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, target_ent.driver_of.x, target_ent.driver_of.y, '#FFFFFF' );
+										disabled_ent = true;
+									}
+								}
+								if ( target_ent.IsVehicle() && typeof target_ent.matter !== 'undefined' )
+								{
+									if ( target_ent.matter > 0 )
+									{
+										target_ent.matter = 0;
+										sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, target_ent.x, target_ent.y, '#FFFFFF' );
+										disabled_ent = true;
+									}
+								}
+								if ( target_ent.GetClass() === 'sdTurret' ) // Turret?
+								{
+									// Should probably disable in AOE radius these.
+									let nears = sdWorld.GetAnythingNear( target_ent.x, target_ent.y, 96 );
+									for ( let i = 0; i < nears.length; i++ )
+									{
+										let ent = nears[ i ];
+										if ( ent.GetClass() === 'sdTurret' )
+										if ( !ent.disabled )
+										{
+											ent.disabled = true;
+											ent._disabled_timeout = 30 * 60; // 1 minute
+											sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, ent.x, ent.y, '#FFFFFF' );
+											disabled_ent = true;
+										}
+									}
+								}
+								if ( disabled_ent )
+								{
+									status_entity.for.Say( [ 
+									'Your toys are cheap.',
+									'I do not think so.',
+									'Keep trying.',
+									'I prefer it more personal.'
+								][ ~~( Math.random() * 4 ) ], false, false, false );
+								
+									sdSound.PlaySound({ name:'bsu_attack', x:status_entity.for.x, y:status_entity.for.y, volume:0.75, pitch: 3 });
+								}
+							}
+						}
+					}
+					if ( status_entity.phase > 1 ) // After 2nd shield activation, High Councilor gains "banishing"
+					{
+						if ( status_entity._next_banish_attack > 0 ) // Banish lightning mechanics
+						status_entity._next_banish_attack = Math.max( 0, status_entity._next_banish_attack - GSPEED );
+						else
+						if ( status_entity._next_banish_attack === 0 )
+						{
+							status_entity._next_banish_attack = -60;
+							// Reset coordinates for banish attacks
+							status_entity._banish_x = [];
+							status_entity._banish_y = [];
+							let xx = status_entity.for.x - 96 + ( Math.random() * 192 );
+							let yy = status_entity.for.y - 96 + ( Math.random() * 192 );
+							
+							if ( status_entity.phase > 2 )
+							if ( status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ) // Target exists?
+							if ( status_entity.for._ai.target )
+							{
+								xx = status_entity.for._ai.target.x;
+								yy = status_entity.for._ai.target.y;
+							}
+							
+							if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
+							{
+								// If has line of sight, add coords for banish attack
+								status_entity._banish_x.push( xx );
+								status_entity._banish_y.push( yy );
+							}
+						}
+						else
+						if ( status_entity._next_banish_attack >= -60 )
+						{
+							status_entity._next_banish_attack = Math.min( 0, status_entity._next_banish_attack + GSPEED );
+							if ( status_entity._next_banish_attack === 0 ) // Attack
+							{
+								status_entity._next_banish_attack = 15; // Prepare for next attack
+								if ( status_entity._banish_x.length === status_entity._banish_y.length ) // Just in case
+									{
+										for( let i = 0; i < status_entity._banish_x.length; i++ )
+										{
+											let explode = false;
+											let nears = sdWorld.GetAnythingNear( status_entity._banish_x[ i ], status_entity._banish_y[ i ], 24 );
+											for ( let i = 0; i < nears.length; i++ )
+											{
+												// Prevent self banishing
+												if ( nears[ i ].IsTargetable() && nears[ i ]._is_bg_entity === 0 ) // Also checked in ApplyAffection but prevents unncessessary explosions
+												{
+													if ( typeof nears[ i ]._ai_team === 'undefined' )
+													{
+														sdLost.ApplyAffection( nears[ i ], 50, null, sdLost.FILTER_BANISHED );
+														explode = true;
+													}
+													else
+													if ( nears[ i ]._ai_team !== 3 ) // Not council?
+													{
+														sdLost.ApplyAffection( nears[ i ], 50, null, 6 );
+														explode = true;
+													}
+												}
+											}
+											
+											if ( explode )
+											sdWorld.SendEffect({ 
+												x:status_entity._banish_x[ i ], 
+												y:status_entity._banish_y[ i ], 
+												radius:10,
+												damage_scale: 0, // Just a decoration effect
+												type:sdEffect.TYPE_EXPLOSION, 
+												owner:status_entity.for,
+												color:'#ffffff',
+												no_smoke: true,
+												shrapnel: true
+											});
+										}
+									}
+							}
+							else
+							if ( status_entity._next_banish_attack >= -25 )
+							{
+								status_entity._banish_store_timer = Math.max( 0, status_entity._banish_store_timer - GSPEED );
+								if ( status_entity._banish_store_timer === 0 )
+								{
+									status_entity._banish_store_timer = 12;
+									if ( status_entity._banish_x.length < 4 )
+									{
+										if ( status_entity.phase < 3 || Math.random() < 0.2 )
+										for ( let i = 0; i < 10; i++ )
+										{
+											let xx = status_entity.for.x - 96 + ( Math.random() * 192 );
+											let yy = status_entity.for.y - 96 + ( Math.random() * 192 );
+											let can_add = true;
+											// However, check beforehand if there's one position already added before
+											for( let j = 0; j < status_entity._banish_x.length; j++ )
+											{
+												if ( Math.abs( status_entity._banish_x[ j ] - xx ) < 32 && Math.abs( status_entity._banish_y[ j ] - yy ) < 32 )
+												can_add = false;
+											}
+											if ( can_add & sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
+											{
+												// If has line of sight, add coords for banish attack
+												status_entity._banish_x.push( xx );
+												status_entity._banish_y.push( yy );
+												break;
+											}
+										}
+									}
+									if ( status_entity.phase > 2 && status_entity._banish_x.length < 4 ) // 3rd phase focuses banishing effect on target more
+									{
+										
+										let xx = status_entity.for.x - 96 + ( Math.random() * 192 );
+										let yy = status_entity.for.y - 96 + ( Math.random() * 192 );
+										let can_add = true;
+										if ( status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ) // Target exists?
+										if ( status_entity.for._ai.target )
+										{
+											xx = status_entity.for._ai.target.x;
+											yy = status_entity.for._ai.target.y;
+										}
+										// However, check beforehand if there's one position already added before
+										for( let j = 0; j < status_entity._banish_x.length; j++ )
+										{
+											if ( Math.abs( status_entity._banish_x[ j ] - xx ) < 32 && Math.abs( status_entity._banish_y[ j ] - yy ) < 32 )
+											can_add = false;
+										}
+										if ( can_add && sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
+											{
+												// If has line of sight, add coords for banish attack
+												status_entity._banish_x.push( xx );
+												status_entity._banish_y.push( yy );
+											}	
+									}
+								}
+							}
+							if ( Math.abs( status_entity._next_banish_attack ) % 12 < 1 || ( status_entity._next_banish_attack >= -25 && Math.abs( status_entity._next_banish_attack ) % 6 < 1 ) ) // Sometimes signal where attacks will be, via Zap effect
+								{
+									if ( status_entity._banish_x.length === status_entity._banish_y.length ) // Just in case
+									{
+										for( let i = 0; i < status_entity._banish_x.length; i++ )
+										sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, status_entity._banish_x[ i ], status_entity._banish_y[ i ], '#FFFFFF' );
+									}
+									else
+									{
+										status_entity._banish_x = []; // Shouldn't happen since these always get added in pairs, but just in case.
+										status_entity._banish_y = [];
+									}
+								}
+						}
+					}
+					
+					
+					if ( status_entity.phase > 0 ) // Aggressive attacking after first shield is deployed
+					{
+						if ( status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ) // Target exists?
+						{
+							if ( status_entity.for._ai.target )
+							{
+								status_entity.for._ai_force_fire  = true;
+								status_entity.for._key_states.SetKey( 'Mouse1', 1 ); // Attack relentlessly after losing some health
+							}
+							else
+							{
+								status_entity.for._ai_force_fire  = false;
+							}
+						}
+					}
+					status_entity.for.stability = 100;
+					if ( status_entity.for.hea < status_entity._next_shields )
+					{
+						status_entity.for.hea = status_entity._next_shields; // Reset health in case of excess loss
+						status_entity._next_shields = Math.max( 500, status_entity._next_shields - 2500 );
+						
+						sdBubbleShield.ApplyShield( status_entity.for, sdBubbleShield.TYPE_COUNCIL_SHIELD, true, 32, 32 ); // Apply shield
+						if ( status_entity.phase % 2 === 0 )
+						{
+							status_entity.for.Say( [ 
+								'Aid me, my followers.',
+								'We are approaching.',
+								'I summon you, Acolytes and Vanguards!',
+								'Heed my call, brethren!'
+							][ ~~( Math.random() * 4 ) ], false, false, false );
+							let ent = status_entity.for;
+							let bullet_obj = new sdBullet({ x: ent.x, y: ent.y });
+							bullet_obj._owner = ent;
+
+
+							bullet_obj.sx = 1 - Math.random() * 2;
+							bullet_obj.sy = -6 - Math.random () * 6;
+							bullet_obj.model = 'flare';
+
+							bullet_obj._damage = ent._ai_team; // Used to determine which faction the drone will spawn
+							bullet_obj.color = '#ffff00';
+							bullet_obj.time_left = 90 + Math.random() * 60;
+							bullet_obj._bouncy = true;
+							
+							sdEntity.entities.push( bullet_obj );
+											
+							sdSound.PlaySound({ name:'explosion', x:ent.x, y:ent.y, volume:1, pitch:0.25 });
+							sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5, pitch:2 });
+						}
+						if ( status_entity.phase === 1 ) // 2nd phase gives him the ability to Banish
+						{
+							status_entity.for.Say( [ 
+								'Perish!',
+								'I will banish you.',
+								'Underserving pests!',
+								'Come, if you dare.'
+							][ ~~( Math.random() * 4 ) ], false, false, false );
+							status_entity._next_banish_attack = 12;
+							for( let i = 0; i < 4; i++ )
+							sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, status_entity.for.x + 64 - Math.random() * 128, status_entity.for.y + 64 - Math.random() * 128, '#FFFFFF' );
+						}
+						
+						status_entity.phase++;
+					}
+					
+				}
+				status_entity.time_to_defeat -= GSPEED;
+				if ( ( status_entity.for.hea < 800 && status_entity._next_shields < 2000 ) || status_entity.time_to_defeat < 0 )
+				{
+					//status_entity.for.gun_slot = 0; // This way the blade in the inventory does not drop
+					sdSound.PlaySound({ name:'council_teleport', x:status_entity.for.x, y:status_entity.for.y, volume:1 });
+					sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+					status_entity.for.remove();
+					status_entity.for._broken = false;
+					status_entity.for.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
+					return true;
+				}
+				if ( ( ( status_entity.for.hea < 1250 ) || status_entity.time_to_defeat < 30 * 5 ) && status_entity.low_hp === false )
+				{
+					status_entity._next_banish_attack = -100; // Disable banish attacks, banishing a sword he drops is not a good feeling
+					
+					if ( status_entity.time_to_defeat < 30 * 5 )
+					{
+						status_entity.low_hp = true;
+						status_entity.for.Say( [ 
+							'You are not worthy of my time.',
+							'Not good enough.',
+							'Eventually I will banish you.',
+							'We will defeat you, sooner or later.'
+						][ ~~( Math.random() * 4 ) ], false, false, false );
+					}
+					if ( status_entity.for.hea < 1250 && sdWorld.is_server )
+					{
+						status_entity.low_hp = true;
+						if ( Math.random() < 0.1 ) // 10% chance for blade to drop
+						{
+							status_entity.for.Say( [ 
+							'You fought well. This is a future matter.',
+							'I am not the only one you need to get through.',
+							'I will finish you later, with actual arsenal.',
+							'One of many.'
+							][ ~~( Math.random() * 4 ) ], false, false, false );
+							status_entity.for._ai_gun_slot = -1;
+							status_entity.for.gun_slot = -1; // Hide the equipped weapon
+							status_entity.for._ai_allow_weapon_switch = false;
+							sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_HIGH_COUNCIL_SWORD }) );
+						}
+						else
+						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
+						status_entity.for.Say( [ 
+							'Delay it, for now.',
+							'We have ways to break you.',
+							'Merely a scratch.',
+							'We will defeat you, sooner or later.'
+						][ ~~( Math.random() * 4 ) ], false, false, false );
+					}
+				}
+				else
+				{
+					/*if (status_entity.for._in_water ) // If High Councilor is in a liquid, he will absorb it
+					{
+						sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
+						sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT });
+						sdWeather.SetRandomSpawnLocation( status_entity.for );
+					}
+					*/
+				}
+				
+				//return ( status_entity._progress > status_entity._max_progress ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
 			}
 		};
 

@@ -184,8 +184,6 @@ class sdWeaponMerger extends sdEntity
 			}
 		
 			dps_proportions *= mult;
-			
-			
 		
 			if ( this.item0.class !== sdGun.CLASS_UNSTABLE_CORE )
 			{
@@ -195,10 +193,12 @@ class sdWeaponMerger extends sdEntity
 				if ( this.item0.GetSlot() === 4 && dps_proportions > 2 ) // Cap DPS increase to 2x of initial for slot 4 weapons, to prevent low DPS weapons become too powerful
 				dps_proportions = 2;
 				
+				this.item0._max_dps = ( this.item0._max_dps / this.item0.extra[ 21 ] ); // Reset DPS
 				this.item0.extra[ 21 ] = 1;
 				
 				if ( this.item0._max_dps * dps_proportions > ( 450 * 0.95 ) )
 				dps_proportions = ( 450 * 0.95 ) / this.item0._max_dps;
+			
 				this.item0.extra[ 21 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
 				this.item0._max_dps *= dps_proportions; // Even out max DPS
 			}

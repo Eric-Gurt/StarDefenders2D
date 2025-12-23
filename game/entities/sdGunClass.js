@@ -10607,6 +10607,63 @@ class sdGunClass
 				( [], '#655873', 15, 'main body' ),
 				'#382f3b', 15, 'alt body' ) )
 		};
+		sdGun.classes[ sdGun.CLASS_HIGH_COUNCIL_SWORD = 155 ] =
+		{
+			image: sdWorld.CreateImageFromFile( 'council_energy_blade' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'council_energy_blade' ), // Disabled sprite exists but it's difficult to spot when High Councilor drops it
+			sound: 'saber_attack',
+			sound_volume: 1,
+			sound_pitch: 1.5,
+			title: 'Council Energy Blade',
+			slot: 0,
+			reload_time: 12,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.03,
+			is_sword: true,
+			projectile_velocity: 10,
+			spawnable: false,
+			BulletCostMultiplier: ( gun )=>
+			{
+				// Can handle fire modes this way. Heavy attack mode maybe?
+				//if ( gun.fire_mode === 2 )
+				//return 10;
+				
+				return 2;
+			},
+			projectile_properties: { _damage: 1, color: '#00ffde', penetrating:true, model:'energy_wave' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				let obj = { penetrating:true, color: '#00ffde', time_left: 30, _hittable_by_bullets: false, model:'energy_wave' }
+				
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				//obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 90; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ffdf', 15, 'blade' ),
+				'#ebe547', 15, 'handle' ),
+				'#b0a527', 15, 'alt handle' ) )
+		};
 
 		// Add new gun classes above this line //
 
