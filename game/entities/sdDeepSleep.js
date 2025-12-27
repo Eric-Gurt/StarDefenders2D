@@ -181,6 +181,7 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.inception_catcher_warning_level = 32;
 		sdDeepSleep.inception_catcher_give_up_level = 512;
 		sdDeepSleep.inception_catcher_next_warning_allowed_in = 0;
+		sdDeepSleep.inception_catcher_areas_awoken = [];
 		
 		sdDeepSleep.dependence_distance_max = 500; // Anti-dependence hell measure
 		
@@ -250,6 +251,7 @@ class sdDeepSleep extends sdEntity
 		while ( iters-- > 0 && sdDeepSleep.time_budget > 0 )
 		{
 			sdDeepSleep.inception_catcher = 0;
+			sdDeepSleep.inception_catcher_areas_awoken.length = 0;
 			
 			let t = Date.now();
 		
@@ -543,17 +545,49 @@ class sdDeepSleep extends sdEntity
 			{
 				sdDeepSleep.inception_catcher_next_warning_allowed_in = sdWorld.time + 1000 * 60 * 5; 
 				console.warn( 'WakeUpArea was called over 32 times per frame - it can be bad for server performance' );
+				trace( 'inception_catcher_areas_awoken', sdDeepSleep.inception_catcher_areas_awoken );
 			}
 			
 		
 			if ( sdDeepSleep.inception_catcher > sdDeepSleep.inception_catcher_give_up_level )
 			{
 				console.warn( 'WakeUpArea was called over 512 times per frame - some crazy deep sleep inception has happened?' );
+				trace( 'inception_catcher_areas_awoken', sdDeepSleep.inception_catcher_areas_awoken );
 				return;
 			}
 		}
+		
+		const StringIfNaN = ( v )=>
+		{
+			if ( v === undefined )
+			return 'undefined';
+			
+			if ( v === v )
+			return v;
+		
+			return 'NaN';
+		};
 	
 		sdDeepSleep.inception_catcher++;
+		sdDeepSleep.inception_catcher_areas_awoken.push({
+			x: StringIfNaN( this.x ),
+			y: StringIfNaN( this.y ),
+			w: StringIfNaN( this.w ),
+			h: StringIfNaN( this.h ),
+			type: this.type,
+			awake_from_movement_or_vision: from_movement_or_vision ? 'movement' : 'vision',
+			awake_forced: forced,
+			awoken_by_entity_class: initiator ? initiator.GetClass() : null,
+			awoken_by_x: initiator ? StringIfNaN( initiator.x ) : '-',
+			awoken_by_y: initiator ? StringIfNaN( initiator.y ) : '-',
+			awoken_by_sx: ( initiator && typeof initiator.sx !== 'undefined' ) ? StringIfNaN( initiator.sx ) : '-',
+			awoken_by_sy: ( initiator && typeof initiator.sy !== 'undefined' ) ? StringIfNaN( initiator.sy ) : '-',
+			awoken_by_hitbox: initiator ? [ 
+				StringIfNaN( initiator._hitbox_x1 ), 
+				StringIfNaN( initiator._hitbox_y1 ), 
+				StringIfNaN( initiator._hitbox_x2 ), 
+				StringIfNaN( initiator._hitbox_y2 ) ] : null
+		});
 
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
 		{
