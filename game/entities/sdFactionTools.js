@@ -43,6 +43,7 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.FT_COUNCIL_A = 					factions_length++; // Council Vanguard
 		sdFactionTools.FT_COUNCIL_B = 					factions_length++; // Council Acolyte Burst Rail Rifle
 		sdFactionTools.FT_COUNCIL_C = 					factions_length++; // Council Acolyte Pistol
+		sdFactionTools.FT_COUNCIL_D = 					factions_length++; // High Councilor Energy Blade
 		sdFactionTools.FT_FSB = 						factions_length++; // Falkonian Sword Bot
 		sdFactionTools.FT_SDR_A = 						factions_length++; // Star Defender Sniper
 		sdFactionTools.FT_SDR_B = 						factions_length++; // Star Defender Shotgun
@@ -514,6 +515,23 @@ class sdFactionTools extends sdEntity
 					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL, ...CLASSES_AND_STUFF );
+
+					logic = LOGIC_COUNCIL;
+				}
+			}
+			else
+			if ( type === sdFactionTools.FT_COUNCIL_D )
+			{
+				teleport_sound = 'council_teleport';
+				teleport_volume = 0.5;
+				teleport_effect_filter = 'hue-rotate(170deg)';
+
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+				ENTITIES_ARRAY.push( character_entity );
+				{
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_HIGH_COUNCIL_SWORD }) );
+					character_entity._ai_gun_slot = 0;
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL_HIGH, ...CLASSES_AND_STUFF );
 
 					logic = LOGIC_COUNCIL;
 				}

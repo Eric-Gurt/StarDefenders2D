@@ -179,7 +179,7 @@ class sdStealer extends sdEntity
 			let e = attack_entities[ i ];
 			if ( !e._is_being_removed )
 			{
-				//if ( e.is( sdCrystal ) || e.is( sdGun ) || e.is( sdAsteroid ) )
+				if ( this.IsEntFarEnough( e ) ) // Doesn't hurt to have additional check.
 				{
 					{
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;

@@ -720,9 +720,9 @@ class sdOctopus extends sdEntity
 							}
 						}
 						
-						if ( from_entity._held_by && from_entity._held_by._ai_team === 10 )
+						if ( from_entity._held_by && from_entity._held_by.StatusEffectPreventsDeath() )
 						{
-							// No cheesing the Time Shifter
+							// No cheesing humanoid bosses
 						}
 						else
 						nears.push( { ent: from_entity, rank: rank } );

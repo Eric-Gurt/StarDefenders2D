@@ -406,6 +406,8 @@ class sdCouncilNullifier extends sdEntity
 					bullet_obj.color = '#ffff00';
 					bullet_obj.time_left = 90 + Math.random() * 60;
 					bullet_obj._bouncy = true;
+					
+					sdEntity.entities.push( bullet_obj );
 									
 					sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
 					sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5, pitch:2 });

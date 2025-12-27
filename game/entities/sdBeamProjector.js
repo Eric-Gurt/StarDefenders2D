@@ -37,12 +37,15 @@ class sdBeamProjector extends sdEntity
 		
 		sdBeamProjector.projector_counter = 0;
 		
+		sdBeamProjector.TYPE_PROJECTOR = 0; // Main projector
+		sdBeamProjector.TYPE_PYLON = 1; // Pylons, can attach to main projector for task speed boost
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -29; }
-	get hitbox_x2() { return 29; }
-	get hitbox_y1() { return 0; }
-	get hitbox_y2() { return 32; }
+	get hitbox_x1() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? -29 : -7; }
+	get hitbox_x2() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? 29 : 7; }
+	get hitbox_y1() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? 0 : -8; }
+	get hitbox_y2() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? 32 : 17; }
 	
 	get hard_collision()
 	{ return true; }
@@ -80,17 +83,21 @@ class sdBeamProjector extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 15000;
+		this.type = params.type || sdBeamProjector.TYPE_PROJECTOR;
+		
+		this.hmax = this.type === sdBeamProjector.TYPE_PROJECTOR ? 15000 : 2000;
 		this.hea = this.hmax;
 		this._regen_timeout = 30;
 		//this.has_anticrystal = false;
 		this._spawn_event_timer = 30;
+		this._spawn_pylon_timer = 30 * 60 + ( 30 * Math.random() * 30 ); // 60-90 seconds for pylon to spawn
 		
 		this._last_event_entity = null; // Last Council structure that was spawned by the beam projector
 		this._add_difficulty = false; // Add some difficulty to projector after destroying event entity?
 		
 		this._spawn_drones_timer = -1;
 		this._drone_count = 0; // How much drones left to spawn?
+		this._drones_to_spawn = 0; // Drones spawn in waves now.
 		this._notify_players_in = 150; // Notify players about the task
 		
 		this.enabled = true; // Something will be able to disable it? Quite probably.
@@ -99,7 +106,11 @@ class sdBeamProjector extends sdEntity
 		
 		this.progress = 0; // Task progress - needed for "Protect" task types
 		
+		this.pylons = 0; // 1 = left pylon, 2 = right pylon, 3 = both pylons attached.
+		
 		this._nullifiers_to_spawn = 3;
+		
+		this._pylons_to_spawn = 2;
 		
 		this._spawned_ai = false; // Spawn SD AI
 		
@@ -127,7 +138,7 @@ class sdBeamProjector extends sdEntity
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });
 	}*/
 
-	get mass() { return 300; } // Recommended to move with vehicles if blocked by something
+	get mass() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? 300 : 70; } // Recommended to move with vehicles if blocked by something
 	/*MeasureMatterCost()
 	{
 		//return 0; // Hack
@@ -159,6 +170,44 @@ class sdBeamProjector extends sdEntity
 
 		if ( !sdWorld.is_server )
 		return;
+		
+		
+		if ( this.type === sdBeamProjector.TYPE_PYLON )
+		{
+			if ( this._notify_players_in <= 0 )
+			{
+				this._notify_players_in = 150;
+				
+				if ( !this._last_event_entity || this._last_event_entity._is_being_removed ) // Main beam projector destroyed/despawned?
+				{
+					this._last_event_entity = null;
+					// Despawn aswell
+					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+					this.remove();
+					this._broken = false;
+				}
+				
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				{
+					let desc = 'Attach a dark matter pylon onto the beam projector to speed up the progress!';
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'TRACK-'+this._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						target: this,
+						mission: sdTask.MISSION_TRACK_ENTITY,				
+						title: 'Attach dark matter pylon',
+						description: desc
+					});
+				}
+			}
+			else
+			this._notify_players_in -= GSPEED;
+		
+		
+			return; // Do nothing else as pylon.
+		}
 	
 		if ( !this._last_event_entity || this._last_event_entity._is_being_removed )
 		{
@@ -234,25 +283,10 @@ class sdBeamProjector extends sdEntity
 		}
 		
 		if ( this._spawn_drones_timer > 0 )
-		this._spawn_drones_timer = Math.max( 0, this._spawn_drones_timer - GSPEED );
-		if ( this._spawn_drones_timer === 0 )
 		{
-			if ( this._drone_count <= 0 )
-			this._spawn_drones_timer = -1; // Disable timer
-			else // Spawn drones
+			this._spawn_drones_timer = Math.max( 0, this._spawn_drones_timer - GSPEED );
+			if ( this._drones_to_spawn > 0 && this._spawn_drones_timer % 10 < 0.5 ) // Spawn drones in waves/bursts now
 			{
-				// Doubt the drones will ever reach this count, but just in case of further changes. 
-				if ( this._drone_count < 55 )
-				this._spawn_drones_timer = 150 + ( Math.random() * 60 ); // Slow down since there's not much drones to spawn
-				else
-				if ( this._drone_count < 85 )
-				this._spawn_drones_timer = 90 + ( Math.random() * 45 ); // Average speed
-				else
-				if ( this._drone_count < 105 )
-				this._spawn_drones_timer = 60 + ( Math.random() * 30 ); // Faster
-				else
-				this._spawn_drones_timer = 30 + ( Math.random() * 15 ); // Fastest
-			
 				if ( this.HasPlayersNearby() ) // Only when players are near the projector
 				if ( !sdWeather.only_instance._chill )
 				{
@@ -297,7 +331,7 @@ class sdBeamProjector extends sdEntity
 
 							//if ( ( initiator._ai_team || -1 ) !== this._ai_team )
 							// Target the beam projector sometimes
-							if ( Math.random() < 0.25 )
+							if ( Math.random() < 0.35 )
 							drone.SetTarget( this );
 						
 							drone._attack_timer = 10;
@@ -305,6 +339,8 @@ class sdBeamProjector extends sdEntity
 							sdWorld.UpdateHashPosition( drone, false );
 							
 							this._drone_count--;
+							
+							this._drones_to_spawn--;
 							//console.log('Drone spawned!');
 							break;
 						}
@@ -319,6 +355,42 @@ class sdBeamProjector extends sdEntity
 						}
 					} while( true );
 				}
+			}
+		}
+		if ( this._spawn_drones_timer === 0 )
+		{
+			if ( this._drone_count <= 0 )
+			this._spawn_drones_timer = -1; // Disable timer
+			else // Spawn drones
+			{
+				this._drones_to_spawn = 2;
+				// Doubt the drones will ever reach this count, but just in case of further changes. 
+				if ( this._drone_count < 55 )
+				this._spawn_drones_timer = 180 + ( Math.random() * 60 );
+				else
+				if ( this._drone_count < 85 )
+				this._spawn_drones_timer = 180 + ( Math.random() * 60 );
+				else
+				if ( this._drone_count < 105 )
+				{
+					this._spawn_drones_timer = 180 + ( Math.random() * 60 );
+					this._drones_to_spawn = 4;
+				}
+				else
+				{
+					// Over 105 drones?
+					this._spawn_drones_timer = 180 + ( Math.random() * 60 );
+					this._drones_to_spawn = 6;
+				}
+				
+				
+				if ( !this._last_event_entity ) // No "event" entity active?
+				this._spawn_drones_timer -= 30; // Speed up a little
+				else
+				this._drones_to_spawn--; // 1 less drone while an "event" entity is active
+				if ( this.pylons > 0 ) // Pylons do make things harder, for a reward of course
+				this._spawn_drones_timer -= 30; // Speed up a little
+			
 			}
 		}
 
@@ -339,6 +411,7 @@ class sdBeamProjector extends sdEntity
 			//let sx = this.sx;
 			//let sy = this.sy;
 
+			let pylon_mult = 1 + ( this.pylons === 3 ? 0.3 : this.pylons > 0 ? 0.15 : 0 ); // Pylons give up to 30% stronger unstable cores
 			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 			let gun;
@@ -355,13 +428,76 @@ class sdBeamProjector extends sdEntity
 			//gun.sy = sy;
 			sdEntity.entities.push( gun );
 
+			gun._max_dps = Math.min( gun._max_dps * pylon_mult, 450 ); // Increase core power if pylons were used
 			}, 500 );
 
 			this.remove();
 		}
+		if ( this._spawn_pylon_timer > 0 )
+		this._spawn_pylon_timer -= GSPEED;
+		else
+		if ( this._pylons_to_spawn > 0 )
+		{
+			this._spawn_pylon_timer = 30 * 60 + ( 30 * Math.random() * 30 );
+			let event_type = Math.floor( Math.random() * 4 );
+			let ents = 0;
+			let ents_tot = 1;
 
+			while ( ents < ents_tot )
+			{
+				let ent = new sdBeamProjector({ x:0, y:0, type: sdBeamProjector.TYPE_PYLON });
+			
+
+				if ( event_type !== 0 ) // Not a Council Nullifier?
+					{
+						sdEntity.entities.push( ent );
+						let x,y;
+						let tr = 100;
+						do
+						{
+							x = this.x + 96 + ( 100 - tr ) - ( Math.random() * ( 292 - tr ) ); // Potential spawn radius scales over attempts
+
+							if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+							x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );
+
+							if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+							x = sdWorld.world_bounds.x2 - 64 - ( Math.random() * 192 );
+
+							y = this.y + 96 + ( 100 - tr ) - ( Math.random() * ( 292 - tr ) );
+							if ( y < sdWorld.world_bounds.y1 + 32 )
+							y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+							if ( y > sdWorld.world_bounds.y2 - 32 )
+							y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+							if ( ent.CanMoveWithoutOverlap( x, y, 1 ) )
+							if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							{
+								ent.x = x;
+								ent.y = y;
+								ent._last_event_entity = this;
+								sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+								sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+								
+								this._pylons_to_spawn--;
+								
+								break;
+							}
+
+							tr--;
+							if ( tr < 0 )
+							{
+								ent.remove();
+								ent._broken = false;
+								break;
+							}
+						} while( true );
+					}
+				ents++;
+			}
+		}
 		if ( this._spawn_event_timer > 0 )
-		this._spawn_event_timer -= GSPEED;
+		this._spawn_event_timer -= GSPEED * ( this.pylons === 3 ? 2 : this.pylons > 0 ? 1.5 : 1 ); // Faster "events" when pylons are attached
 		else
 		{
 			this._spawn_event_timer = 30 * 60 * 8 + ( Math.random() * 30 * 60 * 4 ); // 8-12 minutes per event
@@ -560,29 +696,59 @@ class sdBeamProjector extends sdEntity
 
 		if ( this.enabled )
 		{
-			this.progress = Math.min( 101, this.progress + ( GSPEED / ( 3 * 6 * 20 ) ) ); // About 20 minutes to complete if it survives
+			//let mult = this.pylons === 3 ? 3 : this.pylons > 0 ? 2 : 1; // Increase task speed when pylons are attached
+			//this.progress = Math.min( 101, this.progress + ( GSPEED * mult / ( 3 * 6 * 20 ) ) ); // About 20 minutes to complete if it survives, faster with pylons
 			// GSPEED = 30 per second. / 3 = 10 per second, / 6 = 100/60 -> / 20 = 100 / 1200 ( I think ) - Booraz
 			
-			
+			// Progress now requires visiblity to the sky, for each pylon.
+			if ( this._regen_timeout > 0 )
 			this._regen_timeout -= GSPEED;
-			if ( this._regen_timeout < 0 )
-			this._regen_timeout += 40;
+			else
 			{
-				if ( this._regen_timeout <= 30 )
-				if ( Math.round( this._regen_timeout % 10 ) === 0 )
+				this._regen_timeout = 10;
 				{
+					let mult = 1;
 					//if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, this.x, sdWorld.world_bounds.y1, this, sdCom.com_visibility_ignored_classes, null ) || sdWorld.last_hit_entity === null )
 					if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y - 16 ) )
 					{
-						sdWorld.SendEffect({ x: this.x, y:this.y - 27, x2:this.x , y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
+						sdWorld.SendEffect({ x:this.x, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 					}
 					else
 					{
+						mult -= 1; // No progress without visiblity to the sky from pylons
 						if ( sdWorld.last_hit_entity )
-						sdWorld.SendEffect({ x: this.x, y:this.y - 27, x2:this.x , y2:sdWorld.last_hit_entity.y, type:sdEffect.TYPE_BEAM, color:'#333333' });
+						sdWorld.SendEffect({ x:this.x, y:this.y - 27, x2:this.x, y2:sdWorld.last_hit_entity.y, type:sdEffect.TYPE_BEAM, color:'#333333' });
+					}
+					if ( this.pylons === 1 || this.pylons === 3 )
+					{
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 18, this.y - 16 ) )
+						{
+							mult++;
+							sdWorld.SendEffect({ x:this.x - 18, y:this.y - 27, x2:this.x - 18, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
+						}
+						else
+						{
+							if ( sdWorld.last_hit_entity )
+							sdWorld.SendEffect({ x:this.x - 18, y:this.y - 27, x2:this.x - 18, y2:sdWorld.last_hit_entity.y, type:sdEffect.TYPE_BEAM, color:'#333333' });
+						}
+					}
+					if ( this.pylons >= 2 )
+					{
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 18, this.y - 16 ) )
+						{
+							mult++;
+							sdWorld.SendEffect({ x:this.x + 18, y:this.y - 27, x2:this.x + 18, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
+						}
+						else
+						{
+							if ( sdWorld.last_hit_entity )
+							sdWorld.SendEffect({ x:this.x + 18, y:this.y - 27, x2:this.x + 18, y2:sdWorld.last_hit_entity.y, type:sdEffect.TYPE_BEAM, color:'#333333' });
+						}
 					}
 					if ( this.hea < this.hmax )
-					this.hea = Math.min( this.hmax, this.hea + 1 ); // About 3 HP per second, since it regenerates only when beams are sent
+					this.hea = Math.min( this.hmax, this.hea + ( 1 * mult ) ); // About 3 HP per second, since it regenerates only when beams are sent
+				
+					this.progress = Math.min( 101, this.progress + ( GSPEED * mult / ( 3 * 6 ) ) ); // About 10 minutes to complete if it survives, faster with pylons
 				}
 			}
 		}
@@ -631,7 +797,36 @@ class sdBeamProjector extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		
+		if ( !sdWorld.is_server )
+		return;
+		// Pylons should attach to the base beam projector, speeding up progress
+		if ( this.type === sdBeamProjector.TYPE_PYLON )
+		{
+			if ( from_entity.is( sdBeamProjector ) )
+			{
+				if ( from_entity.type === sdBeamProjector.TYPE_PROJECTOR && from_entity.pylons < 3 ) // Not having both pylons?
+				{
+					if ( this.y + this._hitbox_y2 < from_entity.y + from_entity._hitbox_y1 + 2 )
+					{
+						if ( from_entity.pylons !== 1 && this.x < from_entity.x - 5 ) // Left pylon
+						{
+							from_entity.pylons = from_entity.pylons + 1;
+							//from_entity._nullifiers_to_spawn++;
+							this.remove();
+							this._broken = false;
+						}
+						if ( from_entity.pylons !== 2 && this.x > from_entity.x + 5 ) // Right pylon
+						{
+							from_entity.pylons = from_entity.pylons + 2;
+							//from_entity._nullifiers_to_spawn++;
+							this.remove();
+							this._broken = false;
+						}
+					}
+				}
+				
+			}
+		}
 	}
 	get title()
 	{
@@ -644,17 +839,49 @@ class sdBeamProjector extends sdEntity
 		if ( this.enabled )
 		xx = 1;
 		else
+		xx = 3;
+	
+		if ( this.progress >= 100 )
 		xx = 2;
 	
+		if ( this.type === sdBeamProjector.TYPE_PYLON )
+		xx = 6;
+	
 		ctx.drawImageFilterCache( sdBeamProjector.img_bp, xx * 64, 0, 64,64, -32, -32, 64, 64 );
-
+		
+		if ( this.pylons > 0 && this.type === sdBeamProjector.TYPE_PROJECTOR ) // Additional pylons on the beam projector?
+		{
+			xx += 3;
+			
+			if ( this.pylons === 1 || this.pylons === 3 ) // Left pylon
+			{
+				ctx.drawImageFilterCache( sdBeamProjector.img_bp, xx * 64, 0, 64,64, -50, -47, 64, 64 );
+			}
+			if ( this.pylons >= 2 ) // Right pylon
+			{
+				ctx.drawImageFilterCache( sdBeamProjector.img_bp, xx * 64, 0, 64,64, -14, -47, 64, 64 );
+			}
+		}
 		ctx.globalAlpha = 1;
 		ctx.filter = sdWorld.GetCrystalHue( sdCrystal.anticrystal_value );
 		//ctx.filter += ' saturate(' + (Math.round(( 2 )*10)/10) + ') brightness(' + 1 + ')';
 
 		//if ( this.has_anticrystal )
-		ctx.drawImageFilterCache( sdBeamProjector.img_crystal, -16, -44, 32, 32 );
-
+		let y_offset = -44;
+		if ( this.type === sdBeamProjector.TYPE_PYLON )
+		y_offset = -29;
+		ctx.drawImageFilterCache( sdBeamProjector.img_crystal, -16, y_offset, 32, 32 );
+		if ( this.pylons > 0 && this.type === sdBeamProjector.TYPE_PROJECTOR ) // Additional pylons on the beam projector?
+		{
+			if ( this.pylons === 1 || this.pylons === 3 ) // Left pylon
+			{
+				ctx.drawImageFilterCache( sdBeamProjector.img_crystal, -34, y_offset, 32, 32 );
+			}
+			if ( this.pylons >= 2 ) // Right pylon
+			{
+				ctx.drawImageFilterCache( sdBeamProjector.img_crystal, 2, y_offset, 32, 32 );
+			}
+		}
 
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -665,7 +892,10 @@ class sdBeamProjector extends sdEntity
 		//sdEntity.Tooltip( ctx, "Dark matter beam projector (needs natural Anti-crystal) ", 0, -10 );
 		//else
 		//if ( this.has_players_nearby && this.no_obstacles )
+		if ( this.type === sdBeamProjector.TYPE_PROJECTOR )
 		sdEntity.Tooltip( ctx, "Dark matter beam projector", 0, -10 );
+		if ( this.type === sdBeamProjector.TYPE_PYLON )
+		sdEntity.Tooltip( ctx, "Dark matter pylon", 0, -10 );
 		//else
 		//sdEntity.Tooltip( ctx, "Dark matter beam projector (disabled)", 0, -10 );
 

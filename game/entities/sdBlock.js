@@ -1083,19 +1083,29 @@ class sdBlock extends sdEntity
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
 
-		if ( Math.random() < 0.5 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
+		if ( Math.random() < 0.75 && ( this.height >=16 || this.width >= 16 ) && ( this.height >=6 && this.width >= 6 ) ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
 		{
+			// Chance to spawn increased from 50% to 75% since there's more versions of sdFleshGrabber now.
 			let side = Math.round( Math.random() * 3 );
 			let spawn_x = this.x + ( this.width / 2 );
 			let spawn_y = this.y + ( this.height / 2 );
-			if ( side === 0 )
+			
+			// Maybe let's not allow sides which are < 16 units since those look out of place.
+			if ( ( this.side === 1 || this.side === 3 ) && this.height < 16 )
+			this.side = Math.random() < 0.5 ? 0 : 2;
+			if ( ( this.side === 0 || this.side === 2 ) && this.width < 16 )
+			this.side = Math.random() < 0.5 ? 1 : 3;			
+
+			if ( side === 0 ) // Top
 			spawn_y -= 1 + this.height / 2;
-			if ( side === 1 )
+			if ( side === 1 ) // Left
 			spawn_x -= 1 + this.width / 2;
-			if ( side === 2 )
+			if ( side === 2 ) // Bottom
 			spawn_y += 1 + this.height / 2;
-			if ( side === 3 )
+			if ( side === 3 ) // Right
 			spawn_x += 1 + this.width / 2;
+			
+			
 			let grabber = sdEntity.Create( sdFleshGrabber, { 
 				x: spawn_x, 
 				y: spawn_y, 

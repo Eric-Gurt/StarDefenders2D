@@ -1086,6 +1086,8 @@ class sdJunk extends sdEntity
 					bullet_obj.color = '#ffff00';
 					bullet_obj.time_left = 90 + Math.random() * 60; // 3-5 seconds after flare spawn to summon the humanoids
 					bullet_obj._bouncy = true;
+					
+					sdEntity.entities.push( bullet_obj );
 									
 					sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
 					sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5, pitch:2 });
@@ -1338,7 +1340,10 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 			{
+				if ( this.glow_animation === 0  ) // "Equalize" mode from sdMatterContainer
 				this.MatterGlow( 0.01, 30, GSPEED );
+				if ( this.glow_animation === 2 ) // "Release" mode from sdMatterContainer
+				this.MatterGlow( 0.3, 30, GSPEED );
 
 				if ( this._regen_timeout > 0 )
 				this._regen_timeout -= GSPEED;
@@ -1674,6 +1679,44 @@ class sdJunk extends sdEntity
 				
 				//if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 				//sdSound.PlaySound({ name:'crystal_healer_death', x:this.x, y:this.y, volume: 2 });
+			}
+		}
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+		{
+			if ( exectuter_character )
+			if ( exectuter_character.hea > 0 )
+			{
+				if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
+				{
+					if ( command_name === 'MODE' )
+					{
+						if ( parameters_array[ 0 ] === 0 || parameters_array[ 0 ] === 1 || parameters_array[ 0 ] === 2 )
+						{
+							this.glow_animation = parameters_array[ 0 ]; // I don't want to create new public variables, so I use this - Booraz
+							//this._update_version++;
+						}
+					}
+				}
+				else
+				executer_socket.SDServiceMessage( 'Matter container is too far' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+		{
+			if ( exectuter_character )
+			if ( exectuter_character.hea > 0 )
+			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+			{
+				let active_mode_text = ' ( ' + T( 'active' ) + ' )';
+				this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.glow_animation === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Collect' ) + (( this.glow_animation === 1 ) ? active_mode_text : ''), 'MODE', [ 1 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Release' ) + (( this.glow_animation === 2 ) ? active_mode_text : ''), 'MODE', [ 2 ] );
 			}
 		}
 	}

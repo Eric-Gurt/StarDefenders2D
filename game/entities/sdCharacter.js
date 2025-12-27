@@ -175,7 +175,7 @@ class sdCharacter extends sdEntity
 			{ file:'helmets/helmet_animus', name:'Animus' }, //  by LordBored, index = 122
 			{ file:'helmets/helmet_architect', name:'Architect' }, //  by LordBored, index = 123
 			{ file:'helmets/helmet_architect2', name:'Architect Alt1' }, //  by LordBored, index = 124
-			{ file:'helmets/helmet_architect3', name:'Architect Alt2' }, //  by LordBored, index = 125
+			{ file:'helmets/helmet_architect3', name:'Architect Alt2' } //  by LordBored, index = 125
 			
 			// Add new values at the end
 			// Note: Commas -> , are important since this is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
@@ -298,7 +298,7 @@ class sdCharacter extends sdEntity
 			{ file:'skins/animus', name:'Animus' }, // by LordBored, index = 92
 			{ file:'skins/architect', name:'Architect' }, // by LordBored, index = 93
 			{ file:'skins/architect2', name:'Architect Alt1' }, // by LordBored, index = 94
-			{ file:'skins/architect3', name:'Architect Alt2' }, // by LordBored, index = 95
+			{ file:'skins/architect3', name:'Architect Alt2' } // by LordBored, index = 95
 		];
 		sdCharacter.skins = [];
 		for ( let i = 0; i < sdCharacter.skin_file_names_with_actual_names.length; i++ )
@@ -383,6 +383,8 @@ class sdCharacter extends sdEntity
 				{
 					if ( character._ai_team === 3 )
 					{
+						if ( character.title === 'Council Vanguard' || character.title === 'Council Acolyte' )
+						{
 						if ( Math.random() < 0.1 )
 						return sdWorld.AnyOf( [ 
 							'This universe is doomed. You cannot stop it.', 
@@ -393,6 +395,20 @@ class sdCharacter extends sdEntity
 							'You can only delay your inevitable death.',
 							'You cannot harm me, you can only send me back.'
 							] );
+						}
+						else
+						{
+						if ( Math.random() < 0.1 )
+						return sdWorld.AnyOf( [ 
+							'A thrilling battle.', 
+							'We will destroy you.', 
+							'We are beyond.', 
+							'I will accelerate your inevitable death!',
+							'Die!',
+							'You will learn your place, under my foot!',
+							'Time to cleanse the plague.'
+							] );
+						}
 					}
 				}
 			},
@@ -1178,7 +1194,19 @@ THING is cosmic mic drop!`;
 			this._ignored_stability_damage = 0;
 		}
 	}
-	
+	StatusEffectPreventsDeath()
+	{
+		// Used for humanoids bosses, like Time Shifter and High Councilors.
+		let effects = sdStatusEffect.entity_to_status_effects.get( this );
+		if ( effects !== undefined )
+			for ( let i = 0; i < effects.length; i++ )
+			{
+				if ( effects[ i ].type === sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES || effects[ i ].type === sdStatusEffect.TYPE_HIGH_COUNCILOR_PROPERTIES ) // Humanoid has "boss" properties?
+				return true; // Prevent death since they teleport away when defeated.
+			}
+			
+		return false;
+	}
 	GetStepSound()
 	{
 		//if ( this.GetBleedEffect() === sdEffect.TYPE_WALL_HIT )
@@ -3002,7 +3030,7 @@ THING is cosmic mic drop!`;
 				if ( this.AttemptTeleportOut( initiator, false, this.hea - damage_to_deal ) )
 				return;
 			}
-			if ( this._ai_team === 10 && this.hea - damage_to_deal <= 0 ) // Time shifters aren't supposed to die ( prevent barrel/bomb/whatever cheesing )
+			if ( this.StatusEffectPreventsDeath() && this.hea - damage_to_deal <= 0 ) // For humanoid bosses which aren't supposed to die, like High Councilors and Time Shifters.
 			{
 				this.hea = 1;
 				this._dying = false;
@@ -3461,7 +3489,7 @@ THING is cosmic mic drop!`;
 
 			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
-				if ( this._ai_team !== 0 && this._ai_team !== 6 && this._ai_team !== 10 && !this.driver_of )// Prevent SD, Instructor and Time Shifter from disappearing
+				if ( this._ai_team !== 0 && this._ai_team !== 6 && !this.StatusEffectPreventsDeath() && !this.driver_of )// Prevent SD, Instructor and Time Shifter from disappearing
 				{
 					this.remove();
 					return;

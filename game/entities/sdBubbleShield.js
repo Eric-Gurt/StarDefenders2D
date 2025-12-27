@@ -36,6 +36,7 @@ class sdBubbleShield extends sdEntity
 		
 		sdBubbleShield.TYPE_VELOX_SHIELD = 0; // Velox shields
 		sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD = 1; // SD shields
+		sdBubbleShield.TYPE_COUNCIL_SHIELD = 2; // Council shield
 	}
 
 	get hard_collision()
@@ -74,6 +75,8 @@ class sdBubbleShield extends sdEntity
 		if ( shield_type === sdBubbleShield.TYPE_VELOX_SHIELD )
 		return 300;
 		
+		if ( shield_type === sdBubbleShield.TYPE_COUNCIL_SHIELD ) // When these appear, they're mostly a timer thing
+		return 10000;
 		
 		return 200;
 	}
@@ -86,6 +89,8 @@ class sdBubbleShield extends sdEntity
 		if ( shield_type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
 		return -1; // Must be activated / deactivated manually
 		
+		if ( shield_type === sdBubbleShield.TYPE_COUNCIL_SHIELD )
+		return 300;
 		
 		return 30 * 20;
 		
@@ -165,6 +170,9 @@ class sdBubbleShield extends sdEntity
 	
 		if ( this.type === sdBubbleShield.TYPE_STAR_DEFENDER_SHIELD )
 		return 'hue-rotate(' + 300 + 'deg) brightness( 2 )';
+	
+		if ( this.type === sdBubbleShield.TYPE_COUNCIL_SHIELD )
+		return 'hue-rotate(' + 180 + 'deg) brightness( 2 )';
 		//return 'hue-rotate(' + 270 + 'deg) brightness( 1 ) contrast( 4 )';
 	}
 	static ApplyShield( for_entity = null, shield_type = 0, manual_override = false, xsize = 32, ysize = 32 )
