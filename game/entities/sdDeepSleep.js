@@ -545,14 +545,14 @@ class sdDeepSleep extends sdEntity
 			{
 				sdDeepSleep.inception_catcher_next_warning_allowed_in = sdWorld.time + 1000 * 60 * 5; 
 				console.warn( 'WakeUpArea was called over 32 times per frame - it can be bad for server performance' );
-				trace( 'inception_catcher_areas_awoken', sdDeepSleep.inception_catcher_areas_awoken );
+				trace( 'inception_catcher_areas_awoken v2', sdDeepSleep.inception_catcher_areas_awoken );
 			}
 			
 		
 			if ( sdDeepSleep.inception_catcher > sdDeepSleep.inception_catcher_give_up_level )
 			{
 				console.warn( 'WakeUpArea was called over 512 times per frame - some crazy deep sleep inception has happened?' );
-				trace( 'inception_catcher_areas_awoken', sdDeepSleep.inception_catcher_areas_awoken );
+				trace( 'inception_catcher_areas_awoken v2', sdDeepSleep.inception_catcher_areas_awoken );
 				return;
 			}
 		}
@@ -570,6 +570,8 @@ class sdDeepSleep extends sdEntity
 	
 		sdDeepSleep.inception_catcher++;
 		sdDeepSleep.inception_catcher_areas_awoken.push({
+			net_id: this._net_id,
+			snapshots_objects_total: this._snapshots_objects ? this._snapshots_objects.length : null,
 			x: StringIfNaN( this.x ),
 			y: StringIfNaN( this.y ),
 			w: StringIfNaN( this.w ),
