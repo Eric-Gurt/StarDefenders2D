@@ -1007,11 +1007,15 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'deepsleepinfo' || parts[ 0 ] === 'cells' || parts[ 0 ] === 'deepsleep' || parts[ 0 ] === 'ds' )
 		{
-			let counts = [ 0,0,0 ];
+			let counts = [ 0,0,0,0 ];
 			for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
 			counts[ sdDeepSleep.cells[ i ].type ]++;
 		
-			socket.SDServiceMessage( 'Cells total: ' + sdDeepSleep.cells.length + ', unspawned: ' + counts[ sdDeepSleep.TYPE_UNSPAWNED_WORLD ] + ', hibernated: ' + counts[ sdDeepSleep.TYPE_HIBERNATED_WORLD ] + ', potentially-to-hibernate: ' + counts[ sdDeepSleep.TYPE_SCHEDULED_SLEEP ] );
+			socket.SDServiceMessage( 'Cells total: ' + sdDeepSleep.cells.length + 
+					', unspawned: ' + counts[ sdDeepSleep.TYPE_UNSPAWNED_WORLD ] + 
+					', hibernated: ' + counts[ sdDeepSleep.TYPE_HIBERNATED_WORLD ] + 
+					', potentially-to-hibernate: ' + counts[ sdDeepSleep.TYPE_SCHEDULED_SLEEP ] + 
+					', do-not-hibernate: ' + counts[ sdDeepSleep.TYPE_DO_NOT_HIBERNATE ] );
 		}
 		else
 		if ( parts[ 0 ] === 'updatecache' )

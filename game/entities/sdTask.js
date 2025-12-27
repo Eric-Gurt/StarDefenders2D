@@ -62,7 +62,7 @@ class sdTask extends sdEntity
 				return -1;
 			},
 			
-		letion_condition: ( task )=>
+			completion_condition: ( task )=>
 			{
 				return false;
 			},
@@ -203,6 +203,10 @@ class sdTask extends sdEntity
 			},
 			onTaskMade: ( task, params )=>{
 				task.SetClaimRewardsProgress( Math.floor( task._executer._task_reward_counter ) ); // Also needs to update when players complete tasks, and claim rewards.
+			},
+			failure_condition: ( task )=>
+			{
+				return ( !task._executer || task._executer._is_being_removed ); // Remove task so it does not spawn warnings when snapshot is loaded next time
 			},
 			completion_condition: ( task )=>
 			{
