@@ -6,6 +6,7 @@ import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
+import sdGib from './sdGib.js';
 import sdBlock from './sdBlock.js';
 //import sdPlayerOverlord from './sdPlayerOverlord.js';
 
@@ -129,6 +130,8 @@ class sdOctopus extends sdEntity
 		
 		this.side = 1;
 		
+		this.gibbed = 0; // For gibbing. Could probably be done by using other public variables instead.
+		
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
 		//this._consumed_matter = [];
@@ -220,6 +223,24 @@ class sdOctopus extends sdEntity
 			//sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			
 			sdSound.PlaySound({ name:'octopus_death', x:this.x, y:this.y, volume: 0.5, pitch: this.GetPitch() });
+			
+			if ( dmg >= this._hmax * 0.15 ) // Instagib, gibs octopus into multiple parts ( if your weapon deals enough damage )
+			{
+				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 });
+				sdWorld.SendEffect({ x: this.x, y: this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+				if ( this.type === sdOctopus.TYPE_GUN_TAKER )
+				{
+					sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y - 6, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this );
+					sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y - 6, this.sx + this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 1 );
+				}
+				if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
+				{
+					sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y - 6, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 2 );
+					sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y - 6, this.sx + this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 3 );
+				}
+				
+				this.gibbed = 1;
+			}
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 	
@@ -858,7 +879,7 @@ class sdOctopus extends sdEntity
 			
 			
 			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdOctopus.death_duration ) * 4 ) );
-			yy = 2;
+			yy = this.gibbed === 1 ? 4 : 2;
 			
 			//ctx.drawImageFilterCache( sdOctopus.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
