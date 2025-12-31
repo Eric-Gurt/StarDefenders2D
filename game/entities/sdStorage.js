@@ -38,7 +38,7 @@ class sdStorage extends sdEntity
 	}
 	get hitbox_x1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -15 : this.type === sdStorage.TYPE_CARGO ? -13 : this.type === sdStorage.TYPE_CRYSTALS ? -13 : this.type === sdStorage.TYPE_PORTAL ? -3.5 : -7; }
 	get hitbox_x2() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 15 :  this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 13 :  this.type === sdStorage.TYPE_PORTAL ? 3.5 : 7; }
-	get hitbox_y1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -11 :  this.type === sdStorage.TYPE_CARGO ? -11 : this.type === sdStorage.TYPE_CRYSTALS ? -9 :  this.type === sdStorage.TYPE_PORTAL ? -3.5 : -5; }
+	get hitbox_y1() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? -9.5 :  this.type === sdStorage.TYPE_CARGO ? -11 : this.type === sdStorage.TYPE_CRYSTALS ? -9 :  this.type === sdStorage.TYPE_PORTAL ? -3.5 : -5; }
 	get hitbox_y2() { return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 6 :   this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 6 :   this.type === sdStorage.TYPE_PORTAL ? 3.5 : 6; }
 	
 	GetSlotsTotal()
