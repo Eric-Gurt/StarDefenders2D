@@ -16,8 +16,8 @@ class sdDropPod extends sdEntity
 {
 	static init_class()
 	{
-		sdDropPod.img_pod_kvt = sdWorld.CreateImageFromFile( 'sdDropPod_kvt' ); // Might be better to use sprite sheets for future purposes - Booraz149
-		sdDropPod.img_pod_sd = sdWorld.CreateImageFromFile( 'sdDropPod_sd' );
+		sdDropPod.img_pod_kvt = sdWorld.CreateImageFromFile( '/structures/sdDropPod_kvt' ); // Might be better to use sprite sheets for future purposes - Booraz149
+		sdDropPod.img_pod_sd = sdWorld.CreateImageFromFile( '/structures/sdDropPod_sd' );
 		
 		sdDropPod.kvt_pod_counter = 0;
 		sdDropPod.sd_pod_counter = 0;
@@ -29,9 +29,9 @@ class sdDropPod extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -12; }
-	get hitbox_x2() { return 12; }
-	get hitbox_y1() { return -15; }
+	get hitbox_x1() { return -11; }
+	get hitbox_x2() { return 11; }
+	get hitbox_y1() { return -12.5; }
 	get hitbox_y2() { return 15; }
 	
 	get hard_collision()
@@ -112,7 +112,7 @@ class sdDropPod extends sdEntity
 	}
 	get mass()
 	{
-		return 750;
+		return 600;
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -700,7 +700,7 @@ class sdDropPod extends sdEntity
 					}
 					else
 					{
-						if ( Math.random() > 0.7 )
+						if ( Math.random() > 0.5 )
 						exectuter_character.Say( 'I don\'t have enough resources to try bypassing the security.' );
 						else
 						exectuter_character.Say( 'I\'m gonna need more than my wits to get this thing open.' );
