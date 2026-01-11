@@ -98,7 +98,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._attack_timer = 0;
 		//this._rocket_attack_timer = 0;
-		//this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
+		this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
 		this._bullets = 30;
@@ -804,7 +804,7 @@ class sdEnemyMech extends sdEntity
 						else
 						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:1, pitch: 1 });
 
-						/*if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
+						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
 							an = Math.atan2( targets[ i ].y - ( this.y ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
@@ -832,7 +832,7 @@ class sdEnemyMech extends sdEntity
 							sdEntity.entities.push( bullet_obj );
 							this._rail_attack_timer = 10;
 							sdSound.PlaySound({ name:'gun_railgun', pitch: 0.5, x:this.x, y:this.y, volume:0.5 });
-						}*/
+						}
 						break;
 					}
 
@@ -897,8 +897,8 @@ class sdEnemyMech extends sdEntity
 					this._attack_timer -= GSPEED;
 					//if ( this._rocket_attack_timer > 0)
 					//this._rocket_attack_timer -= GSPEED;
-					//if ( this._rail_attack_timer > 0)
-					//this._rail_attack_timer -= GSPEED;
+					if ( this._rail_attack_timer > 0)
+					this._rail_attack_timer -= GSPEED;
 
 					//if ( this.hea < this._hmax / 2 )
 					{
