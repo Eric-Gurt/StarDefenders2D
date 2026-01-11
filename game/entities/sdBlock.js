@@ -1168,8 +1168,8 @@ class sdBlock extends sdEntity
 	//RequireSpawnAlign() 
 	//{ return true; }
 	
-	get spawn_align_x(){ return Math.min( Math.min( this.width, this.height ), 16 ); };
-	get spawn_align_y(){ return Math.min( Math.min( this.width, this.height ), 16 ); };
+	get spawn_align_x(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); }; // What am I doing here - Booraz
+	get spawn_align_y(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); };
 	
 	HandleDestructionUpdate()
 	{
