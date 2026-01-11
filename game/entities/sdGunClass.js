@@ -10664,6 +10664,25 @@ class sdGunClass
 				'#ebe547', 15, 'handle' ),
 				'#b0a527', 15, 'alt handle' ) )
 		};
+		sdGun.classes[ sdGun.CLASS_MATTER_CONTAINER_CHIPSET = 156 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'matter_container_chipset' ),
+			sound: 'gun_defibrillator',
+			title: 'Matter container chipset',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Used for upgrading the Advanced matter container' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
+			}
+		};
 
 		// Add new gun classes above this line //
 
