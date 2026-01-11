@@ -97,7 +97,6 @@ class sdShop
 			sdShop.options.push( sdShop.item_low_level );
 			sdShop.options.push( sdShop.item_low_workbench_level );
 			
-			sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'root', _opens_category:'Background walls' });
 			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, _category:'root', _opens_category:'Doors' });
@@ -114,6 +113,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', tag:'deep', matter_max:5120, _category:'root', _godmode_only: true, _opens_category:'Development tests crystals' });
 			sdShop.options.push({ _class: 'sdCharacter', _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
 			sdShop.options.push({ _class: 'sdFactionSpawner', _category:'root', _godmode_only: true, _opens_category:'Faction outpost tools' });
+			sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 			
 			//
 
@@ -1023,7 +1023,7 @@ class sdShop
 					character.matter_max = Math.round( 50 + level_purchased * 45 ); // Max is 1850
 				}
 			},*/
-			upgrade_hook:
+			/*upgrade_hook:
 			{
 				max_level: 2,
 				matter_cost: 75,
@@ -1032,8 +1032,8 @@ class sdShop
 				{
 					character._hook_allowed = true;
 				}
-			},
-			upgrade_jetpack:
+			},*/
+			/*upgrade_jetpack:
 			{
 				max_level: 1,
 				matter_cost: 75,
@@ -1042,7 +1042,7 @@ class sdShop
 				{
 					character._jetpack_allowed = true;
 				}
-			},
+			},*/
 			upgrade_invisibility:
 			{
 				max_level: 1,
@@ -1423,6 +1423,7 @@ class sdShop
 				{
 					if ( sdShop.options[ i ]._godmode_only !== true || ( sdWorld.my_entity && sdWorld.my_entity._god ) )
 					if ( sdShop.options[ i ]._category === sdShop.current_category || 
+						 sdShop.options[ i ]._category === 'root' || 
 						 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
 					matches = true;
 				}
@@ -1723,7 +1724,7 @@ class sdShop
 				ctx.restore();
 
 				xx += ( 32 + 16 ) * 2;
-				if ( xx + ( 32 ) * 2 > sdRenderer.screen_width - 40 )
+				if ( xx + ( 32 ) * 2 > sdRenderer.screen_width - 40 || sdWorld.my_entity._build_params._opens_category === 'root' )
 				{
 					xx = 40;
 					yy += ( 32 + 16 ) * 2;

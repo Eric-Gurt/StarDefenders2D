@@ -183,9 +183,9 @@ class sdBiter extends sdEntity
 	Impact( vel ) // fall damage basically
 	{
 		// less fall damage
-		if ( vel > 10 )
+		if ( vel > 20 )
 		{
-			this.Damage( ( vel - 5 ) * 5 );
+			this.Damage( ( vel - 15 ) * 5 );
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

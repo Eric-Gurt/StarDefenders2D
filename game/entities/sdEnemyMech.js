@@ -23,6 +23,8 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.img_mech = sdWorld.CreateImageFromFile( 'fmech2_sheet' );
 		sdEnemyMech.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 
+		sdEnemyMech.img_attack_indicator = sdWorld.CreateImageFromFile( 'lens_flare' );
+
 		//sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
 		//sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
 
@@ -67,7 +69,7 @@ class sdEnemyMech extends sdEntity
 		this._regen_timeout = 0;
 		
 		//this._hmax = 15000; // Was 6000 but even 12000 is easy
-		this._hmax = 5000; // EG: It feels like a sponge boss unfortunately. Maybe it needs to become more complex mechanics-wise and much more rare in order to have high hitpoints. Meanwhile I'm raising his damage instead
+		this._hmax = 12000; // EG: It feels like a sponge boss unfortunately. Maybe it needs to become more complex mechanics-wise and much more rare in order to have high hitpoints. Meanwhile I'm raising his damage instead
 		this.hea = this._hmax;
 
 		this._ai_team = 5;
@@ -79,6 +81,11 @@ class sdEnemyMech extends sdEntity
 		
 		this._current_target = null; // Now used in case of players engaging without meeting CanAttackEnt conditions
 		this._follow_target = null;
+
+		this.tracking_target = false;
+
+		this.look_x = 0;
+		this.look_y = 0;
 		
 		//this._last_stand_on = null;
 		//this._last_jump = sdWorld.time;
@@ -90,12 +97,14 @@ class sdEnemyMech extends sdEntity
 		this._move_dir_timer = 0;
 		
 		this._attack_timer = 0;
-		this._rocket_attack_timer = 0;
-		this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
+		//this._rocket_attack_timer = 0;
+		//this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
 		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._bullets = 75;
+		this._bullets = 30;
 		this._rockets = 4;
+
+		this.rocket_attack = false;
 		
 		this.side = 1;
 		
@@ -259,7 +268,7 @@ class sdEnemyMech extends sdEntity
 			let di_to_head = sdWorld.Dist2D( x, y, this.x + this._hitbox_x2 * this.side, this.y + this.hitbox_y1 + 15 );
 			// let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
 
-			if ( di_to_head < 16 )
+			if ( di_to_head < 12 )
 			return 3;
 		}
 	
@@ -321,7 +330,7 @@ class sdEnemyMech extends sdEntity
 				{
 					// Do not attack new players back unless they deal enough damage to Mech
 					
-					if ( this._last_patience_warning < sdWorld.time - 1000 * 5 ) // Once per 5 seconds
+					if ( this._last_patience_warning < sdWorld.time - 1000 * 3 ) // Once per 3 seconds
 					{
 						sdSound.PlaySound({ name:'enemy_mech_warning', x:this.x, y:this.y, volume:2 });
 
@@ -438,7 +447,7 @@ class sdEnemyMech extends sdEntity
 							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							//else
 							{
-								if ( random_value > 0.8 ) // 1 in 5 drops, so 20% of 35% which is about 7% on average
+								if ( random_value > 0.88 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
@@ -491,6 +500,12 @@ class sdEnemyMech extends sdEntity
 					this._follow_target = null;
 				
 					//this._follow_target = this.GetRandomEntityNearby();
+				}
+				else
+				if ( this.tracking_target )
+				{
+					this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._follow_target.GetCenterX(), 0.75, GSPEED );
+					this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._follow_target.GetCenterY(), 0.75, GSPEED );
 				}
 
 				if ( this._regen_timeout <= 0 )
@@ -548,7 +563,8 @@ class sdEnemyMech extends sdEntity
 
 						if ( this._attack_timer <= 3 )
 						{
-							if ( this.x > closest.x )
+							//if ( this.x > closest.x )
+							if ( this.x > this.look_x )
 							this.side = 1;
 							else
 							this.side = -1;
@@ -640,7 +656,7 @@ class sdEnemyMech extends sdEntity
 		
 			let v = 0.05;
 				
-			if ( 
+			/*if ( 
 					this.y > sdWorld.world_bounds.y1 + 200 &&
 					sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_x * 50, this.y + this._move_dir_y * 50, this, sdCom.com_visibility_ignored_classes, null ) &&  // Can move forward
 				( 
@@ -648,24 +664,26 @@ class sdEnemyMech extends sdEntity
 				   !sdWorld.CheckLineOfSight( this.x, this.y, this.x - this._move_dir_x * 100, this.y - this._move_dir_y * 100, this, sdCom.com_visibility_ignored_classes, null ) || // allow retreat from wall behind
 				   !sdWorld.CheckLineOfSight( this.x, this.y, this.x - this._move_dir_y * 100, this.y + this._move_dir_x * 100, this, sdCom.com_visibility_ignored_classes, null ) || // side
 				   !sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_y * 100, this.y - this._move_dir_x * 100, this, sdCom.com_visibility_ignored_classes, null ) // side
-				   ) )
+				   ) )*/
 			{
 				
 				this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
 				this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
 				this.tilt = sdWorld.MorphWithTimeScale( this.tilt, this._move_dir_x * this._move_dir_speed_scale * 2, 0.93, GSPEED );
-			}
-			else
-			{
-				this._move_dir_timer = 0;
-				this.sy += 0.1 * GSPEED;
+
+				if ( sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_x * 200, this.y + this._move_dir_y * 200, this, sdCom.com_visibility_ignored_classes, null ) ) // Can move forward)
+				this.sy += 0.02 * GSPEED;
+				else
+				this.sy -= 0.1 * GSPEED;
 			}
 			
 			if ( sdWorld.is_server )
 			{
 				if ( this._attack_timer <= 0 )
 				{
-					this._attack_timer = 2;
+					this._attack_timer = ( this.rocket_attack ? 6 : 2 );
+
+					this.tracking_target = true;
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
@@ -703,6 +721,7 @@ class sdEnemyMech extends sdEntity
 					
 					for ( let i = 0; i < targets.length; i++ )
 					{
+						if ( !this._follow_target || ( targets[ i ] !== this._follow_target && Math.random() < 0.1 ) )
 						this._follow_target = targets[ i ];
 
 						if ( this._alert_intensity < 45 )// Delay attack
@@ -710,10 +729,12 @@ class sdEnemyMech extends sdEntity
 
 						//this.attack_anim = 15;
 
-						let an = Math.atan2( 
+						/*let an = Math.atan2( 
 								targets[ i ].y + ( targets[ i ]._hitbox_y1 + targets[ i ]._hitbox_y2 ) / 2 - this.y, 
 								targets[ i ].x + ( targets[ i ]._hitbox_x1 + targets[ i ]._hitbox_x2 ) / 2 - this.x 
-						) + ( Math.random() * 2 - 1 ) * 0.05;
+						) + ( Math.random() * 2 - 1 ) * 0.05;*/
+
+						let an = Math.atan2( this.look_y - this.y, this.look_x - this.x ) + ( Math.random() * 2 - 1 ) * ( this.rocket_attack ? 0.15 : 0.05);
 
 						this.lmg_an = an * 100;
 
@@ -728,13 +749,24 @@ class sdEnemyMech extends sdEntity
 						bullet_obj.sx *= 15;
 						bullet_obj.sy *= 15;
 						
-						bullet_obj.time_left = 60;
+						if ( this.rocket_attack )
+						{
+							bullet_obj.model = 'rocket_proj';
 
-						//bullet_obj._rail = true;
+							bullet_obj._damage = 15;
+							bullet_obj.explosion_radius = 10 * 1.5;
+							bullet_obj.color = '#7acaff';
+						}
+						else
+						{
+							bullet_obj.time_left = 60;
 
-						//bullet_obj._damage = 25;
-						bullet_obj._damage = 30; // 75 is a bit much, players get RTP'd almost instantly
-						bullet_obj.color = '#ffaa00';
+							//bullet_obj._rail = true;
+
+							//bullet_obj._damage = 25;
+							bullet_obj._damage = 35; // 75 is a bit much, players get RTP'd almost instantly
+							bullet_obj.color = '#ffaa00';
+						}
 
 						sdEntity.entities.push( bullet_obj );
 
@@ -742,15 +774,37 @@ class sdEnemyMech extends sdEntity
 
 						if ( this._bullets <= 0 )
 						{
-							this._bullets = 75;
-							this._attack_timer = 30 * 4;
+							this._attack_timer = 30 * 3;
+
+							this.tracking_target = false;
+
+							if ( this.hea < ( this._hmax / 2 ) && Math.random() < ( this.rocket_attack ? 0.25 : 0.75 ) ) // Second phase of the mech, rocket launcher can fire now
+							{
+								this.rocket_attack = true;
+								this._bullets = 8;
+							}
+							else
+							{
+								this.rocket_attack = false;
+								this._bullets = 30;
+							}
+
+							if ( this.rocket_attack )
+							this._attack_timer /= 2;
+
 							this.lmg_an = Math.PI / 2 * 100;
 						}
 
+						if ( ( this.hea < this._hmax / 2 ) )
+						this._attack_timer /= 1.5;
+
 						//sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.3 });
+						if ( this.rocket_attack )
+						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:1, pitch: 0.2 });
+						else
 						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:1, pitch: 1 });
 
-						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
+						/*if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
 							an = Math.atan2( targets[ i ].y - ( this.y ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
@@ -778,11 +832,11 @@ class sdEnemyMech extends sdEntity
 							sdEntity.entities.push( bullet_obj );
 							this._rail_attack_timer = 10;
 							sdSound.PlaySound({ name:'gun_railgun', pitch: 0.5, x:this.x, y:this.y, volume:0.5 });
-						}
+						}*/
 						break;
 					}
 
-					if ( this._rocket_attack_timer <= 0 )
+					/*if ( this._rocket_attack_timer <= 0 )
 					if ( this.hea < ( this._hmax / 2 ) ) // Second phase of the mech, rocket launcher can fire now
 					for ( let i = 0; i < targets.length; i++ )
 					{
@@ -826,7 +880,7 @@ class sdEnemyMech extends sdEntity
 						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
 						break;
-					}
+					}*/
 					if ( targets.length === 0 ) // lower seek rate when no targets around
 					this._attack_timer = 25 + Math.random() * 10;
 					else
@@ -841,10 +895,10 @@ class sdEnemyMech extends sdEntity
 				else
 				{
 					this._attack_timer -= GSPEED;
-					if ( this._rocket_attack_timer > 0)
-					this._rocket_attack_timer -= GSPEED;
-					if ( this._rail_attack_timer > 0)
-					this._rail_attack_timer -= GSPEED;
+					//if ( this._rocket_attack_timer > 0)
+					//this._rocket_attack_timer -= GSPEED;
+					//if ( this._rail_attack_timer > 0)
+					//this._rail_attack_timer -= GSPEED;
 
 					//if ( this.hea < this._hmax / 2 )
 					{
@@ -943,6 +997,16 @@ class sdEnemyMech extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 		ctx.sd_filter = null;
+
+		if ( !sdWorld.draw_methods_output_ptr ) // Exclude this part from lost appearance
+		if ( this.hea > 0 )
+		if ( this.hea < ( this._hmax / 2 ) )
+		if ( this.rocket_attack )
+		{
+			ctx.blend_mode = THREE.AdditiveBlending;
+			ctx.drawImageFilterCache( sdEnemyMech.img_attack_indicator, -32, -32, 64, 64 );
+			ctx.blend_mode = THREE.NormalBlending;
+		}
 	}
 	/*onMovementInRange( from_entity )
 	{

@@ -2945,8 +2945,8 @@ class sdGunClass
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
-							// Prevent yellow cubes from commiting not living
-							if ( nears[ i ].is( sdCube ) && bullet._owner === nears[ i ] )
+							// Prevent yellow cubes from commiting not living on each other
+							if ( nears[ i ].is( sdCube ) && bullet._owner.is( sdCube ) )
 							{
 							}
 							else

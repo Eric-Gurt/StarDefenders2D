@@ -24,6 +24,7 @@ import sdWeather from './sdWeather.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdStalker from './sdStalker.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
 
 import sdPathFinding from '../ai/sdPathFinding.js';
@@ -45,6 +46,9 @@ class sdCube extends sdEntity
 		sdCube.img_cube_sleep3 = sdWorld.CreateImageFromFile( 'cube_sleep3' );
 		*/
 		
+		sdCube.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
+		sdCube.img_directional_glow = sdWorld.CreateImageFromFile( 'attack_indicator_beam' );
+		
 		sdCube.alive_cube_counter = 0;
 		sdCube.alive_huge_cube_counter = 0; // 1
 		sdCube.alive_white_cube_counter = 0; // 2
@@ -54,7 +58,7 @@ class sdCube extends sdEntity
 		sdCube.death_duration = 10;
 		sdCube.post_death_ttl = 90;
 		
-		sdCube.attack_range = 450;
+		sdCube.attack_range = 430;
 		
 		sdCube.KIND_CYAN = 0;
 		sdCube.KIND_YELLOW = 1;
@@ -70,13 +74,13 @@ class sdCube extends sdEntity
 			1,
 			2,
 			3,
-			0.6,
+			0.8, // 0.6 can be difficult to hit, cubes are evasive as it is
 			1,
 			1.5,
 			1,
 			// Just in case to prevent bugs from newer versions:
 			1,
-			4,
+			3.5,
 			1,
 			1,
 			1,
@@ -250,7 +254,9 @@ class sdCube extends sdEntity
 		this._attack_timer = 0;
 		this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._charged_shots = 3;
+		this._charged_shots = this.GetChargedShotCount()
+
+		this.beam_attack_active = false;
 
 		this._teleport_timer = 36;
 		
@@ -477,7 +483,7 @@ class sdCube extends sdEntity
 			{
 				setTimeout( ()=>
 				{
-					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, [ 'sdCube' ] );
+					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, sdCube.as_class_list );
 					
 					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 8 : 4;
 					
@@ -847,6 +853,10 @@ class sdCube extends sdEntity
 		return [];
 	}
 	
+	GetChargedShotCount()
+	{
+		return ( this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 6 : 3 );
+	}
 	FireDirectionalBeams( is_void ) // Fire 4 rail beams in 4 different directions - up, down, left and right
 	{
 		if ( !sdWorld.is_server )
@@ -872,109 +882,59 @@ class sdCube extends sdEntity
 					no_smoke: true
 				});
 
-				sdLost.ApplyAffection( target_entity, is_void ? 30 : 10, bullet, is_void ? sdLost.FILTER_VOID : sdLost.FILTER_WHITE );
+				if ( !target_entity.is( sdCube ) )
+				sdLost.ApplyAffection( target_entity, is_void ? 15 : 6, bullet, is_void ? sdLost.FILTER_VOID : sdLost.FILTER_WHITE );
 			}
 		};
 
+		for ( let x = -1; x <= 1; x++ )
+		for ( let y = -1; y <= 1; y++ )
+		if ( x === 0 || y === 0 )
+		{
+			let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
+			bullet_obj1._owner = this;
+			bullet_obj1.sx = x;
+			bullet_obj1.sy = y;
+			//bullet_obj1.x += bullet_obj1.sx * 5;
+			//bullet_obj1.y += bullet_obj1.sy * 5;
 
-		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj1._owner = this;
-					bullet_obj1.sx = -1;
-					bullet_obj1.sy = 0;
-					//bullet_obj1.x += bullet_obj1.sx * 5;
-					//bullet_obj1.y += bullet_obj1.sy * 5;
+			bullet_obj1.sx *= 16;
+			bullet_obj1.sy *= 16;
+				
+			bullet_obj1.time_left = 25;
 
-					bullet_obj1.sx *= 16;
-					bullet_obj1.sy *= 16;
-						
-					bullet_obj1.time_left = 20;
+			bullet_obj1._rail = true;
+			if ( is_void ) bullet_obj1._rail_circled = true;
+			bullet_obj1.color = is_void ? '#000000' : '#888888';
 
-					bullet_obj1._rail = true;
-					if ( is_void ) bullet_obj1._rail_circled = true;
-					bullet_obj1.color = is_void ? '#000000' : '#888888';
+			bullet_obj1._damage = 5;
 
-					bullet_obj1._damage = 1;
+			bullet_obj1._custom_target_reaction = spear_targer_reaction;
 
-					bullet_obj1._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj1 );
-
-		let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj2._owner = this;
-					bullet_obj2.sx = 0;
-					bullet_obj2.sy = 1;
-					//bullet_obj2.x += bullet_obj2.sx * 5;
-					//bullet_obj2.y += bullet_obj2.sy * 5;
-
-					bullet_obj2.sx *= 16;
-					bullet_obj2.sy *= 16;
-						
-					bullet_obj2.time_left = 20;
-
-					bullet_obj2._rail = true;
-					if ( is_void ) bullet_obj2._rail_circled = true;
-					bullet_obj2.color = is_void ? '#000000' : '#888888';
-
-					bullet_obj2._damage = 1;
-
-					bullet_obj2._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj2 );
-
-		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj3._owner = this;
-					bullet_obj3.sx = 1;
-					bullet_obj3.sy = 0;
-					//bullet_obj3.x += bullet_obj3.sx * 5;
-					//bullet_obj3.y += bullet_obj3.sy * 5;
-
-					bullet_obj3.sx *= 16;
-					bullet_obj3.sy *= 16;
-						
-					bullet_obj3.time_left = 20;
-
-					bullet_obj3._rail = true
-					if ( is_void ) bullet_obj3._rail_circled = true;
-					bullet_obj3.color = is_void ? '#000000' : '#888888';
-
-					bullet_obj3._damage = 1;
-
-					bullet_obj3._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj3 );
-
-		let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
-					bullet_obj4._owner = this;
-					bullet_obj4.sx = 0;
-					bullet_obj4.sy = -1;
-					//bullet_obj4.x += bullet_obj4.sx * 5;
-					//bullet_obj4.y += bullet_obj4.sy * 5;
-
-					bullet_obj4.sx *= 16;
-					bullet_obj4.sy *= 16;
-						
-					bullet_obj4.time_left = 20;
-
-					bullet_obj4._rail = true;
-					if ( is_void ) bullet_obj4._rail_circled = true;
-					bullet_obj4.color = is_void ? '#000000' : '#888888';
-
-					bullet_obj4._damage = 1;
-
-					bullet_obj4._custom_target_reaction = spear_targer_reaction;
-
-					sdEntity.entities.push( bullet_obj4 );
+			sdEntity.entities.push( bullet_obj1 );
+		}
 	}
-	TeleportSomewhere(dist = 1, add_x = 0, add_y = 0) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
+	TeleportSomewhere( dist = 1, add_x = 0, add_y = 0 ) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
 	{
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this.CanMoveWithoutOverlap( this.x + ( this.sx * dist ) + add_x, this.y  + ( this.sy * dist ) + add_y, 0 ) )
+		let xx = this.x + ( this.sx * dist ) + add_x;
+		let yy = this.y + ( this.sy * dist ) + add_y;
+
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCube.as_class_list, sdCom.cos_vision_blocking_classes ) )
+		if ( this.CanMoveWithoutOverlap( xx, yy, 0 ) )
 		{
-			this.x = this.x + ( this.sx * dist ) + add_x;
-			this.y = this.y + ( this.sy * dist ) + add_y;
+			setTimeout(()=>
+			{
+				if ( this._is_being_removed || this._hea <= 0 || this._frozen > 0 )
+				return;
+
+				this.x = xx;
+				this.y = yy;
+			}, 400 );
 			
+			sdWorld.SendEffect({ x:this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM_CIRCLED, color:"#ffffff" });
 			sdSound.PlaySound({ name:'cube_teleport', pitch: ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:1 });
 		}
 	}
@@ -996,6 +956,7 @@ class sdCube extends sdEntity
 					e.is( sdSetrDestroyer ) || 
 					e.is( sdSpider ) || 
 					e.is( sdOverlord ) ||
+					e.is( sdCouncilIncinerator ) ||
 					e.is( sdStalker ) ||
 					e.is( sdZektaronDreadnought ) );
 	}
@@ -1139,9 +1100,13 @@ class sdCube extends sdEntity
 					this._teleport_timer = 30 + ( Math.random() * 60 );
 				}
 				else
+				if ( this._attack_timer > 10 )
 				{
 					this._teleport_timer = Math.max( this._teleport_timer - GSPEED, 0 );
 				}
+				else
+				this._teleport_timer = 30;
+
 				if ( this._move_dir_timer <= 0 )
 				{
 					this._move_dir_timer = 15 + Math.random() * 45;
@@ -1304,6 +1269,7 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdDrone' && target._hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
+								 ( target.GetClass() === 'sdCouncilIncinerator' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdStalker' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) ||
 								 ( target.GetClass() === 'sdZektaronDreadnought' && target.hea > 0  && !sdCube.IsTargetFriendly( target, this ) ) )
 							{
@@ -1351,9 +1317,13 @@ class sdCube extends sdEntity
 							
 						if ( this.kind === sdCube.KIND_YELLOW && Math.random() > 0.9 )
 						{
+							this.attack_anim = 2200 / 1000 * 30;
+
 							setTimeout(()=>
 							{
-								if ( !this._is_being_removed )
+								if ( this._is_being_removed )
+								return;
+
 								if ( this.hea > 0 && this._frozen <= 0 ) // Not disabled in time
 								{
 									let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
@@ -1363,8 +1333,8 @@ class sdCube extends sdEntity
 									bullet_obj.sx = Math.cos( an );
 									bullet_obj.sy = Math.sin( an );
 
-									bullet_obj.sx *= 16;
-									bullet_obj.sy *= 16;
+									bullet_obj.sx *= 12;
+									bullet_obj.sy *= 12;
 
 									//bullet_obj.time_left = 60;
 									bullet_obj.time_left = 90; // overriden later
@@ -1393,115 +1363,144 @@ class sdCube extends sdEntity
 						}
 						else
 						{
+							let xx = targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2;
+							let yy = targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2;
 
-							let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
+							let shots = this.GetChargedShotCount();
 
+							if ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
+							if ( this._charged_shots === shots )
+							this.beam_attack_active = ( Math.random() < 0.33 );
 
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-							bullet_obj._owner = this;
-							bullet_obj.sx = Math.cos( an );
-							bullet_obj.sy = Math.sin( an );
+							let beam_attack = this.beam_attack_active;
 
-							bullet_obj.sx *= 16;
-							bullet_obj.sy *= 16;
-
-							bullet_obj.time_left = 60;
-
-							bullet_obj._rail = true;
-
-							bullet_obj._damage = 15;
-							
-							if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
+							setTimeout(()=>
 							{
-								bullet_obj._damage = 18;
-							}
-							
-							if ( this.kind === sdCube.KIND_PINK )
-							{
-								bullet_obj._damage = -15;
-							}
-							
-							if ( this.kind === sdCube.KIND_BLUE )
-							{
-								bullet_obj._damage = 0;
-								
-								bullet_obj._custom_target_reaction = 
-								bullet_obj._custom_target_reaction_protected = ( bullet, hit_entity )=>
+								if ( this._is_being_removed )
+								return;
+
+								if ( this.hea <= 0 || this._frozen > 0 ) // Not disabled in time
 								{
-									if ( hit_entity )
-									if ( hit_entity.is( sdCube ) )
-									{
-										hit_entity.armor = Math.min( hit_entity.armor + 25, hit_entity.armor_max );
-									}
-								};
-							}
-							
-							if ( this.kind === sdCube.KIND_GREEN )
-							{
-								bullet_obj._damage = 0;
-								
-								bullet_obj._custom_target_reaction = 
-								bullet_obj._custom_target_reaction_protected = ( bullet, hit_entity )=>
-								{
-									if ( hit_entity )
-									if ( hit_entity.is( sdCube ) )
-									if ( hit_entity.kind !== sdCube.KIND_GREEN )
-									{
-										hit_entity._invisible_until = sdWorld.time + 10000;
-									}
-								};
-							}
-							
-							bullet_obj.color = ( this.kind === sdCube.KIND_PINK ) ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
-							
-							if ( this.kind === sdCube.KIND_ANCIENT ) // Ancient cube fires cyan rails but they deal lost damage instead of regular. Also different color
-							{
-								let custom_target_reaction = ( bullet, target_entity )=>
-								{
-									if ( target_entity.is( sdLost ) )
-									{
-										target_entity.DamageWithEffect( 10, bullet._owner );
-									}
+									this.beam_attack_active = false;
+									return;
+								}
 
-									sdLost.ApplyAffection( target_entity, 15, bullet, sdLost.FILTER_WHITE );
-								};
-								
-								bullet_obj._custom_target_reaction = custom_target_reaction;
-								bullet_obj._damage = 0;
-								bullet_obj.color = '#d6981e';
-							}
-							
-							if ( this.kind === sdCube.KIND_MATTER_STEALER )
-							{
-								bullet_obj._damage = 8;
-								bullet_obj.color = '#00ff00';
-								
-								sdSound.PlaySound({ name:'red_railgun', pitch: ( 1 + this._charged_shots * 0.1 ) * ( 0.5 + GSPEED_MULT * 0.5 ), x:this.x, y:this.y, volume:0.5 });
-							}
-							else
-							{
-								sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
-							}
-
-							sdEntity.entities.push( bullet_obj );
+								if ( !beam_attack )
+								{
+									let an = Math.atan2( yy - this.y, xx - this.x );
+	
+	
+									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+									bullet_obj._owner = this;
+									bullet_obj.sx = Math.cos( an );
+									bullet_obj.sy = Math.sin( an );
+	
+									bullet_obj.sx *= 16;
+									bullet_obj.sy *= 16;
+	
+									bullet_obj.time_left = 60;
+	
+									bullet_obj._rail = true;
+	
+									bullet_obj._damage = 17;
+									
+									if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
+									{
+										bullet_obj._damage = 20;
+									}
+									
+									if ( this.kind === sdCube.KIND_PINK )
+									{
+										bullet_obj._damage = -17;
+									}
+									
+									if ( this.kind === sdCube.KIND_BLUE )
+									{
+										bullet_obj._damage = 0;
+										
+										bullet_obj._custom_target_reaction = 
+										bullet_obj._custom_target_reaction_protected = ( bullet, hit_entity )=>
+										{
+											if ( hit_entity )
+											if ( hit_entity.is( sdCube ) )
+											{
+												hit_entity.armor = Math.min( hit_entity.armor + 25, hit_entity.armor_max );
+											}
+										};
+									}
+									
+									if ( this.kind === sdCube.KIND_GREEN )
+									{
+										bullet_obj._damage = 0;
+										
+										bullet_obj._custom_target_reaction = 
+										bullet_obj._custom_target_reaction_protected = ( bullet, hit_entity )=>
+										{
+											if ( hit_entity )
+											if ( hit_entity.is( sdCube ) )
+											if ( hit_entity.kind !== sdCube.KIND_GREEN )
+											{
+												hit_entity._invisible_until = sdWorld.time + 10000;
+											}
+										};
+									}
+									
+									bullet_obj.color = ( this.kind === sdCube.KIND_PINK ) ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
+									
+									if ( this.kind === sdCube.KIND_ANCIENT ) // Ancient cube fires cyan rails but they deal lost damage instead of regular. Also different color
+									{
+										let custom_target_reaction = ( bullet, target_entity )=>
+										{
+											if ( target_entity.is( sdLost ) )
+											{
+												target_entity.DamageWithEffect( 10, bullet._owner );
+											}
+	
+											sdLost.ApplyAffection( target_entity, 15, bullet, sdLost.FILTER_WHITE );
+										};
+										
+										bullet_obj._custom_target_reaction = custom_target_reaction;
+										bullet_obj._damage = 0;
+										bullet_obj.color = '#d6981e';
+									}
+									
+									if ( this.kind === sdCube.KIND_MATTER_STEALER )
+									{
+										bullet_obj._damage = 8;
+										bullet_obj.color = '#00ff00';
+										
+										sdSound.PlaySound({ name:'red_railgun', pitch: ( 1 + this._charged_shots * 0.1 ) * ( 0.5 + GSPEED_MULT * 0.5 ), x:this.x, y:this.y, volume:0.5 });
+									}
+									else
+									{
+										sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
+									}
+	
+									sdEntity.entities.push( bullet_obj );
+								}
+								else
+								{
+									if ( this.kind === sdCube.KIND_WHITE )
+									this.FireDirectionalBeams( false );
+									else
+									if ( this.kind === sdCube.KIND_RED )
+									{
+										this.FireDirectionalBeams( true );
+	
+										if ( this._phase === 1 && this.hea <= this.hmax / 2 )
+										this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
+									}
+								}
+							}, beam_attack ? 800 : 400 );
 
 							this._charged_shots--;
 
-							if ( this.kind === sdCube.KIND_WHITE )
-							this.FireDirectionalBeams( false );
-
-							if ( this.kind === sdCube.KIND_RED )
-							{
-								this.FireDirectionalBeams( true );
-
-								if ( this._phase === 1 && this.hea <= this.hmax / 2 )
-								this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
-							}
-
 							if ( this._charged_shots <= 0 )
 							{
-								this._charged_shots = this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 5 : 3;
-								this._attack_timer = 45 * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
+								this._charged_shots = shots;
+								this._attack_timer = 15 + 10 * this._charged_shots;// * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
+
+								this.beam_attack_active = false;
 							}
 
 						}
@@ -1510,7 +1509,12 @@ class sdCube extends sdEntity
 					}
 
 					if ( targets.length === 0 ) // lower seek rate when no targets around
-					this._attack_timer = 25 + Math.random() * 10;
+					{
+						this._attack_timer = 25 + Math.random() * 10;
+
+						if ( this.beam_attack_active )
+						this.beam_attack_active = false;
+					}
 					else
 					{
 						if ( this._alert_intensity === 0 )
@@ -1579,7 +1583,7 @@ class sdCube extends sdEntity
 		if ( ent._target.GetClass() === 'sdCube' )
 		return false;
 		
-		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdStalker' || ent.GetClass() === 'sdZektaronDreadnought' ) // Bosses are targetable by cubes, bosses fight cubes aswell
+		if ( ent.GetClass() === 'sdEnemyMech' || ent.GetClass() === 'sdSetrDestroyer' || ent.GetClass() === 'sdStalker' || ent.GetClass() === 'sdZektaronDreadnought' || ent.GetClass() === 'sdCouncilIncinerator' ) // Bosses are targetable by cubes, bosses fight cubes aswell
 		return false;
 		
 		if ( ent.GetClass() === 'sdBot' || ent.GetClass() === 'sdDrone' )
@@ -1750,6 +1754,31 @@ class sdCube extends sdEntity
 
 				ctx.drawImageFilterCache( sdCube.img_cube, 32,yy * 32, 32,32, -16, -16, 32,32 );
 			}
+		}
+
+		
+		if ( this.hea > 0 )
+		if ( this.beam_attack_active )
+		{
+			ctx.filter = 'none';
+			ctx.globalAlpha = 0.25;
+			ctx.sd_filter = null;
+			
+			for ( let i = 0; i < 2; i++ )
+			{
+				ctx.save();
+
+				if ( i === 0 )
+				ctx.scale( 10, 0.25 );
+				else
+				ctx.scale( 0.25, 10 );
+
+				ctx.drawImageFilterCache( sdCube.img_glow, - 16, - 16, 32, 32 );
+
+				ctx.restore();
+			}
+			
+			ctx.globalAlpha = 1;
 		}
 		
 		ctx.globalAlpha = 1;

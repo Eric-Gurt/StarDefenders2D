@@ -658,9 +658,9 @@ class sdModeration
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
 
-						socket.character.InstallUpgrade( 'upgrade_jetpack' );
-						socket.character.InstallUpgrade( 'upgrade_hook' );
-						socket.character.InstallUpgrade( 'upgrade_hook' );
+						//socket.character.InstallUpgrade( 'upgrade_jetpack' );
+						//socket.character.InstallUpgrade( 'upgrade_hook' );
+						//socket.character.InstallUpgrade( 'upgrade_hook' );
 						socket.character.InstallUpgrade( 'upgrade_invisibility' );
 						socket.character.InstallUpgrade( 'upgrade_grenades' );
 
