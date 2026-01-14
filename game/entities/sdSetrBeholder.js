@@ -92,7 +92,7 @@ class sdSetrBeholder extends sdEntity
 		this.matter = 1500; // Not that players can spawn it anyway
 		this.matter_max = 1500;
 		
-		this._spawn_with_pilot = params.spawn_with_pilot || false; // Spawn with a Shurg humanoid?
+		this._spawn_with_pilot = params.spawn_with_pilot || false; // Spawn with a Setr humanoid?
 	}
 	
 	GetHitDamageMultiplier( x, y )
@@ -254,7 +254,9 @@ class sdSetrBeholder extends sdEntity
 				
 				sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SETR );
 				character_entity._potential_vehicle = this;
-				character_entity._key_states.SetKey( 'KeyE', 1 );
+				
+				this.AddDriver( character_entity, true ); // Maybe better?
+				//character_entity._key_states.SetKey( 'KeyE', 1 );
 				
 				this._spawn_with_pilot = false;
 			}
