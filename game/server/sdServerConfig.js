@@ -133,6 +133,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
 	static player_vs_player_damage_scale = 3;
+	static roach_spawn_rate = 0.5; // How often do roaches spawn from blood decals?
 	
 	static ShouldBlockContainAnything ( x,y,hp_mult )
 	{
