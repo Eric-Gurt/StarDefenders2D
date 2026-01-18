@@ -763,7 +763,7 @@ class sdCouncilIncinerator extends sdEntity
 				
 				this.tilt += GSPEED;
 				
-				if ( this._incinerate_attack_timer <= 30 * 5 )
+				if ( this._incinerate_attack_timer <= 30 * 5 && this._follow_target )
 				{
 					//if ( this._incinerate_attack_timer <= 0 ||
 					if ( sdWorld.inDist2D_Boolean( this.x, this.y, this._follow_target.x, this._follow_target.y, sdCouncilIncinerator.incinerate_attack_range * 0.75 ) )
