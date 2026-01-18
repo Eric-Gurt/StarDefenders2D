@@ -1303,7 +1303,7 @@ class sdWeather extends sdEntity
 
 		return true;
 	}
-	SimpleExecuteEvent( r ) // Old ExecuteEvent so we can still use this while debugging / testing in DevTools
+	SimpleExecuteEvent( r = -1 ) // Old ExecuteEvent so we can still use this while debugging / testing in DevTools
 	{
 		this.ExecuteEvent({
 			event: r 
@@ -1315,7 +1315,7 @@ class sdWeather extends sdEntity
 		/* Using parameters now, like SimpleSpawner so we can have more control over event functions/purposes,
 			for example, spawning invasion mobs closer to tasks which need protection ( LR antenna, solar matter distributor )
 		*/
-		let r = params.event || -1; // Which event should be executed?
+		let r = params.event || 0; // Which event should be executed?
 		
 		let near_ent = params.near_entity || null; // Should this spawn near any entity?
 		let group_rad = params.group_radius || 0; // Allowed radius if spawning near entity, needs to be defined
@@ -1943,10 +1943,10 @@ class sdWeather extends sdEntity
 			}
 		}
 
-		if ( r === 0 || 
-			 r === 14 || 
-			 r === 15 ||
-			 r === 19 )
+		if ( r === sdWeather.EVENT_ACID_RAIN || 
+			 r === sdWeather.EVENT_WATER_RAIN || 
+			 r === sdWeather.EVENT_SNOW ||
+			 r === sdWeather.EVENT_MATTER_RAIN )
 		if ( this.raining_intensity <= 0 )
 		{
 			if ( r === sdWeather.EVENT_ACID_RAIN )
@@ -4611,7 +4611,7 @@ class sdWeather extends sdEntity
 									}
 								}
 								else
-								//if ( Math.random() < 0.1 )
+								if ( Math.random() < 0.25 ) // There is too much water on terrain and during rain, and that's without acid rains - Booraz
 								{
 									if ( !this.matter_rain )
 									{

@@ -144,7 +144,7 @@ class sdStealer extends sdEntity
 		{
 			if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
-				if ( this.IsEntFarEnough( ent ) && ent.held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Amplifier )
+				if ( this.IsEntFarEnough( ent )  && ( ent.held_by === null || ent.held_by.GetClass() === 'sdGrass' ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities (except trees) ?
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
@@ -209,7 +209,10 @@ class sdStealer extends sdEntity
 							if ( e.is( sdCrystal ) )
 							{
 								if ( e.held_by ) // Is object held by something?
-								can_steal = false; // Don't allow stealing
+								{
+									if ( e.held_by.GetClass() !== 'sdGrass' ) // Not held by a tree?
+									can_steal = false; // Don't allow stealing
+								}
 							}
 							if ( e.is( sdGun ) ) // ( e.held_by is invalid for sdGun, which let stealer steal equipped weapons in debug mode )
 							{
