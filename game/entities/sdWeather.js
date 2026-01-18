@@ -2283,26 +2283,13 @@ class sdWeather extends sdEntity
 		
 		if ( r === sdWeather.EVENT_OVERLORD )
 		{
-			let instances = 0;
-			let instances_tot = 1;
+			sdWeather.SimpleSpawner({
 
-			//let left_side = ( Math.random() < 0.5 );
-
-			while ( instances < instances_tot )
-			{
-				let ent = new sdOverlord({ x:0, y:0 });
-
-				sdEntity.entities.push( ent );
-
-				if ( !sdWeather.SetRandomSpawnLocation( ent ) )
-				{
-					ent.remove();
-					ent._broken = false;
-					break;
-				}
-
-				instances++;
-			}
+					count: [ 1, 1 ],
+					class: sdOverlord,
+					aerial: true,
+					aerial_radius: 64
+				});
 		}
 		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal beacon anywhere on the map outside player views which summons Erthals until destroyed
 		{

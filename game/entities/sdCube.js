@@ -74,7 +74,7 @@ class sdCube extends sdEntity
 			1,
 			2,
 			3,
-			0.8, // 0.6 can be difficult to hit, cubes are evasive as it is
+			0.6, // 0.6 can be difficult to hit, cubes are evasive as it is - low HP though so I think it's justified - Booraz
 			1,
 			1.5,
 			1,
