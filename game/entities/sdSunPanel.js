@@ -214,6 +214,7 @@ class sdSunPanel extends sdEntity
 
 			if ( sdWorld.time > this._next_trace_rethink )
 			{
+				this._next_trace_rethink = sdWorld.time + 5000 + Math.random() * 10000;
 				/*if ( this.panels === 0 )
 				{
 					if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y + this.hitbox_y1, Infinity, true ) )
@@ -228,8 +229,18 @@ class sdSunPanel extends sdEntity
 					let xx = this.x + this._hitbox_x1 + 6;
 					for ( let i = 0; i < 1 + this.panels; i++ )
 					{
+						if ( this.dirt_array[ i ] <= 1 ) // Dirt check for combined panels
+						{
+							this.dirt_array[ i ] += ( ( this._next_trace_rethink - sdWorld.time ) / 1000 ) * 30 * ( 0.00001 / this.multiplier ); // Higher tiers should recieve dirt slower?
+							if ( this.dirt_array[ i ] >= 1 )
+							this._update_version++;
+						}
+						
 						if ( sdWeather.only_instance.TraceDamagePossibleHere( xx, this.y + this.hitbox_y1, Infinity, true ) )
 						{
+							if ( sdWeather.only_instance.raining_intensity > 0 ) // Raining?
+							this.dirt_array[ i ] = 0; // Reset dirt for this part of the panels
+						
 							if ( this.dirt_array[ i ] >= 1 ) // Panel part covered in dirt?
 							panel_count += 0.25; // Only generate some then
 							else
@@ -240,8 +251,6 @@ class sdSunPanel extends sdEntity
 					}
 					this._sun_reaches = panel_count / ( 1 + this.panels ); // Total panels visible to the sky ( * 0.25 if they're dirty ) divided by total panel count
 				}
-
-				this._next_trace_rethink = sdWorld.time + 5000 + Math.random() * 10000;
 				
 				//if ( this.panels === 0 ) // Check for merging with nearby panels?
 				//this.CheckNearbyPanelsForMerging()
@@ -264,7 +273,7 @@ class sdSunPanel extends sdEntity
 				}
 			}
 			else // More panels
-			*/
+			
 			{
 				for ( let i = 0; i < this.dirt_array.length; i++ )
 				if ( this.dirt_array[ i ] <= 1 )
@@ -275,40 +284,10 @@ class sdSunPanel extends sdEntity
 					this._update_version++;
 				}
 			}
+			*/
 
 			if ( this._sun_reaches === 0 )
 			sun_intensity = 0;
-			else
-			{
-				if ( sdWeather.only_instance.raining_intensity > 0 )
-				{
-					/*if ( this.panels === 0 ) // 1 panel?
-					{
-						if ( this.dirt >= 1 )
-						{
-							this.dirt = 0;
-							this._update_version++;
-						}
-					}
-					else // More panels, check for each merged one
-					*/
-					{
-						let xx = this.x + this._hitbox_x1 + 6;
-						for ( let i = 0; i < 1 + this.panels; i++ )
-						{
-							if ( sdWeather.only_instance.TraceDamagePossibleHere( xx, this.y + this.hitbox_y1, Infinity, true ) ) // Only ones which have visibility to sky
-							{
-								if ( this.dirt_array[ i ] >= 1 ) // Panel part covered in dirt?
-								{
-									this.dirt_array[ i ] = 0;
-									this._update_version++;
-								}
-							}
-							xx += 16;
-						}
-					}
-				}
-			}
 
 			if ( sun_intensity > 0.2 )
 			{
