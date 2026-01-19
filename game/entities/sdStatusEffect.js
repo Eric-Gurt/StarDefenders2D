@@ -143,14 +143,14 @@ class sdStatusEffect extends sdEntity
 				ctx.textAlign = 'center';
 				ctx.font = ( status_entity.crit ? "7" : "5" ) + "px Verdana";
 				
-				/*for ( let sh = 0; sh < 1; sh++ )
+				for ( let sh = 0; sh <= 1; sh++ )
 				for ( let x = -1; x <= 1; x++ )
-				for ( let y = -1; y <= 1; y++ )*/
+				for ( let y = -1; y <= 1; y++ )
 				{
-					//if ( x === 0 && y === 0 )
+					if ( x === 0 && y === 0 )
 					{
-						//if ( sh !== 1 )
-						//continue;
+						if ( sh !== 1 )
+						continue;
 					
 						if ( status_entity.dmg > 200 )
 						ctx.fillStyle = '#ff0000';
@@ -166,18 +166,18 @@ class sdStatusEffect extends sdEntity
 						else
 						ctx.fillStyle = '#aaffaa';
 					}
-					/*else
+					else
 					{
 						if ( sh !== 0 )
 						continue;
 					
 						ctx.fillStyle = '#000000';
-					}*/
+					}
 
 					ctx.globalAlpha = Math.min( 1, ( 1 - status_entity._progress / status_entity._max_progress ) * 2 );
 					
-					let xx = 0;
-					let yy = -2.5 - status_entity._progress * 1 + Math.pow( status_entity._progress, 2 ) * 0.1;
+					let xx = x * 0.5;
+					let yy = y * 0.5 + -2.5 - status_entity._progress * 1 + Math.pow( status_entity._progress, 2 ) * 0.1;
 					
 					ctx.apply_shading = false;
 
@@ -331,6 +331,7 @@ class sdStatusEffect extends sdEntity
 				trace( 'onStatusOfSameTypeApplied' );*/
 				
 				if ( params.t )
+				if ( status_entity.t > temperature_frozen || params.t >= 0 ) // Do not keep frozen
 				{
 					status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
 					status_entity._update_version++;
@@ -563,6 +564,10 @@ class sdStatusEffect extends sdEntity
 						}
 				
 						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment
+
+						if ( status_entity.t < temperature_frozen - 30 ) // Limit freeze time
+						status_entity.t = temperature_frozen - 30;
+
 						status_entity._update_version++;
 					}
 				}
