@@ -245,7 +245,7 @@ class sdStealer extends sdEntity
 		{
 			xx = this._current_target.x - 32; // Check left
 			yy = this._current_target.y;
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -260,7 +260,7 @@ class sdStealer extends sdEntity
 			
 			xx = this._current_target.x + 32; // Check right
 			yy = this._current_target.y;
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -275,7 +275,7 @@ class sdStealer extends sdEntity
 			
 			xx = this._current_target.x;
 			yy = this._current_target.y - 32; // Check up
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -293,7 +293,7 @@ class sdStealer extends sdEntity
 			xx = this._current_target.x - 192 + Math.random() * 384;
 			yy = this._current_target.y - 192 + Math.random() * 384;
 									
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
