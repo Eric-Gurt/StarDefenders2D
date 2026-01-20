@@ -229,12 +229,24 @@ class sdBG extends sdEntity
 		
 		let backgrounds = [];
 		
-		for ( let i = 0; i < Math.round( this.height / 16 ); i++ )
+		let old_height = this.height;
+		this.height = 1; // We can detect duplicate ents this way?
+		
+		let duplicate_ent = null;
+		for ( let i = 0; i < Math.round( old_height / 16 ); i++ )
 		{
 			let xx = this.x;
 			let yy = this.y;
 			yy += 16 * i;
-		
+			
+			// Should delete potential duplicates
+			duplicate_ent = sdBG.GetBackgroundObjectAt( xx + 8, yy + 8, false );
+			if ( duplicate_ent )
+			if ( duplicate_ent !== this && !duplicate_ent._is_being_removed )
+			{
+				duplicate_ent.remove();
+				duplicate_ent._broken = false;
+			}
 			/*let contained_class = null;
 			let contained_params = null;
 			
