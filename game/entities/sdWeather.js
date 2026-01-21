@@ -1931,10 +1931,22 @@ class sdWeather extends sdEntity
 					
 					if ( ent.is( sdBlock ) )
 					if ( ent._natural )
-					{
-						ent.Corrupt();
-						break;
-					}
+						{
+							if ( !ent._merged ) // Merged blocks?
+							{
+								ent.Corrupt();
+								break;
+							}
+							else
+							{
+								let blocks = ent.UnmergeBlocks(); // Unmerge
+								if ( blocks.length > 0 )
+								blocks[ ~~( Math.random() * blocks.length ) ].Corrupt();
+							
+								break;
+							}
+							
+						}
 				}
 				else
 				{
@@ -2492,8 +2504,20 @@ class sdWeather extends sdEntity
 						if ( ent.is( sdBlock ) )
 						if ( ent._natural )
 						{
-							ent.Crystalize();
-							break;
+							if ( !ent._merged ) // Merged blocks?
+							{
+								ent.Crystalize();
+								break;
+							}
+							else
+							{
+								let blocks = ent.UnmergeBlocks(); // Unmerge
+								if ( blocks.length > 0 )
+								blocks[ ~~( Math.random() * blocks.length ) ].Crystalize();
+							
+								break;
+							}
+							
 						}
 					}
 					else
