@@ -244,7 +244,7 @@ class sdBG extends sdEntity
 			if ( duplicate_ent )
 			if ( duplicate_ent !== this && !duplicate_ent._is_being_removed )
 			{
-				console.log('Duplicate BG found at ' + xx + 'X, ' + yy + 'y');
+				//console.log('Duplicate BG found at ' + xx + 'X, ' + yy + 'y');
 				duplicate_ent.remove();
 				duplicate_ent._broken = false;
 			}

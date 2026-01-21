@@ -335,7 +335,7 @@ class sdAsteroid extends sdEntity
 					{
 						if ( !this.attached_to._shielded || this.attached_to._shielded.onFleshifyAttempted( this ) )
 						{
-							if ( this.attached_to.is ( sdBlock ) ) // Unmerged block scenario
+							if ( this.attached_to.is( sdBlock ) ) // Unmerged block scenario
 							{
 								if ( !this.attached_to._merged )
 								{
