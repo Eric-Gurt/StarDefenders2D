@@ -979,15 +979,15 @@ class sdRenderer
 					
 						ctx.globalAlpha = 1; // Just in case
 						
-						let di = 1 / ( 2 + wanderer.layer * 0.1 );
-						ctx.filter = 'contrast('+di+') brightness('+di*0.75+')';
+						//let di = 1 / ( 2 + wanderer.layer * 0.1 );
+						//ctx.filter = 'contrast('+di+') brightness('+di*0.75+')';
 
 						//ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( 'fmech_boost' ), xx, yy, 64 * scale, 64 * scale );
 						ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( wanderer.GetImageFromModel() ), wanderer.GetXOffsetFromModel(),wanderer.GetYOffsetFromModel(),
 						wanderer.GetWidthFromModel(), wanderer.GetHeightFromModel(), xx, yy,
 						wanderer.GetWidthFromModel() * scale * wanderer.side, wanderer.GetHeightFromModel() * scale );
 						
-						ctx.filter = 'none';
+						//ctx.filter = 'none';
 
 						// Not ideal but it works? - Booraz149
 					}
