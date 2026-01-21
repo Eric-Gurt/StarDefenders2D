@@ -4957,7 +4957,8 @@ class sdWeather extends sdEntity
 													bg_nature_ent.remove();
 													else
 													{
-														// Unmerge, check which BG was last then remove
+														// Unmerge, check which BG was last then remove (works but far from ideal solution since lots of active backgrounds)
+														/*
 														bg_nature_ent.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
 														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, sdBG.as_class_list, null ) )
 														if ( sdWorld.last_hit_entity )
@@ -4965,6 +4966,24 @@ class sdWeather extends sdEntity
 														else
 														bg_nature_ent = null; // Probably can't happen but just in case
 														if ( bg_nature_ent ) // Just in case
+														bg_nature_ent.remove();
+														*/
+														
+														// Instead, let's check if entire BG is covered in blocks, and if yes, delete it
+														let covered_bg = true; // Check if background is entirely covered, set to false if it pops out somewhere
+														for ( let i = 0; i < ( bg_nature_ent.height / 16 ); i++ )
+														{
+															sdWorld.last_hit_entity = null;
+															if ( sdWorld.CheckWallExistsBox( bg_nature_ent.x+1, bg_nature_ent.y + ( i * 16 ) + 1, bg_nature_ent.x + 16-1, bg_nature_ent.y + ( ( i + 1 ) * 16 ) - 1, null, null, sdWeather.blocks, null ) )
+															{
+																if ( !sdWorld.last_hit_entity )
+																covered_bg = false;
+															}
+															else
+															covered_bg = false;
+														}
+														
+														if ( covered_bg )
 														bg_nature_ent.remove();
 													}
 												}
