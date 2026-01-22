@@ -3917,7 +3917,6 @@ class sdWeather extends sdEntity
 			
 			//if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
 			{
-				
 				sdPresetEditor.SpawnPresetInWorld( 'tzyrg_mortar1' );
 			}
 			//else
