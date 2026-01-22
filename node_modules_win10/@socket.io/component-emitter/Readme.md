@@ -1,11 +1,13 @@
-# Emitter [![Build Status](https://travis-ci.org/component/emitter.png)](https://travis-ci.org/component/emitter)
+# `@socket.io/component-emitter`
 
   Event emitter component.
+
+This project is a fork of the [`component-emitter`](https://github.com/sindresorhus/component-emitter) project, with [Socket.IO](https://socket.io/)-specific TypeScript typings.
 
 ## Installation
 
 ```
-$ component install component/emitter
+$ npm i @socket.io/component-emitter
 ```
 
 ## API
@@ -19,7 +21,8 @@ $ component install component/emitter
   As an `Emitter` instance:
 
 ```js
-var Emitter = require('emitter');
+import { Emitter } from '@socket.io/component-emitter';
+
 var emitter = new Emitter;
 emitter.emit('something');
 ```
@@ -27,7 +30,8 @@ emitter.emit('something');
   As a mixin:
 
 ```js
-var Emitter = require('emitter');
+import { Emitter } from '@socket.io/component-emitter';
+
 var user = { name: 'tobi' };
 Emitter(user);
 
@@ -37,7 +41,8 @@ user.emit('im a user');
   As a prototype mixin:
 
 ```js
-var Emitter = require('emitter');
+import { Emitter } from '@socket.io/component-emitter';
+
 Emitter(User.prototype);
 ```
 

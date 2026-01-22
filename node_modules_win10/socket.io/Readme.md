@@ -22,6 +22,7 @@ Some implementations in other languages are also available:
 - [Python](https://github.com/miguelgrinberg/python-socketio)
 - [.NET](https://github.com/doghappy/socket.io-client-csharp)
 - [Rust](https://github.com/1c3t3a/rust-socketio)
+- [PHP](https://github.com/ElephantIO/elephant.io)
 
 Its main features are:
 
@@ -159,7 +160,9 @@ called `io`.
 ```js
 const app = require('fastify')();
 app.register(require('fastify-socket.io'));
-app.io.on('connection', () => { /* … */ });
+app.ready().then(() => {
+    app.io.on('connection', () => { /* … */ });
+})
 app.listen(3000);
 ```
 
