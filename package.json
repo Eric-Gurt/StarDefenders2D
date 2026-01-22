@@ -1,7 +1,7 @@
 {
-  "name": "socket-chat-example",
+  "name": "star-defenders-2d-server",
   "version": "0.0.1",
-  "description": "my first socket.io app",
+  "description": "Star Defenders 2D server app",
   "type": "module",
   "dependencies": {
     "express": "^5.2.1",
