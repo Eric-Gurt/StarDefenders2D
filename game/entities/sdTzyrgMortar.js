@@ -378,6 +378,11 @@ class sdTzyrgMortar extends sdEntity
 		}
 	}
 	
+	get title()
+	{
+		return 'Tzyrg mortar';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 

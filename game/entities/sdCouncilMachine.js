@@ -534,6 +534,11 @@ class sdCouncilMachine extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
+	get title()
+	{
+		return 'Council portal machine';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 

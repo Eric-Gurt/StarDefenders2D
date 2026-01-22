@@ -191,7 +191,7 @@ class sdLongRangeAntenna extends sdEntity
 				{
 
 					let sd_soldiers = 0;
-					let sd_soldiers_tot = 2;
+					let sd_soldiers_tot = 1;
 
 					let left_side = ( Math.random() < 0.5 );
 

@@ -272,6 +272,11 @@ class sdShurgConverter extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
+	get title()
+	{
+		return 'Shurg converter';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		{

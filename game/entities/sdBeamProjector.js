@@ -602,7 +602,7 @@ class sdBeamProjector extends sdEntity
 		if ( !this._spawned_ai ) // Spawn random SD soldier which will stand near the beam projector
 		{
 			let sd_soldiers = 0;
-			let sd_soldiers_tot = 2;
+			let sd_soldiers_tot = 1;
 
 			let left_side = ( Math.random() < 0.5 );
 

@@ -228,8 +228,24 @@ class sdOctopus extends sdEntity
 			
 			if ( dmg >= this._hmax * 0.15 ) // Instagib, gibs octopus into multiple parts ( if your weapon deals enough damage )
 			{
+				let a,s,x,y,k; // Looks much better with more blood
+				
 				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 });
-				sdWorld.SendEffect({ x: this.x, y: this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+				for ( let i = 0; i < 6; i++ )
+				{
+					a = Math.random() * 2 * Math.PI;
+					s = Math.random() * 4;
+					
+					k = Math.random();
+					
+					x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+					y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+					
+					//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
+					
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+				}
 				if ( this.type === sdOctopus.TYPE_GUN_TAKER )
 				{
 					sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y - 6, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this );

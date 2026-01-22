@@ -386,7 +386,7 @@ class sdMothershipContainer extends sdEntity
 					{
 
 						let sd_soldiers = 0;
-						let sd_soldiers_tot = 2;
+						let sd_soldiers_tot = 1; // At 2 they just shoot each other
 
 						while ( sd_soldiers < sd_soldiers_tot )
 						{
@@ -508,6 +508,12 @@ class sdMothershipContainer extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+	
+	get title()
+	{
+		return 'Mothership matter container';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.TooltipUntranslated( ctx, T("Mothership matter container") + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )", 0, -10 );
