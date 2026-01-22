@@ -723,9 +723,9 @@ class sdLongRangeTeleport extends sdEntity
 		let rewards = reward_type;// || 1;
 		if ( rewards === 'CLAIM_REWARD_SHARDS' )
 		{
-			for( let i = 0; i < 8; i++ )
+			for( let i = 0; i < 6; i++ )
 			{
-				let shard = new sdGun({ x:this.x + ( -24 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+				let shard = new sdGun({ x:this.x + ( -16 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 				sdEntity.entities.push( shard );
 			}
 		}
@@ -913,6 +913,13 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			let chipset;
 			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET });
+			sdEntity.entities.push( chipset );
+		}
+		
+		if ( rewards === 'CLAIM_MATTER_CONTAINER_CHIP' )
+		{
+			let chipset;
+			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET });
 			sdEntity.entities.push( chipset );
 		}
 		
@@ -1292,7 +1299,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
 						command_name === 'CLAIM_REWARD_AD' ||
 						command_name === 'CLAIM_MERGER_CORE' ||
-						command_name === 'CLAIM_UPGRADE_STATION_CHIP'
+						command_name === 'CLAIM_UPGRADE_STATION_CHIP' ||
+						command_name === 'CLAIM_MATTER_CONTAINER_CHIP'
 						
 					)
 				{
@@ -1934,6 +1942,7 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
 								this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
 								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
+								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
 							}
 							if ( this._current_category_stack[ 1 ] === 'crystals_select' ) // Selected " Claim rewards ( crystals ) "?
 							{

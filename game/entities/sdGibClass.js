@@ -188,6 +188,18 @@ class sdGibClass
 			health: 60,
 			blood: 1 // 1 = green blood
 		};
+		sdGib.classes[ sdGib.CLASS_OCTOPUS_GIBS = 12 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gibs/octopus_gibs' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -2,
+			hitbox_x2: 2,
+			hitbox_y1: -2,
+			hitbox_y2: 2,
+			mass: 25,
+			health: 70,
+			blood: 1 // 1 = green blood
+			
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];

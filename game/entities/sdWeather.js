@@ -1303,7 +1303,7 @@ class sdWeather extends sdEntity
 
 		return true;
 	}
-	SimpleExecuteEvent( r ) // Old ExecuteEvent so we can still use this while debugging / testing in DevTools
+	SimpleExecuteEvent( r = -1 ) // Old ExecuteEvent so we can still use this while debugging / testing in DevTools
 	{
 		this.ExecuteEvent({
 			event: r 
@@ -1315,7 +1315,7 @@ class sdWeather extends sdEntity
 		/* Using parameters now, like SimpleSpawner so we can have more control over event functions/purposes,
 			for example, spawning invasion mobs closer to tasks which need protection ( LR antenna, solar matter distributor )
 		*/
-		let r = params.event || -1; // Which event should be executed?
+		let r = params.event || 0; // Which event should be executed?
 		
 		let near_ent = params.near_entity || null; // Should this spawn near any entity?
 		let group_rad = params.group_radius || 0; // Allowed radius if spawning near entity, needs to be defined
@@ -1931,10 +1931,22 @@ class sdWeather extends sdEntity
 					
 					if ( ent.is( sdBlock ) )
 					if ( ent._natural )
-					{
-						ent.Corrupt();
-						break;
-					}
+						{
+							if ( !ent._merged ) // Merged blocks?
+							{
+								ent.Corrupt();
+								break;
+							}
+							else
+							{
+								let blocks = ent.UnmergeBlocks(); // Unmerge
+								if ( blocks.length > 0 )
+								blocks[ ~~( Math.random() * blocks.length ) ].Corrupt();
+							
+								break;
+							}
+							
+						}
 				}
 				else
 				{
@@ -1943,10 +1955,10 @@ class sdWeather extends sdEntity
 			}
 		}
 
-		if ( r === 0 || 
-			 r === 14 || 
-			 r === 15 ||
-			 r === 19 )
+		if ( r === sdWeather.EVENT_ACID_RAIN || 
+			 r === sdWeather.EVENT_WATER_RAIN || 
+			 r === sdWeather.EVENT_SNOW ||
+			 r === sdWeather.EVENT_MATTER_RAIN )
 		if ( this.raining_intensity <= 0 )
 		{
 			if ( r === sdWeather.EVENT_ACID_RAIN )
@@ -2283,26 +2295,13 @@ class sdWeather extends sdEntity
 		
 		if ( r === sdWeather.EVENT_OVERLORD )
 		{
-			let instances = 0;
-			let instances_tot = 1;
+			sdWeather.SimpleSpawner({
 
-			//let left_side = ( Math.random() < 0.5 );
-
-			while ( instances < instances_tot )
-			{
-				let ent = new sdOverlord({ x:0, y:0 });
-
-				sdEntity.entities.push( ent );
-
-				if ( !sdWeather.SetRandomSpawnLocation( ent ) )
-				{
-					ent.remove();
-					ent._broken = false;
-					break;
-				}
-
-				instances++;
-			}
+					count: [ 1, 1 ],
+					class: sdOverlord,
+					aerial: true,
+					aerial_radius: 64
+				});
 		}
 		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal beacon anywhere on the map outside player views which summons Erthals until destroyed
 		{
@@ -2505,8 +2504,20 @@ class sdWeather extends sdEntity
 						if ( ent.is( sdBlock ) )
 						if ( ent._natural )
 						{
-							ent.Crystalize();
-							break;
+							if ( !ent._merged ) // Merged blocks?
+							{
+								ent.Crystalize();
+								break;
+							}
+							else
+							{
+								let blocks = ent.UnmergeBlocks(); // Unmerge
+								if ( blocks.length > 0 )
+								blocks[ ~~( Math.random() * blocks.length ) ].Crystalize();
+							
+								break;
+							}
+							
 						}
 					}
 					else
@@ -3906,7 +3917,6 @@ class sdWeather extends sdEntity
 			
 			//if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
 			{
-				
 				sdPresetEditor.SpawnPresetInWorld( 'tzyrg_mortar1' );
 			}
 			//else
@@ -4611,7 +4621,7 @@ class sdWeather extends sdEntity
 									}
 								}
 								else
-								//if ( Math.random() < 0.1 )
+								if ( Math.random() < 0.25 ) // There is too much water on terrain and during rain, and that's without acid rains - Booraz
 								{
 									if ( !this.matter_rain )
 									{
@@ -4946,7 +4956,8 @@ class sdWeather extends sdEntity
 													bg_nature_ent.remove();
 													else
 													{
-														// Unmerge, check which BG was last then remove
+														// Unmerge, check which BG was last then remove (works but far from ideal solution since lots of active backgrounds)
+														/*
 														bg_nature_ent.UnmergeBackgrounds(); // Unmerge backgrounds, then retry
 														if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, sdBG.as_class_list, null ) )
 														if ( sdWorld.last_hit_entity )
@@ -4954,6 +4965,24 @@ class sdWeather extends sdEntity
 														else
 														bg_nature_ent = null; // Probably can't happen but just in case
 														if ( bg_nature_ent ) // Just in case
+														bg_nature_ent.remove();
+														*/
+														
+														// Instead, let's check if entire BG is covered in blocks, and if yes, delete it
+														let covered_bg = true; // Check if background is entirely covered, set to false if it pops out somewhere
+														for ( let i = 0; i < ( bg_nature_ent.height / 16 ); i++ )
+														{
+															sdWorld.last_hit_entity = null;
+															if ( sdWorld.CheckWallExistsBox( bg_nature_ent.x+1, bg_nature_ent.y + ( i * 16 ) + 1, bg_nature_ent.x + 16-1, bg_nature_ent.y + ( ( i + 1 ) * 16 ) - 1, null, null, sdWeather.blocks, null ) )
+															{
+																if ( !sdWorld.last_hit_entity )
+																covered_bg = false;
+															}
+															else
+															covered_bg = false;
+														}
+														
+														if ( covered_bg )
 														bg_nature_ent.remove();
 													}
 												}

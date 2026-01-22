@@ -6,6 +6,7 @@ import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
+import sdGib from './sdGib.js';
 import sdBlock from './sdBlock.js';
 //import sdPlayerOverlord from './sdPlayerOverlord.js';
 
@@ -87,7 +88,7 @@ class sdOctopus extends sdEntity
 	
 	GetRange()
 	{
-		return ( this.type === sdOctopus.TYPE_GUN_TAKER ) ? 170 : 64;
+		return ( this.type === sdOctopus.TYPE_GUN_TAKER ) ? 150 : 72;
 	}
 	
 	constructor( params )
@@ -101,7 +102,7 @@ class sdOctopus extends sdEntity
 		this.driver1 = null;
 		this.driver2 = null;
 		
-		this._hmax = 700; // Was 2000, but too boring to kill them
+		this._hmax = 900; // Was 2000, but too boring to kill them
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -122,12 +123,16 @@ class sdOctopus extends sdEntity
 		this.tenta_target = null;
 		this._tenta_hold_duration = 0; // For gun disabling
 		
+		this.attack_warning = false;
+		
 		//this._debug_tenta_tim_decrease_reason_old = '';
 		//this._debug_tenta_tim_decrease_reason = '';
 		
 		this.type = ( params.type !== undefined ) ? params.type : ~~( Math.random() * 2 );
 		
 		this.side = 1;
+		
+		this.gibbed = 0; // For gibbing. Could probably be done by using other public variables instead.
 		
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
@@ -220,6 +225,24 @@ class sdOctopus extends sdEntity
 			//sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			
 			sdSound.PlaySound({ name:'octopus_death', x:this.x, y:this.y, volume: 0.5, pitch: this.GetPitch() });
+			
+			if ( dmg >= this._hmax * 0.15 ) // Instagib, gibs octopus into multiple parts ( if your weapon deals enough damage )
+			{
+				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 });
+				sdWorld.SendEffect({ x: this.x, y: this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+				if ( this.type === sdOctopus.TYPE_GUN_TAKER )
+				{
+					sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y - 6, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this );
+					sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y - 6, this.sx + this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 1 );
+				}
+				if ( this.type === sdOctopus.TYPE_PLAYER_TAKER )
+				{
+					sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y - 6, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 2 );
+					sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y - 6, this.sx + this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_OCTOPUS_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 3 );
+				}
+				
+				this.gibbed = 1;
+			}
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 	
@@ -452,6 +475,7 @@ class sdOctopus extends sdEntity
 					if ( this._last_jump < sdWorld.time - ( this.type === sdOctopus.TYPE_PLAYER_TAKER ? 100 : 500 ) )
 					//if ( this._last_stand_on )
 					if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+					if ( !this.attack_warning )
 					{
 						this._last_jump = sdWorld.time;
 
@@ -557,21 +581,22 @@ class sdOctopus extends sdEntity
 							this.GenericOctoAttack( from_entity._held_by, true );
 						}
 						
-						if ( this._tenta_hold_duration > 30 && old_tenta_hold_duration <= 30 )
+						/*if ( this._tenta_hold_duration > 30 && old_tenta_hold_duration <= 30 )
+						this.tenta_target._held_by.Say( [ 
+						][ ~~( Math.random() * 8 ) ] );*/
+						
+
+						if ( this._tenta_hold_duration > 30 * 3 && old_tenta_hold_duration <= 30 * 3 )
 						this.tenta_target._held_by.Say( [ 
 									'Hey, how about releasing my gun?',
 									'It holds my weapon',
 									'Hey, let it go!',
 									'And what do you think you are doing?',
-									'Can\'t shoot',
+									//'Can\'t shoot',
 									'Give it back, you!',
 									'Disgusting!',
-									'It tries to take my gun!'
-						][ ~~( Math.random() * 8 ) ] );
-						
+									'It takes my gun!',
 
-						if ( this._tenta_hold_duration > 30 * 4.7 && old_tenta_hold_duration <= 30 * 4.7 )
-						this.tenta_target._held_by.Say( [ 
 									'Hey, it took my gun',
 									'No, my gun!',
 									'I lost a gun',
@@ -580,7 +605,7 @@ class sdOctopus extends sdEntity
 									'Here goes my gun'
 						][ ~~( Math.random() * 6 ) ] );
 
-						if ( this._tenta_hold_duration > 30 * 5 )
+						if ( this._tenta_hold_duration > 30 * 3 )
 						{
 							will_damage = true;
 							will_play_damage_effect_and_sound = false;
@@ -656,6 +681,9 @@ class sdOctopus extends sdEntity
 				}
 			}
 		}
+		else
+		if ( this.tenta_target )
+		this.tenta_target = null;
 
 		if ( this.death_anim === 0 )
 		{
@@ -664,7 +692,7 @@ class sdOctopus extends sdEntity
 		
 			if ( this.hurt_timer <= 0 ) // Allow being stunned from damage since they deal higher damage now
 			if ( this._current_target )
-			if ( this._last_bite < sdWorld.time - ( this.type === sdOctopus.TYPE_PLAYER_TAKER ? 500 : 1000 ) )
+			if ( this._last_bite < sdWorld.time - ( this.type === sdOctopus.TYPE_PLAYER_TAKER ? 2000 : 1500 ) )
 			{
 				this._last_bite = sdWorld.time; // So it is not so much calc intensive
 						
@@ -746,39 +774,73 @@ class sdOctopus extends sdEntity
 
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						/*if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
-						{
-							if ( this._consumed_guns_snapshots.length < 64 )
-							{
-								this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
-								from_entity.remove();
-							}
-						}
-						else
-						{
-							if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
-							{
-								from_entity.DamageWithEffect( 75, this );
-							}
-							else
-							from_entity.DamageWithEffect( 75, this );
-						}
-						
-						this._hea = Math.min( this._hmax, this._hea + 25 );
+						let an = Math.atan2( yy - this.y, xx - this.x );
 
-						from_entity.PlayDamageEffect( xx, yy );*/
+						this.tenta_x = Math.cos( an ) * this.GetRange();
+						this.tenta_y = Math.sin( an ) * this.GetRange();
 
-						this.tenta_x = xx - this.x;
-						this.tenta_y = yy - this.y;
-						this.tenta_tim = 100;
-						this.tenta_target = from_entity;
-						this._tenta_hold_duration = 0;
-						
-						sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5, pitch: this.GetPitch() });
-						
-						/*let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
-						if ( di > 0 )
-						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );*/
+						this.attack_warning = true;
+
+						setTimeout(()=>
+						{
+							if ( this._is_being_removed ) 
+							return;
+
+							this.attack_warning = false;
+
+							if ( this._hea <= 0 || this._frozen > 0 ) // Not disabled in time
+							return;
+
+							this.tenta_tim = 100;
+
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + this.tenta_x, this.y + this.tenta_y, this ) )
+							if ( sdWorld.last_hit_entity )
+							{
+								let e = sdWorld.last_hit_entity;
+
+								if ( from_entity.GetClass() === 'sdGun' && from_entity !== e && e.IsPlayerClass() && e._inventory[ e.gun_slot ] && e._inventory[ e.gun_slot ] === from_entity )
+								from_entity = e._inventory[ e.gun_slot ];
+								else
+								from_entity = e; // More fun
+
+								xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+								yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+			
+								/*if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
+								{
+									if ( this._consumed_guns_snapshots.length < 64 )
+									{
+										this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+										from_entity.remove();
+									}
+								}
+								else
+								{
+									if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+									{
+										from_entity.DamageWithEffect( 75, this );
+									}
+									else
+									from_entity.DamageWithEffect( 75, this );
+								}
+								
+								this._hea = Math.min( this._hmax, this._hea + 25 );
+		
+								from_entity.PlayDamageEffect( xx, yy );*/
+		
+								this.tenta_x = xx - this.x;
+								this.tenta_y = yy - this.y;
+								this.tenta_tim = 100;
+								this.tenta_target = from_entity;
+								this._tenta_hold_duration = 0;
+								
+								sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5, pitch: this.GetPitch() });
+								
+								/*let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+								if ( di > 0 )
+								from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );*/
+							}
+						}, 400 );
 
 						break;
 					}
@@ -821,7 +883,7 @@ class sdOctopus extends sdEntity
 		//sdRenderer.service_mesage_until = sdWorld.time + 3000;
 		//sdRenderer.service_mesage = 'this.tenta_tim: ' + Math.round( this.tenta_tim );
 		
-		if ( this.tenta_tim > 0 )
+		if ( this.tenta_tim > 0 || this.attack_warning )
 		{
 			let sprites = [
 				3,0,
@@ -835,7 +897,7 @@ class sdOctopus extends sdEntity
 			let xx = sprites[ best_id * 2 + 0 ];
 			let yy = sprites[ best_id * 2 + 1 ];
 			
-			let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
+			let di = this.attack_warning ? 24 : sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
 			
 			if ( di < this.GetRange() + 64 + 100 )
 			{
@@ -858,12 +920,18 @@ class sdOctopus extends sdEntity
 			
 			
 			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdOctopus.death_duration ) * 4 ) );
-			yy = 2;
+			yy = this.gibbed === 1 ? 4 : 2;
 			
 			//ctx.drawImageFilterCache( sdOctopus.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		{			
+			if ( this.attack_warning )
+			{
+				xx = 1;
+				yy = 3;
+			}
+			else
 			if ( this.hurt_timer > 0 )
 			{
 				xx = 0;

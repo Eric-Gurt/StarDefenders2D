@@ -42,6 +42,8 @@ class sdJunk extends sdEntity
 
 		sdJunk.img_matter_container2 = sdWorld.CreateImageFromFile( 'matter_container2' );
 		sdJunk.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
+		sdJunk.img_matter_container3 = sdWorld.CreateImageFromFile( 'matter_container3' );
+		sdJunk.img_matter_container3_empty = sdWorld.CreateImageFromFile( 'matter_container3_empty' );
 
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
 		sdJunk.img_fire_barrel = sdWorld.CreateImageFromFile( 'barrel_fire' );
@@ -63,7 +65,7 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_PLANETARY_MATTER_DRAINER = 3;
 		sdJunk.TYPE_COUNCIL_BOMB = 4;
 		sdJunk.TYPE_ERTHAL_DISTRESS_BEACON = 5;
-		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6;
+		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6; // Now upgradable via "Matter container chipset"
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 		sdJunk.TYPE_STEALER_ARTIFACT = 9;
@@ -86,7 +88,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_PLANETARY_MATTER_DRAINER ] = { x1: -28, x2: 28, y1: 0, y2: 23 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_COUNCIL_BOMB ] = { x1: -11, x2: 11, y1: -30, y2: 31 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ] = { x1: -11, x2: 11, y1: -21, y2: 29 };
-		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 17 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 16.5 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_STEALER_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
@@ -1576,14 +1578,26 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward / Advanced matter container
 			{
-
-				ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
+				if ( this.matter_max === 5120 * 8 * 10 ) // Upgraded or not?
+				{
+					ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
+			
+					ctx.filter = sdWorld.GetCrystalHue( -1 );
 		
-				ctx.filter = sdWorld.GetCrystalHue( -1 );
-	
-				ctx.globalAlpha = this.matter / this.matter_max;
+					ctx.globalAlpha = this.matter / this.matter_max;
+			
+					ctx.drawImageFilterCache( sdJunk.img_matter_container2, - 32, - 32, 64, 64 );
+				}
+				else
+				{
+					ctx.drawImageFilterCache( sdJunk.img_matter_container3_empty, - 32, - 32, 64, 64 );
+			
+					ctx.filter = sdWorld.GetCrystalHue( -1 );
 		
-				ctx.drawImageFilterCache( sdJunk.img_matter_container2, - 32, - 32, 64, 64 );
+					ctx.globalAlpha = this.matter / this.matter_max;
+			
+					ctx.drawImageFilterCache( sdJunk.img_matter_container3, - 32, - 32, 64, 64 );
+				}
 		
 			}
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze barrel
@@ -1621,10 +1635,25 @@ class sdJunk extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	/*onMovementInRange( from_entity )
+	onMovementInRange( from_entity )
 	{
-		//this._last_stand_on = from_entity;
-	}*/
+		if ( sdWorld.is_server )
+		if ( !from_entity._is_being_removed )
+		{
+			if ( from_entity.is( sdGun ) && this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+			{
+				if ( from_entity.class === sdGun.CLASS_MATTER_CONTAINER_CHIPSET && this.matter_max === 5120 * 8 * 10 ) // Matter container chipset, and container is not upgraded?
+				{
+					this.matter_max = 5120 * 8 * 10 * 2; // Double the matter capacity
+					this.hmax = this.hmax * 1.5; // Increase health by 50%
+					this.hea = this.hmax;
+					from_entity.remove();
+					
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+				}
+			}
+		}
+	}
 	onRemove() // Class-specific, if needed
 	{
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )

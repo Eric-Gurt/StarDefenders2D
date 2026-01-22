@@ -40,7 +40,8 @@ class sdKeyStates
 			Mouse3: 0, // Right
 			KeyI: 0,
 			KeyK: 0,
-			KeyN: 0
+			KeyN: 0,
+			KeyT: 0
 		};
 		
 		sdKeyStates.default_state_keys = Object.keys( sdKeyStates.default_state );

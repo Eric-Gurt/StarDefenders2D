@@ -2145,7 +2145,7 @@ let enf_once = true;
 			sdWorld.my_inputs_and_gspeeds.push( [ 1, code ] );
 		}
 	
-		if ( code === 'Tab' )
+		if ( code === 'KeyT' )
 		if ( sdWorld.my_entity )
 		{
 			sdRenderer.show_leader_board++;
@@ -2156,7 +2156,7 @@ let enf_once = true;
 			return;
 		}
 		
-		if ( code === 'KeyB' )
+		if ( code === 'KeyB' || code === 'Tab' )
 		{
 			// Equip build tool, suggested by Maxteabag
 			if ( sdWorld.my_entity )
@@ -2177,6 +2177,7 @@ let enf_once = true;
 				sdShop.Open();
 				//sdRenderer.UpdateCursor();
 			}
+			e.preventDefault();
 			return;
 		}
 		else

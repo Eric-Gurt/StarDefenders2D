@@ -104,6 +104,9 @@ class sdStorageTank extends sdEntity
 		// if ( this.is_static )
 		// this._update_version++;
 	}
+	IsAttachableToSteeringWheel()
+	{ return this.type === sdStorageTank.TYPE_LARGE; }
+	
 	IsLiquidTypeAllowed( type )
 	{
 		if ( type === -1 )

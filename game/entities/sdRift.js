@@ -643,7 +643,6 @@ class sdRift extends sdEntity
 						radius:32,
 						damage_scale: 0.01, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
-						owner:this,
 						color:'#33FFFF',
 						no_smoke: true,
 						shrapnel: true
@@ -663,7 +662,6 @@ class sdRift extends sdEntity
 					radius:32,
 					damage_scale: 0.01, // Just a decoration effect
 					type:sdEffect.TYPE_EXPLOSION, 
-					owner:this,
 					color:'#33FFFF' ,
 					no_smoke: true,
 					shrapnel: true

@@ -144,7 +144,7 @@ class sdStealer extends sdEntity
 		{
 			if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
-				if ( this.IsEntFarEnough( ent ) && ent.held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Amplifier )
+				if ( this.IsEntFarEnough( ent )  && ( ent.held_by === null || ent.held_by.GetClass() === 'sdGrass' ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities (except trees) ?
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
@@ -209,7 +209,10 @@ class sdStealer extends sdEntity
 							if ( e.is( sdCrystal ) )
 							{
 								if ( e.held_by ) // Is object held by something?
-								can_steal = false; // Don't allow stealing
+								{
+									if ( e.held_by.GetClass() !== 'sdGrass' ) // Not held by a tree?
+									can_steal = false; // Don't allow stealing
+								}
 							}
 							if ( e.is( sdGun ) ) // ( e.held_by is invalid for sdGun, which let stealer steal equipped weapons in debug mode )
 							{
@@ -242,7 +245,7 @@ class sdStealer extends sdEntity
 		{
 			xx = this._current_target.x - 32; // Check left
 			yy = this._current_target.y;
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -257,7 +260,7 @@ class sdStealer extends sdEntity
 			
 			xx = this._current_target.x + 32; // Check right
 			yy = this._current_target.y;
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -272,7 +275,7 @@ class sdStealer extends sdEntity
 			
 			xx = this._current_target.x;
 			yy = this._current_target.y - 32; // Check up
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -290,7 +293,7 @@ class sdStealer extends sdEntity
 			xx = this._current_target.x - 192 + Math.random() * 384;
 			yy = this._current_target.y - 192 + Math.random() * 384;
 									
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });

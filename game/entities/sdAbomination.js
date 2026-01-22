@@ -66,6 +66,8 @@ class sdAbomination extends sdEntity
 		this._pull_timer = 50; // Timer for pulling it's enemies towards it
 		this._tenta_target = null;
 
+		this.attack_warning = false;
+
 		this.tenta_tim = 0;
 		this.tenta_x = 0;
 		this.tenta_y = 0;
@@ -183,16 +185,16 @@ class sdAbomination extends sdEntity
 			if ( this.tenta_tim > 0 && this._tenta_target )
 			{
 				let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
-				let has_sight = false;
-				if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this._current_target, null, sdCom.com_creature_attack_unignored_classes ) )
-				has_sight = true;
-				else
+				let has_sight = sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this._current_target, null, sdCom.com_creature_attack_unignored_classes );
+				
+				if ( !has_sight )
 				this._tenta_target = null;
+
 				if ( dist_att < 150 && has_sight )
 				{
 					let old_tenta_tim = this.tenta_tim;
 					
-					this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
+					this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 					
 					if ( this._tenta_target )
 					if ( this._tenta_target._is_being_removed )
@@ -221,10 +223,14 @@ class sdAbomination extends sdEntity
 						this.tenta_y = this._tenta_target.y - this.y;
 					}
 				}
+				else
+				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 			}
 			else
 			if ( this.tenta_tim > 0 )
-			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
+			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+			else
+			this._tenta_target = null;
 
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED / 10 );
@@ -235,6 +241,7 @@ class sdAbomination extends sdEntity
 			if ( this._pull_timer > 0 )
 			this._pull_timer = Math.max( 0, this._pull_timer - GSPEED );
 			
+			if ( !this.attack_warning )
 			{
 				if ( this._current_target )
 				{
@@ -289,6 +296,7 @@ class sdAbomination extends sdEntity
 					}
 				}
 			}
+
 			if ( this._current_target )
 			if ( this._pull_timer <= 0 )
 			{
@@ -296,46 +304,78 @@ class sdAbomination extends sdEntity
 				//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
 				let from_entity;
 				let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
-				if ( dist_att < 150 )
+
+				let range = 150;
+
+				if ( dist_att < range )
 				{
 					from_entity = this._current_target;
-					this._pull_timer = 50;
+					this._pull_timer = 90;
 
 					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						from_entity.DamageWithEffect( 10, this );
-						this._hea = Math.min( this._hmax, this._hea + 25 );
+						let an = Math.atan2( yy - this.y, xx - this.x );
+
+						this.tenta_x = Math.cos( an ) * range;
+						this.tenta_y = Math.sin( an ) * range;
+
+						this.attack_warning = true;
+
+						setTimeout(()=>
+						{
+							if ( this._is_being_removed ) 
+							return;
+
+							this.attack_warning = false;
+
+							if ( this.hea <= 0 || this._frozen > 0 ) // Not disabled in time
+							return;
+
+							this.tenta_tim = 100;
+
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + this.tenta_x, this.y + this.tenta_y, this ) )
+							if ( sdWorld.last_hit_entity )
+							{
+								from_entity = sdWorld.last_hit_entity; // More fun
+
+								xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+								yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+			
+								from_entity.DamageWithEffect( 10, this );
+								this._hea = Math.min( this._hmax, this._hea + 25 );
 
 
-						from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
+								from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
 
-						this.tenta_x = xx - this.x;
-						this.tenta_y = yy - this.y;
-						this.tenta_tim = 100;
-						this._tenta_target = from_entity;
-						
-						sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
+								this.tenta_x = xx - this.x;
+								this.tenta_y = yy - this.y;
+								this.tenta_tim = 100;
+								this._tenta_target = from_entity;
+								
+								sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
 
 
-						if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
-						from_entity.sx += - this.tenta_x / 100; // Pull it in
-						else
-						this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+								if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
+								from_entity.sx += - this.tenta_x / 100; // Pull it in
+								else
+								this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
-						if ( typeof from_entity.sy !== 'undefined' )
-						from_entity.sy += - this.tenta_y / 100;
-						else
-						this.sy += this.tenta_y / 100; // Pull itself towards the entity
-						
-						if ( from_entity.IsPlayerClass() )
-						from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
-						
-						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
-						if ( di > 0 )
-						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+								if ( typeof from_entity.sy !== 'undefined' )
+								from_entity.sy += - this.tenta_y / 100;
+								else
+								this.sy += this.tenta_y / 100; // Pull itself towards the entity
+								
+								if ( from_entity.IsPlayerClass() )
+								from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+								
+								let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+								if ( di > 0 )
+								from_entity.Impulse( this.tenta_x / di * 15, this.tenta_y / di * 15 );
+							}
+						}, 500 );
 					}
 				}
 			}
@@ -361,6 +401,7 @@ class sdAbomination extends sdEntity
 		//if ( this.death_anim === 0 )
 		if ( this._current_target )
 		if ( this.attack_timer <= 0 )
+		if ( this.tenta_tim <= 0 && this._pull_timer <= 60 )
 		{
 			let xx = this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2;
 			let yy = this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2;
@@ -368,23 +409,7 @@ class sdAbomination extends sdEntity
 			if ( dist_ranged < 400 ); // Distance for ranged attacks
 			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this._current_target, null, sdCom.com_creature_attack_unignored_classes ) )
 			{
-				let dx = xx - this.x;
-				let dy = yy - this.y;
-						
-				let di = sdWorld.Dist2D_Vector( dx, dy );
-						
-				dx += ( this._current_target.sx || 0 ) * di / 12;
-				dy += ( this._current_target.sy || 0 ) * di / 12;
-						
-				di = sdWorld.Dist2D_Vector( dx, dy );
-						
-				if ( di > 1 )
-				{
-					dx /= di;
-					dy /= di;
-				}
-						
-				this.side = ( dx > 0 ) ? 1 : -1;
+				this.side = ( xx > this.x ) ? 1 : -1;
 						
 				//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
 						
@@ -392,57 +417,30 @@ class sdAbomination extends sdEntity
 				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 				sdSound.PlaySound({ name:'abomination_attack', x:this.x, y:this.y });
 
-				let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-				let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
+				for ( let i = 0; i < 3; i++ )
+				{
+					let bullet_obj = new sdBullet({ x:this.x, y:this.y });
 
-				bullet_obj._owner = this;
+					bullet_obj._owner = this;
 
-				bullet_obj2._owner = this;
+					bullet_obj.sx = ( Math.random() - 0.5 ) * 0.5;
+					bullet_obj.sy = -Math.random() * 0.25 - 0.75;
 
-				bullet_obj3._owner = this;
+					bullet_obj.x += bullet_obj.sx * 3;
+					bullet_obj.y += bullet_obj.sy * 3;
 
-				bullet_obj.sx = dx;
-				bullet_obj.sy = dy;
-				bullet_obj.x += bullet_obj.sx * 3;
-				bullet_obj.y += bullet_obj.sy * 3;
+					bullet_obj.sx *= 12;
+					bullet_obj.sy *= 12;
 
-				bullet_obj.sx *= 12;
-				bullet_obj.sy *= 12;
+					bullet_obj._damage = 25;
 
-				bullet_obj._damage = 15;
-						
-				bullet_obj.model = 'ab_tooth';
+					bullet_obj._affected_by_gravity = true;
+					bullet_obj.time_left = 60;
 
-				sdEntity.entities.push( bullet_obj );
+					bullet_obj.model = 'ab_tooth';
 
-				bullet_obj2.sx = dx + ( Math.random() * 2 ) - ( Math.random() * 2 );
-				bullet_obj2.sy = dy + ( Math.random() * 2 ) - ( Math.random() * 2 );
-				bullet_obj2.x += bullet_obj2.sx * 3;
-				bullet_obj2.y += bullet_obj2.sy * 3;
-
-				bullet_obj2.sx *= 12 + ( Math.random() * 2 ) - ( Math.random() * 2 );
-				bullet_obj2.sy *= 12 + ( Math.random() * 2 ) - ( Math.random() * 2 );
-
-				bullet_obj2._damage = 15;
-						
-				bullet_obj2.model = 'ab_tooth';
-
-				sdEntity.entities.push( bullet_obj2 );
-
-				bullet_obj3.sx = dx + Math.random() - Math.random();
-				bullet_obj3.sy = dy + Math.random() - Math.random();
-				bullet_obj3.x += bullet_obj3.sx * 3;
-				bullet_obj3.y += bullet_obj3.sy * 3;
-
-				bullet_obj3.sx *= 12 + Math.random() - Math.random();
-				bullet_obj3.sy *= 12 + Math.random() - Math.random();
-
-				bullet_obj3._damage = 15;
-						
-				bullet_obj3.model = 'ab_tooth';
-
-				sdEntity.entities.push( bullet_obj3 );
+					sdEntity.entities.push( bullet_obj );
+				}
 						
 				this.attack_timer = 30;
 						
@@ -473,7 +471,7 @@ class sdAbomination extends sdEntity
 
 					if ( dist_att < 150 && dist_att > 32 && from_entity !== null ) // Just in case if it doesn't find a fitting candidate?
 					{
-						this._pull_timer = 50;
+						this._pull_timer = 60;
 
 						let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
@@ -552,7 +550,7 @@ class sdAbomination extends sdEntity
 		}
 		else
 		{
-			if ( this.tenta_tim > 0 )
+			if ( this.tenta_tim > 0 || this.attack_warning )
 			{
 				let sprites = [
 					0,1,
@@ -566,7 +564,7 @@ class sdAbomination extends sdEntity
 				let xx = sprites[ best_id * 2 + 0 ];
 				let yy = sprites[ best_id * 2 + 1 ];
 				
-				let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
+				let di = this.attack_warning ? 24 : sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
 			
 				if ( di < 200 )
 				{

@@ -384,8 +384,8 @@ class sdFleshGrabber extends sdEntity
 
 					bullet_obj.sx = dx;
 					bullet_obj.sy = dy;
-					bullet_obj.x += bullet_obj.sx * 3;
-					bullet_obj.y += bullet_obj.sy * 3;
+					bullet_obj.x += bullet_obj.sx;
+					bullet_obj.y += bullet_obj.sy;
 
 					bullet_obj.sx *= 12;
 					bullet_obj.sy *= 12;
@@ -396,13 +396,13 @@ class sdFleshGrabber extends sdEntity
 
 					sdEntity.entities.push( bullet_obj );
 
-					bullet_obj2.sx = dx + ( Math.random() * 0.5 ) - ( Math.random() * 0.5 );
-					bullet_obj2.sy = dy + ( Math.random() * 0.5 ) - ( Math.random() * 0.5 );
-					bullet_obj2.x += bullet_obj2.sx * 3;
-					bullet_obj2.y += bullet_obj2.sy * 3;
+					bullet_obj2.sx = dx + ( Math.random() * 0.15 ) - ( Math.random() * 0.15 );
+					bullet_obj2.sy = dy + ( Math.random() * 0.15 ) - ( Math.random() * 0.15 );
+					bullet_obj2.x += bullet_obj2.sx;
+					bullet_obj2.y += bullet_obj2.sy;
 
-					bullet_obj2.sx *= 12 + ( Math.random() * 0.5 ) - ( Math.random() * 0.5 );
-					bullet_obj2.sy *= 12 + ( Math.random() * 0.5 ) - ( Math.random() * 0.5 );
+					bullet_obj2.sx *= 12 + ( Math.random() * 0.15 ) - ( Math.random() * 0.15 );
+					bullet_obj2.sy *= 12 + ( Math.random() * 0.15 ) - ( Math.random() * 0.15 );
 
 					bullet_obj2._damage = 15;
 							
@@ -410,13 +410,13 @@ class sdFleshGrabber extends sdEntity
 
 					sdEntity.entities.push( bullet_obj2 );
 
-					bullet_obj3.sx = dx + Math.random() - Math.random();
-					bullet_obj3.sy = dy + Math.random() - Math.random();
-					bullet_obj3.x += bullet_obj3.sx * 3;
-					bullet_obj3.y += bullet_obj3.sy * 3;
+					bullet_obj3.sx = dx + ( Math.random() * 0.075 ) - ( Math.random() * 0.075 );
+					bullet_obj3.sy = dy + ( Math.random() * 0.075 ) - ( Math.random() * 0.075 );
+					bullet_obj3.x += bullet_obj3.sx;
+					bullet_obj3.y += bullet_obj3.sy;
 
-					bullet_obj3.sx *= 12 + Math.random() - Math.random();
-					bullet_obj3.sy *= 12 + Math.random() - Math.random();
+					bullet_obj3.sx *= 12 + ( Math.random() * 0.075 ) - ( Math.random() * 0.075 );
+					bullet_obj3.sy *= 12 + ( Math.random() * 0.075 ) - ( Math.random() * 0.075 );
 
 					bullet_obj3._damage = 15;
 							
@@ -514,14 +514,27 @@ class sdFleshGrabber extends sdEntity
 			yy = 0;
 			
 			if ( this.type === sdFleshGrabber.TYPE_RANGED ) 
-			xx = 2;
+			xx = 3;
 		
 			if ( this.type === sdFleshGrabber.TYPE_MOUTH ) 
-			xx = 4;
+			xx = 6;
 		
-			if ( this.tenta_tim > 5 ) // Attack image
-			xx++;
-			
+			if ( this.type !== sdFleshGrabber.TYPE_MOUTH )
+			{
+				if ( this.tenta_tim < 16 && this.tenta_tim > 8 ) // Attack frame
+				xx++;
+		
+				if ( this.tenta_tim > 8 ) // Second attack frame
+				xx++;
+			}
+			else
+			{
+				if ( this.tenta_tim < 10 && this.tenta_tim > 5 ) // Attack frame
+				xx++;
+		
+				if ( this.tenta_tim > 5 ) // Second attack frame
+				xx++;
+			}
 			if ( this.side === 1 )
 			ctx.rotate( 270 * Math.PI / 180 );
 			if ( this.side === 2 )

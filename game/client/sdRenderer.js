@@ -979,11 +979,16 @@ class sdRenderer
 					
 						ctx.globalAlpha = 1; // Just in case
 						
+						//let di = 1 / ( 2 + wanderer.layer * 0.1 );
+						//ctx.filter = 'contrast('+di+') brightness('+di*0.75+')';
+
 						//ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( 'fmech_boost' ), xx, yy, 64 * scale, 64 * scale );
 						ctx.drawImageFilterCache( sdWorld.CreateImageFromFile( wanderer.GetImageFromModel() ), wanderer.GetXOffsetFromModel(),wanderer.GetYOffsetFromModel(),
 						wanderer.GetWidthFromModel(), wanderer.GetHeightFromModel(), xx, yy,
 						wanderer.GetWidthFromModel() * scale * wanderer.side, wanderer.GetHeightFromModel() * scale );
 						
+						//ctx.filter = 'none';
+
 						// Not ideal but it works? - Booraz149
 					}
 				}
@@ -2021,13 +2026,15 @@ class sdRenderer
 				if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] )
 				keySuggestions.push({ title: 'Drop weapon', key: 'V' });
 				
-				if ( sdWorld.my_entity._upgrade_counters.upgrade_hook )
+				//if ( sdWorld.my_entity._upgrade_counters.upgrade_hook )
 				keySuggestions.push({ title: 'Grappling hook', key: 'C' });
 			
 				if ( sdWorld.my_entity._inventory[ 9 ] )
-				keySuggestions.push({ title: 'Select build item', key: 'B' });
+				keySuggestions.push({ title: 'Select build item', key: 'Tab/B' });
 				else
 				keySuggestions.push({ title: 'Select build item', key: T('- no build tool -') });
+			
+				keySuggestions.push({ title: 'Leaderboard/tasks', key: 'T' });
 			
 				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
 			
@@ -2050,14 +2057,14 @@ class sdRenderer
 
 					ctx.fillStyle = '#ffffff';
 					ctx.textAlign = 'center';
-					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 15 );
+					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 130 + 50 ) * scale, sdRenderer.screen_height - 15 );
 
 					if ( s.key.charAt( 0 ) === '-' )
 					ctx.fillStyle = '#ff6666';
 					else
 					ctx.fillStyle = '#ffff00';
 				
-					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 120 + 50 ) * scale, sdRenderer.screen_height - 28 );
+					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 130 + 50 ) * scale, sdRenderer.screen_height - 28 );
 				}
 			}
 			else

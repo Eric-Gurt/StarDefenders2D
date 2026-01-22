@@ -1168,8 +1168,8 @@ class sdBlock extends sdEntity
 	//RequireSpawnAlign() 
 	//{ return true; }
 	
-	get spawn_align_x(){ return Math.min( this.width, 16 ); };
-	get spawn_align_y(){ return Math.min( this.height, 16 ); };
+	get spawn_align_x(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); }; // What am I doing here - Booraz
+	get spawn_align_y(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); };
 	
 	HandleDestructionUpdate()
 	{
@@ -1228,11 +1228,26 @@ class sdBlock extends sdEntity
 		
 		let blocks = [];
 		
-		for ( let i = 0; i < Math.round( this.height / 16 ); i++ )
+		let old_height = this.height;
+		this.height = 1; // We can detect duplicate ents this way?
+		
+		let duplicate_ent = null;
+		
+		for ( let i = 0; i < Math.round( old_height / 16 ); i++ )
 		{
 			let xx = this.x;
 			let yy = this.y;
 			yy += 16 * i;
+			
+			// Shouldn't happen, but just in case
+			duplicate_ent = sdBlock.GetGroundObjectAt( xx + 8, yy + 8, false );
+			if ( duplicate_ent )
+			if ( duplicate_ent !== this && !duplicate_ent._is_being_removed )
+			{
+				//console.log('Duplicate Block found at ' + xx + 'X, ' + yy + 'y');
+				duplicate_ent.remove();
+				duplicate_ent._broken = false;
+			}
 		
 			let contained_class = null;
 			let contained_params = null;
