@@ -659,7 +659,7 @@ class sdEntity
 				typeof this.sx !== 'undefined' &&
 				this.IsVisible( by_entity ) &&
 				this.IsTargetable( by_entity, true ) &&
-				this.mass <= 30 && 
+				this.mass <= 40 && 
 				this._hitbox_x2 - this._hitbox_x1 <= 16 && 
 				this._hitbox_y2 - this._hitbox_y1 <= 16 );
 	}
@@ -1116,6 +1116,11 @@ class sdEntity
 				}
 				else
 				{
+					if ( this.is( sdWorld.entity_classes.sdGun ) )
+					{
+						// Ignore for now, they don't collide with players anyway
+					}
+					else
 					debugger; // Filter combination is not yet supported for previously carried items
 				}
 			}
@@ -3000,7 +3005,8 @@ class sdEntity
 			if ( this.onThink.has_held_by === undefined )
 			{
 				// Guns are exception because they can't be carried and thus extra logic can be too demanding
-				this.onThink.has_held_by = ( this.GetClass() !== 'sdGun' && this.constructor.toString().indexOf( 'this.held_by' ) !== -1 );
+				//this.onThink.has_held_by = ( this.GetClass() !== 'sdGun' && this.constructor.toString().indexOf( 'this.held_by' ) !== -1 );
+				this.onThink.has_held_by = ( this.constructor.toString().indexOf( 'this.held_by' ) !== -1 ); // Guns can be carried now too
 			}
 			
 			if ( this.onThink.has_held_by )

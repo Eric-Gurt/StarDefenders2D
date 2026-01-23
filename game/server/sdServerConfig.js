@@ -1565,7 +1565,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	}
 	static ModifyTerrainEntity( ent, icy ) // ent can be sdBlock or sdBG
 	{
-		if ( icy )
+		/*if ( icy )
 		{
 			ent.filter = 'saturate(0.3)';
 			ent.br *= 4;
@@ -1578,7 +1578,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				if ( e )
 				e.snowed = true;
 			}
-		}
+		}*/
 	}
 	
 	static InitialSnapshotLoadAttempt()

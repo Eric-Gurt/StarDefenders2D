@@ -803,7 +803,7 @@ class sdTask extends sdEntity
 		
 		if ( this._target )
 		{
-			this.target_x = this._target.x;
+			this.target_x = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
 			this.target_y = this._target.y;
 			this.target_biometry = this._target.title || this._target.biometry || '';
 			this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
@@ -980,7 +980,7 @@ class sdTask extends sdEntity
 			{
 				if ( this.target_x !== this._target.x || this.target_y !== this._target.y )
 				{
-					this.target_x = this._target.x;
+					this.target_x = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
 					this.target_y = this._target.y;
 					this.target_biometry = this._target.title || this._target.biometry || '';
 					this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;

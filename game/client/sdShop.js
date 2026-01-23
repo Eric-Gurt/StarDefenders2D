@@ -311,6 +311,21 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
 
 
+			for ( let f = 0; f < 360; f += 30 )
+			{
+				//let filter = ( f === 0 ) ? '' : 'hue-rotate('+f+'deg)';
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_WAFFLE, hue:f, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_WAFFLE, hue:f, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_WAFFLE, hue:f, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_WAFFLE, hue:f, _category:'Walls' });
+				
+				/*sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });*/
+				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });
+			}
+
 
 			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 
@@ -1531,6 +1546,9 @@ class sdShop
 					
 					if ( sdWorld.my_entity.matter >= matter_cost )
 					{
+						if ( current_shop_options[ i ]._opens_category )
+						ctx.fillStyle = '#6688ff';
+						else
 						ctx.fillStyle = '#00ff00';
 					}
 					else
@@ -1552,6 +1570,22 @@ class sdShop
 						ctx.globalAlpha = 0.3;
 					}
 				}
+				
+				if ( current_shop_options[ i ]._opens_category )
+				{
+					if ( sdShop.potential_selection === sdWorld.my_entity._build_params._main_array_index )
+					{
+						ctx.fillStyle = '#6688ff';
+						ctx.globalAlpha = 0.6;
+					}
+					else
+					if ( current_shop_options[ i ]._opens_category === sdShop.current_category )
+					{
+						ctx.fillStyle = '#6688ff';
+						ctx.globalAlpha = 0.5;
+					}
+				}
+				
 				if ( selectable )
 				{
 					ctx.fillRect( -5,-5, 32+10,32+10 );
@@ -1741,14 +1775,11 @@ class sdShop
 			
 			ctx.font = "12px Verdana";
 			
-			let width = 0;/*Math.max( 
-				ctx.measureText( item_title || '' ).width,
-				ctx.measureText( description || '' ).width,
-				ctx.measureText( how_to_build_hint || '' ).width
-			);*/
+			let width = 0;
+			let height = 0;
 	
 			let offset_x = sdWorld.mouse_screen_x + 16;
-			
+			let draw_y = sdWorld.mouse_screen_y + 32;
 			//if ( sdWorld.mouse_screen_x + 16 + width > sdRenderer.screen_width )
 			//offset_x = sdRenderer.screen_width - width - 16;
 			
@@ -1776,7 +1807,7 @@ class sdShop
 						if ( layer === 2 )
 						{
 							ctx.fillStyle = color;
-							ctx.fillText( text_lines[ i ], offset_x + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 + offset_y );
+							ctx.fillText( text_lines[ i ], offset_x + 5, draw_y + 12 + 5 + offset_y );
 						}
 						if ( layer === 0 )
 						{
@@ -1786,6 +1817,8 @@ class sdShop
 					}
 
 					offset_y += 14;
+					
+					height = Math.max( height, offset_y );
 				};
 			
 				if ( item_title )
@@ -1801,36 +1834,18 @@ class sdShop
 				{
 					if ( offset_x + width + 16 > sdRenderer.screen_width )
 					offset_x = sdRenderer.screen_width - width - 16;
+				
+					if ( draw_y + height + 16 > sdRenderer.screen_height )
+					draw_y = sdWorld.mouse_screen_y - height - 32;
 				}
 				if ( layer === 1 )
 				{
 					ctx.fillStyle = '#000000';
 					ctx.globalAlpha = 0.8;
-					ctx.fillRect( offset_x, sdWorld.mouse_screen_y + 32, width + 10, 25 + offset_y - 14 * 2 );
+					ctx.fillRect( offset_x, draw_y, width + 10, 25 + offset_y - 14 * 2 );
 					ctx.globalAlpha = 1;
 				}
 			}
-			
-			/*let d = ctx.measureText( how_to_build_hint );
-			let d2 = ( description !== null ) ? ctx.measureText( description ) : null; // Secondary description, used for upgrades
-			
-			let xx = sdWorld.mouse_screen_x + 16;
-			
-			if ( sdWorld.mouse_screen_x + 16 + Math.max( d.width, d2 ? d2.width : 0 ) > sdRenderer.screen_width )
-			xx = sdRenderer.screen_width - Math.max( d.width, d2 ? d2.width : 0 ) - 16;
-			
-			ctx.fillStyle = '#000000';
-			ctx.globalAlpha = 0.8;
-			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d.width + 10, 12 + 10 );
-			if ( description !== null )
-			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d2.width + 10, 12 + 14 + 10 );
-			ctx.globalAlpha = 1;
-			
-			ctx.fillStyle = '#ffffff';
-			ctx.textAlign = 'left';
-			ctx.fillText( how_to_build_hint, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
-			if ( description !== null )
-			ctx.fillText( description, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 14 + 5 );*/
 		}
 
 		
@@ -1866,10 +1881,10 @@ class sdShop
 					if ( sdShop.search_active )
 					how_to_build_hint = T('Click to cancel search');
 					else
-					how_to_build_hint = T('Click to leave this category');
+					how_to_build_hint = T('Click to hide current category');
 				}
 				else
-				how_to_build_hint = T('Click to enter category')+' "' + shop_item._opens_category + '"';
+				how_to_build_hint = T('Click to show category')+' "' + shop_item._opens_category + '"';
 			}
 			else
 			{

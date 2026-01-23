@@ -738,6 +738,19 @@ class sdBullet extends sdEntity
 				return false;
 			}
 
+			// Let player use hook while carrying items
+			if ( this._owner )
+			if ( this._owner.carrying )
+			{
+				if ( from_entity === this._owner.carrying )
+				return false;
+			}
+			if ( this._owner2 )
+			if ( this._owner2.carrying )
+			{
+				if ( from_entity === this._owner2.carrying )
+				return false;
+			}
 
 			// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
 

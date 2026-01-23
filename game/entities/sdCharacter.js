@@ -622,11 +622,14 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.as_class_list = [ 'sdCharacter' ];
 		
+		sdCharacter.guns_can_be_built_on_classes = [ 'sdCharacter', 'sdGun', 'sdSampleBuilder', 'sdTeleport', 'sdButton' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
-	GetBleedEffect()
+	GetBleedEffect( allow_randomized_armor_effect=true )
 	{
+		if ( allow_randomized_armor_effect ) // Or else it randomizes walk sound on each connection for players
 		if ( Math.random() < 1 / 3 )
 		if ( this.armor > 0 )
 		if ( this.hea > 0 && !this._dying )
@@ -842,7 +845,7 @@ class sdCharacter extends sdEntity
 
 				let t = /*'<' + */sdWorld.ClassNameToProperName( ent.GetClass(), ent, true );// + '>';
 
-				if ( Math.abs( sdWorld.time - this._last_discovery ) > 2 * 60 * 1000 ) // Once in 2 minutes // Was 15 seconds
+				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15 * 60 * 1000 ) // Once in 15 minutes
 				if ( this.hea > this.hmax * 0.75 )
 				{
 					this._last_discovery = sdWorld.time;
@@ -889,11 +892,11 @@ class sdCharacter extends sdEntity
 						'This '+t+' '+i_have_+''+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ),
 						'This '+t+' '+i_have_+''+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ),
 						t+' is right there',
-						'This day can\'t get any better with '+t+', can\'t it?',
+						'This day can\'t get any better with '+t+', can\'t it?'
 					];
 					
-					// EG: I didn't even read them all.
-					let chatGPT_options = `Well, well, well, what do we have here? A wild THING appears!
+					// EG: I didn't even read them all. // UPD: They feel way too long and way too off
+					/*let chatGPT_options = `Well, well, well, what do we have here? A wild THING appears!
 Hold onto your helmets, folks! THING sighting ahead!
 Oh, snap! Check out the latest addition to the alien fashion show - THING!
 Look alive, team! THING's dropping in, and it's a head-scratcher!
@@ -1049,7 +1052,7 @@ THING is cosmic mic drop!`;
 						options.push( chatGPT_options_lines[ i ].substring( 0, chatGPT_options_lines[ i ].length - 1 ).split( 'THING' ).join( t ) );
 						else
 						options.push( chatGPT_options_lines[ i ].split( 'THING' ).join( t ) );
-					}
+					}*/
 					
 					if ( sdCharacter.unique_discovery_indexes.length === 0 )
 					{
@@ -1228,7 +1231,7 @@ THING is cosmic mic drop!`;
 	}
 	onSkinChanged()
 	{
-		this.bleed_effect = this.GetBleedEffect();
+		this.bleed_effect = this.GetBleedEffect( false );
 	}
 	
 	constructor( params )
@@ -4205,6 +4208,26 @@ THING is cosmic mic drop!`;
 			}
 		}
 	}
+	
+	static CarryEntityFilter( entity )
+	{
+		if ( entity.IsTargetable() ) // sdBone isn't targetable
+		{
+			/*if ( entity.is( sdGun ) )
+			{
+				if ( entity._held_by )
+				return false;
+			
+				if ( entity.held_by )
+				return false;
+			}*/
+
+			// 0 is in-game entities
+			return ( entity.IsBGEntity() === 0 );
+		}
+		return false;
+	}
+	
 	GetBulletSpawnOffset() // GetProjectileSpawnOffset() // Should return new Object
 	{
 		// Anything else is no longer good with new ragdoll structure
@@ -4576,12 +4599,18 @@ THING is cosmic mic drop!`;
 								x - radius, 
 								y - radius, 
 								x + radius, 
-								y + radius, this, null, null, null ) )
+								y + radius, this, null, null, sdCharacter.CarryEntityFilter ) )
 							{
 								if ( sdWorld.last_hit_entity )
 								if ( sdWorld.last_hit_entity.IsCarriable( this ) )
 								{
 									potential_carry_target = sdWorld.last_hit_entity;
+									
+									if ( potential_carry_target.is( sdGun ) )
+									if ( potential_carry_target._held_by ) // If gun is part of inventory then disallow taking it, although in theory it could have resulted into interesting situations
+									{
+										potential_carry_target = null;
+									}
 
 									if ( potential_carry_target.held_by )
 									{
@@ -4625,6 +4654,9 @@ THING is cosmic mic drop!`;
 							this.stands = false;
 							this._stands_on = null;
 						}
+						
+						if ( this.ghosting || this._shielding )
+						this.TogglePlayerAbility();
 					}
 				}
 				else
@@ -6346,42 +6378,28 @@ THING is cosmic mic drop!`;
 
 				let will_ignore_pickup = this.IsGunIgnored( from_entity, false );
 
-				if ( from_entity._held_by === null )
-				{
+				if ( from_entity._held_by === null ) // Not in inventory
+				if ( from_entity.held_by === null ) // Nor carried with E key
+				if ( from_entity !== this._previous_carrying || sdWorld.time > this._previous_carrying_ignore_until ) // Let players pick-up armor and score shards to later throw them away, without picking up
+				if ( !will_ignore_pickup )
+				if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
+				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null )
+				if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
+					  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
+				{	
+					//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
 
-					if ( !will_ignore_pickup )
-					//if ( this._ignored_guns.indexOf( from_entity ) === -1 )
-					//if ( Math.abs( from_entity.x - this.x ) < 8 )
-					//if ( Math.abs( from_entity.y - this.y ) < 16 )
+					if ( from_entity._is_being_removed )
 					{
-						/*if ( from_entity.dangerous )
-						{
-							this.DamageWithEffect( 30 );
-							from_entity.dangerous = false;
-						}*/
-										
-						if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
-						if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null )
-						{
-							if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
-								  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
-							{	
-								//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
-								
-								if ( from_entity._is_being_removed )
-								{
-									throw new Error('[ 2 ] How did character pick gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
-								}
-
-								this._inventory[ from_entity.GetSlot() ] = from_entity;
-								from_entity._held_by = this;
-								from_entity.ttl = -1;
-
-								if ( this._socket )
-								sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
-							}
-						}
+						throw new Error('[ 2 ] How did character pick gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 					}
+
+					this._inventory[ from_entity.GetSlot() ] = from_entity;
+					from_entity._held_by = this;
+					from_entity.ttl = -1;
+
+					if ( this._socket )
+					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
 				}
 			}
 			else
@@ -6630,7 +6648,7 @@ THING is cosmic mic drop!`;
 		
 		if ( fake_ent.GetClass() === 'sdGun' )
 		{
-			fake_ent.GetIgnoredEntityClasses = ()=>[ 'sdCharacter', 'sdGun', 'sdSampleBuilder', 'sdTeleport', 'sdButton' ];
+			fake_ent.GetIgnoredEntityClasses = ()=>sdCharacter.guns_can_be_built_on_classes;
 		}
 		
 		if ( !initiator || sdWorld.Dist2D( initiator.x, initiator.y, build_params.x, build_params.y ) < 64 || initiator._god )

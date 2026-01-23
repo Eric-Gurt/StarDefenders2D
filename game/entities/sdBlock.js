@@ -112,6 +112,8 @@ class sdBlock extends sdEntity
 		SpawnSizes( sdBlock.TEXTURE_ID_DARK_BRICK = tc++,			'wall_dark_brick',			0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_FULL_WHITE_BRICK = tc++,		'wall_full_bright_brick',	0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_TZYRG_WALL = tc++,			'wall_tzyrg',				0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_WAFFLE = tc++,				'wall_waffle',				4 );
+		SpawnSizes( sdBlock.TEXTURE_ID_CRATE = tc++,				'wall_crate',				8 );
 		
 		
 		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
@@ -167,6 +169,10 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'cracks1' ),
 			sdWorld.CreateImageFromFile( 'cracks2' ),
 			sdWorld.CreateImageFromFile( 'cracks3' )
+			/*sdWorld.CreateImageFromFile( 'cracksB1' ),
+			sdWorld.CreateImageFromFile( 'cracksB2' ),
+			sdWorld.CreateImageFromFile( 'cracksB3' ),
+			sdWorld.CreateImageFromFile( 'cracksB4' )*/
 		];
 
 		/*sdBlock.metal_reinforces = [ 
@@ -308,7 +314,7 @@ class sdBlock extends sdEntity
 	
 		if ( tex === sdBlock.TEXTURE_ID_GLASS )
 		return 'Glass';
-		
+	
 		if ( tex === sdBlock.TEXTURE_ID_CAGE )
 		return 'Cage';
 	
@@ -716,6 +722,12 @@ class sdBlock extends sdEntity
 								this._contains_class = parts[ 0 ];
 
 								let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null, from_ground:this };
+
+								if ( this._contains_class === 'sdWater' )
+								{
+									params.x = Math.floor( this.x / 16 ) * 16;
+									params.y = Math.floor( this.y / 16 ) * 16;
+								}
 
 								if ( this._contains_class_params )
 								{
@@ -1185,6 +1197,20 @@ class sdBlock extends sdEntity
 		this.destruction_frame = 2;
 		else
 		this.destruction_frame = 3;
+									
+		/*if ( this._hea > this._hmax / 5 * 4 )
+		this.destruction_frame = 0;
+		else
+		if ( this._hea > this._hmax / 5 * 3 )
+		this.destruction_frame = 1;
+		else
+		if ( this._hea > this._hmax / 5 * 2 )
+		this.destruction_frame = 2;
+		else
+		if ( this._hea > this._hmax / 5 * 1 )
+		this.destruction_frame = 2;
+		else
+		this.destruction_frame = 3;*/
 		
 		if ( this.destruction_frame !== old_destruction_frame )
 		this._update_version++;
@@ -2192,6 +2218,9 @@ class sdBlock extends sdEntity
 			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || // We probably no longer need 2 kinds of these if we could just switch texture
 			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
+			if ( this.texture_id === sdBlock.TEXTURE_ID_WAFFLE )
+			ctx.apply_shading = false;
+			
 			let img = sdBlock.textures[ this.texture_id ][ w + 'x' + h ];
 			if ( img )
 			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
@@ -2313,8 +2342,7 @@ class sdBlock extends sdEntity
 		}
 		
 	
-		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
-		
+		//ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			
 		//if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
 		//ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
@@ -2327,7 +2355,20 @@ class sdBlock extends sdEntity
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 		{
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+			
+			/*let old_scale = ctx.camera_relative_world_scale;
+			ctx.camera_relative_world_scale *= 0.999;
+			{
+				let old_mode = ctx.volumetric_mode;
+				ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+				{
+					ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+				}
+				ctx.volumetric_mode = old_mode;
+			}
+			ctx.camera_relative_world_scale = old_scale;*/
 		}
 		
 		ctx.volumetric_mode = old_volumetric_mode;

@@ -29,6 +29,7 @@ import sdTeleport from './sdTeleport.js';
 import sdStorage from './sdStorage.js';
 import sdMatterAmplifier from './sdMatterAmplifier.js';
 import sdCrystalCombiner from './sdCrystalCombiner.js';
+import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -439,6 +440,7 @@ class sdSteeringWheel extends sdEntity
 			this._scan_net_ids = net_ids;
 			this._scan_set = null;
 			
+			if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 			this.speed = speed;
 			
 			//trace( collected );
@@ -1192,6 +1194,9 @@ class sdSteeringWheel extends sdEntity
 
 			if ( b.is( sdButton ) )
 			return true;
+
+			if ( b.is( sdGrass ) )
+			return true;
 			
 			return false;
 		};
@@ -1204,8 +1209,16 @@ class sdSteeringWheel extends sdEntity
 				return false;
 			}
 			
-			if ( ent2.GetClass() === 'sdBone' )
-			return false;	
+			//if ( ent2.GetClass() === 'sdBone' )
+			if ( ent2.is( sdCharacterRagdoll.sdBone ) )
+			return false;
+		
+			if ( ent2.is( sdCrystal ) )
+			if ( ent2.held_by )
+			if ( ent2.held_by.is( sdGrass ) )
+			{
+				ent2.held_by.DropCrystal( ent2 );
+			}
 			
 			/*if ( scan_set.has( ent2 ) )
 			return false;

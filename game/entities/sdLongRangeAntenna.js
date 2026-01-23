@@ -177,6 +177,7 @@ class sdLongRangeAntenna extends sdEntity
 			{
 				this._spawn_timer = 60 + Math.random() * 60;
 
+				if ( !sdWeather.only_instance._chill )
 				sdWeather.only_instance.ExecuteEvent({
 					event:this._event_to_spawn,
 					near_entity: this,
@@ -188,6 +189,7 @@ class sdLongRangeAntenna extends sdEntity
 		
 			if ( !this._spawned_ai ) // Spawn random SD soldier which will stand near the beam projector
 			{
+				if ( !sdWeather.only_instance._chill )
 				{
 
 					let sd_soldiers = 0;

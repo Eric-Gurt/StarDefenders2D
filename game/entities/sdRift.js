@@ -87,7 +87,7 @@ class sdRift extends sdEntity
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this._cooldown = 0;
-		this._matter_crystal_max = 20480;
+		//this._matter_crystal_max = 20480; // EG: 40k crystals would count as 20k crystals? Maybe this stayed from pre-high tier crystals
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._spawn_timer = params._spawn_timer || 30 * 60; // Either defined by spawn or 60 seconds
 		this._spawn_timer_cd = this._spawn_timer; // Countdown/cooldown for spawn timer
@@ -481,8 +481,16 @@ class sdRift extends sdEntity
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
 			{
-				this.hea = Math.max( this.hea - ( GSPEED * 3 ), 0 ); // Shrink
-				this.matter_crystal -= GSPEED * 3;
+				let speed = 3;
+				
+				if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
+				speed *= 30; // These seem to have x30 health, 2k to close
+				
+				if ( this.type === sdRift.TYPE_CUBE_PORTAL )
+				speed *= 15; // These seem to have x30 health, 5k to close
+			
+				this.hea = Math.max( this.hea - ( GSPEED * speed ), 0 ); // Shrink
+				this.matter_crystal -= GSPEED * speed;
 			}
 			
 			if ( this.type !== sdRift.TYPE_DIMENSIONAL_TEAR ) // All but dimensional tears disappear over time
@@ -583,6 +591,35 @@ class sdRift extends sdEntity
 			}
 		}
 	}
+	
+	FeedWithCrystal( from_entity )
+	{
+		let value = 0;
+		
+		if ( from_entity.is( sdCrystal ) )
+		if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+		value = from_entity.matter_max * ( from_entity.matter_regen / 100 );
+
+		if ( from_entity.is( sdLost ) )
+		if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
+		value = from_entity._matter_max;
+		
+		if ( value > 0 )
+		{
+			if ( this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL ) // Trying to restore old way of closing portals, at least for it to work partially
+			value *= 30; // These seem to have x30 health, 2k to close
+		
+			if ( this.type === sdRift.TYPE_CUBE_PORTAL ) // Trying to restore old way of closing portals, at least for it to work partially
+			value *= 15; // These seem to have x30 health, 5k to close
+			
+			sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
+			//this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + value ); // Drain the crystal for it's max value and destroy it
+			this.matter_crystal += value; // Drain the crystal for it's max value and destroy it
+			this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( value * 10 ) ); // Regen depends on how much matter did it get fed with
+			from_entity.remove();
+		}
+	}
+	
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
@@ -604,31 +641,8 @@ class sdRift extends sdEntity
 		}*/
 		if ( this.type === sdRift.TYPE_DIMENSIONAL_TEAR ) // Only black portals can be fed crystals now, others disappear over time
 		{
-			if ( from_entity.is( sdCrystal ) )
-			if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
-			{
-				if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
-				{
-					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-					this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity.matter_max * ( from_entity.matter_regen / 100 ) ); // Drain the crystal for it's max value and destroy it
-					this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity.matter_max * ( from_entity.matter_regen / 100 ) * 10 ) ); // Regen depends on how much matter did it get fed with
-					//this._update_version++;
-					from_entity.remove();
-				}
-			}
-
-			if ( from_entity.is( sdLost ) )
-			{
-				if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
-				{
-					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-
-					this.matter_crystal = Math.min( this._matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
-					this._regen_timeout = Math.max( 30 * 60, this._regen_timeout + ( from_entity._matter_max * 10 ) ); // Regen depends on how much matter did it get fed with
-					//this._update_version++;
-					from_entity.remove();
-				}
-			}
+			this.FeedWithCrystal( from_entity );
+			
 		}
 		
 		if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY && !from_entity._is_being_removed )
@@ -778,6 +792,54 @@ class sdRift extends sdEntity
 	}
 	onRemoveAsFakeEntity()
 	{
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( command_name === 'FEED' )
+			if ( this.type === sdRift.TYPE_CUBE_PORTAL || this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
+			if ( exectuter_character.carrying )
+			if ( exectuter_character.carrying.is( sdCrystal ) || exectuter_character.carrying.is( sdLost ) )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+				{
+					let crystal = exectuter_character.carrying;
+					
+					//if ( !crystal._is_being_removed )
+					//{
+						exectuter_character.DropCrystal( crystal );
+
+						this.FeedWithCrystal( crystal );
+					//}
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( this.title + ' is too far' );
+					return;
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( this.type === sdRift.TYPE_CUBE_PORTAL || this.type === sdRift.TYPE_CRYSTALLIZED_PORTAL )
+			if ( exectuter_character.carrying )
+			if ( exectuter_character.carrying.is( sdCrystal ) || exectuter_character.carrying.is( sdLost ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			{
+				this.AddContextOption( 'Drop crystal into portal', 'FEED', [] );
+			}
+		}
 	}
 }
 //sdRift.init_class();

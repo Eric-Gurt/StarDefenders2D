@@ -2248,7 +2248,7 @@ class sdCrystal extends sdEntity
 			//if ( from_entity.IsPlayerClass() )
 			if ( from_entity.hard_collision )
 			{
-				this.held_by.DropCrystal();
+				this.held_by.DropCrystal( this );
 				return;
 			}
 			

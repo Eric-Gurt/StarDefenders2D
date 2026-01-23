@@ -13,6 +13,11 @@
 
 			sdWorld.entity_classes.sdWeather.only_instance.SimpleExecuteEvent( sdWorld.entity_classes.sdWeather.EVENT_WATER_RAIN );
 
+		OR
+			
+			As server admin in chat:
+			/event sdWeather.EVENT_LAVA_RISE
+
 		OR (will break any other event)
 
 		sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
@@ -89,6 +94,7 @@ import sdHover from './sdHover.js';
 import sdMothershipContainer from './sdMothershipContainer.js';
 import sdStalker from './sdStalker.js';
 import sdSetrBeholder from './sdSetrBeholder.js';
+import sdTimer from './sdTimer.js';
 
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
@@ -145,7 +151,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_AMPHIDS =				event_counter++; // 29
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
 		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
-		sdWeather.EVENT_FLESH_DIRT =			event_counter++; // 32 Empty, only asteroids can fleshify now
+		sdWeather.EVENT_LAVA_RISE =				event_counter++; // 32 (used to be called sdWeather.EVENT_FLESH_DIRT but got removed since fleshify is now only possivle via asteroids)
 		sdWeather.EVENT_COUNCIL_PORTAL =		event_counter++; // 33
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
@@ -3035,28 +3041,195 @@ class sdWeather extends sdEntity
 					});
 				}
 		}
-		if ( r === sdWeather.EVENT_FLESH_DIRT ) // Ground fleshify start from random block
+		if ( r === sdWeather.EVENT_LAVA_RISE )
 		{
-			/*for ( let tr = 0; tr < 100; tr++ )
+			let permanents = new Set(); // Permanent lava entities which won't be removed nor will have their volume decreased. But they will still stop erupting after certain time
+			
+			let expirations = new Map(); // lava entity -> time after which expiration starts (gradual volume decrease)
+			
+			let duration_seconds = 1.5 * 60; // Start despawning newly made lava entities after 1.5 minutes
+			let default_expire_after = sdWorld.time + duration_seconds * 1000;
+			
+			let iteration_delay = 1000;
+			
+			let volume_grow_per_iteration = 0.1;
+			
+			let safe_bound = 1;
+			
+			let minimum_lava_entities_to_start = 30;
+			let give_up_collecting_after = sdWorld.time + 7000;
+			
+			let CanFlowUpwards = ( e )=>
 			{
-				let i = Math.floor( Math.random() * sdEntity.entities.length );
-				
-				if ( i < sdEntity.entities.length )
+				let xx = e.x;
+				let yy = e.y - 16;
+
+				return ( !sdWorld.CheckWallExistsBox( 
+					xx + safe_bound, 
+					yy + safe_bound, 
+					xx + 16 - safe_bound, 
+					yy + 16 - safe_bound, null, null, sdWater.classes_to_interact_with ) );
+			};
+			
+			let StartSequence = ()=>
+			{
+				sdTimer.ExecuteWithDelay( ( timer )=>
 				{
-					let ent = sdEntity.entities[ i ];
-					
-					if ( ent.is( sdBlock ) )
-					if ( ent._natural )
+					let t = sdWorld.time; // Just in case, rely on updated value so hibernated servers won't enter some kind of endless loop
+
+					for ( let [ e, e_expiration_in ] of expirations )
 					{
-						ent.Fleshify();
+						// Suddenly got removed (or collected/frozen). In any case we stop tracking it
+						if ( e._is_being_removed )
+						{
+							permanents.delete( e );
+							expirations.delete( e );
+							continue;
+						}
+
+						if ( t > e_expiration_in )
+						{
+							// Decay
+							if ( permanents.has( e ) )
+							{
+							}
+							else
+							{
+								let above = sdWater.GetWaterObjectAt( e.x, e.y - 16 );
+								if ( above && expirations.has( above ) && !permanents.has( above ) )
+								{
+									// Wait for above one to decay
+								}
+								else
+								{
+									// Then it is this lava entity's turn to decay
+									e._volume -= volume_grow_per_iteration;
+									e.v = Math.ceil( e._volume * 100 );
+									e._update_version++;
+									e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+									if ( e._volume <= 0.1 )
+									{
+										e._volume = 0.1;
+										e.v = Math.ceil( e._volume * 100 );
+										e.remove();
+
+										expirations.delete( e );
+										continue;
+									}
+								}
+							}
+						}
+						else
+						{
+							// Erupt
+							let grow_left = volume_grow_per_iteration;
+
+							if ( e._volume < 1 )
+							{
+								grow_left -= ( 1 - e._volume );
+								e._volume = Math.min( 1, e._volume + volume_grow_per_iteration );
+								e.v = Math.ceil( e._volume * 100 );
+								e._update_version++;
+								e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+							}
+
+							if ( grow_left > 0 )
+							if ( e._volume >= 1 )
+							{
+								let expiration_in = e_expiration_in - 2000;
+
+								if ( t > expiration_in )
+								{
+								}
+								else
+								{
+									if ( CanFlowUpwards( e ) )
+									{
+										let xx = e.x;
+										let yy = e.y - 16;
+
+										let water_ent = new sdWater({ x: xx, y: yy, type: e.type, volume: grow_left });
+										sdEntity.entities.push( water_ent );
+										sdWorld.UpdateHashPosition( water_ent, false );
+
+										expirations.set( water_ent, expiration_in );
+
+										// New lava entities are self-collecting just so they can be removed later|
+										water_ent._onSplitsInto = ( new_ent )=>
+										{
+											expirations.set( new_ent, expiration_in );
+
+											new_ent._onSplitsInto = water_ent._onSplitsInto;
+										};
+									}
+								}
+							}
+						}
+					}
+
+					if ( expirations.size - permanents.size > 0 )
+					timer.ScheduleAgain( iteration_delay );
+					else
+					{
+						// Cleanup callback
+						for ( let e of permanents )
+						e._onSplitsInto = null; 
+					}
+				}, iteration_delay );
+			};
+			
+			
+			// Collect lava entities phase
+			sdTimer.ExecuteWithDelay( ( timer )=>
+			{
+				let t = sdWorld.time;
+				
+				for ( let tr = 1000; tr > 0; tr-- )
+				{
+					let possibly_lava = sdEntity.GetRandomEntity();
+
+					if ( possibly_lava )
+					if ( possibly_lava.is( sdWater ) )
+					if ( possibly_lava.type === sdWater.TYPE_LAVA )
+					if ( possibly_lava._natural )
+					if ( CanFlowUpwards( possibly_lava ) )
+					{
+						// New lava entities are self-collecting just so they can be removed later|
+						possibly_lava._onSplitsInto = ( new_ent )=>
+						{
+							expirations.set( new_ent, default_expire_after );
+
+							new_ent._onSplitsInto = possibly_lava._onSplitsInto;
+						};
+
+						permanents.add( possibly_lava );
+						expirations.set( possibly_lava, default_expire_after );
+						
+						for ( let i = 0; i < sdWorld.sockets.length; i++ )
+						if ( sdWorld.sockets[ i ].character )
+						if ( sdWorld.inDist2D_Boolean( possibly_lava.x, possibly_lava.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, 2000 ) )
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'LAVA-ERUPTION-'+Math.floor(possibly_lava.x/100)+':'+Math.floor(possibly_lava.y/100), 
+							executer: sdWorld.sockets[ i ].character,
+							mission: sdTask.MISSION_DESTROY_ENTITY,
+							target: possibly_lava,
+							title: 'Thermal anomaly detected',
+							time_left: duration_seconds * 30,
+							description: 'Volcanic activity detected in your sector. Relocate equipment to high ground immediately or construct lava diversion walls around the fissures.'
+						});
+
+						if ( expirations.size >= minimum_lava_entities_to_start )
 						break;
 					}
 				}
+				
+				if ( t < give_up_collecting_after && expirations.size < minimum_lava_entities_to_start )
+				timer.ScheduleAgain( 500 );
 				else
-				{
-					break;
-				}
-			}*/
+				StartSequence();
+				
+			}, 500 );
 		}
 		if ( r === sdWeather.EVENT_COUNCIL_PORTAL ) // Spawn a Council portal machine anywhere on the map outside player views which summons a portal in 15 minutes or more, depending on player count.
 		{

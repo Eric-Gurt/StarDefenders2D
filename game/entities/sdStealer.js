@@ -11,6 +11,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdJunk from './sdJunk.js';
 import sdArea from './sdArea.js';
 import sdAsteroid from './sdAsteroid.js';
+import sdGrass from './sdGrass.js';
 
 class sdStealer extends sdEntity
 {
@@ -126,13 +127,19 @@ class sdStealer extends sdEntity
 		if ( sdStealer.debug )
 		return true;
 	
+	
+	
 		for ( let i = 0; i < sdWorld.sockets.length; i++ )
 		if ( sdWorld.sockets[ i ].character )
 		{
 			let player = sdWorld.sockets[ i ].character;
-			if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+			//if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) ) This way it may steal crystals from bases if all players are spectating (one case reported but not sure if crystal was removed by stealer)
+			if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 )
 			return false;
 		}
+		
+		if ( !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+		return false;
 		
 		return true;
 	}
@@ -144,20 +151,24 @@ class sdStealer extends sdEntity
 		{
 			if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
-				if ( this.IsEntFarEnough( ent )  && ( ent.held_by === null || ent.held_by.GetClass() === 'sdGrass' ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities (except trees) ?
+				if ( ent.held_by === null || ent.held_by.is( sdGrass ) )
+				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities (except trees) ?
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
 				}
 			}
+			else
 			if ( ent.is( sdGun ) ) // Is it a weapon?
 			{
-				if ( this.IsEntFarEnough( ent ) && ent._held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character )
+				if ( ent._held_by === null )
+				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character )
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
 				}
 			}
+			else
 			if ( ent.is( sdAsteroid ) ) // Is it an asteroid?
 			{
 				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?

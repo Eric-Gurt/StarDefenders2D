@@ -6036,6 +6036,7 @@ class sdGunClass
 							if ( liquid.amount > 0 )
 							{
 								let water_ent = new sdWater({ x:0, y:0, type: liquid.type });
+								water_ent._natural = false;
 								sdEntity.entities.push( water_ent );
 	
 								water_ent._volume = Math.min( 100, liquid.amount ) / 100;
@@ -6082,6 +6083,7 @@ class sdGunClass
 								bullet._gun._held_item_snapshot.y + 16 - safe_bound, bullet, bullet.GetIgnoredEntityClasses(), bullet.GetNonIgnoredEntityClasses(), null ) )
 							{
 								water_ent = new sdWater( bullet._gun._held_item_snapshot );
+								water_ent._natural = false;
 								sdEntity.entities.push( water_ent );
 								sdWorld.UpdateHashPosition( water_ent, false );
 								
@@ -7992,6 +7994,11 @@ class sdGunClass
 		
 		let DrainProjectileBounceReaction = ( bullet, vel=0, hit_entity=null )=> // Also reacts to overlap
 		{
+			//if ( hit_entity )
+			//if ( hit_entity.is( sdTask ) )
+			//debugger;
+			
+			
 			if ( hit_entity )
 			{
 				if ( hit_entity._is_bg_entity === bullet._is_bg_entity )
@@ -8006,6 +8013,12 @@ class sdGunClass
 					bullet.sticky_target = hit_entity;
 					bullet.sticky_relative_x = bullet.x - hit_entity.x;
 					bullet.sticky_relative_y = bullet.y - hit_entity.y;
+					
+
+					/*	if ( hit_entity )
+						console.warn( 'DrainProjectileBounceReaction', hit_entity.GetClass() );
+						else
+						console.warn( 'DrainProjectileBounceReaction', null );*/
 				}
 			}
 			else
@@ -8013,6 +8026,12 @@ class sdGunClass
 				// From impact, entity is unknown
 				bullet.sx = 0;
 				bullet.sy = 0;
+					
+
+				/*	if ( hit_entity )
+					console.warn( 'DrainProjectileBounceReaction', hit_entity.GetClass() );
+					else
+					console.warn( 'DrainProjectileBounceReaction', null );*/
 			}
 		};
 		
@@ -8065,8 +8084,10 @@ class sdGunClass
 					if ( e.IsTargetable( owner ) )
 					if ( !e.is( sdBullet ) )
 					{
-						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
-						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+						//let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+						//let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+						
+						let [ xx, yy ] = e.GetClosestPointWithinCollision( bullet.x, bullet.y );
 
 						if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
 						if ( LOS( e, bullet.x, bullet.y, xx, yy ) )

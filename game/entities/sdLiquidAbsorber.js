@@ -185,6 +185,7 @@ class sdLiquidAbsorber extends sdEntity
 						let gas_x = Math.floor( this.x / 16 ) * 16;
 						let gas_y = Math.floor( this.y / 16 ) * 16;
 						let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
+						gas._natural = false;
 						sdEntity.entities.push( gas );
 						
 						this._allow_liquid_removal = false;
@@ -197,13 +198,8 @@ class sdLiquidAbsorber extends sdEntity
 					}
 					if ( ( liquids[ i ].type === sdWater.TYPE_LAVA ) && this._allow_liquid_removal )
 					{
-						// Lava gets converted into a solid block, by creating a water block and merging them. Though should probably just do it some other way.
-						let water_x = Math.floor( liquids[ i ].x / 16 ) * 16;
-						let water_y = Math.floor( liquids[ i ].y / 16 ) * 16;
-						let water = new sdWater ({ x: water_x, y: water_y, volume: 0.01, type: sdWater.TYPE_WATER }); // Is 0.01 volume legal?
-						sdEntity.entities.push( water );
-						liquids[ i ].BlendWith( water );
-						
+						liquids[ i ].Solidify();
+					
 						this._allow_liquid_removal = false;
 						sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:15 });
 						this.matter = Math.max( 0, this.matter - sdLiquidAbsorber.cost_per_absorption );

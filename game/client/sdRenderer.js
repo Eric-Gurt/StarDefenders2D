@@ -829,6 +829,17 @@ class sdRenderer
 					}
 				}
 			}
+			
+			for ( let i = 0; i < sdEntity.global_entities.length; i++ )
+			{
+				let e = sdEntity.global_entities[ i ];
+				if ( e._flag2 !== mark_flag_reference )
+				{
+					e._flag2 = mark_flag_reference;
+					visible_entities[ tot++ ] = e;
+				}
+			}
+			
 			visible_entities.length = tot;
 		}
 			
