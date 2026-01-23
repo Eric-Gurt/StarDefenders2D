@@ -305,6 +305,11 @@ class sdTzyrgAbsorber extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
+	get title()
+	{
+		return 'Tzyrg device';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 

@@ -246,6 +246,11 @@ class sdVeloxFortifier extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
+	get title()
+	{
+		return 'Velox fortifier';
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.TooltipUntranslated( ctx, T("Velox Fortifier"), 0, -16 );
