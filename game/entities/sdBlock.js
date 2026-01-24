@@ -1271,8 +1271,18 @@ class sdBlock extends sdEntity
 			if ( duplicate_ent !== this && !duplicate_ent._is_being_removed )
 			{
 				//console.log('Duplicate Block found at ' + xx + 'X, ' + yy + 'y');
-				duplicate_ent.remove();
-				duplicate_ent._broken = false;
+				if ( !duplicate_ent._shielded ) // Not protected by BSU?
+				{
+					duplicate_ent.remove();
+					duplicate_ent._broken = false;
+				}
+				else // Stop the unmerging process
+				if ( blocks.length > 0 )
+				{
+					this.remove();
+					this._broken = false;
+					return blocks;
+				}
 			}
 		
 			let contained_class = null;

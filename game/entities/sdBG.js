@@ -245,8 +245,16 @@ class sdBG extends sdEntity
 			if ( duplicate_ent !== this && !duplicate_ent._is_being_removed )
 			{
 				//console.log('Duplicate BG found at ' + xx + 'X, ' + yy + 'y');
-				duplicate_ent.remove();
-				duplicate_ent._broken = false;
+				if ( !duplicate_ent._shielded ) // Not protected by BSU?
+				{
+					duplicate_ent.remove();
+					duplicate_ent._broken = false;
+					
+					duplicate_ent = null;
+				}
+				else // Stop the unmerging process
+				if ( backgrounds.length > 0 )
+				break; // Break the loop, move to decals
 			}
 			/*let contained_class = null;
 			let contained_params = null;
