@@ -357,31 +357,41 @@ class sdDropPod extends sdEntity
 		
 		if ( this.type === sdDropPod.TYPE_SD ) // SD pod Loot pool
 		{
-			if ( Math.random() < 0.01 ) // 1% chance for some task reward loot
+			if ( Math.random() < 0.02 ) // 2% chance for some task reward loot
 			{
-				let rng = Math.random(); // Value between 0 and 1 at the moment.
-				if ( rng < 0.2 ) // 20%
+				let rng = Math.random() * 7; // Value between 0 and 7 at the moment.
+				if ( rng <= 1 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MERGER_CORE }) );
 				}
 				else
-				if ( rng < 0.4 ) // 20%
+				if ( rng <= 2 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL4_ARMOR_REGEN }) );
 				}
 				else
-				if ( rng < 0.6 ) // 20%
+				if ( rng <= 3 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ZAPPER }) );
 				}
 				else
-				if ( rng < 0.8 ) // 20%
+				if ( rng <= 4 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_COMBAT_INSTRUCTOR }) );
 				}
-				else // 20%
+				else
+				if ( rng <= 5 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ILLUSION_MAKER }) );
+				}
+				else
+				if ( rng <= 6 ) // 1 in 7
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET }) );
+				}
+				else // 1 in 7
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET }) );
 				}
 			}
 			else // Random other loot, like workbench and build tool items

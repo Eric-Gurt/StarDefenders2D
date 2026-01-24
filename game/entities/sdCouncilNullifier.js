@@ -303,7 +303,21 @@ class sdCouncilNullifier extends sdEntity
 				this._despawn_without_ent = true;
 				if ( this._set_matter_to > 0 )
 				if ( this._ent_to_nullify.matter > this._set_matter_to )
-				this._ent_to_nullify.matter = sdWorld.MorphWithTimeScale( this._ent_to_nullify.matter, this._set_matter_to, 0.85, GSPEED );
+				{
+					// Old approach. Just removed matter from the nullified entity - could result in hundreds of thousands matter lost per second
+					//this._ent_to_nullify.matter = sdWorld.MorphWithTimeScale( this._ent_to_nullify.matter, this._set_matter_to, 0.85, GSPEED );
+					
+					// New approach. Make it glow matter/give it back to entities it got it from
+					this._ent_to_nullify.MatterGlow( 1, 50, GSPEED ); // Make it give matter, but not lose it, unless above a certain threshold
+					
+					// Essentially it has a "grace" period now. If a nullified entity (or the ones giving it matter) overgenerate matter, they will lose it after a certain point.
+					let above_threshold = 0;
+					if ( this._set_matter_to > 1000000 && this._ent_to_nullify.matter > this._set_matter_to + 500000 ) // Over 1 million matter? Probably mothership container in question (I don't want to use GetClass or other - Booraz)
+					above_threshold = this._set_matter_to + 500000; // If a certain threshold is reached, then it loses matter.
+					// For Mothership matter container, threshold is over 500k matter since nullifier spawned.
+					if ( above_threshold > 0 )
+					this._ent_to_nullify.matter = sdWorld.MorphWithTimeScale( this._ent_to_nullify.matter, above_threshold, 0.85, GSPEED );
+				}
 			
 				if ( this._spawn_effect < sdWorld.time )
 				{

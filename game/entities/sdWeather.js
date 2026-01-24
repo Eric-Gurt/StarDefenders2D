@@ -4504,9 +4504,11 @@ class sdWeather extends sdEntity
 				this.GetDailySDEvents();
 			}
 			
-			if ( sdTask.completed_tasks_count >= 4 ) // every 4 completed tasks on the map, drop an SD pod
+			if ( sdTask.completed_tasks_count >= 10 ) // every 10 completed tasks on the map, drop an SD pod
 			{
 				sdTask.completed_tasks_count = 0; // Reset counter
+				
+				if ( sdDropPod.sd_pod_counter < 10 )
 				sdWeather.SimpleSpawner({
 				
 					count: [ 1, 1 ],
