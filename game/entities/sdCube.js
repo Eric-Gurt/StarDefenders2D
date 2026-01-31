@@ -253,8 +253,10 @@ class sdCube extends sdEntity
 		
 		this._attack_timer = 0;
 		this.attack_anim = 0;
+		
+		this._last_attack = sdWorld.time;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._charged_shots = this.GetChargedShotCount()
+		this._charged_shots = this.GetChargedShotCount();
 
 		this.beam_attack_active = false;
 
@@ -994,6 +996,13 @@ class sdCube extends sdEntity
 			{
 				this.regen_timeout = Math.max( this.regen_timeout - GSPEED, 0 );
 			}
+			
+			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._last_attack = sdWorld.time;
+				if ( this.kind !== sdCube.KIND_ANCIENT ) // TODO: Ancient blocks should bury back into blocks
+				this.AttemptPlaceNearPlayer(); // Attempt to place near a player, since it is probably stuck or something else.
+			}
 		}
 		
 		if ( sdWorld.time > this._invisible_until || this.hea <= 0 )
@@ -1195,7 +1204,6 @@ class sdCube extends sdEntity
 				if ( this._attack_timer <= 0 )
 				{
 					this._attack_timer = 3;
-
 					let targets_raw = this.GetActiveTargetsCache( sdCube.attack_range, sdCube.FilterCubeTargets );
 							//sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
 
@@ -1312,7 +1320,7 @@ class sdCube extends sdEntity
 						break;
 
 						this.attack_anim = 15;
-						
+						this._last_attack = sdWorld.time;
 						let targ = targets[ i ];
 							
 						if ( this.kind === sdCube.KIND_YELLOW && Math.random() > 0.9 )
@@ -1499,7 +1507,6 @@ class sdCube extends sdEntity
 							{
 								this._charged_shots = shots;
 								this._attack_timer = 15 + 10 * this._charged_shots;// * ( this.kind === sdCube.KIND_RED ? this.hea / this.hmax : 1 );
-
 								this.beam_attack_active = false;
 							}
 
@@ -1511,7 +1518,7 @@ class sdCube extends sdEntity
 					if ( targets.length === 0 ) // lower seek rate when no targets around
 					{
 						this._attack_timer = 25 + Math.random() * 10;
-
+						
 						if ( this.beam_attack_active )
 						this.beam_attack_active = false;
 					}

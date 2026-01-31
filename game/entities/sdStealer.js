@@ -169,6 +169,18 @@ class sdStealer extends sdEntity
 				}
 			}
 			else
+			if ( ent.is( sdJunk ) ) // Only bigger ents (and advanced container) cannot be stolen
+			{
+				if ( ent.type !== sdJunk.TYPE_PLANETARY_MATTER_DRAINER && ent.type !== sdJunk.TYPE_COUNCIL_BOMB && ent.type !== sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && ent.type !== sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+				{
+					if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
+					{
+						this._last_found_target = 0;
+						return ent; // Target it
+					}
+				}
+			}
+			else
 			if ( ent.is( sdAsteroid ) ) // Is it an asteroid?
 			{
 				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
@@ -182,7 +194,7 @@ class sdStealer extends sdEntity
 	}
 	
 	StealNearbyCrystals(){
-		let attack_entities = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 192, null, [ 'sdCrystal', 'sdGun', 'sdAsteroid' ] );
+		let attack_entities = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 192, null, [ 'sdCrystal', 'sdGun', 'sdAsteroid', 'sdJunk' ] );
 		let stolen_crystals = 0; // How much crystals did it steal?
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )
@@ -229,6 +241,11 @@ class sdStealer extends sdEntity
 							{
 								if ( e._held_by ) // Is object held by something?
 								can_steal = false; // Don't allow stealing
+							}
+							if ( e.is( sdJunk ) ) // Only bigger ents (and advanced container) cannot be stolen
+							{
+								if ( e.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || e.type === sdJunk.TYPE_COUNCIL_BOMB || e.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || e.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+								can_steal = false;
 							}
 							if ( sdArea.CheckPointDamageAllowed( xx, yy ) && can_steal )
 							{

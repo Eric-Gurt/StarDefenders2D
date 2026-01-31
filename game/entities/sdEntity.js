@@ -213,6 +213,65 @@ class sdEntity
 		return null;
 	}
 	
+	AttemptPlaceNearPlayer( aerial = true ) // Attempts to place the entity near player, but outside player radius. Used for mobs mostly.
+	{
+		if ( sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( this.x, this.y ) ) // Not in someone's base?
+		{
+			let i = 0;
+			for ( i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				// Let's make sure it's far away from players before anything happens.
+				if ( sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) < 500 )
+				return;
+			}
+			
+			for ( i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				let character = sdWorld.sockets[ i ].character;
+				let tr = 100;
+				while( tr > 0 )
+				{
+					let xx = 0, yy = 0;
+					let rng = ~~( Math.random() * 2 ); // 0 = don't change X, 1 = don't change Y, 2 = change both
+					if ( rng !== 0 )
+					xx = Math.random() < 0.5 ? ( character.x + 500 + Math.random() * 300 ) : ( character.x - 500 - Math.random() * 300 ); // Place left or right of the player
+					if ( rng !== 1 )
+					yy = Math.random() < 0.5 ? ( character.y + 500 + Math.random() * 300 ) : ( character.y - 500 - Math.random() * 300 ); // Place above or below the player
+				
+					if ( aerial ) 
+					{
+						if ( this.CanMoveWithoutDeepSleepTriggering( xx, yy, -32 ) ) // Probably not wake up deep sleep cells?
+						{
+							if ( this.CanMoveWithoutOverlap( xx, yy, 1 ) && sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( xx, yy ) ) // Can be placed? Though maybe it needs more free space
+							{
+								this.x = xx;
+								this.y = yy;
+								
+								break;
+							}
+						}
+					}
+					else
+					{
+						if ( this.CanMoveWithoutDeepSleepTriggering( xx, yy, -32 ) ) // Probably not wake up deep sleep cells?
+						{
+							if ( this.CanMoveWithoutOverlap( xx, yy, 1 ) && sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( xx, yy ) && !this.CanMoveWithoutOverlap( xx, yy + 32, 0 ) ) // Can be placed? Though maybe it needs more free space
+							{
+								this.x = xx;
+								this.y = yy;
+								
+								break;
+							}
+						}
+					}
+					tr--;
+				}
+			}
+		}
+	}
+	
 	GetCollisionMode()
 	{
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
