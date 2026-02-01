@@ -236,9 +236,9 @@ class sdEntity
 					let xx = 0, yy = 0;
 					let rng = ~~( Math.random() * 2 ); // 0 = don't change X, 1 = don't change Y, 2 = change both
 					if ( rng !== 0 )
-					xx = Math.random() < 0.5 ? ( character.x + 500 + Math.random() * 300 ) : ( character.x - 500 - Math.random() * 300 ); // Place left or right of the player
+					xx = Math.random() < 0.5 ? ( character.x + 500 + Math.random() * 500 ) : ( character.x - 500 - Math.random() * 500 ); // Place left or right of the player
 					if ( rng !== 1 )
-					yy = Math.random() < 0.5 ? ( character.y + 500 + Math.random() * 300 ) : ( character.y - 500 - Math.random() * 300 ); // Place above or below the player
+					yy = Math.random() < 0.5 ? ( character.y + 500 + Math.random() * 500 ) : ( character.y - 500 - Math.random() * 500 ); // Place above or below the player
 				
 					if ( aerial ) 
 					{
@@ -248,7 +248,7 @@ class sdEntity
 							{
 								this.x = xx;
 								this.y = yy;
-								
+								sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 								break;
 							}
 						}
@@ -261,7 +261,7 @@ class sdEntity
 							{
 								this.x = xx;
 								this.y = yy;
-								
+								sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 								break;
 							}
 						}

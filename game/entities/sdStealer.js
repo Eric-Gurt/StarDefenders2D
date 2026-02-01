@@ -270,6 +270,8 @@ class sdStealer extends sdEntity
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -285,6 +287,8 @@ class sdStealer extends sdEntity
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -300,6 +304,8 @@ class sdStealer extends sdEntity
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -318,6 +324,8 @@ class sdStealer extends sdEntity
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });

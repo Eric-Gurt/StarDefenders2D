@@ -864,7 +864,7 @@ class sdDrone extends sdEntity
 			if ( !this._is_minion_of || this._is_minion_of._is_being_removed )
 			this._is_minion_of = null;
 		
-			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) || ( this._unlimited_range && this._last_attack < sdWorld.time - ( 1000 * 15 ) ) ) // 3 minutes since last attack? (or 15 seconds if spawned from protect tasks)
 			{
 				this._last_attack = sdWorld.time;
 				this.AttemptPlaceNearPlayer(); // Attempt to place near a player, since it is probably stuck or something else.

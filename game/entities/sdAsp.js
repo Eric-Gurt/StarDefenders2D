@@ -542,6 +542,11 @@ class sdAsp extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
+			if ( this._unlimited_range && this._last_attack < sdWorld.time - ( 1000 * 15 ) ) // 15 seconds since last attack? (Asps spawned from protect tasks)
+			{
+				this._last_attack = sdWorld.time;
+				this.AttemptPlaceNearPlayer(); // Attempt to place near player
+			}
 			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
 			{
 				this._hibernation_check_timer -= GSPEED;
