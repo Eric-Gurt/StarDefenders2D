@@ -395,7 +395,11 @@ class sdBiter extends sdEntity
 				if ( this._hibernation_check_timer < 0 )
 				{
 					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
+					
+					if ( this.type === sdBiter.TYPE_SMALL )
 					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					if ( this.type === sdBiter.TYPE_LARGE ) // Large/infectious biter?
+					this.AttemptBlockBurying( 'sdBiter.TYPE_LARGE' ); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}
