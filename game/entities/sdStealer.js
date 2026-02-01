@@ -205,30 +205,20 @@ class sdStealer extends sdEntity
 				if ( this.IsEntFarEnough( e ) ) // Doesn't hurt to have additional check.
 				{
 					{
+						let can_steal = true;
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
 						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
 						{
 							if ( sdWorld.last_hit_entity )
 							{
-								if ( e === sdWorld.last_hit_entity )
-								if ( sdArea.CheckPointDamageAllowed( xx, yy ) )
-								{
-									e.remove();
-									e._broken = false;
-									
-									stolen_crystals++;
-									
-									sdWorld.SendEffect({ x: this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
-									sdSound.PlaySound({ name:'teleport', x:xx, y:yy, pitch: 1, volume:0.5 });
-									
-									sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
-								}
+								if ( e !== sdWorld.last_hit_entity ) // Not the entity we're looking for?
+								can_steal = false; // Disallow stealing
 							}
 						}
-						else // Nothing colliding between stealer and entity?
+						
+						if ( can_steal )
 						{
-							let can_steal = true;
 							if ( e.is( sdCrystal ) )
 							{
 								if ( e.held_by ) // Is object held by something?
