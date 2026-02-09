@@ -24,6 +24,7 @@ import sdWeather from './sdWeather.js';
 import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdStalker from './sdStalker.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdRotator from './sdRotator.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
 
@@ -69,6 +70,7 @@ class sdCube extends sdEntity
 		sdCube.KIND_MATTER_STEALER = 6; // Not a cube, but a mater consumer from the anti-crystal event
 		sdCube.KIND_ANCIENT = 7; // Orange-ish? cube which acts like cyan, but it's beams deal lost damage
 		sdCube.KIND_RED = 8; // Boss
+        sdCube.KIND_PURPLE = 9; // Special
 		
 		sdCube.hitbox_scale_per_kind = [
 			1,
@@ -81,7 +83,7 @@ class sdCube extends sdEntity
 			// Just in case to prevent bugs from newer versions:
 			1,
 			3.5,
-			1,
+			2,
 			1,
 			1,
 			1,
@@ -111,7 +113,10 @@ class sdCube extends sdEntity
 		sdWorld.ReplaceColorInSDFilter_v2( sdCube.ancient_filter, '#00fff6', '#d6981e' );
 
 		sdCube.red_filter = sdWorld.CreateSDFilter();
-		sdWorld.ReplaceColorInSDFilter_v2( sdCube.red_filter, '#00fff6', '#400000' );
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.red_filter, '#00fff6', '#550000' );
+        
+        sdCube.purple_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.purple_filter, '#00fff6', '#4a259c' );
 		
 		sdCube.as_class_list = [ 'sdCube' ];
 	
@@ -190,7 +195,16 @@ class sdCube extends sdEntity
 		
 		return ( this.alpha > 0 );
 	}
-	
+    
+    GetRotatorCount( kind )
+    {
+        return ( kind === sdCube.KIND_RED || kind === sdCube.KIND_PURPLE ) ? 4 : 0
+	}
+    
+    GetRotatorType( kind )
+    {
+        return kind === sdCube.KIND_RED ? sdRotator.TYPE_CUBE_DISC : sdRotator.TYPE_CUBE_SHELL;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -218,7 +232,7 @@ class sdCube extends sdEntity
 		
 		this.hmax = 
 				this.kind === sdCube.KIND_RED ? 8000 : 
-				this.kind === sdCube.KIND_WHITE ? 1200 : 
+				this.kind === sdCube.KIND_WHITE ? 1400 : 
 				this.kind === sdCube.KIND_YELLOW ? 800 : 
 				this.kind === sdCube.KIND_MATTER_STEALER ? 1200 : 
 				this.kind === sdCube.KIND_PINK ? 100 : 
@@ -279,7 +293,13 @@ class sdCube extends sdEntity
 		this._dmg_threshold = ( this.kind === sdCube.KIND_RED ? 900 : this.kind === sdCube.KIND_WHITE ? 600 : this.kind === sdCube.KIND_YELLOW ? 300 : 60 )
 		
 		this._time_amplification = 0;
-		
+        
+        this._has_spawned_rotators = false;
+        
+        for ( let i = 0; i < this.GetRotatorCount( this.kind ); ++i )
+        {
+            this[ '_rotator' + i ] = null;
+        }
 		//this._targets_raw_cache = [];
 		//this._targets_raw_cache_until = 0;
 		
@@ -295,9 +315,15 @@ class sdCube extends sdEntity
 		sdCube.alive_pink_cube_counter++;
 
 		if ( this.kind === sdCube.KIND_RED )
-		sdCube.alive_red_cube_counter++;
-		
+        sdCube.alive_red_cube_counter++;
+    
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+        this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+	}
+    CollisionFiltering( from_entity )
+	{
+        return ( from_entity.GetClass() !== 'sdRotator' );
+		//return ( !this.GetRotators().includes( from_entity ) );
 	}
 	/*GetActiveTargetsCache( range, filter_method=null )
 	{
@@ -317,6 +343,23 @@ class sdCube extends sdEntity
 		}
 		return targets_raw;
 	}*/
+    ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop.startsWith( '_rotator' ) );
+	}
+    CreateRotators( count, type )
+    {
+        const rotators = [];
+
+        const flip = Math.random() < 0.5 ? 1 : -1
+        for ( let i = 0; i < count; ++i ) 
+        {
+            const angle = Math.PI * 2 * ( ( i / count ) + 1 / ( count * 2 ) )
+            const rotator = sdEntity.Create( sdRotator, ({ owner: this, flip_rotation: flip, orbit_angle: angle, type: type, tier: this.kind }));
+
+            this[ '_rotator' + i ] = rotator;
+        }
+    }
 	SetTarget( ent )
 	{
 		if ( ent !== this._current_target )
@@ -487,7 +530,7 @@ class sdCube extends sdEntity
 				{
 					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, sdCube.as_class_list );
 					
-					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 8 : 4;
+					let to_spawn = 4;
 					
 					if ( this.kind === sdCube.KIND_ANCIENT )
 					to_spawn = 1;
@@ -541,10 +584,7 @@ class sdCube extends sdEntity
 
 								if ( this.kind === sdCube.KIND_RED )
 								{
-									kinds.push( sdCube.KIND_YELLOW );
-
-									// if ( Math.random() < 0.5 )
-									kinds.push( sdCube.KIND_WHITE );
+									kinds.push( sdCube.KIND_PURPLE );
 									
 									if ( Math.random() < 0.01 )
 									kinds.push( sdCube.KIND_GREEN );
@@ -563,7 +603,6 @@ class sdCube extends sdEntity
 							}
 
 							sdWeather.SimpleSpawner({
-
 								count: 1,
 								class: sdCube,
 								params: { kind: kinds[ ~~( Math.random() * kinds.length ) ] },
@@ -637,6 +676,9 @@ class sdCube extends sdEntity
 					no_smoke: true,
 					shrapnel: true
 				});
+                
+                for ( const rotator of this.GetRotators() )
+                if ( Math.random() < 0.5 )rotator.DamageWithEffect( 10000 );
 
 				//if ( initiator )
 				//if ( typeof initiator._score !== 'undefined' )
@@ -854,15 +896,25 @@ class sdCube extends sdEntity
 	
 		return [];
 	}
-	
-	GetChargedShotCount()
+    GetChargedShotCount()
 	{
 		return ( this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 6 : 3 );
+	}
+    getTeleportGroup() // List of entities that will be teleproted together with this entity. For sdSandWorm and sdQuadro-like entities. You might want to use sdWorld.ExcludeNullsAndRemovedEntitiesForArray on returned array to filter out null pointers and removed entities
+	{
+        const arr = [ this, ...this.GetRotators() ]
+		return arr;
 	}
 	FireDirectionalBeams( is_void ) // Fire 4 rail beams in 4 different directions - up, down, left and right
 	{
 		if ( !sdWorld.is_server )
 		return;
+    
+    	let extra_filtering_method = ( e )=>
+        {
+            const rotators = this.GetRotators();
+            return !rotators.includes( e );
+		}
 
 		let spear_targer_reaction = ( bullet, target_entity )=>
 		{
@@ -889,20 +941,18 @@ class sdCube extends sdEntity
 			}
 		};
 
-		for ( let x = -1; x <= 1; x++ )
-		for ( let y = -1; y <= 1; y++ )
-		if ( x === 0 || y === 0 )
-		{
-			let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
+        for ( let i = 0; i < 4; ++i )
+        {
+            const angle = ( Math.PI / 2 ) * i
+            const bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
 			bullet_obj1._owner = this;
-			bullet_obj1.sx = x;
-			bullet_obj1.sy = y;
-			//bullet_obj1.x += bullet_obj1.sx * 5;
-			//bullet_obj1.y += bullet_obj1.sy * 5;
+            bullet_obj1.sx = Math.cos( angle );
+			bullet_obj1.sy = Math.sin( angle );
+
 
 			bullet_obj1.sx *= 16;
 			bullet_obj1.sy *= 16;
-				
+						
 			bullet_obj1.time_left = 25;
 
 			bullet_obj1._rail = true;
@@ -912,9 +962,10 @@ class sdCube extends sdEntity
 			bullet_obj1._damage = 5;
 
 			bullet_obj1._custom_target_reaction = spear_targer_reaction;
+            bullet_obj1._extra_filtering_method = extra_filtering_method;
 
 			sdEntity.entities.push( bullet_obj1 );
-		}
+        }
 	}
 	TeleportSomewhere( dist = 1, add_x = 0, add_y = 0 ) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
 	{
@@ -962,12 +1013,22 @@ class sdCube extends sdEntity
 					e.is( sdStalker ) ||
 					e.is( sdZektaronDreadnought ) );
 	}
+    GetRotators()
+    {
+        const arr = [];
+        for ( let i = 0; i < this.GetRotatorCount( this.kind ); ++i )
+        {
+            const rotator = this[ '_rotator' + i ];
+            if ( rotator && !rotator._is_being_removed ) arr.push( rotator );
+        }
+        return arr;
+    }
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
 		
 		let GSPEED_MULT = 1;
-		
+
 		if ( this.kind === sdCube.KIND_MATTER_STEALER )
 		{
 			if ( this._matter_stealer_passive_boost > 0 )
@@ -1067,7 +1128,7 @@ class sdCube extends sdEntity
 									else
 									if ( this.kind === sdCube.KIND_RED )
 									{
-										if ( nears[i].IsPlayerClass() || nears[i].GetClass() === 'sdCube' )
+										if ( nears[ i ].IsPlayerClass() || nears[i].GetClass() === 'sdCube' )
 										nears[i].ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 24 });
 									}
 									else if ( this.kind === sdCube.KIND_WHITE ) 
@@ -1334,6 +1395,12 @@ class sdCube extends sdEntity
 
 								if ( this.hea > 0 && this._frozen <= 0 ) // Not disabled in time
 								{
+                                    let extra_filtering_method = ( e )=>
+                                    {
+                                        const rotators = this.GetRotators();
+                                        return !rotators.includes( e );
+                                    }
+    
 									let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
 
 									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -1349,7 +1416,7 @@ class sdCube extends sdEntity
 
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
-								
+                                    bullet_obj1._extra_filtering_method = extra_filtering_method;
 									sdEntity.entities.push( bullet_obj );
 									
 									sdSound.PlaySound({ name:'supercharge_combined2_part2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
@@ -1395,6 +1462,12 @@ class sdCube extends sdEntity
 
 								if ( !beam_attack )
 								{
+                                    let extra_filtering_method = ( e )=>
+                                    {
+                                        const rotators = this.GetRotators();
+                                        return !rotators.includes( e );
+                                    }
+
 									let an = Math.atan2( yy - this.y, xx - this.x );
 	
 	
@@ -1411,7 +1484,7 @@ class sdCube extends sdEntity
 									bullet_obj._rail = true;
 	
 									bullet_obj._damage = 17;
-									
+                                    bullet_obj._extra_filtering_method = extra_filtering_method;
 									if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
 									{
 										bullet_obj._damage = 20;
@@ -1553,9 +1626,40 @@ class sdCube extends sdEntity
 		{
 			this._alert_intensity += GSPEED;
 		}
+        
+         if ( sdWorld.is_server )
+        {
+            if ( !this._has_spawned_rotators )
+            {
+                this.CreateRotators( this.GetRotatorCount( this.kind ), this.GetRotatorType( this.kind ) );
+                this._has_spawned_rotators = true;
+            }
+
+            const rotators = this.GetRotators();
+            for ( let i = 0; i < rotators.length; ++i )
+            {
+                const rotator = rotators[ i ];
+                if ( rotator && !rotator._is_being_removed )
+                {
+                     if ( this.kind === sdCube.KIND_PURPLE )
+                     {
+                         const add = Math.sin( ( this.attack_anim ) / 60 * Math.PI ) * 13;
+                         rotator._orbit_distance = 13 + add
+                     }
+                     rotator.Spin( GSPEED );
+                }
+                else
+                this[ '_rotator' + i ] = null;
+            }
+        }
 		
 		if ( !this.held_by )
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+        {
+            if ( !this.GetRotators().length )
+            this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+            else
+            this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
+        }
 	}
 	PlayerIsHooked( character, GSPEED )
 	{
@@ -1641,6 +1745,12 @@ class sdCube extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+        if ( !sdShop.isDrawing ) // Some subtle randomness atleast
+		{
+			const flip = this._net_id % 2 === 0 ? 1 : -1;
+			ctx.scale( flip, 1 );
+		}
+
 		if ( this.hea > 0 )
 		ctx.apply_shading = false;
 	
@@ -1699,6 +1809,13 @@ class sdCube extends sdEntity
 				ctx.scale( scale / 2, scale / 2 );
 				ctx.sd_filter = sdCube.red_filter;
 				yy = 6
+			}
+            if ( this.kind === sdCube.KIND_PURPLE )
+			{
+                const _scale = 20 / 14
+				ctx.scale( _scale, _scale );
+				ctx.sd_filter = sdCube.purple_filter;
+				yy = 7
 			}
 
 			/*if ( this.armor > 1000 )
@@ -1763,7 +1880,6 @@ class sdCube extends sdEntity
 			}
 		}
 
-		
 		if ( this.hea > 0 )
 		if ( this.beam_attack_active )
 		{
