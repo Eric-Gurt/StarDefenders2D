@@ -458,7 +458,8 @@ class sdJunk extends sdEntity
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this._owner,
 					can_hit_owner: true,
-					color:sdEffect.default_explosion_color
+					color:sdEffect.default_explosion_color,
+                    shrapnel: true
 				});
 			}
 			if ( this.type === sdJunk.TYPE_LOST_CONTAINER  ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
