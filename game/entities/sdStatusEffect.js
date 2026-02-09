@@ -388,7 +388,14 @@ class sdStatusEffect extends sdEntity
 					
 					if ( sdRenderer.effects_quality >= 2 && status_entity.t >= temperature_fire && status_entity._next_smoke_spawn <= 0 )
 					{
-						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2, scale:1, radius:1/3, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: '#FF8800'});
+                        let a = Math.random() * Math.PI * 2;
+
+                        let r = Math.pow( Math.random(), 0.5 ) * range;
+
+                        let xx = status_entity.for.x + status_entity.for._hitbox_x1 + ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * Math.random() + Math.sin( a ) * r;
+                        let yy = status_entity.for.y + status_entity.for._hitbox_y1 + ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) * Math.random() + Math.cos( a ) * r;
+
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:xx, y:yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2, scale:1, radius: Math.random() * 1.5 + 1 / 3, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: '#FF8800'});
 						status_entity._next_smoke_spawn = 1;
 						sdEntity.entities.push( s );
 					}
