@@ -83,6 +83,8 @@ class sdQuadro extends sdEntity
 		
 		//this._is_cable_priority = true;
 		
+		this._last_damage = 0; // Sound flood prevention
+		
 		this.sx = 0;
 		this.sy = 0;
 		
@@ -310,7 +312,13 @@ class sdQuadro extends sdEntity
 		this._regen_timeout = 90;
 		
 		if ( this.part === 0 )
-		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+		{
+			if ( sdWorld.time > this._last_damage + 50 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+			}
+		}
 	}
 	
 	//get mass() { return ( this.part === 0 ) ? 100 : 50; }

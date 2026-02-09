@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Socket = exports.RESERVED_EVENTS = void 0;
+exports.Socket = void 0;
 const socket_io_parser_1 = require("socket.io-parser");
 const debug_1 = __importDefault(require("debug"));
 const typed_events_1 = require("./typed-events");
 const base64id_1 = __importDefault(require("base64id"));
 const broadcast_operator_1 = require("./broadcast-operator");
+const socket_types_1 = require("./socket-types");
 const debug = (0, debug_1.default)("socket.io:socket");
 const RECOVERABLE_DISCONNECT_REASONS = new Set([
     "transport error",
@@ -17,14 +18,6 @@ const RECOVERABLE_DISCONNECT_REASONS = new Set([
     "ping timeout",
     "server shutting down",
     "forced server close",
-]);
-exports.RESERVED_EVENTS = new Set([
-    "connect",
-    "connect_error",
-    "disconnect",
-    "disconnecting",
-    "newListener",
-    "removeListener",
 ]);
 function noop() { }
 /**
@@ -126,6 +119,8 @@ class Socket extends typed_events_1.StrictEventEmitter {
             }
         }
         this.handshake = this.buildHandshake(auth);
+        // prevents crash when the socket receives an "error" event without listener
+        this.on("error", noop);
     }
     /**
      * Builds the `handshake` BC object
@@ -133,17 +128,18 @@ class Socket extends typed_events_1.StrictEventEmitter {
      * @private
      */
     buildHandshake(auth) {
+        var _a, _b, _c, _d;
         return {
-            headers: this.request.headers,
+            headers: ((_a = this.request) === null || _a === void 0 ? void 0 : _a.headers) || {},
             time: new Date() + "",
             address: this.conn.remoteAddress,
-            xdomain: !!this.request.headers.origin,
+            xdomain: !!((_b = this.request) === null || _b === void 0 ? void 0 : _b.headers.origin),
             // @ts-ignore
-            secure: !!this.request.connection.encrypted,
+            secure: !this.request || !!this.request.connection.encrypted,
             issued: +new Date(),
-            url: this.request.url,
+            url: (_c = this.request) === null || _c === void 0 ? void 0 : _c.url,
             // @ts-ignore
-            query: this.request._query,
+            query: ((_d = this.request) === null || _d === void 0 ? void 0 : _d._query) || {},
             auth,
         };
     }
@@ -166,7 +162,7 @@ class Socket extends typed_events_1.StrictEventEmitter {
      * @return Always returns `true`.
      */
     emit(ev, ...args) {
-        if (exports.RESERVED_EVENTS.has(ev)) {
+        if (socket_types_1.RESERVED_EVENTS.has(ev)) {
             throw new Error(`"${String(ev)}" is a reserved event name`);
         }
         const data = [ev, ...args];
@@ -522,13 +518,11 @@ class Socket extends typed_events_1.StrictEventEmitter {
      * @private
      */
     _onerror(err) {
-        if (this.listeners("error").length) {
-            this.emitReserved("error", err);
-        }
-        else {
-            console.error("Missing error handler on `socket`.");
-            console.error(err.stack);
-        }
+        // FIXME the meaning of the "error" event is overloaded:
+        //  - it can be sent by the client (`socket.emit("error")`)
+        //  - it can be emitted when the connection encounters an error (an invalid packet for example)
+        //  - it can be emitted when a packet is rejected in a middleware (`socket.use()`)
+        this.emitReserved("error", err);
     }
     /**
      * Called upon closing. Called by `Client`.
@@ -555,7 +549,6 @@ class Socket extends typed_events_1.StrictEventEmitter {
             });
         }
         this._cleanup();
-        this.nsp._remove(this);
         this.client._remove(this);
         this.connected = false;
         this.emitReserved("disconnect", reason, description);
@@ -568,6 +561,7 @@ class Socket extends typed_events_1.StrictEventEmitter {
      */
     _cleanup() {
         this.leaveAll();
+        this.nsp._remove(this);
         this.join = noop;
     }
     /**
@@ -743,17 +737,17 @@ class Socket extends typed_events_1.StrictEventEmitter {
      * @private
      */
     run(event, fn) {
+        if (!this.fns.length)
+            return fn();
         const fns = this.fns.slice(0);
-        if (!fns.length)
-            return fn(null);
         function run(i) {
-            fns[i](event, function (err) {
+            fns[i](event, (err) => {
                 // upon error, short-circuit
                 if (err)
                     return fn(err);
                 // if no middleware left, summon callback
                 if (!fns[i + 1])
-                    return fn(null);
+                    return fn();
                 // go on to next
                 run(i + 1);
             });

@@ -20,6 +20,13 @@ class sdProgram
 	{
 		sdProgram.AsyncFunction = ( async ()=>{} ).__proto__;
 		
+		sdProgram.accumulated_execution_time = 0;
+		sdProgram.accumulated_execution_time_last_reset_world_time = 0;
+		sdProgram.slowest_program = null;
+		sdProgram.slowest_program_time = -1;
+		sdProgram.next_complain_time = 0;
+		
+		
 		sdProgram.last_frame = sdWorld.frame;
 		sdProgram.shell_object_by_program = new Map(); // [ program ][ entity ] // cleared on each frame
 		
@@ -288,10 +295,15 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 		
 		let interpreter = new sdProgram.Interpreter( code, initInterface );
 		
+		interpreter.POLYFILL_TIMEOUT = 6;
+		interpreter.REGEXP_THREAD_TIMEOUT = 6;
+		
 		let next_memory_check = 0;
 		
 		let obj = {
 			interpreter: interpreter,
+			method_interface: method_interface,
+			code: code,
 			step_timer: 0,
 			crashed: false,
 			ended: false,
@@ -313,8 +325,47 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 					{
 						try
 						{
-							//if ( interpreter.run() ) 
-							if ( interpreter.step() ) 
+							let t0 = Date.now();
+							let step_result = interpreter.step();
+							let t1 = Date.now();
+							
+							let dt = t1-t0;
+							
+							if ( sdWorld.time !== sdProgram.accumulated_execution_time_last_reset_world_time )
+							{
+								sdProgram.accumulated_execution_time = 0;
+								sdProgram.accumulated_execution_time_last_reset_world_time = sdWorld.time;
+								sdProgram.slowest_program = null;
+								sdProgram.slowest_program_time = -1;
+							}
+							
+							sdProgram.accumulated_execution_time += dt;
+							
+							if ( dt > sdProgram.slowest_program_time )
+							{
+								sdProgram.slowest_program = obj;
+								sdProgram.slowest_program_time = dt;
+							}
+							
+							if ( sdProgram.accumulated_execution_time >= 4 )
+							{
+								if ( sdWorld.time > sdProgram.next_complain_time )
+								{
+									sdProgram.next_complain_time = sdWorld.time + 1000 * 60 * 60; // Every hour
+									
+									console.warn( 'One of sdProgram instances has caused long execution, worst increment was '+sdProgram.slowest_program_time+'ms with total frame time spent on all programs being '+sdProgram.accumulated_execution_time+'ms. Slowest executed code:', sdProgram.slowest_program.code.slice(0,10000) );
+								}
+								
+								sdProgram.slowest_program.crashed = true;
+
+								if ( sdProgram.slowest_program.method_interface.onError )
+								sdProgram.slowest_program.method_interface.onError( 'Execution took too long and was aborted (too many programs running in a world?)' );
+
+								if ( sdProgram.slowest_program === obj )
+								return;
+							}
+							
+							if ( step_result ) 
 							{
 								next_memory_check++;
 								

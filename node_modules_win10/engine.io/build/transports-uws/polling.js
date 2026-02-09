@@ -13,8 +13,6 @@ const compressionMethods = {
 class Polling extends transport_1.Transport {
     /**
      * HTTP polling constructor.
-     *
-     * @api public.
      */
     constructor(req) {
         super(req);
@@ -22,24 +20,21 @@ class Polling extends transport_1.Transport {
     }
     /**
      * Transport name
-     *
-     * @api public
      */
     get name() {
         return "polling";
-    }
-    get supportsFraming() {
-        return false;
     }
     /**
      * Overrides onRequest.
      *
      * @param req
      *
-     * @api private
+     * @private
      */
     onRequest(req) {
         const res = req.res;
+        // remove the reference to the ServerResponse object (as the first request of the session is kept in memory by default)
+        req.res = null;
         if (req.getMethod() === "get") {
             this.onPollRequest(req, res);
         }
@@ -54,7 +49,7 @@ class Polling extends transport_1.Transport {
     /**
      * The client sends a request awaiting for us to send data.
      *
-     * @api private
+     * @private
      */
     onPollRequest(req, res) {
         if (this.req) {
@@ -78,7 +73,7 @@ class Polling extends transport_1.Transport {
         req.cleanup = cleanup;
         res.onAborted(onClose);
         this.writable = true;
-        this.emit("drain");
+        this.emit("ready");
         // if we're still writable but had a pending close, trigger an empty send
         if (this.writable && this.shouldClose) {
             debug("triggering empty send to append close packet");
@@ -88,7 +83,7 @@ class Polling extends transport_1.Transport {
     /**
      * The client sends a request with data.
      *
-     * @api private
+     * @private
      */
     onDataRequest(req, res) {
         if (this.dataReq) {
@@ -129,7 +124,9 @@ class Polling extends transport_1.Transport {
         const onEnd = (buffer) => {
             this.onData(buffer.toString());
             this.onDataRequestCleanup();
-            res.end("ok");
+            res.cork(() => {
+                res.end("ok");
+            });
         };
         res.onAborted(() => {
             this.onDataRequestCleanup();
@@ -166,7 +163,7 @@ class Polling extends transport_1.Transport {
     /**
      * Cleanup request.
      *
-     * @api private
+     * @private
      */
     onDataRequestCleanup() {
         this.dataReq = this.dataRes = null;
@@ -175,7 +172,7 @@ class Polling extends transport_1.Transport {
      * Processes the incoming data payload.
      *
      * @param {String} encoded payload
-     * @api private
+     * @private
      */
     onData(data) {
         debug('received "%s"', data);
@@ -197,7 +194,7 @@ class Polling extends transport_1.Transport {
     /**
      * Overrides onClose.
      *
-     * @api private
+     * @private
      */
     onClose() {
         if (this.writable) {
@@ -210,7 +207,7 @@ class Polling extends transport_1.Transport {
      * Writes a packet payload.
      *
      * @param {Object} packet
-     * @api private
+     * @private
      */
     send(packets) {
         this.writable = false;
@@ -238,18 +235,19 @@ class Polling extends transport_1.Transport {
      *
      * @param {String} data
      * @param {Object} options
-     * @api private
+     * @private
      */
     write(data, options) {
         debug('writing "%s"', data);
         this.doWrite(data, options, () => {
             this.req.cleanup();
+            this.emit("drain");
         });
     }
     /**
      * Performs the write.
      *
-     * @api private
+     * @private
      */
     doWrite(data, options, callback) {
         // explicit UTF-8 is required for pages not served under utf
@@ -262,10 +260,12 @@ class Polling extends transport_1.Transport {
         };
         const respond = (data) => {
             this.headers(this.req, headers);
-            Object.keys(headers).forEach((key) => {
-                this.res.writeHeader(key, String(headers[key]));
+            this.res.cork(() => {
+                Object.keys(headers).forEach((key) => {
+                    this.res.writeHeader(key, String(headers[key]));
+                });
+                this.res.end(data);
             });
-            this.res.end(data);
             callback();
         };
         if (!this.httpCompression || !options.compress) {
@@ -296,7 +296,7 @@ class Polling extends transport_1.Transport {
     /**
      * Compresses data.
      *
-     * @api private
+     * @private
      */
     compress(data, encoding, callback) {
         debug("compressing");
@@ -316,7 +316,7 @@ class Polling extends transport_1.Transport {
     /**
      * Closes the transport.
      *
-     * @api private
+     * @private
      */
     doClose(fn) {
         debug("closing");
@@ -346,7 +346,7 @@ class Polling extends transport_1.Transport {
      *
      * @param req - request
      * @param {Object} extra headers
-     * @api private
+     * @private
      */
     headers(req, headers) {
         headers = headers || {};
@@ -356,6 +356,7 @@ class Polling extends transport_1.Transport {
         if (ua && (~ua.indexOf(";MSIE") || ~ua.indexOf("Trident/"))) {
             headers["X-XSS-Protection"] = "0";
         }
+        headers["cache-control"] = "no-store";
         this.emit("headers", headers, req);
         return headers;
     }

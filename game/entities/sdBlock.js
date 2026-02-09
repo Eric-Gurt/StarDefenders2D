@@ -112,6 +112,8 @@ class sdBlock extends sdEntity
 		SpawnSizes( sdBlock.TEXTURE_ID_DARK_BRICK = tc++,			'wall_dark_brick',			0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_FULL_WHITE_BRICK = tc++,		'wall_full_bright_brick',	0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_TZYRG_WALL = tc++,			'wall_tzyrg',				0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_WAFFLE = tc++,				'wall_waffle',				4 );
+		SpawnSizes( sdBlock.TEXTURE_ID_CRATE = tc++,				'wall_crate',				8 );
 		
 		
 		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
@@ -167,6 +169,10 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'cracks1' ),
 			sdWorld.CreateImageFromFile( 'cracks2' ),
 			sdWorld.CreateImageFromFile( 'cracks3' )
+			/*sdWorld.CreateImageFromFile( 'cracksB1' ),
+			sdWorld.CreateImageFromFile( 'cracksB2' ),
+			sdWorld.CreateImageFromFile( 'cracksB3' ),
+			sdWorld.CreateImageFromFile( 'cracksB4' )*/
 		];
 
 		/*sdBlock.metal_reinforces = [ 
@@ -308,7 +314,7 @@ class sdBlock extends sdEntity
 	
 		if ( tex === sdBlock.TEXTURE_ID_GLASS )
 		return 'Glass';
-		
+	
 		if ( tex === sdBlock.TEXTURE_ID_CAGE )
 		return 'Cage';
 	
@@ -717,6 +723,12 @@ class sdBlock extends sdEntity
 
 								let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null, from_ground:this };
 
+								if ( this._contains_class === 'sdWater' )
+								{
+									params.x = Math.floor( this.x / 16 ) * 16;
+									params.y = Math.floor( this.y / 16 ) * 16;
+								}
+
 								if ( this._contains_class_params )
 								{
 									for ( let i in this._contains_class_params )
@@ -1083,19 +1095,29 @@ class sdBlock extends sdEntity
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
 
-		if ( Math.random() < 0.5 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
+		if ( Math.random() < 0.75 && ( this.height >=16 || this.width >= 16 ) && ( this.height >=6 && this.width >= 6 ) ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
 		{
+			// Chance to spawn increased from 50% to 75% since there's more versions of sdFleshGrabber now.
 			let side = Math.round( Math.random() * 3 );
 			let spawn_x = this.x + ( this.width / 2 );
 			let spawn_y = this.y + ( this.height / 2 );
-			if ( side === 0 )
+			
+			// Maybe let's not allow sides which are < 16 units since those look out of place.
+			if ( ( this.side === 1 || this.side === 3 ) && this.height < 16 )
+			this.side = Math.random() < 0.5 ? 0 : 2;
+			if ( ( this.side === 0 || this.side === 2 ) && this.width < 16 )
+			this.side = Math.random() < 0.5 ? 1 : 3;			
+
+			if ( side === 0 ) // Top
 			spawn_y -= 1 + this.height / 2;
-			if ( side === 1 )
+			if ( side === 1 ) // Left
 			spawn_x -= 1 + this.width / 2;
-			if ( side === 2 )
+			if ( side === 2 ) // Bottom
 			spawn_y += 1 + this.height / 2;
-			if ( side === 3 )
+			if ( side === 3 ) // Right
 			spawn_x += 1 + this.width / 2;
+			
+			
 			let grabber = sdEntity.Create( sdFleshGrabber, { 
 				x: spawn_x, 
 				y: spawn_y, 
@@ -1158,8 +1180,8 @@ class sdBlock extends sdEntity
 	//RequireSpawnAlign() 
 	//{ return true; }
 	
-	get spawn_align_x(){ return Math.min( this.width, 16 ); };
-	get spawn_align_y(){ return Math.min( this.height, 16 ); };
+	get spawn_align_x(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); }; // What am I doing here - Booraz
+	get spawn_align_y(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); };
 	
 	HandleDestructionUpdate()
 	{
@@ -1175,6 +1197,20 @@ class sdBlock extends sdEntity
 		this.destruction_frame = 2;
 		else
 		this.destruction_frame = 3;
+									
+		/*if ( this._hea > this._hmax / 5 * 4 )
+		this.destruction_frame = 0;
+		else
+		if ( this._hea > this._hmax / 5 * 3 )
+		this.destruction_frame = 1;
+		else
+		if ( this._hea > this._hmax / 5 * 2 )
+		this.destruction_frame = 2;
+		else
+		if ( this._hea > this._hmax / 5 * 1 )
+		this.destruction_frame = 2;
+		else
+		this.destruction_frame = 3;*/
 		
 		if ( this.destruction_frame !== old_destruction_frame )
 		this._update_version++;
@@ -1218,11 +1254,36 @@ class sdBlock extends sdEntity
 		
 		let blocks = [];
 		
-		for ( let i = 0; i < Math.round( this.height / 16 ); i++ )
+		let old_height = this.height;
+		this.height = 1; // We can detect duplicate ents this way?
+		
+		let duplicate_ent = null;
+		
+		for ( let i = 0; i < Math.round( old_height / 16 ); i++ )
 		{
 			let xx = this.x;
 			let yy = this.y;
 			yy += 16 * i;
+			
+			// Shouldn't happen, but just in case
+			duplicate_ent = sdBlock.GetGroundObjectAt( xx + 8, yy + 8, false );
+			if ( duplicate_ent )
+			if ( duplicate_ent !== this && !duplicate_ent._is_being_removed )
+			{
+				//console.log('Duplicate Block found at ' + xx + 'X, ' + yy + 'y');
+				if ( !duplicate_ent._shielded ) // Not protected by BSU?
+				{
+					duplicate_ent.remove();
+					duplicate_ent._broken = false;
+				}
+				else // Stop the unmerging process
+				if ( blocks.length > 0 )
+				{
+					this.remove();
+					this._broken = false;
+					return blocks;
+				}
+			}
 		
 			let contained_class = null;
 			let contained_params = null;
@@ -2167,6 +2228,9 @@ class sdBlock extends sdEntity
 			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || // We probably no longer need 2 kinds of these if we could just switch texture
 			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
+			if ( this.texture_id === sdBlock.TEXTURE_ID_WAFFLE )
+			ctx.apply_shading = false;
+			
 			let img = sdBlock.textures[ this.texture_id ][ w + 'x' + h ];
 			if ( img )
 			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
@@ -2288,8 +2352,7 @@ class sdBlock extends sdEntity
 		}
 		
 	
-		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
-		
+		//ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			
 		//if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
 		//ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
@@ -2302,7 +2365,20 @@ class sdBlock extends sdEntity
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 		{
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+			
+			/*let old_scale = ctx.camera_relative_world_scale;
+			ctx.camera_relative_world_scale *= 0.999;
+			{
+				let old_mode = ctx.volumetric_mode;
+				ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+				{
+					ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+				}
+				ctx.volumetric_mode = old_mode;
+			}
+			ctx.camera_relative_world_scale = old_scale;*/
 		}
 		
 		ctx.volumetric_mode = old_volumetric_mode;

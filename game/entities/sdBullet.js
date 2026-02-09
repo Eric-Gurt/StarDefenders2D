@@ -75,37 +75,57 @@ class sdBullet extends sdEntity
 	}
 
 	get hitbox_x1()
-	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
-		return -3
+	{
+		if ( this.model === 'energy_wave' )
+		return -3;
+		else
+		if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
+		return -5;
 		else
 		if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
-		return -2
+		return -2;
 		else
-		return -0.1 }
+		return -0.1;
+	}
 	get hitbox_x2()
-	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
-	return 3
-	else
-	if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
-	return 2
-	else
-	return 0.1 }
+	{
+		if ( this.model === 'energy_wave' )
+		return 3;
+		else
+		if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
+		return 5;
+		else
+		if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
+		return 2;
+		else
+		return 0.1;
+	}
 	get hitbox_y1()
-	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
-	return -18
-	else
-	if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
-	return -2
-	else
-	return -0.1 }
+	{
+		if ( this.model === 'energy_wave' )
+		return -3;
+		else
+		if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
+		return -5;
+		else
+		if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
+		return -2;
+		else
+		return -0.1;
+	}
 	get hitbox_y2()
-	{ if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
-	return 18
-	else
-	if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
-	return 2
-	else
-	return 0.1 }
+	{
+		if ( this.model === 'energy_wave' )
+		return 3;
+		else
+		if ( this.model_size >= 2 ) // if bullet sprite model is 64 by 64
+		return 5;
+		else
+		if ( this.is_grenade || this.ac > 0 || this.model_size === 1 )
+		return 2;
+		else
+		return 0.1;
+	}
 
 	/*
 	get substeps() // Bullets will need more
@@ -254,6 +274,33 @@ class sdBullet extends sdEntity
 			for ( let i = 0; i < 2; i++ )
 			{
 				let ent;
+				if ( Math.random() < 0.01 ) // 1% to spawn High Councilor from flares, capped to 1 per map.
+				{
+					let councilor_exists = false;
+					for( let i = 0; i < sdCharacter.characters.length; i++ )
+					{
+						if ( sdCharacter.characters[ i ] )
+						{
+							let character = sdCharacter.characters[ i ];
+							if ( character._ai_team === 3 && character.title.indexOf( 'High Councilor' ) !== -1 ) // If true, don't spawn another one
+							{
+								councilor_exists = true;
+								break;
+							}
+						}
+					}
+					if ( !councilor_exists )
+					{
+						ent = sdEntity.Create( sdCharacter, { x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE } );
+						sdFactions.SetHumanoidProperties( ent, sdFactions.FACTION_HIGH_COUNCILOR );
+					}
+					else
+					{
+						ent = sdEntity.Create( sdCharacter, { x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE } );
+						sdFactions.SetHumanoidProperties( ent, sdFactions.FACTION_COUNCIL );
+					}
+				}
+				else
 				if ( i < 2 ) // Humanoid
 				{
 					ent = sdEntity.Create( sdCharacter, { x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE } );
@@ -315,22 +362,24 @@ class sdBullet extends sdEntity
 								
 											
 							};
-							
-							setInterval( logic, 1000 );
-							setTimeout(()=>
+							if ( ent.title.indexOf( 'High Councilor' ) === -1 ) // Not High Councilor?
 							{
-								clearInterval( logic );
-								
-								
-								if ( !ent._is_being_removed )
+								setInterval( logic, 1000 );
+								setTimeout(()=>
 								{
-									sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5 });
-									sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-									ent.remove();
+									clearInterval( logic );
+									
+									
+									if ( !ent._is_being_removed )
+									{
+										sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5 });
+										sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+										ent.remove();
 
-									ent._broken = false;
-								}
-							}, 20000 ); // Despawn the Council if they are in world longer than intended
+										ent._broken = false;
+									}
+								}, 20000 ); // Despawn the Council if they are in world longer than intended
+							}
 						}
 						break;
 					}
@@ -689,6 +738,19 @@ class sdBullet extends sdEntity
 				return false;
 			}
 
+			// Let player use hook while carrying items
+			if ( this._owner )
+			if ( this._owner.carrying )
+			{
+				if ( from_entity === this._owner.carrying )
+				return false;
+			}
+			if ( this._owner2 )
+			if ( this._owner2.carrying )
+			{
+				if ( from_entity === this._owner2.carrying )
+				return false;
+			}
 
 			// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
 
@@ -826,7 +888,6 @@ class sdBullet extends sdEntity
 					// Old penetration logic is now handled by GetCollisionMode()
 					//this.x += this.sx * GSPEED;
 					//this.y += this.sy * GSPEED;
-
 					this.ApplyVelocityAndCollisions( GSPEED, 0, false, 0, null );
 				}
 				else
@@ -854,6 +915,7 @@ class sdBullet extends sdEntity
 						//if ( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 )
 						if ( sdWorld.Dist2D_Vector_pow2( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 * 0.8 )
 						{
+							if ( this.model !== 'energy_wave' )
 							this.RemoveBullet();
 						
 							return true;
@@ -863,7 +925,7 @@ class sdBullet extends sdEntity
 						this._damage = this._damage / vel * vel2;
 
 						if ( !sdWorld.is_server )
-						if ( sdWorld.last_hit_entity === null || ( !this.CanBounceOff( sdWorld.last_hit_entity ) && !this.WillRailPenetrate( sdWorld.last_hit_entity ) ) )
+						if ( sdWorld.last_hit_entity === null || !this.CanBounceOff( sdWorld.last_hit_entity ) )
 						{
 							this.RemoveBullet();
 						
@@ -979,6 +1041,7 @@ class sdBullet extends sdEntity
 		if ( !this._wave )
 		if ( !this._rail )
 		if ( !this._hook )
+		if ( this.model !== 'energy_wave' )
 		if ( this._damage > 0 )
 		{
 			if ( this.penetrating )
@@ -986,13 +1049,22 @@ class sdBullet extends sdEntity
 			else
 			return ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_WALL ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
 		}
+		
+		if ( ( this._rail || this.model === 'energy_wave' ) && this.penetrating )
+		if ( this._damage > 5 ) // Larger damage threshold since it can penetrate way better 
+		{
+			if ( from_entity.is( sdBlock ) || from_entity.is( sdDoor ) )
+			return ( from_entity._shielded === null ); // Disallow shielded units to be penetrated
+			
+			return true;
+		}
 
 		return false;
 	}
 	
-	WillRailPenetrate( from_entity )
+	/*WillRailPenetrate( from_entity ) 
 	{
-		if ( !this.penetrating || !this._rail )
+		if ( !this.penetrating || !this._rail  )
 		return false;
 	
 		if ( this._damage > 5 ) // Larger damage threshold since it can penetrate way better 
@@ -1004,7 +1076,7 @@ class sdBullet extends sdEntity
 		}
 		
 		return false;	
-	}
+	}*/
 
 	GetCollisionMode()
 	{
@@ -1270,7 +1342,7 @@ class sdBullet extends sdEntity
 					//let dmg_mult = 1;
 
 
-					if ( this.CanBounceOff( from_entity ) || ( this._rail && this.WillRailPenetrate( from_entity ) ) ) // Allow some rails to penetrate
+					if ( this.CanBounceOff( from_entity ) ) // Check which entities can be penetrated
 					{
 						if ( this.penetrating )
 						{
@@ -1285,7 +1357,6 @@ class sdBullet extends sdEntity
 						//dmg_mult = 0.65;
 						will_bounce = true;
 					}
-
 					if ( this._damage !== 0 )
 					{
 						let target_protected = false;
@@ -1516,14 +1587,24 @@ class sdBullet extends sdEntity
 						else
 						if ( this.penetrating )
 						{
-							this._damage *= 0.5;
-							this.sx *= this._rail ? 0.95 : 0.5;
-							this.sy *= this._rail ? 0.95 : 0.5;
+							if ( this.model !== 'energy_wave' ) // Energy waves pass through if they penetrate
+							{
+								this._damage *= 0.5;
+								this.sx *= this._rail ? 0.95 : 0.5;
+								this.sy *= this._rail ? 0.95 : 0.5;
+							
 
-							//console.log( 'vel = '+sdWorld.Dist2D_Vector( this.sx, this.sy ) );
+								//console.log( 'vel = '+sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 
-							if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
-							this._damage = 0;
+								if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
+								this._damage = 0;
+							}
+							else
+							{
+								this._damage *= 0.8;
+								this.sx = this.sx * 0.8;
+								this.sy = this.sy * 0.8;
+							}
 						}
 
 						if ( target_protected )
@@ -1591,7 +1672,7 @@ class sdBullet extends sdEntity
 				if ( this.model_size === 3 )
 				ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 48, - 48, 96,96 ); // used for 96 by 96 sprites
 
-				if ( this.model === 'flare' )
+				if ( this.model === 'flare' || this.model === 'energy_wave' )
 				{
 					if ( this._sd_tint_filter === null )
 					{
@@ -1601,11 +1682,11 @@ class sdBullet extends sdEntity
 							this._sd_tint_filter[ 0 ] /= 255;
 							this._sd_tint_filter[ 1 ] /= 255;
 							this._sd_tint_filter[ 2 ] /= 255;
-
+							
 							this._sd_tint_filter[ 0 ] += 0.2;
 							this._sd_tint_filter[ 1 ] += 0.2;
 							this._sd_tint_filter[ 2 ] += 0.2;
-
+							
 							this._sd_tint_filter[ 0 ] *= 1.5;
 							this._sd_tint_filter[ 1 ] *= 1.5;
 							this._sd_tint_filter[ 2 ] *= 1.5;

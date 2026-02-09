@@ -13,6 +13,7 @@ import sdWeather from './sdWeather.js';
 import sdGib from './sdGib.js';
 import sdGun from './sdGun.js';
 import sdLost from './sdLost.js';
+import sdSandWorm from './sdSandWorm.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 

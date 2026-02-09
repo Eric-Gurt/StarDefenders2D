@@ -10,14 +10,24 @@ const socket_1 = require("./socket");
 const debug_1 = require("debug");
 const cookie_1 = require("cookie");
 const ws_1 = require("ws");
+const webtransport_1 = require("./transports/webtransport");
+const engine_io_parser_1 = require("engine.io-parser");
 const debug = (0, debug_1.default)("engine");
 const kResponseHeaders = Symbol("responseHeaders");
+function parseSessionId(data) {
+    try {
+        const parsed = JSON.parse(data);
+        if (typeof parsed.sid === "string") {
+            return parsed.sid;
+        }
+    }
+    catch (e) { }
+}
 class BaseServer extends events_1.EventEmitter {
     /**
      * Server constructor.
      *
      * @param {Object} opts - options
-     * @api public
      */
     constructor(opts = {}) {
         super();
@@ -30,7 +40,7 @@ class BaseServer extends events_1.EventEmitter {
             pingInterval: 25000,
             upgradeTimeout: 10000,
             maxHttpBufferSize: 1e6,
-            transports: Object.keys(transports_1.default),
+            transports: ["polling", "websocket"], // WebTransport is disabled by default
             allowUpgrades: true,
             httpCompression: {
                 threshold: 1024,
@@ -74,7 +84,6 @@ class BaseServer extends events_1.EventEmitter {
      * Returns a list of available transports for upgrade given a certain transport.
      *
      * @return {Array}
-     * @api public
      */
     upgrades(transport) {
         if (!this.opts.allowUpgrades)
@@ -84,14 +93,17 @@ class BaseServer extends events_1.EventEmitter {
     /**
      * Verifies a request.
      *
-     * @param {http.IncomingMessage}
-     * @return {Boolean} whether the request is valid
-     * @api private
+     * @param {EngineRequest} req
+     * @param upgrade - whether it's an upgrade request
+     * @param fn
+     * @protected
      */
     verify(req, upgrade, fn) {
         // transport check
         const transport = req._query.transport;
-        if (!~this.opts.transports.indexOf(transport)) {
+        // WebTransport does not go through the verify() method, see the onWebTransportSession() method
+        if (!~this.opts.transports.indexOf(transport) ||
+            transport === "webtransport") {
             debug('unknown transport "%s"', transport);
             return fn(Server.errors.UNKNOWN_TRANSPORT, { transport });
         }
@@ -179,7 +191,10 @@ class BaseServer extends events_1.EventEmitter {
         }
         const apply = (i) => {
             debug("applying middleware n°%d", i + 1);
-            this.middlewares[i](req, res, () => {
+            this.middlewares[i](req, res, (err) => {
+                if (err) {
+                    return callback(err);
+                }
                 if (i + 1 < this.middlewares.length) {
                     apply(i + 1);
                 }
@@ -192,8 +207,6 @@ class BaseServer extends events_1.EventEmitter {
     }
     /**
      * Closes all clients.
-     *
-     * @api public
      */
     close() {
         debug("closing all open clients");
@@ -209,8 +222,7 @@ class BaseServer extends events_1.EventEmitter {
      * generate a socket id.
      * Overwrite this method to generate your custom socket id
      *
-     * @param {Object} request object
-     * @api public
+     * @param {IncomingMessage} req - the request object
      */
     generateId(req) {
         return base64id.generateId();
@@ -218,11 +230,11 @@ class BaseServer extends events_1.EventEmitter {
     /**
      * Handshakes a new client.
      *
-     * @param {String} transport name
-     * @param {Object} request object
+     * @param {String} transportName
+     * @param {Object} req - the request object
      * @param {Function} closeConnection
      *
-     * @api protected
+     * @protected
      */
     async handshake(transportName, req, closeConnection) {
         const protocol = req._query.EIO === "4" ? 4 : 3; // 3rd revision by default
@@ -267,12 +279,6 @@ class BaseServer extends events_1.EventEmitter {
             else if ("websocket" === transportName) {
                 transport.perMessageDeflate = this.opts.perMessageDeflate;
             }
-            if (req._query && req._query.b64) {
-                transport.supportsBinary = false;
-            }
-            else {
-                transport.supportsBinary = true;
-            }
         }
         catch (e) {
             debug('error handshaking to transport "%s"', transportName);
@@ -311,6 +317,70 @@ class BaseServer extends events_1.EventEmitter {
         });
         this.emit("connection", socket);
         return transport;
+    }
+    async onWebTransportSession(session) {
+        const timeout = setTimeout(() => {
+            debug("the client failed to establish a bidirectional stream in the given period");
+            session.close();
+        }, this.opts.upgradeTimeout);
+        const streamReader = session.incomingBidirectionalStreams.getReader();
+        const result = await streamReader.read();
+        if (result.done) {
+            debug("session is closed");
+            return;
+        }
+        const stream = result.value;
+        const transformStream = (0, engine_io_parser_1.createPacketDecoderStream)(this.opts.maxHttpBufferSize, "nodebuffer");
+        const reader = stream.readable.pipeThrough(transformStream).getReader();
+        // reading the first packet of the stream
+        const { value, done } = await reader.read();
+        if (done) {
+            debug("stream is closed");
+            return;
+        }
+        clearTimeout(timeout);
+        if (value.type !== "open") {
+            debug("invalid WebTransport handshake");
+            return session.close();
+        }
+        if (value.data === undefined) {
+            const transport = new webtransport_1.WebTransport(session, stream, reader);
+            // note: we cannot use "this.generateId()", because there is no "req" argument
+            const id = base64id.generateId();
+            debug('handshaking client "%s" (WebTransport)', id);
+            const socket = new socket_1.Socket(id, this, transport, null, 4);
+            this.clients[id] = socket;
+            this.clientsCount++;
+            socket.once("close", () => {
+                delete this.clients[id];
+                this.clientsCount--;
+            });
+            this.emit("connection", socket);
+            return;
+        }
+        const sid = parseSessionId(value.data);
+        if (!sid) {
+            debug("invalid WebTransport handshake");
+            return session.close();
+        }
+        const client = this.clients[sid];
+        if (!client) {
+            debug("upgrade attempt for closed client");
+            session.close();
+        }
+        else if (client.upgrading) {
+            debug("transport has already been trying to upgrade");
+            session.close();
+        }
+        else if (client.upgraded) {
+            debug("transport had already been upgraded");
+            session.close();
+        }
+        else {
+            debug("upgrading existing transport");
+            const transport = new webtransport_1.WebTransport(session, stream, reader);
+            client._maybeUpgrade(transport);
+        }
     }
 }
 exports.BaseServer = BaseServer;
@@ -362,11 +432,14 @@ class WebSocketResponse {
         this.socket.destroy();
     }
 }
+/**
+ * An Engine.IO server based on Node.js built-in HTTP server and the `ws` package for WebSocket connections.
+ */
 class Server extends BaseServer {
     /**
      * Initialize websocket server
      *
-     * @api protected
+     * @protected
      */
     init() {
         if (!~this.opts.transports.indexOf("websocket"))
@@ -407,12 +480,12 @@ class Server extends BaseServer {
     /**
      * Prepares a request by processing the query string.
      *
-     * @api private
+     * @private
      */
     prepare(req) {
         // try to leverage pre-existing `req._query` (e.g: from connect)
         if (!req._query) {
-            req._query = ~req.url.indexOf("?") ? qs.parse((0, url_1.parse)(req.url).query) : {};
+            req._query = (~req.url.indexOf("?") ? qs.parse((0, url_1.parse)(req.url).query) : {});
         }
     }
     createTransport(transportName, req) {
@@ -421,14 +494,12 @@ class Server extends BaseServer {
     /**
      * Handles an Engine.IO HTTP request.
      *
-     * @param {IncomingMessage} req
+     * @param {EngineRequest} req
      * @param {ServerResponse} res
-     * @api public
      */
     handleRequest(req, res) {
         debug('handling "%s" http request "%s"', req.method, req.url);
         this.prepare(req);
-        // @ts-ignore
         req.res = res;
         const callback = (errorCode, errorContext) => {
             if (errorCode !== undefined) {
@@ -441,59 +512,65 @@ class Server extends BaseServer {
                 abortRequest(res, errorCode, errorContext);
                 return;
             }
-            // @ts-ignore
             if (req._query.sid) {
                 debug("setting new request for existing client");
-                // @ts-ignore
                 this.clients[req._query.sid].transport.onRequest(req);
             }
             else {
                 const closeConnection = (errorCode, errorContext) => abortRequest(res, errorCode, errorContext);
-                // @ts-ignore
                 this.handshake(req._query.transport, req, closeConnection);
             }
         };
-        this._applyMiddlewares(req, res, () => {
-            this.verify(req, false, callback);
+        this._applyMiddlewares(req, res, (err) => {
+            if (err) {
+                callback(Server.errors.BAD_REQUEST, { name: "MIDDLEWARE_FAILURE" });
+            }
+            else {
+                this.verify(req, false, callback);
+            }
         });
     }
     /**
      * Handles an Engine.IO HTTP Upgrade.
-     *
-     * @api public
      */
     handleUpgrade(req, socket, upgradeHead) {
         this.prepare(req);
         const res = new WebSocketResponse(req, socket);
-        this._applyMiddlewares(req, res, () => {
-            this.verify(req, true, (errorCode, errorContext) => {
-                if (errorCode) {
-                    this.emit("connection_error", {
-                        req,
-                        code: errorCode,
-                        message: Server.errorMessages[errorCode],
-                        context: errorContext,
-                    });
-                    abortUpgrade(socket, errorCode, errorContext);
-                    return;
-                }
-                const head = Buffer.from(upgradeHead);
-                upgradeHead = null;
-                // some middlewares (like express-session) wait for the writeHead() call to flush their headers
-                // see https://github.com/expressjs/session/blob/1010fadc2f071ddf2add94235d72224cf65159c6/index.js#L220-L244
-                res.writeHead();
-                // delegate to ws
-                this.ws.handleUpgrade(req, socket, head, (websocket) => {
-                    this.onWebSocket(req, socket, websocket);
+        const callback = (errorCode, errorContext) => {
+            if (errorCode !== undefined) {
+                this.emit("connection_error", {
+                    req,
+                    code: errorCode,
+                    message: Server.errorMessages[errorCode],
+                    context: errorContext,
                 });
+                abortUpgrade(socket, errorCode, errorContext);
+                return;
+            }
+            const head = Buffer.from(upgradeHead);
+            upgradeHead = null;
+            // some middlewares (like express-session) wait for the writeHead() call to flush their headers
+            // see https://github.com/expressjs/session/blob/1010fadc2f071ddf2add94235d72224cf65159c6/index.js#L220-L244
+            res.writeHead();
+            // delegate to ws
+            this.ws.handleUpgrade(req, socket, head, (websocket) => {
+                this.onWebSocket(req, socket, websocket);
             });
+        };
+        this._applyMiddlewares(req, res, (err) => {
+            if (err) {
+                callback(Server.errors.BAD_REQUEST, { name: "MIDDLEWARE_FAILURE" });
+            }
+            else {
+                this.verify(req, true, callback);
+            }
         });
     }
     /**
      * Called upon a ws.io connection.
      *
      * @param {ws.Socket} websocket
-     * @api private
+     * @private
      */
     onWebSocket(req, socket, websocket) {
         websocket.on("error", onUpgradeError);
@@ -526,14 +603,8 @@ class Server extends BaseServer {
                 // transport error handling takes over
                 websocket.removeListener("error", onUpgradeError);
                 const transport = this.createTransport(req._query.transport, req);
-                if (req._query && req._query.b64) {
-                    transport.supportsBinary = false;
-                }
-                else {
-                    transport.supportsBinary = true;
-                }
                 transport.perMessageDeflate = this.opts.perMessageDeflate;
-                client.maybeUpgrade(transport);
+                client._maybeUpgrade(transport);
             }
         }
         else {
@@ -550,7 +621,6 @@ class Server extends BaseServer {
      *
      * @param {http.Server} server
      * @param {Object} options
-     * @api public
      */
     attach(server, options = {}) {
         const path = this._computePath(options);
@@ -610,7 +680,7 @@ exports.Server = Server;
  * @param errorCode - the error code
  * @param errorContext - additional error context
  *
- * @api private
+ * @private
  */
 function abortRequest(res, errorCode, errorContext) {
     const statusCode = errorCode === Server.errors.FORBIDDEN ? 403 : 400;
@@ -629,8 +699,6 @@ function abortRequest(res, errorCode, errorContext) {
  * @param {net.Socket} socket
  * @param {string} errorCode - the error code
  * @param {object} errorContext - additional error context
- *
- * @api private
  */
 function abortUpgrade(socket, errorCode, errorContext = {}) {
     socket.on("error", () => {
@@ -665,15 +733,15 @@ function abortUpgrade(socket, errorCode, errorContext = {}) {
  **/
 // prettier-ignore
 const validHdrChars = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, // 0 - 15
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 32 - 47
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 48 - 63
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 80 - 95
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, // 112 - 127
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 128 ...
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

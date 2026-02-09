@@ -147,13 +147,17 @@ class sdWater extends sdEntity
 			this.d = ''; // Debug info
 		}
 		
-		this.v = 100; // rounded volume for clients
+		this.v = Math.ceil( this._volume * 100 ); // rounded volume for clients
 		
 		this._client_y = 0;
 		this._client_vel = 0; // Client-side velocity as part of reaction to items moving in water
 		this._client_flow_y = this.y;
 		
+		this._natural = true; // Once it is moved by players it is no longer natural - which usually means it can no longer erupt
+		
 		this._sy = 0; // How fast it flows down
+		
+		this._onSplitsInto = null; // sdWeather uses it to track new lava objects being made during eruption
 		
 		this._swimmers = new Set();
 		
@@ -287,6 +291,51 @@ class sdWater extends sdEntity
 		*/
 	}
 	
+	Solidify()
+	{
+		if ( this.type !== sdWater.TYPE_TOXIC_GAS )
+		{
+			let material = sdBlock.MATERIAL_GROUND;
+			let filter = 'saturate(0) brightness(0.3)';
+			let hp_mult = 6;
+			let contains_class = null;
+			let contains_class_params = null;
+
+			if ( this.type !== sdWater.TYPE_LAVA )
+			{
+				material = sdBlock.MATERIAL_ROCK;
+				filter = 'sepia(1) brightness(2) saturate(2.5) hue-rotate(60deg)';
+				hp_mult = 1;
+				
+				if ( this.type === sdWater.TYPE_WATER || this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_LAVA )
+				{
+					contains_class = 'sdWater';
+					contains_class_params = { type: this.type, volume: this._volume };
+				}
+			}
+			
+			let v = this._volume * 16;
+
+			v = Math.ceil( v ); // Players would slide and teleport due to rounding errors
+
+			let ent = sdEntity.Create( sdBlock, { 
+				x: this.x, 
+				y: this.y + 16 - v, 
+				width: 16, 
+				height: v,
+				material: material,
+				contains_class: contains_class,
+				contains_class_params: contains_class_params,
+				filter: filter,
+				natural: true,
+				plants: null
+			});
+			ent._hea *= hp_mult;
+			ent._hmax *= hp_mult;
+		}
+		this.remove();
+	}
+	
 	BlendWith( another )
 	{
 		if ( another.is( sdWater ) )
@@ -307,7 +356,13 @@ class sdWater extends sdEntity
 			
 			if ( ( another.type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
 			{
-				let v = Math.max( this._volume, another._volume ) * 16;
+				another.type = sdWater.TYPE_LAVA;44
+				another._volume = Math.max( this._volume, another._volume );
+				another.Solidify();
+				this.remove();
+				return true; // Delete both
+				
+				/*let v = Math.max( this._volume, another._volume ) * 16;
 				
 				v = Math.ceil( v ); // Players would slide and teleport due to rounding errors
 				
@@ -321,17 +376,16 @@ class sdWater extends sdEntity
 					filter: 'saturate(0) brightness(0.3)',
 					natural: true,
 					plants: null
-					//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
 				});
 				let hp_mult = 6;
 				ent._hea *= hp_mult;
 				ent._hmax *= hp_mult;
-				//sdEntity.entities.push( ent );
 
 				this.remove();
 				another.remove();
 
 				return true; // Delete both
+				*/
 			}
 			
 			/*if ( another.type === sdWater.TYPE_ESSENCE && this.type === sdWater.TYPE_ESSENCE )
@@ -885,12 +939,16 @@ class sdWater extends sdEntity
 						this._update_version++;
 						
 						let water_ent = new sdWater({ x:this.x - 16, y:this.y, type: this.type });
+						water_ent._natural = this._natural;
 						water_ent._volume = subtract;
 						water_ent.v = Math.ceil( water_ent._volume * 100 );
 						sdEntity.entities.push( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 						
 						this.AwakeSelfAndNear();
+						
+						if ( this._onSplitsInto )
+						this._onSplitsInto( water_ent );
 					}
 					else
 					if ( can_flow_right )
@@ -901,12 +959,16 @@ class sdWater extends sdEntity
 						this._update_version++;
 						
 						let water_ent = new sdWater({ x:this.x + 16, y:this.y, type: this.type });
+						water_ent._natural = this._natural;
 						water_ent._volume = subtract;
 						water_ent.v = Math.ceil( water_ent._volume * 100 );
 						sdEntity.entities.push( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 						
 						this.AwakeSelfAndNear();
+						
+						if ( this._onSplitsInto )
+						this._onSplitsInto( water_ent );
 					}
 					else
 					if ( subtract > 0 && left_ent && left_ent._class_id === this._class_id && left_ent.type === this.type && left_ent._volume < this._volume - subtract )

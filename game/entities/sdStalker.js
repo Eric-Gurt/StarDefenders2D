@@ -725,7 +725,7 @@ class sdStalker extends sdEntity
 							{
 								if ( target_entity.IsPlayerClass() )
 								{
-									target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+									target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 50 });
 								}
 							}
 						
@@ -796,7 +796,7 @@ class sdStalker extends sdEntity
 								{
 									if ( nears[ i ].IsPlayerClass() )
 									{
-										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 15 * 20 });
+										nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 400 });
 									}
 								}
 							}

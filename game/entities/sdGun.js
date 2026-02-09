@@ -124,6 +124,9 @@ class sdGun extends sdEntity
 	}
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 	}
@@ -500,9 +503,12 @@ class sdGun extends sdEntity
 		this._last_muzzle = 0; // Used for client-side shells
 		
 		// Old way of entity pointers I guess. ApplySnapshot handles this case but only for sdGun case
-		this._held_by = null; // This property is cursed and outdated. Use public properties for new entitties - they will work fine and will handle pointers when pointed entiteis exist (null in else cases)
+		this._held_by = null; // Set if sdGun is carrien in specific slot // This property is cursed and outdated. Use public properties for new entitties - they will work fine and will handle pointers when pointed entities exist (null in else cases)
 		this.held_by_net_id = -1;
 		this.held_by_class = '';
+		
+		// What is more cursed than one held_by property? Two.
+		this.held_by = null; // For items like metal shards to be carried with E key
 		
 		this._held_by_removed_panic = 0;
 		
@@ -670,6 +676,9 @@ class sdGun extends sdEntity
 	}
 	getRequiredEntities( observer_character )
 	{
+		if ( this.held_by )
+		return [ this.held_by ];
+		else
 		if ( this._held_by )
 		return [ this._held_by ];
 		else
@@ -848,8 +857,8 @@ class sdGun extends sdEntity
 		if ( sdGun.classes[ this.class ].slot === 1 ) // Slot 1 weapons get additional 50% matter cost reduction
 		mult = mult * 0.5;
 		
-		if ( sdGun.classes[ this.class ].bullet_cost_multiplier ) // In some cases this is better than GetAmmoCost()
-		mult = mult * sdGun.classes[ this.class ].bullet_cost_multiplier;
+		if ( sdGun.classes[ this.class ].BulletCostMultiplier ) // In some cases this is better than GetAmmoCost()
+		mult = mult * sdGun.classes[ this.class ].BulletCostMultiplier( this );
 		
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
 		return mult * sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
@@ -1571,7 +1580,8 @@ class sdGun extends sdEntity
 			{
 				this.held_by_net_id = -1;
 				this.held_by_class = '';
-				
+
+				if ( !this.held_by )
 				if ( this.ttl > 0 )
 				{
 					this.ttl -= GSPEED;
@@ -1581,49 +1591,58 @@ class sdGun extends sdEntity
 						return;
 					}
 				}
+			}
 
-			}
-			
-			this.sy += sdWorld.gravity * GSPEED_unscaled;
-			
-			sdWorld.last_hit_entity = null;
-			
-			if ( this._ignore_collisions_with && this._ignore_collisions_with._is_being_removed )
-			this._ignore_collisions_with = null;
-			
-			if ( this._ignore_collisions_with === null )
-			this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1 );
-			else
-			this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1, this.CollisionFiltering );
-			
-			let known_class = sdGun.classes[ this.class ];
-			
-			if ( known_class )
+
+			if ( this.held_by )
 			{
-				if ( known_class.onThinkOwnerless )
-				{
-					allow_hibernation_due_to_logic = known_class.onThinkOwnerless( this, GSPEED );
-					
-					if ( allow_hibernation_due_to_logic === undefined )
-					throw new Error( 'onThinkOwnerless of gun class should return either true or false, depending whether you want hibernation to be allowed for a gun or not' );
-				}
+				this.tilt = Math.PI / 2 * sdGun.tilt_scale;
+				
+				this.ttl = Math.max( this.ttl, sdGun.disowned_guns_ttl );
 			}
-			
-			//if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD || is_unknown )
-			if ( is_unknown || known_class.no_tilt )
-			this.tilt = 0; // These have offset which better to not rotate for better visuals
 			else
 			{
-				if ( sdWorld.last_hit_entity )
-				{
-					let tilt_snap_sides = ( known_class.tilt_snap_sides || 2 );
-					
-					this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * tilt_snap_sides ) * 0.4 * sdGun.tilt_scale;
-				}
+
+				this.sy += sdWorld.gravity * GSPEED_unscaled;
+
+				sdWorld.last_hit_entity = null;
+
+				if ( this._ignore_collisions_with && this._ignore_collisions_with._is_being_removed )
+				this._ignore_collisions_with = null;
+
+				if ( this._ignore_collisions_with === null )
+				this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1 );
 				else
-				this.tilt += this.sx * 20 * GSPEED_unscaled;
+				this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1, this.CollisionFiltering );
+
+				let known_class = sdGun.classes[ this.class ];
+
+				if ( known_class )
+				{
+					if ( known_class.onThinkOwnerless )
+					{
+						allow_hibernation_due_to_logic = known_class.onThinkOwnerless( this, GSPEED );
+
+						if ( allow_hibernation_due_to_logic === undefined )
+						throw new Error( 'onThinkOwnerless of gun class should return either true or false, depending whether you want hibernation to be allowed for a gun or not' );
+					}
+				}
+
+				//if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD || is_unknown )
+				if ( is_unknown || known_class.no_tilt )
+				this.tilt = 0; // These have offset which better to not rotate for better visuals
+				else
+				{
+					if ( sdWorld.last_hit_entity )
+					{
+						let tilt_snap_sides = ( known_class.tilt_snap_sides || 2 );
+
+						this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * tilt_snap_sides ) * 0.4 * sdGun.tilt_scale;
+					}
+					else
+					this.tilt += this.sx * 20 * GSPEED_unscaled;
+				}
 			}
-			
 		}
 		else
 		{
@@ -1704,8 +1723,8 @@ class sdGun extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( !this._held_by )
+		if ( !this.held_by )
 		{
-			
 			let xx = 0;
 			let has_description = sdGun.classes[ this.class ].has_description;
 			
@@ -1736,6 +1755,8 @@ class sdGun extends sdEntity
 					xx += 8;
 				}
 			}
+	
+			this.BasicCarryTooltip( ctx, xx );
 		}
 	}
 	Draw( ctx, attached )
@@ -1758,10 +1779,18 @@ class sdGun extends sdEntity
 			{
 				ctx.apply_shading = false;
 			}
+			
+			if ( has_class.is_sword )
+			if ( has_class.image_no_matter !== has_class.image )
+			if ( this._held_by )
+			{
+				ctx.apply_shading = false;
+			}
 		}
 
 
-		if ( this._held_by === null || ( this._held_by !== null && attached ) )
+		//if ( ( this._held_by === null && this.held_by === null ) || ( ( this._held_by !== null || this.held_by === null ) && attached ) )
+		if ( ( this._held_by === null && this.held_by === null ) || attached )
 		{
 			var image = sdGun.img_present;
 			

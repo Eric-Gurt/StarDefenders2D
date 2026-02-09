@@ -486,18 +486,6 @@ class sdLongRangeTeleport extends sdEntity
 				return false;
 			}
 			
-			// Disable teleporting items which have a "Protect" task on them, aswell as "Destroy"
-			for ( let i = 0; i < sdTask.tasks.length; i++ )
-			{
-				let task = sdTask.tasks[ i ];
-				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_PROTECT_ENTITY ] )
-				return false;
-			
-				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
-				return false;
-			}
-
-
 			if ( use_task_filter )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
@@ -630,6 +618,20 @@ class sdLongRangeTeleport extends sdEntity
 				}
 			}
 			
+			/* Disable teleporting items which have a "Protect" task on them, aswell as "Destroy"
+				... But make sure we checked if the item belongs to an extraction task beforehand
+			*/
+			
+			for ( let i = 0; i < sdTask.tasks.length; i++ )
+			{
+				let task = sdTask.tasks[ i ];
+				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_PROTECT_ENTITY ] )
+				return false;
+			
+				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
+				return false;
+			}
+			
 			return true;
 		};
 		
@@ -721,9 +723,9 @@ class sdLongRangeTeleport extends sdEntity
 		let rewards = reward_type;// || 1;
 		if ( rewards === 'CLAIM_REWARD_SHARDS' )
 		{
-			for( let i = 0; i < 8; i++ )
+			for( let i = 0; i < 6; i++ )
 			{
-				let shard = new sdGun({ x:this.x + ( -24 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+				let shard = new sdGun({ x:this.x + ( -16 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 				sdEntity.entities.push( shard );
 			}
 		}
@@ -911,6 +913,13 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			let chipset;
 			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET });
+			sdEntity.entities.push( chipset );
+		}
+		
+		if ( rewards === 'CLAIM_MATTER_CONTAINER_CHIP' )
+		{
+			let chipset;
+			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET });
 			sdEntity.entities.push( chipset );
 		}
 		
@@ -1290,7 +1299,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
 						command_name === 'CLAIM_REWARD_AD' ||
 						command_name === 'CLAIM_MERGER_CORE' ||
-						command_name === 'CLAIM_UPGRADE_STATION_CHIP'
+						command_name === 'CLAIM_UPGRADE_STATION_CHIP' ||
+						command_name === 'CLAIM_MATTER_CONTAINER_CHIP'
 						
 					)
 				{
@@ -1307,10 +1317,10 @@ class sdLongRangeTeleport extends sdEntity
 								claim_cost = 2;
 							
 								if ( command_name === 'CLAIM_REWARD_CRYSTALS_4x' )
-								claim_cost = 4;
+								claim_cost = 5; // Makes sense for additional cost due to being already combined
 							
 								if ( command_name === 'CLAIM_REWARD_CRYSTALS_8x' )
-								claim_cost = 8;
+								claim_cost = 10; // Same as above
 								
 								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{
@@ -1932,13 +1942,14 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
 								this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
 								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
+								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
 							}
 							if ( this._current_category_stack[ 1 ] === 'crystals_select' ) // Selected " Claim rewards ( crystals ) "?
 							{
 								this.AddContextOption( 'Claim crystals ( 5120 matter ) ( 1 reward cost )', 'CLAIM_REWARD_CRYSTALS_1x', [] );
 								this.AddContextOption( 'Claim crystals ( 10240 matter ) ( 2 reward cost )', 'CLAIM_REWARD_CRYSTALS_2x', [] );
-								this.AddContextOption( 'Claim crystals ( 20480 matter ) ( 4 reward cost )', 'CLAIM_REWARD_CRYSTALS_4x', [] );
-								this.AddContextOption( 'Claim crystals ( 40960 matter ) ( 8 reward cost )', 'CLAIM_REWARD_CRYSTALS_8x', [] );
+								this.AddContextOption( 'Claim crystals ( 20480 matter ) ( 5 reward cost )', 'CLAIM_REWARD_CRYSTALS_4x', [] );
+								this.AddContextOption( 'Claim crystals ( 40960 matter ) ( 10 reward cost )', 'CLAIM_REWARD_CRYSTALS_8x', [] );
 							}
 							if ( this._current_category_stack[ 1 ] === 'weapon_select' ) // Selected " Claim rewards ( weapon ) "?
 							{

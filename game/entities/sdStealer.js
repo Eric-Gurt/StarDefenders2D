@@ -11,6 +11,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdJunk from './sdJunk.js';
 import sdArea from './sdArea.js';
 import sdAsteroid from './sdAsteroid.js';
+import sdGrass from './sdGrass.js';
 
 class sdStealer extends sdEntity
 {
@@ -126,13 +127,19 @@ class sdStealer extends sdEntity
 		if ( sdStealer.debug )
 		return true;
 	
+	
+	
 		for ( let i = 0; i < sdWorld.sockets.length; i++ )
 		if ( sdWorld.sockets[ i ].character )
 		{
 			let player = sdWorld.sockets[ i ].character;
-			if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+			//if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 || !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) ) This way it may steal crystals from bases if all players are spectating (one case reported but not sure if crystal was removed by stealer)
+			if ( sdWorld.Dist2D( ent.x, ent.y, player.x, player.y ) < 500 )
 			return false;
 		}
+		
+		if ( !sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( ent.x, ent.y ) )
+		return false;
 		
 		return true;
 	}
@@ -144,20 +151,36 @@ class sdStealer extends sdEntity
 		{
 			if ( ent.is( sdCrystal ) ) // Is it a crystal?
 			{
-				if ( this.IsEntFarEnough( ent ) && ent.held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Amplifier )
+				if ( ent.held_by === null || ent.held_by.is( sdGrass ) )
+				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities (except trees) ?
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
 				}
 			}
+			else
 			if ( ent.is( sdGun ) ) // Is it a weapon?
 			{
-				if ( this.IsEntFarEnough( ent ) && ent._held_by === null ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character )
+				if ( ent._held_by === null )
+				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players? Also nothing is holding the entities? ( Character )
 				{
 					this._last_found_target = 0;
 					return ent; // Target it
 				}
 			}
+			else
+			if ( ent.is( sdJunk ) ) // Only bigger ents (and advanced container) cannot be stolen
+			{
+				if ( ent.type !== sdJunk.TYPE_PLANETARY_MATTER_DRAINER && ent.type !== sdJunk.TYPE_COUNCIL_BOMB && ent.type !== sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && ent.type !== sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+				{
+					if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
+					{
+						this._last_found_target = 0;
+						return ent; // Target it
+					}
+				}
+			}
+			else
 			if ( ent.is( sdAsteroid ) ) // Is it an asteroid?
 			{
 				if ( this.IsEntFarEnough( ent ) ) // Entity far enough from BSUs and players?
@@ -171,7 +194,7 @@ class sdStealer extends sdEntity
 	}
 	
 	StealNearbyCrystals(){
-		let attack_entities = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 192, null, [ 'sdCrystal', 'sdGun', 'sdAsteroid' ] );
+		let attack_entities = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 192, null, [ 'sdCrystal', 'sdGun', 'sdAsteroid', 'sdJunk' ] );
 		let stolen_crystals = 0; // How much crystals did it steal?
 		if ( attack_entities.length > 0 )
 		for ( let i = 0; i < attack_entities.length; i++ )
@@ -179,42 +202,40 @@ class sdStealer extends sdEntity
 			let e = attack_entities[ i ];
 			if ( !e._is_being_removed )
 			{
-				//if ( e.is( sdCrystal ) || e.is( sdGun ) || e.is( sdAsteroid ) )
+				if ( this.IsEntFarEnough( e ) ) // Doesn't hurt to have additional check.
 				{
 					{
+						let can_steal = true;
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
 						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
 						{
 							if ( sdWorld.last_hit_entity )
 							{
-								if ( e === sdWorld.last_hit_entity )
-								if ( sdArea.CheckPointDamageAllowed( xx, yy ) )
-								{
-									e.remove();
-									e._broken = false;
-									
-									stolen_crystals++;
-									
-									sdWorld.SendEffect({ x: this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
-									sdSound.PlaySound({ name:'teleport', x:xx, y:yy, pitch: 1, volume:0.5 });
-									
-									sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
-								}
+								if ( e !== sdWorld.last_hit_entity ) // Not the entity we're looking for?
+								can_steal = false; // Disallow stealing
 							}
 						}
-						else // Nothing colliding between stealer and entity?
+						
+						if ( can_steal )
 						{
-							let can_steal = true;
 							if ( e.is( sdCrystal ) )
 							{
 								if ( e.held_by ) // Is object held by something?
-								can_steal = false; // Don't allow stealing
+								{
+									if ( e.held_by.GetClass() !== 'sdGrass' ) // Not held by a tree?
+									can_steal = false; // Don't allow stealing
+								}
 							}
 							if ( e.is( sdGun ) ) // ( e.held_by is invalid for sdGun, which let stealer steal equipped weapons in debug mode )
 							{
 								if ( e._held_by ) // Is object held by something?
 								can_steal = false; // Don't allow stealing
+							}
+							if ( e.is( sdJunk ) ) // Only bigger ents (and advanced container) cannot be stolen
+							{
+								if ( e.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || e.type === sdJunk.TYPE_COUNCIL_BOMB || e.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || e.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+								can_steal = false;
 							}
 							if ( sdArea.CheckPointDamageAllowed( xx, yy ) && can_steal )
 							{
@@ -242,13 +263,15 @@ class sdStealer extends sdEntity
 		{
 			xx = this._current_target.x - 32; // Check left
 			yy = this._current_target.y;
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -257,13 +280,15 @@ class sdStealer extends sdEntity
 			
 			xx = this._current_target.x + 32; // Check right
 			yy = this._current_target.y;
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -272,13 +297,15 @@ class sdStealer extends sdEntity
 			
 			xx = this._current_target.x;
 			yy = this._current_target.y - 32; // Check up
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
@@ -290,13 +317,15 @@ class sdStealer extends sdEntity
 			xx = this._current_target.x - 192 + Math.random() * 384;
 			yy = this._current_target.y - 192 + Math.random() * 384;
 									
-			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) )
+			if ( sdWorld.CheckLineOfSight( this._current_target.x, this._current_target.y, xx, yy, this._current_target, sdCom.com_visibility_ignored_classes, null ) && this.CanMoveWithoutOverlap( xx, yy, 8 ) && sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( xx, yy ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 										
 				this.x = xx;
 				this.y = yy;
+				
+				sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
 										
 				sdSound.PlaySound({ name:'teleport', x:xx, y:yy, volume:0.5 });
 				sdWorld.SendEffect({ x:xx, y:yy, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });

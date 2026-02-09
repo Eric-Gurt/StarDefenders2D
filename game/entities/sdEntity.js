@@ -213,6 +213,65 @@ class sdEntity
 		return null;
 	}
 	
+	AttemptPlaceNearPlayer( aerial = true ) // Attempts to place the entity near player, but outside player radius. Used for mobs mostly.
+	{
+		if ( sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( this.x, this.y ) ) // Not in someone's base?
+		{
+			let i = 0;
+			for ( i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				// Let's make sure it's far away from players before anything happens.
+				if ( sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) < 500 )
+				return;
+			}
+			
+			for ( i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character )
+			{
+				let character = sdWorld.sockets[ i ].character;
+				let tr = 100;
+				while( tr > 0 )
+				{
+					let xx = 0, yy = 0;
+					let rng = ~~( Math.random() * 2 ); // 0 = don't change X, 1 = don't change Y, 2 = change both
+					if ( rng !== 0 )
+					xx = Math.random() < 0.5 ? ( character.x + 500 + Math.random() * 500 ) : ( character.x - 500 - Math.random() * 500 ); // Place left or right of the player
+					if ( rng !== 1 )
+					yy = Math.random() < 0.5 ? ( character.y + 500 + Math.random() * 500 ) : ( character.y - 500 - Math.random() * 500 ); // Place above or below the player
+				
+					if ( aerial ) 
+					{
+						if ( this.CanMoveWithoutDeepSleepTriggering( xx, yy, -32 ) ) // Probably not wake up deep sleep cells?
+						{
+							if ( this.CanMoveWithoutOverlap( xx, yy, 1 ) && sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( xx, yy ) ) // Can be placed? Though maybe it needs more free space
+							{
+								this.x = xx;
+								this.y = yy;
+								sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
+								break;
+							}
+						}
+					}
+					else
+					{
+						if ( this.CanMoveWithoutDeepSleepTriggering( xx, yy, -32 ) ) // Probably not wake up deep sleep cells?
+						{
+							if ( this.CanMoveWithoutOverlap( xx, yy, 1 ) && sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( xx, yy ) && !this.CanMoveWithoutOverlap( xx, yy + 32, 0 ) ) // Can be placed? Though maybe it needs more free space
+							{
+								this.x = xx;
+								this.y = yy;
+								sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
+								break;
+							}
+						}
+					}
+					tr--;
+				}
+			}
+		}
+	}
+	
 	GetCollisionMode()
 	{
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
@@ -659,7 +718,7 @@ class sdEntity
 				typeof this.sx !== 'undefined' &&
 				this.IsVisible( by_entity ) &&
 				this.IsTargetable( by_entity, true ) &&
-				this.mass <= 30 && 
+				this.mass <= 40 && 
 				this._hitbox_x2 - this._hitbox_x1 <= 16 && 
 				this._hitbox_y2 - this._hitbox_y1 <= 16 );
 	}
@@ -1116,6 +1175,11 @@ class sdEntity
 				}
 				else
 				{
+					if ( this.is( sdWorld.entity_classes.sdGun ) )
+					{
+						// Ignore for now, they don't collide with players anyway
+					}
+					else
 					debugger; // Filter combination is not yet supported for previously carried items
 				}
 			}
@@ -1924,7 +1988,10 @@ class sdEntity
 										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.00001; // There was a case where standing on a turret would instantly stuck player to it
 
 										if ( this.CanMoveWithoutOverlap( this.x, y_risen, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
-										this.y = y_risen;
+										{
+											this.y = y_risen;
+											this.sy = 0; // Feels better
+										}
 									}
 								}
 								break;
@@ -2997,7 +3064,8 @@ class sdEntity
 			if ( this.onThink.has_held_by === undefined )
 			{
 				// Guns are exception because they can't be carried and thus extra logic can be too demanding
-				this.onThink.has_held_by = ( this.GetClass() !== 'sdGun' && this.constructor.toString().indexOf( 'this.held_by' ) !== -1 );
+				//this.onThink.has_held_by = ( this.GetClass() !== 'sdGun' && this.constructor.toString().indexOf( 'this.held_by' ) !== -1 );
+				this.onThink.has_held_by = ( this.constructor.toString().indexOf( 'this.held_by' ) !== -1 ); // Guns can be carried now too
 			}
 			
 			if ( this.onThink.has_held_by )

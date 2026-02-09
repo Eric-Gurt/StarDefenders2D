@@ -39,6 +39,7 @@ class sdMeow extends sdEntity
 		this._hea = this._hmax;
 		
 		this.is_dead = 0;
+		this.despawn_anim = 0;
 		
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
@@ -178,6 +179,15 @@ class sdMeow extends sdEntity
 		if ( this.is_dead )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
+			
+			this.despawn_anim += GSPEED;
+			
+			if ( this.despawn_anim > 10 * 30 )
+			{
+				this.remove();
+				this._broken = false;
+				return;
+			}
 		}
 		else
 		{
@@ -336,6 +346,8 @@ class sdMeow extends sdEntity
 		if ( !sdShop.isDrawing )
 		if ( !this.is_dead )
 		ctx.translate( 0, Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2 );
+
+		ctx.globalAlpha = ( this.despawn_anim > 7 * 30 ) ? 0.5 : 1;
 			
 		if ( this.carrying )
 		{
@@ -373,6 +385,7 @@ class sdMeow extends sdEntity
 		ctx.drawImageFilterCache( sdMeow.img, xx * 32, 0, 32,32, -16, -16, 32,32 );
 		
 		//sdEntity.TooltipUntranslated( ctx, 'this.hunger: ' + this.hunger, 50, 0 );
+		ctx.globalAlpha = 1;
 	}
 	CanEatEntity( from_entity )
 	{

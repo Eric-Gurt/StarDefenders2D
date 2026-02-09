@@ -38,6 +38,7 @@ class sdFactionskin extends sdEntity
 		sdFactionskin.SKIN_EXTRACTION_PILOT = 21; // Extraction Pilot
 		sdFactionskin.SKIN_ZEKTARON_ASSAULT = 22; // Zektaron Assault Unit
 		sdFactionskin.SKIN_ZEKTARON_SEEKER = 23; // Zektaron Seeker Unit
+		sdFactionskin.SKIN_COUNCIL_HIGH = 24; // High Councilor
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -910,6 +911,66 @@ class sdFactionskin extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 4; // AI team 4 is for Sarronian & Zektaron faction
 			character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
+		}
+		
+		if ( skin_class === sdFactionskin.SKIN_COUNCIL_HIGH ) // High Councilor
+		{
+			let title = Math.round( Math.random() * 6 );
+			if ( title === 0 )
+			title = "High Councilor Furel";
+			if ( title === 1 )
+			title = "High Councilor Ithos";
+			if ( title === 2 )
+			title = "High Councilor Garthan";
+			if ( title === 3 )
+			title = "High Councilor Suron";
+			if ( title === 4 )
+			title = "High Councilor Felek";
+			if ( title === 5 )
+			title = "High Councilor Larch";
+			if ( title === 6 )
+			title = "High Councilor Zolor";
+		
+			character_settings = {"hero_name":title, // Name
+			"color_bright":"#bca63e", // Helmet bright color
+			"color_dark":"#e3d06d", // Helmet dark color
+			"color_visor":"#00ffdf", // Visor color
+			"color_bright3":"#ffea70", // Jetpack (bright shade) color
+			"color_dark3":"#cbba48", // Jetpack (dark shade) color
+			"color_suit":"#003e7a", // Upper suit color
+			"color_suit2":"#af963c", // Lower suit color
+			"color_dark2":"#d0b943", // Lower suit plates color
+			"color_shoes":"#9b7f31", // Shoes color
+			"color_skin":"#1c1c1c", // Gloves and neck color
+			"color_extra1":"#00ffdf", // Extra 1 color
+			"helmet95":true,
+			"body33":true,
+			"legs68":true,
+			"voice8":true };
+
+			character_entity.matter = 1500;
+			character_entity.matter_max = 1500; // Let player leech matter off the bodies
+
+			character_entity.hea = 10000;
+			character_entity.hmax = 10000;
+
+			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+			character_entity._ai_level = 10;
+
+			character_entity._matter_regeneration = 10 + character_entity._ai_level; // At least some ammo regen
+			character_entity._jetpack_allowed = true; // Jetpack
+			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+			character_entity._ai_team = 3; // AI team 3 is for the Council
+			character_entity._matter_regeneration_multiplier = 50; // Their matter regenerates 50 times faster than normal, unupgraded players
+			PLAY_SOUND_METHOD({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+			character_entity._ai.next_action = 5;
+			character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+			character_entity._init_ai_model = character_entity._ai_enabled;
+			
+			character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_HIGH_COUNCILOR_PROPERTIES }); // Give him the High Councilor properties / status effect
+			
+			SEND_EFFECT_METHOD({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+			// This is a boss fight.
 		}
 
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( character_settings );

@@ -40,7 +40,8 @@ class sdKeyStates
 			Mouse3: 0, // Right
 			KeyI: 0,
 			KeyK: 0,
-			KeyN: 0
+			KeyN: 0,
+			KeyT: 0
 		};
 		
 		sdKeyStates.default_state_keys = Object.keys( sdKeyStates.default_state );
@@ -82,7 +83,7 @@ class sdKeyStates
 	
 		if ( value === 1 )
 		{
-			if ( !sdWorld.is_server )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			if ( this === sdWorld.my_key_states )
 			if ( sdWorld.my_key_states )
 			if ( this.key_states[ key ] !== 1 )

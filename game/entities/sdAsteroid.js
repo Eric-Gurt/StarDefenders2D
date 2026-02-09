@@ -335,6 +335,34 @@ class sdAsteroid extends sdEntity
 					{
 						if ( !this.attached_to._shielded || this.attached_to._shielded.onFleshifyAttempted( this ) )
 						{
+							if ( this.attached_to.is( sdBlock ) ) // Unmerged block scenario
+							{
+								if ( !this.attached_to._merged )
+								{
+									this.attached_to.Fleshify( null, sdBlock.max_flesh_rank_asteroid );
+									this.remove();
+								}
+								else
+								{
+									// Merged block scenario - unmerge and set flesh to closest block
+									
+									let blocks = this.attached_to.UnmergeBlocks();
+									this.attached_to = null;
+									if ( blocks.length > 0 ) // Just in case
+									{
+										this.attached_to = blocks[ 0 ];
+										for ( let i = 0; i < blocks.length; i++ )
+										{
+											if ( sdWorld.Dist2D( blocks[ i ].x, blocks[ i ].y, this.x, this.y ) < sdWorld.Dist2D( this.attached_to.x, this.attached_to.y, this.x, this.y ) )
+											this.attached_to = blocks[ i ];
+										}
+										this.attached_to.Fleshify( null, sdBlock.max_flesh_rank_asteroid );
+										this.remove();
+										
+									}										
+								}
+							}
+							else
 							this.attached_to.Fleshify( null, sdBlock.max_flesh_rank_asteroid );
 							this.remove();
 						}

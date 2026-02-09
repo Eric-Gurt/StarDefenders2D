@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ParentNamespace = void 0;
 const namespace_1 = require("./namespace");
+const socket_io_adapter_1 = require("socket.io-adapter");
 const debug_1 = __importDefault(require("debug"));
 const debug = (0, debug_1.default)("socket.io:parent-namespace");
 /**
@@ -31,13 +32,7 @@ class ParentNamespace extends namespace_1.Namespace {
      * @private
      */
     _initAdapter() {
-        const broadcast = (packet, opts) => {
-            this.children.forEach((nsp) => {
-                nsp.adapter.broadcast(packet, opts);
-            });
-        };
-        // @ts-ignore FIXME is there a way to declare an inner class in TypeScript?
-        this.adapter = { broadcast };
+        this.adapter = new ParentBroadcastAdapter(this);
     }
     emit(ev, ...args) {
         this.children.forEach((nsp) => {
@@ -48,7 +43,7 @@ class ParentNamespace extends namespace_1.Namespace {
     createChild(name) {
         debug("creating child namespace %s", name);
         const namespace = new namespace_1.Namespace(this.server, name);
-        namespace._fns = this._fns.slice(0);
+        this["_fns"].forEach((fn) => namespace.use(fn));
         this.listeners("connect").forEach((listener) => namespace.on("connect", listener));
         this.listeners("connection").forEach((listener) => namespace.on("connection", listener));
         this.children.add(namespace);
@@ -80,3 +75,14 @@ class ParentNamespace extends namespace_1.Namespace {
 }
 exports.ParentNamespace = ParentNamespace;
 ParentNamespace.count = 0;
+/**
+ * A dummy adapter that only supports broadcasting to child (concrete) namespaces.
+ * @private file
+ */
+class ParentBroadcastAdapter extends socket_io_adapter_1.Adapter {
+    broadcast(packet, opts) {
+        this.nsp.children.forEach((nsp) => {
+            nsp.adapter.broadcast(packet, opts);
+        });
+    }
+}

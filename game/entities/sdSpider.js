@@ -80,6 +80,7 @@ class sdSpider extends sdEntity
 		this.death_anim = 0;
 		this.hurt_anim = 0;
 		this.attack_anim = 0;
+		this._last_attack = sdWorld.time;
 		
 		//this.frame = sdSpider.frame_idle;
 		//this._frame_time = 0;
@@ -284,6 +285,12 @@ class sdSpider extends sdEntity
 		
 			if ( sdWorld.is_server )
 			{
+				if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+				{
+					this._last_attack = sdWorld.time;
+					this.AttemptPlaceNearPlayer( false ); // Attempt to place near a player, since it is probably stuck or something else. Requires ground placement ( aerial = false )
+				}
+				
 				if ( this._current_target )
 				{
 					if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea ) <= 0 || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSpider.max_seek_range + 32 )
@@ -431,6 +438,7 @@ class sdSpider extends sdEntity
 			//if ( this._current_target )
 			if ( this._attack_in <= 0 )
 			{
+				this._last_attack = sdWorld.time;
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, from_entity.x, from_entity.y, 410 ) )
 				{
 

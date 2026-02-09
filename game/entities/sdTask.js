@@ -62,7 +62,7 @@ class sdTask extends sdEntity
 				return -1;
 			},
 			
-		letion_condition: ( task )=>
+			completion_condition: ( task )=>
 			{
 				return false;
 			},
@@ -203,6 +203,10 @@ class sdTask extends sdEntity
 			},
 			onTaskMade: ( task, params )=>{
 				task.SetClaimRewardsProgress( Math.floor( task._executer._task_reward_counter ) ); // Also needs to update when players complete tasks, and claim rewards.
+			},
+			failure_condition: ( task )=>
+			{
+				return ( !task._executer || task._executer._is_being_removed ); // Remove task so it does not spawn warnings when snapshot is loaded next time
 			},
 			completion_condition: ( task )=>
 			{
@@ -777,7 +781,7 @@ class sdTask extends sdEntity
 				this.description = 'Error during mission construction';
 				this.time_left = -1;
 				
-				trace( 'sdTask construction error in mission functions. params:', params );
+				trace( 'sdTask construction error in mission functions. params:', params, e );
 			}
 		}
 		
@@ -799,7 +803,7 @@ class sdTask extends sdEntity
 		
 		if ( this._target )
 		{
-			this.target_x = this._target.x;
+			this.target_x = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
 			this.target_y = this._target.y;
 			this.target_biometry = this._target.title || this._target.biometry || '';
 			this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
@@ -976,7 +980,7 @@ class sdTask extends sdEntity
 			{
 				if ( this.target_x !== this._target.x || this.target_y !== this._target.y )
 				{
-					this.target_x = this._target.x;
+					this.target_x = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
 					this.target_y = this._target.y;
 					this.target_biometry = this._target.title || this._target.biometry || '';
 					this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
@@ -1252,6 +1256,11 @@ class sdTask extends sdEntity
 				}
 			}
 			
+			let last_style = ctx.fillStyle;
+			ctx.fillStyle = '#000000';
+			ctx.fillText( text, subtext ? 5 * scale : 1, 1 );
+			ctx.fillStyle = last_style;
+			
 			ctx.fillText( text, subtext ? 5 * scale : 0, 0 );
 			ctx.translate( 0, ( 11 + 5 ) * scale );
 			
@@ -1296,6 +1305,7 @@ class sdTask extends sdEntity
 		}
 		
 		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 		ctx.translate( 0, ( 11 + 5 ) * scale );
 	}
 }

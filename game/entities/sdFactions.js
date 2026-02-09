@@ -27,6 +27,7 @@ class sdFactions extends sdEntity
 		sdFactions.FACTION_STAR_DEFENDERS_RESCUE = 10; // Rescue Star Defender
 		sdFactions.FACTION_STAR_DEFENDERS_ARREST = 11; // Arrest Star Defender
 		sdFactions.FACTION_TIME_SHIFTER = 12; // Time Shifter ( Boss )
+		sdFactions.FACTION_HIGH_COUNCILOR = 13; // High Councilor ( Boss )
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -443,6 +444,17 @@ class sdFactions extends sdEntity
 		if ( faction === sdFactions.FACTION_TIME_SHIFTER ) // Time Shifter
 		{
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_TIME_SHIFTER );
+		}
+		if ( faction === sdFactions.FACTION_HIGH_COUNCILOR ) // High Councilor
+		{
+			let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_HIGH_COUNCIL_SWORD });
+			sdEntity.entities.push( gun );
+			
+			character_entity._ai_gun_slot = 0;
+			gun.onMovementInRange( character_entity ); // Force pickup
+			
+			
+			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_COUNCIL_HIGH );
 		}
 
 		/*if ( faction !== -1 )

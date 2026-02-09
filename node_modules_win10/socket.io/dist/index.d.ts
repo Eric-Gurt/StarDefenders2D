@@ -1,21 +1,21 @@
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
 import http = require("http");
 import type { Server as HTTPSServer } from "https";
-import type { Http2SecureServer } from "http2";
-import type { ServerOptions as EngineOptions, AttachOptions, BaseServer } from "engine.io";
+import type { Http2SecureServer, Http2Server } from "http2";
+import { Server as Engine } from "engine.io";
+import type { ServerOptions as EngineOptions, AttachOptions } from "engine.io";
 import { ExtendedError, Namespace, ServerReservedEventsMap } from "./namespace";
 import { Adapter, Room, SocketId } from "socket.io-adapter";
 import * as parser from "socket.io-parser";
 import type { Encoder } from "socket.io-parser";
-import { Socket, DisconnectReason } from "./socket";
+import { Socket } from "./socket";
+import { DisconnectReason } from "./socket-types";
 import type { BroadcastOperator, RemoteSocket } from "./broadcast-operator";
-import { EventsMap, DefaultEventsMap, EventParams, StrictEventEmitter, EventNames, DecorateAcknowledgementsWithTimeoutAndMultipleResponses, AllButLast, Last, FirstArg, SecondArg } from "./typed-events";
-declare type ParentNspNameMatchFn = (name: string, auth: {
+import { EventsMap, DefaultEventsMap, EventParams, StrictEventEmitter, EventNames, DecorateAcknowledgementsWithTimeoutAndMultipleResponses, AllButLast, Last, RemoveAcknowledgements, EventNamesWithAck, FirstNonErrorArg } from "./typed-events";
+type ParentNspNameMatchFn = (name: string, auth: {
     [key: string]: any;
 }, fn: (err: Error | null, success: boolean) => void) => void;
-declare type AdapterConstructor = typeof Adapter | ((nsp: Namespace) => Adapter);
+type AdapterConstructor = typeof Adapter | ((nsp: Namespace) => Adapter);
+type TServerInstance = http.Server | HTTPSServer | Http2SecureServer | Http2Server;
 interface ServerOptions extends EngineOptions, AttachOptions {
     /**
      * name of the path to capture
@@ -93,7 +93,70 @@ interface ServerOptions extends EngineOptions, AttachOptions {
  *
  * io.listen(3000);
  */
-export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, EmitEvents extends EventsMap = ListenEvents, ServerSideEvents extends EventsMap = DefaultEventsMap, SocketData = any> extends StrictEventEmitter<ServerSideEvents, EmitEvents, ServerReservedEventsMap<ListenEvents, EmitEvents, ServerSideEvents, SocketData>> {
+export declare class Server<
+/**
+ * Types for the events received from the clients.
+ *
+ * @example
+ * interface ClientToServerEvents {
+ *   hello: (arg: string) => void;
+ * }
+ *
+ * const io = new Server<ClientToServerEvents>();
+ *
+ * io.on("connection", (socket) => {
+ *   socket.on("hello", (arg) => {
+ *     // `arg` is inferred as string
+ *   });
+ * });
+ */
+ListenEvents extends EventsMap = DefaultEventsMap, 
+/**
+ * Types for the events sent to the clients.
+ *
+ * @example
+ * interface ServerToClientEvents {
+ *   hello: (arg: string) => void;
+ * }
+ *
+ * const io = new Server<DefaultEventMap, ServerToClientEvents>();
+ *
+ * io.emit("hello", "world");
+ */
+EmitEvents extends EventsMap = ListenEvents, 
+/**
+ * Types for the events received from and sent to the other servers.
+ *
+ * @example
+ * interface InterServerEvents {
+ *   ping: (arg: number) => void;
+ * }
+ *
+ * const io = new Server<DefaultEventMap, DefaultEventMap, ServerToClientEvents>();
+ *
+ * io.serverSideEmit("ping", 123);
+ *
+ * io.on("ping", (arg) => {
+ *   // `arg` is inferred as number
+ * });
+ */
+ServerSideEvents extends EventsMap = DefaultEventsMap, 
+/**
+ * Additional properties that can be attached to the socket instance.
+ *
+ * Note: any property can be attached directly to the socket instance (`socket.foo = "bar"`), but the `data` object
+ * will be included when calling {@link Server#fetchSockets}.
+ *
+ * @example
+ * io.on("connection", (socket) => {
+ *   socket.data.eventsCount = 0;
+ *
+ *   socket.onAny(() => {
+ *     socket.data.eventsCount++;
+ *   });
+ * });
+ */
+SocketData = any> extends StrictEventEmitter<ServerSideEvents, RemoveAcknowledgements<EmitEvents>, ServerReservedEventsMap<ListenEvents, EmitEvents, ServerSideEvents, SocketData>> {
     readonly sockets: Namespace<ListenEvents, EmitEvents, ServerSideEvents, SocketData>;
     /**
      * A reference to the underlying Engine.IO server.
@@ -102,7 +165,13 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * const clientsCount = io.engine.clientsCount;
      *
      */
-    engine: BaseServer;
+    engine: Engine;
+    /**
+     * The underlying Node.js HTTP server.
+     *
+     * @see https://nodejs.org/api/http.html
+     */
+    httpServer: TServerInstance;
     /** @private */
     readonly _parser: typeof parser;
     /** @private */
@@ -129,7 +198,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @private
      */
     _connectTimeout: number;
-    private httpServer;
+    private _corsMiddleware;
     /**
      * Server constructor.
      *
@@ -137,8 +206,8 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param [opts]
      */
     constructor(opts?: Partial<ServerOptions>);
-    constructor(srv?: http.Server | HTTPSServer | Http2SecureServer | number, opts?: Partial<ServerOptions>);
-    constructor(srv: undefined | Partial<ServerOptions> | http.Server | HTTPSServer | Http2SecureServer | number, opts?: Partial<ServerOptions>);
+    constructor(srv?: TServerInstance | number, opts?: Partial<ServerOptions>);
+    constructor(srv: undefined | Partial<ServerOptions> | TServerInstance | number, opts?: Partial<ServerOptions>);
     get _opts(): Partial<ServerOptions>;
     /**
      * Sets/gets whether client code is being served.
@@ -192,7 +261,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param opts - options passed to engine.io
      * @return self
      */
-    listen(srv: http.Server | HTTPSServer | Http2SecureServer | number, opts?: Partial<ServerOptions>): this;
+    listen(srv: TServerInstance | number, opts?: Partial<ServerOptions>): this;
     /**
      * Attaches socket.io to a server or port.
      *
@@ -200,7 +269,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param opts - options passed to engine.io
      * @return self
      */
-    attach(srv: http.Server | HTTPSServer | Http2SecureServer | number, opts?: Partial<ServerOptions>): this;
+    attach(srv: TServerInstance | number, opts?: Partial<ServerOptions>): this;
     attachApp(app: any, opts?: Partial<ServerOptions>): void;
     /**
      * Initialize engine
@@ -238,7 +307,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param engine engine.io (or compatible) server
      * @return self
      */
-    bind(engine: BaseServer): this;
+    bind(engine: any): this;
     /**
      * Called with each incoming transport connection.
      *
@@ -271,7 +340,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      *
      * @param [fn] optional, called as `fn([err])` on error OR all conns closed
      */
-    close(fn?: (err?: Error) => void): void;
+    close(fn?: (err?: Error) => void): Promise<void>;
     /**
      * Registers a middleware, which is a function that gets executed for every incoming {@link Socket}.
      *
@@ -300,7 +369,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param room - a room, or an array of rooms
      * @return a new {@link BroadcastOperator} instance for chaining
      */
-    to(room: Room | Room[]): BroadcastOperator<EmitEvents, SocketData>;
+    to(room: Room | Room[]): BroadcastOperator<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>, SocketData>;
     /**
      * Targets a room when emitting. Similar to `to()`, but might feel clearer in some cases:
      *
@@ -311,7 +380,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param room - a room, or an array of rooms
      * @return a new {@link BroadcastOperator} instance for chaining
      */
-    in(room: Room | Room[]): BroadcastOperator<EmitEvents, SocketData>;
+    in(room: Room | Room[]): BroadcastOperator<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>, SocketData>;
     /**
      * Excludes a room when emitting.
      *
@@ -328,21 +397,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param room - a room, or an array of rooms
      * @return a new {@link BroadcastOperator} instance for chaining
      */
-    except(room: Room | Room[]): BroadcastOperator<EmitEvents, SocketData>;
-    /**
-     * Emits an event and waits for an acknowledgement from all clients.
-     *
-     * @example
-     * try {
-     *   const responses = await io.timeout(1000).emitWithAck("some-event");
-     *   console.log(responses); // one response per client
-     * } catch (e) {
-     *   // some clients did not acknowledge the event in the given delay
-     * }
-     *
-     * @return a Promise that will be fulfilled when all clients have acknowledged the event
-     */
-    emitWithAck<Ev extends EventNames<EmitEvents>>(ev: Ev, ...args: AllButLast<EventParams<EmitEvents, Ev>>): Promise<SecondArg<Last<EventParams<EmitEvents, Ev>>>>;
+    except(room: Room | Room[]): BroadcastOperator<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>, SocketData>;
     /**
      * Sends a `message` event to all clients.
      *
@@ -408,7 +463,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      *
      * @return a Promise that will be fulfilled when all servers have acknowledged the event
      */
-    serverSideEmitWithAck<Ev extends EventNames<ServerSideEvents>>(ev: Ev, ...args: AllButLast<EventParams<ServerSideEvents, Ev>>): Promise<FirstArg<Last<EventParams<ServerSideEvents, Ev>>>[]>;
+    serverSideEmitWithAck<Ev extends EventNamesWithAck<ServerSideEvents>>(ev: Ev, ...args: AllButLast<EventParams<ServerSideEvents, Ev>>): Promise<FirstNonErrorArg<Last<EventParams<ServerSideEvents, Ev>>>[]>;
     /**
      * Gets a list of socket ids.
      *
@@ -425,7 +480,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      * @param compress - if `true`, compresses the sending data
      * @return a new {@link BroadcastOperator} instance for chaining
      */
-    compress(compress: boolean): BroadcastOperator<EmitEvents, SocketData>;
+    compress(compress: boolean): BroadcastOperator<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>, SocketData>;
     /**
      * Sets a modifier for a subsequent event emission that the event data may be lost if the client is not ready to
      * receive messages (because of network slowness or other issues, or because they’re connected through long polling
@@ -436,7 +491,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      *
      * @return a new {@link BroadcastOperator} instance for chaining
      */
-    get volatile(): BroadcastOperator<EmitEvents, SocketData>;
+    get volatile(): BroadcastOperator<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>, SocketData>;
     /**
      * Sets a modifier for a subsequent event emission that the event data will only be broadcast to the current node.
      *
@@ -446,7 +501,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      *
      * @return a new {@link BroadcastOperator} instance for chaining
      */
-    get local(): BroadcastOperator<EmitEvents, SocketData>;
+    get local(): BroadcastOperator<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>, SocketData>;
     /**
      * Adds a timeout in milliseconds for the next operation.
      *
@@ -461,7 +516,7 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      *
      * @param timeout
      */
-    timeout(timeout: number): BroadcastOperator<DecorateAcknowledgementsWithTimeoutAndMultipleResponses<EmitEvents>, SocketData>;
+    timeout(timeout: number): BroadcastOperator<import("./typed-events").DecorateAcknowledgements<import("./typed-events").DecorateAcknowledgementsWithMultipleResponses<EmitEvents>>, SocketData>;
     /**
      * Returns the matching socket instances.
      *
@@ -534,5 +589,5 @@ export declare class Server<ListenEvents extends EventsMap = DefaultEventsMap, E
      */
     disconnectSockets(close?: boolean): void;
 }
-export { Socket, DisconnectReason, ServerOptions, Namespace, BroadcastOperator, RemoteSocket, };
+export { Socket, DisconnectReason, ServerOptions, Namespace, BroadcastOperator, RemoteSocket, DefaultEventsMap, ExtendedError, };
 export { Event } from "./socket";

@@ -16,8 +16,8 @@ class sdDropPod extends sdEntity
 {
 	static init_class()
 	{
-		sdDropPod.img_pod_kvt = sdWorld.CreateImageFromFile( 'sdDropPod_kvt' ); // Might be better to use sprite sheets for future purposes - Booraz149
-		sdDropPod.img_pod_sd = sdWorld.CreateImageFromFile( 'sdDropPod_sd' );
+		sdDropPod.img_pod_kvt = sdWorld.CreateImageFromFile( '/structures/sdDropPod_kvt' ); // Might be better to use sprite sheets for future purposes - Booraz149
+		sdDropPod.img_pod_sd = sdWorld.CreateImageFromFile( '/structures/sdDropPod_sd' );
 		
 		sdDropPod.kvt_pod_counter = 0;
 		sdDropPod.sd_pod_counter = 0;
@@ -29,9 +29,9 @@ class sdDropPod extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -12; }
-	get hitbox_x2() { return 12; }
-	get hitbox_y1() { return -15; }
+	get hitbox_x1() { return -11; }
+	get hitbox_x2() { return 11; }
+	get hitbox_y1() { return -12.5; }
 	get hitbox_y2() { return 15; }
 	
 	get hard_collision()
@@ -112,7 +112,7 @@ class sdDropPod extends sdEntity
 	}
 	get mass()
 	{
-		return 750;
+		return 600;
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -357,31 +357,41 @@ class sdDropPod extends sdEntity
 		
 		if ( this.type === sdDropPod.TYPE_SD ) // SD pod Loot pool
 		{
-			if ( Math.random() < 0.01 ) // 1% chance for some task reward loot
+			if ( Math.random() < 0.02 ) // 2% chance for some task reward loot
 			{
-				let rng = Math.random(); // Value between 0 and 1 at the moment.
-				if ( rng < 0.2 ) // 20%
+				let rng = Math.random() * 7; // Value between 0 and 7 at the moment.
+				if ( rng <= 1 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MERGER_CORE }) );
 				}
 				else
-				if ( rng < 0.4 ) // 20%
+				if ( rng <= 2 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL4_ARMOR_REGEN }) );
 				}
 				else
-				if ( rng < 0.6 ) // 20%
+				if ( rng <= 3 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ZAPPER }) );
 				}
 				else
-				if ( rng < 0.8 ) // 20%
+				if ( rng <= 4 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_COMBAT_INSTRUCTOR }) );
 				}
-				else // 20%
+				else
+				if ( rng <= 5 ) // 1 in 7
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ILLUSION_MAKER }) );
+				}
+				else
+				if ( rng <= 6 ) // 1 in 7
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET }) );
+				}
+				else // 1 in 7
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET }) );
 				}
 			}
 			else // Random other loot, like workbench and build tool items
@@ -700,7 +710,7 @@ class sdDropPod extends sdEntity
 					}
 					else
 					{
-						if ( Math.random() > 0.7 )
+						if ( Math.random() > 0.5 )
 						exectuter_character.Say( 'I don\'t have enough resources to try bypassing the security.' );
 						else
 						exectuter_character.Say( 'I\'m gonna need more than my wits to get this thing open.' );

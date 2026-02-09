@@ -42,6 +42,8 @@ class sdJunk extends sdEntity
 
 		sdJunk.img_matter_container2 = sdWorld.CreateImageFromFile( 'matter_container2' );
 		sdJunk.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
+		sdJunk.img_matter_container3 = sdWorld.CreateImageFromFile( 'matter_container3' );
+		sdJunk.img_matter_container3_empty = sdWorld.CreateImageFromFile( 'matter_container3_empty' );
 
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
 		sdJunk.img_fire_barrel = sdWorld.CreateImageFromFile( 'barrel_fire' );
@@ -63,7 +65,7 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_PLANETARY_MATTER_DRAINER = 3;
 		sdJunk.TYPE_COUNCIL_BOMB = 4;
 		sdJunk.TYPE_ERTHAL_DISTRESS_BEACON = 5;
-		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6;
+		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6; // Now upgradable via "Matter container chipset"
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 		sdJunk.TYPE_STEALER_ARTIFACT = 9;
@@ -86,7 +88,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_PLANETARY_MATTER_DRAINER ] = { x1: -28, x2: 28, y1: 0, y2: 23 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_COUNCIL_BOMB ] = { x1: -11, x2: 11, y1: -30, y2: 31 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ] = { x1: -11, x2: 11, y1: -21, y2: 29 };
-		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 17 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 16.5 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_STEALER_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
@@ -593,16 +595,16 @@ class sdJunk extends sdEntity
 
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze "barrels" freeze stuff
 			{
-				let bullet = new sdBullet({ x: this.x, y: this.y });
+				/*let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
 				bullet._damage = 1;
 				bullet.owner = this;
 				bullet.time_left = 0; 
 				bullet._custom_detonation_logic = ( bullet )=>
-				{
+				{*/
 					sdWorld.SendEffect({ 
-						x:bullet.x, 
-						y:bullet.y, 
+						x:this.x, 
+						y:this.y, 
 						radius:30,
 						damage_scale: 0, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
@@ -612,16 +614,21 @@ class sdJunk extends sdEntity
 						shrapnel: true
 					});
 
-					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
+					let nears = sdWorld.GetAnythingNear( this.x, this.y, 40 );
 
 					for ( let i = 0; i < nears.length; i++ )
 					{
+						if ( nears[ i ].is( sdWater ) )
+						{
+							nears[ i ].Solidify();
+						}
+						else
 						if ( nears[ i ].IsTargetable( this ) )
 						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
 						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
 					}
-				};
-				sdEntity.entities.push( bullet );
+				/*};
+				sdEntity.entities.push( bullet );*/
 			}
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire "barrels" ignites stuff
 			{
@@ -680,23 +687,24 @@ class sdJunk extends sdEntity
 			
 			if ( this.type === sdJunk.TYPE_METAL_CHUNK ) // Metal chunk, drops 0-2 metal shards ( Maybe laser mining tools could make them drop more? )
 			{
-				r = Math.round( Math.random() * 2 );
+				r = 3 + Math.floor( Math.random() * 3 ); // EG: Feels not enough to just drop 0-2. Not it drops 3-6. Using laser mining sounds not too intuitive if it was implemented? Maybe in that case it should drop some kind of burned/rusted metal chunks that can't be used for anything with a hint to use more preciese tools when breaking these
 				for( let i = 0; i < r; i++ )
 				{
-					let x = this.x + Math.random() * 3 - Math.random() * 3;
-					let y = this.y + Math.random() * 3 - Math.random() * 3;
-					let sx = this.sx + Math.random() - Math.random();
-					let sy = this.sy + Math.random() - Math.random();
+					let x = this.x + Math.random() * 6 - 3;
+					let y = this.y + Math.random() * 6 - 3;
+					let sx = this.sx + Math.random() * 4 - 2;
+					let sy = this.sy + Math.random() * 4 - 2 - 1;
 
-					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+					//setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 						let gun;
 						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
 						gun.sx = sx;
 						gun.sy = sy;
 						sdEntity.entities.push( gun );
+						sdWorld.UpdateHashPosition( gun, false );
 
-					}, 500 );
+					//}, 500 );
 				}
 			}
 
@@ -712,7 +720,14 @@ class sdJunk extends sdEntity
 		
 	}
 	
-	get mass() { return ( this.type === sdJunk.TYPE_METAL_CHUNK || this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) ? 90 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 60 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 800 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 1000 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 500 : 30; }
+	get mass() { return ( 
+				this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ? 90 : 
+				this.type === sdJunk.TYPE_METAL_CHUNK ? 40 : // Made it so it can be carried
+				this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 60 : 
+				this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 800 : 
+				this.type === sdJunk.TYPE_COUNCIL_BOMB ? 1000 : 
+				this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 500 : 
+				30 ); }
 	Impulse( x, y )
 	{
 		if ( this.held_by )
@@ -1086,6 +1101,8 @@ class sdJunk extends sdEntity
 					bullet_obj.color = '#ffff00';
 					bullet_obj.time_left = 90 + Math.random() * 60; // 3-5 seconds after flare spawn to summon the humanoids
 					bullet_obj._bouncy = true;
+					
+					sdEntity.entities.push( bullet_obj );
 									
 					sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
 					sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5, pitch:2 });
@@ -1338,7 +1355,10 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 			{
+				if ( this.glow_animation === 0  ) // "Equalize" mode from sdMatterContainer
 				this.MatterGlow( 0.01, 30, GSPEED );
+				if ( this.glow_animation === 2 ) // "Release" mode from sdMatterContainer
+				this.MatterGlow( 0.3, 30, GSPEED );
 
 				if ( this._regen_timeout > 0 )
 				this._regen_timeout -= GSPEED;
@@ -1571,14 +1591,26 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward / Advanced matter container
 			{
-
-				ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
+				if ( this.matter_max === 5120 * 8 * 10 ) // Upgraded or not?
+				{
+					ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
+			
+					ctx.filter = sdWorld.GetCrystalHue( -1 );
 		
-				ctx.filter = sdWorld.GetCrystalHue( -1 );
-	
-				ctx.globalAlpha = this.matter / this.matter_max;
+					ctx.globalAlpha = this.matter / this.matter_max;
+			
+					ctx.drawImageFilterCache( sdJunk.img_matter_container2, - 32, - 32, 64, 64 );
+				}
+				else
+				{
+					ctx.drawImageFilterCache( sdJunk.img_matter_container3_empty, - 32, - 32, 64, 64 );
+			
+					ctx.filter = sdWorld.GetCrystalHue( -1 );
 		
-				ctx.drawImageFilterCache( sdJunk.img_matter_container2, - 32, - 32, 64, 64 );
+					ctx.globalAlpha = this.matter / this.matter_max;
+			
+					ctx.drawImageFilterCache( sdJunk.img_matter_container3, - 32, - 32, 64, 64 );
+				}
 		
 			}
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze barrel
@@ -1616,10 +1648,25 @@ class sdJunk extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	/*onMovementInRange( from_entity )
+	onMovementInRange( from_entity )
 	{
-		//this._last_stand_on = from_entity;
-	}*/
+		if ( sdWorld.is_server )
+		if ( !from_entity._is_being_removed )
+		{
+			if ( from_entity.is( sdGun ) && this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+			{
+				if ( from_entity.class === sdGun.CLASS_MATTER_CONTAINER_CHIPSET && this.matter_max === 5120 * 8 * 10 ) // Matter container chipset, and container is not upgraded?
+				{
+					this.matter_max = 5120 * 8 * 10 * 2; // Double the matter capacity
+					this.hmax = this.hmax * 1.5; // Increase health by 50%
+					this.hea = this.hmax;
+					from_entity.remove();
+					
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+				}
+			}
+		}
+	}
 	onRemove() // Class-specific, if needed
 	{
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
@@ -1674,6 +1721,44 @@ class sdJunk extends sdEntity
 				
 				//if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 				//sdSound.PlaySound({ name:'crystal_healer_death', x:this.x, y:this.y, volume: 2 });
+			}
+		}
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+		{
+			if ( exectuter_character )
+			if ( exectuter_character.hea > 0 )
+			{
+				if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
+				{
+					if ( command_name === 'MODE' )
+					{
+						if ( parameters_array[ 0 ] === 0 || parameters_array[ 0 ] === 1 || parameters_array[ 0 ] === 2 )
+						{
+							this.glow_animation = parameters_array[ 0 ]; // I don't want to create new public variables, so I use this - Booraz
+							//this._update_version++;
+						}
+					}
+				}
+				else
+				executer_socket.SDServiceMessage( 'Matter container is too far' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+		{
+			if ( exectuter_character )
+			if ( exectuter_character.hea > 0 )
+			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+			{
+				let active_mode_text = ' ( ' + T( 'active' ) + ' )';
+				this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.glow_animation === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Collect' ) + (( this.glow_animation === 1 ) ? active_mode_text : ''), 'MODE', [ 1 ] );
+				this.AddContextOptionNoTranslation( T( 'Set mode to Release' ) + (( this.glow_animation === 2 ) ? active_mode_text : ''), 'MODE', [ 2 ] );
 			}
 		}
 	}

@@ -44,8 +44,8 @@ class sdTzyrgMortar extends sdEntity
 	{
 		super( params );
 		
-		this.sx = 0;
-		this.sy = 0;
+		//this.sx = 0;
+		//this.sy = 0;
 
 		this.hmax = 4000;
 		this.hea = this.hmax;
@@ -129,10 +129,10 @@ class sdTzyrgMortar extends sdEntity
 						var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
 						var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 
-						that.sx -= Math.sin( an ) * d * r * 0.005;
-						that.sy -= Math.cos( an ) * d * r * 0.005;
+						//that.sx -= Math.sin( an ) * d * r * 0.005;
+						//that.sy -= Math.cos( an ) * d * r * 0.005;
 
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: Math.random() - Math.random() * k + Math.sin(a)*s, sy:  Math.random() - Math.random() * k + Math.cos(a)*s });
 						sdWorld.SendEffect({ 
 							x: that.x + Math.sin( an ) * d, 
 							y: that.y + Math.cos( an ) * d, 
@@ -153,8 +153,8 @@ class sdTzyrgMortar extends sdEntity
 	get mass() { return 3000; }
 	Impulse( x, y )
 	{
-		this.sx += x / this.mass;
-		this.sy += y / this.mass;
+		//this.sx += x / this.mass;
+		//this.sy += y / this.mass;
 	}
 	/*Impact( vel ) // fall damage basically
 	{
@@ -194,7 +194,7 @@ class sdTzyrgMortar extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 
-		this.sy += sdWorld.gravity * GSPEED;
+		//this.sy += sdWorld.gravity * GSPEED;
 
 		if ( sdWorld.is_server )
 		{
@@ -376,7 +376,11 @@ class sdTzyrgMortar extends sdEntity
 				}
 			}
 		}
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+	}
+	
+	get title()
+	{
+		return 'Tzyrg mortar';
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
@@ -424,6 +428,12 @@ class sdTzyrgMortar extends sdEntity
 	{
 		return 0; // Hack
 	}
+	
+	RequireSpawnAlign() 
+	{ return true; }
+	
+	get spawn_align_x(){ return 4; };
+	get spawn_align_y(){ return 4; };
 }
 //sdTzyrgMortar.init_class();
 

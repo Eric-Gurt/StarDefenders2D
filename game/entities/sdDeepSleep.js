@@ -181,6 +181,7 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.inception_catcher_warning_level = 32;
 		sdDeepSleep.inception_catcher_give_up_level = 512;
 		sdDeepSleep.inception_catcher_next_warning_allowed_in = 0;
+		sdDeepSleep.inception_catcher_areas_awoken = [];
 		
 		sdDeepSleep.dependence_distance_max = 500; // Anti-dependence hell measure
 		
@@ -250,6 +251,7 @@ class sdDeepSleep extends sdEntity
 		while ( iters-- > 0 && sdDeepSleep.time_budget > 0 )
 		{
 			sdDeepSleep.inception_catcher = 0;
+			sdDeepSleep.inception_catcher_areas_awoken.length = 0;
 			
 			let t = Date.now();
 		
@@ -514,6 +516,12 @@ class sdDeepSleep extends sdEntity
 	
 		if ( sdDeepSleep.debug_pause_any_deep_sleep_logic )
 		return;
+		
+		if ( this.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
+		{
+			// These just stay there for a while and don't react to anything
+			return;
+		}
 	
 		if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
 		trace( 'WakeUpArea()', from_movement_or_vision, initiator, { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length, _is_being_removed:this._is_being_removed } );
@@ -526,14 +534,11 @@ class sdDeepSleep extends sdEntity
 	
 		if ( this.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
 		{
-			//if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() && initiator._socket )
-			//{
-				this.remove();
-			//}
+			this.remove();
 			
-			return; // These can't be waken up nor should be removed unless playe sees or interacts with them
+			return; // These can't be waken up nor should be removed unless player sees or interacts with them
 		}
-	
+		
 		if ( this._is_being_removed )
 		return;
 		
@@ -543,17 +548,52 @@ class sdDeepSleep extends sdEntity
 			{
 				sdDeepSleep.inception_catcher_next_warning_allowed_in = sdWorld.time + 1000 * 60 * 5; 
 				console.warn( 'WakeUpArea was called over 32 times per frame - it can be bad for server performance' );
+				trace( 'inception_catcher_areas_awoken v3', sdDeepSleep.inception_catcher_areas_awoken );
 			}
 			
 		
 			if ( sdDeepSleep.inception_catcher > sdDeepSleep.inception_catcher_give_up_level )
 			{
 				console.warn( 'WakeUpArea was called over 512 times per frame - some crazy deep sleep inception has happened?' );
+				trace( 'inception_catcher_areas_awoken v3', sdDeepSleep.inception_catcher_areas_awoken );
 				return;
 			}
 		}
+		
+		const StringIfNaN = ( v )=>
+		{
+			if ( v === undefined )
+			return 'undefined';
+			
+			if ( v === v )
+			return v;
+		
+			return 'NaN';
+		};
 	
 		sdDeepSleep.inception_catcher++;
+		sdDeepSleep.inception_catcher_areas_awoken.push({
+			net_id: this._net_id,
+			//snapshots_objects_total: this._snapshots_objects ? this._snapshots_objects.length : null,
+			will_hibernate_in: ( this._will_hibernate_on - sdWorld.time ) / 1000 + ' seconds',
+			x: StringIfNaN( this.x ),
+			y: StringIfNaN( this.y ),
+			w: StringIfNaN( this.w ),
+			h: StringIfNaN( this.h ),
+			type: this.type,
+			awake_from_movement_or_vision: from_movement_or_vision ? 'movement' : 'vision',
+			awake_forced: forced,
+			awoken_by_entity_class: initiator ? initiator.GetClass() : null,
+			awoken_by_x: initiator ? StringIfNaN( initiator.x ) : '-',
+			awoken_by_y: initiator ? StringIfNaN( initiator.y ) : '-',
+			awoken_by_sx: ( initiator && typeof initiator.sx !== 'undefined' ) ? StringIfNaN( initiator.sx ) : '-',
+			awoken_by_sy: ( initiator && typeof initiator.sy !== 'undefined' ) ? StringIfNaN( initiator.sy ) : '-',
+			awoken_by_hitbox: initiator ? [ 
+				StringIfNaN( initiator._hitbox_x1 ), 
+				StringIfNaN( initiator._hitbox_y1 ), 
+				StringIfNaN( initiator._hitbox_x2 ), 
+				StringIfNaN( initiator._hitbox_y2 ) ] : null
+		});
 
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
 		{
@@ -1701,6 +1741,19 @@ class sdDeepSleep extends sdEntity
 					this.remove();
 				}
 			}
+			
+			// Did not help
+			/*if ( this.type === sdDeepSleep.TYPE_DO_NOT_HIBERNATE )
+			{
+				if ( this._will_hibernate_on < sdWorld.time + 60000 * 2 )
+				{
+				}
+				else
+				{
+					trace( 'sdDeepSleep of type '+this.type+' has ._will_hibernate_on as '+this._will_hibernate_on+', will reset to 0' );
+					this._will_hibernate_on = 0;
+				}
+			}*/
 		}
 	}
 	MeasureMatterCost()

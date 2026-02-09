@@ -669,6 +669,7 @@ class sdPresetEditor extends sdEntity
 		{
 			let score = 0;
 			
+			
 			if ( new_relative_x < sdWorld.world_bounds.x1 )
 			return;
 			
@@ -696,6 +697,8 @@ class sdPresetEditor extends sdEntity
 					}
 					else
 					{
+						//if ( options.debug )
+						//console.log( 'BSU in range' );
 						return;
 					}
 				}
@@ -716,6 +719,8 @@ class sdPresetEditor extends sdEntity
 					}
 					else
 					{
+						//if ( options.debug )
+						//console.log( 'Player in range' );
 						return;
 					}
 				}
@@ -727,20 +732,21 @@ class sdPresetEditor extends sdEntity
 				
 				if ( c )
 				{
-					if ( !c.is_server_teleport ) // Make sure we check server / red LRTP's only for now.
+					if ( c.is_server_teleport ) // Make sure we check server / red LRTP's only for now.
 					{
-						return;
-					}
 				
-					if ( new_relative_x + preset_data.width < c.x - assumed_player_view_range ||
-						 new_relative_x > c.x + assumed_player_view_range ||
-						 new_relative_y + preset_data.height < c.y - assumed_player_view_range ||
-						 new_relative_y > c.y + assumed_player_view_range )
-					{
-					}
-					else
-					{
-						return;
+						if ( new_relative_x + preset_data.width < c.x - assumed_player_view_range ||
+							 new_relative_x > c.x + assumed_player_view_range ||
+							 new_relative_y + preset_data.height < c.y - assumed_player_view_range ||
+							 new_relative_y > c.y + assumed_player_view_range )
+						{
+						}
+						else
+						{
+							//if ( options.debug )
+							//console.log( 'Server LRTP in range' );
+							return;
+						}
 					}
 				}
 			}
@@ -749,6 +755,8 @@ class sdPresetEditor extends sdEntity
 			// Keep away from deep sleep areas
 			if ( sdWorld.CheckSolidDeepSleepExistsAtBox( new_relative_x, new_relative_y, new_relative_x + preset_data.width, new_relative_y + preset_data.height ) )
 			{
+				//if ( options.debug )
+				//console.log( 'Deep sleep detected' );
 				return;
 			}
 				
@@ -765,6 +773,7 @@ class sdPresetEditor extends sdEntity
 			for ( let yy = 0; yy < bit_height; yy++ )
 			for ( let xx = 0; xx < bit_width; xx++ )
 			{
+
 				let hash = yy * bit_width + xx;
 				
 				let bit = bitmask[ hash ];
@@ -818,7 +827,7 @@ class sdPresetEditor extends sdEntity
 					score -= bit_height * bit_width / requires_ground;
 				}
 			}
-			
+
 			if ( score > best_score )
 			{
 				if ( options.debug )
@@ -844,6 +853,21 @@ class sdPresetEditor extends sdEntity
 			{
 				let e = sdEntity.GetRandomEntity();
 				
+				if ( options.force_ground )
+				{
+					if ( e )
+					{
+						if ( !e.is( sdBlock ) )
+						e = null;
+						else
+						if ( ! e.DoesRegenerate() || !e._natural ) // Natural blocks only
+						e = null;
+						//else
+						//if ( options.debug )
+						//console.log('Step: ' + tr + ' - block found');
+					}
+				}
+				
 				if ( e )
 				{
 
@@ -857,7 +881,7 @@ class sdPresetEditor extends sdEntity
 					let new_relative_y = Math.floor( (
 														( e.y + e._hitbox_y1 - preset_data.height ) * ( 1 - morph_y ) + ( e.y + e._hitbox_y2 ) * morph_y
 											) / 16 ) * 16;
-
+											
 					Try( new_relative_x, new_relative_y );		
 
 					t2 = Date.now();

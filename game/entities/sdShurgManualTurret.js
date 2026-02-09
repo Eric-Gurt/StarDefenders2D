@@ -238,7 +238,8 @@ class sdShurgManualTurret extends sdEntity
 				
 				sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SHURG );
 				character_entity._potential_vehicle = this;
-				character_entity._key_states.SetKey( 'KeyE', 1 );
+				this.AddDriver( character_entity, true ); // Maybe better?
+				//character_entity._key_states.SetKey( 'KeyE', 1 );
 				
 				this._spawn_with_pilot = false;
 			}

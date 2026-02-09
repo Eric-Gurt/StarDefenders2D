@@ -37,7 +37,8 @@ class sdLost extends sdEntity
 			'none',
 			'saturate(8) contrast(2) brightness(0.2) sepia(1) saturate(20) hue-rotate(-17deg) brightness(0.7)', // Glassed gives a red hue
 			'saturate(8) contrast(0.6) brightness(0.2) sepia(1) saturate(8) hue-rotate(-20deg) brightness(0.8)',
-			'saturate(0) brightness(0.5) contrast(2)'
+			'saturate(0) brightness(0.5) contrast(2)',
+			'none'
 		];
 		
 		sdLost.FILTER_GOLDEN = 0;
@@ -46,6 +47,7 @@ class sdLost extends sdEntity
 		sdLost.FILTER_GLASSED = 3;
 		sdLost.FILTER_RED = 4;
 		sdLost.FILTER_VOID = 5;
+		sdLost.FILTER_BANISHED = 6; // No filtration, just makes entity fade over time.
 
 		sdWorld.static_think_methods.push( sdLost.StaticThink );
 		
@@ -55,6 +57,12 @@ class sdLost extends sdEntity
 	static ApplyAffection( ent, amonut, bullet=null, f=sdLost.FILTER_GOLDEN )
 	{
 		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
+		
+		
+		// For banish effect used by High Council, disallow 3D drawn objects to be banished
+		if ( f === sdLost.FILTER_BANISHED && ( ent.DrawIn3D() ) )
+		if ( ent.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX || ent.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || ent.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
+		return;
 		
 		if ( ( ent._hard_collision && !ent.is( sdCrystal ) && !( ent.is( sdAsp ) && ( ent.tier === 2 || ent.tier === 3 ) ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
 			 ( !ent._hard_collision && ( ent.is( sdFaceCrab ) || ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD && ent.class !== sdGun.CLASS_SCORE_SHARD ) || is_dead ) ) ) // Not for BG entities
@@ -329,6 +337,13 @@ class sdLost extends sdEntity
 		
 		this._fake_matter_max = 0;
 		
+		// Specific for "banished" effect only
+		if ( this.f === sdLost.FILTER_BANISHED )
+		{
+			this._time_left = 150;
+			this.m = 150; // Mass is set to 150, as it will  be used as alpha opacity in making the effect fade away
+		}
+		
 		//if ( this.s )
 		{
 			this._update_version = 0; // sdEntity constructor won't make this property during snapshot load since it is dynamic
@@ -465,6 +480,9 @@ class sdLost extends sdEntity
 			{
 				if ( sdWorld.is_server )
 				{
+					if ( this.f === sdLost.FILTER_BANISHED ) // Banished effect only
+					this.m = Math.max( 0, this.m - GSPEED );
+				
 					this.awake = 1;
 					if ( this._time_left > 0 )
 					this._time_left = Math.max( 0, this._time_left - GSPEED );
@@ -498,6 +516,9 @@ class sdLost extends sdEntity
 			else
 			if ( this.f === sdLost.FILTER_VOID )
 			sdEntity.Tooltip( ctx, 'Void ' + this.t );
+			else
+			if ( this.f === sdLost.FILTER_BANISHED )
+			sdEntity.Tooltip( ctx, 'Banished ' + this.t );
 
 			else
 			sdEntity.Tooltip( ctx, this.t );
@@ -522,6 +543,10 @@ class sdLost extends sdEntity
 			else
 			if ( this.f === 3 )
 			ctx.globalAlpha = 1;
+		
+			if ( this.f === 6 ) // Banished effect used by High Councilors
+			ctx.globalAlpha = this.m / 150;
+		
 			sdWorld.ApplyDrawOperations( ctx, this.d );
 
 			ctx.globalAlpha = 1;
