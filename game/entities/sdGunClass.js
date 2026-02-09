@@ -10711,6 +10711,76 @@ class sdGunClass
 				return false; 
 			}
 		};
+	 	 sdGun.classes[ sdGun.CLASS_SAW = 157 ] = {
+			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
+            image_blade: sdWorld.CreateImageFromFile( 'saw_blade' ),
+			sound: 'gun_saw',//'cut_droid_attack',
+			sound_pitch: 1.2,
+			sound_volume: 0.7,
+			title: 'Crystal cutter',
+			slot: 0,
+			reload_time: 6,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			projectile_velocity: 20,
+			spawnable: false,
+			has_description: [ 'Can be used to cut large crystals into 4 smaller ones' ],
+			projectile_properties: 
+			{ 
+				time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
+			},
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = {  time_left: 1, color: 'transparent', _dirt_mult: -2 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						target_entity._being_sawed_time = sdWorld.time;
+					}
+				};
+				
+				return obj;
+			},
+            onThink: ( gun, GSPEED )=>
+            {
+                const PI2 = Math.PI * 2;
+
+                if ( gun.reload_time_left !== 0 )
+                gun._anim += 0.6 * GSPEED;
+            
+                gun._anim = ( ( gun._anim % PI2 ) + PI2 ) % PI2; // Keep between 0 and 2PI
+            },
+            ExtraDraw: ( gun, ctx, attached )=>
+			{
+                const blade_offset_x = 9;
+                const blade_offset_y = 1;
+                ctx.save();
+                ctx.translate( blade_offset_x, blade_offset_y );
+                ctx.rotate( gun._anim )
+                ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_blade, -15.5, -15.5, 32, 32 );
+                ctx.restore();
+
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#c0c0c0', 15, 'blade' ) )
+		};
 
 		// Add new gun classes above this line //
 
