@@ -416,9 +416,11 @@ class sdEffect extends sdEntity
 		};
 		
 		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_SPARK ] );
-		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
-		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
-		
+		// sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
+		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].speed = 1 / 9;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity_mult = 0.333;
+
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_GLOW_HIT ] );
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].images = [ sdWorld.CreateImageFromFile( 'glow_alt' ) ];
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].random_flip = true;
@@ -1061,7 +1063,7 @@ class sdEffect extends sdEntity
 		}
 
 		if ( sdEffect.types[ this._type ].gravity )
-		this.sy += sdEffect.types[ this._type ].gravity_mult || 1 * sdWorld.gravity * GSPEED;
+		this.sy += ( sdEffect.types[ this._type ].gravity_mult ?? 1 ) * sdWorld.gravity * GSPEED;
 		
 		if ( sdEffect.types[ this._type ].collisions )
 		{
@@ -1097,10 +1099,10 @@ class sdEffect extends sdEntity
 			
 			if ( this._extra_eff_timer <= 0 )
 			{
-				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx * 0.8, sy:this.sy * 0.8, color: this._color });
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:( Math.random() - 0.5) * 3, sy:( Math.random() - 0.5 ) * 3, color: this._color });
 				sdEntity.entities.push( e );
 				
-				this._extra_eff_timer = 2.5;
+				this._extra_eff_timer = 2;
 			}
 		}
 		
