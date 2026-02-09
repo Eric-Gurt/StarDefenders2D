@@ -44,18 +44,19 @@ class sdRotator extends sdEntity
         
         this.owner = params.owner;
 
-        this._flip_rotation = params.flip_rotation || 1;
-        this._orbit_speed = ( params._orbit_speed || this.type === sdRotator.TYPE_CUBE_DISC ? 0.025 : this.type === sdRotator.TYPE_CUBE_SHELL ? 0 : 0.01 ) * this._flip_rotation;
-        this._orbit_distance = params._orbit_distance || this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 16 : 32;
-		this._orbit_angle = params.orbit_angle || 0; // Can be also used as start offset
+        this._flip_rotation = params.flip_rotation ?? 1;
+        this._orbit_speed = ( params._orbit_speed ?? this.type === sdRotator.TYPE_CUBE_DISC ? 0.025 : this.type === sdRotator.TYPE_CUBE_SHELL ? 0 : 0.01 ) * this._flip_rotation;
+        this._orbit_distance = params._orbit_distance ?? this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 16 : 32;
+		this._orbit_angle = params.orbit_angle ?? 0; // Can be also used as start offset
         this.angle = 0; // For visuals
         
         this.disabled = false;
         this._ttl = 300;
         
-        this._damage = this.type === sdRotator.TYPE_CUBE_DISC ? 10 : 0;
+        this._damage = params.damage ?? this.type === sdRotator.TYPE_CUBE_DISC ? 10 : 0;
         
-        this._regen_timeout = 0;
+        this.regen_timeout = 0;
+        this.attack_anim = 0;
         
         if ( this.owner )
         {
@@ -101,7 +102,7 @@ class sdRotator extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
     
-        this._regen_timeout = 30;
+        this.regen_timeout = 30;
     
         if ( initiator )
 		{
@@ -140,14 +141,22 @@ class sdRotator extends sdEntity
 	}
     onThink( GSPEED )
     {
-        if ( !this.owner || this.owner._is_being_removed )
+        if ( sdWorld.is_server )
+        if ( this.owner )
         {
-            this.owner = null;
-            this.disabled = true;
+            if ( this.owner.GetClass() === 'sdCube' )
+            {
+                this.attack_anim = this.owner.attack_anim;
+            }
+
+            if ( this.owner._is_being_removed || ( this.owner.hea || this.owner._hea ) <= 0 )
+            {
+                this.owner = null;
+                this.disabled = true;
+            }
         }
-        
-        if ( this._regen_timeout > 0 )
-		this._regen_timeout -= GSPEED;
+        if ( this.regen_timeout > 0 )
+		this.regen_timeout -= GSPEED;
 		else
 		{
 			if ( this.hea < this.hmax )
@@ -160,6 +169,7 @@ class sdRotator extends sdEntity
         {
             this.sy += sdWorld.gravity * GSPEED;
             this.angle += this.sx / 2;
+
             this._ttl--;
             if ( this._ttl <= 0 )
             {
@@ -177,10 +187,13 @@ class sdRotator extends sdEntity
             {
                 const target_x = this.owner.x + Math.cos( this._orbit_angle ) * this._orbit_distance;
                 const target_y = this.owner.y + Math.sin( this._orbit_angle ) * this._orbit_distance;
+
                 this.x = target_x
                 this.y = target_y
+
                 if ( ( this.owner.hea || this.owner._hea ) > 0 )
-                this._orbit_angle += this._orbit_speed;
+                this._orbit_angle += this._orbit_speed * GSPEED;
+    
                 this.angle = Math.atan2( this.y - this.owner.y, this.x - this.owner.x ) - ( Math.PI / 4 );
                 this.angle *= 100;
                 this.sx = this.sy = 0;
@@ -277,8 +290,13 @@ class sdRotator extends sdEntity
             const scale = 20 / 14;
             ctx.scale( scale, scale );
         }
-        if ( this.disabled ) xx = 1;
 
+        if ( this.disabled )
+        xx = 1;
+        else if ( this.attack_anim > 0 )
+        xx = 3;
+        else if ( this.regen_timeout > 15 )
+        xx = 2;
         ctx.drawImageFilterCache( sdRotator.img_rotator, 32 * xx, 32 * yy, 32,32, -16, -16, 32,32 );
 
         ctx.sd_filter = null;
