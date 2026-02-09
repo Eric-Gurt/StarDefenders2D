@@ -427,6 +427,11 @@ class sdCube extends sdEntity
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.red_filter.s;
 		}
+        if ( this.kind === sdCube.KIND_PURPLE )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.purple_filter.s;
+		}
 	}
 	
 	Damage( dmg, initiator=null )
