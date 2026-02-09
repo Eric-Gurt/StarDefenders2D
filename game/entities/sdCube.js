@@ -1421,7 +1421,7 @@ class sdCube extends sdEntity
 
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
-                                    bullet_obj1._extra_filtering_method = extra_filtering_method;
+                                    bullet_obj._extra_filtering_method = extra_filtering_method;
 									sdEntity.entities.push( bullet_obj );
 									
 									sdSound.PlaySound({ name:'supercharge_combined2_part2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
