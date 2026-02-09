@@ -12,8 +12,7 @@ class sdRotator extends sdEntity
 {
 	static init_class()
 	{
-		sdRotator.img_cube_disc = sdWorld.CreateImageFromFile( 'cube_disc' );
-        sdRotator.img_cube_shell = sdWorld.CreateImageFromFile( 'cube_shell' );
+		sdRotator.img_rotator = sdWorld.CreateImageFromFile( 'sdRotator' );
 
         sdRotator.TYPE_CUBE_DISC = 0;
         sdRotator.TYPE_CUBE_SHELL = 1;
@@ -52,6 +51,7 @@ class sdRotator extends sdEntity
         this.angle = 0; // For visuals
         
         this.disabled = false;
+        this._ttl = 300;
         
         this._damage = this.type === sdRotator.TYPE_CUBE_DISC ? 10 : 0;
         
@@ -160,6 +160,11 @@ class sdRotator extends sdEntity
         {
             this.sy += sdWorld.gravity * GSPEED;
             this.angle += this.sx / 2;
+            this._ttl--;
+            if ( this._ttl <= 0 )
+            {
+                this.Damage( 10_000 );
+            }
             this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
         }
     }
@@ -257,17 +262,25 @@ class sdRotator extends sdEntity
 	{
 		ctx.rotate ( this.angle / 100 );
         ctx.sd_filter = this.GetFilter();
+
+        let xx = 0;
+        let yy = 0;
+
 		if ( this.type === sdRotator.TYPE_CUBE_DISC )
         {
-            ctx.scale( 1.5, 1.5 )
-            ctx.drawImageFilterCache( sdRotator.img_cube_disc, -16, -16, 32, 32 );
+            yy = 0;
+            ctx.scale( 1.5, 1.5 );
         }
         if ( this.type === sdRotator.TYPE_CUBE_SHELL )
         {
-            const scale = 20 / 14
-            ctx.scale( scale, scale )
-            ctx.drawImageFilterCache( sdRotator.img_cube_shell, -16, -16, 32, 32 );
+            yy = 1;
+            const scale = 20 / 14;
+            ctx.scale( scale, scale );
         }
+        if ( this.disabled ) xx = 1;
+
+        ctx.drawImageFilterCache( sdRotator.img_rotator, 32 * xx, 32 * yy, 32,32, -16, -16, 32,32 );
+
         ctx.sd_filter = null;
 	}
     

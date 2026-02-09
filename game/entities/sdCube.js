@@ -295,7 +295,6 @@ class sdCube extends sdEntity
 		this._time_amplification = 0;
         
         this._has_spawned_rotators = false;
-        console.log(this.GetRotatorCount())
         
         for ( let i = 0; i < this.GetRotatorCount( this.kind ); ++i )
         {
@@ -897,6 +896,10 @@ class sdCube extends sdEntity
 	
 		return [];
 	}
+    GetChargedShotCount()
+	{
+		return ( this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 6 : 3 );
+	}
     getTeleportGroup() // List of entities that will be teleproted together with this entity. For sdSandWorm and sdQuadro-like entities. You might want to use sdWorld.ExcludeNullsAndRemovedEntitiesForArray on returned array to filter out null pointers and removed entities
 	{
         const arr = [ this, ...this.GetRotators() ]
@@ -961,10 +964,8 @@ class sdCube extends sdEntity
 			bullet_obj1._custom_target_reaction = spear_targer_reaction;
             bullet_obj1._extra_filtering_method = extra_filtering_method;
 
-
 			sdEntity.entities.push( bullet_obj1 );
         }
-
 	}
 	TeleportSomewhere( dist = 1, add_x = 0, add_y = 0 ) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
 	{
@@ -1394,6 +1395,12 @@ class sdCube extends sdEntity
 
 								if ( this.hea > 0 && this._frozen <= 0 ) // Not disabled in time
 								{
+                                    let extra_filtering_method = ( e )=>
+                                    {
+                                        const rotators = this.GetRotators();
+                                        return !rotators.includes( e );
+                                    }
+    
 									let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
 
 									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -1409,7 +1416,7 @@ class sdCube extends sdEntity
 
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
-								
+                                    bullet_obj1._extra_filtering_method = extra_filtering_method;
 									sdEntity.entities.push( bullet_obj );
 									
 									sdSound.PlaySound({ name:'supercharge_combined2_part2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
@@ -1455,6 +1462,12 @@ class sdCube extends sdEntity
 
 								if ( !beam_attack )
 								{
+                                    let extra_filtering_method = ( e )=>
+                                    {
+                                        const rotators = this.GetRotators();
+                                        return !rotators.includes( e );
+                                    }
+
 									let an = Math.atan2( yy - this.y, xx - this.x );
 	
 	
@@ -1471,7 +1484,7 @@ class sdCube extends sdEntity
 									bullet_obj._rail = true;
 	
 									bullet_obj._damage = 17;
-									
+                                    bullet_obj._extra_filtering_method = extra_filtering_method;
 									if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
 									{
 										bullet_obj._damage = 20;
@@ -1867,7 +1880,6 @@ class sdCube extends sdEntity
 			}
 		}
 
-		
 		if ( this.hea > 0 )
 		if ( this.beam_attack_active )
 		{

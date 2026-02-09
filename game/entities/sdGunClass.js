@@ -10711,8 +10711,7 @@ class sdGunClass
 				return false; 
 			}
 		};
-
-	 	 sdGun.classes[ sdGun.CLASS_SAW = 155 ] = {
+	 	 sdGun.classes[ sdGun.CLASS_SAW = 157 ] = {
 			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
             image_blade: sdWorld.CreateImageFromFile( 'saw_blade' ),
 			sound: 'gun_saw',//'cut_droid_attack',
