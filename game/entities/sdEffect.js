@@ -971,7 +971,7 @@ class sdEffect extends sdEntity
 						let type = this._shrapnel ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
 						let mult = type === sdEffect.TYPE_SHRAPNEL ? 2 / 3 : 1;
 						
-						let s = new sdEffect({ type:type, x:this.x, y:this.y, sx:xx*mult, sy:yy*mult, color: this._color });
+						let s = new sdEffect({ type:type, x:this.x, y:this.y, sx:xx*mult, sy:yy*mult, color: this._color, scale: type === sdEffect.TYPE_SHRAPNEL ? Math.random() + 1 : 1 });
 						sdEntity.entities.push( s );
 					}
 				}
