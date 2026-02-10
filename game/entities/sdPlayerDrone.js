@@ -118,7 +118,7 @@ class sdPlayerDrone extends sdCharacter
 	{
 		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
 		{
-			this.matter_max = Math.min( 100 + Math.max( 0, this._score * 20 ), 200 ) + this._matter_capacity_boosters;
+			this.matter_max = Math.min( 100 + Math.max( 0, this._score * 20 ), 400 ) + this._matter_capacity_boosters;
 		}
 	}
 	
@@ -236,7 +236,7 @@ class sdPlayerDrone extends sdCharacter
 		
 		let scale = this.s / 100;
 		
-		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 && !this._inventory[ this.gun_slot ] && this.build_tool_level >= 1 )
+		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 && !this._inventory[ this.gun_slot ] /*&& this.build_tool_level >= 1*/ )
 		{
 			if ( this._beep_charge < 90 )
 			this._beep_charge += GSPEED;
@@ -386,15 +386,15 @@ class sdPlayerDrone extends sdCharacter
 					{	
 						let mode = 1;
 						
-						const ConsiderMode = ( slot, required_build_tool_level=0 )=>
+						const ConsiderMode = ( slot, required_build_tool_level= 0 )=>
 						{
 							if ( ( this.gun_slot === slot ) && this.matter >= matter_cost[ slot ] && this.build_tool_level >= required_build_tool_level )
 							mode = slot;
 						};
 						
-						ConsiderMode( 2, 1 );
-						ConsiderMode( 4, 1 );
-						ConsiderMode( 5, 1 );
+						ConsiderMode( 2 );
+						ConsiderMode( 4 );
+						ConsiderMode( 5 );
 						ConsiderMode( 7 );
 
 						if ( mode === 5 )
@@ -736,7 +736,7 @@ class sdPlayerDrone extends sdCharacter
 					if ( this.fire_anim > 2 )
 					ctx.filter = 'brightness(1.5)';
 					else
-					if ( this.gun_slot === 5 && !this._inventory[ this.gun_slot ] && this.build_tool_level >= 1 )
+					if ( this.gun_slot === 5 && !this._inventory[ this.gun_slot ] && this.matter >= 100 /*&& this.build_tool_level >= 1*/ ) // Only show filter if the drone has enough matter to trigger the explosion
 					{
 						ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
 					}
