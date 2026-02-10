@@ -345,8 +345,7 @@ class sdWeaponBench extends sdEntity
 					item.y = offsets.y + this.y;
 				}
 			}
-		
-			if ( this.locked )
+            else
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -356,7 +355,8 @@ class sdWeaponBench extends sdEntity
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					can_hit_owner: false,
-					color: sdEffect.default_explosion_color
+					color: sdEffect.default_explosion_color,
+                    shrapnel: true
 				});
 				
 				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
@@ -567,7 +567,7 @@ class sdWeaponBench extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 			{
 				let key = null;
 				let potential_key = exectuter_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ];
@@ -924,7 +924,7 @@ class sdWeaponBench extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
+        if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 		{
 			if ( !this.locked )
 			for ( let i = 0; i < this.GetSlotsTotal(); i++ )
