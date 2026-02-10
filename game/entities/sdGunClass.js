@@ -26,6 +26,7 @@ import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdArea from './sdArea.js';
+import sdWeaponBench from './sdWeaponBench.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
 
 
@@ -10307,6 +10308,10 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ACCESS_KEY = 150 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'access_key' ),
+            image0: [ sdWorld.CreateImageFromFile( 'access_key_activated' ), sdWorld.CreateImageFromFile( 'access_key_activated' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'access_key_activated' ), sdWorld.CreateImageFromFile( 'access_key_activated' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'access_key' ), sdWorld.CreateImageFromFile( 'access_key' ) ],
+			has_images: true,
 			sound: 'sd_beacon',
 			sound_pitch: 1.5,
 			//title: 'Access key',
@@ -10332,9 +10337,9 @@ class sdGunClass
 				{
 					_damage: 1, color:'transparent', _soft: true, time_left: 2, _custom_target_reaction:( bullet, target_entity )=> 
 					{
-						if ( target_entity.GetClass() === 'sdWeaponBench' && target_entity.type === 1  ) // sdWeaponBench.TYPE_DISPLAY
+						if ( target_entity.is( sdWeaponBench ) && target_entity.type === sdWeaponBench.TYPE_DISPLAY  ) // sdWeaponBench.TYPE_DISPLAY
 						{
-							target_entity.LockLogic( gun._held_by, gun )
+							target_entity.LockLogic( gun._held_by, gun );
 						}
 					}
 				};
@@ -10717,9 +10722,9 @@ class sdGunClass
 			sound: 'gun_saw',//'cut_droid_attack',
 			sound_pitch: 1.2,
 			sound_volume: 0.7,
-			title: 'Crystal cutter',
+			title: 'Chainsaw',
 			slot: 0,
-			reload_time: 6,
+			reload_time: 5,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
@@ -10739,7 +10744,7 @@ class sdGunClass
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 				
-				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity ) =>
 				{
 					if ( target_entity.is( sdCrystal ) )
 					{
@@ -10779,7 +10784,13 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#c0c0c0', 15, 'blade' ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#404040', 15, 'blade 1' ),
+				'#101010', 15, 'blade 2' ),
+				'#313131', 15, 'blade 3' ),
+				'#000000', 15, 'blade 4' ),
+                '#464646', 15, 'blade 5' ),
+                '#282828', 15, 'blade 6' ) )
 		};
 
 		// Add new gun classes above this line //
