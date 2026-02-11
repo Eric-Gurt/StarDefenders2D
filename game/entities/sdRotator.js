@@ -105,6 +105,7 @@ class sdRotator extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
     
+        if ( dmg > 0 )
         this.regen_timeout = 30;
     
         if ( initiator )
@@ -275,7 +276,7 @@ class sdRotator extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-        if ( this.disabled || attached )
+        // if ( this.disabled || attached )
         {
             ctx.rotate ( this.angle / 100 );
             ctx.sd_filter = this.GetFilter();
