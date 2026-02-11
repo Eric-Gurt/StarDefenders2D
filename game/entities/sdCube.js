@@ -888,7 +888,8 @@ class sdCube extends sdEntity
 		//this.remove();
 	}
 	
-	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW ? 30*4 : 30; }
+	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ? 30*4 : 30; }
+
 	Impulse( x, y )
 	{
 		if ( this.held_by )
