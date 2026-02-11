@@ -45,7 +45,7 @@ class sdRotator extends sdEntity
         this.owner = params.owner;
 
         this.flip_rotation = params.flip_rotation ?? 1;
-        this.orbit_speed = ( params.orbit_speed ?? this.type === sdRotator.TYPE_CUBE_DISC ? 0.025 : this.type === sdRotator.TYPE_CUBE_SHELL ? 0 : 0.01 ) * this.flip_rotation;
+        this.orbit_speed = ( params.orbit_speed ?? this.type === sdRotator.TYPE_CUBE_DISC ? 0.025 : this.type === sdRotator.TYPE_CUBE_SHELL ? 0 : 0.01 ) * this.flip_rotation * 100;
         this.orbit_distance = params.orbit_distance ?? this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 16 : 32;
 		this.orbit_angle = params.orbit_angle * 100 ?? 0; // Can be also used as start offset
 
@@ -66,6 +66,9 @@ class sdRotator extends sdEntity
             
             this.x = target_x;
             this.y = target_y;
+
+            this.angle = Math.atan2( this.y - this.owner.y, this.x - this.owner.x ) - ( Math.PI / 4 );
+            this.angle *= 100;
         }
 
         this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
@@ -115,9 +118,7 @@ class sdRotator extends sdEntity
 				initiator._nature_damage += dmg * 8;
 			}
 		}
-	
-		let old_hp = this.hea;
-	
+
 		this.hea -= dmg;
         this.hea = Math.min( this.hea, this.hmax ); // Prevent overhealing
 
@@ -176,8 +177,8 @@ class sdRotator extends sdEntity
             {
                 this.Damage( 10_000 );
             }
-            this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
         }
+        this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
     }
 	Spin( GSPEED ) // Separate from onThink, so it can keep its allignment even when hibernated
 	{
@@ -193,7 +194,7 @@ class sdRotator extends sdEntity
                 this.y = target_y
 
                 if ( ( this.owner.hea || this.owner._hea ) > 0 )
-                this.orbit_angle += 100 * this.orbit_speed * GSPEED;
+                this.orbit_angle += 100 * ( this.orbit_speed / 100 ) * GSPEED;
 
                 this.angle = Math.atan2( this.y - this.owner.y, this.x - this.owner.x ) - ( Math.PI / 4 );
                 this.angle *= 100;
