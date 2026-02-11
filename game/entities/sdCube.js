@@ -1751,12 +1751,11 @@ class sdCube extends sdEntity
 	
 		return "Cube";
 	}
-	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title, 0, this.kind === sdCube.KIND_RED ? -10 : 0 );
 		
-		if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_MATTER_STEALER )
+		if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_PURPLE || this.kind === sdCube.KIND_MATTER_STEALER )
 		this.DrawHealthBar( ctx, undefined, 10 );
 	
 		if ( this.hea <= 0 )
