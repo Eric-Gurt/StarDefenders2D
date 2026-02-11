@@ -889,7 +889,6 @@ class sdCube extends sdEntity
 	}
 	
 	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ? 30*4 : 30; }
-
 	Impulse( x, y )
 	{
 		if ( this.held_by )
@@ -1027,13 +1026,13 @@ class sdCube extends sdEntity
     GetRotators()
     {
         const arr = [];
-        if ( this.hea <= 0 ) return arr;
 
         for ( let i = 0; i < this.GetRotatorCount(); ++i )
         {
             const rotator = this[ 'rotator' + i ];
-            if ( rotator && !rotator._is_being_removed ) arr.push( rotator );
+            if ( rotator && rotator.owner === this && !rotator._is_being_removed ) arr.push( rotator );
         }
+
         return arr;
     }
 	onThink( GSPEED ) // Class-specific, if needed
@@ -1952,7 +1951,7 @@ class sdCube extends sdEntity
 	onRemoveAsFakeEntity()
 	{
 		sdCube.alive_cube_counter--;
-								
+
 		if ( this.kind === sdCube.KIND_YELLOW )
 		sdCube.alive_huge_cube_counter--;
 
