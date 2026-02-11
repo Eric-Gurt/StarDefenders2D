@@ -7841,7 +7841,7 @@ class sdGunClass
 		};
 
 
-		sdGun.classes[ sdGun.CLASS_CHAINSAW = 117 ] = {
+		sdGun.classes[ sdGun.CLASS_CRYSTAL_CUTTER = 117 ] = {
 			image: sdWorld.CreateImageFromFile( 'crystal_saw' ),
 			image0: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
@@ -10716,7 +10716,7 @@ class sdGunClass
 				return false; 
 			}
 		};
-	 	 sdGun.classes[ sdGun.CLASS_SAW = 157 ] = {
+	 	 sdGun.classes[ sdGun.CLASS_CHAINSAW = 157 ] = {
 			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
             image_blade: sdWorld.CreateImageFromFile( 'saw_blade' ),
 			sound: 'gun_saw',//'cut_droid_attack',
@@ -10730,7 +10730,7 @@ class sdGunClass
 			count: 1,
 			is_sword: false,
 			projectile_velocity: 20,
-			spawnable: false,
+            min_workbench_level: 5,
 			has_description: [ 'Can be used to cut large crystals into 4 smaller ones' ],
 			projectile_properties: 
 			{ 
