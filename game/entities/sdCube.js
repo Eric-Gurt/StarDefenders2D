@@ -1768,6 +1768,7 @@ class sdCube extends sdEntity
 	
 		if ( this.held_by === null || attached )
 		{
+            /*
             for ( const rotator of this.GetRotators() ) // Maybe this is not needed anymore? I think it appears a bit smoother with this though
             {
                 const offset_x = Math.cos( rotator.orbit_angle / 100 ) * rotator.orbit_distance;
@@ -1778,7 +1779,7 @@ class sdCube extends sdEntity
                 rotator.Draw( ctx, true )
                 ctx.restore();
             }
-            
+            */
             if ( !sdShop.isDrawing ) // Some subtle randomness atleast
             {
                 const flip = this._net_id % 2 === 0 ? 1 : -1;
