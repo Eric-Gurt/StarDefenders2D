@@ -766,7 +766,7 @@ class sdDrone extends sdEntity
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_SETR_REPULSOR });
 					else
 					if ( this.type === sdDrone.DRONE_CUT_DROID )
-					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_CHAINSAW });
+					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_CRYSTAL_CUTTER });
 					//else
 					//gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
 
