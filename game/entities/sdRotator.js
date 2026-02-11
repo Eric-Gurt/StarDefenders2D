@@ -40,7 +40,7 @@ class sdRotator extends sdEntity
         this.type = params.type;
         this.tier = params.tier;
 		
-		this.hea = this.hmax = 750;
+		this.hea = this.hmax = this.type === sdRotator.TYPE_CUBE_DISC ? 1500 : 750;
         
         this.owner = params.owner;
 
@@ -86,7 +86,6 @@ class sdRotator extends sdEntity
 	{
 		return ( prop === 'owner' );
 	}
-
 	Impact( vel ) // fall damage basically
 	{
         // No fall dmg
@@ -144,28 +143,29 @@ class sdRotator extends sdEntity
     onThink( GSPEED )
     {
         if ( sdWorld.is_server )
-        if ( this.owner )
         {
-            if ( this.owner.GetClass() === 'sdCube' )
+            if ( this.owner )
             {
-                this.attack_anim = this.owner.attack_anim;
+                if ( this.owner.is( sdCube ) )
+                {
+                    this.attack_anim = this.owner.attack_anim;
+                }
+            }
+            if ( !this.owner || this.owner._is_being_removed || ( this.owner.hea || this.owner._hea ) <= 0 )
+            {
+                this.owner = null;
+                this.disabled = true;
+            }
+            if ( this.regen_timeout > 0 )
+            this.regen_timeout -= GSPEED;
+            else
+            {
+                if ( this.hea < this.hmax )
+                {
+                    this.hea = Math.min( this.hea + GSPEED, this.hmax );
+                }
             }
         }
-        if ( !this.owner || this.owner._is_being_removed || ( this.owner.hea || this.owner._hea ) <= 0 )
-        {
-            this.owner = null;
-            this.disabled = true;
-        }
-        if ( this.regen_timeout > 0 )
-		this.regen_timeout -= GSPEED;
-		else
-		{
-			if ( this.hea < this.hmax )
-			{
-				this.hea = Math.min( this.hea + GSPEED, this.hmax );
-			}
-        }
-
         if ( this.disabled )
         {
             this.sy += sdWorld.gravity * GSPEED;
@@ -312,5 +312,4 @@ class sdRotator extends sdEntity
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
 }
-
 export default sdRotator;
