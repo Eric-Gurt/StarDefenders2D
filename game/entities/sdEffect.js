@@ -416,10 +416,11 @@ class sdEffect extends sdEntity
 		};
 		
 		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_SPARK ] );
-		// sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
 		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
         sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].speed = 1 / 9;
         sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity_mult = 0.333;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].bounce_intensity = 0.2;
 
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_GLOW_HIT ] );
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].images = [ sdWorld.CreateImageFromFile( 'glow_alt' ) ];
@@ -971,7 +972,7 @@ class sdEffect extends sdEntity
 						let type = this._shrapnel ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
 						let mult = type === sdEffect.TYPE_SHRAPNEL ? 2 / 3 : 1;
 						
-						let s = new sdEffect({ type:type, x:this.x, y:this.y, sx:xx*mult, sy:yy*mult, color: this._color, scale: type === sdEffect.TYPE_SHRAPNEL ? Math.random() + 1 : 1 });
+						let s = new sdEffect({ type:type, x:this.x + xx * 3, y:this.y + yy * 3, sx:xx*mult, sy:yy*mult, color: this._color, scale: type === sdEffect.TYPE_SHRAPNEL ? Math.min( 1.5, Math.random() + 1 ) : 1 });
 						sdEntity.entities.push( s );
 					}
 				}
