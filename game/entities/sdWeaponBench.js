@@ -82,7 +82,7 @@ class sdWeaponBench extends sdEntity
 		this.gun_password = null;
 		
 		this._current_category_stack = [];
-		
+
 		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 		this[ 'item' + i ] = null;
 	}
@@ -375,14 +375,7 @@ class sdWeaponBench extends sdEntity
 	}
 	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
-		let ents = [];
-		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
-		if ( this[ 'item' + i ] )
-		{
-			let item = this[ 'item' + i ];
-			ents.push( item );
-		}
-		return ents;
+        return [ this, ...this.GetItems() ];
 	}
 	MeasureMatterCost()
 	{
