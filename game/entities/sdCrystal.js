@@ -1175,6 +1175,8 @@ class sdCrystal extends sdEntity
 					ctx.restore();
 					ctx.globalAlpha = 1;
 				}
+                else if ( e.speciality === 1 )
+                return e._DefaultDraw( ctx, attached )
 			},
 			
 			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
