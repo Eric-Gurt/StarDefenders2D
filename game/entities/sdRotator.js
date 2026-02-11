@@ -92,7 +92,7 @@ class sdRotator extends sdEntity
 	}
 	Impulse( x, y )
 	{
-        if ( !this.disabled ) return;
+        if ( this.owner ) return this.owner.Impulse( x, y );
 
 		this.sx += x * 0.05;
 		this.sy += y * 0.05;
