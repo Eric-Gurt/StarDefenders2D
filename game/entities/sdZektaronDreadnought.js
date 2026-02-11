@@ -478,7 +478,8 @@ class sdZektaronDreadnought extends sdEntity
 							owner: that,
 							can_hit_owner: true,
 							color:'#900000',
-							no_smoke: ( Math.random() > 0.25 )
+							no_smoke: ( Math.random() > 0.25 ),
+                            shrapnel: true
 						});
 					}
 				}, i * 150 );
