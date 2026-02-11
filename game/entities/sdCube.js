@@ -196,19 +196,20 @@ class sdCube extends sdEntity
 		return ( this.alpha > 0 );
 	}
     
-    GetRotatorCount( kind )
+    GetRotatorCount()
     {
-        return ( kind === sdCube.KIND_RED || kind === sdCube.KIND_PURPLE ) ? 4 : 0
+        return ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_PURPLE ) ? 4 : 0
 	}
     
-    GetRotatorType( kind )
+    GetRotatorType()
     {
-        return kind === sdCube.KIND_RED ? sdRotator.TYPE_CUBE_DISC : sdRotator.TYPE_CUBE_SHELL;
+        return this.kind === sdCube.KIND_RED ? sdRotator.TYPE_CUBE_DISC : sdRotator.TYPE_CUBE_SHELL;
 	}
+
 	constructor( params )
 	{
 		super( params );
-		
+
 		this.sx = 0;
 		this.sy = 0;
 		
@@ -236,6 +237,7 @@ class sdCube extends sdEntity
 				this.kind === sdCube.KIND_YELLOW ? 800 : 
 				this.kind === sdCube.KIND_MATTER_STEALER ? 1200 : 
 				this.kind === sdCube.KIND_PINK ? 100 : 
+                this.kind === sdCube.KIND_PURPLE ? 800 :
 				200;
 		this.hea = this.hmax;
 		
@@ -296,10 +298,13 @@ class sdCube extends sdEntity
         
         this._has_spawned_rotators = false;
         
-        for ( let i = 0; i < this.GetRotatorCount( this.kind ); ++i )
-        {
-            this[ '_rotator' + i ] = null;
-        }
+        /*for ( let i = 0; i < this.GetRotatorCount(); ++i ) Rotators will always be null client-side using this way
+        this[ 'rotator' + i ] = null;
+        */
+        this.rotator0 = null;
+        this.rotator1 = null;
+        this.rotator2 = null;
+        this.rotator3 = null;
 		//this._targets_raw_cache = [];
 		//this._targets_raw_cache_until = 0;
 		
@@ -345,7 +350,7 @@ class sdCube extends sdEntity
 	}*/
     ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop.startsWith( '_rotator' ) );
+		return ( prop.startsWith( 'rotator' ) );
 	}
     CreateRotators( count, type )
     {
@@ -357,7 +362,7 @@ class sdCube extends sdEntity
             const angle = Math.PI * 2 * ( ( i / count ) + 1 / ( count * 2 ) )
             const rotator = sdEntity.Create( sdRotator, ({ owner: this, flip_rotation: flip, orbit_angle: angle, type: type, tier: this.kind }));
 
-            this[ '_rotator' + i ] = rotator;
+            this[ 'rotator' + i ] = rotator;
         }
     }
 	SetTarget( ent )
@@ -899,7 +904,7 @@ class sdCube extends sdEntity
 		if ( this.held_by )
 		return [ this.held_by ]; 
 	
-		return [];
+		return this.GetRotators();
 	}
     GetChargedShotCount()
 	{
@@ -1021,9 +1026,11 @@ class sdCube extends sdEntity
     GetRotators()
     {
         const arr = [];
-        for ( let i = 0; i < this.GetRotatorCount( this.kind ); ++i )
+        if ( this.hea <= 0 ) return arr;
+
+        for ( let i = 0; i < this.GetRotatorCount(); ++i )
         {
-            const rotator = this[ '_rotator' + i ];
+            const rotator = this[ 'rotator' + i ];
             if ( rotator && !rotator._is_being_removed ) arr.push( rotator );
         }
         return arr;
@@ -1388,7 +1395,7 @@ class sdCube extends sdEntity
 						this.attack_anim = 15;
 						this._last_attack = sdWorld.time;
 						let targ = targets[ i ];
-							
+
 						if ( this.kind === sdCube.KIND_YELLOW && Math.random() > 0.9 )
 						{
 							this.attack_anim = 2200 / 1000 * 30;
@@ -1573,8 +1580,12 @@ class sdCube extends sdEntity
 									{
 										this.FireDirectionalBeams( true );
 	
-										if ( this._phase === 1 && this.hea <= this.hmax / 2 )
-										this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 6 });
+                                        const rotators = this.GetRotators();
+										if ( rotators.length > 0 )
+                                        {
+										    this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_CUBE_BOSS_PROPERTIES, ttl: 30 * 12 });
+                                            sdCrystal.Zap( this, sdWorld.AnyOf ( rotators ), '#550000' );
+                                        }
 									}
 								}
 							}, beam_attack ? 800 : 400 );
@@ -1632,11 +1643,11 @@ class sdCube extends sdEntity
 			this._alert_intensity += GSPEED;
 		}
         
-         if ( sdWorld.is_server )
+        // if ( sdWorld.is_server )
         {
-            if ( !this._has_spawned_rotators )
+            if ( sdWorld.is_server && !this._has_spawned_rotators )
             {
-                this.CreateRotators( this.GetRotatorCount( this.kind ), this.GetRotatorType( this.kind ) );
+                this.CreateRotators( this.GetRotatorCount(), this.GetRotatorType() );
                 this._has_spawned_rotators = true;
             }
 
@@ -1644,20 +1655,23 @@ class sdCube extends sdEntity
             for ( let i = 0; i < rotators.length; ++i )
             {
                 const rotator = rotators[ i ];
-                if ( rotator && !rotator._is_being_removed )
+                if ( rotator && this.hea > 0 && rotator.owner === this && !rotator._is_being_removed )
                 {
-                     if ( this.kind === sdCube.KIND_PURPLE )
-                     {
-                         const add = Math.sin( ( this.attack_anim ) / 60 * Math.PI ) * 13;
-                         rotator._orbit_distance = 13 + add
-                     }
-                     rotator.Spin( GSPEED );
+                    if ( this.kind === sdCube.KIND_PURPLE )
+                    {
+                        const add = Math.sin( ( this.attack_anim ) / 60 * Math.PI ) * 13;
+                        rotator.orbit_distance = 13 + add
+                    }
+                    rotator.Spin( GSPEED );
                 }
                 else
-                this[ '_rotator' + i ] = null;
+                if ( sdWorld.is_server )
+                {
+                    this[ 'rotator' + i ] = null;
+                }
             }
         }
-		
+
 		if ( !this.held_by )
         {
             if ( !this.GetRotators().length )
@@ -1750,17 +1764,28 @@ class sdCube extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-        if ( !sdShop.isDrawing ) // Some subtle randomness atleast
-		{
-			const flip = this._net_id % 2 === 0 ? 1 : -1;
-			ctx.scale( flip, 1 );
-		}
-
 		if ( this.hea > 0 )
 		ctx.apply_shading = false;
 	
 		if ( this.held_by === null || attached )
 		{
+            for ( const rotator of this.GetRotators() )
+            {
+                const offset_x = Math.cos( rotator.orbit_angle / 100 ) * rotator.orbit_distance;
+                const offset_y = Math.sin( rotator.orbit_angle / 100 ) * rotator.orbit_distance;
+                
+                ctx.save();
+                ctx.translate( offset_x, offset_y );
+                rotator.Draw( ctx, true )
+                ctx.restore();
+            }
+            
+            if ( !sdShop.isDrawing ) // Some subtle randomness atleast
+            {
+                const flip = this._net_id % 2 === 0 ? 1 : -1;
+                ctx.scale( flip, 1 );
+            }
+
 			let xx = 0;
 			let yy = 0;
 
