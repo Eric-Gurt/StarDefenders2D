@@ -1769,7 +1769,7 @@ class sdCube extends sdEntity
 	
 		if ( this.held_by === null || attached )
 		{
-            for ( const rotator of this.GetRotators() )
+            for ( const rotator of this.GetRotators() ) // Maybe this is not needed anymore? I think it appears a bit smoother with this though
             {
                 const offset_x = Math.cos( rotator.orbit_angle / 100 ) * rotator.orbit_distance;
                 const offset_y = Math.sin( rotator.orbit_angle / 100 ) * rotator.orbit_distance;
