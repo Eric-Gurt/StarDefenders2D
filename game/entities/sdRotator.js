@@ -139,6 +139,8 @@ class sdRotator extends sdEntity
 				shrapnel: true
 			});
 
+            this.DropLoot( this.type, this.tier );
+
 			this.remove();
 		}
 	}
@@ -227,6 +229,39 @@ class sdRotator extends sdEntity
         from_entity.Impulse( Math.cos( this.angle / 100 ) * Math.abs( this._damage ) * 10, Math.sin( this.angle / 100 ) * Math.abs( this._damage ) * 10 );
         sdWorld.SendEffect({ x: from_entity.x, y: from_entity.y, type: from_entity.GetBleedEffect(), filter: from_entity.GetBleedEffectFilter(), hue: from_entity.GetBleedEffectHue() })
         
+    }
+    DropLoot( type, tier )
+    {
+        if ( type === sdRotator.TYPE_CUBE_DISC || type === sdRotator.TYPE_CUBE_SHELL )
+        {
+            setTimeout(() => {
+                const probability_armor = type === sdRotator.TYPE_CUBE_SHELL ? 0.15 : 0.05;
+                const random = Math.random();
+                
+                const x = this.x;
+                const y = this.y;
+                const sx = this.sx;
+                const sy = this.sy;
+
+                if ( random < probability_armor )
+                {
+                    const gun = new sdGun({ x: x, y: y, class: sdGun.CLASS_CUBE_ARMOR });
+                    gun.sx = sx;
+                    gun.sy = sy;
+
+                    sdCube.ColorGunAccordingly( gun, tier );
+                }
+                
+                if ( Math.random() > 0.25 ) // Cube shard chance too?
+                {
+                    const shard = new sdGun({ x: x, y: y, class: sdGun.CLASS_CUBE_SHARD });
+                    shard.sx = sx;
+                    shard.sy = sy;
+
+                    sdCube.ColorGunAccordingly( shard, tier );
+                }
+            }, 500 )
+        }
     }
     GetFilter()
     {
