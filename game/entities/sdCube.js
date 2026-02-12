@@ -540,7 +540,7 @@ class sdCube extends sdEntity
 				{
 					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, sdCube.as_class_list );
 					
-					let to_spawn = this.kind === sdCube.KIND_RED ? 6 : 4;
+					let to_spawn = this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE ? 8 : 4;
 					
 					if ( this.kind === sdCube.KIND_ANCIENT )
 					to_spawn = 1;
