@@ -19,7 +19,7 @@ class sdBG extends sdEntity
 		sdBG.img_glowing = sdWorld.CreateImageFromFile( 'bg_glowing' );
 		sdBG.img_window = sdWorld.CreateImageFromFile( 'bg_window' );
 		sdBG.img_elevator_path = sdWorld.CreateImageFromFile( 'bg_elevator' );
-		
+		sdBG.img_window_small = sdWorld.CreateImageFromFile( 'bg_window_small' );
 		// Better to keep these same as in sdBlock, so 3D effects will work as intended
 		sdBG.MATERIAL_PLATFORMS = 0;
 		sdBG.MATERIAL_GROUND = 1;
@@ -35,7 +35,8 @@ class sdBG extends sdEntity
 		sdBG.TEXTURE_GLOWING = t++;
 		sdBG.TEXTURE_WINDOW = t++;
 		sdBG.TEXTURE_ELEVATOR_PATH = t++;
-		
+        sdBG.TEXTURE_WINDOW_SMALL = t++;
+
 		sdBG.as_class_list = [ 'sdBG' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -67,7 +68,7 @@ class sdBG extends sdEntity
 	
 	DrawIn3D()
 	{
-		if ( this.texture_id === sdBG.TEXTURE_WINDOW )
+		if ( this.texture_id === sdBG.TEXTURE_WINDOW || this.texture_id === sdBG.TEXTURE_WINDOW_SMALL )
 		return FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT; 
 		else
 		return FakeCanvasContext.DRAW_IN_3D_BOX; 
@@ -640,6 +641,9 @@ class sdBG extends sdEntity
 
 			if ( this.texture_id === sdBG.TEXTURE_WINDOW )
 			img = sdBG.img_window;
+        
+            if ( this.texture_id === sdBG.TEXTURE_WINDOW_SMALL )
+			img = sdBG.img_window_small;
 		
 			if ( this.texture_id === sdBG.TEXTURE_ELEVATOR_PATH )
 			img = sdBG.img_elevator_path;
