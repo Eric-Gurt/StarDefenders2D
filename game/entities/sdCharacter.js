@@ -2816,15 +2816,16 @@ THING is cosmic mic drop!`;
 		// Make sure it is better by all stats only
 		if ( params.armor >= this.armor_max )
 		if ( params._armor_absorb_perc >= this._armor_absorb_perc || this.armor_max === 0 )
+        if ( params.armor_lost_absorb_perc >= this._armor_lost_absorb_perc )
 		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
-        if ( ( 1 - this._armor_lost_absorb_perc ) < ( 1 - params.armor_lost_absorb_perc ) )
+        if ( ( 1 - this._armor_lost_absorb_perc ) * this.armor < ( 1 - params.armor_lost_absorb_perc ) * params.armor )
 		{
 			this.armor = params.armor;
 			this.armor_max = params.armor;
 			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
 			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
-            this._armor_lost_absorb_perc = params.armor_lost_reduction;
+            this._armor_lost_absorb_perc = params.armor_lost_absorb_perc;
 			
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
