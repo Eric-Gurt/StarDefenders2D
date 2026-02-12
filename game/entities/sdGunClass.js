@@ -9727,7 +9727,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_CUBE_VOID_CAPACITOR = 142 ] = 
-        	{ 
+        { 
 			image: sdWorld.CreateImageFromFile( 'cube_void_capacitor' ),
 			sound: 'cube_attack',
 			sound_volume: 1.5,
@@ -9761,7 +9761,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ARMOR_STARTER = 143 ] = // Sprite and concept by Booraz
 		{
 			image: sdWorld.CreateImageFromFile( 'armor_starter' ),
-			title: 'SD-00 Starter Armor',
+			title: 'SD-00 Scout Armor',
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
