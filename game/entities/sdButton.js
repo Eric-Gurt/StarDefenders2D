@@ -42,6 +42,7 @@ class sdButton extends sdEntity
 		sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR = 4;
 		sdButton.TYPE_WALL_MATTER_SENSOR = 5;
 		sdButton.TYPE_WALL_TITLE_SENSOR = 6;
+        sdButton.TYPE_MATTER_PERCENTAGE_SENSOR = 7;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
 		
 		sdButton.BUTTON_KIND_TOGGLE = 0;
@@ -103,6 +104,9 @@ class sdButton extends sdEntity
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		return 'Elevator motor callback sensor';
+    
+        if ( this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
+		return 'Matter percentage sensor';
 	
 		return 'Button';
 	}
@@ -114,7 +118,7 @@ class sdButton extends sdEntity
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		return `Reacts to elevator motors. Does not switch off automatically, unless one of controlled elevators stops.`;
 	
-		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields etc.`;
+		return `It is an alternative to access management nodes. Once wired with cable management tool, this ${ this.title.toLowerCase() } can be used to override behavior of doors, turrets, anti-gravity fields and etc.`;
 	}
 		
 	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate. Can be also used to make it ignore certain bullet kinds altogether
@@ -209,6 +213,9 @@ class sdButton extends sdEntity
 	
 		if ( this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures count
+    
+        if ( this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures remaining matter percentage
 		
 		sdButton.buttons.push( this );
 	}
@@ -219,7 +226,8 @@ class sdButton extends sdEntity
 			 this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR || 
 			 this.type === sdButton.TYPE_WALL_MATTER_SENSOR || 
 			 this.type === sdButton.TYPE_WALL_TITLE_SENSOR || 
-			 this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
+			 this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR ||
+             this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
 		if ( from_entity._is_bg_entity === 0 )
 		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdBlock ) )
@@ -253,7 +261,8 @@ class sdButton extends sdEntity
 			let v = 0;
 			
 			if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
-				 this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+				 this.type === sdButton.TYPE_WALL_MATTER_SENSOR ||
+                 this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
 			{
 				if ( condition === '>' || condition === '≥' )
 				v = 0;
@@ -277,13 +286,14 @@ class sdButton extends sdEntity
 					v += e.mass;
 					else
 					if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
-						 this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+						 this.type === sdButton.TYPE_WALL_MATTER_SENSOR || 
+                         this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR 
+                        )
 					{
-						let ent_value = 
-							( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ) ? 
-								( e.matter_max || e._matter_max || 0 ) : 
-								( e.matter || e._matter || 0 );
-						
+						let ent_value = this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ? ( e.matter_max || e._matter_max || 0 ) :
+                                        this.type === sdButton.TYPE_WALL_MATTER_SENSOR ? ( e.matter || e._matter || 0 ) :
+                                        Math.round(( e.matter || e._matter || 0 ) / ( e.matter_max || e._matter_max || 1 ) * 100);
+
 						if ( condition === '=' )
 						{
 							//if ( !best_found )
@@ -899,6 +909,10 @@ class sdButton extends sdEntity
 						let v = parseFloat( parameters_array[ 0 ] );
 						if ( !isNaN( v ) )
 						{
+                            if ( this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
+                            {
+                                v = Math.max( 0, Math.min( 100, v ) ); // Keep between 0 and 100%
+                            }
 							this.filter[ sdButton.FILTER_OPTION_REFERENCE ] = v;
 							this._update_version++;
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -951,8 +965,14 @@ class sdButton extends sdEntity
 	{
 		if ( this.filter && this.type !== sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		{
+            const is_percentage = this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR;
+            const filter = this.filter.slice();
+
+            if ( is_percentage )
+            filter[ sdButton.FILTER_OPTION_CURRENT ] = filter[ sdButton.FILTER_OPTION_CURRENT ] + "%"; // Hack?
+
 			sdEntity.Tooltip( ctx, this.title, 0, -8 );
-			sdEntity.TooltipUntranslated( ctx, this.filter.join(' '), 0, 0, this.IsFilterConditionsMet() ? '#66ff66' : '#ff6666' );
+			sdEntity.TooltipUntranslated( ctx, filter.join(' ') + ( is_percentage ? "%" : '' ), 0, 0, this.IsFilterConditionsMet() ? '#66ff66' : '#ff6666' );
 		}
 		else
 		{
