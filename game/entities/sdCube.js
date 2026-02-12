@@ -226,7 +226,7 @@ class sdCube extends sdEntity
 		}
 		
 		this.regen_timeout = 0;
-		this.kind = params.kind || 0;
+		this.kind = params.kind || sdCube.KIND_CYAN;
 		//this.is_huge = ( this.kind === sdCube.KIND_YELLOW ) ? true : false;
 		//this.is_white = ( this.kind === sdCube.KIND_WHITE ) ? true : false;
 		//this.is_pink = ( this.kind === sdCube.KIND_PINK ) ? true : false;
@@ -395,44 +395,44 @@ class sdCube extends sdEntity
 		return this.filter;
 	}*/
 	
-	ColorGunAccordingly( gun )
+	static ColorGunAccordingly( gun, kind )
 	{
-		if ( this.kind === sdCube.KIND_PINK )
+		if ( kind === sdCube.KIND_PINK )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.pink_filter.s;
 		}
-		if ( this.kind === sdCube.KIND_WHITE )
+		if ( kind === sdCube.KIND_WHITE )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.white_filter.s;
 		}
-		if ( this.kind === sdCube.KIND_YELLOW )
+		if ( kind === sdCube.KIND_YELLOW )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.huge_filter.s;
 		}
-		if ( this.kind === sdCube.KIND_GREEN )
+		if ( kind === sdCube.KIND_GREEN )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.green_filter.s;
 		}
-		if ( this.kind === sdCube.KIND_BLUE )
+		if ( kind === sdCube.KIND_BLUE )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.blue_filter.s;
 		}
-		if ( this.kind === sdCube.KIND_ANCIENT )
+		if ( kind === sdCube.KIND_ANCIENT )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.ancient_filter.s;
 		}
-		if ( this.kind === sdCube.KIND_RED )
+		if ( kind === sdCube.KIND_RED )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.red_filter.s;
 		}
-        if ( this.kind === sdCube.KIND_PURPLE )
+        if ( kind === sdCube.KIND_PURPLE )
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.purple_filter.s;
@@ -540,7 +540,7 @@ class sdCube extends sdEntity
 				{
 					let cubes = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 400, null, sdCube.as_class_list );
 					
-					let to_spawn = 4;
+					let to_spawn = this.kind === sdCube.KIND_RED ? 6 : 4;
 					
 					if ( this.kind === sdCube.KIND_ANCIENT )
 					to_spawn = 1;
@@ -824,7 +824,7 @@ class sdCube extends sdEntity
 							gun.sy = sy;
 							//gun.extra = ( this.kind === sdCube.KIND_PINK ? 3 : this.kind === sdCube.KIND_WHITE ? 2 : this.kind === sdCube.KIND_YELLOW ? 1 : 0 ); // Color it
 
-							this.ColorGunAccordingly( gun );
+							sdCube.ColorGunAccordingly( gun, this.kind );
 
 							sdEntity.entities.push( gun );
 
@@ -855,7 +855,7 @@ class sdCube extends sdEntity
 						gun.sx = sx;
 						gun.sy = sy;
 						//gun.extra = (this.kind === sdCube.KIND_PINK ? 3 : this.kind === sdCube.KIND_WHITE ? 2 : this.kind === sdCube.KIND_YELLOW ? 1 : 0 ); // Color it
-						this.ColorGunAccordingly( gun );
+						sdCube.ColorGunAccordingly( gun, this.kind );
 						sdEntity.entities.push( gun );
 
 						this._dropped_items.add( gun );
@@ -1030,7 +1030,8 @@ class sdCube extends sdEntity
         for ( let i = 0; i < this.GetRotatorCount(); ++i )
         {
             const rotator = this[ 'rotator' + i ];
-            if ( rotator && rotator.owner === this && !rotator._is_being_removed ) arr.push( rotator );
+            if ( rotator && !rotator._is_being_removed ) arr.push( rotator );
+            else this[ 'rotator' + i ] = null;
         }
 
         return arr;
@@ -1655,7 +1656,7 @@ class sdCube extends sdEntity
             for ( let i = 0; i < rotators.length; ++i )
             {
                 const rotator = rotators[ i ];
-                if ( rotator && this.hea > 0 && rotator.owner === this && !rotator._is_being_removed )
+                if ( rotator && this.hea > 0 && !rotator._is_being_removed )
                 {
                     if ( this.kind === sdCube.KIND_PURPLE )
                     {
@@ -1663,11 +1664,6 @@ class sdCube extends sdEntity
                         rotator.orbit_distance = 13 + add
                     }
                     rotator.Spin( GSPEED );
-                }
-                else
-                if ( sdWorld.is_server )
-                {
-                    this[ 'rotator' + i ] = null;
                 }
             }
         }
