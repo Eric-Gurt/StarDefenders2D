@@ -206,6 +206,12 @@ class sdRotator extends sdEntity
         }
 	}
     
+    getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.owner )
+		return [ this.owner ]; 
+	}
+    
     onMovementInRange( from_entity )
     {
         if ( this.disabled ) return;
@@ -349,4 +355,5 @@ class sdRotator extends sdEntity
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
 }
+
 export default sdRotator;
