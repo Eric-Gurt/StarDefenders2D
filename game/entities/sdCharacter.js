@@ -1377,6 +1377,7 @@ THING is cosmic mic drop!`;
 		this._armor_absorb_perc = 0; // Armor absorption percentage
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
 		this._armor_repair_amount = 0; // Armor repair speed
+        this._armor_lost_absorb_perc = 0; // Lost damage reduction armor
 		
 		this.mobility = 100; // Used to slow-down hostile AIs
 
@@ -2810,17 +2811,20 @@ THING is cosmic mic drop!`;
 		params.armor = params.armor || 100;
 		params._armor_absorb_perc = params._armor_absorb_perc || 0;
 		params.armor_speed_reduction = params.armor_speed_reduction || 0;
+        params.armor_lost_absorb_perc = params.armor_lost_absorb_perc || 0;
 		
 		// Make sure it is better by all stats only
 		if ( params.armor >= this.armor_max )
 		if ( params._armor_absorb_perc >= this._armor_absorb_perc || this.armor_max === 0 )
 		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
+        if ( ( 1 - this._armor_lost_absorb_perc ) < ( 1 - params.armor_lost_absorb_perc ) )
 		{
 			this.armor = params.armor;
 			this.armor_max = params.armor;
 			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
 			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
+            this._armor_lost_absorb_perc = params.armor_lost_reduction;
 			
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
@@ -8168,4 +8172,3 @@ THING is cosmic mic drop!`;
 
 	
 export default sdCharacter;
-	
