@@ -10743,15 +10743,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				
-				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity ) =>
-				{
-					if ( target_entity.is( sdCrystal ) )
-					{
-						target_entity._being_sawed_time = sdWorld.time;
-					}
-				};
-				
+
 				return obj;
 			},
             onThink: ( gun, GSPEED )=>
@@ -10792,7 +10784,28 @@ class sdGunClass
                 '#464646', 15, 'blade 5' ),
                 '#282828', 15, 'blade 6' ) )
 		};
+		sdGun.classes[ sdGun.CLASS_CUBE_ARMOR = 158 ] = // Sprite by flora
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_armor' ),
+			title: 'Cube lost armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 100,
+			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 0, armor_lost_absorb_perc: 0.5 }, // This way it's compatible with upgrade station checks
+			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
+			{ 
+				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				gun.remove();
 
+				return false; 
+			} 
+		};
 		// Add new gun classes above this line //
 
 		let index_to_const = [];
