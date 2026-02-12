@@ -10731,7 +10731,6 @@ class sdGunClass
 			is_sword: false,
 			projectile_velocity: 20,
             min_workbench_level: 5,
-			has_description: [ 'Can be used to cut large crystals into 4 smaller ones' ],
 			projectile_properties: 
 			{ 
 				time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
