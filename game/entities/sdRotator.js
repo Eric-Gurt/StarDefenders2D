@@ -127,14 +127,15 @@ class sdRotator extends sdEntity
 		{
             sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 			sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume:4, pitch: 0.2 });
+
             sdWorld.SendEffect({ 
-				x:this.x, 
-				y:this.y, 
-				radius:30,
+				x: this.x, 
+				y: this.y, 
+				radius: 30,
 				damage_scale: 2, // 5 was too deadly on relatively far range
-				type:sdEffect.TYPE_EXPLOSION, 
-				owner:this,
-				color:'#33FFFF',
+				type: sdEffect.TYPE_EXPLOSION, 
+				owner: this,
+				color: '#33FFFF',
 				no_smoke: true,
 				shrapnel: true
 			});
@@ -208,8 +209,10 @@ class sdRotator extends sdEntity
     
     getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
-		if ( this.owner )
+		if ( this.owner && !this.owner._is_being_removed )
 		return [ this.owner ]; 
+    
+        return [ ];
 	}
     
     onMovementInRange( from_entity )
@@ -337,11 +340,11 @@ class sdRotator extends sdEntity
                 ctx.scale( scale, scale );
             }
 
-            if ( this.disabled )
+            if ( this.disabled ) // Death effect
             xx = 1;
-            else if ( this.attack_anim > 0 )
+            else if ( this.attack_anim > 0 ) // Attack effect
             xx = 3;
-            else if ( this.regen_timeout > 15 )
+            else if ( this.regen_timeout > 15 ) // Damage effect
             xx = 2;
             ctx.drawImageFilterCache( sdRotator.img_rotator, 32 * xx, 32 * yy, 32,32, -16, -16, 32,32 );
 
