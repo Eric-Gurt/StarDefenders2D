@@ -89,7 +89,10 @@ class sdLost extends sdEntity
 			return;
 		
 			let mult = hea - hea2;
-			
+
+			if ( ent.is( sdCharacter ) )
+            mult *= 1 - ent._armor_lost_absorb_perc;
+
 			if ( mult <= 0 )
 			return;
 			
