@@ -274,6 +274,7 @@ class sdStatusEffect extends sdEntity
 				return false; // Keep
 			}
 		};
+
 		const temperature_normal = 20; // Copy
 		const temperature_fire = 700;
 		const temperature_frozen = -50;
@@ -543,7 +544,7 @@ class sdStatusEffect extends sdEntity
 							let e = status_entity.for;
 							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 							
-							if ( e_is_organic )
+							if ( e_is_organic && ( e.hea || e._hea ) > 0 ) // Don't damage dead entities
 							{
 								if ( status_entity.for.IsPlayerClass() )
 								{
@@ -2886,4 +2887,5 @@ class sdStatusEffect extends sdEntity
 		status_type.DrawFG( this, ctx, attached );
 	}
 }
+
 export default sdStatusEffect;
