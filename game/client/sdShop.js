@@ -690,6 +690,8 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: 40, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: sdCrystal.anticrystal_value / 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ANTIMATTER, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_CRYO, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_INCENDIARY, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsp', tier:2, crystal_worth:160, filter: 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
