@@ -92,7 +92,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_STEALER_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
-		sdJunk.bounds_by_type[ sdJunk.TYPE_FIRE_BARREL ] = { x1: -6, x2: 6, y1: -8, y2: 8 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_FIRE_BARREL ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_METAL_CHUNK ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_HIGH_YIELD_ROCKET ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
 	
@@ -198,12 +198,23 @@ class sdJunk extends sdEntity
             type: 0, 
             extra: 0 // Used for essence
         };
+
         if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
         {
             this.liquid = { 
                 max: 100, // 5 & 10 water entities worth
                 amount: 100, 
                 type: sdWater.TYPE_CRYO, 
+                extra: 0 // Used for essence
+            };
+        }
+
+        if ( this.type === sdJunk.TYPE_FIRE_BARREL )
+        {
+            this.liquid = { 
+                max: 100, // 5 & 10 water entities worth
+                amount: 100, 
+                type: sdWater.TYPE_INCENDIARY, 
                 extra: 0 // Used for essence
             };
         }
@@ -653,37 +664,43 @@ class sdJunk extends sdEntity
                     sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
                 }
 			}
-			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire "barrels" ignites stuff
+			if ( this.type === sdJunk.TYPE_FIRE_BARREL  && this.liquid.amount > 0 ) // Fire "barrels" ignites stuff
 			{
-				let bullet = new sdBullet({ x: this.x, y: this.y });
-				bullet.model = 'ball_charged';
-				bullet._damage = 1;
-				bullet.owner = this;
-				bullet.time_left = 0; 
-				bullet._custom_detonation_logic = ( bullet )=>
-				{
+                if ( this.liquid.type === sdWater.TYPE_INCENDIARY )
+                {
+                    const mult = this.liquid.amount / this.liquid.max;
+                    const radius = Math.max( 15, 35 * mult );
+
 					sdWorld.SendEffect({ 
-						x:bullet.x, 
-						y:bullet.y, 
-						radius:30,
+						x: this.x, 
+						y: this.y, 
+						radius: radius,
 						damage_scale: 0, // Just a decoration effect
-						type:sdEffect.TYPE_EXPLOSION, 
+						type: sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#FFA840',
+						color: '#FFA840',
 						smoke_color: '#FFA840',
 						shrapnel: true
 					});
 
-					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
+					let nears = sdWorld.GetAnythingNear( this.x, this.y, radius );
 
 					for ( let i = 0; i < nears.length; i++ )
 					{
 						if ( nears[ i ].IsTargetable( this ) )
 						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
-						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 1000, initiator: this._owner }); // Ignite nearby objects
+						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 1000 * mult, initiator: this._owner }); // Ignites nearby objects
 					}
-				};
-				sdEntity.entities.push( bullet );
+                }
+                else
+                {
+                    let di_x = this.hitbox_x2 - this.hitbox_x1;
+                    let di_y = this.hitbox_y2 - this.hitbox_y1;
+                    let tot = Math.ceil( this.liquid.amount / 100 );
+                    let extra = this.liquid.extra / this.liquid.amount * 100;
+
+                    sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
+                }
 			}
 
 			let r = Math.random();
@@ -780,7 +797,7 @@ class sdJunk extends sdEntity
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
-            if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+            if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
 			{
                 if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
                 {
@@ -1659,6 +1676,7 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire barrel
 			{
+                sdWater.DrawLiquidRect( ctx, this, this.liquid, 0, 0, -3, -3 );
 				ctx.drawImageFilterCache( sdJunk.img_fire_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
@@ -1725,11 +1743,11 @@ class sdJunk extends sdEntity
 		{
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 10, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
-		
+
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.type === sdWater.TYPE_CRYO && this.liquid.amount > 0 )
 			sdWorld.BasicEntityBreakEffect( this, 10, 2, 0.75, 0.75, 'water_entrance', sdEffect.TYPE_FROZEN );
 		
-			if ( this.type === sdJunk.TYPE_FIRE_BARREL )
+			if ( this.type === sdJunk.TYPE_FIRE_BARREL && this.liquid.type === sdWater.TYPE_INCENDIARY && this.liquid.amount > 0  )
 			sdWorld.BasicEntityBreakEffect( this, 10, 2, 0.75, 0.75, 'fire_big', sdEffect.TYPE_FIRE );
 		}
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
