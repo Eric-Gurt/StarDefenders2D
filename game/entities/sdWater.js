@@ -1137,6 +1137,12 @@ class sdWater extends sdEntity
 								e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((1 * 0.5)*10))/10+')' });
 								sdSound.PlaySound({ name:'water_entrance', x:xx, y:yy, _server_allowed: true, volume: 0.1, pitch: 0.75 });
 							}
+                            else
+							if ( this.type === sdWater.TYPE_CRYO )
+							{
+								e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'brightness(1.75) saturate(0.25) hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
+								sdSound.PlaySound({ name:'water_entrance', x:xx, y:yy, _server_allowed: true, volume: 0.1, pitch: 1 });
+							}
 							else
 							if ( this.type === sdWater.TYPE_WATER )
 							{
