@@ -193,10 +193,10 @@ class sdJunk extends sdEntity
 		
 		this._ai_team = -1; // For Council bomb and Erthal beacon
         this.liquid = { 
-                max: 0,
-                amount: 0, 
-                type: 0, 
-                extra: 0 // Used for essence
+            max: 0,
+            amount: 0, 
+            type: 0, 
+            extra: 0 // Used for essence
         };
         if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
         {
@@ -609,7 +609,7 @@ class sdJunk extends sdEntity
 				}, 500 );
 			}
 
-			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 ) // Freeze "barrels" freeze stuff
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 ) // Freeze barrels freeze stuff
 			{
 				/*let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
@@ -618,22 +618,26 @@ class sdJunk extends sdEntity
 				bullet.time_left = 0; 
 				bullet._custom_detonation_logic = ( bullet )=>
 				{*/
+                    const mult = this.liquid.amount / this.liquid.max;
+                    const radius = Math.max( 15, 35 * mult );
+
 					sdWorld.SendEffect({ 
-						x:this.x, 
-						y:this.y, 
-						radius:30,
+						x: this.x, 
+						y: this.y, 
+						radius: radius,
 						damage_scale: 0, // Just a decoration effect
-						type:sdEffect.TYPE_EXPLOSION, 
+						type: sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#a4efe1',
+						color: '#a4efe1',
 						smoke_color: '#a4efe1',
 						shrapnel: true
 					});
 
-					let nears = sdWorld.GetAnythingNear( this.x, this.y, 40 );
+					let nears = sdWorld.GetAnythingNear( this.x, this.y, radius );
 
 					for ( let i = 0; i < nears.length; i++ )
 					{
+                        if ( mult > 0.5 )
 						if ( nears[ i ].is( sdWater ) )
 						{
 							nears[ i ].Solidify();
@@ -641,7 +645,7 @@ class sdJunk extends sdEntity
 						else
 						if ( nears[ i ].IsTargetable( this ) )
 						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
-						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
+						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250 * mult, initiator: this._owner }); // Freeze nearby objects
 					}
 				/*};
 				sdEntity.entities.push( bullet );*/
@@ -1423,6 +1427,13 @@ class sdJunk extends sdEntity
 		if ( !this.held_by )
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+    IsLiquidTypeAllowed( type )
+	{
+        if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+        return type === this.liquid.type;
+    
+        return false;
+	}
 	get title()
 	{
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
@@ -1631,10 +1642,8 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze barrel
 			{
-				//if ( this.hea < this.hmax / 2 )
-				//ctx.drawImageFilterCache( sdJunk.img_cube_unstable3, - 16, - 18, 32,32 );
-				//else
-				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), this.liquid.amount <= 0 ? 32 : 0, 32, 32, - 16, - 16, 32, 32 );
+                sdWater.DrawLiquidRect( ctx, this, this.liquid, 0, 0, -3, -3 );
+				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire barrel
 			{
