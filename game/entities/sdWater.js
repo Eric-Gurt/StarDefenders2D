@@ -1253,17 +1253,21 @@ class sdWater extends sdEntity
 			ctx.globalAlpha = liquid.amount / liquid.max * 0.6;
 			ctx.fillRect( dx, dy, w, h );
 		}
+        if ( liquid.type === sdWater.TYPE_CRYO )
+		{
+            ctx.fillStyle = '#a4efe1';
+			ctx.globalAlpha = 0.9;
+            ctx.filter = 'brightness(1.5)';
+		    ctx.fillRect( dx, amount_dy, w, amount_h );
+		}
 		else
 		{
 			if ( liquid.type === sdWater.TYPE_ACID )
 			ctx.fillStyle = '#008000';
             else
-            if ( liquid.type === sdWater.TYPE_CRYO )
-			ctx.fillStyle = '#a4efe1';
-			else
 			ctx.fillStyle = '#0030a0';
 
-			ctx.globalAlpha = 0.6;
+			ctx.globalAlpha = 1;
 	
 			//if ( ent.v === left_v && ent.v === right_v )
 			//{
