@@ -43,11 +43,8 @@ class sdStorageTank extends sdEntity
 
 		this.type = params.type || sdStorageTank.TYPE_LARGE;
 
-		if ( this.type === sdStorageTank.TYPE_PORTABLE )
-		{
-			this.sx = 0;
-			this.sy = 0;
-		}
+        this.sx = 0;
+        this.sy = 0;
 
 		this.liquid = { 
 			max: this.type === sdStorageTank.TYPE_PORTABLE ? 500 : 1000, // 5 & 10 water entities worth
@@ -177,6 +174,14 @@ class sdStorageTank extends sdEntity
 		if ( this.type === sdStorageTank.TYPE_PORTABLE )
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+    
+    onThinkFrozen( GSPEED )
+    {
+        if ( this.type === sdStorageTank.TYPE_LARGE )
+        return;
+    
+        super.onThinkFrozen( GSPEED );
+    }
 
 	get title()
 	{
