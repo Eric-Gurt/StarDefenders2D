@@ -99,7 +99,7 @@ class sdWater extends sdEntity
 		return 'Anti-matter';
         if ( this.type === sdWater.TYPE_CRYO )
 		return 'Cryo liquid';
-        if ( this.type === sdWater.TYPE_CRYO )
+        if ( this.type === sdWater.TYPE_INCENDIARY )
 		return 'Incendiary liquid';
 	
 		return 'Liquid ' + this.type;
@@ -1439,15 +1439,20 @@ class sdWater extends sdEntity
 				ctx.globalAlpha = 1;
 			}
             else
+            if ( this.type === sdWater.TYPE_INCENDIARY )
+			{
+				ctx.fillStyle = '#ffa840';
+				ctx.globalAlpha = 0.5 * volume;
+				ctx.fillRect( 0, 0, 16, 16 );
+				ctx.globalAlpha = 1;
+			}
+            else
 			{
 				if ( this.type === sdWater.TYPE_ACID )
 				ctx.fillStyle = '#008000';
 				else
                 if ( this.type === sdWater.TYPE_CRYO )
 				ctx.fillStyle = '#a4efe1';
-                else
-                if ( this.type === sdWater.TYPE_INCENDIARY )
-                ctx.fillStyle = '#ffa840';
                 else
 				ctx.fillStyle = '#0030a0';
 
@@ -1622,12 +1627,6 @@ class sdWater extends sdEntity
                                 ctx.fillStyle = '#a4efe1';
                             }
                             else
-                            if ( this.type === sdWater.TYPE_INCENDIARY )
-                            {
-                                ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
-                                ctx.fillStyle = '#ffa840';
-                            }
-                            else
 							{
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 1;
@@ -1689,13 +1688,6 @@ class sdWater extends sdEntity
 							r = 164/255;
 							g = 239/255;
 							b = 225/255;
-						}
-                        else
-                        if ( this.type === sdWater.TYPE_INCENDIARY )
-						{
-							r = 255/255;
-							g = 180/255;
-							b = 95/255;
 						}
 						else
 						{
