@@ -28,10 +28,11 @@ class sdWater extends sdEntity
 		sdWater.TYPE_TOXIC_GAS = 3;
 		sdWater.TYPE_ESSENCE = 4;
 		sdWater.TYPE_ANTIMATTER = 5;
-		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2', '#b0ffff', '#040408' ]; // For liquid carrier recolors
+        sdWater.TYPE_CRYO = 6;
+		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2', '#b0ffff', '#040408', '#a4efe1' ]; // For liquid carrier recolors
 		
-		sdWater.damage_by_type = [ 0, 1, 5, 0, 0, 0 ];
-		sdWater.never_sleep_by_type = [ 0, 0, 0, 1, 0, 0 ];
+		sdWater.damage_by_type = [ 0, 1, 5, 0, 0, 0, 0 ];
+		sdWater.never_sleep_by_type = [ 0, 0, 0, 1, 0, 0, 0 ];
 		//sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
 		
 		sdWater.DEBUG = false;
@@ -94,6 +95,8 @@ class sdWater extends sdEntity
 		return 'Essence';
 		if ( this.type === sdWater.TYPE_ANTIMATTER )
 		return 'Anti-matter';
+        if ( this.type === sdWater.TYPE_CRYO )
+		return 'Cryo liquid';
 	
 		return 'Liquid ' + this.type;
 	}
@@ -119,6 +122,9 @@ class sdWater extends sdEntity
 			
 			if ( params.tag === 'antimatter' )
 			params.type = sdWater.TYPE_ANTIMATTER;
+        
+			if ( params.tag === 'cryo' )
+			params.type = sdWater.TYPE_CRYO;
 			
 			params.x = Math.floor( params.x / 16 ) * 16;
 			params.y = Math.floor( params.y / 16 ) * 16;
@@ -293,6 +299,9 @@ class sdWater extends sdEntity
 	
 	Solidify()
 	{
+        if ( this.type === sdWater.TYPE_CRYO )
+        return;
+
 		if ( this.type !== sdWater.TYPE_TOXIC_GAS )
 		{
 			let material = sdBlock.MATERIAL_GROUND;
@@ -356,7 +365,7 @@ class sdWater extends sdEntity
 			
 			if ( ( another.type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
 			{
-				another.type = sdWater.TYPE_LAVA;44
+				another.type = sdWater.TYPE_LAVA;
 				another._volume = Math.max( this._volume, another._volume );
 				another.Solidify();
 				this.remove();
@@ -386,6 +395,15 @@ class sdWater extends sdEntity
 
 				return true; // Delete both
 				*/
+			}
+            
+            if ( ( another.type === sdWater.TYPE_CRYO ) !== ( this.type === sdWater.TYPE_CRYO ) )
+			{
+                another.type = sdWater.TYPE_WATER;
+				another._volume = Math.max( this._volume, another._volume );
+				another.Solidify();
+				this.remove();
+				return true; // Delete both
 			}
 			
 			/*if ( another.type === sdWater.TYPE_ESSENCE && this.type === sdWater.TYPE_ESSENCE )
@@ -567,15 +585,18 @@ class sdWater extends sdEntity
 									e.DamageWithEffect( 0.5 * GSPEED * this._volume, this );
 								}
 							}
-							if ( sdWater.damage_by_type[ this.type ] !== 0 )
-							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
+							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) || this.type === sdWater.TYPE_CRYO )
 							if ( !e.isFireAndAcidDamageResistant() )
 							//if ( e.Damage !== sdEntity.prototype.Damage )
 							{
+                                if ( sdWater.damage_by_type[ this.type ] !== 0 )
 								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 								
 								if ( this.type === sdWater.TYPE_LAVA )
 								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED });
+                            
+                                if ( this.type === sdWater.TYPE_CRYO )
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -50 * GSPEED });
 							}
 
 							if ( this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_WATER )
@@ -1228,6 +1249,9 @@ class sdWater extends sdEntity
 		{
 			if ( liquid.type === sdWater.TYPE_ACID )
 			ctx.fillStyle = '#008000';
+            else
+            if ( liquid.type === sdWater.TYPE_CRYO )
+			ctx.fillStyle = '#a4efe1';
 			else
 			ctx.fillStyle = '#0030a0';
 
@@ -1357,11 +1381,14 @@ class sdWater extends sdEntity
 				ctx.fillRect( 0, 0, 16, 16 );
 				ctx.globalAlpha = 1;
 			}
-			else
+            else
 			{
 				if ( this.type === sdWater.TYPE_ACID )
 				ctx.fillStyle = '#008000';
 				else
+                if ( this.type === sdWater.TYPE_CRYO )
+				ctx.fillStyle = '#a4efe1';
+                else
 				ctx.fillStyle = '#0030a0';
 
 				ctx.globalAlpha = 0.8;
@@ -1529,6 +1556,12 @@ class sdWater extends sdEntity
 								ctx.fillStyle = '#117711';
 							}
 							else
+                            if ( this.type === sdWater.TYPE_CRYO )
+                            {
+                                ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
+                                ctx.fillStyle = '#a4efe1';
+                            }
+                            else
 							{
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 1;
@@ -1583,6 +1616,13 @@ class sdWater extends sdEntity
 							r = 0;
 							g = 128/255;
 							b = 0/255;
+						}
+                        else
+                        if ( this.type === sdWater.TYPE_CRYO )
+						{
+							r = 164/255;
+							g = 239/255;
+							b = 225/255;
 						}
 						else
 						{
