@@ -189,6 +189,10 @@ class sdStorageTank extends sdEntity
 
 		if ( this.liquid )
 		{
+            if ( this.liquid.type === sdWater.TYPE_INCENDIARY )
+			t = 'Incendiary liquid';
+            if ( this.liquid.type === sdWater.TYPE_CRYO )
+			t = 'Cryo';
 			if ( this.liquid.type === sdWater.TYPE_ANTIMATTER )
 			t = 'Antimatter';
 			else
