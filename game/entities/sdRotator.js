@@ -127,12 +127,11 @@ class sdRotator extends sdEntity
 		{
             sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 			sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume:4, pitch: 0.2 });
-
             sdWorld.SendEffect({ 
 				x: this.x, 
 				y: this.y, 
 				radius: 30,
-				damage_scale: 2, // 5 was too deadly on relatively far range
+				damage_scale: 2,
 				type: sdEffect.TYPE_EXPLOSION, 
 				owner: this,
 				color: '#33FFFF',
@@ -254,16 +253,16 @@ class sdRotator extends sdEntity
 
                 if ( random < probability_armor )
                 {
-                    const gun = new sdGun({ x: x, y: y, class: sdGun.CLASS_CUBE_ARMOR });
+                    const gun = sdEntity.Create( sdGun, ({ x: x, y: y, class: sdGun.CLASS_CUBE_ARMOR }) );
                     gun.sx = sx;
                     gun.sy = sy;
 
                     sdCube.ColorGunAccordingly( gun, tier );
                 }
                 
-                if ( Math.random() > 0.25 ) // Cube shard chance too?
+                if ( Math.random() < 0.25 ) // Cube shard chance too?
                 {
-                    const shard = new sdGun({ x: x, y: y, class: sdGun.CLASS_CUBE_SHARD });
+                    const shard = sdEntity.Create( sdGun, ({ x: x, y: y, class: sdGun.CLASS_CUBE_SHARD }) );
                     shard.sx = sx;
                     shard.sy = sy;
 
