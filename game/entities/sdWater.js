@@ -714,9 +714,11 @@ class sdWater extends sdEntity
 					y:this.y + this.hitbox_y2 / 2, 
 					radius:this._volume * 100,
 					damage_scale: this._volume * 4,
-					type:sdEffect.TYPE_EXPLOSION, 
+					type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 					owner:this,
-					color:sdWater.reference_colors[ sdWater.TYPE_ANTIMATTER ]
+					color:sdWater.reference_colors[ sdWater.TYPE_ANTIMATTER ],
+                    no_smoke: true,
+                    shrapnel:true
 				});
 				
 				this.remove();
