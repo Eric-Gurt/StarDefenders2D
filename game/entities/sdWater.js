@@ -636,10 +636,6 @@ class sdWater extends sdEntity
 			if ( w3 )
 			w3._client_vel += this._client_y * 0.1 * capped_GSPEED;
 			
-			
-			
-			
-			
 			if ( this._client_y > 8 )
 			this._client_y = 8;
 			else
@@ -1253,6 +1249,7 @@ class sdWater extends sdEntity
 			ctx.globalAlpha = liquid.amount / liquid.max * 0.6;
 			ctx.fillRect( dx, dy, w, h );
 		}
+        else
         if ( liquid.type === sdWater.TYPE_CRYO )
 		{
             ctx.fillStyle = '#a4efe1';
