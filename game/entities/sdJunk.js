@@ -611,13 +611,8 @@ class sdJunk extends sdEntity
 
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 ) // Freeze barrels freeze stuff
 			{
-				/*let bullet = new sdBullet({ x: this.x, y: this.y });
-				bullet.model = 'ball_charged';
-				bullet._damage = 1;
-				bullet.owner = this;
-				bullet.time_left = 0; 
-				bullet._custom_detonation_logic = ( bullet )=>
-				{*/
+                if ( this.liquid.type === sdWater.TYPE_CRYO )
+                {
                     const mult = this.liquid.amount / this.liquid.max;
                     const radius = Math.max( 15, 35 * mult );
 
@@ -647,8 +642,16 @@ class sdJunk extends sdEntity
 						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
 						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250 * mult, initiator: this._owner }); // Freeze nearby objects
 					}
-				/*};
-				sdEntity.entities.push( bullet );*/
+                }
+                else
+                {
+                    let di_x = this.hitbox_x2 - this.hitbox_x1;
+                    let di_y = this.hitbox_y2 - this.hitbox_y1;
+                    let tot = Math.ceil( this.liquid.amount / 100 );
+                    let extra = this.liquid.extra / this.liquid.amount * 100;
+
+                    sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
+                }
 			}
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire "barrels" ignites stuff
 			{
@@ -776,6 +779,15 @@ class sdJunk extends sdEntity
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY )
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
+			}
+            if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+			{
+                if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
+                {
+                    this.liquid.amount = 0;
+                    this.liquid.type = -1;
+                    this.liquid.extra = 0;
+                }
 			}
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || ( this.type === sdJunk.TYPE_ALIEN_BATTERY && this.hea !== this.hmax ) || ( this.type === sdJunk.TYPE_LOST_CONTAINER && this.hea !== this.hmax ) )
 			this.Damage( GSPEED );
@@ -1429,10 +1441,10 @@ class sdJunk extends sdEntity
 	}
     IsLiquidTypeAllowed( type )
 	{
-        if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+        if ( this.liquid.type === -1 )
+        return true;
+
         return type === this.liquid.type;
-    
-        return false;
 	}
 	get title()
 	{
@@ -1714,7 +1726,7 @@ class sdJunk extends sdEntity
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 10, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
 		
-			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 )
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.type === sdWater.TYPE_CRYO && this.liquid.amount > 0 )
 			sdWorld.BasicEntityBreakEffect( this, 10, 2, 0.75, 0.75, 'water_entrance', sdEffect.TYPE_FROZEN );
 		
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL )
