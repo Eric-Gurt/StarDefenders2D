@@ -911,7 +911,7 @@ class sdButton extends sdEntity
 						{
                             if ( this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
                             {
-                                v = Math.max( 0, Math.min( 100, v ) ); // Keep between 0 and 100%
+                                v = sdWorld.limit( 0, 100, v ) // Keep between 0% and 100%
                             }
 							this.filter[ sdButton.FILTER_OPTION_REFERENCE ] = v;
 							this._update_version++;
