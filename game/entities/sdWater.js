@@ -1513,6 +1513,13 @@ class sdWater extends sdEntity
 						ctx.sd_color_mult_g = 1;
 						ctx.sd_color_mult_b = 0.5;
 					}
+                    else
+                    if ( this.type === sdWater.TYPE_CRYO )
+					{
+						ctx.sd_color_mult_r = 0.75;
+						ctx.sd_color_mult_g = 1.5;
+						ctx.sd_color_mult_b = 1.2;
+					}
 					else
 					{
 						ctx.sd_color_mult_r = 1;
