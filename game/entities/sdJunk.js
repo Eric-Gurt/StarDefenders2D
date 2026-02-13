@@ -192,6 +192,21 @@ class sdJunk extends sdEntity
 		this._notify_players_in = 30; // Notify players about tasks ( Erthal beacon )
 		
 		this._ai_team = -1; // For Council bomb and Erthal beacon
+        this.liquid = { 
+                max: 0,
+                amount: 0, 
+                type: 0, 
+                extra: 0 // Used for essence
+        };
+        if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+        {
+            this.liquid = { 
+                max: 100, // 5 & 10 water entities worth
+                amount: 100, 
+                type: sdWater.TYPE_CRYO, 
+                extra: 0 // Used for essence
+            };
+        }
 
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals++;
@@ -594,7 +609,7 @@ class sdJunk extends sdEntity
 				}, 500 );
 			}
 
-			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze "barrels" freeze stuff
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 ) // Freeze "barrels" freeze stuff
 			{
 				/*let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
@@ -610,8 +625,8 @@ class sdJunk extends sdEntity
 						damage_scale: 0, // Just a decoration effect
 						type:sdEffect.TYPE_EXPLOSION, 
 						owner:this,
-						color:'#33FFFF',
-						smoke_color: '#33FFFF',
+						color:'#a4efe1',
+						smoke_color: '#a4efe1',
 						shrapnel: true
 					});
 
@@ -1619,11 +1634,11 @@ class sdJunk extends sdEntity
 				//if ( this.hea < this.hmax / 2 )
 				//ctx.drawImageFilterCache( sdJunk.img_cube_unstable3, - 16, - 18, 32,32 );
 				//else
-				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), this.liquid.amount <= 0 ? 32 : 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL ) // Fire barrel
 			{
-				ctx.drawImageFilterCache( sdJunk.img_fire_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdJunk.img_fire_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
 			{
@@ -1690,7 +1705,7 @@ class sdJunk extends sdEntity
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 10, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
 		
-			if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 )
 			sdWorld.BasicEntityBreakEffect( this, 10, 2, 0.75, 0.75, 'water_entrance', sdEffect.TYPE_FROZEN );
 		
 			if ( this.type === sdJunk.TYPE_FIRE_BARREL )
