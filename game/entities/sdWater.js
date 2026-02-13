@@ -29,10 +29,12 @@ class sdWater extends sdEntity
 		sdWater.TYPE_ESSENCE = 4;
 		sdWater.TYPE_ANTIMATTER = 5;
         sdWater.TYPE_CRYO = 6;
-		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2', '#b0ffff', '#040408', '#a4efe1' ]; // For liquid carrier recolors
+        sdWater.TYPE_INCENDIARY = 7;
+
+		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2', '#b0ffff', '#040408', '#a4efe1', '#ffa840' ]; // For liquid carrier recolors
 		
-		sdWater.damage_by_type = [ 0, 1, 5, 0, 0, 0, 0 ];
-		sdWater.never_sleep_by_type = [ 0, 0, 0, 1, 0, 0, 0 ];
+		sdWater.damage_by_type = [ 0, 1, 5, 0, 0, 0, 0, 0 ];
+		sdWater.never_sleep_by_type = [ 0, 0, 0, 1, 0, 0, 0, 0 ];
 		//sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
 		
 		sdWater.DEBUG = false;
@@ -97,6 +99,8 @@ class sdWater extends sdEntity
 		return 'Anti-matter';
         if ( this.type === sdWater.TYPE_CRYO )
 		return 'Cryo liquid';
+        if ( this.type === sdWater.TYPE_CRYO )
+		return 'Incendiary liquid';
 	
 		return 'Liquid ' + this.type;
 	}
@@ -125,6 +129,9 @@ class sdWater extends sdEntity
         
 			if ( params.tag === 'cryo' )
 			params.type = sdWater.TYPE_CRYO;
+
+            if ( params.tag === 'fire' )
+			params.type = sdWater.TYPE_INCENDIARY;
 			
 			params.x = Math.floor( params.x / 16 ) * 16;
 			params.y = Math.floor( params.y / 16 ) * 16;
@@ -242,8 +249,7 @@ class sdWater extends sdEntity
 		
 		return null;
 	}
-				
-	
+
 	AwakeSelfAndNear( recursive_catcher=null ) // Might need array for recursion
 	{
 		if ( recursive_catcher === null )
@@ -636,6 +642,10 @@ class sdWater extends sdEntity
 			if ( w3 )
 			w3._client_vel += this._client_y * 0.1 * capped_GSPEED;
 			
+			
+			
+			
+			
 			if ( this._client_y > 8 )
 			this._client_y = 8;
 			else
@@ -706,17 +716,47 @@ class sdWater extends sdEntity
 			if ( this.type === sdWater.TYPE_ANTIMATTER ) // Explodes if ever placed/spawned
 			{
 				sdWorld.SendEffect({ 
-					x:this.x + this.hitbox_x2 / 2, 
-					y:this.y + this.hitbox_y2 / 2, 
-					radius:this._volume * 100,
+					x: this.x + this.hitbox_x2 / 2, 
+					y: this.y + this.hitbox_y2 / 2, 
+					radius: this._volume * 100,
 					damage_scale: this._volume * 4,
-					type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
-					owner:this,
-					color:sdWater.reference_colors[ sdWater.TYPE_ANTIMATTER ],
+					type: sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
+					owner: this,
+					color: sdWater.reference_colors[ sdWater.TYPE_ANTIMATTER ],
                     no_smoke: true,
-                    shrapnel:true
+                    shrapnel: true
 				});
 				
+				this.remove();
+				return;
+			}
+			else
+            if ( this.type === sdWater.TYPE_INCENDIARY ) // Explodes if ever placed/spawned, and burns everything around it
+			{    
+                const mult = this._volume * 35
+                const radius = Math.max( 15, mult );
+
+				sdWorld.SendEffect({ 
+					x: this.x + this.hitbox_x2 / 2, 
+					y: this.y + this.hitbox_y2 / 2, 
+					radius: radius,
+					damage_scale: 0,
+					type: sdEffect.TYPE_EXPLOSION, 
+					owner: this,
+					color: sdWater.reference_colors[ sdWater.TYPE_INCENDIARY ],
+                    smoke_color: sdWater.reference_colors[ sdWater.TYPE_INCENDIARY ],
+                    shrapnel: true
+				});
+                
+                let nears = sdWorld.GetAnythingNear( this.x, this.y, radius );
+
+                for ( let i = 0; i < nears.length; i++ )
+                {
+                    if ( nears[ i ].IsTargetable( this ) )
+                    if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
+                    nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 1000 * mult, initiator: this._owner }); // Ignite nearby objects
+                }
+
 				this.remove();
 				return;
 			}
@@ -1250,9 +1290,17 @@ class sdWater extends sdEntity
 			ctx.fillRect( dx, dy, w, h );
 		}
         else
+        if ( liquid.type === sdWater.TYPE_INCENDIARY )
+		{
+			ctx.fillStyle = sdWater.reference_colors[ sdWater.TYPE_INCENDIARY ],
+            ctx.globalAlpha = 0.9;
+            ctx.filter = 'brightness(1.5)';
+		    ctx.fillRect( dx, amount_dy, w, amount_h );
+		}
+        else
         if ( liquid.type === sdWater.TYPE_CRYO )
 		{
-            ctx.fillStyle = '#a4efe1';
+            ctx.fillStyle = sdWater.reference_colors[ sdWater.TYPE_CRYO ],
 			ctx.globalAlpha = 0.9;
             ctx.filter = 'brightness(1.5)';
 		    ctx.fillRect( dx, amount_dy, w, amount_h );
@@ -1397,6 +1445,9 @@ class sdWater extends sdEntity
 				else
                 if ( this.type === sdWater.TYPE_CRYO )
 				ctx.fillStyle = '#a4efe1';
+                else
+                if ( this.type === sdWater.TYPE_INCENDIARY )
+                ctx.fillStyle = '#ffa840';
                 else
 				ctx.fillStyle = '#0030a0';
 
@@ -1571,6 +1622,12 @@ class sdWater extends sdEntity
                                 ctx.fillStyle = '#a4efe1';
                             }
                             else
+                            if ( this.type === sdWater.TYPE_INCENDIARY )
+                            {
+                                ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
+                                ctx.fillStyle = '#ffa840';
+                            }
+                            else
 							{
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 1;
@@ -1632,6 +1689,13 @@ class sdWater extends sdEntity
 							r = 164/255;
 							g = 239/255;
 							b = 225/255;
+						}
+                        else
+                        if ( this.type === sdWater.TYPE_INCENDIARY )
+						{
+							r = 255/255;
+							g = 180/255;
+							b = 95/255;
 						}
 						else
 						{
