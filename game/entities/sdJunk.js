@@ -357,8 +357,10 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		this._regen_timeout = 60;
 
+        if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_TOXIC_BARREL )
+        this._regen_timeout = 300;
 		
-		this.regen_timeout = Math.max( this.regen_timeout, 60 );
+		this._regen_timeout = Math.max( this._regen_timeout, 60 );
 
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Recieve score for damaging the crystal or council bomb
 		{
@@ -1461,14 +1463,9 @@ class sdJunk extends sdEntity
 					}
 				}
 			}
-			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
-			{
-				if ( this.glow_animation === 0  ) // "Equalize" mode from sdMatterContainer
-				this.MatterGlow( 0.01, 30, GSPEED );
-				if ( this.glow_animation === 2 ) // "Release" mode from sdMatterContainer
-				this.MatterGlow( 0.3, 30, GSPEED );
-
-				if ( this._regen_timeout > 0 )
+            if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_TOXIC_BARREL ) // Health Regen
+            {
+                if ( this._regen_timeout > 0 )
 				this._regen_timeout -= GSPEED;
 				else
 				{
@@ -1477,6 +1474,13 @@ class sdJunk extends sdEntity
 						this.hea = Math.min( this.hea + GSPEED, this.hmax );
 					}
 				}
+            }
+			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+			{
+				if ( this.glow_animation === 0 ) // "Equalize" mode from sdMatterContainer
+				this.MatterGlow( 0.01, 30, GSPEED );
+				if ( this.glow_animation === 2 ) // "Release" mode from sdMatterContainer
+				this.MatterGlow( 0.3, 30, GSPEED );
 			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 			{
