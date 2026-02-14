@@ -3170,6 +3170,7 @@ THING is cosmic mic drop!`;
 				this.driver_of.ExcludeDriver( this );
 			
 				this.DropWeapons();
+                this.DropArmor();
 
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
