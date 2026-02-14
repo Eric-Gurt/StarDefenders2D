@@ -4415,7 +4415,7 @@ class sdWeather extends sdEntity
 					difficulty_per_entity *= 0.4;
 					
 					template.title = 'Extract fallen missiles';
-					template.description = 'Extract fallen missiles by using a long range teleporter.';
+					template.description = 'Extract fallen cruise missiles by using a long range teleporter.';
 					template.lrtp_class_proprty_value_array = [ 'sdAsteroid', 'type', sdAsteroid.TYPE_MISSILE ];
 				});
 				task_options.push(()=>
@@ -4427,6 +4427,26 @@ class sdWeather extends sdEntity
 					template.title = 'Extract cryo-substance barrel';
 					template.description = 'We need you to extract a highly-concentrated cryo-substance barrel. The Science Division wants to use it to fix the Mothership\'s main server\'s AI unit, which is currently so hot it\'s trying to melt through the floor.';
 					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', sdJunk.TYPE_FREEZE_BARREL ];
+				});
+                task_options.push(()=>
+				{
+					num_ents = 1 + Math.floor( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract flammable-substance barrel';
+					template.description = 'We need you to extract a flammable-substance barrel. These have been proven to be of great importance to our weapon program.';
+					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', sdJunk.TYPE_FIRE_BARREL ];
+				});
+                task_options.push(()=>
+				{
+					num_ents = 1 + Math.floor( Math.random() * 3 );
+					
+					difficulty_per_entity *= 0.2;
+					
+					template.title = 'Extract toxic gas barrel';
+					template.description = 'We need you to extract a toxic gas barrel. Perhaps one day we could create an antidote using these?';
+					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', sdJunk.TYPE_TOXIC_BARREL ];
 				});
 				/*
 				task_options.push(()=>
