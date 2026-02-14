@@ -4445,7 +4445,7 @@ class sdWeather extends sdEntity
 					difficulty_per_entity *= 0.2;
 					
 					template.title = 'Extract toxic gas barrel';
-					template.description = 'We need you to extract a toxic gas barrel. Perhaps one day we could create an antidote using these?';
+					template.description = 'We need you to extract a toxic gas barrel. Perhaps one day we could develop an antidote using these?';
 					template.lrtp_class_proprty_value_array = [ 'sdJunk', 'type', sdJunk.TYPE_TOXIC_BARREL ];
 				});
 				/*
