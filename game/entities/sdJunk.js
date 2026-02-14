@@ -727,6 +727,13 @@ class sdJunk extends sdEntity
                         const entity = nears[ i ];
                         if ( entity.IsTargetable( this ) )
                         if ( entity._is_bg_entity === this._is_bg_entity )
+                        if ( sdWorld.CheckLineOfSight( 
+								this.x,
+								this.y,
+								entity.x,
+								entity.y,
+								this, null, sdCom.com_vision_blocking_classes, null )
+                            )
                         {
                             const e_is_organic = ( ( entity.IsPlayerClass() || entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 
