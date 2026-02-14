@@ -1378,6 +1378,7 @@ THING is cosmic mic drop!`;
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
 		this._armor_repair_amount = 0; // Armor repair speed
         this._armor_lost_absorb_perc = 0; // Lost damage reduction armor
+        this._armor_class = -1; // Armor sdGun class number, so it can be dropped
 		
 		this.mobility = 100; // Used to slow-down hostile AIs
 
@@ -2798,7 +2799,7 @@ THING is cosmic mic drop!`;
 		return saved_weapon;
 	}
 	
-	RemoveArmor()
+	RemoveArmor() // Usually due to destruction
 	{
 		this.armor = 0;
 		this.armor_max = 0;
@@ -2807,9 +2808,39 @@ THING is cosmic mic drop!`;
 		//this.armor_speed_reduction = 0; 
 		//this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
-	ApplyArmor( params )
+    
+    DropArmor()
+    {
+        const armor_class = this._armor_class;
+        if ( armor_class === -1 )
+        return;
+    
+        const gun = new sdGun({ x: this.x, y: this.y, class: armor_class });
+        sdEntity.entities.push( gun );
+
+        gun._remaining_armor = this.armor;
+        const angle = this.GetLookAngle();
+
+        const throw_force = 5;
+
+        gun.sx += Math.sin( angle ) * throw_force;
+        gun.sy += Math.cos( angle ) * throw_force;
+
+        this._ignored_guns_infos.push( { ent: gun, until: sdWorld.time + 300 } );
+
+        gun.ttl = sdGun.disowned_guns_ttl;
+        gun._held_by = null;
+        gun.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+        this._armor_class = -1;
+
+        this.TriggerMovementInRange();
+        this.RemoveArmor(); // Reset armor stats for this character
+    }
+
+	ApplyArmor( armor )
 	{
-		params.armor = params.armor || 100;
+        const params = sdGun.classes[ armor.class ].armor_properties;
+
 		params._armor_absorb_perc = params._armor_absorb_perc || 0;
 		params.armor_speed_reduction = params.armor_speed_reduction || 0;
         params.armor_lost_absorb_perc = params.armor_lost_absorb_perc || 0;
@@ -2817,16 +2848,17 @@ THING is cosmic mic drop!`;
 		// Make sure it is better by all stats only
 		if ( params.armor >= this.armor_max )
 		if ( params._armor_absorb_perc >= this._armor_absorb_perc || this.armor_max === 0 )
-        if ( params.armor_lost_absorb_perc >= this._armor_lost_absorb_perc )
+        //if ( params.armor_lost_absorb_perc >= this._armor_lost_absorb_perc )
 		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
-        if ( ( 1 - this._armor_lost_absorb_perc ) * this.armor < ( 1 - params.armor_lost_absorb_perc ) * params.armor )
 		{
-			this.armor = params.armor;
+            this.DropArmor(); // Remove old armor
+			this.armor = armor._remaining_armor;
 			this.armor_max = params.armor;
 			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
 			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
             this._armor_lost_absorb_perc = params.armor_lost_absorb_perc;
+            this._armor_class = armor.class;
 			
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
@@ -7684,13 +7716,13 @@ THING is cosmic mic drop!`;
 						}
 					}
 
-					/*if ( command_name === 'REMOVE_ARMOR' )
+					if ( command_name === 'DROP_ARMOR' )
 					{
 						if ( exectuter_character.armor > 0 ) 
 						{
-							exectuter_character.RemoveArmor();
+							exectuter_character.DropArmor();
 						}
-					}*/
+					}
 					if ( command_name === 'NO_TASKS' )
 					{
 						sdTask.PerformActionOnTasksOf( exectuter_character, ( task )=>
@@ -7939,8 +7971,8 @@ THING is cosmic mic drop!`;
 							this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
 						}
 
-						//if ( this.armor > 0 )
-						//this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] ); Seems pointless these days
+						if ( this.armor > 0 )
+						this.AddContextOption( 'Drop armor', 'DROP_ARMOR', [] );
 						this.AddContextOption( 'Cancel all personal tasks', 'NO_TASKS', [] );
 
 						if ( this.power_ef > 0 || this.time_ef > 0 )
