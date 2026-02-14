@@ -15,7 +15,6 @@ import sdEntity from './sdEntity.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
-		
 class sdEffect extends sdEntity
 {
 	static init_class()
@@ -958,7 +957,7 @@ class sdEffect extends sdEntity
 						let zx = Math.sin( an ) * ( -Math.random() * 2 + Math.random() * 2 );
 						let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
 					
-						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
+						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + zx * 2, y:this.y + zy * 2, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
 						sdEntity.entities.push( e );
 					}
 					
