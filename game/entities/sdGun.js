@@ -559,6 +559,8 @@ class sdGun extends sdEntity
 		
 		this.overheat = 0; // Used by minigun-like weapons
 		this._overheat_cooldown = 0;
+
+        this._remaining_armor = sdGun.classes[ this.class ].armor_properties?.armor || 0; // Used by dropped armor items
 		
 		//let has_class = sdGun.classes[ this.class ];
 		this.ResetInheritedGunClassProperties( params );
