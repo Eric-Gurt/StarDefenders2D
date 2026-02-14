@@ -2286,7 +2286,7 @@ class sdGunClass
 			has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 				/*
 				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.3 ) * 130 )
@@ -2321,7 +2321,7 @@ class sdGunClass
 			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
@@ -2356,7 +2356,7 @@ class sdGunClass
 			has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 )
@@ -3217,7 +3217,7 @@ class sdGunClass
 			has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 )
@@ -3252,7 +3252,7 @@ class sdGunClass
 			has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 )
@@ -3287,7 +3287,7 @@ class sdGunClass
 			has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 )
@@ -3680,7 +3680,7 @@ class sdGunClass
 			has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
+				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 )
@@ -3715,7 +3715,7 @@ class sdGunClass
 			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				if ( character.ApplyArmor( gun ) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 )
@@ -3750,7 +3750,7 @@ class sdGunClass
 			has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				if ( character.ApplyArmor( gun ) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 )
@@ -5094,7 +5094,7 @@ class sdGunClass
 			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				if ( character.ApplyArmor( gun ) )
 				gun.remove();
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
@@ -9774,7 +9774,7 @@ class sdGunClass
 			has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				if ( character.ApplyArmor( gun ) )
 				gun.remove();
 
 				return false; 
@@ -10794,12 +10794,12 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			spawnable: false,
+            spawnable: false,
 			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 0, armor_lost_absorb_perc: 0.5 }, // This way it's compatible with upgrade station checks
 			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
+				if ( character.ApplyArmor( gun ) )
 				gun.remove();
 
 				return false; 
