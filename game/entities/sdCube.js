@@ -1744,6 +1744,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_RED )
 		return "Nexus cube";
+    
+        if ( this.kind === sdCube.KIND_PURPLE )
+		return "Shell cube";
 	
 		return "Cube";
 	}
