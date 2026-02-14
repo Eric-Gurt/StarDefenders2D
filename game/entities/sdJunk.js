@@ -98,7 +98,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FIRE_BARREL ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_METAL_CHUNK ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_HIGH_YIELD_ROCKET ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
-        sdJunk.bounds_by_type[ sdJunk.TYPE_TOXIC_BARREL ] = { x1: -6, x2: 5, y1: -10, y2: 10 };
+        sdJunk.bounds_by_type[ sdJunk.TYPE_TOXIC_BARREL ] = { x1: -6, x2: 5, y1: -8, y2: 11 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -130,9 +130,9 @@ class sdJunk extends sdEntity
             sdJunk.TYPE_FREEZE_BARREL,
             sdJunk.TYPE_LOST_CONTAINER,
             sdJunk.TYPE_ALIEN_BATTERY,
-			sdJunk.TYPE_FIRE_BARREL,
+            sdJunk.TYPE_FIRE_BARREL,
             sdJunk.TYPE_METAL_CHUNK,
-			sdJunk.TYPE_HIGH_YIELD_ROCKET,
+            sdJunk.TYPE_HIGH_YIELD_ROCKET,
             sdJunk.TYPE_UNKNOWN_OBJECT,
             sdJunk.TYPE_UNSTABLE_CUBE_CORPSE,
             sdJunk.TYPE_TOXIC_BARREL
@@ -856,7 +856,7 @@ class sdJunk extends sdEntity
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
-            if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_TOXIC_BARREL )
+            if ( this.liquid.max > 0 )
 			{
                 if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
                 {
