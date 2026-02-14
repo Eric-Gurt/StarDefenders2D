@@ -860,6 +860,8 @@ class sdJunk extends sdEntity
 			}
             if ( this.liquid.max > 0 )
 			{
+                this.GiveLiquid( 0.01, GSPEED );
+
                 if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
                 {
                     this.liquid.amount = 0;
