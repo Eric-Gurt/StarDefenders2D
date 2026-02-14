@@ -47,7 +47,8 @@ class sdJunk extends sdEntity
 
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
 		sdJunk.img_fire_barrel = sdWorld.CreateImageFromFile( 'barrel_fire' );
-		
+        sdJunk.img_toxic_barrel = sdWorld.CreateImageFromFile( 'barrel_toxic' );
+
 		sdJunk.img_metal_chunk = sdWorld.CreateImageFromFile( 'metal_chunk' );
 		sdJunk.img_high_yield_rocket = sdWorld.CreateImageFromFile( 'high_yield_rocket' );
 
@@ -73,6 +74,8 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_METAL_CHUNK = 11;
 		sdJunk.TYPE_HIGH_YIELD_ROCKET = 12;
 		sdJunk.TYPE_UNKNOWN_OBJECT = 13;
+        sdJunk.TYPE_TOXIC_BARREL = 14;
+
 		sdJunk.ScoreScaleByType = ( t )=>
 		{
 			if ( t === sdJunk.TYPE_ALIEN_ARTIFACT || t === sdJunk.TYPE_STEALER_ARTIFACT )
@@ -95,6 +98,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FIRE_BARREL ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_METAL_CHUNK ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_HIGH_YIELD_ROCKET ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
+        sdJunk.bounds_by_type[ sdJunk.TYPE_TOXIC_BARREL ] = { x1: -6, x2: 5, y1: -10, y2: 10 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -122,33 +126,17 @@ class sdJunk extends sdEntity
 		
 		this.held_by = null;
 
-		let r = Math.random() * 8;
-		let t_s = 0;
+        const random_types = [
+            sdJunk.TYPE_FREEZE_BARREL,
+            sdJunk.TYPE_LOST_CONTAINER,
+            sdJunk.TYPE_ALIEN_BATTERY, sdJunk.TYPE_FIRE_BARREL,
+            sdJunk.TYPE_METAL_CHUNK, sdJunk.TYPE_HIGH_YIELD_ROCKET,
+            sdJunk.TYPE_UNKNOWN_OBJECT,
+            sdJunk.TYPE_UNSTABLE_CUBE_CORPSE,
+            sdJunk.TYPE_TOXIC_BARREL
+        ];
 
-		if ( r < 1 )
-		t_s = sdJunk.TYPE_FREEZE_BARREL;
-		else
-		if ( r < 2 )
-		t_s = sdJunk.TYPE_LOST_CONTAINER;
-		else
-		if ( r < 3 )
-		t_s = sdJunk.TYPE_ALIEN_BATTERY;
-		else
-		if ( r < 4 )
-		t_s = sdJunk.TYPE_FIRE_BARREL;
-		else
-		if ( r < 5 )
-		t_s = sdJunk.TYPE_METAL_CHUNK;
-		else
-		if ( r < 6 )
-		t_s = sdJunk.TYPE_HIGH_YIELD_ROCKET;
-		else
-		if ( r < 7 )
-		t_s = sdJunk.TYPE_UNKNOWN_OBJECT;
-		else
-		t_s = sdJunk.TYPE_UNSTABLE_CUBE_CORPSE;
-
-		this.type = ( params.type !== undefined ) ? params.type : t_s;
+		this.type = ( params.type !== undefined ) ? params.type : sdWorld.AnyOf( random_types );
 
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
@@ -159,7 +147,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) // Large anti-crystal and the high yield rocket
 		this.hmax = 1000;
 		else
-		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_METAL_CHUNK ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel, 9 = Fire barrel )
+		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || sdJunk.TYPE_TOXIC_BARREL || this.type === sdJunk.TYPE_METAL_CHUNK ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel, 9 = Fire barrel, 14 = Toxic barrel )
 		this.hmax = 150;
 		else
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT || this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
@@ -192,6 +180,7 @@ class sdJunk extends sdEntity
 		this._notify_players_in = 30; // Notify players about tasks ( Erthal beacon )
 		
 		this._ai_team = -1; // For Council bomb and Erthal beacon
+
         this.liquid = { 
             max: 0,
             amount: 0, 
@@ -202,7 +191,7 @@ class sdJunk extends sdEntity
         if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
         {
             this.liquid = { 
-                max: 100, // 5 & 10 water entities worth
+                max: 100,
                 amount: 100, 
                 type: sdWater.TYPE_CRYO, 
                 extra: 0 // Used for essence
@@ -212,9 +201,19 @@ class sdJunk extends sdEntity
         if ( this.type === sdJunk.TYPE_FIRE_BARREL )
         {
             this.liquid = { 
-                max: 100, // 5 & 10 water entities worth
+                max: 100,
                 amount: 100, 
                 type: sdWater.TYPE_INCENDIARY, 
+                extra: 0 // Used for essence
+            };
+        }
+        
+        if ( this.type === sdJunk.TYPE_TOXIC_BARREL )
+        {
+            this.liquid = { 
+                max: 200,
+                amount: 200, 
+                type: sdWater.TYPE_TOXIC_GAS, 
                 extra: 0 // Used for essence
             };
         }
@@ -702,6 +701,57 @@ class sdJunk extends sdEntity
                     sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
                 }
 			}
+            
+            if ( this.type === sdJunk.TYPE_TOXIC_BARREL  && this.liquid.amount > 0 ) // Poisons nearby living entities
+			{
+                if ( this.liquid.type === sdWater.TYPE_TOXIC_GAS )
+                {
+                    const mult = this.liquid.amount / this.liquid.max;
+                    const radius = Math.max( 15, 70 * mult );
+
+					sdWorld.SendEffect({ 
+						x: this.x, 
+						y: this.y, 
+						radius: radius,
+						damage_scale: 0, // Just a decoration effect
+						type: sdEffect.TYPE_EXPLOSION, 
+						owner:this,
+						color: '#a277a2',
+						smoke_color: '#a277a2',
+					});
+
+					let nears = sdWorld.GetAnythingNear( this.x, this.y, radius );
+
+					for ( let i = 0; i < nears.length; i++ )
+					{
+                        const entity = nears[ i ];
+                        if ( entity.IsTargetable( this ) )
+                        if ( entity._is_bg_entity === this._is_bg_entity )
+                        {
+                            const e_is_organic = ( ( entity.IsPlayerClass() || entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
+
+                            if ( entity.is( sdCharacter ) )
+                            {
+                                entity._sickness += 1000 * mult;
+                            }
+                            else
+                            if ( e_is_organic )
+                            {
+                                entity.DamageWithEffect( 200 * mult, this._owner );
+                            }
+                        }
+					}
+                }
+                else
+                {
+                    let di_x = this.hitbox_x2 - this.hitbox_x1;
+                    let di_y = this.hitbox_y2 - this.hitbox_y1;
+                    let tot = Math.ceil( this.liquid.amount / 100 );
+                    let extra = this.liquid.extra / this.liquid.amount * 100;
+
+                    sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
+                }
+			}
 
 			let r = Math.random();
 
@@ -797,7 +847,7 @@ class sdJunk extends sdEntity
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
-            if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
+            if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_TOXIC_BARREL )
 			{
                 if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
                 {
@@ -1463,6 +1513,13 @@ class sdJunk extends sdEntity
 
         return type === this.liquid.type;
 	}
+    IsCarriable( by_entity )
+    {
+        if ( this.type === sdJunk.TYPE_TOXIC_BARREL )
+        return true;
+    
+        return super.IsCarriable( by_entity );
+    }
 	get title()
 	{
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
@@ -1497,6 +1554,9 @@ class sdJunk extends sdEntity
 	
 		if ( this.type === sdJunk.TYPE_FIRE_BARREL )
 		return 'Flammable-substance barrel';
+    
+        if ( this.type === sdJunk.TYPE_TOXIC_BARREL )
+		return 'Toxic gas barrel';
 
 		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
 		return 'Strange artifact';
@@ -1544,7 +1604,7 @@ class sdJunk extends sdEntity
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		}
 
-		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
+		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_TOXIC_BARREL )
 		sdEntity.Tooltip( ctx, this.title );
 
 		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT || this.type === sdJunk.TYPE_STEALER_ARTIFACT )
@@ -1558,8 +1618,7 @@ class sdJunk extends sdEntity
 	
 		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 		sdEntity.Tooltip( ctx, this.title );
-	
-		
+
 		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
@@ -1679,6 +1738,11 @@ class sdJunk extends sdEntity
                 sdWater.DrawLiquidRect( ctx, this, this.liquid, 0, 0, -3, -3 );
 				ctx.drawImageFilterCache( sdJunk.img_fire_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), 0, 32, 32, - 16, - 16, 32, 32 );
 			}
+            if ( this.type === sdJunk.TYPE_TOXIC_BARREL ) // Toxic gas barrel
+			{
+                sdWater.DrawLiquidRect( ctx, this, this.liquid, 0, 0, -3, -3 );
+				ctx.drawImageFilterCache( sdJunk.img_toxic_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ), 0, 32, 32, - 16, - 16, 32, 32 );
+			}
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
 			{
 				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 16, 32,32 );
@@ -1739,7 +1803,7 @@ class sdJunk extends sdEntity
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 		}
-		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL )
+		if ( this.type === sdJunk.TYPE_FREEZE_BARREL || this.type === sdJunk.TYPE_FIRE_BARREL || this.type === sdJunk.TYPE_TOXIC_BARREL )
 		{
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 10, 12, 0.75, 0.75, 'glass12', sdEffect.TYPE_GLASS );
