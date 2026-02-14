@@ -775,6 +775,7 @@ class sdCharacter extends sdEntity
 		if ( prop === '_discovered' ) return true;
 		if ( prop === '_user_data' ) return true;
 		if ( prop === '_ai_stay_near_entity' ) return true;
+        if ( prop === '_armor_class' ) return true;
 
 		return false;
 	}
@@ -1378,7 +1379,7 @@ THING is cosmic mic drop!`;
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
 		this._armor_repair_amount = 0; // Armor repair speed
         this._armor_lost_absorb_perc = 0; // Lost damage reduction armor
-        this._armor_class = -1; // Armor sdGun class number, so it can be dropped
+        this._armor_class = null; // Armor sdGun entity snapshot, so it can be dropped
 		
 		this.mobility = 100; // Used to slow-down hostile AIs
 
@@ -2804,6 +2805,7 @@ THING is cosmic mic drop!`;
 		this.armor = 0;
 		this.armor_max = 0;
         this._armor_lost_absorb_perc = 0;
+        this._armor_class = null;
 		//this._armor_absorb_perc = 0;
 		//this.armor_speed_reduction = 0; 
 		//this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
@@ -2811,30 +2813,40 @@ THING is cosmic mic drop!`;
     
     DropArmor()
     {
-        const armor_class = this._armor_class;
-        if ( armor_class === -1 )
+        const gun = this._armor_class;
+        if ( !gun )
         return;
-    
-        const gun = new sdGun({ x: this.x, y: this.y, class: armor_class });
-        sdEntity.entities.push( gun );
 
-        gun._remaining_armor = this.armor;
-        const angle = this.GetLookAngle();
+        try
+        {
+            const ent = sdEntity.GetObjectFromSnapshot( gun );
+            const angle = this.GetLookAngle();
 
-        const throw_force = 5;
+            const throw_force = 5;
 
-        gun.sx += Math.sin( angle ) * throw_force;
-        gun.sy += Math.cos( angle ) * throw_force;
+            ent.x = this.x;
+            ent.y = this.y;
 
-        this._ignored_guns_infos.push( { ent: gun, until: sdWorld.time + 300 } );
+            ent.sx += Math.sin( angle ) * throw_force;
+            ent.sy += Math.cos( angle ) * throw_force;
 
-        gun.ttl = sdGun.disowned_guns_ttl;
-        gun._held_by = null;
-        gun.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-        this._armor_class = -1;
+            ent._remaining_armor = this.armor;
 
-        this.TriggerMovementInRange();
-        this.RemoveArmor(); // Reset armor stats for this character
+            ent.ttl = sdGun.disowned_guns_ttl;
+
+            ent._held_by = null;
+
+            sdEntity.entities.push( ent );
+
+            this._ignored_guns_infos.push( { ent: ent, until: sdWorld.time + 300 } );
+            this.TriggerMovementInRange();
+            this.RemoveArmor(); // Reset armor save and stats for this character
+            sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+        }
+        catch ( e )
+        {
+            trace( 'Armor dropping failed: ', gun );
+        }
     }
 
 	ApplyArmor( armor )
@@ -2852,17 +2864,19 @@ THING is cosmic mic drop!`;
 		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
 		{
-            this.DropArmor(); // Remove old armor
+            this.DropArmor(); // Drop the old armor
 			this.armor = armor._remaining_armor;
 			this.armor_max = params.armor;
 			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
 			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
             this._armor_lost_absorb_perc = params.armor_lost_absorb_perc;
-            this._armor_class = armor.class;
-			
+
+            this._armor_class = armor.GetSnapshot( globalThis.GetFrame(), true );
+            delete this._armor_class._net_id; // Would fail to save after backup/server restarts without this
+
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
-		
+
 			return true;
 		}
 		return false;
