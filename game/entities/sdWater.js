@@ -733,8 +733,8 @@ class sdWater extends sdEntity
 			else
             if ( this.type === sdWater.TYPE_INCENDIARY ) // Explodes if ever placed/spawned, and burns everything around it
 			{    
-                const mult = this._volume * 35
-                const radius = Math.max( 15, mult );
+                const mult = 1 / this._volume;
+                const radius = Math.max( 15, 35 * mult );
 
 				sdWorld.SendEffect({ 
 					x: this.x + this.hitbox_x2 / 2, 
