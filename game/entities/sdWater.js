@@ -596,13 +596,13 @@ class sdWater extends sdEntity
 							//if ( e.Damage !== sdEntity.prototype.Damage )
 							{
                                 if ( sdWater.damage_by_type[ this.type ] !== 0 )
-								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED * this._volume ); 
 								
 								if ( this.type === sdWater.TYPE_LAVA )
-								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED });
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED * this._volume });
                             
                                 if ( this.type === sdWater.TYPE_CRYO )
-								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -50 * GSPEED });
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -50 * GSPEED * this._volume });
 							}
 
 							if ( this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_WATER )
