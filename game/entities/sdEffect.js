@@ -392,6 +392,7 @@ class sdEffect extends sdEntity
 			],
 			speed: 1 / 30,
 			apply_shading: false,
+            collisions: true,
 			random_rotation: true
 		};
 		
