@@ -729,6 +729,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdJunk', type: 11, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 12, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 13, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdJunk', type: 14, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTzyrgAbsorber', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgConverter', _category:'Development tests' });
