@@ -129,8 +129,10 @@ class sdJunk extends sdEntity
         const random_types = [
             sdJunk.TYPE_FREEZE_BARREL,
             sdJunk.TYPE_LOST_CONTAINER,
-            sdJunk.TYPE_ALIEN_BATTERY, sdJunk.TYPE_FIRE_BARREL,
-            sdJunk.TYPE_METAL_CHUNK, sdJunk.TYPE_HIGH_YIELD_ROCKET,
+            sdJunk.TYPE_ALIEN_BATTERY,
+			sdJunk.TYPE_FIRE_BARREL,
+            sdJunk.TYPE_METAL_CHUNK,
+			sdJunk.TYPE_HIGH_YIELD_ROCKET,
             sdJunk.TYPE_UNKNOWN_OBJECT,
             sdJunk.TYPE_UNSTABLE_CUBE_CORPSE,
             sdJunk.TYPE_TOXIC_BARREL
