@@ -2315,7 +2315,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )           
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL1_MEDIUM_ARMOR = 27 ] = 
@@ -2350,7 +2351,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL1_HEAVY_ARMOR = 28 ] = 
@@ -2385,7 +2387,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHOTGUN_MK2 = 29 ] = 
@@ -3246,7 +3249,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL2_MEDIUM_ARMOR = 44 ] = 
@@ -3281,7 +3285,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL2_HEAVY_ARMOR = 45 ] = 
@@ -3316,7 +3321,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_F_MARKSMAN = 46 ] =  // sprite made by Ghost581
@@ -3709,7 +3715,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL3_MEDIUM_ARMOR = 56 ] = 
@@ -3744,7 +3751,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL3_HEAVY_ARMOR = 57 ] = 
@@ -3779,7 +3787,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_EMERGENCY_INSTRUCTOR = 58 ] = 
@@ -5123,7 +5132,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 		
 		
@@ -9792,7 +9802,8 @@ class sdGunClass
 				gun.remove();
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_BANANA = 144 ] = 
