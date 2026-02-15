@@ -146,7 +146,7 @@ class sdTutel extends sdEntity
 					owner:this,
 					can_hit_owner: false,
 					color:'#51b5ad',
-					no_smoke: true
+                    smoke_color:'#51b5ad'
 				});
 			}
 		}
@@ -331,8 +331,7 @@ class sdTutel extends sdEntity
 						
 						if ( from_entity.IsPlayerClass() )
 						{
-							from_entity._sickness = Math.max( from_entity._sickness, 30 * 30 );
-							from_entity._last_sickness_from_ent = this;
+							from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 300, intensity: 1.5, owner: this });
 						}
 					}
 					
