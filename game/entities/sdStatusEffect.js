@@ -2402,6 +2402,86 @@ class sdStatusEffect extends sdEntity
 			{
 			}
 		};
+        
+        sdStatusEffect.types[ sdStatusEffect.TYPE_SICKNESS = 18 ] = 
+		{
+			remove_if_for_removed: true,
+			is_emote: false,
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._sickness = params.sickness;
+                status_entity._intensity = params.intensity;
+                status_entity._sick_damage_timer = 0;
+                status_entity._sick_damage_timer_max = 60 / params.intensity;
+                status_entity._owner = params.owner;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+                if ( params._intensity > status_entity._intensity )
+                status_entity._intensity = params.intensity;
+                
+                if ( params._sickness >= status_entity._sickness )
+                status_entity._sickness += params.sickness;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				{
+                    if ( status_entity._sickness > 0 )
+                    {
+                        status_entity._sickness -= GSPEED;
+                        status_entity._sick_damage_timer -= GSPEED;
+
+                        if ( status_entity._sickness <= 0 )
+                        return status_entity.remove();
+                    }
+
+                    const ent = status_entity.for;
+                    if ( status_entity._sick_damage_timer <= 0 )
+                    if ( ent && !ent._is_being_removed )
+                    if ( ( ent.hea || ent._hea ) > 0 )
+					{
+                        ent.DamageWithEffect( 5 * status_entity._intensity, status_entity._owner, false, false );
+                        sdWorld.SendEffect({ x: ent.x, y: ent.y, type:sdEffect.TYPE_BLOOD_GREEN, filter: 'none' });
+                        status_entity._sick_damage_timer = status_entity._sick_damage_timer_max;
+                        
+                        const targets_raw = sdWorld.GetAnythingNear( ent.x, ent.y, 90, null, [ 'sdCharacter' ] );
+					
+                        const itself = targets_raw.indexOf( this );
+                        if ( itself !== -1 )
+                        targets_raw.splice( itself, 1 );
+					
+                        for ( let i = 0; i < targets_raw.length; ++i )
+                        {
+                            if ( targets_raw[ i ].IsTargetable( ent ) )
+                            targets_raw[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: status_entity._sickness / targets_raw.length, intensity: status_entity._intensity / targets_raw.length, owner: status_entity._owner });
+                        }
+					}
+					else
+					return true;
+				}
+
+				return false;
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+			}
+		};
 
 		sdStatusEffect.status_effects = [];
 		
