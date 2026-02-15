@@ -177,6 +177,20 @@ class sdGunClass
 			
 			return arr;
 		}
+        function AddArmorUpgrades( arr )
+        {
+            arr.push(
+			{ 
+				title: 'Repair armor',
+				cost: 100,
+				action: ( gun, initiator=null )=>
+				{ 
+					gun.remaining_armor = sdGun.classes[ gun.class ].armor_properties.armor;
+				}
+			});
+            
+            return arr;
+        }
 		function AddShotgunAmmoTypes( arr )
 		{
 			arr.push(
@@ -2274,7 +2288,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_light' ),
 			title: 'SD-01 Light Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -2283,7 +2297,7 @@ class sdGunClass
 			matter_cost: 150,
 			min_workbench_level: 1,
 			armor_properties: { armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -2309,7 +2323,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_medium' ),
 			title: 'SD-01 Duty Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -2318,7 +2332,7 @@ class sdGunClass
 			matter_cost: 250,
 			min_workbench_level: 1,
 			armor_properties: { armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
+			// has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -2344,7 +2358,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_heavy' ),
 			title: 'SD-01 Combat Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -2353,7 +2367,7 @@ class sdGunClass
 			matter_cost: 350,
 			min_workbench_level: 1,
 			armor_properties: { armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
+			// has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -3205,7 +3219,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_light_lvl2' ),
 			title: 'SD-02 Light Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3214,7 +3228,7 @@ class sdGunClass
 			matter_cost: 275,
 			min_workbench_level: 2,
 			armor_properties: { armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -3240,7 +3254,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl2' ),
 			title: 'SD-02 Duty Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3249,7 +3263,7 @@ class sdGunClass
 			matter_cost: 375,
 			min_workbench_level: 2,
 			armor_properties: { armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
+			// has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -3275,7 +3289,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl2' ),
 			title: 'SD-02 Combat Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3284,7 +3298,7 @@ class sdGunClass
 			matter_cost: 475,
 			min_workbench_level: 2,
 			armor_properties: { armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
+			// has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -3599,7 +3613,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl1' ),
 			title: 'SD-11 Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3622,7 +3636,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl2' ),
 			title: 'SD-12 Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3645,7 +3659,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl3' ),
 			title: 'SD-13 Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3668,7 +3682,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_light_lvl3' ),
 			title: 'SD-03 Light Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3677,7 +3691,7 @@ class sdGunClass
 			matter_cost: 400,
 			min_workbench_level: 6,
 			armor_properties: { armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
@@ -3703,7 +3717,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl3' ),
 			title: 'SD-03 Duty Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3712,7 +3726,7 @@ class sdGunClass
 			matter_cost: 500,
 			min_workbench_level: 6,
 			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
+			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) )
@@ -3738,7 +3752,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl3' ),
 			title: 'SD-03 Combat Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3747,7 +3761,7 @@ class sdGunClass
 			matter_cost: 600,
 			min_workbench_level: 6,
 			armor_properties: { armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
+			// has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( character.ApplyArmor( gun ) )
@@ -5083,7 +5097,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'wyrmhide' ),
 			title: 'Wyrmhide',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -5091,7 +5105,7 @@ class sdGunClass
 			ignore_slot: true,
 			spawnable: false,
 			armor_properties: { armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
 				if ( character.ApplyArmor( gun ) )
@@ -6499,7 +6513,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl4' ),
 			title: 'Task Ops Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -10788,7 +10802,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'cube_armor' ),
 			title: 'Cube lost armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -10796,14 +10810,15 @@ class sdGunClass
 			ignore_slot: true,
             spawnable: false,
 			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 0, armor_lost_absorb_perc: 0.5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
 				if ( character.ApplyArmor( gun ) )
 				gun.remove();
 
 				return false; 
-			} 
+			},
+            upgrades: AppendBasicCubeGunRecolorUpgrades( AddArmorUpgrades( [] ) )
 		};
 		// Add new gun classes above this line //
 
