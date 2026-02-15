@@ -228,7 +228,7 @@ class sdWeaponBench extends sdEntity
 							sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
 				
 							let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
-				
+
 							if ( Math.round( reload_time / 30 * 1000 ) < 16 )
 							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -30, '#aaffaa' );
 							else
@@ -245,42 +245,48 @@ class sdWeaponBench extends sdEntity
 						else // Regular guns
 						{
 							let gun = this.item0;
-				
-							let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
-							
-							let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
-				
-							//let ID_MAGAZINE = 2;
-		
-							let ID_DAMAGE_MULT = 7;
-							//let ID_FIRE_RATE = 8;
-							let ID_RECOIL_SCALE = 9;
-							let ID_DAMAGE_VALUE = 17;
-							let ID_ALT_DAMAGE_VALUE = 18;
 
-							if ( item.extra[ ID_DAMAGE_VALUE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
-					
-							if ( item.extra[ ID_ALT_DAMAGE_VALUE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult ), 0, -50, '#ffaaaa' );
-					
-							if ( item.extra[ ID_RECOIL_SCALE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
-				
-							let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
-				
-							if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
-							else
-							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
-			
-							if ( item.GetAmmoCapacity() !== -1 )
-							sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
+                            if ( !( sdGun.classes[ gun.class ].armor_properties ) )
+                            {
+                                let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+                                
+                                let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
+                    
+                                //let ID_MAGAZINE = 2;
+            
+                                let ID_DAMAGE_MULT = 7;
+                                //let ID_FIRE_RATE = 8;
+                                let ID_RECOIL_SCALE = 9;
+                                let ID_DAMAGE_VALUE = 17;
+                                let ID_ALT_DAMAGE_VALUE = 18;
+                                if ( item.extra[ ID_DAMAGE_VALUE ] )
+                                sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
+                            
+                                if ( item.extra[ ID_ALT_DAMAGE_VALUE ] )
+                                sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult ), 0, -50, '#ffaaaa' );
+                            
+                                if ( item.extra[ ID_RECOIL_SCALE ] )
+                                sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
 
-							sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( item.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
-							
-							if ( this.gun_password )
-							sdEntity.TooltipUntranslated( ctx, T('Access ID') + ': ' + this.gun_password, 0, -10, '#333333' );
+                                let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
+                        
+                                if ( Math.round( reload_time / 30 * 1000 ) < 16 )
+                                sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
+                                else
+                                sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+                    
+                                if ( item.GetAmmoCapacity() !== -1 )
+                                sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
+
+                                sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( item.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+
+                                if ( this.gun_password )
+                                sdEntity.TooltipUntranslated( ctx, T('Access ID') + ': ' + this.gun_password, 0, -10, '#333333' );
+                            }
+                            else
+                            {
+                                sdEntity.TooltipUntranslated( ctx, T('Armor') + ': ' + Math.ceil( gun.remaining_armor ) + ' / ' + sdGun.classes[ gun.class ].armor_properties.armor, 0, 0, '#ffaaaa' );
+                            }
 						}
 					}
 					ctx.restore();
@@ -392,7 +398,7 @@ class sdWeaponBench extends sdEntity
 		let allow_ignored_items = this.type === sdWeaponBench.TYPE_DISPLAY;
 		
 		if ( from_entity.is( sdGun ) )
-		if ( !sdGun.classes[ from_entity.class ].ignore_slot || allow_ignored_items ) // Allow some un-upgradable items for display only
+		if ( !sdGun.classes[ from_entity.class ].ignore_slot || sdGun.classes[ from_entity.class ].armor_properties || allow_ignored_items ) // Allow some un-upgradable items for display only, and allow armors
 		{
 			if ( from_entity._held_by === null )
 			{
