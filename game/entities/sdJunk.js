@@ -741,14 +741,9 @@ class sdJunk extends sdEntity
                         {
                             const e_is_organic = ( ( entity.IsPlayerClass() || entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 
-                            if ( entity.is( sdCharacter ) )
-                            {
-                                entity._sickness += 1000 * mult;
-                            }
-                            else
                             if ( e_is_organic )
                             {
-                                entity.DamageWithEffect( 200 * mult, this._owner );
+                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 1000 * mult, intensity: 2 * mult, owner: this._owner }); // Poisons nearby living entities
                             }
                         }
 					}
