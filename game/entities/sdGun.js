@@ -1778,8 +1778,11 @@ class sdGun extends sdEntity
                     if ( p === 'armor' )
                     sdEntity.Tooltip( ctx, `${ desc }: ${ this.remaining_armor } / ${ value }`, 0, xx, '#aaffaa' );
                     else
-                    if ( p === '_armor_absorb_perc' || p === 'armor_speed_reduction' || p === 'armor_lost_absorb_perc' )
-                    sdEntity.Tooltip( ctx, `${ desc }: ${ value * 100 }%`, 0, xx, '#aaffaa' );
+                    if ( p === 'armor_speed_reduction' )
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ value }%`, 0, xx, '#aaffaa' );
+                    else
+                    if ( p === '_armor_absorb_perc' || p === 'armor_lost_absorb_perc' )
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ Math.round( value * 100 ) }%`, 0, xx, '#aaffaa' );
                     else
                     sdEntity.Tooltip( ctx, `${ desc }: ${ value }`, 0, xx, '#aaffaa' );
 
