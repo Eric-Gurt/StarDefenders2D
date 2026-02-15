@@ -581,14 +581,9 @@ class sdWater extends sdEntity
 							
 							if ( this.type === sdWater.TYPE_TOXIC_GAS )
 							{
-								if ( e.is( sdCharacter ) )
-								{
-									e._sickness += 0.5 * GSPEED * this._volume;
-								}
-								else
 								if ( e_is_organic )
 								{
-									e.DamageWithEffect( 0.5 * GSPEED * this._volume, this );
+									e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 30 * this._volume * GSPEED, intensity: 1 * this._volume * GSPEED, owner: this }); // Poisons nearby living entities
 								}
 							}
 							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) || this.type === sdWater.TYPE_CRYO )
