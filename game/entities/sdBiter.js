@@ -355,9 +355,9 @@ class sdBiter extends sdEntity
 						
 						if ( from_entity.is( sdCharacter ) )
 						{
-							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 30;
-							from_entity._sickness += sickness;
-							from_entity._last_sickness_from_ent = this;
+							const sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 30;
+                            const intensity = this.type === sdBiter.TYPE_LARGE ? 1.25 : 1
+                            from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: sickness, intensity: intensity, owner: this });
 						}
 						
 						this._hea = Math.min( this._hmax, this._hea + 5 );
