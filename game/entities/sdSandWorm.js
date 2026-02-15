@@ -1340,10 +1340,9 @@ class sdSandWorm extends sdEntity
 				from_entity.DamageWithEffect( 300 * this.scale, this );
 				
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
-				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
+				if ( from_entity.is( sdCharacter ) )
 				{
-					from_entity._sickness += 30;
-					from_entity._last_sickness_from_ent = this;
+					from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 40, intensity: 1.5, owner: this._owner });
 				}
 
 				this.model = 0;
