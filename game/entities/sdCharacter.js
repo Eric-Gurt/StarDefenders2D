@@ -2830,7 +2830,7 @@ THING is cosmic mic drop!`;
             ent.sx += Math.sin( angle ) * throw_force;
             ent.sy += Math.cos( angle ) * throw_force;
 
-            ent._remaining_armor = this.armor;
+            ent.remaining_armor = this.armor;
 
             ent.ttl = sdGun.disowned_guns_ttl;
 
@@ -2865,7 +2865,7 @@ THING is cosmic mic drop!`;
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
 		{
             this.DropArmor(); // Drop the old armor
-			this.armor = armor._remaining_armor;
+			this.armor = armor.remaining_armor;
 			this.armor_max = params.armor;
 			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
 			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
