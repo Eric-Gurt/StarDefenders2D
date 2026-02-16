@@ -1660,8 +1660,8 @@ class sdCube extends sdEntity
                 {
                     if ( this.kind === sdCube.KIND_PURPLE )
                     {
-                        const add = Math.sin( ( this.attack_anim ) / 60 * Math.PI ) * 13;
-                        rotator.orbit_distance = 13 + add
+                        const add = this.attack_anim * 0.75;
+                        rotator.orbit_distance = 13 + add;
                     }
                     rotator.Spin( GSPEED );
                 }
