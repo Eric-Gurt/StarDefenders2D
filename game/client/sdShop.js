@@ -1,9 +1,6 @@
-
-
 /* global sdChat */
 
 import sdWorld from '../sdWorld.js';
-
 
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
@@ -730,6 +727,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdJunk', type: 12, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 13, _category:'Development tests' });
                 sdShop.options.push({ _class: 'sdJunk', type: 14, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdJunk', type: 15, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTzyrgAbsorber', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgConverter', _category:'Development tests' });
