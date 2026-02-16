@@ -1,6 +1,9 @@
+
+
 /* global sdChat */
 
 import sdWorld from '../sdWorld.js';
+
 
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
@@ -513,6 +516,7 @@ class sdShop
             sdShop.options.push({ _class: 'sdButton', type:7, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdButton', type:8, _category:'Base equipment', _min_build_tool_level: 2 });
 
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 			sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
