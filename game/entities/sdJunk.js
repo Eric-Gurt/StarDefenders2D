@@ -906,6 +906,7 @@ class sdJunk extends sdEntity
                     {
                         if ( Math.random() < 0.3 )
                         if ( near && near !== this )
+                        if ( !near.is( sdCrystal ) )
 						if ( near.IsTargetable( this ) )
 						if ( near._is_bg_entity === this._is_bg_entity )
                         {
