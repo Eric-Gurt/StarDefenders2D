@@ -56,6 +56,8 @@ class sdJunk extends sdEntity
 		sdJunk.img_stealer_artifact = sdWorld.CreateImageFromFile( 'artifact2' );
 		sdJunk.img_unknown_object1 = sdWorld.CreateImageFromFile( 'unknown_object1' );
 
+		sdJunk.img_energy = sdWorld.CreateImageFromFile( 'anti_rifle_projectile' );
+
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
 		sdJunk.erthal_beacons = 0;
@@ -75,6 +77,7 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_HIGH_YIELD_ROCKET = 12;
 		sdJunk.TYPE_UNKNOWN_OBJECT = 13;
         sdJunk.TYPE_TOXIC_BARREL = 14;
+        sdJunk.TYPE_ENERGY_ORB = 15;
 
 		sdJunk.ScoreScaleByType = ( t )=>
 		{
@@ -99,6 +102,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_METAL_CHUNK ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_HIGH_YIELD_ROCKET ] = { x1: -7, x2: 7, y1: -8, y2: 8 };
         sdJunk.bounds_by_type[ sdJunk.TYPE_TOXIC_BARREL ] = { x1: -6, x2: 5, y1: -8, y2: 11 };
+        sdJunk.bounds_by_type[ sdJunk.TYPE_ENERGY_ORB ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -135,7 +139,8 @@ class sdJunk extends sdEntity
             sdJunk.TYPE_HIGH_YIELD_ROCKET,
             sdJunk.TYPE_UNKNOWN_OBJECT,
             sdJunk.TYPE_UNSTABLE_CUBE_CORPSE,
-            sdJunk.TYPE_TOXIC_BARREL
+            sdJunk.TYPE_TOXIC_BARREL,
+			sdJunk.TYPE_ENERGY_ORB
         ];
 
 		this.type = ( params.type !== undefined ) ? params.type : sdWorld.AnyOf( random_types );
@@ -234,8 +239,8 @@ class sdJunk extends sdEntity
 			sdJunk.erthal_beacons++;
 			this._ai_team = 2;
 		}
-		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
-		
+		// this.filter = this.type === sdJunk.TYPE_ENERGY_ORB ? 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)' : 'none';
+
 		this._storage_trap_mode_for = null; // Trap activating sdCharacter
 	}
 	/*GetBleedEffect()
@@ -622,6 +627,23 @@ class sdJunk extends sdEntity
 
 				}, 500 );
 			}
+            
+            if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+            {
+                sdWorld.SendEffect({ 
+                    x: this.x, 
+                    y: this.y, 
+                    radius: 30,
+                    damage_scale: 5,
+                    type: sdEffect.TYPE_EXPLOSION, 
+                    owner:this,
+                    color: '#ffffff',
+                    no_smoke: true,
+                    shrapnel: true
+                });
+
+                sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:this.x, y:this.y, volume:1, pitch:1.2 });
+            }
 
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL && this.liquid.amount > 0 ) // Freeze barrels freeze stuff
 			{
@@ -845,6 +867,7 @@ class sdJunk extends sdEntity
 		GSPEED *= 0.25;
 
 		if ( !this.held_by )
+        if ( this.type !== sdJunk.TYPE_ENERGY_ORB )
 		this.sy += sdWorld.gravity * GSPEED;
 
 		if ( sdWorld.is_server )
@@ -864,8 +887,35 @@ class sdJunk extends sdEntity
                     this.liquid.extra = 0;
                 }
 			}
+
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || ( this.type === sdJunk.TYPE_ALIEN_BATTERY && this.hea !== this.hmax ) || ( this.type === sdJunk.TYPE_LOST_CONTAINER && this.hea !== this.hmax ) )
 			this.Damage( GSPEED );
+        
+            if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+            {
+                const an = Math.random() * Math.PI * 2;
+                this.sx += Math.cos( an ) * 3 * GSPEED;
+                this.sy += Math.sin( an ) * 3 * GSPEED;
+
+                if ( Math.random() < 0.1 )
+                {
+                    this.DamageWithEffect( 3 * GSPEED, this );
+                    const nears = sdWorld.GetAnythingNear( this.x, this.y, 32 );
+
+                    for ( const near of nears )
+                    {
+                        if ( Math.random() < 0.3 )
+                        if ( near && near !== this )
+						if ( near.IsTargetable( this ) )
+						if ( near._is_bg_entity === this._is_bg_entity )
+                        {
+                            sdCrystal.Zap( this, near, '#ffffff' );
+                            near.DamageWithEffect( 10, this );
+                            sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.5, pitch: 2 });
+                        }
+                    }
+                }
+            }
 		
 			if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT ) // Attacks everything in it's line of sight, relatively short range
 			{
@@ -1527,9 +1577,19 @@ class sdJunk extends sdEntity
     {
         if ( this.type === sdJunk.TYPE_TOXIC_BARREL )
         return true;
-    
+
+        if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+        return false;
+
         return super.IsCarriable( by_entity );
     }
+    Impact( vel ) // fall damage basically
+	{
+        if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+        return;
+    
+        super.Impact( vel );
+	}
 	get title()
 	{
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
@@ -1579,6 +1639,9 @@ class sdJunk extends sdEntity
 	
 		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 		return '???';
+    
+        if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+		return 'Resonance energy';
 	
 		return 'Unknown entity';
 	}
@@ -1629,11 +1692,15 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 		sdEntity.Tooltip( ctx, this.title );
 
+		if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+		sdEntity.Tooltip( ctx, this.title );
+
 		this.BasicCarryTooltip( ctx, 8 );
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+        // ctx.filter = this.filter;
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER || this.type === sdJunk.TYPE_ENERGY_ORB )
 		ctx.apply_shading = false;
 		
 		if ( !sdShop.isDrawing ) // Some subtle randomness atleast
@@ -1756,6 +1823,14 @@ class sdJunk extends sdEntity
 			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
 			{
 				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 16, 32,32 );
+			}
+            if ( this.type === sdJunk.TYPE_ENERGY_ORB ) // Moves erratically and zaps nearby entities
+			{
+                // const speed = Math.min( 3, Math.sqrt( this.sx * this.sx + this.sy * this.sy ) );
+                // ctx.rotate( Math.atan2( this.sy, this.sx ) );
+                // ctx.scale( speed, 1 / speed );
+                ctx.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)'
+				ctx.drawImageFilterCache( sdJunk.img_energy, - 16, - 16, 32,32 );
 			}
 			if ( this.type === sdJunk.TYPE_STEALER_ARTIFACT ) // Alien / strange artifact from stealer
 			{
