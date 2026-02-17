@@ -160,7 +160,7 @@ class sdWorld
 			//sdWorld.base_ground_level1 = {};
 			//sdWorld.base_ground_level2 = {};
 			sdWorld.base_grass_level = {};
-			sdWorld.base_ground_level = 0;//-256;
+			sdWorld.base_ground_level = -512;
 
 			sdWorld.SeededRandomNumberGenerator = new sdWorld.SeededRandomNumberGenerator_constructor( ~~( Math.random() * 500000 ) );
 		};
@@ -169,7 +169,6 @@ class sdWorld
 		sdWorld.fill_ground_quad_cache = null;//[];
 		
 		sdWorld.last_simulated_entity = null; // Used by sdDeepSleep debugging so far
-		
 		
 		sdWorld.mouse_screen_x = 0;
 		sdWorld.mouse_screen_y = 0;
@@ -622,7 +621,7 @@ class sdWorld
 
 			s /= tot;
 
-			ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) * 512 ) * 8;
+			ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) * 512 ) * 8 * 3;
 			//ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) / 0.5 * 1024 / 8 ) * 8;
 			
 			sdWorld.ground_elevation_cache.set( x, ret );
@@ -6194,5 +6193,3 @@ class Cell
 }
 
 export default sdWorld;
-	
-	
