@@ -5515,6 +5515,8 @@ class sdWorld
 		
 		sdRenderer.display_coords = player_settings['coords1'] ? true : false
 
+		sdRenderer.draw_in_3d = player_settings['3d_mode1'] ? true : false
+
 		sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 		window.onresize();
 
