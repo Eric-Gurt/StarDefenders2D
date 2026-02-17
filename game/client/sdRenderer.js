@@ -56,7 +56,7 @@ class sdRenderer
 		sdRenderer.distance_scale_on_screen_foreground = 0.5; // Shop, chat, context menu
 				
 		sdRenderer.resolution_quality = 1;
-        sdRenderer.draw_in_3d = false;
+        sdRenderer.draw_in_3d = true;
 	
 		var canvas = document.createElement('canvas');
 		canvas.id     = "SD2D";
