@@ -906,12 +906,17 @@ class sdJunk extends sdEntity
                     {
                         if ( Math.random() < 0.3 )
                         if ( near && near !== this )
-                        if ( !near.is( sdCrystal ) )
 						if ( near.IsTargetable( this ) )
+                        if ( !near.is( sdBaseShieldingUnit ) )
 						if ( near._is_bg_entity === this._is_bg_entity )
                         {
                             sdCrystal.Zap( this, near, '#ffffff' );
+                            if ( !near.is( sdCrystal ) )
                             near.DamageWithEffect( 10, this );
+
+                            if ( typeof near._time_amplification !== 'undefined' )
+                            near.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 60 });
+
                             sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.5, pitch: 2 });
                         }
                     }
@@ -1704,7 +1709,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER || this.type === sdJunk.TYPE_ENERGY_ORB )
 		ctx.apply_shading = false;
 		
-		if ( !sdShop.isDrawing ) // Some subtle randomness atleast
+		if ( !sdShop.isDrawing && this.type !== sdJunk.TYPE_ENERGY_ORB ) // Some subtle randomness atleast
 		{
 			let inversion = this._net_id % 2 === 0 ? 1 : -1;
 			ctx.scale( inversion, 1 );
