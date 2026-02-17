@@ -1618,6 +1618,7 @@ class sdWater extends sdEntity
 
 							if ( this.type === sdWater.TYPE_ACID )
 							{
+                                if ( sdRenderer.draw_in_3d )
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 0.5;
 								ctx.fillStyle = '#117711';
@@ -1625,11 +1626,13 @@ class sdWater extends sdEntity
 							else
                             if ( this.type === sdWater.TYPE_CRYO )
                             {
+                                if ( sdRenderer.draw_in_3d )
                                 ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
                                 ctx.fillStyle = '#a4efe1';
                             }
                             else
 							{
+                                if ( sdRenderer.draw_in_3d )
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 1;
 								
@@ -1674,6 +1677,7 @@ class sdWater extends sdEntity
 					ctx.apply_shading = true;
 					
 					let old = sdRenderer.ctx.z_offset;
+                    if ( sdRenderer.draw_in_3d )
 					sdRenderer.ctx.z_offset += 32;
 					{
 						let r,g,b;
