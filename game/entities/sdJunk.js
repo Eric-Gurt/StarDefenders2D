@@ -1629,7 +1629,7 @@ class sdJunk extends sdEntity
 		return 'Cryo-substance barrel';
 	
 		if ( this.type === sdJunk.TYPE_FIRE_BARREL )
-		return 'Flammable-substance barrel';
+		return 'Incendiary barrel';
     
         if ( this.type === sdJunk.TYPE_TOXIC_BARREL )
 		return 'Toxic gas barrel';
