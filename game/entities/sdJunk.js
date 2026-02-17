@@ -906,16 +906,26 @@ class sdJunk extends sdEntity
                     {
                         if ( Math.random() < 0.3 )
                         if ( near && near !== this )
-						if ( near.IsTargetable( this ) )
                         if ( !near.is( sdBaseShieldingUnit ) )
 						if ( near._is_bg_entity === this._is_bg_entity )
                         {
                             sdCrystal.Zap( this, near, '#ffffff' );
+
                             if ( !near.is( sdCrystal ) )
+                            if ( near.IsTargetable( this ) )
                             near.DamageWithEffect( 10, this );
+                        
+                            if ( near.IsPlayerClass() )
+                            {
+                                for ( const gun of near._inventory )
+                                {
+                                    if ( gun && !gun._is_being_removed )
+                                    gun.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 3 });
+                                }
+                            }
 
                             if ( typeof near._time_amplification !== 'undefined' )
-                            near.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 60 });
+                            near.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: near.is( sdGun ) ? 30 * 3 : 30 * 60 });
 
                             sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.5, pitch: 2 });
                         }
