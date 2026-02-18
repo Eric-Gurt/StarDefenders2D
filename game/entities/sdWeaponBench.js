@@ -181,8 +181,14 @@ class sdWeaponBench extends sdEntity
 	Draw( ctx, attached )
 	{
 		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-		return;
+        if ( !sdRenderer.draw_in_3d )
+        {
+            return this.DrawWeaponLocker( ctx, attached );
+        }
 	
+        if ( this.type !== sdWeaponBench.TYPE_UPGRADE_BENCH )
+        return;
+
 		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_workbench, - 16, - 16, 32,32 );
 	
 		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
@@ -296,9 +302,12 @@ class sdWeaponBench extends sdEntity
 	}
 	DrawBG( ctx, attached )
 	{
-		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-		return;
-	
+        if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+        if ( sdRenderer.draw_in_3d )
+        return this.DrawWeaponLocker( ctx, attached );
+	}
+    DrawWeaponLocker( ctx, attached )
+    {
 		if ( sdShop.isDrawing )
 		{
 			ctx.scale( 0.75, 0.75 );
