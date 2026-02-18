@@ -18,6 +18,7 @@ class sdLifeBox extends sdEntity
 	static init_class()
 	{
 		sdLifeBox.img_lifebox = sdWorld.CreateImageFromFile( 'life_box' );
+        sdLifeBox.img_turret = sdWorld.CreateImageFromFile( 'life_box_turret' );
 		/*
 		sdLifeBox.img_lifebox_open = sdWorld.CreateImageFromFile( 'life_box_open' );
 		sdLifeBox.img_lifebox_closed = sdWorld.CreateImageFromFile( 'life_box_closed' );
@@ -36,8 +37,8 @@ class sdLifeBox extends sdEntity
 	}
 	get hitbox_x1() { return -15; }
 	get hitbox_x2() { return 15; }
-	get hitbox_y1() { return -20; }
-	get hitbox_y2() { return 32; }
+	get hitbox_y1() { return -40; }
+	get hitbox_y2() { return 15; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ 
@@ -432,10 +433,11 @@ class sdLifeBox extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx,  this.title + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -8 - 10 );		
+		sdEntity.Tooltip( ctx,  this.title + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -16 - 10 );		
 
-		this.BasicVehicleTooltip( ctx, 0 - 10 );
-		
+		this.BasicVehicleTooltip( ctx, -8 - 10 );
+
+        ctx.translate( 0, -8 );
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';
@@ -447,7 +449,10 @@ class sdLifeBox extends sdEntity
 	Draw( ctx, attached )
 	{
 		if ( sdShop.isDrawing )
-		ctx.scale( 0.5,0.5 );
+        {
+            ctx.scale( 0.75, 0.75 );
+            // ctx.translate( 0, 16 );
+        }
 
 		let xx = 0;
 		let yy = 0;
@@ -463,12 +468,13 @@ class sdLifeBox extends sdEntity
 			draw_turret = true;
 		}
 
-		ctx.drawImageFilterCache( sdLifeBox.img_lifebox, xx * 32, 0, 32,64, -16, -32, 32,64 );
+		ctx.drawImageFilterCache( sdLifeBox.img_lifebox, xx * 48, 0, 48,96, -24, -48, 48,96 );
 
 		if ( draw_turret )
 		{
-			yy = Math.min( ( this.attack_timer > 0 ) ? 1 : 0 );
-			ctx.drawImageFilterCache( sdLifeBox.img_lifebox, 64, yy * 32, 32,32, -16, -32, 32,32 ); // Going to 96 won't display anything, because the default coordinate is 0, going beyond 64 does errors
+            let xx = Math.min( ( this.attack_timer > 0 ) ? 1 : 0 );
+            ctx.translate( 0, -34 );
+            ctx.drawImageFilterCache( sdLifeBox.img_turret, 32 * xx, 0, 32,32, -16, -16, 32,32 );
 		}
 
 		//ctx.drawImageFilterCache( ( this.driver0 /*&& ( this.driver0.act_x !== 0 || this.driver0.act_y !== 0 )*/ ) ? sdLifeBox.img_lifebox_closed : sdLifeBox.img_lifebox_open, - 16, - 32, 32, 64 );
