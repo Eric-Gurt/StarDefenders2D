@@ -374,7 +374,7 @@ class sdLifeBox extends sdEntity
 					this._target.DamageWithEffect( 300 * this.damage_mult, this ); // Bullets had a multiplier of 10 against shield blocks so it can destroy those quickly
 					else
 					this._target.DamageWithEffect( 30 * this.damage_mult, this );
-					sdWorld.SendEffect({ x: this.x + this._offx2, y:this.y + this._offy2 - 32, x2:this._target.x + this._offx1, y2:this._target.y + this._offy1, type:sdEffect.TYPE_BEAM_CIRCLED, color:'#ffffff' });
+					sdWorld.SendEffect({ x: this.x + this._offx2, y:this.y + this._offy2 - 34, x2:this._target.x + this._offx1, y2:this._target.y + this._offy1, type:sdEffect.TYPE_BEAM_CIRCLED, color:'#ffffff' });
 					this.attack_timer = 20 / this.rate_of_fire_mult;
 
                     sdSound.PlaySound({ name:'shield_turret', x:this.x, y:this.y, volume:1, pitch: 1.25 });
