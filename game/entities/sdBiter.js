@@ -10,6 +10,7 @@ import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCharacter from './sdCharacter.js';
+import sdStatusEffect from './sdStatusEffect.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 
 
