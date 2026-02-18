@@ -104,10 +104,10 @@ class sdLifeBox extends sdEntity
 
 		this._target = null;
 		
-		this.offx1 = 0;
-		this.offy1 = 0;
-		this.offx2 = 0;
-		this.offy2 = 0;
+		this._offx1 = 0;
+		this._offy1 = 0;
+		this._offx2 = 0;
+		this._offy2 = 0;
 
 		this.cube_shards = 0;
 		this.cube_shards_max = 10;
@@ -336,7 +336,7 @@ class sdLifeBox extends sdEntity
 			if ( di <= 450 || this._pending_revenge_hits > 0 )
 			{
 				let should_fire = true;
-				if ( !sdWorld.CheckLineOfSight( this.x + this.offx2, this.y + this.offy2 - 16, this._target.x + this.offx1, this._target.y + this.offy1, this, sdCom.com_visibility_ignored_classes, null ) )
+				if ( !sdWorld.CheckLineOfSight( this.x + this._offx2, this.y + this._offy2 - 16, this._target.x + this._offx1, this._target.y + this._offy1, this, sdCom.com_visibility_ignored_classes, null ) )
 				{
 					if ( sdWorld.last_hit_entity && !sdWorld.last_hit_entity._is_being_removed && sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
 					this._target = sdWorld.last_hit_entity;
@@ -345,14 +345,14 @@ class sdLifeBox extends sdEntity
 				}
 
 				if ( should_fire )
-				//if ( !sdWorld.CheckLineOfSight( this.x + this.offx2, this.y + this.offy2 - 16, this._target.x + this.offx1, this._target.y + this.offy1, this, sdCom.com_visibility_ignored_classes, this._target.GetClass() ) )
+				//if ( !sdWorld.CheckLineOfSight( this.x + this._offx2, this.y + this._offy2 - 16, this._target.x + this._offx1, this._target.y + this._offy1, this, sdCom.com_visibility_ignored_classes, this._target.GetClass() ) )
 				//if ( sdWorld.last_hit_entity === this._target )
 				{
 					this._pending_revenge_hits--;
 					/*
-					let an = Math.atan2( ( this._target.y + this.offy1 ) - ( this.y - 16 + this.offy2 ), ( this._target.x + this.offx1 ) - ( this.x + this.offx2 ) );
+					let an = Math.atan2( ( this._target.y + this._offy1 ) - ( this.y - 16 + this._offy2 ), ( this._target.x + this._offx1 ) - ( this.x + this._offx2 ) );
 
-					let bullet_obj = new sdBullet({ x: this.x + this.offx2, y: ( this.y - 16 + this.offy2 ) });
+					let bullet_obj = new sdBullet({ x: this.x + this._offx2, y: ( this.y - 16 + this._offy2 ) });
 					bullet_obj._owner = this;
 					bullet_obj.sx = Math.cos( an );
 					bullet_obj.sy = Math.sin( an );
@@ -374,17 +374,17 @@ class sdLifeBox extends sdEntity
 					this._target.DamageWithEffect( 300 * this.damage_mult, this ); // Bullets had a multiplier of 10 against shield blocks so it can destroy those quickly
 					else
 					this._target.DamageWithEffect( 30 * this.damage_mult, this );
-					sdWorld.SendEffect({ x: this.x + this.offx2, y:this.y + this.offy2 - 16, x2:this._target.x + this.offx1, y2:this._target.y + this.offy1, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
+					sdWorld.SendEffect({ x: this.x + this._offx2, y:this.y + this._offy2 - 32, x2:this._target.x + this._offx1, y2:this._target.y + this._offy1, type:sdEffect.TYPE_BEAM_CIRCLED, color:'#ffffff' });
 					this.attack_timer = 20 / this.rate_of_fire_mult;
 
 					//sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y - 16, volume:0.5 }); // I'm not sure what sound effect would fit here to be honest - Booraz149
 				}
 				else
 				{
-					this.offx2 = -11 + ( Math.random() * 22 );
-					this.offy2 = -11 + ( Math.random() * 22 );
-					this.offx1 = this._target.hitbox_x1 + ( Math.random() * 2 * this._target.hitbox_x2 );
-					this.offy1 = this._target.hitbox_y1 + ( Math.random() * 2 * this._target.hitbox_y2 );
+					this._offx2 = -11 + ( Math.random() * 22 );
+					this._offy2 = -11 + ( Math.random() * 22 );
+					this._offx1 = this._target.hitbox_x1 + ( Math.random() * 2 * this._target.hitbox_x2 );
+					this._offy1 = this._target.hitbox_y1 + ( Math.random() * 2 * this._target.hitbox_y2 );
 				}
 			}
 		}
