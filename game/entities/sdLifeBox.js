@@ -377,6 +377,7 @@ class sdLifeBox extends sdEntity
 					sdWorld.SendEffect({ x: this.x + this._offx2, y:this.y + this._offy2 - 32, x2:this._target.x + this._offx1, y2:this._target.y + this._offy1, type:sdEffect.TYPE_BEAM_CIRCLED, color:'#ffffff' });
 					this.attack_timer = 20 / this.rate_of_fire_mult;
 
+                    sdSound.PlaySound({ name:'shield_turret', x:this.x, y:this.y, volume:1, pitch: 1.25 });
 					//sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y - 16, volume:0.5 }); // I'm not sure what sound effect would fit here to be honest - Booraz149
 				}
 				else
