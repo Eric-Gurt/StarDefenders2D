@@ -1776,7 +1776,7 @@ class sdGun extends sdEntity
                     const desc = property_names[ p ];
                     
                     if ( p === 'armor' )
-                    sdEntity.Tooltip( ctx, `${ desc }: ${ this.remaining_armor } / ${ value }`, 0, xx, '#aaffaa' );
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ Math.ceil( this.remaining_armor ) } / ${ value }`, 0, xx, '#aaffaa' );
                     else
                     if ( p === 'armor_speed_reduction' )
                     sdEntity.Tooltip( ctx, `${ desc }: ${ value }%`, 0, xx, '#aaffaa' );
