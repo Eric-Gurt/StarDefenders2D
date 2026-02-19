@@ -92,7 +92,7 @@ class sdJunk extends sdEntity
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_BATTERY ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_LOST_CONTAINER ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_PLANETARY_MATTER_DRAINER ] = { x1: -28, x2: 28, y1: 0, y2: 23 };
-		sdJunk.bounds_by_type[ sdJunk.TYPE_COUNCIL_BOMB ] = { x1: -11, x2: 11, y1: -30, y2: 31 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_COUNCIL_BOMB ] = { x1: -11, x2: 11, y1: -25, y2: 28 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ] = { x1: -11, x2: 11, y1: -21, y2: 29 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 16.5 };
 		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
@@ -143,14 +143,17 @@ class sdJunk extends sdEntity
 			sdJunk.TYPE_ENERGY_ORB
         ];
 
-		this.type = ( params.type !== undefined ) ? params.type : sdWorld.AnyOf( random_types );
+		this.type = params.type ?? sdWorld.AnyOf( random_types );
 
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
+        else
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 		this.hmax = 7000;
+        else
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 		this.hmax = 20000;
+        else
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_HIGH_YIELD_ROCKET ) // Large anti-crystal and the high yield rocket
 		this.hmax = 1000;
 		else
@@ -468,7 +471,7 @@ class sdJunk extends sdEntity
 								sdEntity.entities.push( bullet_obj4 );
 				}
 			}
-			if ( this.type === sdJunk.TYPE_ALIEN_BATTERY  ) // Cube "barrels" explode
+			if ( this.type === sdJunk.TYPE_ALIEN_BATTERY ) // Cube "barrels" explode
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -496,7 +499,7 @@ class sdJunk extends sdEntity
                     shrapnel: true
 				});
 			}
-			if ( this.type === sdJunk.TYPE_LOST_CONTAINER  ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
+			if ( this.type === sdJunk.TYPE_LOST_CONTAINER ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
 			{
 				let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
@@ -533,7 +536,6 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large Anti-crystal degrades into a big Anti-crystal
 			{
-
 				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5 });
 
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
@@ -560,8 +562,6 @@ class sdJunk extends sdEntity
 			{
 				let x = this.x;
 				let y = this.y;
-				//let sx = this.sx;
-				//let sy = this.sy;
 				
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 				{
@@ -573,58 +573,46 @@ class sdJunk extends sdEntity
 						radius: 200, 
 						damage_scale: 0, 
 						type: sdEffect.TYPE_EXPLOSION,
-						color:'#fff000',
+						color:'#AAFFFF',
 						no_smoke: true,
 						shrapnel: true
 					});
 				}
 
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun;
 					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 					gun.extra = this.type === sdJunk.TYPE_COUNCIL_BOMB ? 2 : 1;
 
-					//gun.sx = sx;
-					//gun.sy = sy;
 					sdEntity.entities.push( gun );
-
 				}, 500 );
 				
 				if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && Math.random() < 0.25 ) // 25% chance for energy cell drop
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ERTHAL_ENERGY_CELL });
 
-					//gun.sx = sx;
-					//gun.sy = sy;
 					sdEntity.entities.push( gun2 );
-
 				}, 500 );
 
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Council Immolator
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
-					//gun.sx = sx;
-					//gun.sy = sy;
 					sdEntity.entities.push( gun2 );
-
 				}, 500 );
 				
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.03 ) // 3% chance for Exalted core
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
 
-					//gun.sx = sx;
-					//gun.sy = sy;
 					sdEntity.entities.push( gun2 );
-
 				}, 500 );
 			}
             
@@ -636,7 +624,7 @@ class sdJunk extends sdEntity
                     radius: 30,
                     damage_scale: 5,
                     type: sdEffect.TYPE_EXPLOSION, 
-                    owner:this,
+                    owner: this,
                     color: '#ffffff',
                     no_smoke: true,
                     shrapnel: true
@@ -1789,7 +1777,8 @@ class sdJunk extends sdEntity
 					//ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 96, - 32, - 48, 64, 96 );
 				}
 				ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
-				ctx.filter = 'drop-shadow(0px 0px 8px #FFF000) saturate( 0.25 )';
+				//ctx.filter = 'saturate( 2 )';
+                ctx.apply_shading = false;
 				ctx.drawImageFilterCache( sdJunk.img_council_bomb3, 64*1, frame*96, 64, 96, - 32, - 48, 64, 96 );
 			}
 			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
