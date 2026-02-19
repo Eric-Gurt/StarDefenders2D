@@ -10835,6 +10835,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'tops_grenade_launcher' ),
 			sound: 'gun_grenade_launcher',
+            sound_pitch: 0.7,
 			title: 'Task Ops Grenade Launcher',
 			slot: 5,
 			reload_time: 12,
@@ -10848,7 +10849,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 16, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, /*is_grenade: true,*/ _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, /*is_grenade: true,*/ _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
