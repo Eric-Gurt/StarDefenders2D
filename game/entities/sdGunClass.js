@@ -9922,7 +9922,7 @@ class sdGunClass
 						if ( owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
 						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
 						{
-							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) )
+							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) );
 							owner.sx += Math.sin ( an ) * 10;
 							owner.sy += Math.cos ( an ) * 10;
 						}
@@ -10283,14 +10283,14 @@ class sdGunClass
 								
 									setTimeout(()=>
 									{
-										if ( !ent._is_being_removed )
+										if ( !ent._is_being_removed && ent.hea > 0 )
 										{
-											sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
-											sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+											sdWorld.SendEffect({ x: ent.x, y: ent.y, type: sdEffect.TYPE_TELEPORT });
+											sdSound.PlaySound({ name: 'teleport', x: ent.x, y: ent.y, volume: 0.5 });
 											
 											for( let i = 0; i < ent._inventory.length; i++ ) // Prevent loot from being stolen and disappearing
 											{
-												let item = ent._inventory[ i ];
+												// let item = ent._inventory[ i ];
 												
 												if ( i !== ent.gun_slot )
 												ent.DropWeapon( i );
