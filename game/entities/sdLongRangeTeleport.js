@@ -799,6 +799,13 @@ class sdLongRangeTeleport extends sdEntity
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TELEKINETICS });
 			sdEntity.entities.push( gun );
 		}
+        else
+		if ( rewards === 'CLAIM_REWARD_WEAPON_11' )
+		{
+			let gun;
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_GRENADE_LAUNCHER });
+			sdEntity.entities.push( gun );
+		}
 		/*else
 		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
@@ -1294,7 +1301,7 @@ class sdLongRangeTeleport extends sdEntity
 						// All possible reward claims - maybe no need to copy same code multiple times
 						command_name === 'CLAIM_REWARD_SHARDS' ||
 						command_name === 'CLAIM_REWARD_WEAPON_1' || command_name === 'CLAIM_REWARD_WEAPON_2' || command_name === 'CLAIM_REWARD_WEAPON_3' || command_name === 'CLAIM_REWARD_WEAPON_4' || command_name === 'CLAIM_REWARD_WEAPON_5' ||
-						command_name === 'CLAIM_REWARD_WEAPON_6' || command_name === 'CLAIM_REWARD_WEAPON_7' || command_name === 'CLAIM_REWARD_WEAPON_8' || command_name === 'CLAIM_REWARD_WEAPON_9' || command_name === 'CLAIM_REWARD_WEAPON_10' ||
+						command_name === 'CLAIM_REWARD_WEAPON_6' || command_name === 'CLAIM_REWARD_WEAPON_7' || command_name === 'CLAIM_REWARD_WEAPON_8' || command_name === 'CLAIM_REWARD_WEAPON_9' || command_name === 'CLAIM_REWARD_WEAPON_10' || command_name === 'CLAIM_REWARD_WEAPON_11' ||
 						command_name === 'CLAIM_REWARD_CRYSTALS_1x' || command_name === 'CLAIM_REWARD_CRYSTALS_2x' || command_name === 'CLAIM_REWARD_CRYSTALS_4x' || command_name === 'CLAIM_REWARD_CRYSTALS_8x' ||
 						command_name === 'CLAIM_REWARD_CONTAINER' || 
 						command_name === 'CLAIM_REWARD_AD' ||
@@ -1963,6 +1970,7 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim Level 4 Armor Regen Module', 'CLAIM_REWARD_WEAPON_8', [] );
 								this.AddContextOption( 'Claim Task Ops Plasma Rifle', 'CLAIM_REWARD_WEAPON_9', [] );
 								this.AddContextOption( 'Claim Gravity Gun', 'CLAIM_REWARD_WEAPON_10', [] );
+                                this.AddContextOption( 'Claim Task Ops Grenade Launcher', 'CLAIM_REWARD_WEAPON_11', [] );
 							}
 						}
 
