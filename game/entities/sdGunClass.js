@@ -10831,6 +10831,83 @@ class sdGunClass
 			},
             upgrades: AppendBasicCubeGunRecolorUpgrades( AddArmorUpgrades( [] ) )
 		};
+        sdGun.classes[ sdGun.CLASS_TOPS_GRENADE_LAUNCHER = 159 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tops_grenade_launcher' ),
+			sound: 'gun_grenade_launcher',
+			title: 'Task Ops Grenade Launcher',
+			slot: 5,
+			reload_time: 12,
+			muzzle_x: 9,
+			ammo_capacity: -1,
+			spread: 0.05,
+			count: 1,
+			projectile_velocity: 16,
+            spawnable: false,
+			projectile_properties: { explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, /*is_grenade: true,*/ _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties_dynamic: ( gun ) => { 
+				let obj = 
+                {
+                    explosion_radius: 16, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, /*is_grenade: true,*/ _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+					{
+                        const initial_rand = Math.random() * Math.PI * 2;
+                        const count = 6;
+                        const speed = 16;
+
+                        let an = 0;
+
+                        for ( let i = 0; i < count; ++i )
+                        {
+                            an = i / count * Math.PI * 2;
+                            
+                            const bullet_obj = new sdBullet({ 
+                                x: bullet.x + Math.cos( an + initial_rand ) * 1, 
+                                y: bullet.y + Math.sin( an + initial_rand ) * 1 
+                            });	
+                        
+                            bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
+                            bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
+                            bullet_obj.time_left = 100
+                            bullet_obj._damage = 32 * bullet._gun.extra[ ID_DAMAGE_MULT ] ?? 1;
+                            //bullet_obj._temperature_addition = 200;
+
+                            bullet_obj._affected_by_gravity = true;
+                            bullet_obj.gravity_scale = 2;
+
+                            bullet_obj._owner = bullet._owner;
+
+                            bullet_obj._can_hit_owner = false;
+                            bullet_obj.color = '#ffff00';
+
+                            sdEntity.entities.push( bullet_obj );
+                        }
+					}
+                };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 20 * 2; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#b71c1c', 15, 'marking' ) )
+		};
 		// Add new gun classes above this line //
 
 		let index_to_const = [];
