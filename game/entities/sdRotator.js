@@ -12,7 +12,7 @@ class sdRotator extends sdEntity
 {
 	static init_class()
 	{
-		sdRotator.img_rotator = sdWorld.CreateImageFromFile( 'sdRotator' ); // Cube disc by The Commander
+		sdRotator.img_rotator = sdWorld.CreateImageFromFile( 'sdRotator' ); // Cube disc type by The Commander
 
         sdRotator.TYPE_CUBE_DISC = 0;
         sdRotator.TYPE_CUBE_SHELL = 1;
@@ -28,7 +28,10 @@ class sdRotator extends sdEntity
 	get hitbox_y2() { return this.type === sdRotator.TYPE_CUBE_DISC ? 13 : this.type === sdRotator.TYPE_CUBE_SHELL ? 10 : 32; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return !!this.owner; }
+	{
+        return false;
+        //return !!this.owner;
+    }
 	
 	constructor( params )
 	{
@@ -95,7 +98,8 @@ class sdRotator extends sdEntity
 	}
 	Impulse( x, y )
 	{
-        if ( this.owner ) return this.owner.Impulse( x, y );
+        if ( this.owner )
+		return this.owner.Impulse( x, y );
 
 		this.sx += x * 0.05;
 		this.sy += y * 0.05;
@@ -357,5 +361,6 @@ class sdRotator extends sdEntity
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
 }
+//sdRotator.init_class();
 
 export default sdRotator;
