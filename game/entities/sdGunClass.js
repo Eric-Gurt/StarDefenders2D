@@ -10845,11 +10845,11 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 16,
             spawnable: false,
-			projectile_properties: { explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, /*is_grenade: true,*/ _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties: { explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,_affected_by_gravity: true },
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, /*is_grenade: true,*/ _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
