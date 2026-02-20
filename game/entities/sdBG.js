@@ -193,8 +193,11 @@ class sdBG extends sdEntity
 		return null;
 	}
 	
-	get spawn_align_x(){ return Math.min( this.width, 16 ); };
-	get spawn_align_y(){ return Math.min( this.height, 16 ); };
+	//RequireSpawnAlign() 
+	//{ return true; }
+	
+	get spawn_align_x(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); };
+	get spawn_align_y(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); };
 	
 	
 	SupportsMerging()
