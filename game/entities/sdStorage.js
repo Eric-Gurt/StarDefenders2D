@@ -21,7 +21,7 @@ class sdStorage extends sdEntity
 {
 	static init_class()
 	{
-		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' );
+		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' ); // Cargo and crystal crate by LazyRain
 
 		sdStorage.access_range = 64;
 		//sdStorage.slots_tot = 6;
