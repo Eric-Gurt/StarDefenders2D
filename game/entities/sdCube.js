@@ -595,7 +595,13 @@ class sdCube extends sdEntity
 								if ( this.kind === sdCube.KIND_RED )
 								{
 									kinds.push( sdCube.KIND_PURPLE );
-									
+
+                                    kinds.push( sdCube.KIND_YELLOW );
+
+                                    if ( Math.random() < 0.5 )
+									kinds.push( sdCube.KIND_WHITE );
+
+
 									if ( Math.random() < 0.01 )
 									kinds.push( sdCube.KIND_GREEN );
 
