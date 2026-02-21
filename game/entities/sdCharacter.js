@@ -2850,9 +2850,9 @@ THING is cosmic mic drop!`;
         }
     }
 
-	ApplyArmor( armor )
-	{
-        const params = sdGun.classes[ armor.class ].armor_properties;
+    IsArmorBetter( armor )
+    {
+        const params = armor instanceof sdGun ? sdGun.classes[ armor.class ].armor_properties : armor; // Should also be able to take gun data as params for upgrade station checks
 
 		params._armor_absorb_perc = params._armor_absorb_perc || 0;
 		params.armor_speed_reduction = params.armor_speed_reduction || 0;
@@ -2864,7 +2864,21 @@ THING is cosmic mic drop!`;
         //if ( params.armor_lost_absorb_perc >= this._armor_lost_absorb_perc )
 		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
+        return true;
+    
+        return false;
+    }
+
+	ApplyArmor( armor )
+	{
+        if ( this.IsArmorBetter( armor ) )
 		{
+            const params = sdGun.classes[ armor.class ].armor_properties;
+
+            params._armor_absorb_perc = params._armor_absorb_perc || 0;
+            params.armor_speed_reduction = params.armor_speed_reduction || 0;
+            params.armor_lost_absorb_perc = params.armor_lost_absorb_perc || 0;
+
             this.DropArmor(); // Drop the old armor
 			this.armor = armor.remaining_armor;
 			this.armor_max = params.armor;
@@ -2877,10 +2891,7 @@ THING is cosmic mic drop!`;
 
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
-
-			return true;
 		}
-		return false;
 	}
 	ApplyArmorRegen( regen_strength )
 	{
