@@ -123,7 +123,7 @@ class sdLost extends sdEntity
 					let new_asp = new sdAsp({
 						x: ent.x,
 						y: ent.y,
-						_tier: 2,
+						tier: 2,
 						filter: sdLost.filters[ f ],
 						crystal_worth: f === sdLost.FILTER_GOLDEN ? 640 : 0
 					});
