@@ -2535,7 +2535,7 @@ THING is cosmic mic drop!`;
 			
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-			this._sickness = 0;
+			// this._sickness = 0;
 			this._frozen = 0; // For some reason does not always happen...
 			
 			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
