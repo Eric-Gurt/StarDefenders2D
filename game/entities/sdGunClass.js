@@ -10909,6 +10909,24 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#b71c1c', 15, 'marking' ) )
 		};
+        sdGun.classes[ sdGun.CLASS_ETERNAL_SHARD = 160 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'eternal_shard' ),
+			title: 'Eternal shard',
+			slot: 0,
+			reload_time: -1,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			apply_shading: false,
+            onPickupAttempt: ( character, gun ) => // Currently does nothing
+			{ 
+				return false; 
+			}
+		};
 		// Add new gun classes above this line //
 
 		let index_to_const = [];
