@@ -27,7 +27,6 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdRotator from './sdRotator.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
-
 import sdPathFinding from '../ai/sdPathFinding.js';
 
 class sdCube extends sdEntity
@@ -1975,6 +1974,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_RED )
 		sdCube.alive_red_cube_counter--;
+    
+        if ( this.kind === sdCube.KIND_PURPLE )
+		sdCube.alive_purple_cube_counter--;
 	}
 	onRemove() // Class-specific, if needed
 	{
