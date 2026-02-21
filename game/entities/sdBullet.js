@@ -479,6 +479,7 @@ class sdBullet extends sdEntity
 		this._shield_block_mult = 0; // bonus Damage multiplier (relative to initial damage) against shield blocks, used in Life Box
 		this._vehicle_mult = 0; // bonus Damage multiplier (relative to initial damage) against vehicles
 		this._critical_hit_mult = 0; // bonus Damage multiplier (relative to initial damage) at close ranges - useful for Shotguns and SMGs for example.
+        this._critical_hit_range = 0;
 
 		this._bouncy = false;
 
