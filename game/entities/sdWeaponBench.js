@@ -20,7 +20,7 @@ class sdWeaponBench extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -31 : -9; }
+	get hitbox_x1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -31 : -8; }
 	get hitbox_x2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 31 : 8; }
 	get hitbox_y1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -24 : -11; }
 	get hitbox_y2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 24 : 0; }
