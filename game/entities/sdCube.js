@@ -55,7 +55,8 @@ class sdCube extends sdEntity
 		sdCube.alive_white_cube_counter = 0; // 2
 		sdCube.alive_pink_cube_counter = 0; // 3
 		sdCube.alive_red_cube_counter = 0; // 1
-		
+        sdCube.alive_purple_cube_counter = 0;
+
 		sdCube.death_duration = 10;
 		sdCube.post_death_ttl = 90;
 		
@@ -158,7 +159,7 @@ class sdCube extends sdEntity
 		if ( kind === sdCube.KIND_CYAN )
 		return Math.max( 20, Math.min( sdWorld.GetPlayingPlayersCount() * 5, 40 ) );
 	
-		if ( kind === sdCube.KIND_YELLOW ) // yellow
+		if ( kind === sdCube.KIND_YELLOW || kind === sdCube.KIND_PURPLE ) // yellow
 		return sdWorld.GetPlayingPlayersCount() * 1.5;
 	
 		if ( kind === sdCube.KIND_WHITE ) // white
@@ -289,7 +290,7 @@ class sdCube extends sdEntity
 
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = ( this.kind === sdCube.KIND_RED ? 16 : this.kind === sdCube.KIND_WHITE ? 6 : this.kind === sdCube.KIND_YELLOW ? 4 : 1 ) * 160;
+		this.matter_max = ( this.kind === sdCube.KIND_RED ? 16 : this.kind === sdCube.KIND_WHITE ? 6 : ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
 
 		this._dmg_threshold = ( this.kind === sdCube.KIND_RED ? 900 : this.kind === sdCube.KIND_WHITE ? 600 : this.kind === sdCube.KIND_YELLOW ? 300 : 60 )
@@ -321,6 +322,9 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_RED )
         sdCube.alive_red_cube_counter++;
+    
+        if ( this.kind === sdCube.KIND_RED )
+        sdCube.alive_purple_cube_counter++;
     
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
         this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
@@ -528,7 +532,7 @@ class sdCube extends sdEntity
 				if ( this.kind === sdCube.KIND_MATTER_STEALER )
 				sdSound.PlaySound({ name:'red_railgun', pitch: 0.5, x:this.x, y:this.y, volume:1.5 });
 				else
-				sdSound.PlaySound({ name:'cube_offline', pitch: ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE ) ? 0.5 : 1, x:this.x, y:this.y, volume:1.5 });
+				sdSound.PlaySound({ name:'cube_offline', pitch: ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_PURPLE ) ? 0.5 : 1, x:this.x, y:this.y, volume:1.5 });
 			
 				this._boss_death_ping_timer = 0;
 				this._boss_death_pings_left = 10;
@@ -673,7 +677,7 @@ class sdCube extends sdEntity
 				if ( this.kind === sdCube.KIND_WHITE )
 				sdSound.PlaySound({ name:'cube_death', pitch: 0.4, x:this.x, y:this.y, volume:2.5 });
 				else
-				if ( this.kind === sdCube.KIND_YELLOW )
+				if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE )
 				sdSound.PlaySound({ name:'cube_death', pitch: 0.5, x:this.x, y:this.y, volume:2.5 });
 				else
 				if ( this.kind === sdCube.KIND_PINK )
@@ -694,7 +698,8 @@ class sdCube extends sdEntity
 				});
                 
                 for ( const rotator of this.GetRotators() )
-                if ( Math.random() < 0.5 )rotator.DamageWithEffect( 10000 );
+                if ( Math.random() < 0.5 )
+                rotator.DamageWithEffect( 10000 );
 
 				//if ( initiator )
 				//if ( typeof initiator._score !== 'undefined' )
@@ -702,7 +707,7 @@ class sdCube extends sdEntity
 					if ( this.kind === sdCube.KIND_RED )
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS_OVERPOWERED );
 					else
-					if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE )
+					if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE || this.kind === sdCube.KIND_WHITE )
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 					else
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
@@ -716,7 +721,7 @@ class sdCube extends sdEntity
 					// sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, 
 					// side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
 					
-					let scale = this.kind === sdCube.KIND_RED ? 400 : this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100;
+					let scale = this.kind === sdCube.KIND_RED ? 400 : this.kind === sdCube.KIND_WHITE ? 300 : ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 200 : 100;
 					let image_id = 0;
 					
 					let offset = 3 * scale / 100;
@@ -734,7 +739,7 @@ class sdCube extends sdEntity
 
 				//console.log( 'CLASS_TRIPLE_RAIL drop chances: ' + r + ' < ' + ( this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 0.25 );
 
-				if ( r < ( this.kind === sdCube.KIND_RED ? 0.9 : this.kind === sdCube.KIND_WHITE ? 0.55 : this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
+				if ( r < ( this.kind === sdCube.KIND_RED ? 0.9 : this.kind === sdCube.KIND_WHITE ? 0.55 : ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
 				{
 					//if ( r < ( this.kind === sdCube.KIND_WHITE ? 0.55 : this.kind === sdCube.KIND_YELLOW ? 0.4 : 0.1 ) * 1 ) // 2x chance of triple rail to drop, only when triple rail does not drop
 					// We actually can get a case when sum of both chances becomes something like 0.4 + ( 1 - 0.4 ) * 0.4 = 0.64 chance of dropping anything from big cubes, maybe it could be too high and thus value of guns could become not so valuable
@@ -842,7 +847,7 @@ class sdCube extends sdEntity
 
 				r = Math.random(); // Cube shard and cube fusion core dropping roll
 
-				if ( r < ( this.kind === sdCube.KIND_RED || sdCube.KIND_WHITE ? 0.85 : this.kind === sdCube.KIND_YELLOW ? 0.7 : 0.25 ) * 0.6 ) // Higher chance just for some time at least?
+				if ( r < ( this.kind === sdCube.KIND_RED || sdCube.KIND_WHITE ? 0.85 : ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 0.7 : 0.25 ) * 0.6 ) // Higher chance just for some time at least?
 				{
 					let x = this.x;
 					let y = this.y;
@@ -852,7 +857,7 @@ class sdCube extends sdEntity
 					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 						let gun;
-						let fusion_core_odds = ( this.kind === sdCube.KIND_RED ? 0.1 : this.kind === sdCube.KIND_WHITE ? 0.055 : this.kind === sdCube.KIND_YELLOW ? 0.045 : this.kind === sdCube.KIND_PINK ? 0 : 0.035 ); // Pinks are too small for fusion cores
+						let fusion_core_odds = ( this.kind === sdCube.KIND_RED ? 0.1 : this.kind === sdCube.KIND_WHITE ? 0.055 : ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 0.045 : this.kind === sdCube.KIND_PINK ? 0 : 0.035 ); // Pinks are too small for fusion cores
 						if ( Math.random() < fusion_core_odds )
 						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_FUSION_CORE });
 						else
@@ -871,7 +876,7 @@ class sdCube extends sdEntity
 				
 				
 
-				if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || ( this.kind === sdCube.KIND_YELLOW && Math.random() < 0.5 ) )
+				if ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || ( ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) && Math.random() < 0.5 ) )
 				{
 					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
@@ -894,7 +899,7 @@ class sdCube extends sdEntity
 		//this.remove();
 	}
 	
-	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ? 30*4 : 30; }
+	get mass() { return this.kind === sdCube.KIND_RED ? 30*10 : this.kind === sdCube.KIND_WHITE ? 30*6 : ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 30*4 : 30; }
 	Impulse( x, y )
 	{
 		if ( this.held_by )
@@ -914,7 +919,7 @@ class sdCube extends sdEntity
 	}
     GetChargedShotCount()
 	{
-		return ( this.kind === sdCube.KIND_RED ? 9 : this.kind === sdCube.KIND_WHITE ? 6 : 3 );
+		return ( this.kind === sdCube.KIND_RED ? 9 : ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_PURPLE ) ? 6 : 3 );
 	}
     getTeleportGroup() // List of entities that will be teleproted together with this entity. For sdSandWorm and sdQuadro-like entities. You might want to use sdWorld.ExcludeNullsAndRemovedEntitiesForArray on returned array to filter out null pointers and removed entities
 	{
@@ -1037,7 +1042,8 @@ class sdCube extends sdEntity
         {
             const rotator = this[ 'rotator' + i ];
             if ( rotator && !rotator._is_being_removed ) arr.push( rotator );
-            else this[ 'rotator' + i ] = null;
+            else 
+            this[ 'rotator' + i ] = null;
         }
 
         return arr;
@@ -1504,14 +1510,14 @@ class sdCube extends sdEntity
 	
 									bullet_obj._damage = 17;
                                     bullet_obj._extra_filtering_method = extra_filtering_method;
-									if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
+									if ( this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_RED )
 									{
 										bullet_obj._damage = 20;
 									}
 									
 									if ( this.kind === sdCube.KIND_PINK )
 									{
-										bullet_obj._damage = -17;
+										bullet_obj._damage *= -1;
 									}
 									
 									if ( this.kind === sdCube.KIND_BLUE )
@@ -1547,7 +1553,7 @@ class sdCube extends sdEntity
 									
 									bullet_obj.color = ( this.kind === sdCube.KIND_PINK ) ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
 									
-									if ( this.kind === sdCube.KIND_ANCIENT ) // Ancient cube fires cyan rails but they deal lost damage instead of regular. Also different color
+									if ( this.kind === sdCube.KIND_ANCIENT ) // Ancient cube fires cyan cube's rails but they deal lost damage instead of regular. Also different color
 									{
 										let custom_target_reaction = ( bullet, target_entity )=>
 										{
@@ -1573,7 +1579,7 @@ class sdCube extends sdEntity
 									}
 									else
 									{
-										sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
+										sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
 									}
 	
 									sdEntity.entities.push( bullet_obj );
@@ -1595,7 +1601,7 @@ class sdCube extends sdEntity
                                         }
 									}
 								}
-							}, beam_attack ? 800 : 400 );
+							}, beam_attack ? 750 : 200 );
 
 							this._charged_shots--;
 
