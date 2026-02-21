@@ -22,9 +22,7 @@ import sdWeather from './sdWeather.js';
 import sdTask from './sdTask.js';
 import sdFactions from './sdFactions.js';
 
-
 import sdRenderer from '../client/sdRenderer.js';
-
 
 class sdRift extends sdEntity
 {
@@ -136,7 +134,7 @@ class sdRift extends sdEntity
 		if ( this.type === sdRift.TYPE_COUNCIL_PORTAL )
 		return 'brightness(2) saturate(0.1)';
 	
-			if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
+		if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
 		return 'none';
 
 	}
@@ -393,7 +391,7 @@ class sdRift extends sdEntity
 								x:this.x,
 								y:this.y
 							});
-							asteroid._type = 0;
+							asteroid.type = 0;
 							asteroid.sy += ( 10 - ( Math.random() * 20 ) );
 							asteroid.sx += ( 10 - ( Math.random() * 20 ) );
 
