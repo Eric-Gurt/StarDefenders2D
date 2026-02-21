@@ -331,7 +331,11 @@ class sdUpgradeStation extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+        {
+            sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+            if ( this.armor_to_build !== -1 )
+            sdEntity.Create( sdGun, ({ x: this.x, y: this.y, class: this.armor_to_build }) );
+        }
 		//this.onRemoveAsFakeEntity();
 	}
 	onRemoveAsFakeEntity()
