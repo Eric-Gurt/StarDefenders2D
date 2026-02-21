@@ -961,7 +961,7 @@ class sdEffect extends sdEntity
 						sdEntity.entities.push( e );
 					}
 					
-					if ( sdRenderer.effects_quality >= 3 )
+					if ( sdRenderer.effects_quality >= 2 )
 					if ( this._radius / 20 > 0.5 )
 					{
 						let an = Math.random() * Math.PI * 2;
@@ -969,7 +969,7 @@ class sdEffect extends sdEntity
 						let xx = Math.sin( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ) );
 						let yy = -( Math.cos( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ) ) );
 
-						let type = this._shrapnel ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
+						let type = this._shrapnel && sdRenderer.effects_quality >= 3 ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
 						let mult = type === sdEffect.TYPE_SHRAPNEL ? 2 / 3 : 1;
 						
 						let s = new sdEffect({ type:type, x:this.x + xx * 3, y:this.y + yy * 3, sx:xx*mult, sy:yy*mult, color: this._color, scale: type === sdEffect.TYPE_SHRAPNEL ? Math.min( 1.5, Math.random() + 1 ) : 1 });
