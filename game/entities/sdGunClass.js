@@ -9267,11 +9267,12 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'tops_plasma_rifle' ),
 			sound: 'gun_spark',
+            sound_pitch: 0.85,
 			title: 'Task Ops Plasma Rifle',
 			slot: 8,
 			reload_time: 3.5,
 			muzzle_x: 10,
-			ammo_capacity: 40,
+			ammo_capacity: -1, // 40
 			count: 1,
 			spawnable: false,
 			projectile_velocity: 16,
