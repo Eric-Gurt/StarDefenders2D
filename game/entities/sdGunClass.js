@@ -2300,8 +2300,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor( gun );
+                    gun.remove();
+                }
 				/*
 				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.3 ) * 130 )
 				{
@@ -2336,8 +2339,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
 				{
@@ -2372,8 +2378,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 )
 				{
@@ -3234,8 +3243,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 )
 				{
@@ -3270,8 +3282,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 )
 				{
@@ -3306,8 +3321,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 )
 				{
@@ -3423,8 +3441,12 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades([ { 
 				title: 'Upgrade to Mark II',
 				cost: 480,
-				action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_KVT_MMG_MK2;
-				gun.extra[ ID_DAMAGE_VALUE ] = 42; }
+				action: ( gun, initiator=null ) => 
+                { 
+                    gun.class = sdGun.CLASS_KVT_MMG_MK2;
+                    gun.ResetInheritedGunClassProperties();
+                    gun.extra[ ID_DAMAGE_VALUE ] = sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 ].projectile_properties._damage;
+                }
 				// gun.sound = 'gun_the_ripper2';
 				// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
 				// gun.spread = 0.03; // Spread and rate of fire are also unaffected
@@ -3700,8 +3722,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 )
 				{
@@ -3736,8 +3761,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 )
 				{
@@ -3772,8 +3800,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( gun ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 )
 				{
@@ -5117,8 +5148,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( gun ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
 				{
@@ -9799,8 +9833,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( gun ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 
 				return false; 
 			},
@@ -10825,8 +10862,11 @@ class sdGunClass
 			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( gun ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 
 				return false; 
 			},
