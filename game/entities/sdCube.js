@@ -27,6 +27,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdRotator from './sdRotator.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 
+
 import sdPathFinding from '../ai/sdPathFinding.js';
 
 class sdCube extends sdEntity
@@ -137,7 +138,7 @@ class sdCube extends sdEntity
 		if ( r < 0.1 + 0.04 )
 		return sdCube.KIND_WHITE;
 		if ( r < 0.1 + 0.04 + 0.14 )
-		return Math.random() > 0.5 ? sdCube.TYPE_PURPLE : sdCube.KIND_PINK;
+		return Math.random() > 0.5 ? sdCube.KIND_PURPLE : sdCube.KIND_PINK;
 	
 		if ( sdWorld.server_config.EnableForbiddenCubes() ) // Only if server allows it
 		{
