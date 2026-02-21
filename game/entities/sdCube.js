@@ -326,13 +326,14 @@ class sdCube extends sdEntity
         sdCube.alive_purple_cube_counter++;
     
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
-        this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+        //this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
+    /*
     CollisionFiltering( from_entity )
 	{
-        return ( from_entity.GetClass() !== 'sdRotator' );
-		//return ( !this.GetRotators().includes( from_entity ) );
-	}
+        return ( !from_entity.is( sdRotator ) );
+		// return !( this.GetRotators().includes( from_entity ) );
+	}*/
 	/*GetActiveTargetsCache( range, filter_method=null )
 	{
 		let targets_raw = this._targets_raw_cache;
