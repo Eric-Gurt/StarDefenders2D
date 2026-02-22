@@ -610,18 +610,18 @@ class sdWorld
 			let s = 0;
 			let tot = 0;
 
-			let r = 40;
+			let r = 24;
 
 			for ( var xx = -r; xx <= r; xx++ )
 			{
-				let influence = 1;
+				let influence = 3;
 				s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 1, 512 ) * influence;
 				tot += influence;
 			}
 
 			s /= tot;
 
-			ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) * 512 ) * 8 * 3;
+			ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) * 512 ) * 8 * 2;
 			//ret = sdWorld.base_ground_level - Math.round( ( s - 0.5 ) / 0.5 * 1024 / 8 ) * 8;
 			
 			sdWorld.ground_elevation_cache.set( x, ret );
