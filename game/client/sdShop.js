@@ -514,6 +514,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:5, _category:'Base equipment' });
             sdShop.options.push({ _class: 'sdButton', type:7, _category:'Base equipment' });
+            sdShop.options.push({ _class: 'sdButton', type:9, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:8, _category:'Base equipment', _min_build_tool_level: 2 });
