@@ -573,8 +573,8 @@ class sdStatusEffect extends sdEntity
 				
 						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment
 
-						if ( status_entity.t < temperature_frozen - 30 ) // Limit freeze time
-						status_entity.t = temperature_frozen - 30;
+                        // if ( status_entity.t < temperature_frozen - 30 ) // Limit freeze time
+						// status_entity.t = temperature_frozen - 30;
 
 						status_entity._update_version++;
 					}
