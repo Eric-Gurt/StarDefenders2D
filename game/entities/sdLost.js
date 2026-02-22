@@ -89,7 +89,10 @@ class sdLost extends sdEntity
 			return;
 		
 			let mult = hea - hea2;
-			
+
+			if ( ent.is( sdCharacter ) )
+            mult *= 1 - ent._armor_lost_absorb_perc;
+
 			if ( mult <= 0 )
 			return;
 			
@@ -120,7 +123,7 @@ class sdLost extends sdEntity
 					let new_asp = new sdAsp({
 						x: ent.x,
 						y: ent.y,
-						_tier: 2,
+						tier: 2,
 						filter: sdLost.filters[ f ],
 						crystal_worth: f === sdLost.FILTER_GOLDEN ? 640 : 0
 					});

@@ -15,7 +15,6 @@ import sdEntity from './sdEntity.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
-		
 class sdEffect extends sdEntity
 {
 	static init_class()
@@ -392,6 +391,7 @@ class sdEffect extends sdEntity
 			],
 			speed: 1 / 30,
 			apply_shading: false,
+            collisions: true,
 			random_rotation: true
 		};
 		
@@ -416,9 +416,12 @@ class sdEffect extends sdEntity
 		};
 		
 		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_SPARK ] );
-		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
-		//sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
-		
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].collisions = true;
+		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity = true;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].speed = 1 / 9;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].gravity_mult = 0.333;
+        sdEffect.types[ sdEffect.TYPE_SHRAPNEL ].bounce_intensity = 0.2;
+
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_GLOW_HIT ] );
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].images = [ sdWorld.CreateImageFromFile( 'glow_alt' ) ];
 		sdEffect.types[ sdEffect.TYPE_GLOW_ALT ].random_flip = true;
@@ -954,11 +957,11 @@ class sdEffect extends sdEntity
 						let zx = Math.sin( an ) * ( -Math.random() * 2 + Math.random() * 2 );
 						let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
 					
-						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
+						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + zx * 2, y:this.y + zy * 2, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
 						sdEntity.entities.push( e );
 					}
 					
-					if ( sdRenderer.effects_quality >= 3 )
+					if ( sdRenderer.effects_quality >= 2 )
 					if ( this._radius / 20 > 0.5 )
 					{
 						let an = Math.random() * Math.PI * 2;
@@ -966,10 +969,10 @@ class sdEffect extends sdEntity
 						let xx = Math.sin( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ) );
 						let yy = -( Math.cos( an ) * Math.random() * 4 * Math.min( 3, ( this._radius / 20 ) ) );
 
-						let type = this._shrapnel ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
+						let type = this._shrapnel && sdRenderer.effects_quality >= 3 ? sdEffect.TYPE_SHRAPNEL : sdEffect.TYPE_SPARK;
 						let mult = type === sdEffect.TYPE_SHRAPNEL ? 2 / 3 : 1;
 						
-						let s = new sdEffect({ type:type, x:this.x, y:this.y, sx:xx*mult, sy:yy*mult, color: this._color });
+						let s = new sdEffect({ type:type, x:this.x + xx * 3, y:this.y + yy * 3, sx:xx*mult, sy:yy*mult, color: this._color, scale: type === sdEffect.TYPE_SHRAPNEL ? Math.min( 1.5, Math.random() + 1 ) : 1 });
 						sdEntity.entities.push( s );
 					}
 				}
@@ -1061,7 +1064,7 @@ class sdEffect extends sdEntity
 		}
 
 		if ( sdEffect.types[ this._type ].gravity )
-		this.sy += sdEffect.types[ this._type ].gravity_mult || 1 * sdWorld.gravity * GSPEED;
+		this.sy += ( sdEffect.types[ this._type ].gravity_mult ?? 1 ) * sdWorld.gravity * GSPEED;
 		
 		if ( sdEffect.types[ this._type ].collisions )
 		{
@@ -1097,10 +1100,10 @@ class sdEffect extends sdEntity
 			
 			if ( this._extra_eff_timer <= 0 )
 			{
-				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx * 0.8, sy:this.sy * 0.8, color: this._color });
+				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:( Math.random() - 0.5) * 3, sy:( Math.random() - 0.5 ) * 3, color: this._color });
 				sdEntity.entities.push( e );
 				
-				this._extra_eff_timer = 2.5;
+				this._extra_eff_timer = 2;
 			}
 		}
 		

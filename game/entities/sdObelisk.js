@@ -23,11 +23,10 @@ class sdObelisk extends sdEntity
 		sdObelisk.img_obelisk2 = sdWorld.CreateImageFromFile( 'obelisk2' );
 		sdObelisk.img_obelisk3 = sdWorld.CreateImageFromFile( 'obelisk3' );*/
 		sdObelisk.img_obelisk4 = sdWorld.CreateImageFromFile( 'obelisk4' );
-		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' ); // Sprite by PeacyQuack
+		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' );
 		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' ); // Original sprite by PeacyQuack, reworked by LazyRain
 		sdObelisk.img_obelisk7 = sdWorld.CreateImageFromFile( 'obelisk7' );
 		sdObelisk.img_obelisk8 = sdWorld.CreateImageFromFile( 'obelisk8' ); // Sprite by LordBored
-
 
 		sdObelisk.obelisks_counter = 0;
 		
@@ -46,7 +45,6 @@ class sdObelisk extends sdEntity
 	
 	get mass()
 	{ return 2500; }
-
 	
 	Damage( dmg, initiator=null )
 	{
@@ -166,7 +164,8 @@ class sdObelisk extends sdEntity
 			damage_scale: 0.01, // Just a decoration effect
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this,
-			color:color
+			color:color,
+            shrapnel: true
 		});
 		
 		const zap = sdWorld.GetAnythingNear( this.x, this.y ,96 );

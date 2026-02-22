@@ -26,6 +26,7 @@ import sdLandMine from './sdLandMine.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdArea from './sdArea.js';
+import sdWeaponBench from './sdWeaponBench.js';
 //import sdSteeringWheel from './sdSteeringWheel.js';
 
 
@@ -176,6 +177,20 @@ class sdGunClass
 			
 			return arr;
 		}
+        function AddArmorUpgrades( arr )
+        {
+            arr.push(
+			{ 
+				title: 'Repair armor',
+				cost: 100,
+				action: ( gun, initiator=null )=>
+				{ 
+					gun.remaining_armor = sdGun.classes[ gun.class ].armor_properties.armor;
+				}
+			});
+            
+            return arr;
+        }
 		function AddShotgunAmmoTypes( arr )
 		{
 			arr.push(
@@ -2273,7 +2288,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_light' ),
 			title: 'SD-01 Light Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -2282,11 +2297,14 @@ class sdGunClass
 			matter_cost: 150,
 			min_workbench_level: 1,
 			armor_properties: { armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 130', 'Damage absorption: 30%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor( gun );
+                    gun.remove();
+                }
 				/*
 				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.3 ) * 130 )
 				{
@@ -2300,7 +2318,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )           
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL1_MEDIUM_ARMOR = 27 ] = 
@@ -2308,7 +2327,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_medium' ),
 			title: 'SD-01 Duty Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -2317,11 +2336,14 @@ class sdGunClass
 			matter_cost: 250,
 			min_workbench_level: 1,
 			armor_properties: { armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
+			// has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
 				{
@@ -2335,7 +2357,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL1_HEAVY_ARMOR = 28 ] = 
@@ -2343,7 +2366,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_heavy' ),
 			title: 'SD-01 Combat Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -2352,11 +2375,14 @@ class sdGunClass
 			matter_cost: 350,
 			min_workbench_level: 1,
 			armor_properties: { armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
+			// has_description: [ 'Armor: 250', 'Damage absorption: 50%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 )
 				{
@@ -2370,7 +2396,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHOTGUN_MK2 = 29 ] = 
@@ -3204,7 +3231,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_light_lvl2' ),
 			title: 'SD-02 Light Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3213,11 +3240,14 @@ class sdGunClass
 			matter_cost: 275,
 			min_workbench_level: 2,
 			armor_properties: { armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 190', 'Damage absorption: 35%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 )
 				{
@@ -3231,7 +3261,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL2_MEDIUM_ARMOR = 44 ] = 
@@ -3239,7 +3270,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl2' ),
 			title: 'SD-02 Duty Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3248,11 +3279,14 @@ class sdGunClass
 			matter_cost: 375,
 			min_workbench_level: 2,
 			armor_properties: { armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
+			// has_description: [ 'Armor: 280', 'Damage absorption: 45%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 )
 				{
@@ -3266,7 +3300,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL2_HEAVY_ARMOR = 45 ] = 
@@ -3274,7 +3309,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl2' ),
 			title: 'SD-02 Combat Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3283,11 +3318,14 @@ class sdGunClass
 			matter_cost: 475,
 			min_workbench_level: 2,
 			armor_properties: { armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
+			// has_description: [ 'Armor: 370', 'Damage absorption: 55%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 )
 				{
@@ -3301,7 +3339,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_F_MARKSMAN = 46 ] =  // sprite made by Ghost581
@@ -3402,8 +3441,12 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades([ { 
 				title: 'Upgrade to Mark II',
 				cost: 480,
-				action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_KVT_MMG_MK2;
-				gun.extra[ ID_DAMAGE_VALUE ] = 42; }
+				action: ( gun, initiator=null ) => 
+                { 
+                    gun.class = sdGun.CLASS_KVT_MMG_MK2;
+                    gun.ResetInheritedGunClassProperties();
+                    gun.extra[ ID_DAMAGE_VALUE ] = sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 ].projectile_properties._damage;
+                }
 				// gun.sound = 'gun_the_ripper2';
 				// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
 				// gun.spread = 0.03; // Spread and rate of fire are also unaffected
@@ -3598,7 +3641,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl1' ),
 			title: 'SD-11 Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3621,7 +3664,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl2' ),
 			title: 'SD-12 Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3644,7 +3687,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl3' ),
 			title: 'SD-13 Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3667,7 +3710,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_light_lvl3' ),
 			title: 'SD-03 Light Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3676,11 +3719,14 @@ class sdGunClass
 			matter_cost: 400,
 			min_workbench_level: 6,
 			armor_properties: { armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 300', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) ) // Huh, surprised it works - Booraz
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 )
 				{
@@ -3694,7 +3740,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL3_MEDIUM_ARMOR = 56 ] = 
@@ -3702,7 +3749,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl3' ),
 			title: 'SD-03 Duty Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3711,11 +3758,14 @@ class sdGunClass
 			matter_cost: 500,
 			min_workbench_level: 6,
 			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
+			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Movement speed reduction: 5%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 )
 				{
@@ -3729,7 +3779,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL3_HEAVY_ARMOR = 57 ] = 
@@ -3737,7 +3788,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl3' ),
 			title: 'SD-03 Combat Armor',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -3746,11 +3797,14 @@ class sdGunClass
 			matter_cost: 600,
 			min_workbench_level: 6,
 			armor_properties: { armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
+			// has_description: [ 'Armor: 500', 'Damage absorption: 60%', 'Movement speed reduction: 10%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 )
 				{
@@ -3764,7 +3818,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_EMERGENCY_INSTRUCTOR = 58 ] = 
@@ -5082,7 +5137,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'wyrmhide' ),
 			title: 'Wyrmhide',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -5090,11 +5145,14 @@ class sdGunClass
 			ignore_slot: true,
 			spawnable: false,
 			armor_properties: { armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 190', 'Damage absorption: 40%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 			
 				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
 				{
@@ -5108,7 +5166,8 @@ class sdGunClass
 				}*/
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 		
 		
@@ -6498,7 +6557,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl4' ),
 			title: 'Task Ops Armor Repair Module',
 			slot: 0,
-			reload_time: 25,
+			reload_time: -1,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -7840,7 +7899,7 @@ class sdGunClass
 		};
 
 
-		sdGun.classes[ sdGun.CLASS_CHAINSAW = 117 ] = {
+		sdGun.classes[ sdGun.CLASS_CRYSTAL_CUTTER = 117 ] = {
 			image: sdWorld.CreateImageFromFile( 'crystal_saw' ),
 			image0: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'crystal_saw_a' ), sdWorld.CreateImageFromFile( 'crystal_saw' ) ],
@@ -9242,11 +9301,12 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'tops_plasma_rifle' ),
 			sound: 'gun_spark',
+            sound_pitch: 0.85,
 			title: 'Task Ops Plasma Rifle',
 			slot: 8,
 			reload_time: 3.5,
 			muzzle_x: 10,
-			ammo_capacity: 40,
+			ammo_capacity: -1, // 40
 			count: 1,
 			spawnable: false,
 			projectile_velocity: 16,
@@ -9726,7 +9786,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_CUBE_VOID_CAPACITOR = 142 ] = 
-        	{ 
+        { 
 			image: sdWorld.CreateImageFromFile( 'cube_void_capacitor' ),
 			sound: 'cube_attack',
 			sound_volume: 1.5,
@@ -9760,7 +9820,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ARMOR_STARTER = 143 ] = // Sprite and concept by Booraz
 		{
 			image: sdWorld.CreateImageFromFile( 'armor_starter' ),
-			title: 'SD-00 Starter Armor',
+			title: 'SD-00 Scout Armor',
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
@@ -9770,14 +9830,18 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 100,
 			armor_properties: { armor: 100, _armor_absorb_perc: 0.2, armor_speed_reduction: 0 }, // This way it's compatible with upgrade station checks
-			has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
+			// has_description: [ 'Armor: 100', 'Damage absorption: 20%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( character.ApplyArmor( sdGun.classes[ gun.class ].armor_properties ) )
-				gun.remove();
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
 
 				return false; 
-			} 
+			},
+            upgrades: AddArmorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_BANANA = 144 ] = 
@@ -9896,7 +9960,7 @@ class sdGunClass
 						if ( owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
 						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
 						{
-							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) )
+							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) );
 							owner.sx += Math.sin ( an ) * 10;
 							owner.sy += Math.cos ( an ) * 10;
 						}
@@ -10257,14 +10321,14 @@ class sdGunClass
 								
 									setTimeout(()=>
 									{
-										if ( !ent._is_being_removed )
+										if ( !ent._is_being_removed && ent.hea > 0 )
 										{
-											sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
-											sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+											sdWorld.SendEffect({ x: ent.x, y: ent.y, type: sdEffect.TYPE_TELEPORT });
+											sdSound.PlaySound({ name: 'teleport', x: ent.x, y: ent.y, volume: 0.5 });
 											
 											for( let i = 0; i < ent._inventory.length; i++ ) // Prevent loot from being stolen and disappearing
 											{
-												let item = ent._inventory[ i ];
+												// let item = ent._inventory[ i ];
 												
 												if ( i !== ent.gun_slot )
 												ent.DropWeapon( i );
@@ -10307,6 +10371,10 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ACCESS_KEY = 150 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'access_key' ),
+            image0: [ sdWorld.CreateImageFromFile( 'access_key_activated' ), sdWorld.CreateImageFromFile( 'access_key_activated' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'access_key_activated' ), sdWorld.CreateImageFromFile( 'access_key_activated' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'access_key' ), sdWorld.CreateImageFromFile( 'access_key' ) ],
+			has_images: true,
 			sound: 'sd_beacon',
 			sound_pitch: 1.5,
 			//title: 'Access key',
@@ -10332,9 +10400,9 @@ class sdGunClass
 				{
 					_damage: 1, color:'transparent', _soft: true, time_left: 2, _custom_target_reaction:( bullet, target_entity )=> 
 					{
-						if ( target_entity.GetClass() === 'sdWeaponBench' && target_entity.type === 1  ) // sdWeaponBench.TYPE_DISPLAY
+						if ( target_entity.is( sdWeaponBench ) && target_entity.type === sdWeaponBench.TYPE_DISPLAY  ) // sdWeaponBench.TYPE_DISPLAY
 						{
-							target_entity.LockLogic( gun._held_by, gun )
+							target_entity.LockLogic( gun._held_by, gun );
 						}
 					}
 				};
@@ -10711,7 +10779,195 @@ class sdGunClass
 				return false; 
 			}
 		};
+	 	 sdGun.classes[ sdGun.CLASS_CHAINSAW = 157 ] = {
+			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
+            image_blade: sdWorld.CreateImageFromFile( 'saw_blade' ),
+			sound: 'gun_saw',//'cut_droid_attack',
+			sound_pitch: 1.2,
+			sound_volume: 0.7,
+			title: 'Chainsaw',
+			slot: 0,
+			reload_time: 5,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			projectile_velocity: 20,
+            min_workbench_level: 5,
+			projectile_properties: 
+			{ 
+				time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
+			},
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = {  time_left: 1, color: 'transparent', _dirt_mult: -2 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
 
+				return obj;
+			},
+            onThink: ( gun, GSPEED )=>
+            {
+                const PI2 = Math.PI * 2;
+
+                if ( gun.reload_time_left !== 0 )
+                gun._anim += 0.6 * GSPEED;
+            
+                gun._anim = ( ( gun._anim % PI2 ) + PI2 ) % PI2; // Keep between 0 and 2PI
+            },
+            ExtraDraw: ( gun, ctx, attached )=>
+			{
+                const blade_offset_x = 9;
+                const blade_offset_y = 1;
+                ctx.save();
+                ctx.translate( blade_offset_x, blade_offset_y );
+                ctx.rotate( gun._anim )
+                ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_blade, -15.5, -15.5, 32, 32 );
+                ctx.restore();
+
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#404040', 15, 'blade 1' ),
+				'#101010', 15, 'blade 2' ),
+				'#313131', 15, 'blade 3' ),
+				'#000000', 15, 'blade 4' ),
+                '#464646', 15, 'blade 5' ),
+                '#282828', 15, 'blade 6' ) )
+		};
+		sdGun.classes[ sdGun.CLASS_CUBE_ARMOR = 158 ] = // Sprite by flora
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_armor' ),
+			title: 'Cube lost armor',
+			slot: 0,
+			reload_time: -1,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+            spawnable: false,
+			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 0, armor_lost_absorb_perc: 0.5 }, // This way it's compatible with upgrade station checks
+			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
+			{ 
+				if ( character.IsArmorBetter( gun ) ) // Huh, surprised it works - Booraz
+                {
+                    character.ApplyArmor ( gun );
+                    gun.remove();
+                }
+
+				return false; 
+			},
+            upgrades: AppendBasicCubeGunRecolorUpgrades( AddArmorUpgrades( [] ) )
+		};
+        sdGun.classes[ sdGun.CLASS_TOPS_GRENADE_LAUNCHER = 159 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tops_grenade_launcher' ),
+			sound: 'gun_grenade_launcher',
+            sound_pitch: 0.7,
+			title: 'Task Ops Grenade Launcher',
+			slot: 5,
+			reload_time: 12,
+			muzzle_x: 9,
+			ammo_capacity: -1,
+			spread: 0.05,
+			count: 1,
+			projectile_velocity: 16,
+            spawnable: false,
+			projectile_properties: { explosion_radius: 24, time_left: 30 * 3, model: 'grenade3', _damage: 24 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties_dynamic: ( gun ) => { 
+				let obj = 
+                {
+                    explosion_radius: 24, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+					{
+                        const initial_rand = Math.random() * Math.PI * 2;
+                        const count = 6;
+                        const speed = 16;
+
+                        let an = 0;
+
+                        for ( let i = 0; i < count; ++i )
+                        {
+                            an = i / count * Math.PI * 2;
+                            
+                            const bullet_obj = new sdBullet({ 
+                                x: bullet.x + Math.cos( an + initial_rand ) * 1, 
+                                y: bullet.y + Math.sin( an + initial_rand ) * 1 
+                            });	
+                        
+                            bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
+                            bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
+                            bullet_obj.time_left = 100
+                            bullet_obj._damage = 32 * bullet._gun.extra[ ID_DAMAGE_MULT ] ?? 1;
+                            //bullet_obj._temperature_addition = 200;
+
+                            bullet_obj._affected_by_gravity = true;
+                            bullet_obj.gravity_scale = 2;
+
+                            bullet_obj._owner = bullet._owner;
+
+                            bullet_obj._can_hit_owner = false;
+                            bullet_obj.color = '#ffff00';
+
+                            sdEntity.entities.push( bullet_obj );
+                        }
+					}
+                };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 24 * 2; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#b71c1c', 15, 'marking' ) )
+		};
+        sdGun.classes[ sdGun.CLASS_ETERNAL_SHARD = 160 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'eternal_shard' ),
+			title: 'Eternal shard',
+			slot: 0,
+			reload_time: -1,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			apply_shading: false,
+            onPickupAttempt: ( character, gun ) => // Currently does nothing
+			{ 
+				return false; 
+			}
+		};
 		// Add new gun classes above this line //
 
 		let index_to_const = [];

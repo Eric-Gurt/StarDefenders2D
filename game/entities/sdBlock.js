@@ -2045,9 +2045,7 @@ class sdBlock extends sdEntity
 			
 			if ( from_entity.is( sdCharacter ) )
 			{
-				//from_entity._sickness += 30;
-				from_entity._sickness = Math.max( from_entity._sickness, 30 * 30 );
-				from_entity._last_sickness_from_ent = this;
+				from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 30, intensity: 1, owner: this._owner || this });
 			}
 			else
 			{
@@ -2168,7 +2166,7 @@ class sdBlock extends sdEntity
 			}
 			else
 			ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w,h, 0,0, w,h );
-			
+            if ( sdRenderer.draw_in_3d )
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
@@ -2201,6 +2199,7 @@ class sdBlock extends sdEntity
 				ctx.camera_relative_world_scale *= 0.999;
 				{
 					let old_mode = ctx.volumetric_mode;
+                    if ( sdRenderer.draw_in_3d )
 					ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
 					{
 						ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
@@ -2365,6 +2364,7 @@ class sdBlock extends sdEntity
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 		{
+            if ( sdRenderer.draw_in_3d )
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
 			
@@ -2380,7 +2380,7 @@ class sdBlock extends sdEntity
 			}
 			ctx.camera_relative_world_scale = old_scale;*/
 		}
-		
+        if ( sdRenderer.draw_in_3d )
 		ctx.volumetric_mode = old_volumetric_mode;
 	}
 	

@@ -56,6 +56,7 @@ class sdRenderer
 		sdRenderer.distance_scale_on_screen_foreground = 0.5; // Shop, chat, context menu
 				
 		sdRenderer.resolution_quality = 1;
+        sdRenderer.draw_in_3d = true;
 	
 		var canvas = document.createElement('canvas');
 		canvas.id     = "SD2D";
@@ -1254,7 +1255,8 @@ class sdRenderer
 					xx, 
 					yy, 32,32 );
 			}*/
-			ctx.z_offset = -32 * sdWorld.camera.scale;
+            const offset0 = sdRenderer.draw_in_3d ? -32 : -16
+			ctx.z_offset = offset0 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
 			const void_draw = sdEntity.prototype.DrawBG;
@@ -1376,8 +1378,8 @@ class sdRenderer
 						
 					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_BG, STATUS_EFFECT_BEFORE, ctx, false );
 					
-					ctx.volumetric_mode = e.DrawIn3D( -1 );
-					ctx.object_offset = e.ObjectOffset3D( -1 );
+					ctx.volumetric_mode = sdRenderer.draw_in_3d ? e.DrawIn3D( -1 ) : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+					ctx.object_offset = sdRenderer.draw_in_3d ? e.ObjectOffset3D( -1 ) : null;
 					
 					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
 						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
@@ -1404,8 +1406,9 @@ class sdRenderer
 					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_BG, STATUS_EFFECT_AFTER, ctx, false );
 				}
 			}
-			
-			ctx.z_offset = -16 * sdWorld.camera.scale;
+
+            const offset1 = -16
+			ctx.z_offset = offset1 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
 			for ( let i = 0; i < visible_entities.length; i++ )
@@ -1423,8 +1426,8 @@ class sdRenderer
 				{
 					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_BEFORE, ctx, false );
 					
-					ctx.volumetric_mode = e.DrawIn3D( 0 );
-					ctx.object_offset = e.ObjectOffset3D( 0 );
+					ctx.volumetric_mode = sdRenderer.draw_in_3d ? e.DrawIn3D( 0 ) : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;;
+					ctx.object_offset = sdRenderer.draw_in_3d ? e.ObjectOffset3D( 0 ) : null;
 					
 					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
 						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
@@ -1561,8 +1564,8 @@ class sdRenderer
 						   e.y + e._hitbox_y2 > min_y &&
 						   e.y + e._hitbox_y1 < max_y ) )
 					{
-						ctx.volumetric_mode = e.DrawIn3D( 1 );
-						ctx.object_offset = e.ObjectOffset3D( 1 );
+						ctx.volumetric_mode = sdRenderer.draw_in_3d ? e.DrawIn3D( 1 ) : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+						ctx.object_offset =  sdRenderer.draw_in_3d ? e.ObjectOffset3D( 1 ) : null;
 					
 						if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
 							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 

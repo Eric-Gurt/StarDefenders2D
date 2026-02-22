@@ -203,7 +203,7 @@ class sdStalker extends sdEntity
 					gun.fire_mode = Math.random() > 0.5 ? 1 : 2;
 					
 					setTimeout(()=> {
-						if ( !character_entity._is_being_removed )
+						if ( !character_entity._is_being_removed && character_entity.hea > 0 )
 						{
 							sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y }); // We desperately need more sound effects
 							sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT });
@@ -358,7 +358,7 @@ class sdStalker extends sdEntity
 			}
 			if ( this.hea < this._hmax / 3 )
 			{
-				this.Boost ( this.look_x, this.look_y, 7 )
+				this.Boost ( this.look_x, this.look_y, 7 );
 				// Needs sound effect
 			}
 		}

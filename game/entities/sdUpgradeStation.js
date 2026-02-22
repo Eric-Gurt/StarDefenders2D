@@ -120,17 +120,17 @@ class sdUpgradeStation extends sdEntity
 			switch ( this.level )
 			{
 				case 1:
-				items = [ sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE, sdGun.CLASS_SHOTGUN, sdGun.CLASS_SWORD, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
-				break;
+                    items = [ sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE, sdGun.CLASS_SHOTGUN, sdGun.CLASS_SWORD, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+                    break;
 				case 2:
-				items = [ sdGun.CLASS_LASER_PISTOL, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
-				break;
+                    items = [ sdGun.CLASS_LASER_PISTOL, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+                    break;
 				default: // Level 3 or higher
-				items = [ sdGun.CLASS_SMG, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
-				break;
+                    items = [ sdGun.CLASS_SMG, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+                    break;
 			}
 			
-			for ( let i = 0; i < 6; i++ )
+			for ( let i = 0; i < items.length; i++ )
 			{
 				let gun = new sdGun({ x:character.x, y:character.y, class:items[ i ] });
 				sdEntity.entities.push( gun );
@@ -274,11 +274,13 @@ class sdUpgradeStation extends sdEntity
 				{
 					if ( this.matter >= sdGun.classes[ this.armor_to_build ].matter_cost ) // Enough matter?
 					{
-						if ( from_entity.ApplyArmor( sdGun.classes[ this.armor_to_build ].armor_properties ) ) // If armor is applied
+						if ( from_entity.IsArmorBetter( sdGun.classes[ this.armor_to_build ].armor_properties ) ) // If armor is applied
 						{
 							this.matter -= sdGun.classes[ this.armor_to_build ].matter_cost; // Reduce matter as the equalivent of building it
 							this._armor_cooldown = 30; // 1 second cooldown
 							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+                            const armor = sdEntity.Create( sdGun, ({ x: from_entity.x, y: from_entity.y, class: this.armor_to_build }) );
+                            from_entity.ApplyArmor( armor );
 						}
 					}
 				}
@@ -329,7 +331,11 @@ class sdUpgradeStation extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+        {
+            sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+            if ( this.armor_to_build !== -1 )
+            sdEntity.Create( sdGun, ({ x: this.x, y: this.y, class: this.armor_to_build }) );
+        }
 		//this.onRemoveAsFakeEntity();
 	}
 	onRemoveAsFakeEntity()
@@ -382,7 +388,10 @@ class sdUpgradeStation extends sdEntity
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 				{
 					if ( this.armor_to_build !== -1 )
-					this.armor_to_build = -1;
+                    {
+                        sdEntity.Create( sdGun, ({ x: exectuter_character.x, y: exectuter_character.y, class: this.armor_to_build }) );
+                        this.armor_to_build = -1;
+                    }
 					else
 					executer_socket.SDServiceMessage( 'Auto-build option already removed' );
 				}

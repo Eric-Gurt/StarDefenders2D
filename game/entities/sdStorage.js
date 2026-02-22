@@ -21,7 +21,7 @@ class sdStorage extends sdEntity
 {
 	static init_class()
 	{
-		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' );
+		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' ); // Cargo and crystal crate by LazyRain
 
 		sdStorage.access_range = 64;
 		//sdStorage.slots_tot = 6;
@@ -525,7 +525,8 @@ class sdStorage extends sdEntity
 						from_entity.type === sdJunk.TYPE_LOST_CONTAINER || 
 						from_entity.type === sdJunk.TYPE_FREEZE_BARREL ||
 						from_entity.type === sdJunk.TYPE_FIRE_BARREL ||
-						from_entity.type === sdJunk.TYPE_METAL_CHUNK /* ||
+						from_entity.type === sdJunk.TYPE_METAL_CHUNK ||
+                        from_entity.type === sdJunk.TYPE_TOXIC_BARREL /* ||
 						from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT */
 					)
 				) 
@@ -629,24 +630,26 @@ class sdStorage extends sdEntity
 							else
 							if ( from_entity.type === sdJunk.TYPE_FIRE_BARREL )
 							name = ( 'Flammable-substance barrel' );
+                            if ( from_entity.type === sdJunk.TYPE_TOXIC_BARREL )
+							name = ( 'Toxic gas barrel' );
 							else
 							if ( from_entity.type === sdJunk.TYPE_METAL_CHUNK )
 							{
 								name = ( 'Metal chunk' );
-								is_armable = 0;
+								is_armable = false;
 							}
 							/* else
 							if ( from_entity.type === sdJunk.TYPE_UNKNOWN_OBJECT )
 							{
 								name = ( '???' );
-								is_armable = 0;
+								is_armable = false;
 							} */
 					
 						}
 						else
 						if ( from_entity.is( sdBarrel ) )
 						{
-							is_armable = 1;
+							is_armable = true;
 							
 							name = ( 'Barrel' );
 						}
@@ -656,19 +659,17 @@ class sdStorage extends sdEntity
 						else
 						if ( from_entity.is( sdFaceCrab ) )
 						{
-							is_armable = 1;
+							is_armable = true;
 							
 							name = 'Face crab';
 						}
 
 						if ( from_entity.is( sdAsteroid ) )
 						{
-							is_armable = 1;
+							is_armable = true;
 
 							name = 'Cruise missile';
 						}
-
-						
 						
 						this.stored_names.push( name );
 						

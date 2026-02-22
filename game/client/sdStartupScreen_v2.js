@@ -1,5 +1,4 @@
 
-
 	/* global globalThis, sdWorld, sdCharacter, userAgent, BROWSER_GECKO, sdTranslationManager, sdRenderer, sdSound, meSpeak, socket, sdMusic */
 	
 	let input_elements = document.body.querySelectorAll("input[type=color]");
@@ -514,6 +513,13 @@
 					[ 1, `Enabled` ]
 				],
 				default_option: 2
+			});
+            AddOption({ caption: `3D camera`, prefix: `3d_mode`,
+				options: [
+					[ 2, `Disabled` ], 
+					[ 1, `Enabled` ]
+				],
+				default_option: 1
 			});
 			AddOption({ caption: `UI style`, prefix: `ui_style`,
 				options: [
@@ -1240,6 +1246,7 @@
 			JustOne( ret, 'shading', last_changed_el );
 			JustOne( ret, 'effects_quality', last_changed_el );
 			JustOne( ret, 'coords', last_changed_el );
+			JustOne( ret, '3d_mode', last_changed_el );
 
 			for ( let i = 0; i < conditional_elements.length; i++ )
 			{

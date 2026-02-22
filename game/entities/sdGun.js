@@ -554,9 +554,13 @@ class sdGun extends sdEntity
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		
 		this._access_id = params.access_id || null; // For keycards
+
+		this._anim = 0; // Client side animations
 		
 		this.overheat = 0; // Used by minigun-like weapons
 		this._overheat_cooldown = 0;
+
+        this.remaining_armor = sdGun.classes[ this.class ].armor_properties?.armor || 0; // Used by dropped armor items, Perhaps we should use "overheat" variable for this instead?
 		
 		//let has_class = sdGun.classes[ this.class ];
 		this.ResetInheritedGunClassProperties( params );
@@ -1650,6 +1654,13 @@ class sdGun extends sdEntity
 				this.held_by_class = this._held_by.GetClass();
 			}
 		}
+
+		let known_class = sdGun.classes[ this.class ];
+        if ( known_class && known_class.onThink )
+        {
+            known_class.onThink( this, GSPEED );
+            
+		}
 		
 		if ( sdWorld.is_server )
 		if ( allow_hibernation_due_to_logic )
@@ -1717,13 +1728,16 @@ class sdGun extends sdEntity
 		if ( !this.held_by )
 		{
 			let xx = 0;
-			let has_description = sdGun.classes[ this.class ].has_description;
+			const has_description = sdGun.classes[ this.class ].has_description;
 			
-			let has_slot = !sdGun.classes[ this.class ].ignore_slot;
+			const has_slot = !sdGun.classes[ this.class ].ignore_slot;
+            const is_armor = sdGun.classes[ this.class ].armor_properties;
 			
 			if ( has_description )
 			xx = Math.min( xx, 16 - ( sdGun.classes[ this.class ].has_description.length * 8 ) - ( has_slot ? 8 : 0 ) );
-		
+        
+            if ( is_armor )
+            xx -= 16;
 			// I am making this too complicated - Booraz
 		
 			let t = this.GetTitle();
@@ -1738,7 +1752,7 @@ class sdGun extends sdEntity
 				sdEntity.Tooltip( ctx, 'Slot ' + this.GetSlot(), 0, xx, '#ffff00' );
 				xx += 8;
 			}
-			if ( has_description ) // Description of items ( like Cube shards or armor, for example )
+			if ( has_description ) // Description of items ( like Cube shards for example )
 			{
 				for( let i = 0; i < sdGun.classes[ this.class ].has_description.length; i++ )
 				{
@@ -1746,6 +1760,35 @@ class sdGun extends sdEntity
 					xx += 8;
 				}
 			}
+            // else
+            if ( is_armor ) // Should do armors automatically now
+            {
+                let i = 0;
+                const property_names = {
+                    armor: 'Armor',
+                    _armor_absorb_perc: 'Damage absorption',
+                    armor_speed_reduction: 'Movement speed reduction',
+                    armor_lost_absorb_perc: 'Lost damage absorption'
+                }
+                for ( const p in sdGun.classes[ this.class ].armor_properties ) // This is rather ugly
+                {
+                    const value = sdGun.classes[ this.class ].armor_properties[ p ];
+                    const desc = property_names[ p ];
+                    
+                    if ( p === 'armor' )
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ Math.ceil( this.remaining_armor ) } / ${ value }`, 0, xx, '#aaffaa' );
+                    else
+                    if ( p === 'armor_speed_reduction' )
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ value }%`, 0, xx, '#aaffaa' );
+                    else
+                    if ( p === '_armor_absorb_perc' || p === 'armor_lost_absorb_perc' )
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ Math.round( value * 100 ) }%`, 0, xx, '#aaffaa' );
+                    else
+                    sdEntity.Tooltip( ctx, `${ desc }: ${ value }`, 0, xx, '#aaffaa' );
+
+                    xx += 8;
+                }
+            }
 	
 			this.BasicCarryTooltip( ctx, xx );
 		}

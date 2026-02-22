@@ -136,7 +136,7 @@ class sdRift extends sdEntity
 		if ( this.type === sdRift.TYPE_COUNCIL_PORTAL )
 		return 'brightness(2) saturate(0.1)';
 	
-			if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
+		if ( this.type === sdRift.TYPE_ELECTROMAGNETIC_ANOMALY )
 		return 'none';
 
 	}
@@ -337,7 +337,7 @@ class sdRift extends sdEntity
 								let asp = new sdAsp({ 
 									x:this.x,
 									y:this.y,
-									_tier: 2,
+									tier: 2,
 									filter: 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)',
 									crystal_worth: 160
 								});
@@ -393,7 +393,7 @@ class sdRift extends sdEntity
 								x:this.x,
 								y:this.y
 							});
-							asteroid._type = 0;
+							asteroid.type = 0;
 							asteroid.sy += ( 10 - ( Math.random() * 20 ) );
 							asteroid.sx += ( 10 - ( Math.random() * 20 ) );
 

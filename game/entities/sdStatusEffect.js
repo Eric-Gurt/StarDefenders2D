@@ -274,6 +274,7 @@ class sdStatusEffect extends sdEntity
 				return false; // Keep
 			}
 		};
+
 		const temperature_normal = 20; // Copy
 		const temperature_fire = 700;
 		const temperature_frozen = -50;
@@ -388,7 +389,14 @@ class sdStatusEffect extends sdEntity
 					
 					if ( sdRenderer.effects_quality >= 2 && status_entity.t >= temperature_fire && status_entity._next_smoke_spawn <= 0 )
 					{
-						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2, scale:1, radius:1/3, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: '#FF8800'});
+                        let a = Math.random() * Math.PI * 2;
+
+                        let r = Math.pow( Math.random(), 0.5 ) * range;
+
+                        let xx = status_entity.for.x + status_entity.for._hitbox_x1 + ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * Math.random() + Math.sin( a ) * r;
+                        let yy = status_entity.for.y + status_entity.for._hitbox_y1 + ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) * Math.random() + Math.cos( a ) * r;
+
+						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:xx, y:yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2, scale:1, radius: Math.random() * 1.5 + 1 / 3, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: '#FF8800'});
 						status_entity._next_smoke_spawn = 1;
 						sdEntity.entities.push( s );
 					}
@@ -536,7 +544,7 @@ class sdStatusEffect extends sdEntity
 							let e = status_entity.for;
 							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 							
-							if ( e_is_organic )
+							if ( e_is_organic && ( e.hea || e._hea ) > 0 ) // Don't damage dead entities
 							{
 								if ( status_entity.for.IsPlayerClass() )
 								{
@@ -2394,6 +2402,86 @@ class sdStatusEffect extends sdEntity
 			{
 			}
 		};
+        
+        sdStatusEffect.types[ sdStatusEffect.TYPE_SICKNESS = 18 ] = 
+		{
+			remove_if_for_removed: true,
+			is_emote: false,
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._sickness = params.sickness;
+                status_entity._intensity = params.intensity;
+                status_entity._sick_damage_timer = 0;
+                status_entity._sick_damage_timer_max = 60 / params.intensity;
+                status_entity._owner = params.owner;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+                if ( params._intensity > status_entity._intensity )
+                status_entity._intensity = params.intensity;
+                
+                if ( params._sickness >= status_entity._sickness )
+                status_entity._sickness += params.sickness;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( sdWorld.is_server )
+				{
+                    if ( status_entity._sickness > 0 )
+                    {
+                        status_entity._sickness -= GSPEED;
+                        status_entity._sick_damage_timer -= GSPEED;
+
+                        if ( status_entity._sickness <= 0 )
+                        return status_entity.remove();
+                    }
+
+                    const ent = status_entity.for;
+                    if ( status_entity._sick_damage_timer <= 0 )
+                    if ( ent && !ent._is_being_removed )
+                    if ( ( ent.hea || ent._hea ) > 0 )
+					{
+                        ent.DamageWithEffect( 5 * status_entity._intensity, status_entity._owner, false, false );
+                        sdWorld.SendEffect({ x: ent.x, y: ent.y, type:sdEffect.TYPE_BLOOD_GREEN, filter: 'none' });
+                        status_entity._sick_damage_timer = status_entity._sick_damage_timer_max;
+                        
+                        const targets_raw = sdWorld.GetAnythingNear( ent.x, ent.y, 90, null, [ 'sdCharacter' ] );
+					
+                        const itself = targets_raw.indexOf( this );
+                        if ( itself !== -1 )
+                        targets_raw.splice( itself, 1 );
+					
+                        for ( let i = 0; i < targets_raw.length; ++i )
+                        {
+                            if ( targets_raw[ i ].IsTargetable( ent ) )
+                            targets_raw[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: status_entity._sickness / targets_raw.length, intensity: status_entity._intensity / targets_raw.length, owner: status_entity._owner });
+                        }
+					}
+					else
+					return true;
+				}
+
+				return false;
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+			}
+		};
 
 		sdStatusEffect.status_effects = [];
 		
@@ -2879,4 +2967,5 @@ class sdStatusEffect extends sdEntity
 		status_type.DrawFG( this, ctx, attached );
 	}
 }
+
 export default sdStatusEffect;

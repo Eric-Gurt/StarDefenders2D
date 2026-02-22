@@ -20,7 +20,7 @@ class sdWeaponBench extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -31 : -9; }
+	get hitbox_x1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -31 : -8; }
 	get hitbox_x2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 31 : 8; }
 	get hitbox_y1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -24 : -11; }
 	get hitbox_y2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 24 : 0; }
@@ -82,7 +82,7 @@ class sdWeaponBench extends sdEntity
 		this.gun_password = null;
 		
 		this._current_category_stack = [];
-		
+
 		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
 		this[ 'item' + i ] = null;
 	}
@@ -181,8 +181,14 @@ class sdWeaponBench extends sdEntity
 	Draw( ctx, attached )
 	{
 		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-		return;
+        if ( !sdRenderer.draw_in_3d )
+        {
+            return this.DrawWeaponLocker( ctx, attached );
+        }
 	
+        if ( this.type !== sdWeaponBench.TYPE_UPGRADE_BENCH )
+        return;
+
 		ctx.drawImageFilterCache( sdWeaponBench.img_weapon_workbench, - 16, - 16, 32,32 );
 	
 		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
@@ -228,7 +234,7 @@ class sdWeaponBench extends sdEntity
 							sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
 				
 							let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
-				
+
 							if ( Math.round( reload_time / 30 * 1000 ) < 16 )
 							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -30, '#aaffaa' );
 							else
@@ -245,42 +251,48 @@ class sdWeaponBench extends sdEntity
 						else // Regular guns
 						{
 							let gun = this.item0;
-				
-							let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
-							
-							let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
-				
-							//let ID_MAGAZINE = 2;
-		
-							let ID_DAMAGE_MULT = 7;
-							//let ID_FIRE_RATE = 8;
-							let ID_RECOIL_SCALE = 9;
-							let ID_DAMAGE_VALUE = 17;
-							let ID_ALT_DAMAGE_VALUE = 18;
 
-							if ( item.extra[ ID_DAMAGE_VALUE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
-					
-							if ( item.extra[ ID_ALT_DAMAGE_VALUE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult ), 0, -50, '#ffaaaa' );
-					
-							if ( item.extra[ ID_RECOIL_SCALE ] )
-							sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
-				
-							let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
-				
-							if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
-							else
-							sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
-			
-							if ( item.GetAmmoCapacity() !== -1 )
-							sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
+                            if ( !( sdGun.classes[ gun.class ].armor_properties ) )
+                            {
+                                let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
+                                
+                                let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
+                    
+                                //let ID_MAGAZINE = 2;
+            
+                                let ID_DAMAGE_MULT = 7;
+                                //let ID_FIRE_RATE = 8;
+                                let ID_RECOIL_SCALE = 9;
+                                let ID_DAMAGE_VALUE = 17;
+                                let ID_ALT_DAMAGE_VALUE = 18;
+                                if ( item.extra[ ID_DAMAGE_VALUE ] )
+                                sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ ID_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
+                            
+                                if ( item.extra[ ID_ALT_DAMAGE_VALUE ] )
+                                sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ ID_ALT_DAMAGE_VALUE ] * item.extra[ ID_DAMAGE_MULT ] * merge_mult ), 0, -50, '#ffaaaa' );
+                            
+                                if ( item.extra[ ID_RECOIL_SCALE ] )
+                                sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ ID_DAMAGE_MULT ] * item.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
 
-							sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( item.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
-							
-							if ( this.gun_password )
-							sdEntity.TooltipUntranslated( ctx, T('Access ID') + ': ' + this.gun_password, 0, -10, '#333333' );
+                                let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
+                        
+                                if ( Math.round( reload_time / 30 * 1000 ) < 16 )
+                                sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
+                                else
+                                sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+                    
+                                if ( item.GetAmmoCapacity() !== -1 )
+                                sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
+
+                                sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( item.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+
+                                if ( this.gun_password )
+                                sdEntity.TooltipUntranslated( ctx, T('Access ID') + ': ' + this.gun_password, 0, -10, '#333333' );
+                            }
+                            else
+                            {
+                                sdEntity.TooltipUntranslated( ctx, T('Armor') + ': ' + Math.ceil( gun.remaining_armor ) + ' / ' + sdGun.classes[ gun.class ].armor_properties.armor, 0, 0, '#ffaaaa' );
+                            }
 						}
 					}
 					ctx.restore();
@@ -290,9 +302,12 @@ class sdWeaponBench extends sdEntity
 	}
 	DrawBG( ctx, attached )
 	{
-		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-		return;
-	
+        if ( this.type === sdWeaponBench.TYPE_DISPLAY )
+        if ( sdRenderer.draw_in_3d )
+        return this.DrawWeaponLocker( ctx, attached );
+	}
+    DrawWeaponLocker( ctx, attached )
+    {
 		if ( sdShop.isDrawing )
 		{
 			ctx.scale( 0.75, 0.75 );
@@ -345,8 +360,7 @@ class sdWeaponBench extends sdEntity
 					item.y = offsets.y + this.y;
 				}
 			}
-		
-			if ( this.locked )
+            else
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -356,7 +370,8 @@ class sdWeaponBench extends sdEntity
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					can_hit_owner: false,
-					color: sdEffect.default_explosion_color
+					color: sdEffect.default_explosion_color,
+                    shrapnel: true
 				});
 				
 				for ( var i = 0; i < this.GetSlotsTotal(); i++ )
@@ -375,14 +390,7 @@ class sdWeaponBench extends sdEntity
 	}
 	getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
-		let ents = [];
-		for ( var i = 0; i < this.GetSlotsTotal(); i++ )
-		if ( this[ 'item' + i ] )
-		{
-			let item = this[ 'item' + i ];
-			ents.push( item );
-		}
-		return ents;
+        return [ this, ...this.GetItems() ];
 	}
 	MeasureMatterCost()
 	{
@@ -399,7 +407,7 @@ class sdWeaponBench extends sdEntity
 		let allow_ignored_items = this.type === sdWeaponBench.TYPE_DISPLAY;
 		
 		if ( from_entity.is( sdGun ) )
-		if ( !sdGun.classes[ from_entity.class ].ignore_slot || allow_ignored_items ) // Allow some un-upgradable items for display only
+		if ( !sdGun.classes[ from_entity.class ].ignore_slot || sdGun.classes[ from_entity.class ].armor_properties || allow_ignored_items ) // Allow some un-upgradable items for display only, and allow armors
 		{
 			if ( from_entity._held_by === null )
 			{
@@ -567,7 +575,7 @@ class sdWeaponBench extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 			{
 				let key = null;
 				let potential_key = exectuter_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ];
@@ -924,7 +932,7 @@ class sdWeaponBench extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) )
+        if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 		{
 			if ( !this.locked )
 			for ( let i = 0; i < this.GetSlotsTotal(); i++ )

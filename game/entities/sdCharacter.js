@@ -775,6 +775,7 @@ class sdCharacter extends sdEntity
 		if ( prop === '_discovered' ) return true;
 		if ( prop === '_user_data' ) return true;
 		if ( prop === '_ai_stay_near_entity' ) return true;
+        if ( prop === '_armor_class' ) return true;
 
 		return false;
 	}
@@ -1377,6 +1378,8 @@ THING is cosmic mic drop!`;
 		this._armor_absorb_perc = 0; // Armor absorption percentage
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
 		this._armor_repair_amount = 0; // Armor repair speed
+        this._armor_lost_absorb_perc = 0; // Lost damage reduction armor
+        this._armor_class = null; // Armor sdGun entity snapshot, so it can be dropped
 		
 		this.mobility = 100; // Used to slow-down hostile AIs
 
@@ -1527,9 +1530,10 @@ THING is cosmic mic drop!`;
 		
 		this._ragdoll = null; // Client-side ragdolls could be here? Not ready.
 		
-		this._sickness = 0; // When sick - occasionally gets random damage and when dies turns into zombie?
-		this._last_sickness_from_ent = null;
-		this._sick_damage_timer = 0;
+        // Done as a status effect now
+		//this._sickness = 0; // When sick - occasionally gets random damage and when dies turns into zombie?
+		//this._last_sickness_from_ent = null;
+		//this._sick_damage_timer = 0;
 		//this.lost = 0; // Set to lost type if sdCharacter is lost
 		
 		// Client-side blinking
@@ -2531,7 +2535,7 @@ THING is cosmic mic drop!`;
 			
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-			this._sickness = 0;
+			// this._sickness = 0;
 			this._frozen = 0; // For some reason does not always happen...
 			
 			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
@@ -2797,37 +2801,97 @@ THING is cosmic mic drop!`;
 		return saved_weapon;
 	}
 	
-	RemoveArmor()
+	RemoveArmor() // Usually due to destruction
 	{
 		this.armor = 0;
 		this.armor_max = 0;
+        this._armor_lost_absorb_perc = 0;
+        this._armor_class = null;
 		//this._armor_absorb_perc = 0;
 		//this.armor_speed_reduction = 0; 
 		//this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
-	ApplyArmor( params )
-	{
-		params.armor = params.armor || 100;
+    
+    DropArmor()
+    {
+        const gun = this._armor_class;
+        if ( !gun )
+        return;
+
+        try
+        {
+            const ent = sdEntity.GetObjectFromSnapshot( gun );
+            const angle = this.GetLookAngle();
+
+            const throw_force = 5;
+
+            ent.x = this.x;
+            ent.y = this.y;
+
+            ent.sx += Math.sin( angle ) * throw_force;
+            ent.sy += Math.cos( angle ) * throw_force;
+
+            ent.remaining_armor = this.armor;
+
+            ent.ttl = sdGun.disowned_guns_ttl;
+
+            ent._held_by = null;
+
+            sdEntity.entities.push( ent );
+
+            this._ignored_guns_infos.push( { ent: ent, until: sdWorld.time + 300 } );
+            this.TriggerMovementInRange();
+            this.RemoveArmor(); // Reset armor save and stats for this character
+            sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+        }
+        catch ( e )
+        {
+            trace( 'Armor dropping failed: ', gun );
+        }
+    }
+
+    IsArmorBetter( armor )
+    {
+        const params = armor instanceof sdGun ? sdGun.classes[ armor.class ].armor_properties : armor; // Should also be able to take gun data as params for upgrade station checks
+
 		params._armor_absorb_perc = params._armor_absorb_perc || 0;
 		params.armor_speed_reduction = params.armor_speed_reduction || 0;
+        params.armor_lost_absorb_perc = params.armor_lost_absorb_perc || 0;
 		
 		// Make sure it is better by all stats only
 		if ( params.armor >= this.armor_max )
 		if ( params._armor_absorb_perc >= this._armor_absorb_perc || this.armor_max === 0 )
+        //if ( params.armor_lost_absorb_perc >= this._armor_lost_absorb_perc )
 		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
+        return true;
+    
+        return false;
+    }
+
+	ApplyArmor( armor )
+	{
+        if ( this.IsArmorBetter( armor ) )
 		{
-			this.armor = params.armor;
+            const params = sdGun.classes[ armor.class ].armor_properties;
+
+            params._armor_absorb_perc = params._armor_absorb_perc || 0;
+            params.armor_speed_reduction = params.armor_speed_reduction || 0;
+            params.armor_lost_absorb_perc = params.armor_lost_absorb_perc || 0;
+
+            this.DropArmor(); // Drop the old armor
+			this.armor = armor.remaining_armor;
 			this.armor_max = params.armor;
 			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
 			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
-			
+            this._armor_lost_absorb_perc = params.armor_lost_absorb_perc;
+
+            this._armor_class = armor.GetSnapshot( globalThis.GetFrame(), true );
+            delete this._armor_class._net_id; // Would fail to save after backup/server restarts without this
+
 			if ( this._socket ) 
 			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
-		
-			return true;
 		}
-		return false;
 	}
 	ApplyArmorRegen( regen_strength )
 	{
@@ -3112,12 +3176,13 @@ THING is cosmic mic drop!`;
 				}*/
 			
 				//this._sickness /= 4;
-				this._sickness = 0;
+				//this._sickness = 0;
 				
 				if ( this.driver_of )
 				this.driver_of.ExcludeDriver( this );
 			
 				this.DropWeapons();
+                this.DropArmor();
 
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
@@ -4850,42 +4915,6 @@ THING is cosmic mic drop!`;
 
 				this.AILogic( GSPEED );
 			}
-			
-			if ( this._sickness > 0 )
-			{
-				this._sickness -= GSPEED;
-				
-				this._sick_damage_timer += GSPEED;
-				//if ( this._sick_damage_timer > 6000 / this._sickness )
-				if ( this._sick_damage_timer > 60 )
-				{
-					this._sick_damage_timer = 0;
-					
-					//this._sickness = Math.max( 0, this._sickness - 10 );
-					this.DamageWithEffect( 10, this._last_sickness_from_ent, false, false );
-					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
-					
-					// And then it spreads to players near, sounds fun
-					
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 90, null, [ 'sdCharacter' ] );
-					
-					let itself = targets_raw.indexOf( this );
-					if ( itself !== -1 )
-					targets_raw.splice( itself, 1 );
-					
-					for ( let i = 0; i < targets_raw.length; i++ )
-					{
-						if ( targets_raw[ i ].IsTargetable( this ) )
-						targets_raw[ i ]._sickness += 5 / targets_raw.length;
-					}
-				}
-
-				if ( this._sickness <= 0 )
-				{
-					this._last_sickness_from_ent = null;
-				}
-			}
-
 
 			if ( this._dying )
 			{
@@ -6580,7 +6609,7 @@ THING is cosmic mic drop!`;
 					let old_camera_relative_world_scale = ctx.camera_relative_world_scale;
 					//ctx.sd_status_effect_tint_filter = [ 1.5, 1.5, 1.5 ];
 					{
-						ctx.volumetric_mode = fake_ent.DrawIn3D();
+						ctx.volumetric_mode = sdRenderer.draw_in_3d ? fake_ent.DrawIn3D() : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 
 						ctx.translate( -this.x + fake_ent.x, -this.y + fake_ent.y );
 						
@@ -6593,9 +6622,10 @@ THING is cosmic mic drop!`;
 							fake_ent.FigureOutBoxCapVisibilities( sdRenderer.ctx.box_caps );
 						}
 					
-						ctx.object_offset = fake_ent.ObjectOffset3D( -1 );
-						ctx.z_offset = -32 * sdWorld.camera.scale;
-						ctx.z_depth = 16 * sdWorld.camera.scale;
+						ctx.object_offset = sdRenderer.draw_in_3d ? fake_ent.ObjectOffset3D( -1 ) : null;
+                        const offset0 = sdRenderer.draw_in_3d ? -32 : -16
+                        ctx.z_offset = offset0 * sdWorld.camera.scale;
+                        ctx.z_depth = 16 * sdWorld.camera.scale;
 						ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_world;
 						ctx.save();
 						{
@@ -6603,16 +6633,17 @@ THING is cosmic mic drop!`;
 						}
 						ctx.restore();
 						
-						ctx.object_offset = fake_ent.ObjectOffset3D( 0 );
-						ctx.z_offset = -16 * sdWorld.camera.scale;
-						ctx.z_depth = 16 * sdWorld.camera.scale;
+						ctx.object_offset = sdRenderer.draw_in_3d ? fake_ent.ObjectOffset3D( 0 ) : null;
+                        const offset1 = -16
+                        ctx.z_offset = offset1 * sdWorld.camera.scale;
+                        ctx.z_depth = 16 * sdWorld.camera.scale;
 						ctx.save();
 						{
 							fake_ent.Draw( ctx, false );
 						}
 						ctx.restore();
 						
-						ctx.object_offset = fake_ent.ObjectOffset3D( 1 );
+						ctx.object_offset = sdRenderer.draw_in_3d ? fake_ent.ObjectOffset3D( 1 ) : null;
 						ctx.save();
 						{
 							fake_ent.DrawFG( ctx, false );
@@ -7678,13 +7709,13 @@ THING is cosmic mic drop!`;
 						}
 					}
 
-					/*if ( command_name === 'REMOVE_ARMOR' )
+					if ( command_name === 'DROP_ARMOR' )
 					{
 						if ( exectuter_character.armor > 0 ) 
 						{
-							exectuter_character.RemoveArmor();
+							exectuter_character.DropArmor();
 						}
-					}*/
+					}
 					if ( command_name === 'NO_TASKS' )
 					{
 						sdTask.PerformActionOnTasksOf( exectuter_character, ( task )=>
@@ -7933,8 +7964,8 @@ THING is cosmic mic drop!`;
 							this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
 						}
 
-						//if ( this.armor > 0 )
-						//this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] ); Seems pointless these days
+						if ( this.armor > 0 )
+						this.AddContextOption( 'Drop armor', 'DROP_ARMOR', [] );
 						this.AddContextOption( 'Cancel all personal tasks', 'NO_TASKS', [] );
 
 						if ( this.power_ef > 0 || this.time_ef > 0 )
@@ -8166,6 +8197,4 @@ THING is cosmic mic drop!`;
 }
 //sdCharacter.init_class();
 
-	
 export default sdCharacter;
-	

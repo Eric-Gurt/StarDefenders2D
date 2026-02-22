@@ -513,9 +513,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:5, _category:'Base equipment' });
+            sdShop.options.push({ _class: 'sdButton', type:7, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
-
+			sdShop.options.push({ _class: 'sdButton', type:8, _category:'Base equipment', _min_build_tool_level: 2 });
 
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 			sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
@@ -549,14 +550,22 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 			}
+            
 
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'none', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.25)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.5)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(0.75)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW, _category:'Background walls' });
+            
+            sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: 'none', texture_id: sdBG.TEXTURE_WINDOW_SMALL, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: 'invert(0.25)', texture_id: sdBG.TEXTURE_WINDOW_SMALL, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: 'invert(0.5)', texture_id: sdBG.TEXTURE_WINDOW_SMALL, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: 'invert(0.75)', texture_id: sdBG.TEXTURE_WINDOW_SMALL, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: 'invert(1)', texture_id: sdBG.TEXTURE_WINDOW_SMALL, _category:'Background walls' });
 
-			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
+            sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
 			//sdShop.options.push({ _class: 'sdWater' });
 
 			for ( var i = 0; i < sdGun.classes.length; i++ )
@@ -673,6 +682,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCube', kind:6, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:8, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdCube', kind:9, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });
@@ -681,6 +691,8 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: 40, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: sdCrystal.anticrystal_value / 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ANTIMATTER, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_CRYO, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_INCENDIARY, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsp', tier:2, crystal_worth:160, filter: 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
@@ -718,6 +730,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdJunk', type: 11, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 12, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdJunk', type: 13, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdJunk', type: 14, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdJunk', type: 15, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTzyrgAbsorber', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShurgConverter', _category:'Development tests' });
