@@ -44,6 +44,7 @@ class sdButton extends sdEntity
 		sdButton.TYPE_WALL_TITLE_SENSOR = 6;
         sdButton.TYPE_MATTER_PERCENTAGE_SENSOR = 7;
         sdButton.TYPE_VELOCITY_SENSOR = 8;
+        sdButton.TYPE_REGEN_RATE_SENSOR = 9;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
 		
 		sdButton.BUTTON_KIND_TOGGLE = 0;
@@ -111,6 +112,9 @@ class sdButton extends sdEntity
     
         if ( this.type === sdButton.TYPE_VELOCITY_SENSOR )
 		return 'Velocity sensor';
+    
+        if ( this.type === sdButton.TYPE_REGEN_RATE_SENSOR )
+		return 'Matter regeneration rate sensor';
 	
 		return 'Button';
 	}
@@ -223,7 +227,10 @@ class sdButton extends sdEntity
     
         if ( this.type === sdButton.TYPE_VELOCITY_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures speed
-		
+    
+        if ( this.type === sdButton.TYPE_REGEN_RATE_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures crystal's regen capacity
+
 		sdButton.buttons.push( this );
 	}
 	onMovementInRange( from_entity )
@@ -235,7 +242,9 @@ class sdButton extends sdEntity
 			 this.type === sdButton.TYPE_WALL_TITLE_SENSOR || 
 			 this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR ||
              this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR ||
-             this.type === sdButton.TYPE_VELOCITY_SENSOR )
+             this.type === sdButton.TYPE_VELOCITY_SENSOR ||
+             this.type === sdButton.TYPE_REGEN_RATE_SENSOR 
+        )
 		if ( from_entity._is_bg_entity === 0 )
 		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdBlock ) )
@@ -270,7 +279,9 @@ class sdButton extends sdEntity
 			
 			if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
 				 this.type === sdButton.TYPE_WALL_MATTER_SENSOR ||
-                 this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
+                 this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR ||
+                 this.type === sdButton.TYPE_REGEN_RATE_SENSOR 
+            )
 			{
 				if ( condition === '>' || condition === '≥' )
 				v = 0;
@@ -298,12 +309,14 @@ class sdButton extends sdEntity
 					else
 					if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
 						 this.type === sdButton.TYPE_WALL_MATTER_SENSOR || 
-                         this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR 
+                         this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR ||
+                         this.type === sdButton.TYPE_REGEN_RATE_SENSOR
                         )
 					{
 						let ent_value = this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ? ( e.matter_max || e._matter_max || 0 ) :
                                         this.type === sdButton.TYPE_WALL_MATTER_SENSOR ? ( e.matter || e._matter || 0 ) :
-                                        Math.round( ( e.matter || e._matter || 0 ) / ( e.matter_max || e._matter_max || 1 ) * 100 );
+                                        this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR ? Math.round( ( e.matter || e._matter || 0 ) / ( e.matter_max || e._matter_max || 1 ) * 100 ) :
+                                        e.matter_regen || 0;
 
 						if ( condition === '=' )
 						{
@@ -918,11 +931,16 @@ class sdButton extends sdEntity
 					else
 					{
 						let v = parseFloat( parameters_array[ 0 ] );
-						if ( !isNaN( v ) )
+						if ( isFinite( v ) )
 						{
                             if ( this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR )
                             {
                                 v = sdWorld.limit( 0, 100, v ) // Keep between 0% and 100%
+                            }
+                            else
+                            if ( this.type === sdButton.TYPE_REGEN_RATE_SENSOR )
+                            {
+                                v = Math.abs( v );
                             }
                             else
                             if ( this.type === sdButton.TYPE_VELOCITY_SENSOR )
