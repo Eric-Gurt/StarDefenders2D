@@ -597,7 +597,7 @@ class sdWater extends sdEntity
 								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED * this._volume });
                             
                                 if ( this.type === sdWater.TYPE_CRYO )
-								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -50 * GSPEED * this._volume });
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -100 * GSPEED * this._volume });
 							}
 
 							if ( this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_WATER )
