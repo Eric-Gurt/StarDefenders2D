@@ -546,7 +546,7 @@ class sdRenderer
 
 									sum /= iters;
 
-									h = ( sum - 0.5 ) * scale * 800; // 400
+									h = ( sum - 0.5 ) * scale * 2048; // 400
 									heights.push( h );
 								}
 
