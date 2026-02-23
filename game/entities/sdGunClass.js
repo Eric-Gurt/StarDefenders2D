@@ -2988,6 +2988,7 @@ class sdGunClass
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 		
+        /*
 		const cable_reaction_method = ( bullet, target_entity )=>
 		{
 			// Someone fired cable tool and then dropped it onto weaponbench?
@@ -3105,6 +3106,8 @@ class sdGunClass
 				//bullet._owner.Say( 'Cable can not be attached to ' + ( target_entity.title || target_entity.GetClass() ) );
 			}
 		};
+        */
+        
 		sdGun.classes[ sdGun.CLASS_CABLE_TOOL = 40 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'cable_tool' ),
@@ -3120,8 +3123,8 @@ class sdGunClass
 			has_description: [ 'Used to wire base equipment together' ],
 			projectile_velocity: 16,
 			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
-				_custom_target_reaction_protected: cable_reaction_method,
-				_custom_target_reaction: cable_reaction_method
+				_custom_target_reaction_protected: sdCable.CableProjectileLogic,
+				_custom_target_reaction: sdCable.CableProjectileLogic
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
