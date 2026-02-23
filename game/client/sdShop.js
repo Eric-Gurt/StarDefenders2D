@@ -504,6 +504,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 3 });
 			sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 
+            sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_AUTO_CABLE, _category:'Base equipment', _min_build_tool_level: 20 });
+
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:2, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:3, _category:'Base equipment', _min_build_tool_level: 2 });
