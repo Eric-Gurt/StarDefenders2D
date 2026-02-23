@@ -280,6 +280,7 @@ class sdTurret extends sdEntity
 		this._time_amplification = 0;
         
         this._current_built_entity = null; // Used by cable turrets
+        this._built_cables = [];
 		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
@@ -501,6 +502,14 @@ class sdTurret extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
+            if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+            {
+                for ( const cable of this._built_cables )
+                {
+                    if ( ( !cable || cable._is_being_removed ) || !( cable.p === this ||  cable.c === this ) )
+                    this._built_cables.splice( this._built_cables.indexOf( cable ), 1 );
+                }
+            }
 			if ( this.matter > this.GetShootCost() || this.type === 1 )
 			{
 				//can_hibernate = false;
