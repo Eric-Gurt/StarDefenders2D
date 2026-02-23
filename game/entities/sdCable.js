@@ -17,7 +17,6 @@ import sdPlayerDrone from './sdPlayerDrone.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBlock from './sdBlock.js';
 
-
 import sdRenderer from '../client/sdRenderer.js';
 
 
@@ -344,7 +343,7 @@ class sdCable extends sdEntity
                         parent: target_entity,
                         child: bullet._owner,
                         offsets: target_entity.is( sdNode ) ? [ 0,0, 0,0 ] : [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
-                        type: ( target_entity.is( sdStorageTank ) || target_entity.is( sdEssenceExtractor ) ) ? sdCable.TYPE_LIQUID : sdCable.TYPE_MATTER
+                        type: ( target_entity._liquid?.max || target_entity.liquid?.max ) > 0 ? sdCable.TYPE_LIQUID : sdCable.TYPE_MATTER
                     });
 						
                     if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
@@ -354,6 +353,8 @@ class sdCable extends sdEntity
                     }
 					
                     bullet._owner._current_built_entity = ent;
+                    if ( bullet._owner.is( sdTurret ) && bullet._owner.kind === sdTurret.KIND_AUTO_CABLE )
+                    bullet._owner._built_cables.push( ent );
                     //bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
 
                     sdEntity.entities.push( ent );
