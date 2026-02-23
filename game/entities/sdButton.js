@@ -833,7 +833,7 @@ class sdButton extends sdEntity
                             }
                             turret._built_cables = [];
                         }
-                        else
+                        //else
                         {
                             turret.auto_attack = -1;
                             turret._auto_attack_reference = null;
