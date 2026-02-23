@@ -8158,12 +8158,14 @@ class sdGunClass
 							else
 							if ( typeof e._matter !== 'undefined' )
 							e._matter = Math.max( 0, e._matter - GSPEED * 20 );
-
+                            // This will destroy everything in your base because of lag
+                            /*
 							if ( e.is( sdWorld.entity_classes.sdMatterAmplifier ) )
 							{
 								if ( e.shielded )
 								e.ToggleShields();
 							}
+                            */
 							else
 							if ( e.is( sdBlock ) )
 							{
