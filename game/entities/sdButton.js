@@ -821,8 +821,10 @@ class sdButton extends sdEntity
 						
                         if ( turret.kind !== sdTurret.KIND_AUTO_CABLE )
 						turret._owner = this._owner;
-
-                        if ( turret.kind === sdTurret.KIND_AUTO_CABLE && vv ) // Disconnect all cables that were created by it in case of signal flipping node
+					}
+					else
+					{
+                        if ( turret.kind === sdTurret.KIND_AUTO_CABLE ) // Disconnect all cables that were created by it in case of signal flipping node
                         {
                             for ( const cable of turret._built_cables )
                             {
@@ -831,11 +833,11 @@ class sdButton extends sdEntity
                             }
                             turret._built_cables = [];
                         }
-					}
-					else
-					{
-						turret.auto_attack = -1;
-						turret._auto_attack_reference = null;
+                        else
+                        {
+                            turret.auto_attack = -1;
+                            turret._auto_attack_reference = null;
+                        }
 					}
 				});
 			}
