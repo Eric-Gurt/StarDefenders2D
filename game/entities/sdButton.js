@@ -819,7 +819,19 @@ class sdButton extends sdEntity
 
 						turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						
+                        if ( turret.kind !== sdTurret.KIND_AUTO_CABLE )
 						turret._owner = this._owner;
+
+                        if ( turret.kind === sdTurret.KIND_AUTO_CABLE && vv ) // Disconnect all cables in case of signal flipping node
+                        {
+                            const cables = sdCable.cables_per_entity.get( turret );
+                            for ( const cable of cables )
+                            {
+                                if ( !cable._is_being_removed )
+                                if ( !cable.p.is_static || !cable.c.is_static )
+                                cable.remove();
+                            }
+                        }
 					}
 					else
 					{
@@ -999,7 +1011,7 @@ class sdButton extends sdEntity
 	{
 		if ( this.filter && this.type !== sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		{
-            const is_percentage = this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR;
+            const is_percentage = this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR || this.type === sdButton.TYPE_REGEN_RATE_SENSOR;
             const filter = this.filter.slice();
 
             if ( is_percentage )
