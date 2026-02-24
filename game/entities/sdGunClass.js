@@ -11045,6 +11045,7 @@ class sdGunClass
 
 				ctx.sd_color_mult_r = 1 + mult;
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
+                ctx.sd_color_mult_r = 1;
 
                 mult *= 5; // Makes lights glow
 
@@ -11055,9 +11056,6 @@ class sdGunClass
 
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_glow, -16, -16, 32, 32 );
 
-				ctx.sd_color_mult_r = 1;
-				ctx.sd_color_mult_g = 1;
-				ctx.sd_color_mult_b = 1;
                 ctx.filter = 'none';
 			},
 
