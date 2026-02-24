@@ -809,13 +809,28 @@ class sdButton extends sdEntity
 						{
 							let node = path[ i ];
 							if ( node.is( sdNode ) )
-							if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
-							{
-								turret.auto_attack = node.variation;
-								turret._auto_attack_reference = node;
-								break;
-							}
-						}
+                            {
+                                if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+                                {
+                                    turret.auto_attack = node.variation;
+                                    turret._auto_attack_reference = node;
+                                    break;
+                                }
+                                /*if ( node.type === sdNode.TYPE_SIGNAL_FLIPPER )
+                                {
+                                    if ( turret.kind === sdTurret.KIND_AUTO_CABLE ) // Disconnect all cables that were created by it in case of signal flipping node
+                                    {
+                                        for ( const cable of turret._built_cables )
+                                        {
+                                            if ( cable && !cable._is_being_removed )
+                                            cable.remove();
+                                        }
+                                        turret._built_cables = [];
+                                       break;
+                                    }
+                                }*/
+                            }
+                        }
 
 						turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						
@@ -823,18 +838,22 @@ class sdButton extends sdEntity
 						turret._owner = this._owner;
 					}
 					else
-					{
-                        if ( turret.kind === sdTurret.KIND_AUTO_CABLE ) // Disconnect all cables that were created by it in case of signal flipping node
+					{  
+                        for ( let i = path.length - 1; i >= 0; i-- )
                         {
-                            for ( const cable of turret._built_cables )
+                            let node = path[ i ];
+                            if ( node.is( sdNode ) )
+
+                            if ( turret.kind === sdTurret.KIND_AUTO_CABLE && node.type === sdNode.TYPE_SIGNAL_FLIPPER )  // Disconnect all cables that were created by it in case of signal flipping node
                             {
-                                if ( cable && !cable._is_being_removed )
-                                cable.remove();
+                                for ( const cable of turret._built_cables )
+                                {
+                                    if ( cable && !cable._is_being_removed )
+                                    cable.remove();
+                                }
+                                turret._built_cables = [];
                             }
-                            turret._built_cables = [];
-                        }
-                        //else
-                        {
+                            else
                             turret.auto_attack = -1;
                             turret._auto_attack_reference = null;
                         }
