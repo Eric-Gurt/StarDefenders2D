@@ -10973,6 +10973,106 @@ class sdGunClass
 				return false; 
 			}
 		};
+
+        sdGun.classes[ sdGun.CLASS_PHASE_RIFLE = 161 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'phase_rifle' ),
+			image_glow: sdWorld.CreateImageFromFile( 'phase_rifle_glow' ),
+			sound: 'gun_anti_rifle_fireC',
+			sound_volume: 1.3,
+            sound_pitch:  1.4,
+			title: 'Phase Rifle SD-74',
+			slot: 8,
+			reload_time: 6,
+			count: 1,
+			spread: 0,
+			muzzle_x: 13,
+			ammo_capacity: -1,
+            spawnable: false,
+			projectile_velocity: 24,
+            projectile_properties: { color: '#6ac2ff' },
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 20;
+			},
+			projectile_properties_dynamic: ( gun )=>
+			{
+				return { 
+					_damage: gun.extra[ ID_DAMAGE_VALUE ],
+					model: 'drain_sniper_projectile', 
+					_hittable_by_bullets: false,
+					time_left: 64,
+					color: '#6ac2ff',
+					_custom_detonation_logic:( bullet )=>
+					{
+						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x: bullet.x, y: bullet.y, volume: 0.5, pitch: 1.5 });
+                        sdWorld.SendEffect({ 
+							x: bullet.x, 
+							y: bullet.y, 
+							radius: 24,
+							damage_scale: 2 * gun.extra[ ID_DAMAGE_MULT ],
+							type: sdEffect.TYPE_EXPLOSION, 
+							owner: bullet._owner,
+							color: bullet.color,
+							no_smoke: true
+						});
+					}
+				};
+			},
+            onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+                gun.overheat += 10;
+
+				return true;
+			},
+            onThink: ( gun, GSPEED )=>
+            {
+                if ( gun.overheat >= 100 )
+                if ( gun._held_by && gun._held_by.gun_slot === sdGun.classes[ gun.class ].slot )
+                gun._held_by.DamageWithEffect( gun.overheat / ( 750 * GSPEED ) );
+            },
+            ExtraDraw: ( gun, ctx, attached )=>
+			{
+                ctx.apply_shading = false;
+
+                let mult = gun.overheat / 200;
+
+				ctx.sd_color_mult_r = 1 + mult;
+				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image, -16, -16, 32, 32 );
+
+                mult *= 5; // Makes lights glow
+
+				ctx.sd_color_mult_r = 1 + mult;
+				ctx.sd_color_mult_g = 1 + mult;
+				ctx.sd_color_mult_b = 1 + mult;
+
+				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_glow, -16, -16, 32, 32 );
+
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 32; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#0077d3', 15, 'glow 1' ),
+				'#00457a', 15, 'glow 2' ),
+                '#00ffff', 15, 'glow 3' ),
+                '#adffff', 15, 'glow 4' ) )
+		};
 		// Add new gun classes above this line //
 
 		let index_to_const = [];
