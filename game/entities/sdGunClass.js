@@ -10998,19 +10998,19 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>
 			{
 				return { 
-					_damage: gun.extra[ ID_DAMAGE_VALUE ],
+					_damage: gun.extra[ ID_DAMAGE_VALUE ] * gun.extra [ ID_DAMAGE_MULT ],
 					model: 'drain_sniper_projectile', 
 					_hittable_by_bullets: false,
-					time_left: 64,
+					time_left: 60,
 					color: '#6ac2ff',
 					_custom_detonation_logic:( bullet )=>
 					{
-						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x: bullet.x, y: bullet.y, volume: 0.5, pitch: 1.5 });
+						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x: bullet.x, y: bullet.y, volume: 0.5, pitch: 1.4 });
                         sdWorld.SendEffect({ 
 							x: bullet.x, 
 							y: bullet.y, 
 							radius: 24,
-							damage_scale: 2 * gun.extra[ ID_DAMAGE_MULT ],
+							damage_scale: 1.5 * gun.extra[ ID_DAMAGE_MULT ],
 							type: sdEffect.TYPE_EXPLOSION, 
 							owner: bullet._owner,
 							color: bullet.color,
@@ -11023,14 +11023,20 @@ class sdGunClass
 			{
                 gun.overheat += 10;
 
+                if ( sdWorld.is_server )
+                if ( gun.overheat >= 100 )
+                {
+                    gun._held_by.DamageWithEffect( gun.overheat / 50 );
+                    gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 50 });
+                }
 				return true;
 			},
-            onThink: ( gun, GSPEED )=>
+            /*onThink: ( gun, GSPEED )=>
             {
                 if ( gun.overheat >= 100 )
                 if ( gun._held_by && gun._held_by.gun_slot === sdGun.classes[ gun.class ].slot )
                 gun._held_by.DamageWithEffect( gun.overheat / ( 750 * GSPEED ) );
-            },
+            },*/
             ExtraDraw: ( gun, ctx, attached )=>
 			{
                 ctx.apply_shading = false;
@@ -11062,7 +11068,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 32; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 30; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
