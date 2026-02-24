@@ -10981,7 +10981,7 @@ class sdGunClass
 			sound: 'gun_anti_rifle_fireC',
 			sound_volume: 1.3,
             sound_pitch:  1.4,
-			title: 'Phase Rifle SD-74',
+			title: 'Phased Plasma Rifle SD-74',
 			slot: 8,
 			reload_time: 6,
 			count: 1,
