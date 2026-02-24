@@ -2085,9 +2085,11 @@ class sdGun extends sdEntity
 					}
 				}
 				else
+                if ( image )
 				{
 					ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 				}
+
 				if ( has_class.ExtraDraw )
 				has_class.ExtraDraw( this, ctx, attached );
 			}
