@@ -10976,7 +10976,7 @@ class sdGunClass
 
         sdGun.classes[ sdGun.CLASS_PHASE_RIFLE = 161 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'phase_rifle' ),
+			image_body: sdWorld.CreateImageFromFile( 'phase_rifle' ),
 			image_glow: sdWorld.CreateImageFromFile( 'phase_rifle_glow' ),
 			sound: 'gun_anti_rifle_fireC',
 			sound_volume: 1.3,
@@ -11044,7 +11044,7 @@ class sdGunClass
                 let mult = gun.overheat / 200;
 
 				ctx.sd_color_mult_r = 1 + mult;
-				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image, -16, -16, 32, 32 );
+				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
 
                 mult *= 5; // Makes lights glow
 
@@ -11068,7 +11068,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 30; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 32; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
