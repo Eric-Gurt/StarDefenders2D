@@ -119,20 +119,20 @@ class sdWeaponBench extends sdEntity
 			/*
 				Draw items in pattern:
 				[ 1 ] [ 3 ] [ 5 ] [ 7 ]
-				[ 2 ] [ 4 ] [ 6 ] [ 8 ]
+				[ 2 ] [ 4 ] [ 6 ] [ 8 ]...
 			*/
-			// Variable names might be wrong - was changed from being veritcal to horizontal
-			
-			let start_x = -14
+            const rows = 2;
 
-			let row_height = 11;
-			let row_offset_x = 11.5
-			let row_offset_y = 7.5;
-		
-			return { 
-				x: ( slot - slot % 2 + row_height + start_x ) * row_offset_y,
-				y: row_offset_x * ( slot % 2 === 0 ? -1 : 1 )
-			};
+            const space_x = 14;
+            const space_y = 23;
+
+            const offset_x = -22.5;
+            const offset_y = -11.5;
+
+            return { 
+                x: offset_x + Math.floor( slot / rows ) * space_x,
+                y: offset_y + ( slot % rows ) * space_y
+            };
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
