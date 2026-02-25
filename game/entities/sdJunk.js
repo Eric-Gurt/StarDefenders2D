@@ -885,14 +885,15 @@ class sdJunk extends sdEntity
                 this.sx += Math.cos( an ) * 3 * GSPEED;
                 this.sy += Math.sin( an ) * 3 * GSPEED;
 
-                if ( Math.random() < 0.1 )
+                if ( Math.random() < 0.1 * GSPEED )
                 {
                     this.DamageWithEffect( 3 * GSPEED, this );
+                    sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:1, pitch: 2 });
                     const nears = sdWorld.GetAnythingNear( this.x, this.y, 32 );
 
                     for ( const near of nears )
                     {
-                        if ( Math.random() < 0.3 )
+                        if ( Math.random() < 0.3 * GSPEED )
                         if ( near && near !== this )
                         if ( !near.is( sdBaseShieldingUnit ) )
 						if ( near._is_bg_entity === this._is_bg_entity )
@@ -902,7 +903,7 @@ class sdJunk extends sdEntity
                             if ( !near.is( sdCrystal ) )
                             if ( near.IsTargetable( this ) )
                             near.DamageWithEffect( 10, this );
-                        
+
                             if ( near.IsPlayerClass() )
                             {
                                 for ( const gun of near._inventory )
@@ -914,8 +915,6 @@ class sdJunk extends sdEntity
 
                             if ( typeof near._time_amplification !== 'undefined' )
                             near.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: near.is( sdGun ) ? 30 * 3 : 30 * 60 });
-
-                            sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.5, pitch: 2 });
                         }
                     }
                 }
@@ -1552,7 +1551,8 @@ class sdJunk extends sdEntity
 				}
 			}
 		}
-        else
+        //else
+        if ( !sdWorld.is_server || sdWorld.is_singleplayer )
         {
             if ( this.type === sdJunk.TYPE_ENERGY_ORB )
             {
