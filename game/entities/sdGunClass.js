@@ -11026,7 +11026,7 @@ class sdGunClass
                 gun._count = gun.fire_mode === 1 ? 1 : 5;
                 gun._spread = gun.fire_mode === 1 ? 0 : 0.15;
                 gun._reload_time = gun.fire_mode === 1 ? 6 : 30;
-                gun.overheat += 10 * gun._count;
+                gun.overheat += 7.5 * gun._count;
                 
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 1.3, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
@@ -11034,7 +11034,7 @@ class sdGunClass
                 if ( gun.overheat >= 100 )
                 {
                     gun._held_by.DamageWithEffect( gun.overheat * gun._count / 50 );
-                    gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 50 * gun._count });
+                    gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 30 * gun._count });
                 }
 				return true;
 			},
