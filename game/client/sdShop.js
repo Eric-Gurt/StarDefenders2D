@@ -918,6 +918,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_CORRUPTION, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_FLESH, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ANCIENT_WALL, natural: false, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_BUGGED_CHUNK, natural: false, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRoach', type: 0, _category:'Development tests' });
