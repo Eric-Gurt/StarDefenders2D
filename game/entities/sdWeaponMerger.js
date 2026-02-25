@@ -19,6 +19,7 @@ class sdWeaponMerger extends sdEntity
 		
 		sdWeaponMerger.max_matter = 20000; // Matter cost for merging guns
         
+        // TODO: Perhaps making "Crafting bench" entity for doing this?
         // [ Item 1, Item 2 ], Result
         sdWeaponMerger.craft_weapons = [
             [ [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER ], sdGun.CLASS_PHASE_RIFLE ],
@@ -29,7 +30,6 @@ class sdWeaponMerger extends sdEntity
         
         // Positions in array
         sdWeaponMerger.WEAPONS_NEEDED = 0;
-        sdWeaponMerger.CRAFT_RESULT = 1;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -266,20 +266,12 @@ class sdWeaponMerger extends sdEntity
     
     GetAnyCraft( weapon1, weapon2 )
     {
-        for ( const craft of sdWeaponMerger.craft_weapons )
+        const input = [ weapon1.class, weapon2.class ].sort();
+
+        for ( const [ needed, result ] of sdWeaponMerger.craft_weapons )
         {
-            let weapon1_index = -1;
-            let weapon2_index = -1;
-            let is_duplicate = false;
-
-            if ( craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 0 ] === craft[ sdWeaponMerger.WEAPONS_NEEDED][ 1 ] )
-            is_duplicate = true;
-
-            weapon1_index = craft[ sdWeaponMerger.WEAPONS_NEEDED ].indexOf( weapon1.class );
-            weapon2_index = craft[ sdWeaponMerger.WEAPONS_NEEDED ].indexOf( weapon2.class );
-        
-            if ( weapon1_index !== -1 && weapon2_index !== -1 && ( is_duplicate || weapon1_index !== weapon2_index ) )
-            return craft[ sdWeaponMerger.CRAFT_RESULT ];
+            if ( needed.slice().sort().every( ( v, i ) => v === input[ i ] ) )
+            return result;
         }
 
         return false; // No crafts with given items
