@@ -11033,8 +11033,8 @@ class sdGunClass
                 if ( sdWorld.is_server )
                 if ( gun.overheat >= 100 )
                 {
-                    gun._held_by.DamageWithEffect( gun.overheat / 50 );
-                    gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 50 });
+                    gun._held_by.DamageWithEffect( gun.overheat * gun._count / 50 );
+                    gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 50 * gun._count });
                 }
 				return true;
 			},
