@@ -1529,8 +1529,8 @@ class sdRenderer
 						ctx.fillRect( 
 							xx,
 							yy,
-							CHUNK_SIZE,
-							CHUNK_SIZE );
+							CHUNK_SIZE + 0.2, // Fixes gaps between hidden areas
+							CHUNK_SIZE + 0.2 );
 					}
 				}
 				
