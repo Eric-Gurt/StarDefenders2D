@@ -1476,6 +1476,7 @@ class sdRenderer
 				ctx.fillStyle = '#FF0000';
 		
 				let z_offset_old = ctx.z_offset;
+                if ( sdRenderer.draw_in_3d )
 				ctx.z_offset += 1;
 		
 				//ctx.draw_offset = 1;
