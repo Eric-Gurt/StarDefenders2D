@@ -10978,9 +10978,9 @@ class sdGunClass
 		{
 			image_body: sdWorld.CreateImageFromFile( 'phase_rifle' ),
 			image_glow: sdWorld.CreateImageFromFile( 'phase_rifle_glow' ),
-			sound: 'gun_anti_rifle_fireC',
-			sound_volume: 1.3,
-            sound_pitch:  1.4,
+			//sound: 'gun_anti_rifle_fireC',
+			//sound_volume: 1.3,
+            //sound_pitch:  1.4,
 			title: 'Phased Plasma Rifle SD-74',
 			slot: 8,
 			reload_time: 6,
@@ -10993,7 +10993,7 @@ class sdGunClass
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
-				return 20;
+				return gun.fire_mode === 1 ? 20 : 100;
 			},
 			projectile_properties_dynamic: ( gun )=>
 			{
@@ -11003,10 +11003,12 @@ class sdGunClass
 					_hittable_by_bullets: false,
 					time_left: 60,
 					color: '#6ac2ff',
+                    _no_explosion_smoke: true,
+                    explosion_radius: 24,
 					_custom_detonation_logic:( bullet )=>
 					{
 						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x: bullet.x, y: bullet.y, volume: 0.5, pitch: 1.4 });
-                        sdWorld.SendEffect({ 
+                        /*sdWorld.SendEffect({ 
 							x: bullet.x, 
 							y: bullet.y, 
 							radius: 24,
@@ -11015,13 +11017,18 @@ class sdGunClass
 							owner: bullet._owner,
 							color: bullet.color,
 							no_smoke: true
-						});
+						});*/
 					}
 				};
 			},
-            onShootAttempt: ( gun, shoot_from_scenario )=>
+            onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
-                gun.overheat += 10;
+                gun._count = gun.fire_mode === 1 ? 1 : 5;
+                gun._spread = gun.fire_mode === 1 ? 0 : 0.15;
+                gun._reload_time = gun.fire_mode === 1 ? 6 : 30;
+                gun.overheat += 10 * gun._count;
+                
+                sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 1.3, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
                 if ( sdWorld.is_server )
                 if ( gun.overheat >= 100 )
