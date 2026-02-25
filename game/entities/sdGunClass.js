@@ -11051,6 +11051,7 @@ class sdGunClass
 
                 let mult = gun.overheat / 200;
                 mult = Math.round( mult * 100 ) / 100; // Fixes FPS drops in singleplayer mode
+                mult = sdWorld.limit( 0, 1, mult );
 
 				ctx.sd_color_mult_r = 1 + mult;
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
