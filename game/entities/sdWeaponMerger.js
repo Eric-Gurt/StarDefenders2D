@@ -264,14 +264,18 @@ class sdWeaponMerger extends sdEntity
     
     GetAnyCraft( weapon1, weapon2 )
     {
+        let weapon1_index = -1;
+        let weapon2_index = -1;
+
         for ( const craft of sdWeaponMerger.craft_weapons )
         {
-            if (
-                ( craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 0 ] === weapon1.class || craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 1 ] === weapon1.class ) &&
-                ( craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 0 ] === weapon2.class || craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 1 ] === weapon2.class )
-            )
+            weapon1_index = craft[ sdWeaponMerger.WEAPONS_NEEDED ].indexOf( weapon1.class );
+            weapon2_index = craft[ sdWeaponMerger.WEAPONS_NEEDED ].indexOf( weapon2.class );
+        
+            if ( weapon1_index !== -1 && weapon2_index !== -1 && weapon1_index !== weapon2_index )
             return craft[ sdWeaponMerger.CRAFT_RESULT ];
         }
+
         return false; // No crafts with given items
     }
 	
