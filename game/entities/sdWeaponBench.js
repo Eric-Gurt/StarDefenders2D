@@ -123,7 +123,7 @@ class sdWeaponBench extends sdEntity
 			*/
             const rows = 2;
 
-            const space_x = 14;
+            const space_x = 15;
             const space_y = 23;
 
             const offset_x = -22.5;
