@@ -1255,7 +1255,7 @@ class sdRenderer
 					xx, 
 					yy, 32,32 );
 			}*/
-            const offset0 = sdRenderer.draw_in_3d ? -32 : -16
+            const offset0 = sdRenderer.draw_in_3d ? -32 : -16;
 			ctx.z_offset = offset0 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
@@ -1479,8 +1479,8 @@ class sdRenderer
 				ctx.z_offset += 1;
 		
 				//ctx.draw_offset = 1;
+                
 				{
-																					
 					let CHUNK_SIZE = sdWorld.CHUNK_SIZE;
 					
 					//for ( let [ hash, info ] of sdRenderer.visible_chunks )
@@ -1519,7 +1519,7 @@ class sdRenderer
 						if ( opacity <= 0 )
 						continue;
 						
-						ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+						ctx.volumetric_mode = sdRenderer.draw_in_3d ? FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 
 						ctx.globalAlpha = opacity;
 						
