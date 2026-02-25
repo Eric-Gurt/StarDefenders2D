@@ -22,7 +22,9 @@ class sdWeaponMerger extends sdEntity
         // [ Item 1, Item 2 ], Result
         sdWeaponMerger.craft_weapons = [
             [ [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER ], sdGun.CLASS_PHASE_RIFLE ],
-            //[ [ sdGun.CLASS_RIFLE, sdGun.CLASS_RIFLE ], sdGun.CLASS_SHOTGUN ] // Test
+			// Tests
+            //[ [ sdGun.CLASS_RIFLE, sdGun.CLASS_RIFLE ], sdGun.CLASS_SHOTGUN ],
+			//[ [ sdGun.CLASS_SNIPER, sdGun.CLASS_PISTOL ], sdGun.CLASS_SPARK ],
         ]
         
         // Positions in array
@@ -269,10 +271,14 @@ class sdWeaponMerger extends sdEntity
 
         for ( const craft of sdWeaponMerger.craft_weapons )
         {
+            let is_duplicate = false;
+            if ( craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 0 ] === craft[ sdWeaponMerger.WEAPONS_NEEDED][ 1 ] )
+            is_duplicate = true;
+
             weapon1_index = craft[ sdWeaponMerger.WEAPONS_NEEDED ].indexOf( weapon1.class );
             weapon2_index = craft[ sdWeaponMerger.WEAPONS_NEEDED ].indexOf( weapon2.class );
         
-            if ( weapon1_index !== -1 && weapon2_index !== -1 && weapon1_index !== weapon2_index )
+            if ( weapon1_index !== -1 && weapon2_index !== -1 && ( is_duplicate || weapon1_index !== weapon2_index ) )
             return craft[ sdWeaponMerger.CRAFT_RESULT ];
         }
 
