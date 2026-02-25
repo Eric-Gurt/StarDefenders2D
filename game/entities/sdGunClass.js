@@ -10976,6 +10976,7 @@ class sdGunClass
 
         sdGun.classes[ sdGun.CLASS_PHASE_RIFLE = 161 ] = 
 		{
+            //image: sdWorld.CreateImageFromFile( 'phase_rifle' ), // Drawn via ExtraDraw now
 			image_body: sdWorld.CreateImageFromFile( 'phase_rifle' ),
 			image_glow: sdWorld.CreateImageFromFile( 'phase_rifle_glow' ),
 			//sound: 'gun_anti_rifle_fireC',
@@ -11049,6 +11050,7 @@ class sdGunClass
                 ctx.apply_shading = false;
 
                 let mult = gun.overheat / 200;
+                mult = Math.round( mult * 100 ) / 100; // Fixes FPS drops in singleplayer mode
 
 				ctx.sd_color_mult_r = 1 + mult;
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
@@ -11059,6 +11061,7 @@ class sdGunClass
 				//ctx.sd_color_mult_r = 1 + mult;
 				//ctx.sd_color_mult_g = 1 + mult;
 				//ctx.sd_color_mult_b = 1 + mult;
+
                 ctx.filter = `saturate( ${ 1 / ( mult + 1 ) } ) brightness( ${ mult + 1 } )`
 
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_glow, -16, -16, 32, 32 );
