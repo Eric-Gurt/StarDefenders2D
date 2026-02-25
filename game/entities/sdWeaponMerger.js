@@ -33,8 +33,8 @@ class sdWeaponMerger extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return -27; }
-	get hitbox_x2()  { return 27; }
+	get hitbox_x1()  { return -24; }
+	get hitbox_x2()  { return 24; }
 	get hitbox_y1()  { return 5; }
 	get hitbox_y2()  { return 16; }
 	
@@ -266,12 +266,12 @@ class sdWeaponMerger extends sdEntity
     
     GetAnyCraft( weapon1, weapon2 )
     {
-        let weapon1_index = -1;
-        let weapon2_index = -1;
-
         for ( const craft of sdWeaponMerger.craft_weapons )
         {
+            let weapon1_index = -1;
+            let weapon2_index = -1;
             let is_duplicate = false;
+
             if ( craft[ sdWeaponMerger.WEAPONS_NEEDED ][ 0 ] === craft[ sdWeaponMerger.WEAPONS_NEEDED][ 1 ] )
             is_duplicate = true;
 
@@ -620,6 +620,10 @@ class sdWeaponMerger extends sdEntity
 		arr.push( this[ 'item' + i ] );
 		
 		return arr;
+	}
+    getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+        return [ this, ...this.GetItems() ];
 	}
 	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
 	{
