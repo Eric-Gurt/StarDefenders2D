@@ -6623,9 +6623,9 @@ THING is cosmic mic drop!`;
 						}
 					
 						ctx.object_offset = sdRenderer.draw_in_3d ? fake_ent.ObjectOffset3D( -1 ) : null;
-                        const offset0 = sdRenderer.draw_in_3d ? -32 : -16
+                        const offset0 = sdRenderer.draw_in_3d ? -32 : 0
                         ctx.z_offset = offset0 * sdWorld.camera.scale;
-                        ctx.z_depth = 16 * sdWorld.camera.scale;
+                        ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 						ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_world;
 						ctx.save();
 						{
@@ -6634,9 +6634,9 @@ THING is cosmic mic drop!`;
 						ctx.restore();
 						
 						ctx.object_offset = sdRenderer.draw_in_3d ? fake_ent.ObjectOffset3D( 0 ) : null;
-                        const offset1 = -16
+                        const offset1 = sdRenderer.draw_in_3d ? -16 : 0
                         ctx.z_offset = offset1 * sdWorld.camera.scale;
-                        ctx.z_depth = 16 * sdWorld.camera.scale;
+                        ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 						ctx.save();
 						{
 							fake_ent.Draw( ctx, false );
