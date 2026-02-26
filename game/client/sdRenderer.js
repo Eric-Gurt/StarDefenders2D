@@ -1257,7 +1257,7 @@ class sdRenderer
 			}*/
             const offset0 = sdRenderer.draw_in_3d ? -32 : 0;
 			ctx.z_offset = offset0 * sdWorld.camera.scale;
-			ctx.z_depth = 16 * sdWorld.camera.scale;
+			ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 			
 			const void_draw = sdEntity.prototype.DrawBG;
 			
@@ -1413,7 +1413,7 @@ class sdRenderer
 
             const offset1 = sdRenderer.draw_in_3d ? -16 : 0;
 			ctx.z_offset = offset1 * sdWorld.camera.scale;
-			ctx.z_depth = 16 * sdWorld.camera.scale;
+			ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 			
             if ( !sdRenderer.draw_in_3d )
             visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 0 ) ? e2.ObjectOffset3D( 0 )[ 1 ] : 0 ) - ( e1.ObjectOffset3D( 0 ) ? e1.ObjectOffset3D( 0 )[ 1 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
