@@ -1255,7 +1255,7 @@ class sdRenderer
 					xx, 
 					yy, 32,32 );
 			}*/
-            const offset0 = sdRenderer.draw_in_3d ? -32 : -16;
+            const offset0 = sdRenderer.draw_in_3d ? -32 : 0;
 			ctx.z_offset = offset0 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
@@ -1411,7 +1411,7 @@ class sdRenderer
 				}
 			}
 
-            const offset1 = -16
+            const offset1 = sdRenderer.draw_in_3d ? -16 : 0;
 			ctx.z_offset = offset1 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
