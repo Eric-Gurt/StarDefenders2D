@@ -74,12 +74,14 @@ class sdRotator extends sdEntity
             this.angle *= 100;
         }
 
-        this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+        // this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
+    /*
     CollisionFiltering( from_entity )
 	{
 		return ( this.owner !== from_entity );
 	}
+    */
     GetIgnoredEntityClasses()
     {
         return sdRotator.ignored_entity_classes;
@@ -234,11 +236,11 @@ class sdRotator extends sdEntity
         
         if ( from_entity.IsBGEntity() ) return;
         
-        if ( !from_entity.IsTargetable() ) return;
+        if ( !from_entity.IsTargetable( this ) ) return;
 
         from_entity.DamageWithEffect( this._damage, this.owner );
 
-        from_entity.Impulse( Math.cos( this.angle / 100 ) * Math.abs( this._damage ) * 10, Math.sin( this.angle / 100 ) * Math.abs( this._damage ) * 10 );
+        from_entity.Impulse( Math.cos( this.angle / 100 ) * Math.abs( this._damage ) * 5, Math.sin( this.angle / 100 ) * Math.abs( this._damage ) * 5 );
         sdWorld.SendEffect({ x: from_entity.x, y: from_entity.y, type: from_entity.GetBleedEffect(), filter: from_entity.GetBleedEffectFilter(), hue: from_entity.GetBleedEffectHue() })
         
     }
