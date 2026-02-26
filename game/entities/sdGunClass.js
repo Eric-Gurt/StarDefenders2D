@@ -11010,7 +11010,8 @@ class sdGunClass
 					_custom_detonation_logic:( bullet )=>
 					{
 						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x: bullet.x, y: bullet.y, volume: 0.5, pitch: 1.4 });
-                        /*sdWorld.SendEffect({ 
+                        /*
+                        sdWorld.SendEffect({ 
 							x: bullet.x, 
 							y: bullet.y, 
 							radius: 24,
@@ -11019,7 +11020,8 @@ class sdGunClass
 							owner: bullet._owner,
 							color: bullet.color,
 							no_smoke: true
-						});*/
+						});
+                        */
 					}
 				};
 			},
@@ -11030,7 +11032,7 @@ class sdGunClass
                 gun._reload_time = gun.fire_mode === 1 ? 6 : 30;
                 gun.overheat += 7.5 * gun._count;
                 
-                sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 1.3, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
+                sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
                 if ( sdWorld.is_server )
                 if ( gun.overheat >= 100 )
