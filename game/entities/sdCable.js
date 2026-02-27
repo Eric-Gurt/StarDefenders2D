@@ -17,7 +17,6 @@ import sdPlayerDrone from './sdPlayerDrone.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBlock from './sdBlock.js';
 
-
 import sdRenderer from '../client/sdRenderer.js';
 
 
@@ -252,9 +251,133 @@ class sdCable extends sdEntity
 		if ( !this._is_being_removed )
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
 	}
-	
-	
-	
+    static CableProjectileLogic( bullet, target_entity ) // Can be easily used by multiple entities using this way
+    {
+        // Someone fired cable tool and then dropped it onto weaponbench?
+        if ( !bullet._owner )
+        return;
+			
+        const is_player = bullet._owner.IsPlayerClass();
+    
+        if ( bullet._owner._current_built_entity )
+        if ( !bullet._owner._current_built_entity.is( sdCable ) )
+        bullet._owner._current_built_entity = null;
+			
+        if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
+        {
+            if ( target_entity._shielded && !target_entity._shielded._is_being_removed && target_entity._shielded.protect_cables )
+            {
+                if ( is_player )
+                bullet._owner.Say( 'Protected by the base shielding unit' );
+            }
+            else
+            if ( sdCable.one_cable_entities.indexOf( target_entity.GetClass() ) !== -1 && !( target_entity.is( sdTurret ) && target_entity.kind === sdTurret.KIND_AUTO_CABLE ) && sdCable.GetConnectedEntities( target_entity, sdCable.TYPE_ANY ).length > 0 )
+            {
+                //bullet._owner.Say( ( target_entity.title || target_entity.GetClass() ) + ' has only one socket' );
+                if ( is_player )
+                bullet._owner.Say( 'There is only one socket' );
+            }
+            else
+            {
+                if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
+                {
+                    if ( sdCable.one_cable_entities.indexOf( bullet._owner._current_built_entity.p.GetClass() ) !== -1 && sdCable.one_cable_entities.indexOf( target_entity.GetClass() ) !== -1 )
+                    {
+                        if ( is_player )
+                        bullet._owner.Say( 'It seems pointless to connect devices when both have just one socket' );
+                    }
+                    else
+                    if ( sdCable.GetConnectedEntities( target_entity ).indexOf( bullet._owner._current_built_entity.p ) !== -1 )
+                    {
+                        if ( is_player )
+                        bullet._owner.Say( ( bullet._owner._current_built_entity.p.title || bullet._owner._current_built_entity.p.GetClass() ) + ' and ' + 
+                                ( target_entity.title || target_entity.GetClass() ) + ' are already connected' );
+                    }
+                    else
+                    if ( target_entity === bullet._owner._current_built_entity.p )
+                    {
+                        //bullet._owner.Say( 'Connecting cable end to same ' + ( target_entity.title || target_entity.GetClass() ) + ' does not make sense' );
+                        if ( is_player )
+                        bullet._owner.Say( 'Connecting cable to same thing does not make sense' );
+                    }
+                    else
+                    {
+                        //bullet._owner._current_built_entity.SetChild( target_entity );
+                        bullet._owner._current_built_entity.c = target_entity;
+                        if ( target_entity.is( sdNode ) )
+                        {
+                            bullet._owner._current_built_entity.d[ 2 ] = 0;
+                            bullet._owner._current_built_entity.d[ 3 ] = 0;
+							}
+                        else
+                        {
+                            bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
+                            bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
+                        }
+
+                        //bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+							
+                        if ( bullet._owner._current_built_entity.t === sdCable.TYPE_WIRELESS )
+                        {
+                            if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
+                            {
+                                target_entity.variation = bullet._owner._current_built_entity.v;
+                                target_entity._update_version++;
+                            }
+                            else
+                            {
+                                bullet._owner._current_built_entity.t = sdCable.TYPE_MATTER;
+                            }
+                        }
+                        
+                        bullet._owner._current_built_entity._update_version++;
+
+                        bullet._owner._current_built_entity = null;
+                    }
+                }
+                else
+                {
+                    let ent = new sdCable({ 
+                        x: bullet.x, 
+                        y: bullet.y, 
+                        parent: target_entity,
+                        child: bullet._owner,
+                        offsets: target_entity.is( sdNode ) ? [ 0,0, 0,0 ] : [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
+                        type: ( target_entity._liquid?.max || target_entity.liquid?.max ) > 0 ? sdCable.TYPE_LIQUID : sdCable.TYPE_MATTER
+                    });
+						
+                    if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
+                    {
+                        ent.t = sdCable.TYPE_WIRELESS; // Type
+                        ent.v = target_entity.variation;
+                    }
+					
+                    bullet._owner._current_built_entity = ent;
+                    if ( bullet._owner.is( sdTurret ) && bullet._owner.kind === sdTurret.KIND_AUTO_CABLE )
+                    bullet._owner._built_cables.push( ent );
+                    //bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+
+                    sdEntity.entities.push( ent );
+                }
+            }
+				
+            // Allow connection to sdJunk barrels/containers and insta-repair them as they will likely start losing health
+            if ( target_entity.is( sdJunk ) )
+            if ( target_entity.hea > target_entity.hmax - 5 )
+				target_entity.hea = target_entity.hmax;
+			else
+			if ( bullet._owner._current_built_entity && bullet._owner._current_built_entity.p && bullet._owner._current_built_entity.p.is( sdWorld.entity_classes.sdSteeringWheel ) && bullet._owner._current_built_entity.p.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+			{
+				bullet._owner._current_built_entity.p.ToggleSingleScanItem( target_entity, bullet._owner );
+			}
+			else
+			{
+                if ( is_player )
+				bullet._owner.Say( 'Cable can not be attached there' );
+				//bullet._owner.Say( 'Cable can not be attached to ' + ( target_entity.title || target_entity.GetClass() ) );
+			}
+        }
+    }
 	static AddCableForEntity( e, cable )
 	{
 		let set = sdCable.cables_per_entity.get( e );
@@ -1078,6 +1201,5 @@ class sdCable extends sdEntity
 	}
 }
 //sdCable.init_class();
-
 
 export default sdCable;

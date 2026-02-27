@@ -49,7 +49,7 @@ class sdRotator extends sdEntity
 
         this.flip_rotation = params.flip_rotation ?? 1;
         this.orbit_speed = ( params.orbit_speed ?? this.type === sdRotator.TYPE_CUBE_DISC ? 0.025 : this.type === sdRotator.TYPE_CUBE_SHELL ? 0 : 0.01 ) * this.flip_rotation * 100;
-        this.orbit_distance = params.orbit_distance ?? this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 16 : 32;
+        this.orbit_distance = params.orbit_distance ?? this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 13 : 32;
 		this.orbit_angle = params.orbit_angle * 100 ?? 0; // Can be also used as start offset
 
         this.angle = 0; // For visuals
@@ -74,12 +74,14 @@ class sdRotator extends sdEntity
             this.angle *= 100;
         }
 
-        this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+        // this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
+    /*
     CollisionFiltering( from_entity )
 	{
 		return ( this.owner !== from_entity );
 	}
+    */
     GetIgnoredEntityClasses()
     {
         return sdRotator.ignored_entity_classes;
@@ -234,11 +236,11 @@ class sdRotator extends sdEntity
         
         if ( from_entity.IsBGEntity() ) return;
         
-        if ( !from_entity.IsTargetable() ) return;
+        if ( !from_entity.IsTargetable( this ) ) return;
 
         from_entity.DamageWithEffect( this._damage, this.owner );
 
-        from_entity.Impulse( Math.cos( this.angle / 100 ) * Math.abs( this._damage ) * 10, Math.sin( this.angle / 100 ) * Math.abs( this._damage ) * 10 );
+        from_entity.Impulse( Math.cos( this.angle / 100 ) * Math.abs( this._damage ) * 5, Math.sin( this.angle / 100 ) * Math.abs( this._damage ) * 5 );
         sdWorld.SendEffect({ x: from_entity.x, y: from_entity.y, type: from_entity.GetBleedEffect(), filter: from_entity.GetBleedEffectFilter(), hue: from_entity.GetBleedEffectHue() })
         
     }

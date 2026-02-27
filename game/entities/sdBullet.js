@@ -480,6 +480,7 @@ class sdBullet extends sdEntity
 		this._vehicle_mult = 0; // bonus Damage multiplier (relative to initial damage) against vehicles
 		this._critical_hit_mult = 0; // bonus Damage multiplier (relative to initial damage) at close ranges - useful for Shotguns and SMGs for example.
         this._critical_hit_range = 0;
+        this._weak_critical_hit_range = 0;
 
 		this._bouncy = false;
 
@@ -1759,4 +1760,3 @@ class sdBullet extends sdEntity
 //sdBullet.init_class();
 
 export default sdBullet;
-

@@ -504,6 +504,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 3 });
 			sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 
+            sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_AUTO_CABLE, _category:'Base equipment', _min_build_tool_level: 20 });
+
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:2, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:0, kind:3, _category:'Base equipment', _min_build_tool_level: 2 });
@@ -514,6 +516,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:5, _category:'Base equipment' });
             sdShop.options.push({ _class: 'sdButton', type:7, _category:'Base equipment' });
+            sdShop.options.push({ _class: 'sdButton', type:9, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:8, _category:'Base equipment', _min_build_tool_level: 2 });
@@ -915,6 +918,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_CORRUPTION, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_FLESH, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ANCIENT_WALL, natural: false, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_BUGGED_CHUNK, natural: false, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRoach', type: 0, _category:'Development tests' });

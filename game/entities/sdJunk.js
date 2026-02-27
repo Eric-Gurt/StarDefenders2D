@@ -885,14 +885,15 @@ class sdJunk extends sdEntity
                 this.sx += Math.cos( an ) * 3 * GSPEED;
                 this.sy += Math.sin( an ) * 3 * GSPEED;
 
-                if ( Math.random() < 0.1 )
+                if ( Math.random() < 0.1 * GSPEED )
                 {
                     this.DamageWithEffect( 3 * GSPEED, this );
+                    sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:1, pitch: 2 });
                     const nears = sdWorld.GetAnythingNear( this.x, this.y, 32 );
 
                     for ( const near of nears )
                     {
-                        if ( Math.random() < 0.3 )
+                        if ( Math.random() < 0.3 * GSPEED )
                         if ( near && near !== this )
                         if ( !near.is( sdBaseShieldingUnit ) )
 						if ( near._is_bg_entity === this._is_bg_entity )
@@ -902,7 +903,7 @@ class sdJunk extends sdEntity
                             if ( !near.is( sdCrystal ) )
                             if ( near.IsTargetable( this ) )
                             near.DamageWithEffect( 10, this );
-                        
+
                             if ( near.IsPlayerClass() )
                             {
                                 for ( const gun of near._inventory )
@@ -914,8 +915,6 @@ class sdJunk extends sdEntity
 
                             if ( typeof near._time_amplification !== 'undefined' )
                             near.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: near.is( sdGun ) ? 30 * 3 : 30 * 60 });
-
-                            sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.5, pitch: 2 });
                         }
                     }
                 }
@@ -1121,21 +1120,7 @@ class sdJunk extends sdEntity
 					this._max_damage_timer = 30;
 					this._max_damage = 4000;
 				}
-				
-				if ( this._glow_fade === 0 )
-				{
-					if ( this.glow_animation < 60 )
-					this.glow_animation =  Math.min( this.glow_animation + GSPEED, 60 );
-					else
-					this._glow_fade = 1;
-				}
-				else
-				{
-					if ( this.glow_animation > 0 )
-					this.glow_animation = Math.max( this.glow_animation - GSPEED, 0 );
-					else
-					this._glow_fade = 0;
-				}
+
 				let old = this.detonation_in;
 
 				this.detonation_in -= GSPEED;
@@ -1566,6 +1551,38 @@ class sdJunk extends sdEntity
 				}
 			}
 		}
+        //else
+        if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+        {
+            if ( this.type === sdJunk.TYPE_ENERGY_ORB )
+            {
+                this.glow_animation += 12;
+                this.glow_animation %= 360;
+            }
+            else
+            if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
+            {
+                this.glow_animation -= GSPEED * ( 10 - 9 * this.hea / this.hmax );
+            }
+            else
+            if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
+            {
+                if ( this._glow_fade === 0 )
+				{
+					if ( this.glow_animation < 60 )
+					this.glow_animation =  Math.min( this.glow_animation + GSPEED, 60 );
+					else
+					this._glow_fade = 1;
+				}
+				else
+				{
+					if ( this.glow_animation > 0 )
+					this.glow_animation = Math.max( this.glow_animation - GSPEED, 0 );
+					else
+					this._glow_fade = 0;
+				}
+            }
+        }
 		
 		if ( !this.held_by )
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
@@ -1834,7 +1851,7 @@ class sdJunk extends sdEntity
                 // const speed = Math.min( 3, Math.sqrt( this.sx * this.sx + this.sy * this.sy ) );
                 // ctx.rotate( Math.atan2( this.sy, this.sx ) );
                 // ctx.scale( speed, 1 / speed );
-                ctx.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)'
+                ctx.filter = `hue-rotate( ${ this.glow_animation }deg )`
 				ctx.drawImageFilterCache( sdJunk.img_energy, - 16, - 16, 32,32 );
 			}
 			if ( this.type === sdJunk.TYPE_STEALER_ARTIFACT ) // Alien / strange artifact from stealer

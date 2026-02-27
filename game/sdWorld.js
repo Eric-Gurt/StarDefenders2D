@@ -2638,13 +2638,9 @@ class sdWorld
 	
 		return true; // Try false here if method fails for some reason
 	}*/
-	static limit( min, v, max )
+	static limit( min, value, max )
 	{
-		if ( v <= min )
-		return min;
-		if ( v >= max )
-		return max;
-		return v;
+        return Math.max( min, Math.min( max, value ) );
 	}
 	static FastFloor( v ) // in case you need negative values, has 500000 as low limit.
 	{

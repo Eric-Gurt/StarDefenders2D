@@ -1471,6 +1471,8 @@ class sdGun extends sdEntity
 			if ( this.overheat > 0 )
 			{
 				let decay_mult = this._overheat_cooldown ? 6 : this.overheat > 200 ? 3 : 0.75;
+                decay_mult *= this._held_by?._in_water ? 6 : 1;
+
 				this.overheat = Math.max( 0, this.overheat - GSPEED * decay_mult );
 			}
 			
@@ -2085,9 +2087,11 @@ class sdGun extends sdEntity
 					}
 				}
 				else
+                if ( image )
 				{
 					ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 				}
+
 				if ( has_class.ExtraDraw )
 				has_class.ExtraDraw( this, ctx, attached );
 			}

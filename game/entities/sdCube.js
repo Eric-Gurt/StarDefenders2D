@@ -26,7 +26,7 @@ import sdStalker from './sdStalker.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdRotator from './sdRotator.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
-
+import sdRift from './sdRift.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -892,6 +892,10 @@ class sdCube extends sdEntity
 					
 					}, 500 );
 				}
+                if ( this.kind === sdCube.KIND_RED )
+                {
+                    sdEntity.Create( sdRift, { type:sdRift.TYPE_CUBE_PORTAL, x:this.x, y:this.y } );
+                }
 			}
 			this.remove();
 		}

@@ -18,11 +18,23 @@ class sdWeaponMerger extends sdEntity
 		sdWeaponMerger.slots_tot = 3; // 2 for guns and 1 for merger core
 		
 		sdWeaponMerger.max_matter = 20000; // Matter cost for merging guns
+        
+        // TODO: Perhaps making "Crafting bench" entity for doing this?
+        // [ Item 1, Item 2 ], Result
+        sdWeaponMerger.craft_weapons = [
+            [ [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER ], sdGun.CLASS_PHASE_RIFLE ],
+			// Tests
+            //[ [ sdGun.CLASS_RIFLE, sdGun.CLASS_RIFLE ], sdGun.CLASS_SHOTGUN ],
+			//[ [ sdGun.CLASS_SNIPER, sdGun.CLASS_PISTOL ], sdGun.CLASS_SPARK ],
+        ]
+        
+        // Positions in array
+        sdWeaponMerger.WEAPONS_NEEDED = 0;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return -27; }
-	get hitbox_x2()  { return 27; }
+	get hitbox_x1()  { return -24; }
+	get hitbox_x2()  { return 24; }
 	get hitbox_y1()  { return 5; }
 	get hitbox_y2()  { return 16; }
 	
@@ -85,6 +97,34 @@ class sdWeaponMerger extends sdEntity
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
+    CraftWeapon()
+    {
+        if ( this.matter !== this._matter_max )
+		return; // Just in case
+	
+		if ( !this.item0 || !this.item1 || !this.item2 ) // If any of the items is somehow missing
+		return; // Just in case
+        
+        const type = this.GetAnyCraft( this.item0, this.item1 );
+
+        if ( !type )
+        return;
+    
+
+        this.item0.remove();
+        this.item1.remove();
+        this.item2.remove();
+        this.item0 = this.item1 = this.item2 = null;
+        this.matter = 0;
+
+        const gun = sdEntity.Create( sdGun, { class: type, x: this.x, y: this.y } );
+        gun._held_by = this;
+        this.item2 = gun; // move to middle
+        
+        sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
+        sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
+        sdWorld.SendEffect({ x:this.x + 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
+    }
 	MergeWeapons()
 	{
 		if ( this.matter !== this._matter_max )
@@ -223,6 +263,19 @@ class sdWeaponMerger extends sdEntity
 		this._update_version++;
 		
 	}
+    
+    GetAnyCraft( weapon1, weapon2 )
+    {
+        const input = [ weapon1.class, weapon2.class ].sort();
+
+        for ( const [ needed, result ] of sdWeaponMerger.craft_weapons )
+        {
+            if ( needed.slice().sort().every( ( v, i ) => v === input[ i ] ) )
+            return result;
+        }
+
+        return false; // No crafts with given items
+    }
 	
 	IgnoresSlot( weapon )
 	{
@@ -239,13 +292,13 @@ class sdWeaponMerger extends sdEntity
 		return false;
 		
 	}
-	
-	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
-	{
-		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE )
+    
+    IsWeaponMergeable( weapon )
+    {
+        if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE ) // Special effects on weapons
 		return true;
-	
-		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
+
+        if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
 		return false;
 		
 		if ( weapon.class === sdGun.CLASS_SETR_REPULSOR || weapon.class === sdGun.CLASS_CUSTOM_RIFLE ) // Disabled guns due to balance reasons
@@ -259,8 +312,17 @@ class sdWeaponMerger extends sdEntity
 		
 		if ( this.item1 && ( weapon.GetSlot() !== this.item1.GetSlot() && !this.IgnoresSlot( this.item1 ) ) ) // Only allow same slot merging, or cores
 		return false;
+        
+        return true;
+    }
+	
+	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
+	{
+        for ( const craft of sdWeaponMerger.craft_weapons )
+        if ( craft[ sdWeaponMerger.WEAPONS_NEEDED ].includes( weapon.class ) )
+        return true;
 		
-		return true;
+		return this.IsWeaponMergeable( weapon );
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -551,6 +613,10 @@ class sdWeaponMerger extends sdEntity
 		
 		return arr;
 	}
+    getRequiredEntities( observer_character ) // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+        return [ this, ...this.GetItems() ];
+	}
 	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
 	{
 		this.ExtractItem( ent._net_id, null, sdWorld.is_server ); // Only throw for server's case. Clients will have guns locally disappearing when players move away from sdWeaponMerger
@@ -667,19 +733,30 @@ class sdWeaponMerger extends sdEntity
 				
 				if ( this.item0 && this.item1 && this.item2 )
 				{
-					if ( command_name === 'MERGE' )
-					{
-						if ( this.matter === this._matter_max ) // 10k cost per merge, as well as a merger core
-						{
-							if ( this.item0 && this.item1 && this.item2 ) // Make sure noone took the items out of the merger
-							this.MergeWeapons();
-							else
-							executer_socket.SDServiceMessage( 'All 3 slots must have a weapon for a merge' );
-						}
-						else
-						executer_socket.SDServiceMessage( 'Not enough matter' );
-						this._update_version++;
-					}
+                    if ( this.matter === this._matter_max ) // 10k cost per merge, as well as a merger core
+                    {
+                        if ( command_name === 'MERGE' )
+                        {
+                            if ( this.item0 && this.item1 && this.item2 ) // Make sure noone took the items out of the merger
+                            this.MergeWeapons();
+                            else
+                            executer_socket.SDServiceMessage( 'All 3 slots must have a weapon for a merge' );
+                        }
+                        else
+                        if ( command_name === 'CRAFT' )
+                        {
+                            if ( this.item0 && this.item1 && this.item2 ) // Make sure noone took the items out of the merger
+                            {
+                                this.CraftWeapon();
+                            }
+                        }
+                        else
+                        executer_socket.SDServiceMessage( 'All 3 slots must have a weapon for a merge' );
+                    }
+                    else
+                    executer_socket.SDServiceMessage( 'Not enough matter' );
+
+                    this._update_version++;
 				}
 				/*if ( !this.item0 && !this.item1 && !this.item2 )
 				{
@@ -719,7 +796,15 @@ class sdWeaponMerger extends sdEntity
 			if ( this.item0 && this.item1 && this.item2 )
 			{
 				if ( this.item2.class === sdGun.CLASS_MERGER_CORE ) // Bug fix
-				this.AddContextOption( 'Transfer power of ' + sdEntity.GuessEntityName( this.item1._net_id ) + ' to ' + sdEntity.GuessEntityName( this.item0._net_id ), 'MERGE', [ ] );
+                {
+                    const craft = this.GetAnyCraft( this.item0, this.item1 );
+                    if ( craft )
+
+                    this.AddContextOption( `Craft ${ sdGun.classes[ craft ].title }`, 'CRAFT', [ ] );
+                    console.log( this.IsWeaponMergeable( this.item0 ))
+                    if ( this.IsWeaponMergeable( this.item0 ) && this.IsWeaponMergeable( this.item1 ) )
+                    this.AddContextOption( 'Transfer power of ' + sdEntity.GuessEntityName( this.item1._net_id ) + ' to ' + sdEntity.GuessEntityName( this.item0._net_id ), 'MERGE', [ ] );
+                }
 			}
 			
 			/*

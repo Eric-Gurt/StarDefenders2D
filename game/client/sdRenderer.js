@@ -799,7 +799,7 @@ class sdRenderer
 		if ( Math.random() > 0.1 )
 		return;*/
 												
-		let visible_entities = sdEntity.entities;
+		let visible_entities = sdEntity.entities.slice();
 		
 		let min_x = sdWorld.camera.x - 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
 		let max_x = sdWorld.camera.x + 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
@@ -1255,9 +1255,9 @@ class sdRenderer
 					xx, 
 					yy, 32,32 );
 			}*/
-            const offset0 = sdRenderer.draw_in_3d ? -32 : -16
+            const offset0 = sdRenderer.draw_in_3d ? -32 : 0;
 			ctx.z_offset = offset0 * sdWorld.camera.scale;
-			ctx.z_depth = 16 * sdWorld.camera.scale;
+			ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 			
 			const void_draw = sdEntity.prototype.DrawBG;
 			
@@ -1357,10 +1357,12 @@ class sdRenderer
 			
 			const box_caps = sdRenderer.ctx.box_caps;
 		
+            if ( !sdRenderer.draw_in_3d )
+            visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( -1 ) ? e2.ObjectOffset3D( -1 )[ 2 ] : 0 ) - ( e1.ObjectOffset3D( -1 ) ? e1.ObjectOffset3D( -1 )[ 2 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
+
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
-				
 				if ( e._flag2 === frame_flag_reference )
 				if ( e.DrawBG !== void_draw )
 				//if ( e.x + e._hitbox_x2 > min_x )
@@ -1376,7 +1378,9 @@ class sdRenderer
 						double_draw_catcher.set( e, 'first' );
 					}*/
 						
+
 					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_BG, STATUS_EFFECT_BEFORE, ctx, false );
+
 					
 					ctx.volumetric_mode = sdRenderer.draw_in_3d ? e.DrawIn3D( -1 ) : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 					ctx.object_offset = sdRenderer.draw_in_3d ? e.ObjectOffset3D( -1 ) : null;
@@ -1407,10 +1411,12 @@ class sdRenderer
 				}
 			}
 
-            const offset1 = -16
+            const offset1 = sdRenderer.draw_in_3d ? -16 : 0;
 			ctx.z_offset = offset1 * sdWorld.camera.scale;
-			ctx.z_depth = 16 * sdWorld.camera.scale;
+			ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 			
+            if ( !sdRenderer.draw_in_3d )
+            visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 0 ) ? e2.ObjectOffset3D( 0 )[ 1 ] : 0 ) - ( e1.ObjectOffset3D( 0 ) ? e1.ObjectOffset3D( 0 )[ 1 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
@@ -1470,11 +1476,12 @@ class sdRenderer
 				ctx.fillStyle = '#FF0000';
 		
 				let z_offset_old = ctx.z_offset;
+                if ( sdRenderer.draw_in_3d )
 				ctx.z_offset += 1;
 		
 				//ctx.draw_offset = 1;
+                
 				{
-																					
 					let CHUNK_SIZE = sdWorld.CHUNK_SIZE;
 					
 					//for ( let [ hash, info ] of sdRenderer.visible_chunks )
@@ -1513,7 +1520,7 @@ class sdRenderer
 						if ( opacity <= 0 )
 						continue;
 						
-						ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+						ctx.volumetric_mode = sdRenderer.draw_in_3d ? FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 
 						ctx.globalAlpha = opacity;
 						
@@ -1523,8 +1530,8 @@ class sdRenderer
 						ctx.fillRect( 
 							xx,
 							yy,
-							CHUNK_SIZE,
-							CHUNK_SIZE );
+							CHUNK_SIZE + 0.2, // Fixes gaps between hidden areas
+							CHUNK_SIZE + 0.2 );
 					}
 				}
 				
@@ -1549,6 +1556,8 @@ class sdRenderer
 			
 			//ctx.z_offset = 0 * sdWorld.camera.scale;
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
+            if ( !sdRenderer.draw_in_3d )
+            visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 1 ) ? e2.ObjectOffset3D( 1 )[ 0 ] : 0 ) - ( e1.ObjectOffset3D( 1 ) ? e1.ObjectOffset3D( 1 )[ 0 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
