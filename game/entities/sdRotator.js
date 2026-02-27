@@ -49,7 +49,7 @@ class sdRotator extends sdEntity
 
         this.flip_rotation = params.flip_rotation ?? 1;
         this.orbit_speed = ( params.orbit_speed ?? this.type === sdRotator.TYPE_CUBE_DISC ? 0.025 : this.type === sdRotator.TYPE_CUBE_SHELL ? 0 : 0.01 ) * this.flip_rotation * 100;
-        this.orbit_distance = params.orbit_distance ?? this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 16 : 32;
+        this.orbit_distance = params.orbit_distance ?? this.type === sdRotator.TYPE_CUBE_DISC ? 26 : this.type === sdRotator.TYPE_CUBE_SHELL ? 13 : 32;
 		this.orbit_angle = params.orbit_angle * 100 ?? 0; // Can be also used as start offset
 
         this.angle = 0; // For visuals
