@@ -1990,7 +1990,7 @@ class sdEntity
 										if ( this.CanMoveWithoutOverlap( this.x, y_risen, inverse_space_around_required_for_unstuck, custom_filtering_method ) )
 										{
 											this.y = y_risen;
-											this.sy = 0; // Feels better
+											//this.sy = 0; // Feels better
 										}
 									}
 								}
