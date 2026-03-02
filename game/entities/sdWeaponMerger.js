@@ -799,9 +799,8 @@ class sdWeaponMerger extends sdEntity
                 {
                     const craft = this.GetAnyCraft( this.item0, this.item1 );
                     if ( craft )
-
                     this.AddContextOption( `Craft ${ sdGun.classes[ craft ].title }`, 'CRAFT', [ ] );
-                    console.log( this.IsWeaponMergeable( this.item0 ))
+
                     if ( this.IsWeaponMergeable( this.item0 ) && this.IsWeaponMergeable( this.item1 ) )
                     this.AddContextOption( 'Transfer power of ' + sdEntity.GuessEntityName( this.item1._net_id ) + ' to ' + sdEntity.GuessEntityName( this.item0._net_id ), 'MERGE', [ ] );
                 }
