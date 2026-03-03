@@ -10784,7 +10784,7 @@ class sdGunClass
 				return false; 
 			}
 		};
-	 	 sdGun.classes[ sdGun.CLASS_CHAINSAW = 157 ] = {
+        sdGun.classes[ sdGun.CLASS_CHAINSAW = 157 ] = {
 			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
             image_blade: sdWorld.CreateImageFromFile( 'saw_blade' ),
 			sound: 'gun_saw',//'cut_droid_attack',
@@ -11029,7 +11029,7 @@ class sdGunClass
 			{
                 gun._count = gun.fire_mode === 1 ? 1 : 5;
                 gun._spread = gun.fire_mode === 1 ? 0 : 0.15;
-                gun._reload_time = gun.fire_mode === 1 ? 6 : 30;
+                gun._reload_time = 6 * gun._count;
                 gun.overheat += 7.5 * gun._count;
                 
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
@@ -11082,7 +11082,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 40; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 60; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
