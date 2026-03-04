@@ -5437,7 +5437,7 @@ class sdGunClass
 				return false;
 			},
 			upgrades:
-				AddRecolorsFromColorAndCost( [
+				AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [
 					{ 
 						title: 'Unlock overlord blaster',
 						cost: 1000,
@@ -5459,7 +5459,10 @@ class sdGunClass
 							return false;
 						}
 					}
-				], '#e459aa', 30 )
+				],
+                '#e459aa', 30, 'glow' ),
+                '#000000', 30, 'body' ),
+                '#ffffff', 30, 'attack' )
 		};
 
 		sdGun.classes[ sdGun.CLASS_TOPS_DMR = 83 ] = 
