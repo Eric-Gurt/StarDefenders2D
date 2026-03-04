@@ -10808,7 +10808,7 @@ class sdGunClass
             min_workbench_level: 5,
 			projectile_properties: 
 			{ 
-				time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
+				time_left: 1, _damage: 86, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2,
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -10833,12 +10833,14 @@ class sdGunClass
 			{
                 const blade_offset_x = 9;
                 const blade_offset_y = 1;
+
                 ctx.save();
+
                 ctx.translate( blade_offset_x, blade_offset_y );
                 ctx.rotate( gun._anim )
                 ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_blade, -15.5, -15.5, 32, 32 );
-                ctx.restore();
 
+                ctx.restore();
 			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
@@ -10847,7 +10849,7 @@ class sdGunClass
 					gun.extra = [];
 					gun.extra[ ID_DAMAGE_MULT ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 86; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
