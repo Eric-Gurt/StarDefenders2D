@@ -10508,19 +10508,18 @@ class sdGunClass
 			projectile_properties: { },
 			GetAmmoCost: ( gun )=>
 			{
-				return 1;
+				return gun.fire_mode === 1 ? 1 : 3;
 			},
 			onShootAttempt: ( gun )=>
 			{
 				// Similar to sdPlayerDrone
-				let owner = gun._held_by;
+				const owner = gun._held_by;
+                if ( !owner )
+                return false;
 				
-				let off = gun._held_by.GetBulletSpawnOffset ? gun._held_by.GetBulletSpawnOffset() : { x:0, y:0 };
-				
-				//let range = 24;
-				//let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+				const off = gun._held_by.GetBulletSpawnOffset ? gun._held_by.GetBulletSpawnOffset() : { x:0, y:0 };
+
 				if ( sdWorld.inDist2D_Boolean( owner.look_x, owner.look_y, gun.x, gun.y, 400 ) )
-				//if ( owner._god || sdWorld.CheckLineOfSight( gun.x, gun.y, owner.look_x, owner.look_y, owner, null, [ 'sdBlock', 'sdDoor' ] ) )
 				if ( owner._god || sdWorld.AccurateLineOfSightTest( owner.x + off.x, owner.y + off.y, owner.look_x, owner.look_y, sdCom.com_build_line_of_sight_filter_for_early_threats ) )
 				if ( owner._god || sdArea.CheckPointDamageAllowed( owner.look_x, owner.look_y ) )
 				{
@@ -10530,18 +10529,20 @@ class sdGunClass
 						let yy = Math.cos ( owner.GetLookAngle() ) * 12;
 						
 						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:gun.x + xx, y:gun.y + yy, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });*/
-						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius:1, color:'#80ff80' });
+						sdWorld.SendEffect({ type: sdEffect.TYPE_GLOW_ALT, x:owner.look_x, y:owner.look_y, sx:0, sy:0, scale:1, radius: gun.fire_mode === 1 ? 1 : 2, color: gun.fire_mode === 1 ? '#80ff80' : '#ff8080' });
 						sdSound.PlaySound({ name:'gravity_gun', x:gun.x, y:gun.y, volume:0.75, pitch:1 });
 					}
 						
-					let range = 24;
-					let nears = sdWorld.GetAnythingNear( owner.look_x, owner.look_y, range, null, null );
+					const range = 32;
+                    const x = owner.look_x;
+                    const y = owner.look_y;
+					const nears = sdWorld.GetAnythingNear( x, y, range, null, null );
 						
 					for ( let i = 0; i < nears.length; i++ )
 					{
 						let e = nears[ i ];
 						if ( !e._is_being_removed )
-						//if ( e !== gun && e !== owner )
+						if ( e !== gun && e !== owner )
 						if ( e._is_bg_entity === gun._is_bg_entity )
 						if ( e.IsTargetable( owner ) )
 						{
@@ -10551,7 +10552,7 @@ class sdGunClass
 								e.PhysWakeUp();
 								e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 								e.HookAttempt();
-	
+ 
 								if ( e.is( sdBullet ) )
 								e._owner = owner;
 
@@ -10559,14 +10560,17 @@ class sdGunClass
 								if ( e._ai_enabled && e._ai_team !== 10 ) // Time shifter
 								e.DropWeapon( e.gun_slot );*/
 
-								let an = ( Math.atan2( owner.look_x - e.x, owner.look_y - e.y ) );
-
-								let xx =  Math.sin ( an );
-								let yy = Math.cos ( an );
-
-								let s = 15;
+                                let dx = ( x - e.x ) + ( owner.sx - e.sx ) * 10;
+                                let dy = ( y - e.y ) + ( owner.sy - e.sy ) * 10;
+                                const di = sdWorld.Dist2D_Vector( dx, dy );
+                                if ( di > 10 )
+                                {
+                                    dx /= di / 10;
+                                    dy /= di / 10;
+                                }
+								const s = ( gun.fire_mode === 1 ? 15 : 7.5 ) * ( gun.fire_mode === 1 ? 1 : -1 );
 								
-								e.Impulse( xx * s, yy * s );
+								e.Impulse( dx * s, dy * s );
 							}
 						}
 					}
