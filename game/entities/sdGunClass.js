@@ -10850,13 +10850,15 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#404040', 15, 'blade 1' ),
 				'#101010', 15, 'blade 2' ),
 				'#313131', 15, 'blade 3' ),
 				'#000000', 15, 'blade 4' ),
                 '#464646', 15, 'blade 5' ),
-                '#282828', 15, 'blade 6' ) )
+                '#282828', 15, 'blade 6' ),
+                '#ff0000', 15, 'glow' ),
+                '#400000', 15, 'glow alt' ) )
 		};
 		sdGun.classes[ sdGun.CLASS_CUBE_ARMOR = 158 ] = // Sprite by flora
 		{
@@ -11067,7 +11069,7 @@ class sdGunClass
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
                 ctx.sd_color_mult_r = 1;
 
-                mult *= 5; // Makes lights glow
+                mult *= 5; // Makes lights glow brighter
 
 				//ctx.sd_color_mult_r = 1 + mult;
 				//ctx.sd_color_mult_g = 1 + mult;
