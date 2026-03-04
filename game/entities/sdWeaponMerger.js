@@ -19,7 +19,7 @@ class sdWeaponMerger extends sdEntity
 		
 		sdWeaponMerger.max_matter = 20000; // Matter cost for merging guns
         
-        // TODO: Perhaps making "Crafting bench" entity for doing this?
+        // TODO: Perhaps make "Crafting bench" entity for doing this?
         // [ Item 1, Item 2 ], Result
         sdWeaponMerger.craft_weapons = [
             [ [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER ], sdGun.CLASS_PHASE_RIFLE ],
@@ -27,7 +27,6 @@ class sdWeaponMerger extends sdEntity
             //[ [ sdGun.CLASS_RIFLE, sdGun.CLASS_RIFLE ], sdGun.CLASS_SHOTGUN ],
 			//[ [ sdGun.CLASS_SNIPER, sdGun.CLASS_PISTOL ], sdGun.CLASS_SPARK ],
         ]
-        
         // Positions in array
         sdWeaponMerger.WEAPONS_NEEDED = 0;
 		
@@ -117,9 +116,10 @@ class sdWeaponMerger extends sdEntity
         this.item0 = this.item1 = this.item2 = null;
         this.matter = 0;
 
-        const gun = sdEntity.Create( sdGun, { class: type, x: this.x, y: this.y } );
+        const gun = new sdGun({ class: type, x: this.x, y: this.y });
         gun._held_by = this;
         this.item2 = gun; // move to middle
+        sdEntity.entities.push( gun );
         
         sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
         sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
@@ -290,7 +290,6 @@ class sdWeaponMerger extends sdEntity
 	
 	
 		return false;
-		
 	}
     
     IsWeaponMergeable( weapon )
@@ -798,6 +797,7 @@ class sdWeaponMerger extends sdEntity
 				if ( this.item2.class === sdGun.CLASS_MERGER_CORE ) // Bug fix
                 {
                     const craft = this.GetAnyCraft( this.item0, this.item1 );
+
                     if ( craft )
                     this.AddContextOption( `Craft ${ sdGun.classes[ craft ].title }`, 'CRAFT', [ ] );
 
