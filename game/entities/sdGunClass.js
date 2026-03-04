@@ -7955,7 +7955,14 @@ class sdGunClass
 					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#c0c0c0', 15, 'blade' ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#c0c0c0', 15, 'blade' ),
+				'#b30000', 15, 'body' ),
+				'#870000', 15, 'alt body 1' ),
+				'#870000', 15, 'alt body 2' ),
+                '#ffffff', 15, 'alt body 3' ),
+                '#00c6ff', 15, 'glow' ),
+                '#00a2d1', 15, 'glow alt' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_CRYOGUN = 118 ] = 
