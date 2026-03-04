@@ -8263,9 +8263,11 @@ class sdGunClass
 				}
 			},
 			
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#655873', 15, 'main body' ),
-				'#382f3b', 15, 'alt body' ) )
+				'#382f3b', 15, 'alt body 1' ),
+				'#000000', 15, 'alt body 2' ),
+                '#ffffff', 15, 'glow' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SARRONIAN_SMG = 121 ] = {
@@ -10637,9 +10639,11 @@ class sdGunClass
 				}
 			},
 			
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#655873', 15, 'main body' ),
-				'#382f3b', 15, 'alt body' ) )
+				'#382f3b', 15, 'alt body 1' ),
+				'#000000', 15, 'alt body 2' ),
+                '#ffffff', 15, 'glow' ) )
 		};
 		
 		
@@ -10723,9 +10727,11 @@ class sdGunClass
 				}
 			},
 			
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#655873', 15, 'main body' ),
-				'#382f3b', 15, 'alt body' ) )
+				'#382f3b', 15, 'alt body 1' ),
+				'#000000', 15, 'alt body 2' ),
+                '#ffffff', 15, 'glow' ) )
 		};
 		sdGun.classes[ sdGun.CLASS_HIGH_COUNCIL_SWORD = 155 ] =
 		{
