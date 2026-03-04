@@ -4240,7 +4240,13 @@ class sdGunClass
 			{
 				return false; // No sleeping or else it might get stuck with overheat
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#a5e0ff', 30 ) )
+
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(  AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+                ( [], '#a5e0ff', 30 ),
+                '#c0c0c0', 30 ),
+                '#808080', 30 ),
+                '#d0c957', 30 ),
+                '#a39a56', 30 ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
@@ -5431,7 +5437,7 @@ class sdGunClass
 				return false;
 			},
 			upgrades:
-				[
+				AddRecolorsFromColorAndCost( [
 					{ 
 						title: 'Unlock overlord blaster',
 						cost: 1000,
@@ -5453,7 +5459,7 @@ class sdGunClass
 							return false;
 						}
 					}
-				]
+				], '#e459aa', 30 )
 		};
 
 		sdGun.classes[ sdGun.CLASS_TOPS_DMR = 83 ] = 
@@ -6021,7 +6027,10 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 20 ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
+                [], '#ff0000', 20 ),
+                '#16518b', 20 ),
+                '#003166', 20 ) )
 		};
 		
 		const liquid_carrier_base_color = '#518ad1';
