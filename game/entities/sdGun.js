@@ -400,7 +400,7 @@ class sdGun extends sdEntity
 		{
 			if ( by_entity.is( sdBullet ) )
 			{
-				if ( ( by_entity._hook || by_entity._admin_picker ) && !this._held_by )
+				if ( ( by_entity._hook || by_entity._admin_picker || by_entity._hit_dropped_items ) && !this._held_by )
 				r = true;
 				else
 				r = false;
