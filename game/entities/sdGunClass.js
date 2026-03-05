@@ -9367,7 +9367,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			( [], '#35c4ff', 15, 'glow 1' ),
+			'#34c4ff', 15, 'glow 2' ),
+            '#70d6ff', 15, 'glow 3' ),
+            '#1f7395', 15, 'glow 4' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_ERTHAL_ENERGY_CELL = 134 ] = 
