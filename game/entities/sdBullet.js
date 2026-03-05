@@ -407,6 +407,7 @@ class sdBullet extends sdEntity
 		this._smoke_spawn_wish = 0;
 
 		this._hittable_by_bullets = true;
+        this._hit_dropped_items = false;
 
 		this._anti_shield_damage_bonus = 0;
 		
@@ -1169,7 +1170,7 @@ class sdBullet extends sdEntity
 		if ( !from_entity.PrecieseHitDetection( this.x, this.y, this ) )
 		return;
 
-		if ( !this._hook && !this._admin_picker )
+		if ( !this._hook && !this._admin_picker && !this._hit_dropped_items )
 		{
 			if ( from_entity.is( sdGun ) )
 			return;
@@ -1760,3 +1761,4 @@ class sdBullet extends sdEntity
 //sdBullet.init_class();
 
 export default sdBullet;
+
