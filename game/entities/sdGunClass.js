@@ -7550,6 +7550,7 @@ class sdGunClass
 				color:'#ffffff',
 				time_left: 10, 
 				_hittable_by_bullets: false,
+                _hit_dropped_items: true,
 				_custom_target_reaction: illusion_reaction,
 				_custom_target_reaction_protected: illusion_reaction
 			},
@@ -11163,3 +11164,4 @@ class sdGunClass
 }
 
 export default sdGunClass;
+
