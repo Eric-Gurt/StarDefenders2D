@@ -10061,13 +10061,13 @@ class sdGunClass
 						if ( bullet._owner )
 						{
 							sdWorld.SendEffect({ 
-								x:bullet.x, 
-								y:bullet.y, 
-								radius:48,
-								damage_scale: 5,
-								type:sdEffect.TYPE_EXPLOSION, 
-								owner:bullet._owner,
-								color:'#FF0000',
+								x: bullet.x, 
+								y: bullet.y, 
+								radius: 48,
+								damage_scale: 5 * gun.extra[ ID_DAMAGE_MULT ],
+								type: sdEffect.TYPE_EXPLOSION, 
+								owner: bullet._owner,
+								color: '#FF0000',
 								shrapnel: true
 							});
 							
