@@ -1232,7 +1232,7 @@ class sdHover extends sdEntity
 		
 		//DelayedDrawGun();
 		
-		if ( this.guns )
+		if ( this.guns && this.hea > 0 )
 		{
 			var i;
 
