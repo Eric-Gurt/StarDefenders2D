@@ -1751,7 +1751,7 @@ class sdCube extends sdEntity
 		return "Yellow cube";
 	
 		if ( this.kind === sdCube.KIND_PINK )
-		return "Ressurector cube";
+		return "Resurrector cube";
 	
 		if ( this.kind === sdCube.KIND_GREEN )
 		return "Cloak cube";
