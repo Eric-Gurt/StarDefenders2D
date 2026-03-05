@@ -16,6 +16,7 @@ import sdDrone from './sdDrone.js';
 import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
 import sdSandWorm from './sdSandWorm.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdFactions from './sdFactions.js';
 
