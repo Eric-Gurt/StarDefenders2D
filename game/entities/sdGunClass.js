@@ -2619,7 +2619,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'rocket_mk2' ),
 			sound: 'gun_rocket',
-			title: 'Rocket launcher MK2',
+			title: 'Guided Rocket Launcher',
 			slot: 5,
 			reload_time: 30,
 			muzzle_x: 9,
