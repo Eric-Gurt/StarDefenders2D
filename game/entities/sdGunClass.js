@@ -9504,7 +9504,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_WELD_TOOL = 136 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'weld_gun' ),
-            image0: [ sdWorld.CreateImageFromFile( 'weld_gun_fire' ), sdWorld.CreateImageFromFile( 'weld_gun_fire' ) ],
+            image0: [ sdWorld.CreateImageFromFile( 'weld_gun_fire' ), sdWorld.CreateImageFromFile( 'weld_gun' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'weld_gun' ), sdWorld.CreateImageFromFile( 'weld_gun' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'weld_gun' ), sdWorld.CreateImageFromFile( 'weld_gun' ) ],
 			has_images: true,
