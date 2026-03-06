@@ -322,7 +322,7 @@ class sdWater extends sdEntity
 				if ( this.type === sdWater.TYPE_ACID )
                 filter = 'opacity(0.75) sepia(1) brightness(2.5) saturate(2) hue-rotate(60deg)';
                 else
-                filter = 'opacity(0.75) sepia(1) brightness(3) saturate(0.75) hue-rotate(120deg)';
+                filter = 'opacity(0.75) sepia(1) brightness(3) saturate(0.75) hue-rotate(160deg)';
 				hp_mult = 1;
 				
 				if ( this.type === sdWater.TYPE_WATER || this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_LAVA )
