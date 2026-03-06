@@ -318,8 +318,11 @@ class sdWater extends sdEntity
 
 			if ( this.type !== sdWater.TYPE_LAVA )
 			{
-				material = sdBlock.MATERIAL_ROCK;
-				filter = 'sepia(1) brightness(2) saturate(2.5) hue-rotate(60deg)';
+				material = sdBlock.MATERIAL_ICE;
+				if ( this.type === sdWater.TYPE_ACID )
+                filter = 'opacity(0.75) sepia(1) brightness(2.5) saturate(2) hue-rotate(60deg)';
+                else
+                filter = 'opacity(0.75) sepia(1) brightness(3) saturate(0.75) hue-rotate(120deg)';
 				hp_mult = 1;
 				
 				if ( this.type === sdWater.TYPE_WATER || this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_LAVA )
@@ -342,7 +345,7 @@ class sdWater extends sdEntity
 				contains_class: contains_class,
 				contains_class_params: contains_class_params,
 				filter: filter,
-				natural: true,
+                natural: this.type === sdWater.TYPE_LAVA, // So no BGs
 				plants: null
 			});
 			ent._hea *= hp_mult;
@@ -350,7 +353,7 @@ class sdWater extends sdEntity
 		}
 		this.remove();
 	}
-	
+
 	BlendWith( another )
 	{
 		if ( another.is( sdWater ) )
@@ -405,7 +408,9 @@ class sdWater extends sdEntity
             
             if ( ( another.type === sdWater.TYPE_CRYO ) !== ( this.type === sdWater.TYPE_CRYO ) )
 			{
-                another.type = sdWater.TYPE_WATER;
+                if ( this.type !== sdWater.TYPE_CRYO )
+                another.type = this.type;
+
 				another._volume = Math.max( this._volume, another._volume );
 				another.Solidify();
 				this.remove();
