@@ -27,8 +27,7 @@ import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdArea from './sdArea.js';
 import sdWeaponBench from './sdWeaponBench.js';
-//import sdSteeringWheel from './sdSteeringWheel.js';
-
+import sdSteeringWheel from './sdSteeringWheel.js';
 
 /*
 
@@ -9476,7 +9475,7 @@ class sdGunClass
 		};
 		
 		// TODO: Could be nice to have same but for BSU management
-		const weld_reaction_method = ( bullet, target_entity )=>
+		/*const weld_reaction_method = ( bullet, target_entity )=>
 		{
 			if ( bullet._owner._current_built_entity )
 			if ( !bullet._owner._current_built_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
@@ -9500,11 +9499,16 @@ class sdGunClass
 			}
 			else
 			bullet._owner.Say( 'Elevator motor or steering wheel is not yet selected' );
-		};
+		};*/
+
 		sdGun.classes[ sdGun.CLASS_WELD_TOOL = 136 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'weld_gun' ),
-			image_firing: sdWorld.CreateImageFromFile( 'weld_gun_fire' ),
+            image0: [ sdWorld.CreateImageFromFile( 'weld_gun_fire' ), sdWorld.CreateImageFromFile( 'weld_gun_fire' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'weld_gun' ), sdWorld.CreateImageFromFile( 'weld_gun' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'weld_gun' ), sdWorld.CreateImageFromFile( 'weld_gun' ) ],
+			has_images: true,
+			//image_firing: sdWorld.CreateImageFromFile( 'weld_gun_fire' ),
 			sound: 'gun_spark',
 			title: 'Elevator weld tool',
 			sound_pitch: 1.5,
@@ -9518,10 +9522,10 @@ class sdGunClass
 			min_build_tool_level: 2,
 			projectile_velocity: 16,
 			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
-				_custom_target_reaction_protected: weld_reaction_method,
-				_custom_target_reaction: weld_reaction_method
+				_custom_target_reaction_protected: sdSteeringWheel.WeldProjectileLogic,
+				_custom_target_reaction: sdSteeringWheel.WeldProjectileLogic
 			},
-			onShootAttempt: ( gun, shoot_from_scenario )=>
+			onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
 			}
 		};
