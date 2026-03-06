@@ -1357,7 +1357,7 @@ class sdRenderer
 			
 			const box_caps = sdRenderer.ctx.box_caps;
 		
-            if ( !sdRenderer.draw_in_3d )
+            //if ( !sdRenderer.draw_in_3d )
             visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( -1 ) ? e2.ObjectOffset3D( -1 )[ 2 ] : 0 ) - ( e1.ObjectOffset3D( -1 ) ? e1.ObjectOffset3D( -1 )[ 2 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
 
 			for ( let i = 0; i < visible_entities.length; i++ )
@@ -1415,7 +1415,7 @@ class sdRenderer
 			ctx.z_offset = offset1 * sdWorld.camera.scale;
 			ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 			
-            if ( !sdRenderer.draw_in_3d )
+            //if ( !sdRenderer.draw_in_3d )
             visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 0 ) ? e2.ObjectOffset3D( 0 )[ 1 ] : 0 ) - ( e1.ObjectOffset3D( 0 ) ? e1.ObjectOffset3D( 0 )[ 1 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
@@ -1556,7 +1556,7 @@ class sdRenderer
 			
 			//ctx.z_offset = 0 * sdWorld.camera.scale;
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
-            if ( !sdRenderer.draw_in_3d )
+            //if ( !sdRenderer.draw_in_3d )
             visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 1 ) ? e2.ObjectOffset3D( 1 )[ 0 ] : 0 ) - ( e1.ObjectOffset3D( 1 ) ? e1.ObjectOffset3D( 1 )[ 0 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
