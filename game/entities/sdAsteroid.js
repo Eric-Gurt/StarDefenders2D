@@ -529,10 +529,11 @@ class sdAsteroid extends sdEntity
 					y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 
 					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GI, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
 
 				}
 			}
+            else
 			if ( this.type === sdAsteroid.TYPE_MISSILE )
 			{
 				sdWorld.SendEffect({ x:this.x, y:this.y, radius:75 * this.scale/100, damage_scale:2, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, shrapnel:true, can_hit_owner:false, owner:this });
@@ -651,5 +652,6 @@ class sdAsteroid extends sdEntity
 			}
 		}
 	}
-};
+}
+
 export default sdAsteroid;

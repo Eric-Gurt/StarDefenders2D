@@ -53,6 +53,7 @@ import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 import sdStealer from './sdStealer.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdMeow from './sdMeow.js';
+import sdSteeringWheel from './sdSteeringWheel.js';
 
 class sdTurret extends sdEntity
 {
@@ -77,6 +78,12 @@ class sdTurret extends sdEntity
 
 		sdTurret.img_turret6 = sdWorld.CreateImageFromFile( 'turret6' );
 		sdTurret.img_turret6_fire = sdWorld.CreateImageFromFile( 'turret6_fire' );
+        
+        sdTurret.img_turret7 = sdWorld.CreateImageFromFile( 'turret7' );
+		sdTurret.img_turret7_fire = sdWorld.CreateImageFromFile( 'turret7_fire' );
+        
+        sdTurret.img_turret8 = sdWorld.CreateImageFromFile( 'turret8' );
+		sdTurret.img_turret8_fire = sdWorld.CreateImageFromFile( 'turret8_fire' );
 		
 		sdTurret.targetable_classes = new WeakSet( [ 
 			sdCharacter, 
@@ -123,6 +130,8 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_FREEZER = 4;
 		sdTurret.KIND_ZAP = 5;
 		sdTurret.KIND_LASER_PORTABLE = 6;
+        sdTurret.KIND_AUTO_CABLE = 7;
+        sdTurret.KIND_AUTO_WELD = 8;
 		
 		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
 		
@@ -153,22 +162,33 @@ class sdTurret extends sdEntity
 	get title()
 	{
 		if ( this.kind === sdTurret.KIND_LASER )
-		return ('Automatic laser turret');
+		return ( 'Automatic laser turret' );
+
 		if ( this.kind === sdTurret.KIND_ROCKET )
-		return ('Automatic missile turret');
+		return ( 'Automatic missile turret' );
+
 		if ( this.kind === sdTurret.KIND_RAPID_LASER )
-		return ('Automatic rapid laser turret');
+		return ( 'Automatic rapid laser turret' );
+
 		if ( this.kind === sdTurret.KIND_SNIPER )
-		return ('Automatic sniper turret');
+		return ( 'Automatic sniper turret' );
+
 		if ( this.kind === sdTurret.KIND_FREEZER )
-		return ('Automatic freezing turret');
+		return ( 'Automatic freezing turret' );
+
 		if ( this.kind === sdTurret.KIND_ZAP )
-		return ('Automatic zapper turret');
+		return ( 'Automatic zapper turret' );
 	
 		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
-		return ('Portable automatic laser turret');
+		return ( 'Portable automatic laser turret' );
+    
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+		return ( 'Automatic cable turret' );
+    
+        if ( this.kind === sdTurret.KIND_AUTO_WELD )
+		return ( 'Automatic welding turret' );
 
-		return ('Automatic turret');
+		return ( 'Automatic turret' );
 	}
 	get description()
 	{
@@ -236,6 +256,9 @@ class sdTurret extends sdEntity
 		this._regen_timeout = 0;
 		
 		this._owner = params.owner || null;
+
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+        this._owner = null;
 		
 		this.an = 0;
 		
@@ -268,6 +291,9 @@ class sdTurret extends sdEntity
 		this.lvl = 0;
 		
 		this._time_amplification = 0;
+
+        this._current_built_entity = null; // Used by cable and welding turrets turrets
+        this._built_cables = [];
 		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
@@ -489,6 +515,14 @@ class sdTurret extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
+            if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+            {
+                for ( const cable of this._built_cables )
+                {
+                    if ( ( !cable || cable._is_being_removed ) || !( cable.p === this ||  cable.c === this ) )
+                    this._built_cables.splice( this._built_cables.indexOf( cable ), 1 );
+                }
+            }
 			if ( this.matter > this.GetShootCost() || this.type === 1 )
 			{
 				//can_hibernate = false;
@@ -510,9 +544,6 @@ class sdTurret extends sdEntity
 					this._sensor_area = new sdSensorArea({ x: this.x-range, y: this.y-range, w: range*2, h: range*2, on_movement_target: this });
 					sdEntity.entities.push( this._sensor_area );
 				}
-				
-				
-				
 				if ( this._seek_timer <= 0 && this.disabled === false )
 				{
 					this._seek_timer = 10 + Math.random() * 10;
@@ -526,7 +557,7 @@ class sdTurret extends sdEntity
 						can_hibernate = false;
 					}
 					else
-					if ( ( com_near && this.type === 0 ) || this.type === 1 )
+					if ( ( this.kind !== sdTurret.KIND_AUTO_CABLE && this.kind !== sdTurret.KIND_AUTO_WELD ) && ( com_near && this.type === 0 ) || this.type === 1 )
 					{
 						let target_set = this._sensor_detected_entities;
 
@@ -564,6 +595,11 @@ class sdTurret extends sdEntity
 					if ( this.kind === sdTurret.KIND_ZAP )
 					{
 						vel = 10;
+					}
+                    
+                    if ( this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD )
+					{
+						vel = 16;
 					}
 
 					if ( this.auto_attack >= 0 )
@@ -627,6 +663,12 @@ class sdTurret extends sdEntity
 
 						if ( this.kind === sdTurret.KIND_ZAP )
 						sdSound.PlaySound({ name:'bsu_attack', x:this.x, y:this.y, volume:0.75, pitch: 1 / ( 1 + this.lvl / 3 ) });
+                    
+                        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+						sdSound.PlaySound({ name:'gun_defibrillator', x:this.x, y:this.y, volume:0.75, pitch: 0.25 / ( 1 + this.lvl / 3 ) });
+                    
+                        if ( this.kind === sdTurret.KIND_AUTO_WELD )
+						sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:0.75, pitch: 1.5 / ( 1 + this.lvl / 3 ) });
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -704,9 +746,25 @@ class sdTurret extends sdEntity
 							
 							bullet_obj._temperature_addition = -50;
 						}
-						
-						bullet_obj._damage *= 1 + this.lvl / 3;
-						bullet_obj._temperature_addition *= 1 + this.lvl / 3;
+                        
+                        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+						{
+							bullet_obj._damage = 1;
+                            bullet_obj.time_left = 2;
+                            bullet_obj.color = 'transparent';
+                            bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdCable.CableProjectileLogic;
+						}
+                        
+                        if ( this.kind === sdTurret.KIND_AUTO_WELD )
+						{
+							bullet_obj._damage = 1;
+                            bullet_obj.time_left = 2;
+                            bullet_obj.color = 'transparent';
+                            bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdSteeringWheel.WeldProjectileLogic;
+						}
+
+                        bullet_obj._damage *= 1 + this.lvl / 3;
+                        bullet_obj._temperature_addition *= 1 + this.lvl / 3;
 
 						sdEntity.entities.push( bullet_obj );
 					}
@@ -782,7 +840,9 @@ class sdTurret extends sdEntity
 		return 30;
 		if ( this.kind === sdTurret.KIND_ZAP )
 		return 20;
-	
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+		return 15;
+
 		return 30;
 	}
 	GetSize()
@@ -817,7 +877,7 @@ class sdTurret extends sdEntity
 	{
 		if ( this.type === 0 )
 		{
-			if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
+			if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_AUTO_CABLE )
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( '+ ~~(this.matter)+' / '+this._matter_max+' )' );
 			else
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )' );
@@ -911,7 +971,13 @@ class sdTurret extends sdEntity
 	
 		if ( this.kind === sdTurret.KIND_ZAP )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret6 : sdTurret.img_turret6_fire, -16, -16, 32,32 );
+    
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret7 : sdTurret.img_turret7_fire, -16, -16, 32,32 );
 	
+        if ( this.kind === sdTurret.KIND_AUTO_WELD )
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret8 : sdTurret.img_turret8_fire, -16, -16, 32,32 );
+    
 		ctx.filter = 'none';
 		
 		if ( !sdShop.isDrawing )
@@ -941,6 +1007,9 @@ class sdTurret extends sdEntity
 	
 		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
 		return 60;
+    
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD )
+		return 750;
 	}
 	onRemove()
 	{
@@ -1026,7 +1095,7 @@ class sdTurret extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
-		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE )
+		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE )
 		{
 			if ( this.lvl < 3 )
 			{

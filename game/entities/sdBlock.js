@@ -147,6 +147,7 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_SNOW = 14; // Same as sand just does not regenerate plants on itself
 		sdBlock.MATERIAL_PRESET_SPECIAL_ANY_GROUND = 15; // Marks area within preset that won't be touched by preset logic, could be used to mark certain location as more or less suitable for preset spawn
 		sdBlock.MATERIAL_PRESET_SPECIAL_FORCE_AIR = 16; // Forcefully removed air blocks for loaded presets
+        sdBlock.MATERIAL_ICE = 17;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -216,7 +217,8 @@ class sdBlock extends sdEntity
 				this.material === sdBlock.MATERIAL_ROCK || 
 				this.material === sdBlock.MATERIAL_SAND ||
 				this.material === sdBlock.MATERIAL_SNOW ||
-				this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS );
+				this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
+                this.material === sdBlock.MATERIAL_ICE );
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -224,7 +226,7 @@ class sdBlock extends sdEntity
 	
 	IsPartiallyTransparent()
 	{
-		if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD || this.material === sdBlock.MATERIAL_ICE )
 		return true;
 	
 		if ( this.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT )
@@ -338,6 +340,9 @@ class sdBlock extends sdEntity
 	
 		if ( mat === sdBlock.MATERIAL_SNOW )
 		return 'Snow';
+    
+        if ( mat === sdBlock.MATERIAL_SNOW )
+		return 'Ice';
 	
 		if ( mat === sdBlock.MATERIAL_CORRUPTION )
 		return 'Corruption';
@@ -347,9 +352,9 @@ class sdBlock extends sdEntity
 	
 	DrawIn3D()
 	{
-		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD || this.texture_id === sdBlock.TEXTURE_ID_GLASS )
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD || this.material === sdBlock.MATERIAL_ICE || this.texture_id === sdBlock.TEXTURE_ID_GLASS )
 		return FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT; 
-		else
+
 		return FakeCanvasContext.DRAW_IN_3D_BOX; 
 	}
 	
@@ -2122,12 +2127,13 @@ class sdBlock extends sdEntity
 			 this.material === sdBlock.MATERIAL_SNOW ||
 			 this.material === sdBlock.MATERIAL_CORRUPTION || 
 			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
-			 this.material === sdBlock.MATERIAL_ANCIENT_WALL )
+			 this.material === sdBlock.MATERIAL_ANCIENT_WALL ||
+             this.material === sdBlock.MATERIAL_ICE )
 		{
 			let texture = sdBlock.img_ground88;
 			let texture_size = 256;
 			
-			if ( this.material === sdBlock.MATERIAL_ROCK )
+			if ( this.material === sdBlock.MATERIAL_ROCK || this.material === sdBlock.MATERIAL_ICE )
 			{
 				texture = sdBlock.img_rock;
 				texture_size = 32;
@@ -2476,7 +2482,7 @@ class sdBlock extends sdEntity
 			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 			if ( this._broken )
 			{
-				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
+				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS || this.material === sdBlock.MATERIAL_ICE )
 				sdSound.PlaySound({ name:'glass12', x:this.x+this.width/2, y:this.y+this.height/2, volume:0.25, pitch: 0.6, _server_allowed:true });
 				else
 				sdSound.PlaySound({ name:'blockB4', 
@@ -2486,26 +2492,29 @@ class sdBlock extends sdEntity
 					pitch: ( this.material === sdBlock.MATERIAL_FLESH ) ? 4 : ( this.material === sdBlock.MATERIAL_CORRUPTION ) ? 0.4 : ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
 					_server_allowed:true });
 
-				let x,y,a,s;
-				let step_size = 4;
-				for ( x = step_size / 2; x < this.width; x += step_size )
-				for ( y = step_size / 2; y < this.height; y += step_size )
-				{
-					a = Math.random() * 2 * Math.PI;
-					s = Math.random() * 4;
-					
-					
-					if ( this.material === sdBlock.MATERIAL_SNOW )
-					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, filter:'brightness(0) invert(1)', sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
-					else
-					if ( this.material === sdBlock.MATERIAL_FLESH )
-					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
-					else
-					if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
-					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GLASS, sx: Math.sin(a)*s*1.5, sy: Math.cos(a)*s*1.5 }) );
-					else
-					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
-				}
+                if ( this.material !== sdBlock.MATERIAL_ICE )
+                {
+                    let x,y,a,s;
+                    let step_size = 4;
+                    for ( x = step_size / 2; x < this.width; x += step_size )
+                    for ( y = step_size / 2; y < this.height; y += step_size )
+                    {
+                        a = Math.random() * 2 * Math.PI;
+                        s = Math.random() * 4;
+                        
+                        
+                        if ( this.material === sdBlock.MATERIAL_SNOW )
+                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, filter:'brightness(0) invert(1)', sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+                        else
+                        if ( this.material === sdBlock.MATERIAL_FLESH )
+                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+                        else
+                        if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
+                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GLASS, sx: Math.sin(a)*s*1.5, sy: Math.cos(a)*s*1.5 }) );
+                        else
+                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+                    }
+                }
 			}
 		}
 	}

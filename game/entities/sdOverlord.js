@@ -759,6 +759,7 @@ class sdOverlord extends sdEntity
 						bullet_obj.model = 'blaster_proj';
 
 						bullet_obj.explosion_radius = 9;
+                        bullet_obj._no_explosion_smoke = true;
 						
 						//bullet_obj._custom_target_reaction = sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER ].projectile_properties._custom_target_reaction;
 						

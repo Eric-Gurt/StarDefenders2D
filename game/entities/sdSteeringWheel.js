@@ -1535,7 +1535,40 @@ class sdSteeringWheel extends sdEntity
 		}
 		return true;
 	}
-	
+    
+    static WeldProjectileLogic( bullet, target_entity )
+    {
+        if ( !bullet._owner )
+        return;
+
+        const is_character = bullet._owner.IsPlayerClass();
+
+        if ( bullet._owner._current_built_entity )
+        if ( !bullet._owner._current_built_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
+        bullet._owner._current_built_entity = null;
+			
+        if ( target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) )
+        {
+            if ( target_entity.type === sdWorld.entity_classes.sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+            if ( is_character )
+            bullet._owner.Say( 'Elevator motor selected. Let\'s pick parts to weld to it' );
+            else
+            if ( is_character )
+            bullet._owner.Say( 'Steering wheel selected. Let\'s pick parts to weld to it' );
+			
+            bullet._owner._current_built_entity = target_entity;
+            return;
+        }
+			
+        if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
+        {
+            if ( !target_entity.is( sdWorld.entity_classes.sdSteeringWheel ) ) // Do no allow steering wheels to be weld to elevator motors as it may cause bugs
+            bullet._owner._current_built_entity.ToggleSingleScanItem( target_entity, is_character ? bullet._owner : null );
+        }
+        else
+        if ( is_character )
+        bullet._owner.Say( 'Elevator motor or steering wheel is not yet selected' );
+	}
 	get title()
 	{
 		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )

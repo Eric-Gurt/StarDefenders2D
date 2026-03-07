@@ -493,9 +493,12 @@ class sdStorage extends sdEntity
 		
 		if ( 
 				( 
-					is_for_guns
-					&& 
-					from_entity.is( sdGun ) 
+					is_for_guns && 
+                    (
+                        from_entity.is( sdGun ) ||
+                        from_entity.is( sdLost ) &&
+                        from_entity._copy_of_class === 'sdGun'
+                    )
 					&& 
 					!from_entity._held_by // Guns can still be held by sdCharacter
 					&&
