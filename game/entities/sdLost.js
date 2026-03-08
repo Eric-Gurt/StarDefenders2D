@@ -245,7 +245,7 @@ class sdLost extends sdEntity
 			time_left: time,
 			
 			copy_of_class: ent.GetClass(),
-			title_as_storage_item: ent.is( sdCrystal ) ? sdStorage.GetTitleForCrystal( ent ) : '?'
+			title_as_storage_item: ent.is( sdCrystal ) ? sdStorage.GetTitleForCrystal( ent ) : ent.is( sdGun ) ? ent.title : '?'
 			//regen_rate: ent.is( sdCrystal ) ? ent.matter_regen : 0
 			
 		});

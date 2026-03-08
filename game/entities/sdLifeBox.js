@@ -39,6 +39,11 @@ class sdLifeBox extends sdEntity
 	get hitbox_x2() { return 15; }
 	get hitbox_y1() { return -40; }
 	get hitbox_y2() { return 15; }
+    
+    ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		return [ 0, 0, -40 ];
+	}
 	
 	get hard_collision() // For world geometry where players can walk
 	{ 
@@ -447,7 +452,7 @@ class sdLifeBox extends sdEntity
 		ctx.fillStyle = '#FF0000';
 		ctx.fillRect( 1 - w / 2, 1 - 30, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
 	}
-	Draw( ctx, attached )
+	DrawBG( ctx, attached )
 	{
 		if ( sdShop.isDrawing )
         {
