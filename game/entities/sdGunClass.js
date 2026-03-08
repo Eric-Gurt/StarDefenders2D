@@ -11095,11 +11095,12 @@ class sdGunClass
             },*/
             ExtraDraw: ( gun, ctx, attached )=>
 			{
-                ctx.apply_shading = false;
-
                 let mult = gun.overheat / 200;
                 mult = Math.round( mult * 100 ) / 100; // Fixes FPS drops in singleplayer mode
                 mult = sdWorld.limit( 0, 1, mult );
+
+                if ( gun.overheat > 75 )
+				ctx.apply_shading = false;
 
 				ctx.sd_color_mult_r = 1 + mult;
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
@@ -11110,6 +11111,7 @@ class sdGunClass
 				//ctx.sd_color_mult_r = 1 + mult;
 				//ctx.sd_color_mult_g = 1 + mult;
 				//ctx.sd_color_mult_b = 1 + mult;
+                ctx.apply_shading = false;
 
                 ctx.filter = `saturate( ${ 1 / ( mult + 1 ) } ) brightness( ${ mult + 1 } )`
 
