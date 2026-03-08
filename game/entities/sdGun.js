@@ -20,6 +20,7 @@ import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
 import sdWeaponBench from './sdWeaponBench.js';
 import sdWeaponMerger from './sdWeaponMerger.js';
+import sdCraftingBench from './sdCraftingBench.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCrystal from './sdCrystal.js';
 
@@ -692,7 +693,7 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
-			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) )
+			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) || this._held_by.is( sdCraftingBench ) )
 			return true;
 			else
 			if ( this._held_by.is( sdStorage ) )
