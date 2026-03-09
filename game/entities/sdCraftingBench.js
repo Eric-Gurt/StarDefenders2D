@@ -354,7 +354,6 @@ class sdCraftingBench extends sdEntity
 	{
 		let arr = [];
         const count = include_result ? sdCraftingBench.slots_tot : sdCraftingBench.slots_tot - 1;
-        console.log(count)
 
 		for ( var i = 0; i < count; ++i )
 		if ( this[ 'item' + i ] )
