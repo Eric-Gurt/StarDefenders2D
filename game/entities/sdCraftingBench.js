@@ -43,8 +43,8 @@ class sdCraftingBench extends sdEntity
 	{
 		super( params );
 
-		this._hea = 1200;
-		this._hmax = 1200;
+		this._hea = 2500;
+		this._hmax = 2500;
 		
 		this.matter = 0;
 		this._matter_max = sdCraftingBench.max_matter;
@@ -65,6 +65,11 @@ class sdCraftingBench extends sdEntity
                 needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, ],
                 options: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_SHOTGUN ],
                 cost: 1000
+            },
+            {
+                needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
+                options: [ sdGun.CLASS_CUBE_FUSION_CORE ],
+                cost: 2000
             }
         ]
     }
@@ -93,7 +98,7 @@ class sdCraftingBench extends sdEntity
 	}
     CraftWeapon( index )
     {
-        const items = this.GetItems();
+        const items = this.GetItems( false );
 
         if ( !items )
         return false;
@@ -227,7 +232,7 @@ class sdCraftingBench extends sdEntity
             ctx.restore();
         }
 
-        const craft = this.GetAnyCraft( this.GetItems() );
+        const craft = this.GetAnyCraft( this.GetItems( false ) );
         if ( craft.options )
         {
             for ( let i = 0; i < craft.options.length; ++i )
@@ -345,10 +350,13 @@ class sdCraftingBench extends sdEntity
 			}
 		}
 	}
-	GetItems() // As simple array
+	GetItems( include_result=true ) // As simple array
 	{
 		let arr = [];
-		for ( var i = 0; i < sdCraftingBench.slots_tot; ++i )
+        const count = include_result ? sdCraftingBench.slots_tot : sdCraftingBench.slots_tot - 1;
+        console.log(count)
+
+		for ( var i = 0; i < count; ++i )
 		if ( this[ 'item' + i ] )
 		arr.push( this[ 'item' + i ] );
 		return arr;
@@ -461,7 +469,7 @@ class sdCraftingBench extends sdEntity
 				if ( item )
                 this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
 			}
-            const craft = this.GetAnyCraft( this.GetItems() );
+            const craft = this.GetAnyCraft( this.GetItems( false ) );
             if ( craft.options )
             {
                 for ( let i = 0; i < craft.options.length; ++i )
