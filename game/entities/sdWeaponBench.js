@@ -155,7 +155,7 @@ class sdWeaponBench extends sdEntity
 		
 		if ( this._hea >= this._hmax )
 		{
-				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+            this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}
 	get title()
@@ -397,7 +397,7 @@ class sdWeaponBench extends sdEntity
 		if ( from_entity.is( sdGun ) )
 		if ( !sdGun.classes[ from_entity.class ].ignore_slot || sdGun.classes[ from_entity.class ].armor_properties || allow_ignored_items ) // Allow some un-upgradable items for display only, and allow armors
 		{
-			if ( from_entity._held_by === null )
+			if ( from_entity._held_by === null && from_entity.held_by === null )
 			{
 				let free_slot = -1;
 				
