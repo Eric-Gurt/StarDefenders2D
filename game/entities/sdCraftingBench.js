@@ -16,20 +16,20 @@ class sdCraftingBench extends sdEntity
 		
 		sdCraftingBench.slots_tot = 8 + 1;
 		
-		sdCraftingBench.max_matter = 10000;
+		sdCraftingBench.max_matter = 15000;
         
         sdCraftingBench.cube_items_filter = sdWorld.CreateSDFilter();
 		sdWorld.ReplaceColorInSDFilter_v2( sdCraftingBench.cube_items_filter, '#00fff6', '#555555' );
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return -24; }
-	get hitbox_x2()  { return 24; }
-	get hitbox_y1()  { return -24; }
-	get hitbox_y2()  { return 24; }
+	get hitbox_x1() { return -24; }
+	get hitbox_x2() { return 24; }
+	get hitbox_y1() { return -24; }
+	get hitbox_y2() { return 24; }
 	
-	get spawn_align_x(){ return 8; };
-	get spawn_align_y(){ return 8; };
+	get spawn_align_x() { return 8; };
+	get spawn_align_y() { return 8; };
     
     ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{
@@ -46,8 +46,8 @@ class sdCraftingBench extends sdEntity
 	{
 		super( params );
 
-		this._hea = 2500;
-		this._hmax = 2500;
+		this._hea = 5000;
+		this._hmax = 5000;
 		
 		this.matter = 0;
 		this._matter_max = sdCraftingBench.max_matter;
@@ -247,8 +247,8 @@ class sdCraftingBench extends sdEntity
             this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
     }
-    GetItemOffset ( slot ) // Cleaner way
-	{
+    GetItemOffset( slot )
+    {
         if ( slot === 8 ) // result
         return { x: 0, y: 0 };
 
@@ -257,16 +257,26 @@ class sdCraftingBench extends sdEntity
         const count = sdCraftingBench.slots_tot - 1;
 
         let angle = PI2 * ( slot / ( count / 2 ) ) - Math.PI;
-        // fill cardinal and then diagonal
+
+        // slot-specific corrections
+        const offset = {
+            1:  2,
+            2: -2,
+            5: 2,
+            6: -2
+        };
+
+        if ( offset[ slot ] )
+        angle += PI2 / count * offset[ slot ];
+
         if ( slot >= 4 )
         angle += PI2 / count;
 
-        return { 
+        return {
             x: Math.cos( angle ) * distance,
             y: Math.sin( angle ) * distance
         };
-	}
-
+    }
 	get title()
 	{
 		return 'Crafting bench';
