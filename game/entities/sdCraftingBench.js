@@ -279,44 +279,41 @@ class sdCraftingBench extends sdEntity
         }
 
         const craft = this.GetAnyCraft( this.GetItems( false ) );
-        if ( craft.options )
+        if ( craft )
         {
-            for ( let i = 0; i < craft.options.length; ++i )
-            {
-                const option = craft.options[ Math.floor( ( sdWorld.time / 3000 ) % craft.options.length ) ];
-                const has_matter = this.matter - craft.cost > -0.01; // Hack due to float rounding problems
-                const gun = sdGun.classes[ option ];
+            const option = craft.options[ Math.floor( ( sdWorld.time / 3000 ) % craft.options.length ) ];
+            const has_matter = this.matter - craft.cost > -0.01; // Hack due to float rounding problems
+            const gun = sdGun.classes[ option ];
 
-                ctx.sd_color_mult_r = has_matter ? 0 : 1;
-                ctx.sd_color_mult_g = ctx.sd_color_mult_b = has_matter ? 1 : 0;
+            ctx.sd_color_mult_r = has_matter ? 0 : 1;
+            ctx.sd_color_mult_g = ctx.sd_color_mult_b = has_matter ? 1 : 0;
 
-                ctx.filter = 'brightness(1.5) saturate(0.5)'
+            ctx.filter = 'brightness(1.5) saturate(0.5)'
 
-                ctx.globalAlpha = Math.sin( ( sdWorld.time % 3000 ) / 3000 * Math.PI );
-                
-                if ( gun.image )
-                ctx.drawImageFilterCache( gun.image, -16, -16, 32, 32 );
+            ctx.globalAlpha = Math.sin( ( sdWorld.time % 3000 ) / 3000 * Math.PI );
+
+            if ( gun.image )
+            ctx.drawImageFilterCache( gun.image, -16, -16, 32, 32 );
             
-                if ( gun.image_body )
-                ctx.drawImageFilterCache( gun.image_body, -16, -16, 32, 32 );
+            if ( gun.image_body )
+            ctx.drawImageFilterCache( gun.image_body, -16, -16, 32, 32 );
 
-                if ( gun.image_blade )
-                ctx.drawImageFilterCache( gun.image_blade, -16, -16, 32, 32 );
+            if ( gun.image_blade )
+            ctx.drawImageFilterCache( gun.image_blade, -16, -16, 32, 32 );
 
-                if ( gun.image_barrel )
-                ctx.drawImageFilterCache( gun.image_barrel, -16, -16, 32, 32 );
+            if ( gun.image_barrel )
+            ctx.drawImageFilterCache( gun.image_barrel, -16, -16, 32, 32 );
             
-                if ( gun.image_glow )
-                ctx.drawImageFilterCache( gun.image_glow, -16, -16, 32, 32 );
+            if ( gun.image_glow )
+            ctx.drawImageFilterCache( gun.image_glow, -16, -16, 32, 32 );
 
-                ctx.globalAlpha = 1;
+            ctx.globalAlpha = 1;
 
-                ctx.sd_color_mult_r = 1;
-                ctx.sd_color_mult_g = 1;
-                ctx.sd_color_mult_b = 1;
+            ctx.sd_color_mult_r = 1;
+            ctx.sd_color_mult_g = 1;
+            ctx.sd_color_mult_b = 1;
 
-                ctx.filter = 'none';
-            }
+            ctx.filter = 'none';
         }
 	}
 	onRemove() // Class-specific, if needed
@@ -460,8 +457,6 @@ class sdCraftingBench extends sdEntity
 
 			item.PhysWakeUp();
 		}
-
-		//this.upgraded_dur = false;
 	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
@@ -515,7 +510,7 @@ class sdCraftingBench extends sdEntity
                 this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
 			}
             const craft = this.GetAnyCraft( this.GetItems( false ) );
-            if ( craft.options )
+            if ( craft )
             {
                 for ( let i = 0; i < craft.options.length; ++i )
                 {
