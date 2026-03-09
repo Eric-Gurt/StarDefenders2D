@@ -1524,14 +1524,14 @@ class sdGunClass
 			upgrades:
 			AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( 
 				[
-					{ 
+					/*{ 
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_TRIPLE_RAIL2;
 										gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
 										gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
 										}
-					}
+					}*/
 				]
 			) )
 		};
@@ -1689,14 +1689,14 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( 
 				[
-					{ 
+					/*{ 
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_PISTOL2;
 										gun.extra[ ID_DAMAGE_VALUE ] = 22 * 1.2;
 										gun._max_dps = ( 30 / ( gun._reload_time * sdGun.classes[ gun.class ].burst + sdGun.classes[ gun.class ].burst_reload ) ) * gun.extra[ 17 ] * gun._count * sdGun.classes[ gun.class ].burst;
 										}
-					}
+					}*/
 				]
 			) )
 		};
@@ -1852,7 +1852,7 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [
-					{ 
+					/*{ 
 						title: 'Upgrade to v2',
 						cost: 1500,
 						action: ( gun, initiator=null )=>
@@ -1862,7 +1862,7 @@ class sdGunClass
 							//gun.extra[ ID_DAMAGE_VALUE ] = 20 * 2;
 							//gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
 						}
-					}
+					}*/
 				] ) )
 		};		
 		
