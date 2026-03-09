@@ -62,14 +62,29 @@ class sdCraftingBench extends sdEntity
                 cost: 5000
             },
             {
-                needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, ],
-                options: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_SHOTGUN ],
-                cost: 1000
+                needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
+                options: [ sdGun.CLASS_RAIL_PISTOL ],
+                cost: 500
+            },
+            {
+                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
+                options: [ sdGun.CLASS_RAIL_PISTOL2, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_SHOTGUN ],
+                cost: 1500
+            },
+            {
+                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
+                options: [ sdGun.CLASS_TRIPLE_RAIL2 ],
+                cost: 4500
+            },
+            {
+                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
+                options: [ sdGun.CLASS_RAIL_SHOTGUN2 ],
+                cost: 4500
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_CUBE_FUSION_CORE ],
-                cost: 2000
+                cost: 7500
             }
         ]
     }
