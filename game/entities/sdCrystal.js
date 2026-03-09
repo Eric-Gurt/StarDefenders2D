@@ -1908,7 +1908,7 @@ class sdCrystal extends sdEntity
 					if ( this.is_anticrystal )
 					reward_amount = 0;
 
-					// reward_amount = Math.min( 700, ~~( reward_amount ) );
+                    reward_amount = Math.min( 700, ~~( reward_amount ) );
 
 					if ( reward_amount > 0 )
 					{
