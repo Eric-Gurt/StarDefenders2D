@@ -8218,6 +8218,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 15,
 			matter_cost: 1500,
+            spawnable: false,
 			min_build_tool_level: 15,
 			
 			min_workbench_level: 3,
@@ -10607,6 +10608,7 @@ class sdGunClass
 			ammo_capacity: 8,
 			projectile_velocity: 15 * 1.5,
 			matter_cost: 1500,
+            spawnable: false,
 			min_build_tool_level: 25,
 			
 			min_workbench_level: 5,
@@ -10678,6 +10680,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			projectile_velocity: 15 * 2,
 			matter_cost: 1500,
+            spawnable: false,
 			min_build_tool_level: 35,
 			
 			min_workbench_level: 7,
