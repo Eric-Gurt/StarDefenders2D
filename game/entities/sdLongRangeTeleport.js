@@ -26,6 +26,7 @@ import sdJunk from './sdJunk.js';
 import sdLandScanner from './sdLandScanner.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
+import sdCraftingBench from './sdCraftingBench.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -726,6 +727,8 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 6; i++ )
 			{
 				let shard = new sdGun({ x:this.x + ( -16 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+                shard.sd_filter = sdWorld.CreateSDFilter();
+                shard.sd_filter.s = sdCraftingBench.cube_items_filter.s;
 				sdEntity.entities.push( shard );
 			}
 		}
@@ -1947,6 +1950,7 @@ class sdLongRangeTeleport extends sdEntity
 								//this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
 								//this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
 								this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
+                                this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
 								this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
 								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
 								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
