@@ -316,7 +316,7 @@ class sdButton extends sdEntity
 						let ent_value = this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ? ( e.matter_max || e._matter_max || 0 ) :
                                         this.type === sdButton.TYPE_WALL_MATTER_SENSOR ? ( e.matter || e._matter || 0 ) :
                                         this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR ? Math.round( ( e.matter || e._matter || 0 ) / ( e.matter_max || e._matter_max || 1 ) * 100 ) :
-                                        e.matter_regen || 0;
+                                        Math.round( e.matter_regen ) || 0;
 
 						if ( condition === '=' )
 						{
