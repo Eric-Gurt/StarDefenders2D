@@ -66,7 +66,7 @@ class sdCraftingBench extends sdEntity
                 callback: null
             },
             {
-                needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
+                needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_RAIL_PISTOL ],
                 cost: 500,
                 callback: ( gun ) => {
@@ -75,7 +75,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
+                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
                 options: [ sdGun.CLASS_RAIL_PISTOL2, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_SHOTGUN ],
                 cost: 1500,
                 callback: ( gun ) => {
@@ -84,7 +84,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
+                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_TRIPLE_RAIL2 ],
                 cost: 4500,
                 callback: ( gun ) => {
@@ -93,7 +93,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
+                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_RAIL_SHOTGUN2 ],
                 cost: 4500,
                 callback: ( gun ) => {
@@ -233,10 +233,15 @@ class sdCraftingBench extends sdEntity
 	{
         if ( slot === 8 ) // result
         return { x: 0, y: 0 };
-    
+
         const PI2 = Math.PI * 2;
-        const angle = PI2 * ( slot / ( sdCraftingBench.slots_tot - 1 ) ) - Math.PI / 2;
         const distance = 26;
+        const count = sdCraftingBench.slots_tot - 1;
+
+        let angle = PI2 * ( slot / ( count / 2 ) ) - Math.PI / 2;
+
+        if ( slot >= 4 )
+        angle += PI2 / count;
 
         return { 
             x: Math.cos( angle ) * distance,
