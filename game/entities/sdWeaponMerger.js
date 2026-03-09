@@ -469,7 +469,7 @@ class sdWeaponMerger extends sdEntity
 		
 		if ( from_entity.is( sdGun ) )
 		{
-			if ( from_entity._held_by === null && && from_entity.held_by === null && this.IsWeaponCompatible( from_entity ) ) // Make sure gun has DPS which makes it mergable
+			if ( from_entity._held_by === null && from_entity.held_by === null && this.IsWeaponCompatible( from_entity ) ) // Make sure gun has DPS which makes it mergable
 			{
 				/*let free_slot = -1;
 				
