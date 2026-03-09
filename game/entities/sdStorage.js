@@ -469,10 +469,10 @@ class sdStorage extends sdEntity
 		if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
 		return 980 + this._hmax * sdWorld.damage_to_matter;
 	}
-						
+
 	static GetTitleForCrystal( from_entity )
 	{
-		return ( from_entity.title+' ( ' + sdWorld.RoundedThousandsSpaces(from_entity.matter_max) + ' max matter, ' + (~~from_entity.matter_regen) + '% regen rate )' );
+		return ( from_entity.title+' ( ' + sdWorld.RoundedThousandsSpaces(from_entity.matter_max) + ' max matter, ' + Math.round(from_entity.matter_regen) + '% regen rate )' );
 	}
 
 	onMovementInRange( from_entity )
