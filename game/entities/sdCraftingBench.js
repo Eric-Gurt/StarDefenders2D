@@ -124,7 +124,7 @@ class sdCraftingBench extends sdEntity
         sdSound.PlaySound({ name:'gun_psicutter', x:this.x, y:this.y, volume:2, pitch: 1.2 });
 
         this.matter -= craft.cost;
-
+        this.WakeUpMatterSources();
         const gun = new sdGun({ class: type, x: this.x, y: this.y });
         gun._held_by = this;
         gun.ttl = -1;
