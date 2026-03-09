@@ -67,7 +67,7 @@ class sdCraftingBench extends sdEntity
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
-                options: [ sdGun.CLASS_RAIL_PISTOL ],
+                options: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_HEALING_RAY ],
                 cost: 500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
