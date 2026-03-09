@@ -17,6 +17,9 @@ class sdCraftingBench extends sdEntity
 		sdCraftingBench.slots_tot = 8 + 1;
 		
 		sdCraftingBench.max_matter = 10000;
+        
+        sdCraftingBench.cube_items_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( sdCraftingBench.cube_items_filter, '#00fff6', '#555555' );
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -59,32 +62,53 @@ class sdCraftingBench extends sdEntity
             {
                 needed: [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER, sdGun.CLASS_CUBE_FUSION_CORE ], 
                 options: [ sdGun.CLASS_PHASE_RIFLE ],
-                cost: 5000
+                cost: 5000,
+                callback: null
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_RAIL_PISTOL ],
-                cost: 500
+                cost: 500,
+                callback: ( gun ) => {
+                    gun.sd_filter = sdWorld.CreateSDFilter();
+                    gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
+                }
             },
             {
                 needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
                 options: [ sdGun.CLASS_RAIL_PISTOL2, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_SHOTGUN ],
-                cost: 1500
+                cost: 1500,
+                callback: ( gun ) => {
+                    gun.sd_filter = sdWorld.CreateSDFilter();
+                    gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
+                }
             },
             {
                 needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_TRIPLE_RAIL2 ],
-                cost: 4500
+                cost: 4500,
+                callback: ( gun ) => {
+                    gun.sd_filter = sdWorld.CreateSDFilter();
+                    gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
+                }
             },
             {
                 needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_RAIL_SHOTGUN2 ],
-                cost: 4500
+                cost: 4500,
+                callback: ( gun ) => {
+                    gun.sd_filter = sdWorld.CreateSDFilter();
+                    gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
+                }
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_CUBE_FUSION_CORE ],
-                cost: 7500
+                cost: 7500,
+                callback: ( gun ) => {
+                    gun.sd_filter = sdWorld.CreateSDFilter();
+                    gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
+                }
             }
         ]
     }
@@ -149,6 +173,10 @@ class sdCraftingBench extends sdEntity
         gun._held_by = this;
         gun.ttl = -1;
         this.item8 = gun; // move to middle
+
+        if ( craft.callback )
+        craft.callback( gun );
+
         sdEntity.entities.push( gun );
         
         return true;
