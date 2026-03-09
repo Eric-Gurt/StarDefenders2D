@@ -141,6 +141,9 @@ class sdCraftingBench extends sdEntity
     
     GetAnyCraft( weapons )
     {
+        if ( this.item8 )
+        return false; // No crafts if theres a result already
+
         const input = [];
 
         for ( const weapon of weapons )
