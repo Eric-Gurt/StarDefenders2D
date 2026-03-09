@@ -164,7 +164,7 @@ class sdCraftingBench extends sdEntity
                 this[ 'item' + i ] = null;
             }
         }
-        sdWorld.SendEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_LENS_FLARE, scale: 3, radius: 6, color: '#ffffff' });
+        sdWorld.SendEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_GLOW_ALT, scale: 3, radius: 2, color: '#ffffff' });
         sdSound.PlaySound({ name:'gun_psicutter', x:this.x, y:this.y, volume:2, pitch: 1.2 });
 
         this.matter -= craft.cost;
