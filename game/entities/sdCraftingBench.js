@@ -60,14 +60,8 @@ class sdCraftingBench extends sdEntity
     {
         return [
             {
-                needed: [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER, sdGun.CLASS_DRAIN_SHOTGUN, sdGun.CLASS_CUBE_FUSION_CORE ], 
-                options: [ sdGun.CLASS_PHASE_RIFLE ],
-                cost: 5000,
-                callback: null
-            },
-            {
                 needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ], 
-                options: [ sdGun.CLASS_DRAIN_RIFLE ],
+                options: [ sdGun.CLASS_PHASE_RIFLE, sdGun.CLASS_DRAIN_RIFLE ],
                 cost: 1500,
                 callback: null
             },
