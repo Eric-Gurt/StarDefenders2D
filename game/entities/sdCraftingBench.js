@@ -10,41 +10,38 @@ class sdCraftingBench extends sdEntity
 {
 	static init_class()
 	{
-		sdCraftingBench.img_merger = sdWorld.CreateImageFromFile( 'sdCraftingBench' );
+		sdCraftingBench.img_merger = sdWorld.CreateImageFromFile( 'sdCraftingBench' ); // by The Commander
 		
 		sdCraftingBench.access_range = 64;
 		
-		sdCraftingBench.slots_tot = 9;
+		sdCraftingBench.slots_tot = 8 + 1;
 		
-		sdCraftingBench.max_matter = 20000; // Matter cost for merging guns
-        
-        // Positions in array
-        sdCraftingBench.WEAPONS_NEEDED = 0;
-        sdCraftingBench.CRAFT_RESULT = 1;
-        sdCraftingBench.MATTER_COST = 2;
+		sdCraftingBench.max_matter = 10000;
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1()  { return -24; }
 	get hitbox_x2()  { return 24; }
-	get hitbox_y1()  { return 5; }
-	get hitbox_y2()  { return 16; }
+	get hitbox_y1()  { return -24; }
+	get hitbox_y2()  { return 24; }
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
+    
+    ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{
+		return [ 0, 0, -40 ];
+	}
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return false; }
 	
 	constructor( params )
 	{
 		super( params );
-		
-		//this.sx = 0;
-		//this.sy = 0;
 
 		this._hea = 1200;
 		this._hmax = 1200;
@@ -53,27 +50,22 @@ class sdCraftingBench extends sdEntity
 		this._matter_max = sdCraftingBench.max_matter;
 		this._regen_timeout = 0;
 		
-		this.power0 = -1; // Displays power of left slot weapon
-		this.power1 = -1; // Displays power of right slot weapon
-
-		//this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
-		
-		this._current_category_stack = [];
-		
-		//this._held_items = [];
-		//this.held_net_ids = [];
-		
 		for ( var i = 0; i < sdCraftingBench.slots_tot; ++i )
 		this[ 'item' + i ] = null;
 	}
     GetCrafts() // So multiple variants could exist eventually
     {
         return [
-            [ [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER, sdGun.CLASS_ETERNAL_SHARD ], [ sdGun.CLASS_PHASE_RIFLE ] ],
-            // Tests
-            [ [ sdGun.CLASS_RIFLE, sdGun.CLASS_RIFLE ], [ sdGun.CLASS_SHOTGUN, sdGun.CLASS_RAILGUN ] ],
-            [ [ sdGun.CLASS_SNIPER, sdGun.CLASS_PISTOL ], [ sdGun.CLASS_SPARK ] ],
-            [ [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, ], [ sdGun.CLASS_TRIPLE_RAIL ] ],
+            {
+                needed: [ sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_DRAIN_SNIPER, sdGun.CLASS_CUBE_FUSION_CORE ], 
+                options: [ sdGun.CLASS_PHASE_RIFLE ],
+                cost: 5000
+            },
+            {
+                needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, ],
+                options: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_SHOTGUN ],
+                cost: 1000
+            }
         ]
     }
 	Damage( dmg, initiator=null )
@@ -104,36 +96,41 @@ class sdCraftingBench extends sdEntity
         const items = this.GetItems();
 
         if ( !items )
-        return;
-
-        if ( this.matter !== this._matter_max )
-		return; // Just in case
+        return false;
         
-        const crafts = this.GetAnyCraft( items );
-        if ( !crafts )
-        return;
+        const craft = this.GetAnyCraft( items );
+        if ( !craft )
+        return false;
+    
+        if ( this.matter - craft.cost < 0 )
+        return false;
 
-        const type = crafts[ index ];
+        const type = craft.options[ index ]
         if ( !type )
         return;
 
-        for ( const item of items )
-        item.remove();
+        for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
+        {
+            if ( this[ 'item' + i ] )
+            {
+                const offset = this.GetItemOffset( i );
+                sdWorld.SendEffect({ x: this.x + offset.x, y: this.y + offset.y, scale: 3, radius: 3, type: sdEffect.TYPE_LENS_FLARE, color: '#ffffff' });
+                sdWorld.SendEffect({ x: this.x + offset.x, y: this.y + offset.y, x2: this.x, y2: this.y, type: sdEffect.TYPE_ALT_RAIL, color: '#ffffff' });
+                this[ 'item' + i ].remove();
+                this[ 'item' + i ] = null;
+            }
+        }
+        sdWorld.SendEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_LENS_FLARE, scale: 3, radius: 6, color: '#ffffff' });
 
-        for ( let i = 0; i < sdCraftingBench.slot_tot; ++i )
-        this[ 'item' + i ] = null;
-
-        this.matter = 0;
+        this.matter -= craft.cost;
 
         const gun = new sdGun({ class: type, x: this.x, y: this.y });
         gun._held_by = this;
         gun.ttl = -1;
-        this.item0 = gun; // move to middle
+        this.item8 = gun; // move to middle
         sdEntity.entities.push( gun );
         
-        sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
-        sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
-        sdWorld.SendEffect({ x:this.x + 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT });
+        return true;
     }
     
     GetAnyCraft( weapons )
@@ -142,17 +139,19 @@ class sdCraftingBench extends sdEntity
 
         for ( const weapon of weapons )
         input.push( weapon.class );
-        input.sort();
 
-        for ( const [ needed, result ] of this.GetCrafts() )
+        input.sort(); // so they are always on the same order regardless of how they were entered
+
+        for ( const craft of this.GetCrafts() )
         {
-            const sorted = needed.slice().sort()
+            const needed = craft.needed;
+            const sorted = needed.slice().sort();
 
             if ( sorted.length === input.length && sorted.every( ( v, i ) => v === input[ i ] ) )
-            return result;
+            return craft;
         }
 
-        return false;
+        return false; // No crafts with given items
     }
         
 	onThink( GSPEED ) // Class-specific, if needed
@@ -177,19 +176,19 @@ class sdCraftingBench extends sdEntity
 		{
             this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
-	}
+    }
     GetItemOffset ( slot ) // Cleaner way
 	{
-        const rows = 3;
+        if ( slot === 8 ) // result
+        return { x: 0, y: 0 };
+    
+        const PI2 = Math.PI * 2;
+        const angle = PI2 * ( slot / ( sdCraftingBench.slots_tot - 1 ) ) - Math.PI / 2;
+        const distance = 26;
 
-        const space_x = 16;
-        const space_y = 16;
-
-        const offset_x = -16
-        const offset_y = -20
         return { 
-            x: offset_x + ( slot % rows ) * space_x,
-            y: offset_y + Math.floor( slot / rows ) * space_y
+            x: Math.cos( angle ) * distance,
+            y: Math.sin( angle ) * distance
         };
 	}
 
@@ -199,25 +198,67 @@ class sdCraftingBench extends sdEntity
 	}
 	get description()
 	{
-		return `Can be used to craft items and weapons.`;
+		return `Can be used to craft items and weapons by combining them.`;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T( this.title ) );
+		sdEntity.TooltipUntranslated( ctx, `${ T( this.title ) } ( ${ sdWorld.RoundedThousandsSpaces( this.matter ) } / ${ sdWorld.RoundedThousandsSpaces( this._matter_max ) } )` );
 	}
-	Draw( ctx, attached )
+	DrawBG( ctx, attached )
 	{
+        if ( sdShop.isDrawing )
+        {
+            ctx.scale( 0.75, 0.75 );
+           // ctx.translate( 0, 12 );
+        }
+
 		ctx.drawImageFilterCache( sdCraftingBench.img_merger, 0, 0, 64,64, - 32, - 32, 64, 64 );
 		for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
         {
             const item = this[ 'item' + i ];
             if ( !item )
             continue;
+    
             ctx.save();
             const offsets = this.GetItemOffset( i );
             ctx.translate( offsets.x, offsets.y );
             item.Draw( ctx, true );
             ctx.restore();
+        }
+
+        const craft = this.GetAnyCraft( this.GetItems() );
+        if ( craft.options )
+        {
+            for ( let i = 0; i < craft.options.length; ++i )
+            {
+                const option = craft.options[ Math.floor( ( sdWorld.time / 3000 ) % craft.options.length ) ];
+                const gun = sdGun.classes[ option ]
+
+                ctx.sd_color_mult_r = 0;
+                ctx.filter = 'brightness(1.5) saturate(0.5)'
+
+                ctx.globalAlpha = Math.sin( ( sdWorld.time % 3000 ) / 3000 * Math.PI );
+                
+                if ( gun.image )
+                ctx.drawImageFilterCache( gun.image, - 16, -16, 32,32 );
+            
+                if ( gun.image_body )
+                ctx.drawImageFilterCache( gun.image_body, - 16, -16, 32,32 );
+
+                if ( gun.image_blade )
+                ctx.drawImageFilterCache( gun.image_blade, - 16, -16, 32,32 );
+
+                if ( gun.image_barrel )
+                ctx.drawImageFilterCache( gun.image_barrel, - 16, -16, 32,32 );
+            
+                if ( gun.image_glow )
+                ctx.drawImageFilterCache( gun.image_glow, - 16, -16, 32,32 );
+
+                ctx.globalAlpha = 1;
+                ctx.sd_color_mult_r = 1;
+                ctx.filter = 'none';
+                //ctx.sd_color_mult_b = 1;
+            }
         }
 	}
 	onRemove() // Class-specific, if needed
@@ -257,11 +298,11 @@ class sdCraftingBench extends sdEntity
 		
 		if ( from_entity.is( sdGun ) )
 		{
-			if ( from_entity._held_by === null )
+			if ( from_entity._held_by === null && from_entity.held_by === null )
 			{
 				let free_slot = -1;
 				
-				for ( var i = 0; i < sdCraftingBench.slots_tot; ++i )
+				for ( var i = 0; i < sdCraftingBench.slots_tot - 1; ++i )
 				{
 					if ( this[ 'item' + i ] )
 					{
@@ -369,12 +410,15 @@ class sdCraftingBench extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
+        if ( parameters_array )
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) )
 			{
                 if ( command_name === 'CRAFT' )
                 {
-                    this.CraftWeapon( parameters_array[ 0 ] );
+                    const success = this.CraftWeapon( parameters_array[ 0 ] );
+                    if ( !success )
+                    executer_socket.SDServiceMessage( 'Not enough matter' );
                 }
                 if ( command_name === 'GET' )
                 {
@@ -388,8 +432,6 @@ class sdCraftingBench extends sdEntity
                     this._update_version++;
                 }
             }
-            else
-            executer_socket.SDServiceMessage( 'Not enough matter' );
 
             this._update_version++;
         }
@@ -412,11 +454,14 @@ class sdCraftingBench extends sdEntity
 				if ( item )
                 this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
 			}
-            const crafts = this.GetAnyCraft( this.GetItems() );
-            for ( let i = 0; i < crafts.length; ++i )
+            const craft = this.GetAnyCraft( this.GetItems() );
+            if ( craft.options )
             {
-                const craft = crafts[ i ];
-                this.AddContextOption( `Craft ${ sdGun.classes[ craft ].title }`, 'CRAFT', [ i ] );
+                for ( let i = 0; i < craft.options.length; ++i )
+                {
+                    const option = craft.options[ i ]
+                    this.AddContextOption( `Craft ${ sdGun.classes[ option ].title } (${ sdWorld.RoundedThousandsSpaces( craft.cost ) } matter)`, 'CRAFT', [ i ] );
+                }
             }
 		}
 	}
