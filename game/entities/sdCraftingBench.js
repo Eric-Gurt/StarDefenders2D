@@ -241,7 +241,7 @@ class sdCraftingBench extends sdEntity
         let angle = PI2 * ( slot / ( count / 2 ) ) - Math.PI / 2;
 
         if ( slot >= 4 )
-        angle += PI2 / count;
+        angle += PI2 / count; // fill cardinal and then diagonal
 
         return { 
             x: Math.cos( angle ) * distance,
@@ -265,7 +265,7 @@ class sdCraftingBench extends sdEntity
 	{
         if ( sdShop.isDrawing )
         {
-            ctx.scale( 0.75, 0.75 );
+            ctx.scale( 0.65, 0.65 );
            // ctx.translate( 0, 12 );
         }
 
