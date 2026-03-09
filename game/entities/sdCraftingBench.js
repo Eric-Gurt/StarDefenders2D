@@ -66,6 +66,24 @@ class sdCraftingBench extends sdEntity
                 callback: null
             },
             {
+                needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ], 
+                options: [ sdGun.CLASS_DRAIN_RIFLE ],
+                cost: 1500,
+                callback: null
+            },
+            {
+                needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_TRIPLE_RAIL ], 
+                options: [ sdGun.CLASS_DRAIN_SNIPER ],
+                cost: 1500,
+                callback: null
+            },
+            {
+                needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_RAIL_SHOTGUN ], 
+                options: [ sdGun.CLASS_DRAIN_SHOTGUN ],
+                cost: 1500,
+                callback: null
+            },
+            {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_HEALING_RAY ],
                 cost: 500,
@@ -103,8 +121,8 @@ class sdCraftingBench extends sdEntity
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
-                options: [ sdGun.CLASS_CUBE_FUSION_CORE ],
-                cost: 7500,
+                options: [ sdGun.CLASS_CUBE_ARMOR ],
+                cost: 1500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
@@ -238,10 +256,10 @@ class sdCraftingBench extends sdEntity
         const distance = 26;
         const count = sdCraftingBench.slots_tot - 1;
 
-        let angle = PI2 * ( slot / ( count / 2 ) ) - Math.PI / 2;
-
+        let angle = PI2 * ( slot / ( count / 2 ) ) - Math.PI;
+        // fill cardinal and then diagonal
         if ( slot >= 4 )
-        angle += PI2 / count; // fill cardinal and then diagonal
+        angle += PI2 / count;
 
         return { 
             x: Math.cos( angle ) * distance,
