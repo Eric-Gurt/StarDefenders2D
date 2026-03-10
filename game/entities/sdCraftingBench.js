@@ -60,21 +60,27 @@ class sdCraftingBench extends sdEntity
     {
         return [
             {
-                needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ], 
+                needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ],
                 options: [ sdGun.CLASS_PHASE_RIFLE, sdGun.CLASS_DRAIN_RIFLE ],
                 cost: 1500,
                 callback: null
             },
             {
-                needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_TRIPLE_RAIL ], 
+                needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_DRAIN_SNIPER ],
                 cost: 1500,
                 callback: null
             },
             {
-                needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_RAIL_SHOTGUN ], 
+                needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_DRAIN_SHOTGUN ],
                 cost: 1500,
+                callback: null
+            },
+            {
+                needed: [ sdGun.CLASS_KVT_MMG, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
+                options: [ sdGun.CLASS_KVT_MMG_MK2 ],
+                cost: 500,
                 callback: null
             },
             {
