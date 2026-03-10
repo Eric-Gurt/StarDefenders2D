@@ -11146,6 +11146,10 @@ class sdGunClass
         sdGun.classes[ sdGun.CLASS_SD_MINIGUN = 162 ] = // Sprite by LazyRain
 		{
 			image: sdWorld.CreateImageFromFile( 'sd_minigun' ),
+			/*image0: [ sdWorld.CreateImageFromFile( 'sd_minigun0' ), sdWorld.CreateImageFromFile( 'sd_minigun0' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'sd_minigun1' ), sdWorld.CreateImageFromFile( 'sd_minigun1' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'sd_minigun2' ), sdWorld.CreateImageFromFile( 'sd_minigun2' ) ],
+			has_images: true,*/
 			title: 'Minigun SD-134',
 			slot: 2,
 			sound: 'gun_pistol',
@@ -11168,7 +11172,7 @@ class sdGunClass
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
-
+				
 				return obj;
 			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
