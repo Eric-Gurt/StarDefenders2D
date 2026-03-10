@@ -23,10 +23,10 @@ class sdCraftingBench extends sdEntity
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -24; }
-	get hitbox_x2() { return 24; }
-	get hitbox_y1() { return -24; }
-	get hitbox_y2() { return 24; }
+	get hitbox_x1() { return -27; }
+	get hitbox_x2() { return 27; }
+	get hitbox_y1() { return -27; }
+	get hitbox_y2() { return 27; }
 	
 	get spawn_align_x() { return 8; };
 	get spawn_align_y() { return 8; };
