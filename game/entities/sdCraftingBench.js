@@ -310,16 +310,26 @@ class sdCraftingBench extends sdEntity
         {
             const option = craft.options[ Math.floor( ( sdWorld.time / 3000 ) % craft.options.length ) ];
             const has_matter = this.matter - craft.cost > -0.01; // Hack due to float rounding problems
-            const gun = sdGun.classes[ option ];
+            //const gun = sdGun.classes[ option ];
 
-            ctx.sd_color_mult_r = has_matter ? 0 : 1;
-            ctx.sd_color_mult_g = ctx.sd_color_mult_b = has_matter ? 1 : 0;
+            //ctx.sd_color_mult_r = has_matter ? 0 : 1;
+            //ctx.sd_color_mult_g = ctx.sd_color_mult_b = has_matter ? 1 : 0;
+            
+            const r = has_matter ? 0 : 1;
+            const g = has_matter ? 1 : 0;
+            const b = g;
 
             ctx.filter = 'brightness(1.5) saturate(0.5)'
-
+            ctx.sd_status_effect_tint_filter = [ r, g, b ];
             ctx.globalAlpha = Math.sin( ( sdWorld.time % 3000 ) / 3000 * Math.PI );
+            
+            const fake_ent = new sdGun({ class: option, x: this.x, y: this.y });
+            fake_ent.Draw( ctx, true );
+            fake_ent.remove();
+            fake_ent._broken = false;
+            fake_ent._remove();
 
-            if ( gun.image )
+          /*  if ( gun.image )
             ctx.drawImageFilterCache( gun.image, -16, -16, 32, 32 );
             
             if ( gun.image_body )
@@ -332,13 +342,14 @@ class sdCraftingBench extends sdEntity
             ctx.drawImageFilterCache( gun.image_barrel, -16, -16, 32, 32 );
             
             if ( gun.image_glow )
-            ctx.drawImageFilterCache( gun.image_glow, -16, -16, 32, 32 );
+            ctx.drawImageFilterCache( gun.image_glow, -16, -16, 32, 32 );*/
 
             ctx.globalAlpha = 1;
 
-            ctx.sd_color_mult_r = 1;
-            ctx.sd_color_mult_g = 1;
-            ctx.sd_color_mult_b = 1;
+            //ctx.sd_color_mult_r = 1;
+            //ctx.sd_color_mult_g = 1;
+            //ctx.sd_color_mult_b = 1;
+            ctx.sd_status_effect_tint_filter = null;
 
             ctx.filter = 'none';
         }
