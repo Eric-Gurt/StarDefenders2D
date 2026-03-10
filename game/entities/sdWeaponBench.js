@@ -562,6 +562,7 @@ class sdWeaponBench extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
+        if ( parameters_array )
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 			{
