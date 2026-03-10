@@ -62,26 +62,27 @@ class sdCraftingBench extends sdEntity
             {
                 needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ],
                 options: [ sdGun.CLASS_PHASE_RIFLE, sdGun.CLASS_DRAIN_RIFLE ],
-                cost: 1500,
-                callback: null
+                cost: 1500
             },
             {
                 needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_DRAIN_SNIPER ],
-                cost: 1500,
-                callback: null
+                cost: 1500
             },
             {
                 needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_DRAIN_SHOTGUN ],
-                cost: 1500,
-                callback: null
+                cost: 1500
             },
             {
                 needed: [ sdGun.CLASS_KVT_MMG, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
                 options: [ sdGun.CLASS_KVT_MMG_MK2 ],
-                cost: 500,
-                callback: null
+                cost: 500
+            },
+            {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
+                options: [ sdGun.CLASS_SD_MINIGUN ],
+                cost: 3000
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
