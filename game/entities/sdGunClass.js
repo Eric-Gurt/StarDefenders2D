@@ -3411,10 +3411,10 @@ class sdGunClass
 			spread: 0.03,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { _damage: 37, color: '#ffeb00', _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 37, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#ffeb00', _dirt_mult: -0.5 };
+				let obj = { _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -3443,7 +3443,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades([ { 
+			upgrades: AddGunDefaultUpgrades([ /*{ 
 				title: 'Upgrade to Mark II',
 				cost: 480,
 				action: ( gun, initiator=null ) => 
@@ -3455,7 +3455,7 @@ class sdGunClass
 				// gun.sound = 'gun_the_ripper2';
 				// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
 				// gun.spread = 0.03; // Spread and rate of fire are also unaffected
-			} ])
+			}*/ ])
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
@@ -3473,10 +3473,10 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { _damage: 42, color: '#ffeb00', _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 42, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#ffeb00', _dirt_mult: -0.5 };
+				let obj = { _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
