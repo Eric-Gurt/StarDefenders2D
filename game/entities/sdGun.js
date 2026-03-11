@@ -752,6 +752,9 @@ class sdGun extends sdEntity
 			this._held_by.reload_anim = 15;
 
 			this.fire_mode = ( this.fire_mode === 1 ) ? 2 : 1;
+            
+            if ( sdGun.classes[ this.class ].onFireModeChange ) // Custom extra logic
+            sdGun.classes[ this.class ].onFireModeChange( this, this.fire_mode );
 		}
 	}
 	
