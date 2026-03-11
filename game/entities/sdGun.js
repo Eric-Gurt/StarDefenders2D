@@ -1843,7 +1843,7 @@ class sdGun extends sdEntity
 				
 				if ( this._held_by )
 				{
-					if ( this._held_by._auto_shoot_in > 0 )
+					if ( this._held_by.auto_shoot_in > 0 )
 					if ( has_class.image_charging )
 					if ( has_class.has_alt_fire_mode )
 					{
@@ -1853,7 +1853,7 @@ class sdGun extends sdEntity
 						image = has_class.image_charging;
 					}
 					else
-					if ( this._held_by._auto_shoot_in > 0 )
+					if ( this._held_by.auto_shoot_in > 0 )
 					if ( has_class.image_charging )
 					{
 						image = has_class.image_charging;
