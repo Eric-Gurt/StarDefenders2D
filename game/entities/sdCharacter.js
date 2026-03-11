@@ -1275,7 +1275,6 @@ THING is cosmic mic drop!`;
 		
 		this._god = false;
 		this._debug = false; // Debug godmode when /god 2 // Always check for _god property too
-		this.skin_allowed = true;
 		
 		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
 		this._last_discovery = sdWorld.time; // Do not interrupt instructor as much
@@ -7610,8 +7609,6 @@ THING is cosmic mic drop!`;
 					}
 					if ( command_name === 'ADMIN_CONTROL' )
 					{
-						executer_socket;
-
 						if ( this._socket )
 						{
 							executer_socket.SDServiceMessage( 'Player has connected socket' );
@@ -7624,61 +7621,17 @@ THING is cosmic mic drop!`;
 							this._socket = executer_socket;
 							executer_socket.character = this;
 
-							this.title = exectuter_character.title;
-							this.title_censored = exectuter_character.title_censored;
+							//this.title = exectuter_character.title;
+							//this.title_censored = exectuter_character.title_censored;
 
-							this._god = true;
+							// this._god = true;
+                            this._ai_team = 0;
+                            this._ai_enabled = 0;
+                            this._ai = null;
 
 							executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
 
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-						}
-					}
-					if ( command_name === 'ADMIN_CONTROLB' )
-					{
-						executer_socket;
-
-						if ( this._socket )
-						{
-							executer_socket.SDServiceMessage( 'Player has connected socket' );
-						}
-						else
-						{
-							if ( !this._my_hash )
-							{
-								exectuter_character._socket = null;
-
-								executer_socket.SDServiceMessage( 'Have a new start with other guy! :D' );
-
-								this._ai_team = 0;
-								this._ai_enabled = 0;
-								this._ai = null;
-
-								this._socket = executer_socket;
-								executer_socket.character = this;
-								this.skin_allowed = false;
-
-								this.title_censored = exectuter_character.title_censored;
-
-								this._god = false;
-
-								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILD_TOOL }) );
-								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_LIGHT_ARMOR }) );
-
-								this._my_hash = exectuter_character._my_hash;
-
-								this.GiveScore( 3000, null, false );
-
-								executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
-
-								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-								exectuter_character.remove();
-							}
-							else
-							{
-								executer_socket.SDServiceMessage( 'Controlling no AI player is not allowed.' );
-							}
 						}
 					}
 				}
@@ -7885,7 +7838,6 @@ THING is cosmic mic drop!`;
 					if ( this !== sdWorld.my_entity )
 					{
 						this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
-						this.AddContextOption( 'Replace as player ( AI only, delete self-owned )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 					}
 				}
 
