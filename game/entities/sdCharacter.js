@@ -7625,9 +7625,9 @@ THING is cosmic mic drop!`;
 							//this.title = exectuter_character.title;
 							//this.title_censored = exectuter_character.title_censored;
 
-							// this._god = true;
-                            this._ai_team = 0;
-                            this._ai_enabled = 0;
+							//this._god = true;
+                            //this._ai_team = 0;
+                            this._ai_enabled = false;
                             this._ai = null;
 
 							executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
