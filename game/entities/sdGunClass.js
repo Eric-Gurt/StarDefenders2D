@@ -11172,7 +11172,7 @@ class sdGunClass
 				
 				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
-				
+
 				return obj;
 			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
@@ -11190,6 +11190,82 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
 				( [], '#cc841a', 15, ) )
 
+		};
+        sdGun.classes[ sdGun.CLASS_IMPACTOR = 163 ] =
+		{
+			image: sdWorld.CreateImageFromFile( 'impactor' ),
+            image_charging: sdWorld.CreateImageFromFile( 'impactor_charging' ),
+			sound: 'gun_raygun',
+			sound_pitch: 0.8,
+			title: 'SD-Impactor',
+			slot: 4,
+			reload_time: 30,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return gun.fire_mode === 2 ? 100 : 30;
+			},
+            onShootAttempt: ( gun, shoot_from_scenario ) =>
+			{
+                if ( gun.fire_mode === 2 )
+                {
+                    if ( !shoot_from_scenario )
+                    {
+                        if ( gun._held_by )
+                        if ( gun._held_by._auto_shoot_in <= 0 )
+                        {
+                            gun._held_by._auto_shoot_in = 35;
+                            sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 });
+                        }
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+                return true;
+			},
+            projectile_properties: { color: '#aaffff' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { explosion_radius: gun.fire_mode === 2 ? 24 : 16, _rail: true, _rail_circled: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#aaffff', _no_explosion_smoke: true, _explosion_shrapnel: gun.fire_mode === 2, _temperature_addition: gun.fire_mode === 2 ? 15000 : 5000 };
+                obj._knock_scale = 1.4 * gun.extra[ ID_DAMAGE_MULT ] * ( gun.fire_mode === 2 ? 2 : 1 );
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ] * ( gun.fire_mode === 2 ? 2 : 1 ); // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+            
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 105; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			( [], '#00ffff', 15, 'lights' ),
+			'#ffffff', 15, 'charging' ) )
 		};
 		// Add new gun classes above this line //
 
@@ -11228,4 +11304,3 @@ class sdGunClass
 }
 
 export default sdGunClass;
-
