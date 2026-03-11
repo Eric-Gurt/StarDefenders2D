@@ -59,6 +59,11 @@ class sdCraftingBench extends sdEntity
     GetCrafts() // So multiple variants could exist eventually
     {
         return [
+            /*{
+                needed: [ sdGun.CLASS_ADMIN_REMOVER ],
+                options: [ ...(() => { const arr = []; for ( const p in sdGun.classes ) arr.push( p ); return arr; })() ],
+                cost: 1
+            },*/
             {
                 needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ],
                 options: [ sdGun.CLASS_PHASE_RIFLE, sdGun.CLASS_DRAIN_RIFLE ],
