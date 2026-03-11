@@ -1348,7 +1348,7 @@ THING is cosmic mic drop!`;
 		
 		this._fall_sound_time = 0;
 		
-		this._auto_shoot_in = 0; // Timer, when above 0 player can not switch weapon or drop weapon nor shoot. Once it reaches 0 - player will automatically shoot, probably
+		this.auto_shoot_in = 0; // Timer, when above 0 player can not switch weapon or drop weapon nor shoot. Once it reaches 0 - player will automatically shoot, probably
 		
 		this._current_built_entity = null; // For entities that are built in 2 or more stages, usually with help of separate weapon. These include sdCable-s
 		
@@ -1695,10 +1695,10 @@ THING is cosmic mic drop!`;
 				if ( this._weapon_draw_timer > 0 )
 				will_fire = false;
 
-				if ( this._auto_shoot_in > 0 )
+				if ( this.auto_shoot_in > 0 )
 				{
-					this._auto_shoot_in -= GSPEED;
-					if ( this._auto_shoot_in <= 0 )
+					this.auto_shoot_in -= GSPEED;
+					if ( this.auto_shoot_in <= 0 )
 					{
 						will_fire = true;
 						shoot_from_scenario = true;
@@ -1807,6 +1807,7 @@ THING is cosmic mic drop!`;
 				{
 					if ( this._key_states.GetKey( 'KeyN' ) )
 					{
+                        if ( this.auto_shoot_in <= 0 )
 						this._inventory[ this.gun_slot ].ChangeFireModeStart();
 					}
 					else
@@ -1930,7 +1931,7 @@ THING is cosmic mic drop!`;
 	
 	DropWeaponLogic( GSPEED )
 	{
-		if ( this._auto_shoot_in <= 0 )
+		if ( this.auto_shoot_in <= 0 )
 		{
 			if ( this._key_states.GetKey( 'KeyV' ) && !this.driver_of && this._frozen <= 0 )
 			{
@@ -1969,7 +1970,7 @@ THING is cosmic mic drop!`;
 		if ( this.weapon_stun_timer > 0 )
 		return;
 	
-		if ( this._auto_shoot_in <= 0 )
+		if ( this.auto_shoot_in <= 0 )
 		{
 			if ( this._key_states.GetKey( 'KeyQ' ) )
 			{
@@ -2074,7 +2075,7 @@ THING is cosmic mic drop!`;
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 	
-		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
+		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this.auto_shoot_in > 0 || this.time_ef > 0 )
 		return true;
 	
 		if ( observer_character )
@@ -2482,7 +2483,7 @@ THING is cosmic mic drop!`;
 			
 			let is_cloner = best_t.IsCloner();
 			
-			this._auto_shoot_in = 0; // Cancel lost particle converter-like guns from being shot
+			this.auto_shoot_in = 0; // Cancel lost particle converter-like guns from being shot
 			
 			// Create temporary copy just for visuals
 			//let copy_ent = new sdCharacter({ x:this.x, y:this.y });
@@ -4192,10 +4193,10 @@ THING is cosmic mic drop!`;
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
 		
-		if ( this._auto_shoot_in > 0 )
-		if ( this._ai_attack_time < this._auto_shoot_in )
+		if ( this.auto_shoot_in > 0 )
+		if ( this._ai_attack_time < this.auto_shoot_in )
 		{
-			this._ai_attack_time += this._auto_shoot_in;
+			this._ai_attack_time += this.auto_shoot_in;
 		}
 
 		if ( ai_will_fire && this._ai_attack_time <= 0 )
@@ -5006,7 +5007,7 @@ THING is cosmic mic drop!`;
 			this.DropWeaponLogic( GSPEED );
 			this.WeaponSwitchLogic( GSPEED );
 			
-			/*if ( this._auto_shoot_in <= 0 )
+			/*if ( this.auto_shoot_in <= 0 )
 			{
 				if ( this._key_states.GetKey( 'KeyV' ) )
 				{
