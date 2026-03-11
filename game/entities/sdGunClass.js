@@ -8792,6 +8792,10 @@ class sdGunClass
 				else
 				return 30;
 			},
+            onFireModeChange: ( gun, fire_mode ) =>
+            {
+                gun._count = fire_mode === 2 ? 4 : 1;
+            },
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( !shoot_from_scenario )
@@ -8802,13 +8806,11 @@ class sdGunClass
 						if ( gun.fire_mode !== 1 )
 						{
 							gun._held_by.auto_shoot_in = 30;
-							gun._count = 4;
 							sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 1, pitch: 0.9 });
 						}
 						else
 						{
 							gun._held_by.auto_shoot_in = 32.5;
-							gun._count = 1;
 							sdSound.PlaySound({ name: 'alien_energy_power_charge1_fast', x:gun.x, y:gun.y, volume: 1.2, pitch: 0.9 });
 						}
 
@@ -11073,10 +11075,13 @@ class sdGunClass
 					}
 				};
 			},
+            onFireModeChange: ( gun, fire_mode ) =>
+            {
+                gun._count = fire_mode === 1 ? 1 : 5;
+                gun._spread = fire_mode === 1 ? 0 : 0.15;
+            },
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
-                gun._count = gun.fire_mode === 1 ? 1 : 5;
-                gun._spread = gun.fire_mode === 1 ? 0 : 0.15;
                 gun._reload_time = 6 * gun._count;
                 gun.overheat += 7.5 * gun._count;
                 
