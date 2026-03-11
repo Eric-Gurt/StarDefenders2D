@@ -85,6 +85,11 @@ class sdCraftingBench extends sdEntity
                 cost: 3000
             },
             {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_CUBE_FUSION_CORE, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_ERTHAL_ENERGY_CELL ],
+                options: [ sdGun.CLASS_IMPACTOR ],
+                cost: 5000
+            },
+            {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_HEALING_RAY ],
                 cost: 500,
