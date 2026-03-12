@@ -670,9 +670,9 @@ class sdOverlord extends sdEntity
 				//let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
 				let initial_an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
 
-				let waving = Math.sin( sdWorld.time / 500 * Math.PI + this._anim_shift ) * 0.3;
+				let waving = this.gun_type === sdGun.CLASS_OVERLORD_BLASTER ? Math.sin( sdWorld.time / 500 * Math.PI + this._anim_shift ) * 0.3 : 0;
 
-				this.attack_an = ( this.side * ( initial_an + waving * ( 1 - this._concentration * 0.9 ) ) + Math.PI * 0.5 ) / Math.PI * 180;
+				this.attack_an = ( this.side * ( initial_an + waving * ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER ? ( 1 - this._concentration * 0.9 ) : 1 ) ) + Math.PI * 0.5 ) / Math.PI * 180;
 
 				if ( this._reload_timer > 0 )
 				this._reload_timer -= GSPEED;
@@ -714,7 +714,10 @@ class sdOverlord extends sdEntity
 							}
 						}
 
-						initial_an += ( Math.random() * 0.8 - 0.4 + waving ) * ( 1 - this._concentration * 0.9 );
+						initial_an += ( Math.random() * 0.8 - 0.4 + waving );
+
+                        if ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER )
+                        initial_an *= ( 1 - this._concentration * 0.9 );
 
 						let dx2 = 0;
 						let dy2 = 0;
@@ -737,7 +740,7 @@ class sdOverlord extends sdEntity
 						}
 
                         const count = sdGun.classes[ this.gun_type ].count;
-                        const spread = this.gun_type === sdGun.CLASS_OVERLORD_BLASTER2 ? 0.2 : 0;
+                        const spread = sdGun.classes [ this.gun_type ].spread || 0;
                         
                         for ( let i = 0; i < count; ++i )
                         {
@@ -745,8 +748,11 @@ class sdOverlord extends sdEntity
                             let dx = -Math.sin( an );
                             let dy = -Math.cos( an );
 
-                            dx = dx * ( 1 - this._concentration ) + dx2 * this._concentration;
-                            dy = dy * ( 1 - this._concentration ) + dy2 * this._concentration;
+                            if ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER )
+                            {
+                                dx = dx * ( 1 - this._concentration ) + dx2 * this._concentration;
+                                dy = dy * ( 1 - this._concentration ) + dy2 * this._concentration;
+                            }
 
                             let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdOverlord.rifle_offset_y });
 
