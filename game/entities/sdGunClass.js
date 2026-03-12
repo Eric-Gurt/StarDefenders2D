@@ -5377,8 +5377,6 @@ class sdGunClass
 			}
 		};
 		
-		
-		
 		sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER = 82 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'overlord_blaster' ),
@@ -5393,6 +5391,10 @@ class sdGunClass
 			matter_cost: 60,
 			spawnable: false,
 			projectile_velocity: 12,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return gun.extra === 1 ? 10 : 0;
+			},
 			projectile_properties: { 
 				
 				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
@@ -11228,7 +11230,7 @@ class sdGunClass
                         if ( gun._held_by )
                         if ( gun._held_by.auto_shoot_in <= 0 )
                         {
-                            gun._held_by.auto_shoot_in = 35;
+                            gun._held_by.auto_shoot_in = 25;
                             sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 });
                         }
                         return false;
@@ -11264,13 +11266,95 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 105; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 110; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 			( [], '#00ffff', 15, 'lights' ),
 			'#ffffff', 15, 'charging' ) )
+		};
+        sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER2 = 164 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'overlord_blaster2' ),
+			sound: 'overlord_cannon4',
+			title: 'Overlord\'s blaster',
+			slot: 8,
+			reload_time: 15,
+			//muzzle_x: 11,
+			image_firing: sdWorld.CreateImageFromFile( 'overlord_blaster2_fire' ),
+			ammo_capacity: -1,
+			count: 3,
+            spread: 0.15,
+			matter_cost: 60,
+			spawnable: false,
+			projectile_velocity: 12,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return gun.extra === 1 ? 30 : 0;
+			},
+			projectile_properties: { 
+				
+				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
+			},
+			projectile_properties_dynamic: ( gun )=>{
+				
+				let obj = { 
+					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
+				};
+				
+				return obj;
+			},
+			onMade: ( gun, params )=>
+			{
+				gun.extra = 0;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun.extra === 1 )
+				return true;
+			
+				for ( let i = 0; i < sdOverlord.overlords.length; i++ )
+				{
+					if ( sdWorld.inDist2D_Boolean( gun.x, gun.y, sdOverlord.overlords[ i ].x, sdOverlord.overlords[ i ].y, 250 ) )
+					return true;
+				}
+				
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				{
+					gun._held_by.Say( 'This weapon does not shoot anymore' );
+				}
+				
+				return false;
+			},
+			upgrades:
+				AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [
+					{ 
+						title: 'Unlock overlord blaster',
+						cost: 1000,
+						action: ( gun, initiator=null )=>{ 
+							//gun.class = sdGun.CLASS_TRIPLE_RAIL2;
+							//gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
+							//gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
+							if ( gun.extra === 0 )
+							{
+								gun.extra = 1;
+								//initiator.Say( '' );
+								return true;
+							}
+							
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Weapon is already unlocked.' );
+					
+							return false;
+						}
+					}
+				],
+                '#e459aa', 30, 'glow' ),
+                '#000000', 30, 'body' ),
+                '#ffffff', 30, 'attack' )
 		};
 		// Add new gun classes above this line //
 
