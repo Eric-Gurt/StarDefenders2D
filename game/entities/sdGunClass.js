@@ -11278,8 +11278,8 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'overlord_blaster2' ),
 			sound: 'overlord_cannon4',
-			title: 'Overlord\'s blaster',
-			slot: 8,
+			title: 'Overlord\'s shotgun',
+			slot: 3,
 			reload_time: 15,
 			//muzzle_x: 11,
 			image_firing: sdWorld.CreateImageFromFile( 'overlord_blaster2_fire' ),
@@ -11331,7 +11331,7 @@ class sdGunClass
 			upgrades:
 				AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [
 					{ 
-						title: 'Unlock overlord blaster',
+						title: 'Unlock overlord shotgun',
 						cost: 1000,
 						action: ( gun, initiator=null )=>{ 
 							//gun.class = sdGun.CLASS_TRIPLE_RAIL2;
