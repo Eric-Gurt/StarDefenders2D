@@ -1056,9 +1056,10 @@ class sdOverlord extends sdEntity
 		
 		if ( this.has_gun )
 		{
-			ctx.filter = 'none';
 			ctx.save();
 			{
+                ctx.filter = 'none';
+                ctx.sd_hue_rotation = 0;
 				ctx.translate( 0, sdOverlord.rifle_offset_y );
 				ctx.rotate( this.attack_an / 180 * Math.PI - Math.PI );
                 ctx.drawImageFilterCache( this.attack_frame < 1 ? sdGun.classes[ this.gun_type ].image : sdGun.classes[ this.gun_type ].image_firing, 0,0,32,32, -16, -16, 32,32 );
