@@ -338,6 +338,7 @@ class sdCraftingBench extends sdEntity
 
             ctx.filter = 'brightness(1.5) saturate(0.5)'
             ctx.sd_status_effect_tint_filter = [ r, g, b ];
+            ctx.apply_shading = false;
             ctx.globalAlpha = Math.sin( ( sdWorld.time % 3000 ) / 3000 * Math.PI );
             
             const fake_ent = new sdGun({ class: option, x: this.x, y: this.y });
