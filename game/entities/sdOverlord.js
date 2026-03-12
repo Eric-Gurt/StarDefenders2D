@@ -714,10 +714,11 @@ class sdOverlord extends sdEntity
 							}
 						}
 
-						initial_an += ( Math.random() * 0.8 - 0.4 + waving );
-
                         if ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER )
-                        initial_an *= ( 1 - this._concentration * 0.9 );
+                        {
+                            initial_an += ( Math.random() * 0.8 - 0.4 + waving );
+                            initial_an *= ( 1 - this._concentration * 0.9 );
+                        }
 
 						let dx2 = 0;
 						let dy2 = 0;
