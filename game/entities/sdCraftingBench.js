@@ -147,7 +147,28 @@ class sdCraftingBench extends sdEntity
 			this.remove();
 		}
 	}
-	
+    PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate. Can be also used to make it ignore certain bullet kinds altogether
+	{
+		if ( bullet )
+		{
+			if ( bullet._bg_shooter )
+			{
+				return true;
+			}
+			else
+			if ( bullet._gun && sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ] )
+			{
+				return ( 
+					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].is_sword ||
+					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].slot === 0 || // Some sword-like guns (fists, deconstruction hammers yet can't be thrown to deal damage) have slot 0
+					bullet._gun.class === sdGun.CLASS_CABLE_TOOL ||
+					bullet._gun.class === sdGun.CLASS_WELD_TOOL );
+			}
+			return false;
+		}
+		
+		return true;
+	}
 	onMatterChanged( by=null ) // Update version so it is consistent
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
