@@ -2077,6 +2077,7 @@ class sdCrystal extends sdEntity
 
 								this.walk_direction = this.side * 80;
 
+                                if ( !this.held_by )
 								if ( Math.random() < 0.333 || ( this.sx === 0 && this.y + 50 > this._current_target.y ) )
 								{
 									this.sy -= 4;
@@ -2124,6 +2125,7 @@ class sdCrystal extends sdEntity
 							this._blink_until = sdWorld.time + 200 + Math.random() * 200;
 							else
 							if ( r < 0.5 )
+                            if ( !this.held_by )
 							{
 								//this.side = Math.random() < 0.5 ? 1 : -1;
 								this.sy -= ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? 4 : 3;
