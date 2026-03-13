@@ -903,7 +903,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdObelisk', type: 7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', type: 8, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdOverlord', gun_type: sdGun.CLASS_OVERLORD_BLASTER, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdOverlord', gun_type: sdGun.CLASS_OVERLORD_BLASTER2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdPlayerOverlord', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTutel', type:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTutel', type:1, _category:'Development tests' });
