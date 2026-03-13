@@ -101,7 +101,8 @@ class sdCommandCentre extends sdEntity
 		
 		this.owner = params.owner || null;
 		
-		this.biometry = globalThis.sdDictionaryWords ? sdDictionaryWords.GetRandomWord().toUpperCase() : '';
+		this.biometry = globalThis.sdDictionaryWords ? sdDictionaryWords.GetRandomWord().toUpperCase() : 'UNKNOWN';
+        this.censored = false;
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
@@ -259,7 +260,12 @@ class sdCommandCentre extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+this.biometry+')', 0, -8 - 6 );
+        let t = this.biometry;
+		
+        if ( sdWorld.client_side_censorship && this.censored )
+        t = sdWorld.CensoredText( t );
+
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+t+')', 0, -8 - 6 );
 		
 		this.BasicVehicleTooltip( ctx, 0 - 6 );
 		
@@ -472,6 +478,19 @@ class sdCommandCentre extends sdEntity
 					else
 					executer_socket.SDServiceMessage( 'Could not find user in list' );
 				}
+                if ( command_name === 'RENAME' )
+                if ( parameters_array )
+                if ( typeof parameters_array[ 0 ] === 'string' )
+                {
+                    if ( parameters_array[ 0 ].length < 20 )
+                    {
+                        this.biometry = parameters_array[ 0 ].toUpperCase();
+                        this.censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+                        this._update_version++;
+                    }
+                    else
+                    executer_socket.SDServiceMessage( 'Name is too long' );
+                }
 				else
 				executer_socket.SDServiceMessage( 'Command is not allowed' );
 			}
@@ -502,7 +521,8 @@ class sdCommandCentre extends sdEntity
 							this._update_version++;
 						}
 					}
-				}/*
+				}
+                    /*
 				else
 				if ( command_name === 'REQUEST_TASK' )
 				{
@@ -529,6 +549,7 @@ class sdCommandCentre extends sdEntity
 		{
 			if ( this.owner === exectuter_character )
 			{
+                this.AddPromptContextOption( 'Set command center ID', 'RENAME', [ undefined ], 'Enter new ID', '', 20 );
 				this.AddContextOption( 'Accept everyone', 'ACCEPT_ALL', [ ] );
 				this.AddContextOption( 'Reject everyone', 'REJECT_ALL', [ ] );
 				this.AddContextOption( 'Kick everyone from team', 'KICK_ALL', [ ] );
