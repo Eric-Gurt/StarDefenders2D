@@ -102,7 +102,7 @@ class sdCommandCentre extends sdEntity
 		this.owner = params.owner || null;
 		
 		this.biometry = globalThis.sdDictionaryWords ? sdDictionaryWords.GetRandomWord().toUpperCase() : 'UNKNOWN';
-        this.censored = false;
+        this.biometry_censored = false;
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
@@ -262,8 +262,8 @@ class sdCommandCentre extends sdEntity
 	{
         let t = this.biometry;
 		
-        if ( sdWorld.client_side_censorship && this.censored )
-        t = sdWorld.CensoredText( t );
+        if ( sdWorld.client_side_censorship && this.biometry_censored )
+        t = sdWorld.biometry_censoredText( t );
 
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+t+')', 0, -8 - 6 );
 		
@@ -485,7 +485,7 @@ class sdCommandCentre extends sdEntity
                     if ( parameters_array[ 0 ].length < 20 )
                     {
                         this.biometry = parameters_array[ 0 ].toUpperCase();
-                        this.censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+                        this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
                         this._update_version++;
                     }
                     else
