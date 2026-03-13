@@ -277,6 +277,13 @@ class sdRotator extends sdEntity
             }, 500 )
         }
     }
+    IsVisible( observer_character )
+    {
+        if ( this.owner )
+        return this.owner.IsVisible( observer_character );
+    
+        return true;
+    }
     GetFilter()
     {
         if ( this.type === sdRotator.TYPE_CUBE_DISC || this.type === sdRotator.TYPE_CUBE_SHELL )
@@ -327,6 +334,9 @@ class sdRotator extends sdEntity
 	{
         // if ( this.disabled || attached )
         {
+            if ( this.owner && this.owner.is( sdCube ) )
+            ctx.globalAlpha = this.owner.alpha / 100;
+
             ctx.rotate ( this.angle / 100 );
             ctx.sd_filter = this.GetFilter();
 
@@ -354,6 +364,7 @@ class sdRotator extends sdEntity
             ctx.drawImageFilterCache( sdRotator.img_rotator, 32 * xx, 32 * yy, 32,32, -16, -16, 32,32 );
 
             ctx.sd_filter = null;
+            ctx.globalAlpha = 1;
         }
 	}
     
