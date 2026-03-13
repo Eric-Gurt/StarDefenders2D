@@ -1837,7 +1837,8 @@ let enf_once = true;
 		if ( ent.is( sdCharacter ) )
 		{
 			{
-				ent3 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
+                                let options = [ sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE, sdGun.CLASS_SHOTGUN, sdGun.CLASS_RAILGUN, sdGun.CLASS_SNIPER, sdGun.CLASS_ROCKET, sdGun.CLASS_SPARK, sdGun.CLASS_TOPS_GRENADE_LAUNCHER, sdGun.CLASS_TOPS_PLASMA_RIFLE ];
+				ent3 = new sdGun({ x:0, y:0, class: options[ Math.floor( ( sdWorld.time / 4000 ) % options.length ) ] });
 				ent._inventory[ 1 ] = ent3;
 				ent3._held_by = ent;
 			}
