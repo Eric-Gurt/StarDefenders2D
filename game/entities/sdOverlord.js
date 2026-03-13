@@ -672,7 +672,7 @@ class sdOverlord extends sdEntity
 
 				let waving = this.gun_type === sdGun.CLASS_OVERLORD_BLASTER ? Math.sin( sdWorld.time / 500 * Math.PI + this._anim_shift ) * 0.3 : 0;
 
-				this.attack_an = ( this.side * ( initial_an + waving * ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER ? ( 1 - this._concentration * 0.9 ) : 1 ) ) + Math.PI * 0.5 ) / Math.PI * 180;
+				this.attack_an = ( this.side * ( initial_an + waving * ( 1 - this._concentration * 0.9 ) ) + Math.PI * 0.5 ) / Math.PI * 180;
 
 				if ( this._reload_timer > 0 )
 				this._reload_timer -= GSPEED;
@@ -716,8 +716,7 @@ class sdOverlord extends sdEntity
 
                         if ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER )
                         {
-                            initial_an += ( Math.random() * 0.8 - 0.4 + waving );
-                            initial_an *= ( 1 - this._concentration * 0.9 );
+                            initial_an += ( Math.random() * 0.8 - 0.4 + waving ) * ( 1 - this._concentration * 0.9 );
                         }
 
 						let dx2 = 0;
