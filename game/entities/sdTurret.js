@@ -294,6 +294,13 @@ class sdTurret extends sdEntity
 
         this._current_built_entity = null; // Used by cable and welding turrets turrets
         this._built_cables = [];
+        
+        this._liquid = { // Doesn't hold any, just for detection in cable network
+			max: 0, 
+			amount: 0, 
+			type: -1, 
+			extra: 0 // Used for essence
+		};
 		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
@@ -460,7 +467,26 @@ class sdTurret extends sdEntity
 				( is_rail ? 30 : 0 ) + 
 				( explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;*/
 	}
-	
+    PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
+	{
+		return this.kind === sdTurret.KIND_AUTO_CABLE;
+	}
+	LiquidTransferMode() // 0 - balance liquids, 1 - only give liquids, 2 - only take liquids
+	{
+		return 1;
+	}
+	IsLiquidTypeAllowed( type )
+	{
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+        {
+            if ( type === -1 )
+            return true;
+
+            return ( this._liquid.type === -1 || this._liquid.type === type ); // Accepts all liquid types
+        }
+
+        return false;
+	}
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );

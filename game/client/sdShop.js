@@ -399,6 +399,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 10, _min_build_tool_level: 36, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponBench', type: 0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdWeaponBench', type: 1,  _category:'Base equipment', _min_build_tool_level: 10 });
+            sdShop.options.push({ _class: 'sdCraftingBench', _category:'Base equipment', _min_build_tool_level: 10 });
 			sdShop.options.push({ _class: 'sdWeaponMerger',_min_workbench_level: 5, _category:'Base equipment' });
 
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
@@ -902,7 +903,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdObelisk', type: 7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', type: 8, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdOverlord', gun_type: sdGun.CLASS_OVERLORD_BLASTER, _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdOverlord', gun_type: sdGun.CLASS_OVERLORD_BLASTER2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdPlayerOverlord', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTutel', type:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTutel', type:1, _category:'Development tests' });

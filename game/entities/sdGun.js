@@ -20,6 +20,7 @@ import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
 import sdWeaponBench from './sdWeaponBench.js';
 import sdWeaponMerger from './sdWeaponMerger.js';
+import sdCraftingBench from './sdCraftingBench.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCrystal from './sdCrystal.js';
 
@@ -692,7 +693,7 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
-			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) )
+			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) || this._held_by.is( sdCraftingBench ) )
 			return true;
 			else
 			if ( this._held_by.is( sdStorage ) )
@@ -751,6 +752,9 @@ class sdGun extends sdEntity
 			this._held_by.reload_anim = 15;
 
 			this.fire_mode = ( this.fire_mode === 1 ) ? 2 : 1;
+            
+            if ( sdGun.classes[ this.class ].onFireModeChange ) // Custom extra logic
+            sdGun.classes[ this.class ].onFireModeChange( this, this.fire_mode );
 		}
 	}
 	
@@ -1842,7 +1846,7 @@ class sdGun extends sdEntity
 				
 				if ( this._held_by )
 				{
-					if ( this._held_by._auto_shoot_in > 0 )
+					if ( this._held_by.auto_shoot_in > 0 )
 					if ( has_class.image_charging )
 					if ( has_class.has_alt_fire_mode )
 					{
@@ -1852,7 +1856,7 @@ class sdGun extends sdEntity
 						image = has_class.image_charging;
 					}
 					else
-					if ( this._held_by._auto_shoot_in > 0 )
+					if ( this._held_by.auto_shoot_in > 0 )
 					if ( has_class.image_charging )
 					{
 						image = has_class.image_charging;

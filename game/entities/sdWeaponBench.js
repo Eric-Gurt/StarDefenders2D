@@ -135,6 +135,32 @@ class sdWeaponBench extends sdEntity
             };
 		}
 	}
+    PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate. Can be also used to make it ignore certain bullet kinds altogether
+	{
+        if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
+        return true;
+
+		if ( bullet )
+		{
+			if ( bullet._bg_shooter )
+			{
+				return true;
+			}
+			else
+			if ( bullet._gun && sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ] )
+			{
+				return ( 
+					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].is_sword ||
+					sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ].slot === 0 || // Some sword-like guns (fists, deconstruction hammers yet can't be thrown to deal damage) have slot 0
+					bullet._gun.class === sdGun.CLASS_CABLE_TOOL ||
+					bullet._gun.class === sdGun.CLASS_WELD_TOOL ||
+                    bullet._gun.class === sdGun.CLASS_ACCESS_KEY );
+			}
+			return false;
+		}
+		
+		return true;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -155,7 +181,7 @@ class sdWeaponBench extends sdEntity
 		
 		if ( this._hea >= this._hmax )
 		{
-				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+            this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}
 	get title()
@@ -397,7 +423,7 @@ class sdWeaponBench extends sdEntity
 		if ( from_entity.is( sdGun ) )
 		if ( !sdGun.classes[ from_entity.class ].ignore_slot || sdGun.classes[ from_entity.class ].armor_properties || allow_ignored_items ) // Allow some un-upgradable items for display only, and allow armors
 		{
-			if ( from_entity._held_by === null )
+			if ( from_entity._held_by === null && from_entity.held_by === null )
 			{
 				let free_slot = -1;
 				
@@ -562,6 +588,7 @@ class sdWeaponBench extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
+        if ( parameters_array )
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 			{

@@ -615,6 +615,14 @@ class sdJunk extends sdEntity
 
 					sdEntity.entities.push( gun2 );
 				}, 500 );
+                
+                if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Eternal Shard
+				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let gun3 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ETERNAL_SHARD });
+
+					sdEntity.entities.push( gun3 );
+				}, 500 );
 			}
             
             if ( this.type === sdJunk.TYPE_ENERGY_ORB )

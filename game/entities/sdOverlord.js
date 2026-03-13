@@ -110,6 +110,7 @@ class sdOverlord extends sdEntity
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
 		this.has_gun = 1;
+        this.gun_type = params.gun_type ?? ( Math.random() < 0.5 ? sdGun.CLASS_OVERLORD_BLASTER : sdGun.CLASS_OVERLORD_BLASTER2 );
 		this._droppen_gun_entity = null;
 		
 		this._relations_to_classes = {};
@@ -296,7 +297,7 @@ class sdOverlord extends sdEntity
 				
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-					let gun = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_OVERLORD_BLASTER });
+					let gun = new sdGun({ x:this.x, y:this.y, class:this.gun_type });
 					
 					gun.sx = this.sx;
 					gun.sy = this.sy;
@@ -667,18 +668,18 @@ class sdOverlord extends sdEntity
 				this.side = ( t.x > this.x ) ? 1 : -1;
 
 				//let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
-				let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
+				let initial_an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
 
-				let waving = Math.sin( sdWorld.time / 500 * Math.PI + this._anim_shift ) * 0.3;
+				let waving = this.gun_type === sdGun.CLASS_OVERLORD_BLASTER ? Math.sin( sdWorld.time / 500 * Math.PI + this._anim_shift ) * 0.3 : 0;
 
-				this.attack_an = ( this.side * ( an + waving * ( 1 - this._concentration * 0.9 ) ) + Math.PI * 0.5 ) / Math.PI * 180;
+				this.attack_an = ( this.side * ( initial_an + waving * ( 1 - this._concentration * 0.9 ) ) + Math.PI * 0.5 ) / Math.PI * 180;
 
 				if ( this._reload_timer > 0 )
 				this._reload_timer -= GSPEED;
 				else
 				if ( this._reload_timer <= 0 )
 				{
-					this._reload_timer = 5;
+					this._reload_timer = this.gun_type === sdGun.CLASS_OVERLORD_BLASTER2 ? 15 : 5;
 
 					this._muzzle_timer = 5;
 
@@ -713,7 +714,10 @@ class sdOverlord extends sdEntity
 							}
 						}
 
-						an += ( Math.random() * 0.8 - 0.4 + waving ) * ( 1 - this._concentration * 0.9 );
+                        if ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER )
+                        {
+                            initial_an += ( Math.random() * 0.8 - 0.4 + waving ) * ( 1 - this._concentration * 0.9 );
+                        }
 
 						let dx2 = 0;
 						let dy2 = 0;
@@ -735,37 +739,47 @@ class sdOverlord extends sdEntity
 							}
 						}
 
-						let dx = -Math.sin( an );
-						let dy = -Math.cos( an );
+                        const count = sdGun.classes[ this.gun_type ].count;
+                        const spread = sdGun.classes [ this.gun_type ].spread || 0;
+                        
+                        for ( let i = 0; i < count; ++i )
+                        {
+                            let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
+                            let dx = -Math.sin( an );
+                            let dy = -Math.cos( an );
 
-						dx = dx * ( 1 - this._concentration ) + dx2 * this._concentration;
-						dy = dy * ( 1 - this._concentration ) + dy2 * this._concentration;
+                            if ( this.gun_type === sdGun.CLASS_OVERLORD_BLASTER )
+                            {
+                                dx = dx * ( 1 - this._concentration ) + dx2 * this._concentration;
+                                dy = dy * ( 1 - this._concentration ) + dy2 * this._concentration;
+                            }
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdOverlord.rifle_offset_y });
+                            let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdOverlord.rifle_offset_y });
 
-						bullet_obj._owner = this;
+                            bullet_obj._owner = this;
 
-						bullet_obj.sx = dx;
-						bullet_obj.sy = dy;
-						bullet_obj.x += bullet_obj.sx * 9;
-						bullet_obj.y += bullet_obj.sy * 9;
+                            bullet_obj.sx = dx;
+                            bullet_obj.sy = dy;
+                            bullet_obj.x += bullet_obj.sx * 9;
+                            bullet_obj.y += bullet_obj.sy * 9;
 
-						bullet_obj.sx *= 12;
-						bullet_obj.sy *= 12;
+                            bullet_obj.sx *= 12;
+                            bullet_obj.sy *= 12;
 
-						bullet_obj._damage = 0;
-						bullet_obj.color = '#ff00aa';
+                            bullet_obj._damage = 0;
+                            bullet_obj.color = '#ff00aa';
 
-						bullet_obj.model = 'blaster_proj';
+                            bullet_obj.model = 'blaster_proj';
 
-						bullet_obj.explosion_radius = 9;
-                        bullet_obj._no_explosion_smoke = true;
-						
-						//bullet_obj._custom_target_reaction = sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER ].projectile_properties._custom_target_reaction;
-						
-						//bullet_obj.explosion_radius = 0; // Hack
+                            bullet_obj.explosion_radius = 9;
+                            bullet_obj._no_explosion_smoke = true;
+                            
+                            //bullet_obj._custom_target_reaction = sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER ].projectile_properties._custom_target_reaction;
+                            
+                            //bullet_obj.explosion_radius = 0; // Hack
 
-						sdEntity.entities.push( bullet_obj );
+                            sdEntity.entities.push( bullet_obj );
+                        }
 					}
 					else
 					{
@@ -1048,12 +1062,13 @@ class sdOverlord extends sdEntity
 		
 		if ( this.has_gun )
 		{
-			ctx.filter = 'none';
 			ctx.save();
 			{
+                ctx.filter = 'none';
+                ctx.sd_hue_rotation = 0;
 				ctx.translate( 0, sdOverlord.rifle_offset_y );
-				ctx.rotate( this.attack_an / 180 * Math.PI );
-				ctx.drawImageFilterCache( sdOverlord.img_overlord, ( 5 + this.attack_frame )*32,0,32,64, -16, -32, 32,64 );
+				ctx.rotate( this.attack_an / 180 * Math.PI - Math.PI );
+                ctx.drawImageFilterCache( this.attack_frame < 1 ? sdGun.classes[ this.gun_type ].image : sdGun.classes[ this.gun_type ].image_firing, 0,0,32,32, -16, -16, 32,32 );
 			}
 			ctx.restore();
 		}
@@ -1069,7 +1084,7 @@ class sdOverlord extends sdEntity
 		if ( this.state_hp <= 1 )
 		if ( !this.has_gun )
 		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class === sdGun.CLASS_OVERLORD_BLASTER )
+		if ( from_entity.class === sdGun.CLASS_OVERLORD_BLASTER || from_entity.class === sdGun.CLASS_OVERLORD_BLASTER2 )
 		if ( !from_entity._is_being_removed )
 		{
 			if ( this._droppen_gun_entity === from_entity )
@@ -1078,6 +1093,8 @@ class sdOverlord extends sdEntity
 			this.Say( 'This will do' );
 			
 			this.has_gun = true;
+            this.gun_type = from_entity.class;
+
 			from_entity.remove();
 		}
 	}

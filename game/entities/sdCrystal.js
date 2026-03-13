@@ -1908,7 +1908,7 @@ class sdCrystal extends sdEntity
 					if ( this.is_anticrystal )
 					reward_amount = 0;
 
-					reward_amount = Math.min( 700, ~~( reward_amount ) );
+                    reward_amount = Math.min( 700, ~~( reward_amount ) );
 
 					if ( reward_amount > 0 )
 					{
@@ -2077,6 +2077,7 @@ class sdCrystal extends sdEntity
 
 								this.walk_direction = this.side * 80;
 
+                                if ( !this.held_by )
 								if ( Math.random() < 0.333 || ( this.sx === 0 && this.y + 50 > this._current_target.y ) )
 								{
 									this.sy -= 4;
@@ -2124,6 +2125,7 @@ class sdCrystal extends sdEntity
 							this._blink_until = sdWorld.time + 200 + Math.random() * 200;
 							else
 							if ( r < 0.5 )
+                            if ( !this.held_by )
 							{
 								//this.side = Math.random() < 0.5 ? 1 : -1;
 								this.sy -= ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? 4 : 3;
@@ -2272,7 +2274,7 @@ class sdCrystal extends sdEntity
 			/*if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
 				( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
 				  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )*/
-			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + Math.round(this.matter_regen ) + "%)" );
 			/*else
 			{
 				if ( this.is_depleted )

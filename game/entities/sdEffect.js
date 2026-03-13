@@ -384,13 +384,13 @@ class sdEffect extends sdEntity
 		sdEffect.types[ sdEffect.TYPE_SPARK ].collisions = false;
 		sdEffect.types[ sdEffect.TYPE_SPARK ].gravity = false;
 		sdEffect.types[ sdEffect.TYPE_SPARK ].speed = 1 / 3;
+        sdEffect.types[ sdEffect.TYPE_SPARK ].apply_shading = false;
 		
 		sdEffect.types[ sdEffect.TYPE_SMOKE ] = {
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
 			speed: 1 / 30,
-			apply_shading: false,
             collisions: true,
 			random_rotation: true
 		};

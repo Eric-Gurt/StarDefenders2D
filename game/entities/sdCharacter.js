@@ -1275,7 +1275,6 @@ THING is cosmic mic drop!`;
 		
 		this._god = false;
 		this._debug = false; // Debug godmode when /god 2 // Always check for _god property too
-		this.skin_allowed = true;
 		
 		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
 		this._last_discovery = sdWorld.time; // Do not interrupt instructor as much
@@ -1349,7 +1348,7 @@ THING is cosmic mic drop!`;
 		
 		this._fall_sound_time = 0;
 		
-		this._auto_shoot_in = 0; // Timer, when above 0 player can not switch weapon or drop weapon nor shoot. Once it reaches 0 - player will automatically shoot, probably
+		this.auto_shoot_in = 0; // Timer, when above 0 player can not switch weapon or drop weapon nor shoot. Once it reaches 0 - player will automatically shoot, probably
 		
 		this._current_built_entity = null; // For entities that are built in 2 or more stages, usually with help of separate weapon. These include sdCable-s
 		
@@ -1696,10 +1695,10 @@ THING is cosmic mic drop!`;
 				if ( this._weapon_draw_timer > 0 )
 				will_fire = false;
 
-				if ( this._auto_shoot_in > 0 )
+				if ( this.auto_shoot_in > 0 )
 				{
-					this._auto_shoot_in -= GSPEED;
-					if ( this._auto_shoot_in <= 0 )
+					this.auto_shoot_in -= GSPEED;
+					if ( this.auto_shoot_in <= 0 )
 					{
 						will_fire = true;
 						shoot_from_scenario = true;
@@ -1808,6 +1807,7 @@ THING is cosmic mic drop!`;
 				{
 					if ( this._key_states.GetKey( 'KeyN' ) )
 					{
+                        if ( this.auto_shoot_in <= 0 )
 						this._inventory[ this.gun_slot ].ChangeFireModeStart();
 					}
 					else
@@ -1931,7 +1931,7 @@ THING is cosmic mic drop!`;
 	
 	DropWeaponLogic( GSPEED )
 	{
-		if ( this._auto_shoot_in <= 0 )
+		if ( this.auto_shoot_in <= 0 )
 		{
 			if ( this._key_states.GetKey( 'KeyV' ) && !this.driver_of && this._frozen <= 0 )
 			{
@@ -1970,7 +1970,7 @@ THING is cosmic mic drop!`;
 		if ( this.weapon_stun_timer > 0 )
 		return;
 	
-		if ( this._auto_shoot_in <= 0 )
+		if ( this.auto_shoot_in <= 0 )
 		{
 			if ( this._key_states.GetKey( 'KeyQ' ) )
 			{
@@ -2075,7 +2075,7 @@ THING is cosmic mic drop!`;
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 	
-		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
+		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this.auto_shoot_in > 0 || this.time_ef > 0 )
 		return true;
 	
 		if ( observer_character )
@@ -2483,7 +2483,7 @@ THING is cosmic mic drop!`;
 			
 			let is_cloner = best_t.IsCloner();
 			
-			this._auto_shoot_in = 0; // Cancel lost particle converter-like guns from being shot
+			this.auto_shoot_in = 0; // Cancel lost particle converter-like guns from being shot
 			
 			// Create temporary copy just for visuals
 			//let copy_ent = new sdCharacter({ x:this.x, y:this.y });
@@ -4193,10 +4193,10 @@ THING is cosmic mic drop!`;
 			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
 		
-		if ( this._auto_shoot_in > 0 )
-		if ( this._ai_attack_time < this._auto_shoot_in )
+		if ( this.auto_shoot_in > 0 )
+		if ( this._ai_attack_time < this.auto_shoot_in )
 		{
-			this._ai_attack_time += this._auto_shoot_in;
+			this._ai_attack_time += this.auto_shoot_in;
 		}
 
 		if ( ai_will_fire && this._ai_attack_time <= 0 )
@@ -5007,7 +5007,7 @@ THING is cosmic mic drop!`;
 			this.DropWeaponLogic( GSPEED );
 			this.WeaponSwitchLogic( GSPEED );
 			
-			/*if ( this._auto_shoot_in <= 0 )
+			/*if ( this.auto_shoot_in <= 0 )
 			{
 				if ( this._key_states.GetKey( 'KeyV' ) )
 				{
@@ -7610,8 +7610,6 @@ THING is cosmic mic drop!`;
 					}
 					if ( command_name === 'ADMIN_CONTROL' )
 					{
-						executer_socket;
-
 						if ( this._socket )
 						{
 							executer_socket.SDServiceMessage( 'Player has connected socket' );
@@ -7624,61 +7622,17 @@ THING is cosmic mic drop!`;
 							this._socket = executer_socket;
 							executer_socket.character = this;
 
-							this.title = exectuter_character.title;
-							this.title_censored = exectuter_character.title_censored;
+							//this.title = exectuter_character.title;
+							//this.title_censored = exectuter_character.title_censored;
 
-							this._god = true;
+							//this._god = true;
+                            //this._ai_team = 0;
+                            this._ai_enabled = false;
+                            this._ai = null;
 
 							executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
 
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-						}
-					}
-					if ( command_name === 'ADMIN_CONTROLB' )
-					{
-						executer_socket;
-
-						if ( this._socket )
-						{
-							executer_socket.SDServiceMessage( 'Player has connected socket' );
-						}
-						else
-						{
-							if ( !this._my_hash )
-							{
-								exectuter_character._socket = null;
-
-								executer_socket.SDServiceMessage( 'Have a new start with other guy! :D' );
-
-								this._ai_team = 0;
-								this._ai_enabled = 0;
-								this._ai = null;
-
-								this._socket = executer_socket;
-								executer_socket.character = this;
-								this.skin_allowed = false;
-
-								this.title_censored = exectuter_character.title_censored;
-
-								this._god = false;
-
-								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILD_TOOL }) );
-								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_LIGHT_ARMOR }) );
-
-								this._my_hash = exectuter_character._my_hash;
-
-								this.GiveScore( 3000, null, false );
-
-								executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
-
-								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-								exectuter_character.remove();
-							}
-							else
-							{
-								executer_socket.SDServiceMessage( 'Controlling no AI player is not allowed.' );
-							}
 						}
 					}
 				}
@@ -7885,7 +7839,6 @@ THING is cosmic mic drop!`;
 					if ( this !== sdWorld.my_entity )
 					{
 						this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
-						this.AddContextOption( 'Replace as player ( AI only, delete self-owned )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 					}
 				}
 

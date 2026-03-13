@@ -1488,6 +1488,7 @@ class sdGunClass
 			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
+            matter_cost: 1500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -1524,14 +1525,14 @@ class sdGunClass
 			upgrades:
 			AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( 
 				[
-					{ 
+					/*{ 
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_TRIPLE_RAIL2;
 										gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
 										gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
 										}
-					}
+					}*/
 				]
 			) )
 		};
@@ -1654,6 +1655,7 @@ class sdGunClass
 			burst_reload: 10,
 			ammo_capacity: -1,
 			count: 1,
+            matter_cost: 500, // Used in crafting bench
 			fire_type: 2,
 			projectile_properties: { _rail: true, _damage: 22, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
@@ -1689,14 +1691,14 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( 
 				[
-					{ 
+					/*{ 
 						title: 'Upgrade to v2',
 						cost: 300,
 						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_PISTOL2;
 										gun.extra[ ID_DAMAGE_VALUE ] = 22 * 1.2;
 										gun._max_dps = ( 30 / ( gun._reload_time * sdGun.classes[ gun.class ].burst + sdGun.classes[ gun.class ].burst_reload ) ) * gun.extra[ 17 ] * gun._count * sdGun.classes[ gun.class ].burst;
 										}
-					}
+					}*/
 				]
 			) )
 		};
@@ -1814,6 +1816,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.15,
 			count: 5,
+            matter_cost: 1500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 20, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -1852,7 +1855,7 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [
-					{ 
+					/*{ 
 						title: 'Upgrade to v2',
 						cost: 1500,
 						action: ( gun, initiator=null )=>
@@ -1862,7 +1865,7 @@ class sdGunClass
 							//gun.extra[ ID_DAMAGE_VALUE ] = 20 * 2;
 							//gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
 						}
-					}
+					}*/
 				] ) )
 		};		
 		
@@ -1929,7 +1932,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				let mult = ( gun.extra[ 20 ] ) ? 0.75 : 1; // Cube fusion core merging reduces weapon matter cost by 25%
@@ -1943,13 +1946,13 @@ class sdGunClass
 					if ( gun._held_by )
 					{
 						// Normal fire mode, rail without charge.
-						if ( gun.fire_mode === 1 && gun._held_by._auto_shoot_in <= 0 )
+						if ( gun.fire_mode === 1 && gun._held_by.auto_shoot_in <= 0 )
 						{
 							gun._combo = 0;
-							gun._held_by._auto_shoot_in = 1;
+							gun._held_by.auto_shoot_in = 1;
 						}
 						// Alt fire mode, charge up then fire.
-						if ( gun.fire_mode !== 1 && ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by._auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
+						if ( gun.fire_mode !== 1 && ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by.auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
 						{
 							if ( gun._combo === 20 || ( gun._combo === 360 && gun._combo_timer < 5 ) ) // Started charging?
 							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
@@ -1957,7 +1960,7 @@ class sdGunClass
 							if ( gun._combo === 360 && gun._combo_timer < 5 ) // Case for charging shot after full charge, starts at 33% charge
 							gun._combo = 120; // Previous full charge is rewarded by having next shot 33% charged
 							
-							gun._held_by._auto_shoot_in = 2;
+							gun._held_by.auto_shoot_in = 2;
 							if ( gun._combo < 360 ) // Does not scale infinitely, only to about 3 seconds
 							{
 								gun._combo++;
@@ -1984,7 +1987,7 @@ class sdGunClass
 						if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 						{
 							gun._held_by.matter -= matter_cost;
-							gun._held_by._auto_shoot_in = 18;
+							gun._held_by.auto_shoot_in = 18;
 						}
 					}
 					if ( gun.fire_mode !== 1 ) // Alt fire mode?
@@ -2002,7 +2005,7 @@ class sdGunClass
 				}
 				if ( ( gun.fire_mode === 1 && gun._held_by._key_states.GetKey( 'Mouse1' ) ) || ( gun.fire_mode !== 1 && !gun._held_by._key_states.GetKey( 'Mouse1' ) ) )
 				{
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					return true;
 				}
 				else
@@ -2676,6 +2679,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 1 * 3.5,
 			spawnable: false,
+            matter_cost: 500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -2916,7 +2920,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 900;
@@ -2926,12 +2930,12 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
 						
-						gun._held_by._auto_shoot_in = 2200 / 1000 * 30;
+						gun._held_by.auto_shoot_in = 2200 / 1000 * 30;
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5 });
@@ -2945,7 +2949,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= 900 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 15;
+						gun._held_by.auto_shoot_in = 15;
 						gun._held_by.matter -= 900;
 					}
 				}
@@ -3411,10 +3415,10 @@ class sdGunClass
 			spread: 0.03,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { _damage: 37, color: '#ffeb00', _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 37, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#ffeb00', _dirt_mult: -0.5 };
+				let obj = { _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -3443,7 +3447,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades([ { 
+			upgrades: AddGunDefaultUpgrades([ /*{ 
 				title: 'Upgrade to Mark II',
 				cost: 480,
 				action: ( gun, initiator=null ) => 
@@ -3455,7 +3459,7 @@ class sdGunClass
 				// gun.sound = 'gun_the_ripper2';
 				// gun.sound_pitch = 0.7; // Upgraded guns don't seem to get all properties of the gun they turn into. Bug? - Ghost581
 				// gun.spread = 0.03; // Spread and rate of fire are also unaffected
-			} ])
+			}*/ ])
 		};
 
 		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
@@ -3473,10 +3477,11 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { _damage: 42, color: '#ffeb00', _dirt_mult: -0.5 },
+            matter_cost: 500, // Used in crafting bench
+			projectile_properties: { _damage: 42, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#ffeb00', _dirt_mult: -0.5 };
+				let obj = { _dirt_mult: -0.5 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -4123,7 +4128,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 			
 				if ( gun._overheat_cooldown )
@@ -4152,11 +4157,11 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun.overheat / 60 );
+						gun._held_by.auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun.overheat / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -4174,7 +4179,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 3 / ( 1 + Math.min(1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 30 per second? (GSPEED limit?)
+						gun._held_by.auto_shoot_in = ( 3 / ( 1 + Math.min(1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 30 per second? (GSPEED limit?)
 						gun._held_by.matter -= matter_cost;
 						
 						if ( gun.overheat < 300 )
@@ -4440,7 +4445,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 35;
@@ -4450,10 +4455,10 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
 						
-						gun._held_by._auto_shoot_in = 75;
+						gun._held_by.auto_shoot_in = 75;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.5 });
 					}
@@ -4617,7 +4622,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 2;
@@ -4627,9 +4632,9 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						gun._held_by._auto_shoot_in = 1000 / 1000 * 30;
+						gun._held_by.auto_shoot_in = 1000 / 1000 * 30;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 3 });
 					}
@@ -4642,7 +4647,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 4;
+						gun._held_by.auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost; // Was 3. It is not that strong to drain matter that fast
 					}
 				}
@@ -4948,6 +4953,7 @@ class sdGunClass
 			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
+            matter_cost: 4500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 15 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -4997,6 +5003,7 @@ class sdGunClass
 			spread: 0.1,
 			count: 7,
 			self_recoil_scale: 0.1,
+            matter_cost: 4500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 20 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -5377,8 +5384,6 @@ class sdGunClass
 			}
 		};
 		
-		
-		
 		sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER = 82 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'overlord_blaster' ),
@@ -5393,6 +5398,10 @@ class sdGunClass
 			matter_cost: 60,
 			spawnable: false,
 			projectile_velocity: 12,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return gun.extra === 1 ? 10 : 0;
+			},
 			projectile_properties: { 
 				
 				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
@@ -5403,12 +5412,14 @@ class sdGunClass
 					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
 				};
 				
-				if ( gun._held_by )
+				if ( gun.fire_mode === 1 && gun._held_by )
 				{
 					let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
 					obj.explosion_radius *= m;
 					gun._reload_time = 7 * ( 1 + m ) / 2;
 				}
+                else
+                gun._reload_time = sdGun.classes[ gun.class ].reload_time;
 				
 				return obj;
 			},
@@ -5418,9 +5429,14 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
-				gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
-				
+                if ( gun.fire_mode === 1 )
+                {
+                    let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
+                    gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
+				}
+                else
+                gun._sound_pitch = sdGun.classes[ gun.class ].sound_pitch;
+
 				if ( gun.extra === 1 )
 				return true;
 			
@@ -5622,7 +5638,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 			
 				/*let dmg_scale = 1;
@@ -5638,9 +5654,9 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						gun._held_by._auto_shoot_in = 2200 / 1000 * 30 / 2;
+						gun._held_by.auto_shoot_in = 2200 / 1000 * 30 / 2;
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
@@ -5656,9 +5672,9 @@ class sdGunClass
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						//if ( gun._held_by.stim_ef > 0 )
-						gun._held_by._auto_shoot_in = 7.5;
+						gun._held_by.auto_shoot_in = 7.5;
 						//else
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 
 
 						/*let dmg_scale = 1;
@@ -7007,7 +7023,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 4;
@@ -7017,11 +7033,11 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 2;
+						gun._held_by.auto_shoot_in = 2;
 					}
 					return false;
 				}
@@ -7033,7 +7049,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 14 / ( 1 + gun._combo / 10 ) ); // Faster rate of fire when shooting more
+						gun._held_by.auto_shoot_in = ( 14 / ( 1 + gun._combo / 10 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
 						gun._combo_timer = 16;
 						if ( gun._combo < 10 )
@@ -7302,7 +7318,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 6;
@@ -7312,11 +7328,11 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 2200 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by.auto_shoot_in = 2200 / 1000 * 30 / ( 1 + gun._combo / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -7332,7 +7348,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= 6 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
+						gun._held_by.auto_shoot_in = ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= 6;
 						gun._combo_timer = 75;
 						if ( gun._combo < 75 )
@@ -7390,6 +7406,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			fire_type: 2,
+            matter_cost: 1500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 22, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -7676,7 +7693,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 2;
@@ -7686,11 +7703,11 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 750 / 1000 * 30;
+						gun._held_by.auto_shoot_in = 750 / 1000 * 30;
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -7706,7 +7723,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 3;
+						gun._held_by.auto_shoot_in = 3;
 						gun._held_by.matter -= matter_cost; // Zektaron beam is at 6 or 7 while being 2x as strong
 					}
 				}
@@ -7830,7 +7847,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				return 3;
@@ -7844,11 +7861,11 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 1200 / 1000 * 30;
+						gun._held_by.auto_shoot_in = 1200 / 1000 * 30;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1, pitch: 1.5 });
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.2 });
@@ -7867,7 +7884,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 4;
+						gun._held_by.auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost;
 					}
 					else
@@ -8218,6 +8235,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 15,
 			matter_cost: 1500,
+            spawnable: false,
 			min_build_tool_level: 15,
 			
 			min_workbench_level: 3,
@@ -8778,7 +8796,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 			
 				/*let dmg_scale = 1;
@@ -8791,23 +8809,25 @@ class sdGunClass
 				else
 				return 30;
 			},
+            onFireModeChange: ( gun, fire_mode ) =>
+            {
+                gun._count = fire_mode === 2 ? 4 : 1;
+            },
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
 						if ( gun.fire_mode !== 1 )
 						{
-							gun._held_by._auto_shoot_in = 30;
-							gun._count = 4;
+							gun._held_by.auto_shoot_in = 30;
 							sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 1, pitch: 0.9 });
 						}
 						else
 						{
-							gun._held_by._auto_shoot_in = 32.5;
-							gun._count = 1;
+							gun._held_by.auto_shoot_in = 32.5;
 							sdSound.PlaySound({ name: 'alien_energy_power_charge1_fast', x:gun.x, y:gun.y, volume: 1.2, pitch: 0.9 });
 						}
 
@@ -8821,7 +8841,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= 15 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 30
+						gun._held_by.auto_shoot_in = 30
 						sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 0.9, pitch: 0.9 });
 
 						gun._held_by.matter -= 15;// * dmg_scale;
@@ -8832,10 +8852,10 @@ class sdGunClass
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						//if ( gun._held_by.stim_ef > 0 )
-						gun._held_by._auto_shoot_in = 25;
+						gun._held_by.auto_shoot_in = 25;
 						sdSound.PlaySound({ name: 'alien_energy_power_charge1_fast', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
 						//else
-						//gun._held_by._auto_shoot_in = 15;
+						//gun._held_by.auto_shoot_in = 15;
 
 
 						/*let dmg_scale = 1;
@@ -9178,7 +9198,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 			
 				/*let dmg_scale = 1;
@@ -9196,11 +9216,11 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
 						if ( gun.fire_mode !== 1 )
 						{
-							gun._held_by._auto_shoot_in = 50;
+							gun._held_by.auto_shoot_in = 50;
 							gun._count = 2;
 							sdSound.PlaySound({ name: 'alien_energy_power_charge2_fast2', x:gun.x, y:gun.y, volume: 1.3, pitch: 1.1 });
 							
@@ -9211,7 +9231,7 @@ class sdGunClass
 						}
 						else
 						{
-							gun._held_by._auto_shoot_in = 20;
+							gun._held_by.auto_shoot_in = 20;
 							gun._count = 3;
 							sdSound.PlaySound({ name: 'evil_alien_charge1_fast1', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
 						}
@@ -9226,7 +9246,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= 280 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 45;
+						gun._held_by.auto_shoot_in = 45;
 						sdSound.PlaySound({ name: 'alien_energy_power_charge2_fast2', x:gun.x, y:gun.y, volume: 1.3, pitch: 1.1 });
 
 						gun._held_by.matter -= 280;
@@ -9236,7 +9256,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= 35 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 15;
+						gun._held_by.auto_shoot_in = 15;
 						sdSound.PlaySound({ name: 'evil_alien_charge1_fast1', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
 
 						gun._held_by.matter -= 35;// * dmg_scale;
@@ -9960,7 +9980,7 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
-				if ( gun._held_by._auto_shoot_in > 0 )
+				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
 				if ( gun.fire_mode === 1 )
@@ -9974,9 +9994,9 @@ class sdGunClass
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
-					if ( gun._held_by._auto_shoot_in <= 0 )
+					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
-						gun._held_by._auto_shoot_in = 35;
+						gun._held_by.auto_shoot_in = 35;
 						
 						if ( sdWorld.is_server )
 						if ( gun.fire_mode === 2 )
@@ -10607,6 +10627,7 @@ class sdGunClass
 			ammo_capacity: 8,
 			projectile_velocity: 15 * 1.5,
 			matter_cost: 1500,
+            spawnable: false,
 			min_build_tool_level: 25,
 			
 			min_workbench_level: 5,
@@ -10678,6 +10699,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			projectile_velocity: 15 * 2,
 			matter_cost: 1500,
+            spawnable: false,
 			min_build_tool_level: 35,
 			
 			min_workbench_level: 7,
@@ -10908,6 +10930,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
             spawnable: false,
+            matter_cost: 1500, // Used in crafting bench
 			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 0, armor_lost_absorb_perc: 0.5 }, // This way it's compatible with upgrade station checks
 			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
@@ -11035,6 +11058,7 @@ class sdGunClass
 			muzzle_x: 13,
 			ammo_capacity: -1,
             spawnable: false,
+            matter_cost: 3000, // Used in crafting bench
 			projectile_velocity: 24,
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -11070,10 +11094,13 @@ class sdGunClass
 					}
 				};
 			},
+            onFireModeChange: ( gun, fire_mode ) =>
+            {
+                gun._count = fire_mode === 1 ? 1 : 5;
+                gun._spread = fire_mode === 1 ? 0 : 0.15;
+            },
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
-                gun._count = gun.fire_mode === 1 ? 1 : 5;
-                gun._spread = gun.fire_mode === 1 ? 0 : 0.15;
                 gun._reload_time = 6 * gun._count;
                 gun.overheat += 7.5 * gun._count;
                 
@@ -11095,11 +11122,12 @@ class sdGunClass
             },*/
             ExtraDraw: ( gun, ctx, attached )=>
 			{
-                ctx.apply_shading = false;
-
                 let mult = gun.overheat / 200;
                 mult = Math.round( mult * 100 ) / 100; // Fixes FPS drops in singleplayer mode
                 mult = sdWorld.limit( 0, 1, mult );
+
+                if ( gun.overheat > 75 )
+				ctx.apply_shading = false;
 
 				ctx.sd_color_mult_r = 1 + mult;
 				ctx.drawImageFilterCache( sdGun.classes[ gun.class ].image_body, -16, -16, 32, 32 );
@@ -11110,6 +11138,7 @@ class sdGunClass
 				//ctx.sd_color_mult_r = 1 + mult;
 				//ctx.sd_color_mult_g = 1 + mult;
 				//ctx.sd_color_mult_b = 1 + mult;
+                ctx.apply_shading = false;
 
                 ctx.filter = `saturate( ${ 1 / ( mult + 1 ) } ) brightness( ${ mult + 1 } )`
 
@@ -11137,6 +11166,214 @@ class sdGunClass
 				'#00457a', 15, 'glow 2' ),
                 '#00ffff', 15, 'glow 3' ),
                 '#adffff', 15, 'glow 4' ) )
+		};
+        sdGun.classes[ sdGun.CLASS_SD_MINIGUN = 162 ] = // Sprite by LazyRain
+		{
+			image: sdWorld.CreateImageFromFile( 'sd_minigun' ),
+			/*image0: [ sdWorld.CreateImageFromFile( 'sd_minigun0' ), sdWorld.CreateImageFromFile( 'sd_minigun0' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'sd_minigun1' ), sdWorld.CreateImageFromFile( 'sd_minigun1' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'sd_minigun2' ), sdWorld.CreateImageFromFile( 'sd_minigun2' ) ],
+			has_images: true,*/
+			title: 'Minigun SD-134',
+			slot: 2,
+			sound: 'gun_pistol',
+			sound_pitch: 0.85,
+			sound_volume: 1,
+			reload_time: 2,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.05,
+			spawnable: false,
+			projectile_properties: { _damage: 25, _dirt_mult: -0.5 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
+				( [], '#cc841a', 15, ) )
+
+		};
+        sdGun.classes[ sdGun.CLASS_IMPACTOR = 163 ] =
+		{
+			image: sdWorld.CreateImageFromFile( 'impactor' ),
+            image_charging: sdWorld.CreateImageFromFile( 'impactor_charging' ),
+			sound: 'gun_raygun',
+			sound_pitch: 0.8,
+			title: 'SD-Impactor',
+			slot: 4,
+			reload_time: 30,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			count: 1,
+            self_recoil_scale: 0.25,
+            matter_cost: 5000, // Used in crafting bench
+			spawnable: false,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by.auto_shoot_in > 0 )
+				return 0;
+				
+				return gun.fire_mode === 2 ? 100 : 30;
+			},
+            onShootAttempt: ( gun, shoot_from_scenario ) =>
+			{
+                if ( gun.fire_mode === 2 )
+                {
+                    if ( !shoot_from_scenario )
+                    {
+                        if ( gun._held_by )
+                        if ( gun._held_by.auto_shoot_in <= 0 )
+                        {
+                            gun._held_by.auto_shoot_in = 25;
+                            sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 });
+                        }
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+                return true;
+			},
+            projectile_properties: { color: '#aaffff' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { explosion_radius: gun.fire_mode === 2 ? 24 : 16, _rail: true, _rail_circled: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#aaffff', _no_explosion_smoke: true, _explosion_shrapnel: gun.fire_mode === 2, _temperature_addition: gun.fire_mode === 2 ? 15000 : 5000 };
+                obj._knock_scale = 1.4 * gun.extra[ ID_DAMAGE_MULT ] * ( gun.fire_mode === 2 ? 2 : 1 );
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ] * ( gun.fire_mode === 2 ? 2 : 1 ); // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ ID_DAMAGE_MULT ] || 1;
+				
+				if ( gun.extra[ ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+            
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 110; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+			( [], '#00ffff', 15, 'lights' ),
+			'#ffffff', 15, 'charging' ) )
+		};
+        sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER2 = 164 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'overlord_blaster2' ),
+			sound: 'overlord_cannon4',
+			title: 'Overlord\'s shotgun',
+			slot: 3,
+			reload_time: 15,
+			//muzzle_x: 11,
+			image_firing: sdWorld.CreateImageFromFile( 'overlord_blaster2_fire' ),
+			ammo_capacity: -1,
+			count: 3,
+            spread: 0.15,
+			matter_cost: 60,
+			spawnable: false,
+			projectile_velocity: 12,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return gun.extra === 1 ? 30 : 0;
+			},
+			projectile_properties: { 
+				
+				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
+			},
+			projectile_properties_dynamic: ( gun )=>{
+				
+				let obj = { 
+					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
+				};
+				
+				return obj;
+			},
+			onMade: ( gun, params )=>
+			{
+				gun.extra = 0;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun.extra === 1 )
+				return true;
+			
+				for ( let i = 0; i < sdOverlord.overlords.length; i++ )
+				{
+					if ( sdWorld.inDist2D_Boolean( gun.x, gun.y, sdOverlord.overlords[ i ].x, sdOverlord.overlords[ i ].y, 250 ) )
+					return true;
+				}
+				
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				{
+					gun._held_by.Say( 'This weapon does not shoot anymore' );
+				}
+				
+				return false;
+			},
+			upgrades:
+				AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [
+					{ 
+						title: 'Unlock overlord shotgun',
+						cost: 1000,
+						action: ( gun, initiator=null )=>{ 
+							//gun.class = sdGun.CLASS_TRIPLE_RAIL2;
+							//gun.extra[ ID_DAMAGE_VALUE ] = 15 * 1.2;
+							//gun._max_dps = ( 30 / gun._reload_time ) * gun.extra[ 17 ] * gun._count;
+							if ( gun.extra === 0 )
+							{
+								gun.extra = 1;
+								//initiator.Say( '' );
+								return true;
+							}
+							
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Weapon is already unlocked.' );
+					
+							return false;
+						}
+					}
+				],
+                '#e459aa', 30, 'glow' ),
+                '#000000', 30, 'body' ),
+                '#ffffff', 30, 'attack' )
 		};
 		// Add new gun classes above this line //
 

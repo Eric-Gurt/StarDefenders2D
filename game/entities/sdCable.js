@@ -16,6 +16,7 @@ import sdArea from './sdArea.js';
 import sdPlayerDrone from './sdPlayerDrone.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBlock from './sdBlock.js';
+import sdJunk from './sdJunk.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -107,7 +108,8 @@ class sdCable extends sdEntity
 			'sdSampleBuilder',
 			'sdWorkbench',
 			'sdMothershipContainer',
-			'sdConveyor'
+			'sdConveyor',
+            'sdCraftingBench'
 		];
 		
 		sdCable.empty_array = [];
