@@ -384,6 +384,7 @@ class sdEffect extends sdEntity
 		sdEffect.types[ sdEffect.TYPE_SPARK ].collisions = false;
 		sdEffect.types[ sdEffect.TYPE_SPARK ].gravity = false;
 		sdEffect.types[ sdEffect.TYPE_SPARK ].speed = 1 / 3;
+        sdEffect.types[ sdEffect.TYPE_SPARK ].apply_shading = false;
 		
 		sdEffect.types[ sdEffect.TYPE_SMOKE ] = {
 			images: [ 
