@@ -5405,12 +5405,14 @@ class sdGunClass
 					explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa', _no_explosion_smoke:true
 				};
 				
-				if ( gun._held_by )
+				if ( gun.fire_mode === 1 && gun._held_by )
 				{
 					let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 1 / 2 ]
 					obj.explosion_radius *= m;
 					gun._reload_time = 7 * ( 1 + m ) / 2;
 				}
+                else
+                gun._reload_time = sdGun.classes[ gun.class ].reload_time;
 				
 				return obj;
 			},
@@ -5420,9 +5422,14 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
-				gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
-				
+                if ( gun.fire_mode === 1 )
+                {
+                    let m = Math.min( 7, 1 + gun._held_by._score * 0.01 ); // Copy [ 2 / 2 ]
+                    gun._sound_pitch = 1 / ( m * 0.2 + 1 * 0.8 );
+				}
+                else
+                gun._sound_pitch = sdGun.classes[ gun.class ].sound_pitch;
+
 				if ( gun.extra === 1 )
 				return true;
 			
