@@ -1488,6 +1488,7 @@ class sdGunClass
 			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
+            matter_cost: 1500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -1654,6 +1655,7 @@ class sdGunClass
 			burst_reload: 10,
 			ammo_capacity: -1,
 			count: 1,
+            matter_cost: 500, // Used in crafting bench
 			fire_type: 2,
 			projectile_properties: { _rail: true, _damage: 22, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
@@ -1814,6 +1816,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.15,
 			count: 5,
+            matter_cost: 1500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 20, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -2676,6 +2679,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 1 * 3.5,
 			spawnable: false,
+            matter_cost: 500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -3473,6 +3477,7 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			spawnable: false,
+            matter_cost: 500, // Used in crafting bench
 			projectile_properties: { _damage: 42, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -4948,6 +4953,7 @@ class sdGunClass
 			muzzle_x: 6,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
+            matter_cost: 4500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 15 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -4997,6 +5003,7 @@ class sdGunClass
 			spread: 0.1,
 			count: 7,
 			self_recoil_scale: 0.1,
+            matter_cost: 4500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 20 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -7399,6 +7406,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			fire_type: 2,
+            matter_cost: 1500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 22, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -10922,6 +10930,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
             spawnable: false,
+            matter_cost: 1500, // Used in crafting bench
 			armor_properties: { armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 0, armor_lost_absorb_perc: 0.5 }, // This way it's compatible with upgrade station checks
 			// has_description: [ 'Armor: 400', 'Damage absorption: 50%', 'Lost damage reduction: 50%', 'Movement speed reduction: 0%' ],
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
@@ -11049,6 +11058,7 @@ class sdGunClass
 			muzzle_x: 13,
 			ammo_capacity: -1,
             spawnable: false,
+            matter_cost: 3000, // Used in crafting bench
 			projectile_velocity: 24,
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -11217,6 +11227,8 @@ class sdGunClass
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
+            self_recoil_scale: 0.25,
+            matter_cost: 5000, // Used in crafting bench
 			spawnable: false,
             GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
