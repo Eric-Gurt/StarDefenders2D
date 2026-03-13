@@ -110,7 +110,7 @@ class sdOverlord extends sdEntity
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
 		this.has_gun = 1;
-        this.gun_type = Math.random() < 0.5 ? sdGun.CLASS_OVERLORD_BLASTER : sdGun.CLASS_OVERLORD_BLASTER2;
+        this.gun_type = params.gun_type ?? ( Math.random() < 0.5 ? sdGun.CLASS_OVERLORD_BLASTER : sdGun.CLASS_OVERLORD_BLASTER2 );
 		this._droppen_gun_entity = null;
 		
 		this._relations_to_classes = {};
