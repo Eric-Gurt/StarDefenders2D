@@ -61,43 +61,35 @@ class sdCraftingBench extends sdEntity
         return [
             /*{
                 needed: [ sdGun.CLASS_ADMIN_REMOVER ],
-                options: [ ...(() => { const arr = []; for ( const p in sdGun.classes ) arr.push( p ); return arr; })() ],
-                cost: 1
+                options: [ ...(() => { const arr = []; for ( const p in sdGun.classes ) arr.push( p ); return arr; })() ], // Testing, would allow any item to be crafted
             },*/
             {
                 needed: [ sdGun.CLASS_OVERLORD_BLASTER, sdGun.CLASS_CUBE_FUSION_CORE ],
-                options: [ sdGun.CLASS_PHASE_RIFLE, sdGun.CLASS_DRAIN_RIFLE ],
-                cost: 1500
+                options: [ sdGun.CLASS_PHASE_RIFLE, sdGun.CLASS_DRAIN_RIFLE ]
             },
             {
                 needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_TRIPLE_RAIL ],
-                options: [ sdGun.CLASS_DRAIN_SNIPER ],
-                cost: 1500
+                options: [ sdGun.CLASS_DRAIN_SNIPER ]
             },
             {
                 needed: [ sdGun.CLASS_DRAIN_RIFLE, sdGun.CLASS_RAIL_SHOTGUN ],
-                options: [ sdGun.CLASS_DRAIN_SHOTGUN ],
-                cost: 1500
+                options: [ sdGun.CLASS_DRAIN_SHOTGUN ]
             },
             {
                 needed: [ sdGun.CLASS_KVT_MMG, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
-                options: [ sdGun.CLASS_KVT_MMG_MK2 ],
-                cost: 500
+                options: [ sdGun.CLASS_KVT_MMG_MK2 ]
             },
             {
                 needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
-                options: [ sdGun.CLASS_SD_MINIGUN ],
-                cost: 3000
+                options: [ sdGun.CLASS_SD_MINIGUN ]
             },
             {
                 needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_CUBE_FUSION_CORE, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_ERTHAL_ENERGY_CELL ],
-                options: [ sdGun.CLASS_IMPACTOR ],
-                cost: 5000
+                options: [ sdGun.CLASS_IMPACTOR ]
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_HEALING_RAY ],
-                cost: 500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
@@ -106,7 +98,6 @@ class sdCraftingBench extends sdEntity
             {
                 needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
                 options: [ sdGun.CLASS_RAIL_PISTOL2, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_SHOTGUN ],
-                cost: 1500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
@@ -115,7 +106,6 @@ class sdCraftingBench extends sdEntity
             {
                 needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_TRIPLE_RAIL2 ],
-                cost: 4500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
@@ -124,16 +114,14 @@ class sdCraftingBench extends sdEntity
             {
                 needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_RAIL_SHOTGUN2 ],
-                cost: 4500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
                 }
             },
             {
-                needed: [ sdGun.CLASS_CUBE_SHARD,  sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
+                needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
                 options: [ sdGun.CLASS_CUBE_ARMOR ],
-                cost: 1500,
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
@@ -175,12 +163,14 @@ class sdCraftingBench extends sdEntity
         if ( !craft )
         return false;
     
-        if ( this.matter - craft.cost < 0 )
-        return false;
-
-        const type = craft.options[ index ]
+        const type = craft.options[ index ];
         if ( !type )
         return;
+    
+        const cost = sdGun.classes[ type ].matter_cost ?? 0;
+    
+        if ( this.matter - cost < 0 )
+        return false;
 
         for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
         {
@@ -196,7 +186,7 @@ class sdCraftingBench extends sdEntity
         sdWorld.SendEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_GLOW_ALT, scale: 3, radius: 2, color: '#ffffff' });
         sdSound.PlaySound({ name:'gun_psicutter', x:this.x, y:this.y, volume:2, pitch: 1.2 });
 
-        this.matter -= craft.cost;
+        this.matter -= cost;
         this.WakeUpMatterSources();
         const gun = new sdGun({ class: type, x: this.x, y: this.y });
         gun._held_by = this;
@@ -326,7 +316,8 @@ class sdCraftingBench extends sdEntity
         if ( craft )
         {
             const option = craft.options[ Math.floor( ( sdWorld.time / 3000 ) % craft.options.length ) ];
-            const has_matter = this.matter - craft.cost > -0.01; // Hack due to float rounding problems
+            const cost = sdGun.classes[ option ].matter_cost ?? 0;
+            const has_matter = this.matter - cost > -0.01; // Hack due to float rounding problems
             //const gun = sdGun.classes[ option ];
 
             //ctx.sd_color_mult_r = has_matter ? 0 : 1;
@@ -400,7 +391,7 @@ class sdCraftingBench extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 1600;
+		return 2000;
 	}
 	onMovementInRange( from_entity )
 	{
@@ -451,7 +442,7 @@ class sdCraftingBench extends sdEntity
 	}
 	GetItems( include_result=true ) // As simple array
 	{
-		let arr = [];
+		const arr = [];
         const count = include_result ? sdCraftingBench.slots_tot : sdCraftingBench.slots_tot - 1;
 
 		for ( var i = 0; i < count; ++i )
@@ -514,7 +505,6 @@ class sdCraftingBench extends sdEntity
 			item.PhysWakeUp();
 		}
 	}
-	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -523,7 +513,7 @@ class sdCraftingBench extends sdEntity
 		if ( exectuter_character.hea > 0 )
         if ( parameters_array )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 			{
                 if ( command_name === 'CRAFT' )
                 {
@@ -557,7 +547,7 @@ class sdCraftingBench extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) )
+        if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 		{
 			for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
 			{
@@ -570,8 +560,15 @@ class sdCraftingBench extends sdEntity
             {
                 for ( let i = 0; i < craft.options.length; ++i )
                 {
-                    const option = craft.options[ i ]
-                    this.AddContextOption( `Craft ${ sdGun.classes[ option ].title } (${ sdWorld.RoundedThousandsSpaces( craft.cost ) } matter)`, 'CRAFT', [ i ] );
+                    const option = craft.options[ i ];
+                    const title = sdGun.classes[ option ].title;
+                    const cost = sdGun.classes[ option ].matter_cost ?? 0;
+                    
+                    let text = `Craft ${ title }`;
+                    if ( cost > 0 )
+                    text += ` (${ sdWorld.RoundedThousandsSpaces( cost ) } matter)`;
+
+                    this.AddContextOption( text, 'CRAFT', [ i ] );
                 }
             }
 		}
