@@ -391,7 +391,6 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
 			speed: 1 / 30,
-			apply_shading: false,
             collisions: true,
 			random_rotation: true
 		};
