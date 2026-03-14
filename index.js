@@ -3378,11 +3378,11 @@ const ServerMainMethod = ()=>
 					
 			if ( socket.character && ( !socket.character._is_being_removed || socket.post_death_spectate_ttl > 0 ) )
 			{
+                /*
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate )
 				{
 					socket.character.lag = !socket.client.conn.transport.writable;
 				}
-				/*
 				
 				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable && sdWorld.time > socket.waiting_on_M_event_until ) // Buffering prevention?
