@@ -1269,8 +1269,6 @@ THING is cosmic mic drop!`;
 			
 		this._global_user_uid = null; // Multiple sdCharacter-s can have same _global_user_uid because it points to user, not a character - user can have multiple characters. This can be null in sandbox modes that chose not to use global accounts yet might use presets and translations
 		
-		this.lag = false;
-		
 		this._self_boost = 0;
 		
 		this._god = false;
@@ -7070,15 +7068,6 @@ THING is cosmic mic drop!`;
 		
 		if ( this.ghosting )
 		ctx.globalAlpha = 0.3;
-	
-		if ( this.lag )
-		if ( globalThis.enable_debug_info )
-		{
-			ctx.fillStyle = '#000000';
-			ctx.fillText( 'Connection problem', 0, -24.5 - 5, 50 ); 
-			ctx.fillStyle = '#ffff00';
-			ctx.fillText( 'Connection problem', 0, -25 - 5, 50 );
-		}
 		
 		if ( !attached )
 		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
