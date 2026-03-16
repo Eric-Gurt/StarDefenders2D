@@ -11185,7 +11185,7 @@ class sdGunClass
 			count: 1,
 			spread: 0.05,
 			spawnable: false,
-			projectile_properties: { _damage: 25, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 27, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
@@ -11208,7 +11208,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 27; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
