@@ -11223,7 +11223,7 @@ class sdGunClass
 			sound_pitch: 0.8,
 			title: 'SD-Impactor',
 			slot: 4,
-			reload_time: 30,
+			reload_time: 25,
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
@@ -11238,7 +11238,7 @@ class sdGunClass
 				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
-				return gun.fire_mode === 2 ? 100 : 30;
+				return gun.fire_mode === 2 ? 100 : 40;
 			},
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
@@ -11249,7 +11249,7 @@ class sdGunClass
                         if ( gun._held_by )
                         if ( gun._held_by.auto_shoot_in <= 0 )
                         {
-                            gun._held_by.auto_shoot_in = 25;
+                            gun._held_by.auto_shoot_in = 15;
                             sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 });
                         }
                         return false;
@@ -11285,7 +11285,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 110; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 120; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
