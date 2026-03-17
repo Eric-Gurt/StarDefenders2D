@@ -1837,7 +1837,7 @@ let enf_once = true;
 		if ( ent.is( sdCharacter ) )
 		{
 			{
-                                let options = [ sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE, sdGun.CLASS_SHOTGUN, sdGun.CLASS_RAILGUN, sdGun.CLASS_SNIPER, sdGun.CLASS_ROCKET, sdGun.CLASS_SPARK, sdGun.CLASS_TOPS_GRENADE_LAUNCHER, sdGun.CLASS_TOPS_PLASMA_RIFLE ];
+                const options = [ sdGun.CLASS_PISTOL, sdGun.CLASS_RIFLE, sdGun.CLASS_SHOTGUN, sdGun.CLASS_RAILGUN, sdGun.CLASS_SNIPER, sdGun.CLASS_ROCKET, sdGun.CLASS_SPARK, sdGun.CLASS_TOPS_GRENADE_LAUNCHER, sdGun.CLASS_TOPS_PLASMA_RIFLE ];
 				ent3 = new sdGun({ x:0, y:0, class: options[ Math.floor( ( sdWorld.time / 4000 ) % options.length ) ] });
 				ent._inventory[ 1 ] = ent3;
 				ent3._held_by = ent;
@@ -2146,7 +2146,7 @@ let enf_once = true;
 			sdWorld.my_inputs_and_gspeeds.push( [ 1, code ] );
 		}
 	
-		if ( code === 'KeyT' )
+		if ( code === 'Tab' )
 		if ( sdWorld.my_entity )
 		{
 			sdRenderer.show_leader_board++;
@@ -2157,7 +2157,7 @@ let enf_once = true;
 			return;
 		}
 		
-		if ( code === 'KeyB' || code === 'Tab' )
+		if ( code === 'KeyB' /*|| code === 'Tab'*/ ) // Why do we need 3 ways to do the same thing?
 		{
 			// Equip build tool, suggested by Maxteabag
 			if ( sdWorld.my_entity )
