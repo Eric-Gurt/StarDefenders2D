@@ -134,6 +134,29 @@ class sdCaption extends sdEntity
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
+    
+    PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate. Can be also used to make it ignore certain bullet kinds altogether
+	{
+		if ( bullet )
+		{
+			if ( bullet._bg_shooter )
+			{
+				return true;
+			}
+			else
+			if ( bullet._gun && sdWorld.entity_classes.sdGun.classes[ bullet._gun.class ] )
+			{
+				return ( 
+					sdGun.classes[ bullet._gun.class ].is_sword ||
+					sdGun.classes[ bullet._gun.class ].slot === 0 || // Some sword-like guns (fists, deconstruction hammers yet can't be thrown to deal damage) have slot 0
+					bullet._gun.class === sdGun.CLASS_CABLE_TOOL ||
+					bullet._gun.class === sdGun.CLASS_WELD_TOOL );
+			}
+			return false;
+		}
+		
+		return true;
+	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
