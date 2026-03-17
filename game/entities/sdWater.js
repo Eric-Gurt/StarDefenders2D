@@ -1338,8 +1338,8 @@ class sdWater extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	//DrawFG( ctx, attached )
-	Draw( ctx, attached )
+	//Draw( ctx, attached )
+	DrawFG( ctx, attached )
 	{
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		
