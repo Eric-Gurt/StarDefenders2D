@@ -3073,6 +3073,8 @@ io.on( 'connection', ( socket )=>
 			
 			if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
 			socket.character.title = 'Disconnected ' + socket.character.title;
+        
+            socket.character.typing = false;
 
 			//socket.character._old_score = socket.score;
 
