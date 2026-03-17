@@ -7418,7 +7418,7 @@ THING is cosmic mic drop!`;
 		}
         if ( this.hea > 0 && this.typing )
         {
-            let raise = ( 8 * this.s / 100 - ( sdWorld.my_entity === this ? 4 : 16 ) );
+            let raise = 4 * this.s / 100;
             ctx.drawImageFilterCache( sdCharacter.img_typing, - 16, - 16 - 32 - raise, 32,32 );
         }
 	}
