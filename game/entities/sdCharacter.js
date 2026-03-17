@@ -7418,7 +7418,7 @@ THING is cosmic mic drop!`;
 		}
         if ( this.hea > 0 && this.typing )
         {
-            const raise = ( this.y - ( sdWorld.my_entity === this ? -4 : 8 ) - this._ragdoll.chest.y * this.s / 100 );
+            const raise = ( this.y + ( sdWorld.my_entity === this ? 24 : -8 ) - this._ragdoll.chest.y * this.s / 100 );
             ctx.drawImageFilterCache( sdCharacter.img_typing, - 16, - 16 - 32 - raise, 32,32 );
         }
 	}
