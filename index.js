@@ -2376,7 +2376,7 @@ io.on( 'connection', ( socket )=>
 		}
 	});
 	
-	socket.on('CHAT', ( t ) => { 
+	socket.on('CHAT', ( t ) => {
 		
 		if ( typeof t !== 'string' )
 		return;
@@ -2411,6 +2411,16 @@ io.on( 'connection', ( socket )=>
 			}
 			else*/
 			socket.character.Say( t, false, false, false, false, false );
+		}
+	});
+    socket.on('TYPING', ( t ) => {
+		if ( socket.character )
+		if ( socket.character.hea > 0 )
+		{
+            if ( t )
+            socket.character.typing = true;
+            else
+            socket.character.typing = false;
 		}
 	});
 	socket.muted_until = 0;
