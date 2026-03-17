@@ -2053,11 +2053,11 @@ class sdRenderer
 				keySuggestions.push({ title: 'Grappling hook', key: 'C' });
 			
 				if ( sdWorld.my_entity._inventory[ 9 ] )
-				keySuggestions.push({ title: 'Select build item', key: 'Tab/B' });
+				keySuggestions.push({ title: 'Select build item', key: 'B' });
 				else
 				keySuggestions.push({ title: 'Select build item', key: T('- no build tool -') });
 			
-				keySuggestions.push({ title: 'Leaderboard/tasks', key: 'T' });
+				keySuggestions.push({ title: 'Leaderboard/tasks', key: 'TAB' });
 			
 				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
 			
