@@ -42,7 +42,7 @@ class sdCharacter extends sdEntity
 	static init_class()
 	{
 		sdCharacter.img_teammate = sdWorld.CreateImageFromFile( 'teammate' );
-		
+        sdCharacter.img_typing = sdWorld.CreateImageFromFile( 'typing' );
 		sdCharacter.climb_filter = [ 'sdBlock', 'sdLost', 'sdBarrel', 'sdCrystal', 'sdCharacter', 'sdDoor', 'sdMatterContainer', 'sdCube' ];
 		
 		sdCharacter.stability_damage_from_damage_scale = 0.75; // 1.25
@@ -1555,9 +1555,11 @@ THING is cosmic mic drop!`;
 		this._camera_zoom = sdWorld.default_zoom;
 		this._additional_camera_zoom_mult = 1; // Admins can change it
 		
-		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
+		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working
 
 		this.bleed_effect = this.GetBleedEffect(); // Clients need it in order to play proper walk sound
+        
+        this.typing = false;
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
@@ -7414,6 +7416,11 @@ THING is cosmic mic drop!`;
 		{
 			ctx.drawImageFilterCache( sdCharacter.img_teammate, - 16, - 16 - 32 + this._crouch_intens * 6, 32,32 );
 		}
+        if ( this.hea > 0 && this.typing )
+        {
+            const raise = ( this.y - ( sdWorld.my_entity === this ? -4 : 8 ) - this._ragdoll.chest.y * this.s / 100 );
+            ctx.drawImageFilterCache( sdCharacter.img_typing, - 16, - 16 - 32 - raise, 32,32 );
+        }
 	}
 	
 	ManualRTPSequence( kill=false )
