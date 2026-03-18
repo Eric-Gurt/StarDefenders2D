@@ -27,6 +27,7 @@ import sdLandScanner from './sdLandScanner.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdCraftingBench from './sdCraftingBench.js';
+import sdMatterMatrix from './sdMatterMatrix.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -809,24 +810,6 @@ class sdLongRangeTeleport extends sdEntity
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_GRENADE_LAUNCHER });
 			sdEntity.entities.push( gun );
 		}
-		/*else
-		if ( rewards === 'CLAIM_REWARD_WEAPON' )
-		{
-			for( let i = 0; i < 2; i++ ) // Task rewards now drop 2 items. Kind of painful to recieve only one item when you can get 15K worth of crystals - Booraz149
-			{
-				
-				let gun, rng;
-				rng = Math.random() * 0.9; // With more gun rewards, these values will change
-				
-				let types = [ sdGun.CLASS_TOPS_DMR, sdGun.CLASS_TOPS_SHOTGUN, sdGun.CLASS_COMBAT_INSTRUCTOR, sdGun.CLASS_ZAPPER, sdGun.CLASS_RAYRIFLE, sdGun.CLASS_AREA_AMPLIFIER, sdGun.CLASS_ILLUSION_MAKER, sdGun.CLASS_LVL4_ARMOR_REGEN, sdGun.CLASS_TOPS_PLASMA_RIFLE, sdGun.CLASS_TELEKINETICS ]
-
-				gun = new sdGun({ x:this.x + ( i % 2 !== 0 ? 10 : -10 ), y:this.y - 16, class:sdWorld.AnyOf( types ) });
-		
-				sdEntity.entities.push( gun );
-			}
-			
-		}
-		*/
 		else
 		if ( rewards === 'CLAIM_REWARD_CRYSTALS_1x' )
 		{
@@ -912,25 +895,32 @@ class sdLongRangeTeleport extends sdEntity
 				sdEntity.entities.push( crystal );
 			}
 		}
+		else
 		if ( rewards === 'CLAIM_MERGER_CORE' )
 		{
 			let core;
 			core = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MERGER_CORE });
 			sdEntity.entities.push( core );
 		}
-		
+		else
 		if ( rewards === 'CLAIM_UPGRADE_STATION_CHIP' )
 		{
 			let chipset;
 			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET });
 			sdEntity.entities.push( chipset );
 		}
-		
+		else
 		if ( rewards === 'CLAIM_MATTER_CONTAINER_CHIP' )
 		{
 			let chipset;
 			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET });
 			sdEntity.entities.push( chipset );
+		}
+		else
+		if ( rewards === 'CLAIM_MATTER_MATRIX' )
+		{
+			let matrix = new sdMatterMatrix({ x:this.x, y:this.y - 32 });
+			sdEntity.entities.push( matrix );
 		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
@@ -1310,8 +1300,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_AD' ||
 						command_name === 'CLAIM_MERGER_CORE' ||
 						command_name === 'CLAIM_UPGRADE_STATION_CHIP' ||
-						command_name === 'CLAIM_MATTER_CONTAINER_CHIP'
-						
+						command_name === 'CLAIM_MATTER_CONTAINER_CHIP' ||
+						command_name === 'CLAIM_MATTER_MATRIX'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1331,6 +1321,9 @@ class sdLongRangeTeleport extends sdEntity
 							
 								if ( command_name === 'CLAIM_REWARD_CRYSTALS_8x' )
 								claim_cost = 10; // Same as above
+							
+								if ( command_name === 'CLAIM_MATTER_MATRIX' )
+								claim_cost = 5;
 								
 								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{
@@ -1947,13 +1940,18 @@ class sdLongRangeTeleport extends sdEntity
 									this._current_category_stack.push( 'weapon_select' );
 									this.RebuildContextMenu();
 								}, false );
+								this.AddClientSideActionContextOption( 'Claim rewards ( base equipment )', ()=>
+								{
+									this._current_category_stack.push( 'base_equipment_select' );
+									this.RebuildContextMenu();
+								}, false );
 								//this.AddContextOption( 'Claim rewards ( weapons )', 'CLAIM_REWARD_WEAPON', [] );
 								//this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
-								this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
+								//this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
                                 this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
 								this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
-								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
-								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
+								//this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
+								//this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
 							}
 							if ( this._current_category_stack[ 1 ] === 'crystals_select' ) // Selected " Claim rewards ( crystals ) "?
 							{
@@ -1975,6 +1973,13 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim Task Ops Plasma Rifle', 'CLAIM_REWARD_WEAPON_9', [] );
 								this.AddContextOption( 'Claim Gravity Gun', 'CLAIM_REWARD_WEAPON_10', [] );
                                 this.AddContextOption( 'Claim Task Ops Grenade Launcher', 'CLAIM_REWARD_WEAPON_11', [] );
+							}
+							if ( this._current_category_stack[ 1 ] === 'base_equipment_select' ) // Selected " Claim rewards ( base equipment ) "?
+							{
+								this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
+								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
+								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
+								this.AddContextOption( 'Claim matter generation matrix ( 5 reward cost )', 'CLAIM_MATTER_MATRIX', [] );
 							}
 						}
 
