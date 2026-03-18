@@ -50,6 +50,14 @@ class sdTutel extends sdEntity
 	{
 		super( params );
 		
+		if ( params.tag )
+		{
+			if ( sdTutel[ params.tag ] !== undefined )
+			params.type = sdTutel[ params.tag ];
+			else
+			debugger;
+		}
+		
 		this.sx = 0;
 		this.sy = 0;
 		
@@ -75,6 +83,8 @@ class sdTutel extends sdEntity
 		this._next_alert_allowed = 0;
 		
 		this.side = 1;
+		
+		this._hibernation_check_timer = 0;
 		
 		//this.hurt_timer = 0;
 	}
@@ -179,6 +189,10 @@ class sdTutel extends sdEntity
 	isFireAndAcidDamageResistant()
 	{
 		return true;
+	}
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -346,6 +360,23 @@ class sdTutel extends sdEntity
 					sdSound.PlaySound({ name:'overlord_hurtC', x:this.x, y:this.y, volume:0.75, pitch: 0.5 });
 					
 					break;
+				}
+			}
+		}
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
+					
+					if ( this.type === sdTutel.TYPE_NORMAL )
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
+					if ( this.type === sdBiter.TYPE_ACIDIC ) // Acidic tutel
+					this.AttemptBlockBurying( 'sdTutel.TYPE_ACIDIC' ); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}
