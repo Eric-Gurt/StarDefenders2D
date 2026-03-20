@@ -222,6 +222,8 @@ class sdRotator extends sdEntity
     
     onMovementInRange( from_entity )
     {
+        if ( !sdWorld.is_server ) return;
+
         if ( this.disabled ) return;
         
         if ( this._damage <= 0 ) return;
@@ -230,7 +232,7 @@ class sdRotator extends sdEntity
 
         if ( from_entity._owner === this ) return;
         
-        if ( sdRotator.disallowed_dmg_entities.includes( from_entity.GetClass() )) return;
+        if ( sdRotator.disallowed_dmg_entities.includes( from_entity.GetClass() ) ) return;
         
         if ( from_entity.is_static ) return;
         
@@ -330,7 +332,7 @@ class sdRotator extends sdEntity
 	{
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}
-	Draw( ctx, attached )
+	DrawFG( ctx, attached )
 	{
         // if ( this.disabled || attached )
         {
