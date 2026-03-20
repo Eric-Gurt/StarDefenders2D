@@ -1658,7 +1658,14 @@ class sdCube extends sdEntity
 		{
 			this._alert_intensity += GSPEED;
 		}
-        
+
+		if ( !this.held_by )
+        {
+            if ( !this.GetRotators().length )
+            this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+            else
+            this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
+        }
         // if ( sdWorld.is_server )
         {
             if ( sdWorld.is_server && !this._has_spawned_rotators )
@@ -1681,14 +1688,6 @@ class sdCube extends sdEntity
                     rotator.Spin( GSPEED );
                 }
             }
-        }
-
-		if ( !this.held_by )
-        {
-            if ( !this.GetRotators().length )
-            this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-            else
-            this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
         }
 	}
 	PlayerIsHooked( character, GSPEED )
