@@ -2065,8 +2065,9 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LASER_PISTOL = 23 ] = { // sprite by Booraz149, resprite by Gravel
 			image: sdWorld.CreateImageFromFile( 'laser_pistol' ),
-			sound: 'gun_pistol',
-			sound_pitch: 0.7,
+			sound: 'turret',
+            sound_volume: 2,
+			sound_pitch: 1,
 			title: 'Laser Pistol',
 			slot: 1,
 			reload_time: 6,
@@ -2077,7 +2078,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			fire_type: 2,
-			projectile_properties: { _damage: 27, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties: { _damage: 30, _dirt_mult: -0.5, color: '#cd1e1e' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' }; // Default value for _knock_scale
@@ -2106,7 +2107,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 27; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 30; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -11168,28 +11169,25 @@ class sdGunClass
                 '#00ffff', 15, 'glow 3' ),
                 '#adffff', 15, 'glow 4' ) )
 		};
-        sdGun.classes[ sdGun.CLASS_SD_MINIGUN = 162 ] = // Sprite by LazyRain
+        sdGun.classes[ sdGun.CLASS_SD_MINIGUN = 162 ] =
 		{
 			image: sdWorld.CreateImageFromFile( 'sd_minigun' ),
-			/*image0: [ sdWorld.CreateImageFromFile( 'sd_minigun0' ), sdWorld.CreateImageFromFile( 'sd_minigun0' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'sd_minigun1' ), sdWorld.CreateImageFromFile( 'sd_minigun1' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'sd_minigun2' ), sdWorld.CreateImageFromFile( 'sd_minigun2' ) ],
-			has_images: true,*/
-			title: 'Minigun SD-134',
+			title: 'Laser Minigun SD-134',
 			slot: 2,
-			sound: 'gun_pistol',
+			sound: 'turret',
 			sound_pitch: 0.85,
-			sound_volume: 1,
+			sound_volume: 3,
 			reload_time: 2,
-			muzzle_x: 11,
+			muzzle_x: 13,
 			ammo_capacity: -1,
 			count: 1,
 			spread: 0.05,
 			spawnable: false,
-			projectile_properties: { _damage: 27, _dirt_mult: -0.5 },
+            projectile_velocity: sdGun.default_projectile_velocity * 1.25,
+			projectile_properties: { _damage: 28, _dirt_mult: -0.5, color: '#cd1e1e' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5 };
+				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -11209,11 +11207,12 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 27; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
-				( [], '#cc841a', 15, ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#e00025', 15, 'glow 1' ),
+				'#b5001e', 15, 'glow 2' ) )
 
 		};
         sdGun.classes[ sdGun.CLASS_IMPACTOR = 163 ] =
