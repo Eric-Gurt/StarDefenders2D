@@ -249,6 +249,7 @@ class sdEntity
 								this.x = xx;
 								this.y = yy;
 								sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
+								this.PhysWakeUp();
 								break;
 							}
 						}
@@ -262,6 +263,7 @@ class sdEntity
 								this.x = xx;
 								this.y = yy;
 								sdWorld.UpdateHashPosition( this, false ); // Prevent intersection with other ones
+								this.PhysWakeUp();
 								break;
 							}
 						}

@@ -285,7 +285,7 @@ class sdSpider extends sdEntity
 		
 			if ( sdWorld.is_server )
 			{
-				if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+				if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) && sdWorld.server_config.teleport_mobs_near_player_if_stuck ) // 3 minutes since last attack?
 				{
 					this._last_attack = sdWorld.time;
 					this.AttemptPlaceNearPlayer( false ); // Attempt to place near a player, since it is probably stuck or something else. Requires ground placement ( aerial = false )
