@@ -5409,6 +5409,18 @@ class sdWorld
 					else
 					socket.SDServiceMessage( 'Entity no longer exists' );
 				}
+                else
+                if ( cmd === 'TYPING' )
+                {
+                    if ( socket.character )
+                    if ( socket.character.hea > 0 )
+                    {
+                        if ( obj )
+                        socket.character.typing = true;
+                        else
+                        socket.character.typing = false;
+                    }
+                }
 				else
 				{
 					socket.SDServiceMessage( 'Singleplayer mode does not yet support command "'+cmd+'"' );
