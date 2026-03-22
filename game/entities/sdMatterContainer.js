@@ -4,13 +4,21 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
+import sdGun from './sdGun.js';
 
 class sdMatterContainer extends sdEntity
 {
 	static init_class()
 	{
+		// Regular matter container
 		sdMatterContainer.img_matter_container = sdWorld.CreateImageFromFile( 'matter_container' );
 		sdMatterContainer.img_matter_container_empty = sdWorld.CreateImageFromFile( 'matter_container_empty' );
+		// Advanced matter container
+		sdMatterContainer.img_matter_container2 = sdWorld.CreateImageFromFile( 'matter_container2' );
+		sdMatterContainer.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
+		// Upgraded advanced matter container
+		sdMatterContainer.img_matter_container3 = sdWorld.CreateImageFromFile( 'matter_container3' );
+		sdMatterContainer.img_matter_container3_empty = sdWorld.CreateImageFromFile( 'matter_container3_empty' );
 		
 		sdMatterContainer.MODE_EQUALIZE = 0;
 		sdMatterContainer.MODE_COLLECT = 1;
@@ -18,10 +26,10 @@ class sdMatterContainer extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -10; }
-	get hitbox_x2() { return 10; }
-	get hitbox_y1() { return -14; }
-	get hitbox_y2() { return 14; }
+	get hitbox_x1() { return this.is_advanced_container ? -11 : -10; }
+	get hitbox_x2() { return this.is_advanced_container ? 11 : 10; }
+	get hitbox_y1() { return this.is_advanced_container ? -15 : -14; }
+	get hitbox_y2() { return this.is_advanced_container ? 16.5 : 14; }
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
@@ -29,8 +37,31 @@ class sdMatterContainer extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
+	get mass()
+	{ return 60; }
+	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	{ return !this.is_advanced_container; }
+	
+	get is_advanced_container()
+	{ return this.matter_max / ( 1 + this.containers ) >= 5120 * 80; }
+	
+	IsPhysicallyMovable() // By physics (not steering wheels). Incorrect value can crash the game or cause players to stuck in place when trying to push entity
+	{
+		return this.is_advanced_container;
+	}
+	
+	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	//{ return true; }
+
+	Impact( vel ) // fall damage basically
+	{
+		// No impact damage if has driver (because no headshot damage)
+		if ( vel > 5 )
+		{
+			this.DamageWithEffect( ( vel - 3 ) * 25 );
+		}
+	}
 	
 	RequireSpawnAlign()
 	{ return true; }
@@ -43,11 +74,17 @@ class sdMatterContainer extends sdEntity
 		this.matter_max = params.matter_max || 2048;
 		
 		//this.matter = this.matter_max;
-		this.matter = 0;
+		this.matter = params.matter || 0;
+		
+		this.containers = 0; // How many additional containers are combined into a single one?
+		
+		// Needed for advanced containers, unfortunately
+		this.sx = 0;
+		this.sy = 0;
 		
 		this._last_sync_matter = this.matter;
 		
-		this._hmax = 400 * 4;
+		this._hmax = this.matter_max >= 5120 * 80 ? 4000 : 400 * 4;
 		this._hea = this._hmax;
 		
 		this._regen_timeout = 0;
@@ -68,6 +105,7 @@ class sdMatterContainer extends sdEntity
 	
 		this._regen_timeout = 60;
 		
+		if ( !this.is_advanced_container )
 		this._update_version++; // Just in case
 	}
 	
@@ -95,11 +133,40 @@ class sdMatterContainer extends sdEntity
 		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this._last_x !== this.x || this._last_y !== this.y )
 		{
 			this._last_sync_matter = this.matter;
+			if ( !this.is_advanced_container )
 			this._update_version++;
+		}
+		
+		if ( this.is_advanced_container )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		}
+	}
+	onMovementInRange( from_entity )
+	{
+		if ( sdWorld.is_server )
+		if ( !from_entity._is_being_removed )
+		{
+			if ( from_entity.is( sdGun ) && this.is_advanced_container && this.containers === 0 )
+			{
+				if ( from_entity.class === sdGun.CLASS_MATTER_CONTAINER_CHIPSET && this.matter_max === 5120 * 8 * 10 ) // Matter container chipset, and container is not upgraded?
+				{
+					this.matter_max = 5120 * 8 * 10 * 2; // Double the matter capacity
+					this._hmax = this._hmax * 1.5; // Increase health by 50%
+					this._hea = this._hmax;
+					from_entity.remove();
+					
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+				}
+			}
 		}
 	}
 	get title()
 	{
+		if ( this.is_advanced_container )
+		return 'Advanced matter container';
+		else
 		return 'Matter container';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
@@ -110,17 +177,46 @@ class sdMatterContainer extends sdEntity
 	{
 		ctx.apply_shading = false;
 		
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 32, - 32, 64, 64 );
+		if ( !this.is_advanced_container )
+		{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 32, - 32, 64, 64 );
+			
+			//if ( this.matter_max > 40 )
+			//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 		
-		//if ( this.matter_max > 40 )
-		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
-	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 2 );
-	
-		ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
+			ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 2 );
+			
+			//ctx.filter = sdWorld.GetCrystalHue( -1 );
 		
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 32, - 32, 64, 64 );
-		
+			ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
+			
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 32, - 32, 64, 64 );
+			
+		}
+		else
+		{
+			// If container is not upgraded via chipset
+			if ( this.matter_max / ( 1 + this.containers ) === 5120 * 80 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container2_empty, - 32, - 32, 64, 64 );
+				
+				ctx.filter = sdWorld.GetCrystalHue( -1 );
+			
+				ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
+				
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container2, - 32, - 32, 64, 64 );
+			}
+			else // Upgraded
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container3_empty, - 32, - 32, 64, 64 );
+				
+				ctx.filter = sdWorld.GetCrystalHue( -1 );
+			
+				ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
+				
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container3, - 32, - 32, 64, 64 );
+			}
+		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
@@ -162,6 +258,7 @@ class sdMatterContainer extends sdEntity
 					if ( parameters_array[ 0 ] === 0 || parameters_array[ 0 ] === 1 || parameters_array[ 0 ] === 2 )
 					{
 						this.mode = parameters_array[ 0 ];
+						if ( !this.is_advanced_container )
 						this._update_version++;
 					}
 				}

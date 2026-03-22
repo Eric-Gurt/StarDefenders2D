@@ -22,7 +22,7 @@ import sdCommandCentre from './sdCommandCentre.js';
 import sdCrystal from './sdCrystal.js';
 import sdGun from './sdGun.js';
 import sdStatusEffect from './sdStatusEffect.js';
-import sdJunk from './sdJunk.js';
+import sdMatterContainer from './sdMatterContainer.js';
 import sdLandScanner from './sdLandScanner.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
@@ -849,7 +849,7 @@ class sdLongRangeTeleport extends sdEntity
 		else
 		if ( rewards === 'CLAIM_REWARD_CONTAINER' )
 		{
-			let container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
+			let container = new sdMatterContainer({ x:this.x, y:this.y - 32, matter_max: 5120 * 8 * 10, matter: 5120 * 8 * 10 });
 			sdEntity.entities.push( container );
 		}
 		else
