@@ -764,7 +764,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdMeow', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSetrBeholder', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSetrBeholder', spawn_with_pilot: true, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdMatterContainer', matter_max: 5120 * 80, matter: 5120 * 80 _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdMatterContainer', matter_max: 5120 * 80, matter: 5120 * 80, _category:'Development tests' });
 				{
 					// Testing potential new specialities
 					/*sdShop.options.push( { _class: 'sdCrystal', tag: 'deep', _category:'Development tests crystals', matter_max:40, speciality:2 } );
