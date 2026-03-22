@@ -84,6 +84,7 @@ class sdShurgConverter extends sdEntity
 			count: [ 1, 1 ],
 			class: sdShurgConverter,
 			store_ents: converter,
+			min_air_height: -400, // Minimum free space above entity placement location
 			aerial: true,
 			aerial_radius: 128
 
