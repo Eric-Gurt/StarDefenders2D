@@ -8103,7 +8103,7 @@ class sdGunClass
 			if ( hit_entity )
 			{
 				if ( hit_entity._is_bg_entity === bullet._is_bg_entity )
-				// if ( hit_entity._hard_collision )
+				if ( hit_entity._hard_collision )
 				if ( bullet._owner !== hit_entity )
 				if ( bullet._owner2 !== hit_entity )
 				if ( !bullet.sticky_target )
@@ -11412,4 +11412,3 @@ class sdGunClass
 }
 
 export default sdGunClass;
-
