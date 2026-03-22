@@ -11107,6 +11107,7 @@ class sdGunClass
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
                 if ( sdWorld.is_server )
+                if ( gun._held_by )
                 if ( gun.overheat >= 100 )
                 {
                     gun._held_by.DamageWithEffect( gun.overheat * gun._count / 50 );
