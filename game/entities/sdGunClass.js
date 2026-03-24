@@ -11103,7 +11103,7 @@ class sdGunClass
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
                 gun._reload_time = 6 * gun._count;
-                gun.overheat += 10 * gun._count;
+                gun.overheat += 15 * gun._count;
                 
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
