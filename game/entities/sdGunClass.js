@@ -11064,7 +11064,7 @@ class sdGunClass
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
-				return gun.fire_mode === 1 ? 20 : 100;
+				return gun.fire_mode === 1 ? 30 : 150;
 			},
 			projectile_properties_dynamic: ( gun )=>
 			{
@@ -11103,7 +11103,7 @@ class sdGunClass
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
                 gun._reload_time = 6 * gun._count;
-                gun.overheat += 7.5 * gun._count;
+                gun.overheat += 10 * gun._count;
                 
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
@@ -11184,7 +11184,7 @@ class sdGunClass
 			spread: 0.05,
 			spawnable: false,
             projectile_velocity: sdGun.default_projectile_velocity * 1.25,
-			projectile_properties: { _damage: 28, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties: { _damage: 25, _dirt_mult: -0.5, color: '#cd1e1e' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' };
@@ -11207,7 +11207,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 25; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
