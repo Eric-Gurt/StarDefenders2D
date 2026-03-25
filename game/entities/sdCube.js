@@ -1084,7 +1084,7 @@ class sdCube extends sdEntity
 				this.regen_timeout = Math.max( this.regen_timeout - GSPEED, 0 );
 			}
 			
-			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) && sdWorld.server_config.teleport_mobs_near_player_if_stuck ) // 3 minutes since last attack?
 			{
 				this._last_attack = sdWorld.time;
 				if ( this.kind !== sdCube.KIND_ANCIENT ) // TODO: Ancient blocks should bury back into blocks

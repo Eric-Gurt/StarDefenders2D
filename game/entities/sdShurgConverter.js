@@ -27,7 +27,7 @@ class sdShurgConverter extends sdEntity
 	{
 		sdShurgConverter.img_converter = sdWorld.CreateImageFromFile( 'shurg_converter' );
 
-		sdShurgConverter.ents_left = 0; // Entities left to spawn, determined when event rolls in sdWeather.
+		//sdShurgConverter.ents_left = 0; // Entities left to spawn, determined when event rolls in sdWeather.
 		sdShurgConverter.converters = [];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -49,6 +49,8 @@ class sdShurgConverter extends sdEntity
 
 		this.hmax = 1500;
 		this.hea = this.hmax;
+		
+		this._ents_left = params.ents_left || 0;
 
 		//this._spawn_timer = 30 * 60 * 5; // Spawn Shurg timer
 		this._regen_timeout = 0; // Regen timeout;
@@ -74,7 +76,7 @@ class sdShurgConverter extends sdEntity
 		return this.filter;
 	}*/
 	
-	static DoSequentualSpawn( initial=true )
+	static DoSequentualSpawn( ent_count = 2 )
 	{
 		let converter = [];
 		let turrets = [];
@@ -84,6 +86,7 @@ class sdShurgConverter extends sdEntity
 			count: [ 1, 1 ],
 			class: sdShurgConverter,
 			store_ents: converter,
+			min_air_height: -400, // Minimum free space above entity placement location
 			aerial: true,
 			aerial_radius: 128
 
@@ -91,8 +94,8 @@ class sdShurgConverter extends sdEntity
 
 		if ( converter.length > 0 ) // Successful spawn?
 		{
-			if ( initial )
-			sdShurgConverter.ents_left = 2; // 3 converters to destroy
+			//if ( initial )
+			converter[ 0 ]._ents_left = ent_count; // 2 + 1 = 3 converters per event
 
 			sdWeather.SimpleSpawner({
 
@@ -153,11 +156,11 @@ class sdShurgConverter extends sdEntity
 			}
 			
 			let spawned_ent = false;
-			if ( sdShurgConverter.ents_left > 0 )
+			if ( this._ents_left > 0 )
 			{
-				sdShurgConverter.ents_left--;
-				
-				if ( sdShurgConverter.DoSequentualSpawn( false ) )
+				//sdShurgConverter.ents_left--;
+				this._ents_left--;
+				if ( sdShurgConverter.DoSequentualSpawn( this._ents_left ) )
 				{
 					spawned_ent = true;
 				}
@@ -178,7 +181,7 @@ class sdShurgConverter extends sdEntity
 				{
 					let task = sdTask.tasks[ i ];
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
-					task._difficulty = 0.2 * task.GetContributingPlayers(); // Make sure it's divded between those that "contributed"
+					task._difficulty = 0.25 * task.GetContributingPlayers(); // Make sure it's divded between those that "contributed"
 				}
 
 				{
@@ -238,10 +241,10 @@ class sdShurgConverter extends sdEntity
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 				{
 					let desc;
-					if ( sdShurgConverter.ents_left >= 2 )
+					if ( this._ents_left >= 2 )
 					desc = 'The Shurgs deployed devices which drain nearby oxygen. Destroy them before the planet gets drained off of oxygen!';
 					else
-					if ( sdShurgConverter.ents_left !== 0 )
+					if ( this._ents_left !== 0 )
 					desc = 'There is not many of them left, be quick now and destroy the remaining converters!';
 					else
 					desc = 'We located the last remaining Shurg Converter. Dispose of it, oxygen is more valuable than matter.';
@@ -249,8 +252,8 @@ class sdShurgConverter extends sdEntity
 					this._notify_in = 30;
 
 					let diff = 0.001; // 0 sets it to 0.1 since it doesn't count as a parameter? It gets set to 0 when damaged enough before being destroyed if not the last one, just in case.
-					if ( sdShurgConverter.ents_left === 0 )
-					diff = 0.2; // Only last machine counts towards task points when destroyed, so the task is 100% complete
+					if ( this._ents_left === 0 )
+					diff = 0.25; // Only last machine counts towards task points when destroyed, so the task is 100% complete
 
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'DESTROY-'+this._net_id, 

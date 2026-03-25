@@ -113,6 +113,8 @@ class sdOctopus extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
 		
+		this._hibernation_check_timer = 0;
+		
 		this._last_digestion = 0;
 		
 		this.hurt_timer = 0;
@@ -208,6 +210,10 @@ class sdOctopus extends sdEntity
 	GetBleedEffectFilter()
 	{
 		return this.filter;
+	}
+	CanBuryIntoBlocks()
+	{
+		return 1; // 0 = no blocks, 1 = natural blocks, 2 = corruption, 3 = flesh blocks	
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -860,6 +866,19 @@ class sdOctopus extends sdEntity
 
 						break;
 					}
+				}
+			}
+		}
+		if ( sdWorld.is_server )
+		{
+			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
+			{
+				this._hibernation_check_timer -= GSPEED;
+				
+				if ( this._hibernation_check_timer < 0 )
+				{
+					this._hibernation_check_timer = 30 * 30; // Check if hibernation is possible every 30 seconds
+					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
 				}
 			}
 		}

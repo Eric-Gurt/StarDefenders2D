@@ -384,11 +384,12 @@ class sdBiter extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
-			if ( this._unlimited_range && this._last_bite < sdWorld.time - ( 1000 * 15 ) ) // 15 seconds since last attack? (Biters spawned from protect tasks)
+			/*if ( this._unlimited_range && this._last_bite < sdWorld.time - ( 1000 * 15 ) ) // 15 seconds since last attack? (Biters spawned from protect tasks)
 			{
 				this._last_bite = sdWorld.time;
 				this.AttemptPlaceNearPlayer(); // Attempt to place near player
 			}
+			*/
 			if ( this._last_bite < sdWorld.time - ( 1000 * 60 * 3 ) ) // 3 minutes since last attack?
 			{
 				this._hibernation_check_timer -= GSPEED;

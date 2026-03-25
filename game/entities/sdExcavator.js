@@ -210,15 +210,16 @@ class sdExcavator extends sdEntity
 			{
 				this._next_dig_in = 9;
 				
-				if ( this.sy < 0.1 && this.sy > -0.1 )
-				this.sy += 0.1; // Hopefully prevents it from freezing in place in air
+				this.PhysWakeUp();
+				//if ( this.sy < 0.1 && this.sy > -0.1 )
+				//this.sy += 0.1; // Hopefully prevents it from freezing in place in air
 				
 				
-				let bullet_obj = new sdBullet({ x: this.x - 10, y: this.y + 8, time_left: 1 }); // Left
+				let bullet_obj = new sdBullet({ x: this.x - 10, y: this.y -8, time_left: 2 }); // Left
 
 				bullet_obj._owner = this;
 				bullet_obj.sx = 0;
-				bullet_obj.sy = 0.5;
+				bullet_obj.sy = 1;
 				bullet_obj.color = 'transparent';
 				bullet_obj._damage = 100;
 				bullet_obj._dirt_mult = 3;
@@ -241,11 +242,11 @@ class sdExcavator extends sdEntity
 				
 				sdEntity.entities.push( bullet_obj );
 				
-				let bullet_obj2 = new sdBullet({ x: this.x + 10, y: this.y + 8, time_left: 1 }); // Right
+				let bullet_obj2 = new sdBullet({ x: this.x + 10, y: this.y - 8, time_left: 2 }); // Right
 
 				bullet_obj2._owner = this;
 				bullet_obj2.sx = 0;
-				bullet_obj2.sy = 0.5;
+				bullet_obj2.sy = 1;
 				bullet_obj2.color = 'transparent';
 				bullet_obj2._damage = 100;
 				bullet_obj2._dirt_mult = 3;
@@ -266,11 +267,11 @@ class sdExcavator extends sdEntity
 				
 				sdEntity.entities.push( bullet_obj2 );
 				// Center excavating point
-				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y + 8, time_left: 1 }); // Center left
+				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y - 8, time_left: 2 }); // Center left
 
 				bullet_obj3._owner = this;
 				bullet_obj3.sx = 0;
-				bullet_obj3.sy = 0.5;
+				bullet_obj3.sy = 1;
 				bullet_obj3.color = 'transparent';
 				bullet_obj3._damage = 100;
 				bullet_obj3._dirt_mult = 3;

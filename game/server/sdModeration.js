@@ -953,6 +953,15 @@ class sdModeration
 
 					socket.SDServiceMessage( 'Most active entitites by count: ' + strings.join(', ') );
 				}, t * 1000 );
+				if ( t === 29 )
+				{
+					let c = {},es = sdWorld.entity_classes.sdEntity.active_entities;
+					for( let i = 0; i < es.length; i++ )
+					{
+						c[ es[ i ].GetClass() ] = ( c[ es[ i ].GetClass() ] || 0 ) + 1;
+					}
+					trace( c );
+				}
 			}
 		}
 		else

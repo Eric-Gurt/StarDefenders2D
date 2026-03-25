@@ -17,6 +17,7 @@ import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdMatterContainer from './sdMatterContainer.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdFactions from './sdFactions.js';
 
@@ -69,7 +70,7 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_PLANETARY_MATTER_DRAINER = 3;
 		sdJunk.TYPE_COUNCIL_BOMB = 4;
 		sdJunk.TYPE_ERTHAL_DISTRESS_BEACON = 5;
-		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6; // Now upgradable via "Matter container chipset"
+		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6; // Now spawns as sdMatterContainer so it's obsolete
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 		sdJunk.TYPE_STEALER_ARTIFACT = 9;
@@ -869,6 +870,14 @@ class sdJunk extends sdEntity
 
 		if ( sdWorld.is_server )
 		{
+			// Advanced matter containers are now sdMatterContainer entities
+			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
+			{
+				let container = new sdMatterContainer({x: this.x, y: this.y, matter_max: this.matter_max, matter: this.matter});
+				sdEntity.entities.push( container );
+				this.remove();
+				this._broken = false;
+			}
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY )
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
