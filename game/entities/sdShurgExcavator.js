@@ -58,6 +58,7 @@ class sdShurgExcavator extends sdEntity
 		this._current_target = null;
 		this._mining_target = null; // When excavator stumbles into natural ground ( left or right side ), it considers it a target
 		
+		this._last_attack = sdWorld.time;
 		
 		this._regen_timeout = 0;
 		
@@ -178,6 +179,11 @@ class sdShurgExcavator extends sdEntity
 			
 			if ( sdWorld.is_server )
 			{
+				if ( this._last_attack < sdWorld.time - ( 1000 * 60 * 3 ) && sdWorld.server_config.teleport_mobs_near_player_if_stuck ) // 3 minutes since last attack?
+				{
+					this._last_attack = sdWorld.time;
+					this.AttemptPlaceNearPlayer(); // Attempt to place near a player, since it is probably stuck or something else.
+				}
 				if ( this._current_target )
 				{
 					if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea ) <= 0 || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdShurgExcavator.max_seek_range + 32 )
@@ -253,6 +259,7 @@ class sdShurgExcavator extends sdEntity
 				if ( this.excavate === 120 )
 				{
 					this.excavate = 80;
+					this._last_attack = sdWorld.time;
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y, time_left: 1});
 
 					bullet_obj._owner = this;
@@ -267,7 +274,6 @@ class sdShurgExcavator extends sdEntity
 				}
 			}
 		}
-
 		if ( in_water )
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );

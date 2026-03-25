@@ -375,7 +375,7 @@ class sdTutel extends sdEntity
 					
 					if ( this.type === sdTutel.TYPE_NORMAL )
 					this.AttemptBlockBurying(); // Attempt to hibernate inside nearby blocks
-					if ( this.type === sdBiter.TYPE_ACIDIC ) // Acidic tutel
+					if ( this.type === sdTutel.TYPE_ACIDIC ) // Acidic tutel
 					this.AttemptBlockBurying( 'sdTutel.TYPE_ACIDIC' ); // Attempt to hibernate inside nearby blocks
 				}
 			}

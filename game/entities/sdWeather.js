@@ -577,7 +577,7 @@ class sdWeather extends sdEntity
 		//console.log( "Wanderer models: " + this._wanderer_models );
 	}
 	
-	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
+	static SimpleSpawner( params ) // SimpleEntitySpawner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
 	{
 		// Note: SimpleSpawner is similar to SetRandomSpawnLocation, but has more features
 		
@@ -2570,6 +2570,7 @@ class sdWeather extends sdEntity
 						count: [ 1,1 ],
 						class: sdCharacter,
 						params: { _ai_enabled: ( hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE ) },
+						min_air_height: -400, // Minimum free space above entity placement location
 						aerial: true,
 						store_ents: character_ents
 
@@ -2676,6 +2677,7 @@ class sdWeather extends sdEntity
 				
 					count: [ 1, 1 ],
 					class: sdHover,
+					min_air_height: -400, // Minimum free space above entity placement location
 					aerial:true,
 					params: { type: sdHover.TYPE_BIKE, spawn_with_ents: 1, filter: 'saturate(0) brightness(0.5)' }, // Spawn with criminal
 				});
@@ -2696,6 +2698,7 @@ class sdWeather extends sdEntity
 				
 					count: [ 1, 1 ],
 					class: sdHover,
+					min_air_height: -400, // Minimum free space above entity placement location
 					aerial:true,
 					params: { type: hover_type, spawn_with_ents: 1 }, // Spawn with criminals
 				});
@@ -3748,7 +3751,7 @@ class sdWeather extends sdEntity
 
 					//sdEntity.entities.push( converter );
 					
-					sdShurgConverter.DoSequentualSpawn( true );
+					sdShurgConverter.DoSequentualSpawn( 2 ); // (Ent_count = 2, so it will spawn 1 + 2 more converters for task)
 					
 					
 
@@ -4816,7 +4819,7 @@ class sdWeather extends sdEntity
 									}
 								}
 								else
-								if ( Math.random() < 0.25 ) // There is too much water on terrain and during rain, and that's without acid rains - Booraz
+								if ( Math.random() < 0.05 ) // There is too much water on terrain and during rain, and that's without acid rains - Booraz
 								{
 									if ( !this.matter_rain )
 									{

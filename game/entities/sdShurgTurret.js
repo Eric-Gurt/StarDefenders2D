@@ -54,6 +54,9 @@ class sdShurgTurret extends sdEntity
 		this.sy = 0;
 
 		this.type = params.type || 0;
+		
+		if ( this.type === sdShurgTurret.TURRET_FLYING )
+		this.sy = -1;
 
 		this.hmax = 400;
 		this.hea = this.hmax;
@@ -178,7 +181,7 @@ class sdShurgTurret extends sdEntity
 				if ( this.type === sdShurgTurret.TURRET_FLYING )
 				{
 					if ( this.y > ( this._starting_y - ( Math.random() * 64 ) ) )
-					this.sy = Math.max( -1.5, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
+					this.sy = Math.max( -1.5, this.sy - ( 0.09 + sdWorld.gravity * GSPEED ) );
 
 					if ( this.sx !== 0 )
 					{
@@ -217,7 +220,7 @@ class sdShurgTurret extends sdEntity
 
 					let targ_an = Math.atan2( yy - this.y + 8, xx - this.x );
 
-					this.attack_an = sdWorld.RotateAngle( this.attack_an / 1000, targ_an, 0.03, GSPEED, true ) * 1000;
+					this.attack_an = sdWorld.RotateAngle( this.attack_an / 1000, targ_an, 0.04, GSPEED, true ) * 1000;
 				}
 	
 				if ( this._target )

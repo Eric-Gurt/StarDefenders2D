@@ -3415,7 +3415,7 @@ class sdGunClass
 			spread: 0.03,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { _damage: 37, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 45, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
@@ -3443,7 +3443,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 37; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 45; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -3478,7 +3478,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
             matter_cost: 500, // Used in crafting bench
-			projectile_properties: { _damage: 42, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 49, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
@@ -3506,7 +3506,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 42; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 49; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -5062,7 +5062,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 135, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7', _no_explosion_smoke: true }, // 3x more damage against vehicles
+			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 145, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7', _no_explosion_smoke: true }, // 3x more damage against vehicles
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 16, _rail: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7', _no_explosion_smoke: true };
@@ -5091,7 +5091,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 135; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 145; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -5912,7 +5912,7 @@ class sdGunClass
 			muzzle_x: 8,
 			ammo_capacity: -1,
 			burst: 6,
-			burst_reload: 35,
+			burst_reload: 38,
 			spread: 0.05,
 			projectile_velocity: 14,
 			count: 1,
@@ -7321,7 +7321,7 @@ class sdGunClass
 				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
-				return 6;
+				return 5.5;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -7332,7 +7332,7 @@ class sdGunClass
 					{
 						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by.auto_shoot_in = 2200 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by.auto_shoot_in = 1700 / 1000 * 30 / ( 1 + gun._combo / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -8229,7 +8229,7 @@ class sdGunClass
 			sound_volume: 2,
 			title: 'Drain-rifle', // Drain rifle
 			slot: 5,
-			reload_time: 10,
+			reload_time: 14,
 			muzzle_x: 14,
 			ammo_capacity: 8,
 			count: 1,
@@ -9355,7 +9355,7 @@ class sdGunClass
 			slot: 8,
 			reload_time: 3.5,
 			muzzle_x: 10,
-			ammo_capacity: -1, // 40
+			ammo_capacity: 40,
 			count: 1,
 			spawnable: false,
 			projectile_velocity: 16,
@@ -10620,7 +10620,7 @@ class sdGunClass
 			sound_volume: 2,
 			title: 'Drain-shotgun', // Drain shotgun
 			slot: 3,
-			reload_time: 20,
+			reload_time: 24,
 			count: 5,
 			spread: 0.12,
 			muzzle_x: 14,
@@ -10652,7 +10652,7 @@ class sdGunClass
 
 					_custom_extra_think_logic: ( bullet, GSPEED )=>
 					{
-						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ] * 0.5, 32 );
+						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ] * 0.3, 32 );
 					},
 
 					_custom_detonation_logic:( bullet )=>
@@ -10692,7 +10692,7 @@ class sdGunClass
 			sound_volume: 3,
 			title: 'Drain-sniper-rifle', // Drain shotgun
 			slot: 4,
-			reload_time: 40,
+			reload_time: 50,
 			count: 1,
 			spread: 0,
 			muzzle_x: 14,
@@ -10741,7 +10741,7 @@ class sdGunClass
 
 					_custom_extra_think_logic: ( bullet, GSPEED )=>
 					{
-						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ] * 1.5, 32 );
+						return DrainProjectileThink( bullet, GSPEED * ( cur_amount > 0 ? 4 : 1 ) * gun.extra[ ID_DAMAGE_MULT ] * 1, 32 );
 					},
 
 					_custom_detonation_logic:( bullet )=>
@@ -10959,11 +10959,11 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 16,
             spawnable: false,
-			projectile_properties: { explosion_radius: 24, time_left: 30 * 3, model: 'grenade3', _damage: 24 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,_affected_by_gravity: true },
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 24, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 11, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
@@ -11017,7 +11017,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 24 * 2; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 20 * 2; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -11059,11 +11059,11 @@ class sdGunClass
 			ammo_capacity: -1,
             spawnable: false,
             matter_cost: 3000, // Used in crafting bench
-			projectile_velocity: 24,
+			projectile_velocity: 18,
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
-				return gun.fire_mode === 1 ? 20 : 100;
+				return gun.fire_mode === 1 ? 15 : 75;
 			},
 			projectile_properties_dynamic: ( gun )=>
 			{
@@ -11071,10 +11071,9 @@ class sdGunClass
 					_damage: gun.extra[ ID_DAMAGE_VALUE ] * gun.extra [ ID_DAMAGE_MULT ],
 					model: 'drain_sniper_projectile', 
 					_hittable_by_bullets: false,
-					time_left: 60,
 					color: '#6ac2ff',
                     _no_explosion_smoke: true,
-                    explosion_radius: 24,
+                    explosion_radius: 16,
                     //_explosion_mult: gun.extra[ ID_DAMAGE_MULT ] ?? 1,
 					_custom_detonation_logic:( bullet )=>
 					{
@@ -11287,6 +11286,7 @@ class sdGunClass
 					//gun.extra[ ID_SLOT ] = 1;
 					gun.extra[ ID_DAMAGE_VALUE ] = 110; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
+					gun._max_dps = 228; // Realistic damage per bullet is 228 on normal fire mode + fire.
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
