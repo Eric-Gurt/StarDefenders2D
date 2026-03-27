@@ -3221,17 +3221,14 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				if ( gun._held_by )
-				if ( gun._held_by.IsPlayerClass() )
+                if ( sdWorld.is_server )
+				if ( !shoot_from_scenario )
 				{
-					gun._held_by.AnnounceTooManyEffectsIfNeeded();
-					gun._held_by.time_ef = 30 * 30;
-					//gun._held_by.DamageWithEffect( 40 );
-					
-					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
-					//gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
+					if ( gun._held_by )
+					{
+						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIMEWARP, ttl: 30 * 30, radius: 128, warp: 0.15 });
+					}
 				}
-				return true;
 			},
 			projectile_properties: {}
 		};
