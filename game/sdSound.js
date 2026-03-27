@@ -722,18 +722,16 @@ zombie_idle`;
 	}
     static GetPitchScale( x, y )  // Anything distance/range base is better to handle with sdSensorArea-s, even crystal glow probably
     {
+        let best_warp = 1;
+
+        for ( const timewarp of sdWorld.timewarps )
         {
-            let best_warp = 1;
-            if ( sdWorld.timewarps )
-            for ( let i2 = 0; i2 < sdWorld.timewarps.length; i2++ )
+            if ( sdWorld.inDist2D_Boolean( timewarp.x, timewarp.y, x, y, timewarp.r ) )
             {
-                if ( sdWorld.inDist2D_Boolean( sdWorld.timewarps[ i2 ].x, sdWorld.timewarps[ i2 ].y, x, y, sdWorld.timewarps[ i2 ].r ) )
-                {
-                    best_warp = 0.15;
-                }
+                best_warp = timewarp.warp;
             }
-            return best_warp;
         }
+        return best_warp;
     }
 	static PlaySound( params, exclusive_to_sockets_arr=null )// name, x,y, volume=1, server_allowed=true )
 	{
@@ -886,5 +884,4 @@ zombie_idle`;
 		sdSound.PlaySound( params );
 	}
 }
-
 export default sdSound;
