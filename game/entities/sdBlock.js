@@ -2071,8 +2071,9 @@ class sdBlock extends sdEntity
 	
 		return `All walls have same amount of hitpoints no matter how they look like. You can use base shielding units to apply additional protection to them.`;
 	}
-	
-	Draw( ctx, attached )
+    
+    //Draw( ctx, attached )
+	DrawFG( ctx, attached ) // Fixes layering issues in 2D mode
 	{
 		var w = this.width;
 		var h = this.height;
