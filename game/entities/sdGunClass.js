@@ -10863,7 +10863,7 @@ class sdGunClass
             ExtraDraw: ( gun, ctx, attached )=>
 			{
                 const blade_offset_x = 9.5;
-                const blade_offset_y = 0.5;
+                const blade_offset_y = 1.5;
 
                 ctx.save();
 
