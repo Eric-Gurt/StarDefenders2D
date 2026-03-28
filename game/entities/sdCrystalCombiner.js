@@ -144,7 +144,7 @@ class sdCrystalCombiner extends sdEntity
 		if ( this.liquid.type !== -1 && this.liquid.type !== type )
 		return false;
 
-		return ( type === sdWater.TYPE_WATER || type === sdWater.TYPE_ACID );
+		return ( type === sdWater.TYPE_WATER || type === sdWater.TYPE_ACID || type === sdWater.TYPE_CRYO );
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -485,13 +485,13 @@ class sdCrystalCombiner extends sdEntity
 			if ( sdWorld.is_server )
 			if ( temp > sdStatusEffect.temperature_normal )
 			{
-				let loss = ( temp - sdStatusEffect.temperature_normal ) / sdStatusEffect.temperature_normal * sdCrystalCombiner.water_cooling_consumption_rate;
+				let loss = ( temp - sdStatusEffect.temperature_normal ) / sdStatusEffect.temperature_normal * sdCrystalCombiner.water_cooling_consumption_rate * ( this.liquid.type === sdWater.TYPE_CRYO ? 0.1 : 1 );
 
 				this.liquid.amount = Math.max( this.liquid.amount - loss * GSPEED, 0 );
 				if ( this.liquid.amount <= 0 )
 				this.liquid.type = -1;
 
-				this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:sdStatusEffect.temperature_normal, remain_part: 0.5, GSPEED:GSPEED }); // Neutralize hot values
+				this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value: sdStatusEffect.temperature_normal, remain_part: 0.5, GSPEED:GSPEED  }); // Neutralize hot values
 
 				can_hibernate = false;
 			}
@@ -502,7 +502,7 @@ class sdCrystalCombiner extends sdEntity
 			{
 				this._next_steam_spawn = sdWorld.time + 1000 * 2 + 1000 * 2 * Math.random();
 
-				let ent = new sdEffect({ x: this.x + ( this.hitbox_x2 - this.hitbox_x1 ) * ( Math.random() - 0.5 ), y: this.y, sy:-2, type:sdEffect.TYPE_SMOKE, color:'#eeeeee' });
+				let ent = new sdEffect({ x: this.x + ( this.hitbox_x2 - this.hitbox_x1 ) * ( Math.random() - 0.5 ), y: this.y, sy:-2, type:sdEffect.TYPE_GLOW_HIT, color:'#eeeeee' });
 				sdEntity.entities.push( ent );
 			}
 		}
