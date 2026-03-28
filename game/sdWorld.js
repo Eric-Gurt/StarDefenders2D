@@ -3074,13 +3074,9 @@ class sdWorld
 		//if ( !sdWorld.paused )
 		{
 
-            for ( const effect of sdStatusEffect.status_effects )
+            for ( const effect of sdStatusEffect.type_to_status_effects.get( sdStatusEffect.TYPE_TIMEWARP ) )
             {
-                if ( !effect._is_being_removed )
-                if ( effect.type === sdStatusEffect.TYPE_TIMEWARP )
-                {
-                    sdWorld.timewarps.push( { x: effect.for.x, y: effect.for.y, e: effect.for, r: effect.radius, warp: effect.warp / 100, owner_mult: effect.owner_warp_mult / 100 } );
-                }
+                sdWorld.timewarps.push( { x: effect.for.x, y: effect.for.y, e: effect.for, r: effect.radius, warp: effect.warp / 100, owner_mult: effect.owner_warp_mult / 100 } );
             }
 
 			for ( i = 0; i < sdPresetEditor.regions.length; i++ )
