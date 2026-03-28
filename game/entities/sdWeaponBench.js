@@ -921,6 +921,7 @@ class sdWeaponBench extends sdEntity
 						if ( command_name === 'INCREASE_HP' )
 						{
 							if ( item )
+                            if ( !sdGun.classes[ item.class ].armor_properties )
 							{
 								let matter_cost = sdGun.classes[ item.class ].spawnable !== false ? ( sdGun.classes[ item.class ].matter_cost || 30 ) : 300;
 								if ( exectuter_character.matter >= ( matter_cost ) )
@@ -1045,11 +1046,12 @@ class sdWeaponBench extends sdEntity
 					let matter_cost_durability = sdGun.classes[ item.class ].spawnable !== false ? ( sdGun.classes[ item.class ].matter_cost || 30 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
 				
 					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-					if ( this.upgraded_dur === false )
+                    if ( !sdGun.classes[ item.class ].armor_properties )
+					if ( !this.upgraded_dur )
 					this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ], false );
 			
 					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
-					if ( item.IsGunRecoverable() && item.class !== sdGun.CLASS_CUSTOM_RIFLE )
+					if ( item.IsGunRecoverable() )
 					this.AddContextOption( 'Prioritize weapon retrieval on death ('+ 500 +' matter)', 'SET_BIOMETRY', [ ], false );
 				
 					if ( this._current_category_stack.length > 0 )
