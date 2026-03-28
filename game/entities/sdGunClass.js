@@ -6195,7 +6195,7 @@ class sdGunClass
 
 						if ( water_ent )
 						{
-							let held_by = sdEntity.entities_by_net_sdGun.ID_cache_map.get( bullet._gun.held_by_net_id );
+							let held_by = sdEntity.entities_by_net_id_cache_map.get( bullet._gun.held_by_net_id );
 
 							let connected = null;
 
@@ -6207,7 +6207,7 @@ class sdGunClass
 							if ( connected && connected.length > 0 )
 							{
 								for ( let i = 0; i < connected.length; i++ )
-								if ( connected[ i ]._has_liqusdGun.ID_props && !connected[ i ]._is_being_removed )
+								if ( connected[ i ]._has_liquid_props && !connected[ i ]._is_being_removed )
 								if ( connected[ i ].IsLiquidTypeAllowed( water_ent.type ) )
 								{
 									let liquid = ( connected[ i ].liquid || connected[ i ]._liquid );
@@ -9612,7 +9612,7 @@ class sdGunClass
 										
 										for ( let i = 0; i < arr.length; i++ )
 										{
-											let e = sdEntity.entities_by_net_sdGun.ID_cache_map.get( arr[ i ]._net_id );
+											let e = sdEntity.entities_by_net_id_cache_map.get( arr[ i ]._net_id );
 											if ( e && !e._is_being_removed )
 											{
 												if ( deletion_mode )
@@ -10825,7 +10825,7 @@ class sdGunClass
         sdGun.classes[ sdGun.CLASS_CHAINSAW = 157 ] = {
 			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
             image_blade: sdWorld.CreateImageFromFile( 'saw_blade' ),
-			sound: 'gun_saw',//'cut_drosdGun.ID_attack',
+			sound: 'gun_saw', //'cut_droid_attack',
 			sound_pitch: 1.2,
 			sound_volume: 0.7,
 			title: 'Chainsaw',
