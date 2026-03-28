@@ -11515,11 +11515,12 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
-				( [], '#ebe547', 15, 'main body' ),
-				'#b0a527', 15, 'alt body' ),
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00243F', 15, 'main body' ),
+				'#00457A', 15, 'alt body' ),
 				'#00ffdf', 15, 'main detail' ),
-				'#00457a', 15, 'alt detail' ) )
+				'#d7d133', 15, 'alt detail' ),
+				'#b0a527', 15, 'alt detail 2' ) )
 		};
 
 		// Add new gun classes above this line //
