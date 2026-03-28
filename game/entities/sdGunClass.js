@@ -6155,7 +6155,7 @@ class sdGunClass
 								sdWorld.UpdateHashPosition( water_ent, false );
 								
 								bullet._gun._held_item_snapshot = null;
-								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty_color );
 								
 								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 							}
@@ -6654,7 +6654,7 @@ class sdGunClass
 			{
 				gun.sd_filter = sdWorld.CreateSDFilter();
 				
-				//sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+				//sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty_color );
 			},
 			projectile_properties: { time_left: 0.75, _damage: 1, color: 'transparent', 
 				_knock_scale: 0,
