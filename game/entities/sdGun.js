@@ -207,6 +207,9 @@ class sdGun extends sdEntity
         
         if ( sdGun.classes[ this.class ].armor_properties )
         return false;
+    
+        if ( this.class === sdGun.CLASS_CUSTOM_RIFLE )
+        return false;
 		
 		// Don't allow guns which deal lost damage to be recoverable via LRTP after dying
 		if ( this.class === sdGun.CLASS_LOST_CONVERTER || this.class === sdGun.CLASS_CUBE_SPEAR || this.class === sdGun.CLASS_CUBE_SPEAR ||
