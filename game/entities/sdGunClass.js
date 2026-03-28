@@ -11196,7 +11196,7 @@ class sdGunClass
 			sound_pitch: 0.8,
 			title: 'SD-Impactor',
 			slot: 4,
-			reload_time: 25,
+			reload_time: 27.5,
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
