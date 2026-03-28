@@ -132,7 +132,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	static open_world_max_distance_from_zero_coordinates_y_min = -6000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
-	static player_vs_player_damage_scale = 3;
+	static player_vs_player_damage_scale = 1; // 3
 	static roach_spawn_rate = 0.5; // How often do roaches spawn from blood decals?
 	static teleport_mobs_near_player_if_stuck = false; // If enabled, teleports some mob types near players if did not attack anything for some time, like cubes, drones and Erthal bots, for example.
 	
