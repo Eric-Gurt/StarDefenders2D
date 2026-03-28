@@ -80,6 +80,18 @@ class sdCraftingBench extends sdEntity
                 options: [ sdGun.CLASS_KVT_MMG_MK2 ]
             },
             {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_PISTOL ],
+                options: [ sdGun.CLASS_COUNCIL_PISTOL2 ]
+            },
+            {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_SHOTGUN ],
+                options: [ sdGun.CLASS_COUNCIL_SHOTGUN2 ]
+            },
+            {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_BURST_RAIL ],
+                options: [ sdGun.CLASS_COUNCIL_BURST_RAIL2 ]
+            },
+            {
                 needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
                 options: [ sdGun.CLASS_SD_MINIGUN ]
             },
