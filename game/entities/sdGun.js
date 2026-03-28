@@ -101,6 +101,29 @@ class sdGun extends sdEntity
 			null, // 31
 			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#ffffff' ) // 32
 		];
+
+        sdGun.ID_BASE = 0;
+		sdGun.ID_STOCK = 1;
+		sdGun.ID_MAGAZINE = 2;
+		sdGun.ID_BARREL = 3;
+		sdGun.ID_UNDERBARREL = 4;
+		sdGun.ID_MUZZLE = 5;
+		sdGun.ID_SCOPE = 6;
+		sdGun.ID_DAMAGE_MULT = 7;
+		sdGun.ID_FIRE_RATE = 8;
+		sdGun.ID_RECOIL_SCALE = 9;
+		sdGun.ID_HAS_EXPLOSION = 10;
+		sdGun.ID_TEMPERATURE_APPLIED = 11;
+		sdGun.ID_HAS_SHOTGUN_EFFECT = 12;
+		sdGun.ID_HAS_RAIL_EFFECT = 13;
+		sdGun.ID_SLOT = 14;
+		sdGun.ID_TITLE = 15;
+		sdGun.ID_PROJECTILE_COLOR = 16;
+		sdGun.ID_DAMAGE_VALUE = 17; // For non custom-guns so it can display damage properly.
+		sdGun.ID_ALT_DAMAGE_VALUE = 18;
+		sdGun.ID_HAS_EXALTED_CORE = 19; // Exalted core, final weapon damage multiplier by 25%
+		sdGun.ID_HAS_CUBE_FUSION_CORE = 20; // Cube fusion core, final weapon matter cost reduction by 25%
+        sdGun.ID_HAS_ETERNAL_SHARD = 21; // Reduces build-up time for charging weapons, not implemented yet
 		
 		sdGun.as_class_list = [ 'sdGun' ];
 		
