@@ -2554,6 +2554,10 @@ class sdStatusEffect extends sdEntity
 		sdStatusEffect.status_effects = [];
 		
 		sdStatusEffect.entity_to_status_effects = new WeakMap(); // entity => [ eff1, eff2 ... ].inversed = [ ... eff2, eff1 ]
+        sdStatusEffect.type_to_status_effects = new Map(); // type => [ eff1, eff2 ... ]
+        
+        for ( let i = 0; i < sdStatusEffect.types.length; ++i )
+        sdStatusEffect.type_to_status_effects.set( i, [] );
 		
 		//sdStatusEffect.line_of_sight_visibility_cache = new WeakMap(); // entity => { next_update_time, result, result_soft, lx, ly }
 	}
@@ -2792,9 +2796,7 @@ class sdStatusEffect extends sdEntity
 		if ( status_effects_on_entity[ i ].type === sdStatusEffect.TYPE_TEMPERATURE )
 		return status_effects_on_entity[ i ].t;
 		
-		const temperature_normal = 20; // Copy
-		
-		return temperature_normal;
+		return sdStatusEffect.temperature_normal;
 	}
 	
 	IsVisible( observer_entity )
@@ -2858,6 +2860,9 @@ class sdStatusEffect extends sdEntity
 		}
 		
 		sdStatusEffect.status_effects.push( this );
+        
+        const arr = sdStatusEffect.type_to_status_effects.get( params.type );
+        arr.push( this );
 	}
 	
 	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
@@ -2894,6 +2899,9 @@ class sdStatusEffect extends sdEntity
 		status_type.onBeforeRemove( this );
 		
 		sdStatusEffect.status_effects.splice( sdStatusEffect.status_effects.indexOf( this ), 1 );
+
+        const type_arr = sdStatusEffect.type_to_status_effects.get( this.type );
+        type_arr.splice( type_arr.indexOf( this ), 1 );
 		
 		if ( this._for_confirmed )
 		if ( this.for ) // Can be null if removed, which is fine
@@ -2915,6 +2923,12 @@ class sdStatusEffect extends sdEntity
 		sdStatusEffect.status_effects.splice( id0, 1 );
 		else
 		debugger;
+    
+        const type_arr = sdStatusEffect.type_to_status_effects.get( this.type );
+        const id1 = type_arr.indexOf( this );
+        
+        if ( id1 !== -1 )
+        type_arr.splice( id1, 1 );
 		
 		if ( this._for_confirmed )
 		if ( this.for ) // Can be null if removed, which is fine
