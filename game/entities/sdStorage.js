@@ -43,7 +43,7 @@ class sdStorage extends sdEntity
 	
 	GetSlotsTotal()
 	{
-		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : 6;
+		return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 48 : this.type === sdStorage.TYPE_PORTAL ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
 	}
 	
 	IsPortal()
@@ -479,15 +479,19 @@ class sdStorage extends sdEntity
     GetSlotsNeeded( from_entity ) // How many slots does this entity occupy?
     {
         if ( from_entity.is( sdCrystal ) && ( from_entity.type === sdCrystal.TYPE_CRYSTAL_BIG || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) )
-        return 6;
+        return 12;
     
         if ( from_entity.is( sdStorage ) )
         {
             switch ( from_entity.type )
             {
+                case sdStorage.TYPE_GUNS:
+                    return 2;
                 case sdStorage.TYPE_CRYSTALS:
                 case sdStorage.TYPE_CRYSTALS_PORTAL:
-                    return 2;
+                    return 4;
+                case sdStorage.TYPE_PORTAL:
+                    return 1;
             }
         }
         
@@ -615,16 +619,15 @@ class sdStorage extends sdEntity
 			//if ( from_entity._held_by === null )
 			if ( !from_entity._is_being_removed )
 			{
-				let free_slot = -1;
 				const slots_total = this.GetSlotsTotal();
                 const free_space = slots_total - this._space_taken;
 				const space_taken = this.GetSlotsNeeded( from_entity );
 
                 if ( free_space - space_taken >= 0 )
-				for ( var i = 0; i < slots_total; i++ )
+				//for ( var i = 0; i < slots_total; i++ )
 				{
 					//if ( i + 1 > this._stored_items.length )
-					if ( i >= this._stored_items.length )
+					//if ( i >= this._stored_items.length )
 					{
                         this._space_taken += space_taken;
 						this._stored_items.push( from_entity.GetSnapshot( GetFrame(), true ) );
@@ -721,9 +724,6 @@ class sdStorage extends sdEntity
 
 						return;
 					}
-					else
-					if ( free_slot === -1 )
-					free_slot = i;
 				}
 			}
 		}
