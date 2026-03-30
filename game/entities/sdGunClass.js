@@ -11038,7 +11038,7 @@ class sdGunClass
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
-				return gun.fire_mode === 1 ? 15 : 75;
+				return gun.fire_mode === 1 ? 15 : 45;
 			},
 			projectile_properties_dynamic: ( gun )=>
 			{
@@ -11070,12 +11070,12 @@ class sdGunClass
 			},
             onFireModeChange: ( gun, fire_mode ) =>
             {
-                gun._count = fire_mode === 1 ? 1 : 5;
+                gun._count = fire_mode === 1 ? 1 : 3;
                 gun._spread = fire_mode === 1 ? 0 : 0.15;
+                gun._reload_time = sdGun.classes[ gun.class ].reload_time * gun._count;
             },
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
-                gun._reload_time = 6 * gun._count;
                 gun.overheat += 7.5 * gun._count;
                 
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
