@@ -903,7 +903,7 @@ class sdTurret extends sdEntity
 	{
 		if ( this.type === 0 )
 		{
-			if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_AUTO_CABLE )
+			if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD )
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( '+ ~~(this.matter)+' / '+this._matter_max+' )' );
 			else
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )' );
@@ -1067,7 +1067,7 @@ class sdTurret extends sdEntity
 		//if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE )
+		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD )
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
 			{
@@ -1121,7 +1121,7 @@ class sdTurret extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
-		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE )
+		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD )
 		{
 			if ( this.lvl < 3 )
 			{
