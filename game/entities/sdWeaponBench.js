@@ -4,7 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
-
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 class sdWeaponBench extends sdEntity
 {
@@ -72,7 +72,9 @@ class sdWeaponBench extends sdEntity
 		
 		this._hmax = this.type === sdWeaponBench.TYPE_DISPLAY ? 5000 : 800;
 		this._hea = this._hmax;
-		
+        
+        this._shielded = null; // Is this entity protected by a base defense unit?
+
 		this._last_locked = 0; // sdWorld.time;
 		this._last_key_created = 0; // sdWorld.time;
 		this._access_id = Math.round( Math.random() * Number.MAX_SAFE_INTEGER );
@@ -92,22 +94,25 @@ class sdWeaponBench extends sdEntity
 		return;
 	
 		dmg = Math.abs( dmg );
-		
-		this._hea -= dmg;
-		
-		this._regen_timeout = 60;
-		
-		if ( this.locked )
-		if ( sdWorld.time > this._last_damage + 50 )
-		{
-			this._last_damage = sdWorld.time;
-			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 100 ) });
-		}
-		
-		if ( this._hea <= 0 )
-		{
-			this.remove();
-		}
+
+        if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+        {
+            this._hea -= dmg;
+            
+            this._regen_timeout = 60;
+            
+            if ( this.locked )
+            if ( sdWorld.time > this._last_damage + 50 )
+            {
+                this._last_damage = sdWorld.time;
+                sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 100 ) });
+            }
+            
+            if ( this._hea <= 0 )
+            {
+                this.remove();
+            }
+        }
 	}
 	GetItemOffset ( slot ) // Cleaner way
 	{
@@ -124,10 +129,10 @@ class sdWeaponBench extends sdEntity
             const rows = 2;
 
             const space_x = 15;
-            const space_y = 23;
+            const space_y = 20;
 
             const offset_x = -22.5;
-            const offset_y = -11.5;
+            const offset_y = -10.5;
 
             return { 
                 x: offset_x + Math.floor( slot / rows ) * space_x,
