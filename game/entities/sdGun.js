@@ -123,7 +123,8 @@ class sdGun extends sdEntity
 		sdGun.ID_ALT_DAMAGE_VALUE = 18;
 		sdGun.ID_HAS_EXALTED_CORE = 19; // Exalted core, final weapon damage multiplier by 25%
 		sdGun.ID_HAS_CUBE_FUSION_CORE = 20; // Cube fusion core, final weapon matter cost reduction by 25%
-        sdGun.ID_HAS_ETERNAL_SHARD = 21; // Reduces build-up time for charging weapons, not implemented yet
+        sdGun.ID_HAS_MERGED = 21; // DPS buff from weapon merging
+        sdGun.ID_HAS_ETERNAL_SHARD = 22; // Reduces build-up time for charging weapons
 		
 		sdGun.as_class_list = [ 'sdGun' ];
 		
@@ -1260,7 +1261,7 @@ class sdGun extends sdEntity
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
 					
-						if ( this.extra[ 19 ] ) // Has exalted core infused?
+						if ( this.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core infused?
 						bullet_obj._damage *= 1.25; // Increase damage by 25%
 						
 						// Weapon merging DPS application
