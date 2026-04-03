@@ -11186,7 +11186,6 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
 				( [], '#e00025', 15, 'glow 1' ),
 				'#b5001e', 15, 'glow 2' ) )
-
 		};
         sdGun.classes[ sdGun.CLASS_IMPACTOR = 163 ] =
 		{
@@ -11521,6 +11520,64 @@ class sdGunClass
 				'#00ffdf', 15, 'main detail' ),
 				'#d7d133', 15, 'alt detail' ),
 				'#b0a527', 15, 'alt detail 2' ) )
+		};
+        sdGun.classes[ sdGun.CLASS_ANTI_TANK = 168 ] =
+		{
+			image: sdWorld.CreateImageFromFile( 'anti_tank_rifle' ),
+			sound: 'gun_psicutter',
+			sound_pitch: 0.8,
+			title: 'Anti Tank Rifle SD-57',
+			slot: 4,
+			reload_time: 27.5,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			count: 1,
+            matter_cost: 1000, // Used in crafting bench
+			spawnable: false,
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 100;
+			},
+            projectile_properties: { color: '#ff8000' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				let obj = { explosion_radius: 12, _rail: true, _rail_circled: true, color: '#ff8000', _no_explosion_smoke: true, _custom_target_reaction:( bullet, target_entity )=>
+                    {
+                        const multi_classes = [ 'sdHover', 'sdLifeBox', 'sdCube', 'sdDrone', 'sdEnemyMech', 'sdSetrDestroyer', 'sdCouncilIncinerator', 'sdRotator' ];
+                        if ( multi_classes.includes( target_entity.GetClass() ) )
+                        {
+                            target_entity.DamageWithEffect( 400 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1, bullet._owner );
+                        } 
+                    }
+                }
+				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+			
+				// if ( gun.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
+				
+				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 70; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
+			( [], '#ff8000', 15, 'lights' ) )
 		};
 
 		// Add new gun classes above this line //
