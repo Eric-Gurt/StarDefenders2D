@@ -11536,16 +11536,16 @@ class sdGunClass
 			spawnable: false,
             GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
-				return 100;
+				return 50;
 			},
             projectile_properties: { color: '#ff8000' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				let obj = { explosion_radius: 12, _rail: true, _rail_circled: true, color: '#ff8000', _no_explosion_smoke: true, _custom_target_reaction:( bullet, target_entity )=>
                     {
-                        const multi_classes = [ 'sdHover', 'sdLifeBox', 'sdCube', 'sdDrone', 'sdEnemyMech', 'sdSetrDestroyer', 'sdCouncilIncinerator', 'sdRotator' ];
+                        const multi_classes = [ 'sdHover', 'sdLifeBox', 'sdCube', 'sdDrone', 'sdEnemyMech', 'sdSetrDestroyer', 'sdStalker', 'sdCouncilIncinerator', 'sdRotator' ];
                         if ( multi_classes.includes( target_entity.GetClass() ) )
                         {
-                            target_entity.DamageWithEffect( 400 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1, bullet._owner );
+                            target_entity.DamageWithEffect( 450 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1, bullet._owner );
                         } 
                     }
                 }
