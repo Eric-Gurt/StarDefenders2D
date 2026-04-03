@@ -10,7 +10,7 @@ class sdCraftingBench extends sdEntity
 {
 	static init_class()
 	{
-		sdCraftingBench.img_merger = sdWorld.CreateImageFromFile( 'sdCraftingBench' ); // by The Commander
+		sdCraftingBench.img_crafting_bench = sdWorld.CreateImageFromFile( 'sdCraftingBench' ); // by The Commander
 		
 		sdCraftingBench.access_range = 64;
 		
@@ -78,6 +78,10 @@ class sdCraftingBench extends sdEntity
             {
                 needed: [ sdGun.CLASS_KVT_MMG, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
                 options: [ sdGun.CLASS_KVT_MMG_MK2 ]
+            },
+            {
+                needed: [ sdGun.CLASS_RAIL_CANNON, sdGun.CLASS_ETERNAL_SHARD ],
+                options: [ sdGun.CLASS_ANTI_TANK ]
             },
             {
                 needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_PISTOL ],
@@ -331,7 +335,8 @@ class sdCraftingBench extends sdEntity
            // ctx.translate( 0, 12 );
         }
 
-		ctx.drawImageFilterCache( sdCraftingBench.img_merger, 0, 0, 64, 64, -32, -32, 64, 64 );
+		ctx.drawImageFilterCache( sdCraftingBench.img_crafting_bench, 0, 0, 64, 64, -32, -32, 64, 64 );
+
 		for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
         {
             const item = this[ 'item' + i ];
