@@ -648,16 +648,15 @@ class sdGun extends sdEntity
 		}
 	}
 	
-	onSnapshotApplied() // Remove after June 2026 (or if a server wipe/reset happens)
+	/*onSnapshotApplied() // Remove after June 2026 (or if a server wipe/reset happens)
 	{
 		//this.ResetInheritedGunClassProperties(); // Not good, missing params from constructor
-		/* Better to just cap DPS of old unnerfed guns
-			Reminder: Velox Minigun is now at 420 DPS
-			Zektaron focus beam is now at ~~ 600 DPS
-			Task ops shotgun (strongest slot 3) is now at 236.25 DPS instead of ~~282
+		// Better to just cap DPS of old unnerfed guns
+		//	Reminder: Velox Minigun is now at 420 DPS
+		//	Zektaron focus beam is now at ~~ 600 DPS
+		//	Task ops shotgun (strongest slot 3) is now at 236.25 DPS instead of ~~282
 			
-			Will need to rewrite sdGunClass to give damage value separately, outside onMade function. Or just have ID_DAMAGE_VALUE be a HUD display element and damage value put inside projectile properties - Booraz149
-		*/
+		//	Will need to rewrite sdGunClass to give damage value separately, outside onMade function. Or just have ID_DAMAGE_VALUE be a HUD display element and damage value put inside projectile properties - Booraz149
 
 		if ( sdGun.classes[ this.class ].slot === 2 )
 		{
@@ -690,7 +689,7 @@ class sdGun extends sdEntity
 		// Also cap the unstable cores to 450 DPS
 		if ( this.class === sdGun.CLASS_UNSTABLE_CORE && this._max_dps > 450 )
 		this._max_dps = 450;
-	}
+	}*/
 	
 	CollisionFiltering( from_entity )
 	{
@@ -769,6 +768,14 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
+        let can_reload = true;
+
+        if ( sdGun.classes[ this.class ].onReloadStart ) // Custom extra logic
+        can_reload = sdGun.classes[ this.class ].onReloadStart( this );
+
+        if ( !can_reload )
+        return;
+
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
 		this._held_by.reload_anim = 15;
 	}
