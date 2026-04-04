@@ -11155,6 +11155,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spread: 0.05,
+            matter_cost: 3000, // Used in crafting bench
 			spawnable: false,
             projectile_velocity: sdGun.default_projectile_velocity * 1.25,
 			projectile_properties: { _damage: 25, _dirt_mult: -0.5, color: '#cd1e1e' },
@@ -11542,7 +11543,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				let obj = { explosion_radius: 12, _rail: true, _rail_circled: true, color: '#ff8000', _no_explosion_smoke: true, _custom_target_reaction:( bullet, target_entity )=>
                     {
-                        const multi_classes = [ 'sdHover', 'sdLifeBox', 'sdCube', 'sdDrone', 'sdEnemyMech', 'sdSetrDestroyer', 'sdStalker', 'sdCouncilIncinerator', 'sdRotator' ];
+                        const multi_classes = [ 'sdHover', 'sdLifeBox', 'sdCube', 'sdDrone', 'sdEnemyMech', 'sdSetrDestroyer', 'sdCouncilIncinerator', 'sdStalker', 'sdRotator' ];
                         if ( multi_classes.includes( target_entity.GetClass() ) )
                         {
                             target_entity.DamageWithEffect( 450 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1, bullet._owner );
@@ -11578,6 +11579,62 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost
 			( [], '#ff8000', 15, 'lights' ) )
+		};
+        
+        sdGun.classes[ sdGun.CLASS_LIGHT_CANNON = 169 ] =
+		{
+			image: sdWorld.CreateImageFromFile( 'light_cannon' ),
+			sound: 'gun_the_ripper2',
+			sound_pitch: 0.75,
+			title: 'Light Cannon SD-314',
+			slot: 2,
+			reload_time: 4,
+			muzzle_x: 16,
+			ammo_capacity: 1000,
+			spread: 0.03,
+			count: 1,
+			spawnable: false,
+            matter_cost: 10000, // Used in crafting bench
+            GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 0;
+			},
+            onReloadStart( gun )
+            {
+                const quotes = [ 'It cannot be reloaded', 'Where could I find this kind of ammo?', 'Maybe one day' ];
+                const quotes_no_ammo = [ 'It had a good run', 'I should put this on display instead', 'Then its over?', 'Maybe one day' ];
+                gun._held_by?.Say( sdWorld.AnyOf( gun.ammo_left <= 0 ? quotes_no_ammo : quotes ) );
+
+                return false;
+            },
+			projectile_properties: { color: sdEffect.default_explosion_color, _damage: 100 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { color: sdEffect.default_explosion_color, explosion_radius: 8, model: 'heavy_bullet' };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+                obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
+				
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 100; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( [], '#bd6e00', 15 )
 		};
 
 		// Add new gun classes above this line //
