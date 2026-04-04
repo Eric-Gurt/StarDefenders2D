@@ -11599,7 +11599,7 @@ class sdGunClass
 			{
 				return 0;
 			},
-            onReloadStart( gun )
+            onReloadStart: ( gun )=>
             {
                 const quotes = [ 'It cannot be reloaded', 'Where could I find this kind of ammo?', 'Maybe one day' ];
                 const quotes_no_ammo = [ 'It had a good run', 'I should put this on display instead', 'Then its over?', 'Maybe one day' ];
