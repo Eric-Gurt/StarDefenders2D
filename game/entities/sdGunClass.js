@@ -11581,7 +11581,7 @@ class sdGunClass
 			( [], '#ff8000', 15, 'lights' ) )
 		};
         
-        sdGun.classes[ sdGun.CLASS_LIGHT_CANNON = 169 ] =
+        sdGun.classes[ sdGun.CLASS_LIGHT_CANNON = 169 ] = // Sprite by LazyRain
 		{
 			image: sdWorld.CreateImageFromFile( 'light_cannon' ),
 			sound: 'gun_the_ripper2',
