@@ -11610,7 +11610,7 @@ class sdGunClass
 			projectile_properties: { color: sdEffect.default_explosion_color, _damage: 100 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: sdEffect.default_explosion_color, explosion_radius: 8, model: 'heavy_bullet' };
+				let obj = { color: sdEffect.default_explosion_color, explosion_radius: 10, model: 'heavy_bullet' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
