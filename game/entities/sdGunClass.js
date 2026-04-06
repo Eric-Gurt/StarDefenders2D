@@ -11260,7 +11260,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
 					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 120; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
-					gun._max_dps = 228; // Realistic damage per bullet is 228 on normal fire mode + fire.
+					gun._max_dps = 235; // Realistic damage per bullet is 235 on normal fire mode + fire.
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
