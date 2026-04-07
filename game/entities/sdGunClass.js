@@ -11637,6 +11637,101 @@ class sdGunClass
 			upgrades: AddRecolorsFromColorAndCost( [], '#bd6e00', 15 )
 		};
 
+        sdGun.classes[ sdGun.CLASS_TZYRG_GRENADE_LAUNCHER = 170 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tzyrg_grenade_launcher' ),
+			sound: 'tzyrg_fire',
+            sound_pitch: 0.5,
+			title: 'Tzyrg Grenade Launcher',
+			slot: 5,
+			reload_time: 27.5,
+			muzzle_x: 9,
+			ammo_capacity: -1,
+			spread: 0.03,
+			count: 1,
+			projectile_velocity: 20,
+            spawnable: false,
+			projectile_properties: { explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', _damage: 22 * 2, color:sdEffect.default_explosion_color, _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties_dynamic: ( gun ) => { 
+				let obj = 
+                {
+                    explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', color:sdEffect.default_explosion_color, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+					{
+                        const initial_rand = Math.random() * Math.PI * 2;
+                        const count = 3;
+                        const speed = 12;
+                        
+                        const nades_set = new Set();
+			
+                        const extra_filtering_method = ( e ) =>
+                        {
+                            return !nades_set.has( e );
+                        };
+
+                        for ( let i = 0; i < count; ++i )
+                        {
+                            const an = i / count * Math.PI * 2;
+                            
+                            const bullet_obj = new sdBullet({ 
+                                x: bullet.x + Math.cos( an + initial_rand ) * 3,
+                                y: bullet.y + Math.sin( an + initial_rand ) * 3 
+                            });	
+                        
+                            bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
+                            bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
+                            bullet_obj.time_left = 50;
+                            bullet_obj._damage = 16 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
+                            //bullet_obj._explosion_mult = bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1; // Too strong
+
+                            bullet_obj._affected_by_gravity = true;
+
+                            bullet_obj._owner = bullet._owner;
+                            bullet_obj._can_hit_owner = false;
+
+                            bullet_obj.explosion_radius = 15;
+                            bullet_obj.time_left = 30 * 2 + Math.random() * 30 * 2;
+                            bullet_obj.model = 'grenade2'; 
+                            bullet_obj.color = sdEffect.default_explosion_color;
+                            //bullet_obj.is_grenade = true;
+                            //bullet_obj._dirt_mult = 2;
+                            
+                            bullet_obj._extra_filtering_method = extra_filtering_method;
+
+                            sdEntity.entities.push( bullet_obj );
+                        }
+					}
+                };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
+				
+				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 22 * 2; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#3f3f3f', 15, 'main body' ),
+				'#232323', 15, 'alt body' ),
+				'#0f0f0f', 15, 'main detail' ),
+                '#000000', 15, 'alt detail' ),
+				'#ff7c00', 15, 'pointer' ) )
+		};
+
 		// Add new gun classes above this line //
 
 		let index_to_const = [];
