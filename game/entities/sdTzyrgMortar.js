@@ -24,8 +24,7 @@ class sdTzyrgMortar extends sdEntity
 	static init_class()
 	{
 		sdTzyrgMortar.img_mortar = sdWorld.CreateImageFromFile( 'sdTzyrgMortar' );
-		
-		//sdTzyrgMortar.effect_radius = 800;
+
 		sdTzyrgMortar.attack_distance = 1600;
 
 		sdTzyrgMortar.mortars = [];
@@ -202,7 +201,23 @@ class sdTzyrgMortar extends sdEntity
 			if ( this.hea <= 0 )
 			this._time_until_full_remove -= GSPEED;
 			if ( this._time_until_full_remove < 0 )
-			this.remove();
+            {
+                let x = this.x;
+                let y = this.y;
+
+                setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
+                    if ( Math.random() < 0.1 )
+                    {
+                        const gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TZYRG_GRENADE_LAUNCHER });
+
+                        gun.sx = sx;
+                        gun.sy = sy;
+                        sdEntity.entities.push( gun );
+                    }
+                }, 500 );
+
+                this.remove();
+            }
 			if ( this.hea > 0 )
 			{
 				if ( this._reload_timer > 0 )
