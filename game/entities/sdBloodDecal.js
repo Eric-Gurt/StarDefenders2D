@@ -36,7 +36,7 @@ class sdBloodDecal extends sdEntity
 	
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{ 
-		return [ 0, 0, -32 ];
+		return [ 0, 0, -32.01 ];
 	}
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT; }
