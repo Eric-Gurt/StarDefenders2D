@@ -31,7 +31,7 @@ class sdWeaponBench extends sdEntity
 		return null;
 		
 		if ( this.type === sdWeaponBench.TYPE_DISPLAY )
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -32.1 ];
 	}
 	
 	GetSlotsTotal()
