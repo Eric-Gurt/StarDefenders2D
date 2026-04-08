@@ -226,21 +226,19 @@ class sdWeaponBench extends sdEntity
                         let gun = item;
 
                         let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
-                                
+
                         let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
                     
 
-                                //Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
                         sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 30 * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
                         sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ sdGun.ID_DAMAGE_MULT ] * item.extra[ sdGun.ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
                     
-                        let reload_time = ( gun.extra[ sdGun.ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ sdGun.ID_MAGAZINE ] ].rate ) * gun.extra[ sdGun.ID_FIRE_RATE ];
+                        const reload_time = ( gun.extra[ sdGun.ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ sdGun.ID_MAGAZINE ] ].rate ) * gun.extra[ sdGun.ID_FIRE_RATE ];
+                        let shots_per_second = Math.min( 30, 30 / reload_time );
+                        shots_per_second = Math.round( shots_per_second * 100 ) / 100;
 
-                        if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-                        sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -30, '#aaffaa' );
-                        else
-                        sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -30, '#aaffaa' );
-                
+                        sdEntity.TooltipUntranslated( ctx, shots_per_second + ' ' + T('shots per second'), 0, -30, '#aaffaa' );
+
                         sdEntity.TooltipUntranslated( ctx, T('Temperature') + ': ' + Math.round( item.extra[ sdGun.ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
                     
                         sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
@@ -258,7 +256,7 @@ class sdWeaponBench extends sdEntity
                             let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
                                     
                             let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
-                        
+
                             if ( item.extra[ sdGun.ID_DAMAGE_VALUE ] )
                             sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ sdGun.ID_DAMAGE_VALUE ] * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
                                 
@@ -268,12 +266,12 @@ class sdWeaponBench extends sdEntity
                             if ( item.extra[ sdGun.ID_RECOIL_SCALE ] )
                             sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ sdGun.ID_DAMAGE_MULT ] * item.extra[ sdGun.ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
 
-                            let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
+                            const reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
                             
-                            if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-                            sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
-                            else
-                            sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+                            let shots_per_second = Math.min( 30, 30 / reload_time );
+                            shots_per_second = Math.round( shots_per_second * 100 ) / 100;
+
+                            sdEntity.TooltipUntranslated( ctx, shots_per_second + ' ' + T('shots per second'), 0, -20, '#aaffaa' );
                         
                             if ( item.GetAmmoCapacity() !== -1 )
                             sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + item.GetAmmoCapacity(), 0, -10, '#ffffff' );
