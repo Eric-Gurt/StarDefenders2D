@@ -75,7 +75,7 @@ class sdButton extends sdEntity
 		if ( this.type === sdButton.TYPE_FLOOR_SENSOR )
 		return null;
 	
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -32.1 ];
 	}
 	
 	get hard_collision()
