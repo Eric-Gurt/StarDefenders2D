@@ -7573,7 +7573,7 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._affected_by_gravity = true;
+				obj.affected_by_gravity = true;
 				obj.color = '#004400';
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -7773,7 +7773,7 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._affected_by_gravity = true;
+				obj.affected_by_gravity = true;
 				obj.color = '#004400';
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -10934,11 +10934,11 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 16,
             spawnable: false,
-			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,affected_by_gravity: true },
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 11, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 11, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
@@ -10961,7 +10961,7 @@ class sdGunClass
                             bullet_obj._damage = 32 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
                             //bullet_obj._temperature_addition = 200;
 
-                            bullet_obj._affected_by_gravity = true;
+                            bullet_obj.affected_by_gravity = true;
                             bullet_obj.gravity_scale = 2;
 
                             bullet_obj._owner = bullet._owner;
@@ -11651,11 +11651,11 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 20,
             spawnable: false,
-			projectile_properties: { explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', _damage: 22 * 2, color:sdEffect.default_explosion_color, _dirt_mult: 2,_affected_by_gravity: true },
+			projectile_properties: { explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', _damage: 22 * 2, color:sdEffect.default_explosion_color, _dirt_mult: 2,affected_by_gravity: true },
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', color:sdEffect.default_explosion_color, _dirt_mult: 2, _affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', color:sdEffect.default_explosion_color, _dirt_mult: 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 3;
@@ -11683,7 +11683,7 @@ class sdGunClass
                             bullet_obj._damage = 16 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
                             //bullet_obj._explosion_mult = bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1; // Too strong
 
-                            bullet_obj._affected_by_gravity = true;
+                            bullet_obj.affected_by_gravity = true;
 
                             bullet_obj._owner = bullet._owner;
                             bullet_obj._can_hit_owner = false;
