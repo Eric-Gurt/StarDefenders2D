@@ -368,7 +368,7 @@ class sdShurgManualTurret extends sdEntity
 					bullet_obj.color = '#004400';
 
 					bullet_obj._rail = false;
-					bullet_obj._affected_by_gravity = true;
+					bullet_obj.affected_by_gravity = true;
 					
 
 					//bullet_obj._damage *= bullet_obj._owner._damage_mult;
@@ -403,7 +403,7 @@ class sdShurgManualTurret extends sdEntity
 					bullet_obj2.color = '#004400';
 
 					bullet_obj2._rail = false;
-					bullet_obj2._affected_by_gravity = true;
+					bullet_obj2.affected_by_gravity = true;
 					
 					//bullet_obj2._damage *= bullet_obj._owner._damage_mult;
 
@@ -437,7 +437,7 @@ class sdShurgManualTurret extends sdEntity
 					bullet_obj3.color = '#004400';
 
 					bullet_obj3._rail = false;
-					bullet_obj3._affected_by_gravity = true;
+					bullet_obj3.affected_by_gravity = true;
 					
 					//bullet_obj3._damage *= bullet_obj._owner._damage_mult;
 
@@ -471,7 +471,7 @@ class sdShurgManualTurret extends sdEntity
 					bullet_obj4.color = '#004400';
 
 					bullet_obj4._rail = false;
-					bullet_obj4._affected_by_gravity = true;
+					bullet_obj4.affected_by_gravity = true;
 					
 
 					//bullet_obj4._damage *= bullet_obj._owner._damage_mult;
