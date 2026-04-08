@@ -33,7 +33,7 @@ class sdCraftingBench extends sdEntity
     
     ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -32.1 ];
 	}
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
