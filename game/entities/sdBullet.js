@@ -442,7 +442,7 @@ class sdBullet extends sdEntity
 		this._rail_alt = false;
 		this._rail_zap = false;
 
-		this._affected_by_gravity = false; // Bullet drop?
+		this.affected_by_gravity = false; // Bullet drop?
 		this.gravity_scale = 1;
 
 		this.explosion_radius = 0;
@@ -878,7 +878,7 @@ class sdBullet extends sdEntity
 			}
 
 
-			if ( this.is_grenade || this._affected_by_gravity )
+			if ( this.is_grenade || this.affected_by_gravity )
 			{
 				this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
 
