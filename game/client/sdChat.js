@@ -142,6 +142,8 @@ class sdChat
 				//sdChatInterface.Open();
 				sdChat.ShowMobileHints();
 			}
+
+            globalThis.socket.emit( 'TYPING', sdChat.open );
 		}
 		else
 		if ( e.key === 'Backspace' && sdChat.open )
