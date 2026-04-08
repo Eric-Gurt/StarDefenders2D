@@ -10929,7 +10929,7 @@ class sdGunClass
 			slot: 5,
 			reload_time: 12,
 			muzzle_x: 9,
-			ammo_capacity: -1,
+			ammo_capacity: 12,
 			spread: 0.05,
 			count: 1,
 			projectile_velocity: 16,
@@ -10938,7 +10938,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 11, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 13, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
