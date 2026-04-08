@@ -39,7 +39,7 @@ class sdCapsulePod extends sdEntity
 
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{ 
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -32.1 ];
 	}
 	
 	get hard_collision()
