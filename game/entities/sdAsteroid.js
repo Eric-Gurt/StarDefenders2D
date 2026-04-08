@@ -296,7 +296,7 @@ class sdAsteroid extends sdEntity
 				bullet_obj._damage = 32;
 				//bullet_obj._temperature_addition = 1000;
 
-				bullet_obj._affected_by_gravity = true;
+				bullet_obj.affected_by_gravity = true;
 				bullet_obj.gravity_scale = 2;
 
 				bullet_obj._owner = this;
