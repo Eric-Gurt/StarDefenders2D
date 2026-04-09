@@ -323,7 +323,7 @@ class sdTzyrgMortar extends sdEntity
 									bullet_obj.explosion_radius = 30;
 									bullet_obj.color = sdEffect.default_explosion_color;
 									//bullet_obj.ac = 1;
-									bullet_obj._affected_by_gravity = true;
+									bullet_obj.affected_by_gravity = true;
 									bullet_obj.time_left = 600;
 									bullet_obj._dirt_mult = 3;
 									
