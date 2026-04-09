@@ -209,9 +209,6 @@ class sdTzyrgMortar extends sdEntity
                     if ( Math.random() < 0.1 )
                     {
                         const gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TZYRG_GRENADE_LAUNCHER });
-
-                        gun.sx = sx;
-                        gun.sy = sy;
                         sdEntity.entities.push( gun );
                     }
                 }, 500 );
