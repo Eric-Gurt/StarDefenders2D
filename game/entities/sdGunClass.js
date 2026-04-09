@@ -11655,7 +11655,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', color:sdEffect.default_explosion_color, _dirt_mult: 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 24, time_left: 30 * 2, model: 'tzyrg_grenade', color:sdEffect.default_explosion_color, _dirt_mult: 2, is_grenade: gun.fire_mode === 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 3;
