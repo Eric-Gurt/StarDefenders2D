@@ -385,6 +385,8 @@ class sdCommandCentre extends sdEntity
                 }
                 else
                 executer_socket.SDServiceMessage( 'Name is too long' );
+
+				return;
             }
 
 			if ( this.owner === exectuter_character )
