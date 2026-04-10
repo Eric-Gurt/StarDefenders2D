@@ -195,6 +195,9 @@ class sdCraftingBench extends sdEntity
         const craft = this.GetAnyCraft( items );
         if ( !craft )
         return false;
+
+        if ( typeof index !== 'number' || index < 0 || index > craft.length )
+        return false;  
     
         const type = craft.options[ index ];
         if ( !type )
@@ -294,7 +297,7 @@ class sdCraftingBench extends sdEntity
 
         // slot-specific corrections
         const offset = {
-            1:  2,
+            1: 2,
             2: -2,
             5: 2,
             6: -2
@@ -554,6 +557,8 @@ class sdCraftingBench extends sdEntity
                     const success = this.CraftWeapon( parameters_array[ 0 ] );
                     if ( !success )
                     executer_socket.SDServiceMessage( 'Not enough matter' );
+
+					this._update_version++;
                 }
                 if ( command_name === 'GET' )
                 {
@@ -567,8 +572,6 @@ class sdCraftingBench extends sdEntity
                     this._update_version++;
                 }
             }
-
-            this._update_version++;
         }
         else
         {
@@ -599,6 +602,7 @@ class sdCraftingBench extends sdEntity
                     const cost = sdGun.classes[ option ].matter_cost ?? 0;
                     
                     let text = `Craft ${ title }`;
+
                     if ( cost > 0 )
                     text += ` (${ sdWorld.RoundedThousandsSpaces( cost ) } matter)`;
 
