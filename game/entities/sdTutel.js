@@ -8,7 +8,7 @@ import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
 import sdCom from './sdCom.js';
 import sdGuanako from './sdGuanako.js';
-
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdTutel extends sdEntity
 {
