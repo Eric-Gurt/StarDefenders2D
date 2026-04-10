@@ -113,7 +113,7 @@ class sdCommandCentre extends sdEntity
 		this.pending_team_joins = []; // array of net_ids, similar to how coms work. Owner is able to reject and accept these
 		
 		//this._armor_protection_level = 0;
-		
+
 		sdCommandCentre.centres.push( this );
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -377,7 +377,7 @@ class sdCommandCentre extends sdEntity
             if ( parameters_array )
             if ( typeof parameters_array[ 0 ] === 'string' )
             {
-                if ( parameters_array[ 0 ].length < 20 )
+                if ( parameters_array[ 0 ].length < 32 )
                 {
                     this.biometry = parameters_array[ 0 ].toUpperCase();
                     this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
@@ -385,8 +385,6 @@ class sdCommandCentre extends sdEntity
                 }
                 else
                 executer_socket.SDServiceMessage( 'Name is too long' );
-
-				return;
             }
 
 			if ( this.owner === exectuter_character )
@@ -550,7 +548,7 @@ class sdCommandCentre extends sdEntity
 		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 		if ( exectuter_character.canSeeForUse( this ) )
 		{
-            this.AddPromptContextOption( 'Set command center ID', 'RENAME', [ undefined ], 'Enter new ID', '', 20 );
+            this.AddPromptContextOption( 'Set command center ID', 'RENAME', [ undefined ], 'Enter new ID', '', 32 );
 
 			if ( this.owner === exectuter_character )
 			{
