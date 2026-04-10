@@ -599,14 +599,14 @@ class sdJunk extends sdEntity
 					sdEntity.entities.push( gun2 );
 				}, 500 );
 
-				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Council Immolator
+				/*if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Council Immolator
 				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
 					sdEntity.entities.push( gun2 );
-				}, 500 );
+				}, 500 );*/
 				
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.03 ) // 3% chance for Exalted core
 				setTimeout(() => { // Hacky, without this gun does not appear to be pickable or interactable...
