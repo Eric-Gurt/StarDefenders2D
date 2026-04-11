@@ -110,7 +110,7 @@ class sdWeather extends sdEntity
 		sdWeather.img_rain = sdWorld.CreateImageFromFile( 'rain' );
 		sdWeather.img_rain_water = sdWorld.CreateImageFromFile( 'rain_water' );
 		sdWeather.img_snow = sdWorld.CreateImageFromFile( 'snow' );
-		sdWeather.img_crystal_shard = sdWorld.CreateImageFromFile( 'crystal_shard' );
+		sdWeather.img_crystal_shard = sdWorld.CreateImageFromFile( 'crystal_shard_variative' );
 		sdWeather.img_scary_mode = sdWorld.CreateImageFromFile( 'scary_mode' );
 		
 		sdWeather.only_instance = null;
@@ -5468,10 +5468,15 @@ class sdWeather extends sdEntity
 						32,32 );
 					else
 					if ( this.matter_rain === 1 || this.matter_rain === 2 )
-					ctx.drawImageFilterCache( sdWeather.img_crystal_shard, 
-						xx - 16, 
-						yy - 16, 
-						32,32 );
+                    {
+                        const image = sdWeather.img_crystal_shard;
+                        const frame = i % ~~( image.width / image.height );
+
+                        ctx.save();
+                        ctx.translate( xx, yy );
+                        ctx.drawImageFilterCache( image, frame * image.height,0, image.height, image.height, - 16, - 16, 32,32 );
+                        ctx.restore();
+                    }
 					else
 					ctx.drawImageFilterCache( sdWeather.img_rain_water, 
 						xx - 16, 
