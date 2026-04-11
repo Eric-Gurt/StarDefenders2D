@@ -108,7 +108,7 @@ class sdStorage extends sdEntity
 		this.stored_names = [];
 		this.is_armable = [];
 		this._stored_items = [];
-        this._space_taken = 0;
+        this.space_taken = 0;
 		
 		/*let slots_total = this.GetSlotsTotal();
 		
@@ -161,12 +161,12 @@ class sdStorage extends sdEntity
 	}
 	onBuilt()
 	{
+        this._storage_fix_applied = true; // Remove after update
+
 		this._allow_pickup = true;
 		
 		if ( this._owner )
 		this.owner_biometry = this._owner.biometry;
-
-		this._storage_fix_applied = true; // Remove after update
 	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -370,6 +370,16 @@ class sdStorage extends sdEntity
 		sdEntity.Tooltip( ctx, this.title );
 
 		this.BasicCarryTooltip( ctx, 8 );
+        
+        const c = this.space_taken / this.GetSlotsTotal();
+        const w = 16;
+        const h = this.hitbox_y1 - 8;
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect( 0 - w / 2, 0 + h, w, 3 );
+
+        ctx.fillStyle = '#00aaff';
+        ctx.fillRect( 1 - w / 2, 1 + h, ( w - 2 ) * Math.max( 0, c ), 1 );
 	}
 	Draw( ctx, attached )
 	{
@@ -643,7 +653,7 @@ class sdStorage extends sdEntity
 			if ( !from_entity._is_being_removed )
 			{
 				const slots_total = this.GetSlotsTotal();
-                const free_space = slots_total - this._space_taken;
+                const free_space = slots_total - this.space_taken;
 				const space_taken = this.GetSlotsNeeded( from_entity );
 
                 if ( free_space - space_taken >= 0 )
@@ -652,7 +662,7 @@ class sdStorage extends sdEntity
 					//if ( i + 1 > this._stored_items.length )
 					//if ( i >= this._stored_items.length )
 					{
-                        this._space_taken += space_taken;
+                        this.space_taken += space_taken;
 						this._stored_items.push( from_entity.GetSnapshot( GetFrame(), true ) );
 						
 						//console.log( this._stored_items );
@@ -897,10 +907,10 @@ class sdStorage extends sdEntity
 		}
 
 		ent.PhysWakeUp();
-        this._space_taken -= this.GetSlotsNeeded( ent );
+        this.space_taken -= this.GetSlotsNeeded( ent );
         
-        if ( this._space_taken < 0 )
-        this._space_taken = 0; // Could happen if slots needed per entity was updated 
+        if ( this.space_taken < 0 )
+        this.space_taken = 0; // Could happen if slots needed per entity was updated 
 
 		return returned_ent;
 
