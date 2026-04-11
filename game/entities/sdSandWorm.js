@@ -75,6 +75,11 @@ class sdSandWorm extends sdEntity
 	get hitbox_x2() { return 11 * this.scale; }
 	get hitbox_y1() { return -11 * this.scale; }
 	get hitbox_y2() { return 11 * this.scale; }
+    
+    ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		return [ 0, 0, -40 ];
+	}
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -1181,7 +1186,8 @@ class sdSandWorm extends sdEntity
 			sdEntity.Tooltip( ctx, this.title );
 		}
 	}
-	Draw( ctx, attached )
+    //Draw( ctx, attached )
+	DrawBG( ctx, attached ) // Always draw under blocks now
 	{
 		if ( !sdShop.isDrawing )
 		{
