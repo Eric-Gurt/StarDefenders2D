@@ -609,7 +609,8 @@ class sdStorage extends sdEntity
 					this.type === sdStorage.TYPE_CARGO && 
 					from_entity !== this && 
                     (
-                        from_entity.is( sdStorage ) ||
+                        from_entity.is( sdStorage ) &&
+                        from_entity.type !== sdStorage.TYPE_CARGO ||
                         from_entity.is( sdCrystal ) &&
                         ( from_entity.type === sdCrystal.TYPE_CRYSTAL_BIG || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
                     )
