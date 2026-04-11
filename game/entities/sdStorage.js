@@ -133,11 +133,31 @@ class sdStorage extends sdEntity
 		this._open_anim = 0;
 		
 		this.filter = params.filter || 'saturate(0)';
+        
+        this._storage_fix_applied = false; // Remove after update
 	}
 	onSnapshotApplied() // To override
 	{
 		while ( this.is_armable.length < this._stored_items.length )
 		this.is_armable.push( 0 );
+
+        if ( !this._storage_fix_applied ) // Remove after update
+        {
+            const items = [];
+            for ( let i = this._stored_items.length - 1; i >= 0; i-- )
+            {
+                const ent = this.ExtractItem( i );
+                if ( ent )
+                items.push( ent );
+            }
+
+            for ( const item of items )
+            {
+                this.onMovementInRange( item );
+            }
+
+            this._storage_fix_applied = true;
+        }
 	}
 	onBuilt()
 	{
