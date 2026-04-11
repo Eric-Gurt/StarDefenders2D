@@ -165,6 +165,8 @@ class sdStorage extends sdEntity
 		
 		if ( this._owner )
 		this.owner_biometry = this._owner.biometry;
+
+		this._storage_fix_applied = true; // Remove after update
 	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
