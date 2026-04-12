@@ -11196,7 +11196,7 @@ class sdGunClass
 			sound_pitch: 0.8,
 			title: 'SD-Impactor',
 			slot: 4,
-			reload_time: 27.5,
+			reload_time: 30,
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
@@ -11222,7 +11222,7 @@ class sdGunClass
                         if ( gun._held_by )
                         if ( gun._held_by.auto_shoot_in <= 0 )
                         {
-                            gun._held_by.auto_shoot_in = 15;
+                            gun._held_by.auto_shoot_in = 20;
                             sdSound.PlaySound({ name:'crystal_combiner_start', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:4 });
                         }
                         return false;
