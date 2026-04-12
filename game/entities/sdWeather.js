@@ -5471,9 +5471,13 @@ class sdWeather extends sdEntity
                     {
                         const image = sdWeather.img_crystal_shard;
                         const frame = i % ~~( image.width / image.height );
+                        const flip = ( i & 1 ) === 0 ? 1 : -1;
+                        let rotation = ( i + sdWorld.time / 350 ) % Math.PI * 2;
+                        rotation *= flip;
 
                         ctx.save();
                         ctx.translate( xx, yy );
+                        ctx.rotate( rotation );
                         ctx.drawImageFilterCache( image, frame * image.height,0, image.height, image.height, - 16, - 16, 32,32 );
                         ctx.restore();
                     }
