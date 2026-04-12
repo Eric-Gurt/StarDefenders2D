@@ -456,7 +456,8 @@ class sdShop
 			}
 			sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
+
+			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 1, _min_workbench_level: 3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 2, _min_workbench_level: 8, _category:'Base equipment' });
 
