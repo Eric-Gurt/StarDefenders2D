@@ -877,15 +877,11 @@ class sdBullet extends sdEntity
 				this.sy = this.sy * 0.95;
 			}
 
-            if ( this.affected_by_gravity )
-            this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
-            else
-			if ( this.is_grenade )
+			if ( this.is_grenade || this.affected_by_gravity )
 			{
 				this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
 			}
-            
 			else
 			{
 				if ( this.penetrating || this._rail )
