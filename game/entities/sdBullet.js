@@ -1294,7 +1294,10 @@ class sdBullet extends sdEntity
 							}
 
 							if ( this._bouncy || this.penetrating )
-							this._damage *= 0.8;
+                            {
+                                this._damage *= 0.8;
+                                this.DamageWithEffect( 30 );
+                            }
 							else
 							this._damage = 0; // for healguns
 						}
