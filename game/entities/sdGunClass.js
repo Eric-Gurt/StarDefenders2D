@@ -4291,15 +4291,15 @@ class sdGunClass
 			sound_pitch: 1.3,
 			title: 'DMR',
 			slot: 4,
-			reload_time: 10.4,
-			muzzle_x: 10,
+			reload_time: 10,
+			muzzle_x: 11,
 			ammo_capacity: 8,
 			count: 1,
 			matter_cost: 160,
 			min_build_tool_level: 8,
 			fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
-			projectile_properties: { _damage: 62, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 65, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#33ffff', penetrating:true, _dirt_mult: -0.5 };
@@ -4327,7 +4327,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 62; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 65; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
