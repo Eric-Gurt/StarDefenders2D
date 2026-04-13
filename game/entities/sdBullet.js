@@ -877,13 +877,15 @@ class sdBullet extends sdEntity
 				this.sy = this.sy * 0.95;
 			}
 
-
-			if ( this.is_grenade || this.affected_by_gravity )
+            if ( this.affected_by_gravity )
+            this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
+            else
+			if ( this.is_grenade )
 			{
 				this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
-
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
 			}
+            
 			else
 			{
 				if ( this.penetrating || this._rail )
@@ -1295,7 +1297,7 @@ class sdBullet extends sdEntity
 								}, 'P' );
 							}
 
-							if ( this._bouncy )
+							if ( this._bouncy || this.penetrating )
 							this._damage *= 0.8;
 							else
 							this._damage = 0; // for healguns
