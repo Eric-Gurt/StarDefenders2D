@@ -1558,7 +1558,7 @@ class sdRenderer
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
             //if ( !sdRenderer.draw_in_3d )
             visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 1 ) ? e2.ObjectOffset3D( 1 )[ 0 ] : 0 ) - ( e1.ObjectOffset3D( 1 ) ? e1.ObjectOffset3D( 1 )[ 0 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
-			for ( let i = 0; i < visible_entities.length; i++ )
+for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
 				
@@ -1573,8 +1573,10 @@ class sdRenderer
 						   e.y + e._hitbox_y2 > min_y &&
 						   e.y + e._hitbox_y1 < max_y ) )
 					{
-						ctx.volumetric_mode = sdRenderer.draw_in_3d ? e.DrawIn3D( 1 ) : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
-						ctx.object_offset =  sdRenderer.draw_in_3d ? e.ObjectOffset3D( 1 ) : null;
+						const mode = e.DrawIn3D( 1 );
+						const is_grass = mode === FakeCanvasContext.DRAW_IN_3D_GRASS || mode === FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER;
+						ctx.volumetric_mode = sdRenderer.draw_in_3d || is_grass ? mode : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT; // Allow grass animations even in 2D
+						ctx.object_offset = sdRenderer.draw_in_3d ? e.ObjectOffset3D( 1 ) : null;
 					
 						if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
 							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
@@ -1612,12 +1614,9 @@ class sdRenderer
 					}
 				}
 			}
-			
-			
-			
 
-			
-			
+
+
 			
 			//ctx.draw_offset = 0;
 			
