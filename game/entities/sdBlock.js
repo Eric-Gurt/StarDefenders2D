@@ -2483,8 +2483,11 @@ class sdBlock extends sdEntity
 			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 			if ( this._broken )
 			{
-				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS || this.material === sdBlock.MATERIAL_ICE )
+				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
 				sdSound.PlaySound({ name:'glass12', x:this.x+this.width/2, y:this.y+this.height/2, volume:0.25, pitch: 0.6, _server_allowed:true });
+				else
+				if ( this.material === sdBlock.MATERIAL_ICE )
+				sdSound.PlaySound({ name: 'crystal', x: this.x, y: this.y, volume: 1, pitch: 1, _server_allowed: true });
 				else
 				sdSound.PlaySound({ name:'blockB4', 
 					x:this.x + this.width / 2, 
