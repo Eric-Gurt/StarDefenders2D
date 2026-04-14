@@ -30,6 +30,7 @@ class sdCrystalCombiner extends sdEntity
 		sdCrystalCombiner.AUTO_MODE_COMBINE = 1;
 		sdCrystalCombiner.AUTO_MODE_DRAIN1 = 2;
 		sdCrystalCombiner.AUTO_MODE_DRAIN2 = 3;
+
 		sdCrystalCombiner.auto_mode_titles = [
 			'Idle mode',
 			'Combine mode',
@@ -502,7 +503,7 @@ class sdCrystalCombiner extends sdEntity
 			{
 				this._next_steam_spawn = sdWorld.time + 1000 * 2 + 1000 * 2 * Math.random();
 
-				let ent = new sdEffect({ x: this.x + ( this.hitbox_x2 - this.hitbox_x1 ) * ( Math.random() - 0.5 ), y: this.y, sy:-2, type:sdEffect.TYPE_GLOW_HIT, color:'#eeeeee' });
+				let ent = new sdEffect({ x: this.x + ( this.hitbox_x2 - this.hitbox_x1 ) * ( Math.random() - 0.5 ), y: this.y, sy:-2, type:sdEffect.TYPE_SMOKE, color:'#eeeeee', spark_color: false });
 				sdEntity.entities.push( ent );
 			}
 		}
