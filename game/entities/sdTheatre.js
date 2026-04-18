@@ -239,15 +239,15 @@ class sdTheatre extends sdEntity
 	get hitbox_y2() { return 64 / 2; }
 	
 	get hard_collision()
-	{ return true; }
+	{ return false; }
 	
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
 	{ return 1; }
 	
-	/*ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{ 
-		return [ 0, 0, 0 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
-	}*/
+		return [ 0, 0, -32.1 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
+	}
 	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	//{ return true; }
 	
@@ -401,7 +401,6 @@ class sdTheatre extends sdEntity
 		if ( c._socket )
 		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
-
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		/*if ( !sdWorld.is_server )
@@ -456,9 +455,9 @@ class sdTheatre extends sdEntity
 		else
 		sdEntity.TooltipUntranslated( ctx, T( this.title + ' ( channel: "')+this.service + ' > ' + ( this.channel || this.video ) + T('", volume: ')+this.volume+'% )', 0, -10 );
 	}
-	
+
+    //Draw( ctx, attached )
 	DrawBG( ctx, attached )
-	//Draw( ctx, attached )
 	{
 		if ( sdShop.isDrawing )
 		ctx.scale( 0.25,0.25 );
