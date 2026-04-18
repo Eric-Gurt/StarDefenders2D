@@ -25,7 +25,7 @@ class sdCable extends sdEntity
 {
 	static init_class()
 	{
-		sdCable.max_distance = 200; // Same as for sdCom, at least for now
+		sdCable.max_distance = 256; // 200
 		/*
 		sdCable.colors = [ // color, opacity, width
 			'#000000', 0.5, 0.25, // any
