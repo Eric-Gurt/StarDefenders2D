@@ -5450,7 +5450,11 @@ class sdWeather extends sdEntity
 				p.last_vis = this.TraceDamagePossibleHere( xx, yy, Infinity );
 
 				var vis = p.last_vis;
-
+                const old_offset = ctx.z_offset;
+                const min = -128;
+                const max = 128;
+                const rand = sdWorld.SeededRandomNumberGenerator.random( i, max );
+                ctx.z_offset = rand * ( max - min ) + min;
 				if ( vis )
 				{
 					if ( this.snow )
@@ -5487,6 +5491,7 @@ class sdWeather extends sdEntity
 						yy - 16, 
 						32,32 );
 				}
+                ctx.z_offset = old_offset;
 			}
 			ctx.globalAlpha = 1;
 			ctx.filter = 'none';
