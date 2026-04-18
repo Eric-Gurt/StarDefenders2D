@@ -186,8 +186,15 @@ class sdWeather extends sdEntity
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
 		sdWeather.pattern = [];
+        sdWeather.depth_pattern = [];
+
+        const min = -128;
+        const max = 128;
 		for ( var i = 0; i < 300; i++ )
-		sdWeather.pattern.push({ x:Math.random(), y:Math.random(), last_vis:false, last_y:0, last_x:0 });
+        {
+            sdWeather.pattern.push({ x:Math.random(), y:Math.random(), last_vis:false, last_y:0, last_x:0 });
+            sdWeather.depth_pattern.push( Math.random() * ( max - min ) + min );
+        }
 		
 		sdWeather.debug_rain = false;
 		
@@ -5450,13 +5457,12 @@ class sdWeather extends sdEntity
 				p.last_vis = this.TraceDamagePossibleHere( xx, yy, Infinity );
 
 				var vis = p.last_vis;
-                const old_offset = ctx.z_offset;
-                const min = -128;
-                const max = 128;
-                const rand = sdWorld.SeededRandomNumberGenerator.random( i, max );
-                ctx.z_offset = rand * ( max - min ) + min;
+
 				if ( vis )
 				{
+                    const old_offset = ctx.z_offset;
+                    ctx.z_offset = sdWeather.depth_pattern[ i ];
+
 					if ( this.snow )
 					{
 						ctx.drawImageFilterCache( sdWeather.img_snow, 
@@ -5490,8 +5496,9 @@ class sdWeather extends sdEntity
 						xx - 16, 
 						yy - 16, 
 						32,32 );
+                        
+                    ctx.z_offset = old_offset;
 				}
-                ctx.z_offset = old_offset;
 			}
 			ctx.globalAlpha = 1;
 			ctx.filter = 'none';
