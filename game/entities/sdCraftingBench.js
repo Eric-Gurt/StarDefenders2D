@@ -110,7 +110,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
+                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
                 options: [ sdGun.CLASS_RAIL_PISTOL2, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_SHOTGUN ],
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
@@ -118,7 +118,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
+                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_TRIPLE_RAIL2 ],
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
@@ -126,7 +126,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
+                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_RAIL_SHOTGUN2 ],
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
