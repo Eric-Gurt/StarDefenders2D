@@ -1847,6 +1847,11 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 	}
+    
+    IsAttachableToSteeringWheel()
+	{
+		return this.enabled;
+	}
 
 	get title()
 	{
@@ -2317,7 +2322,10 @@ class sdBaseShieldingUnit extends sdEntity
 					else
 					this.AddContextOption( 'Allow being moved with steering wheel', 'PREVENT_PUSH', [] );
 				}
-
+				
+				
+				
+				
 				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				{
 					this.AddContextOption( 'Charge for 1 more day ( 500 score )', 'PROLONG_BY_DAY', [ 1 ] );
