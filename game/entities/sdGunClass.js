@@ -11691,7 +11691,7 @@ class sdGunClass
                             bullet_obj.explosion_radius = 15;
                             bullet_obj.time_left = 30 * 2 + Math.random() * 30 * 2;
                             bullet_obj.model = 'grenade2'; 
-                            bullet_obj.color = sdEffect.default_explosion_color;
+                            bullet_obj.color = bullet.color;
                             //bullet_obj.is_grenade = true;
                             //bullet_obj._dirt_mult = 2;
                             
