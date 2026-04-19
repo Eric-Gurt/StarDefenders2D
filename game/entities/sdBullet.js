@@ -560,7 +560,7 @@ class sdBullet extends sdEntity
 			if ( this._rail_zap )
 			{
 				sdCrystal.ZapLine( this._start_x, this._start_y, this.x, this.y, this.color );
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color, scale:2, radius:5 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color, scale:2, radius:2 });
 			}
 			else
 			if ( this._rail_alt )
