@@ -51,17 +51,18 @@ class sdThruster extends sdEntity
 			
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-			
-			this._regen_timeout = 60;
+			if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				this._hea -= dmg;
+
+				this._regen_timeout = 60;
+			}
 
 			if ( this._hea <= 0 )
-			{
-				this.remove();
-			}
-			
-			this._update_version++;
+			this.remove();
 		}
+	
+		this._update_version++;
 	}
 	constructor( params )
 	{
@@ -70,6 +71,8 @@ class sdThruster extends sdEntity
 		this._hmax = 1000;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this.enabled = false;
 		
