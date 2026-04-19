@@ -4692,7 +4692,7 @@ class sdGunClass
 			{
 				return 4;
 			},
-			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.025 * 8, 
+			projectile_properties: { _rail: true, _rail_zap: true, time_left: 1.5, _damage: 90, color: '#ffffff', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
@@ -4704,7 +4704,7 @@ class sdGunClass
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model:'transparent_proj', time_left: 1, color: '#ffffff', _knock_scale:0.025 * 8, 
+				let obj = { _rail: true, _rail_zap: true, time_left: 1.5, color: '#ffffff', _knock_scale:0.025 * 8, 
 					_custom_target_reaction:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
