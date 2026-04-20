@@ -168,6 +168,8 @@ class sdDrone extends sdEntity
 		if ( this.type === sdDrone.DRONE_SD_BG )
 		this._consumed_entity_snapshots = [];
 	
+		this._consumed_entity_count_total = 0;
+	
 		//
 		
 		this.hurt_timer = 0;
@@ -291,13 +293,14 @@ class sdDrone extends sdEntity
 	CrystalCollectionLogic( from_entity )
 	{
 		if ( sdWorld.is_server )
-		if ( this.type === sdDrone.DRONE_SD_BG )
+		if ( this.type === sdDrone.DRONE_SD_BG && this._consumed_entity_count_total < 5 )
 		if ( this._attack_timer <= 0 )
 		if ( from_entity.is( sdCrystal ) )
 		if ( this._consumed_entity_snapshots )
 		if ( this._consumed_entity_snapshots.length < 4 )
 		{
 			this._consumed_entity_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+			this._consumed_entity_count_total++;
 			from_entity.remove();
 			from_entity._broken = false;
 

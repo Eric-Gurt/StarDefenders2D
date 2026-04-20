@@ -12,13 +12,13 @@ class sdMatterContainer extends sdEntity
 	{
 		// Regular matter container
 		sdMatterContainer.img_matter_container = sdWorld.CreateImageFromFile( 'matter_container' );
-		sdMatterContainer.img_matter_container_empty = sdWorld.CreateImageFromFile( 'matter_container_empty' );
+		//sdMatterContainer.img_matter_container_empty = sdWorld.CreateImageFromFile( 'matter_container_empty' );
 		// Advanced matter container
 		sdMatterContainer.img_matter_container2 = sdWorld.CreateImageFromFile( 'matter_container2' );
-		sdMatterContainer.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
+		//sdMatterContainer.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
 		// Upgraded advanced matter container
 		sdMatterContainer.img_matter_container3 = sdWorld.CreateImageFromFile( 'matter_container3' );
-		sdMatterContainer.img_matter_container3_empty = sdWorld.CreateImageFromFile( 'matter_container3_empty' );
+		//sdMatterContainer.img_matter_container3_empty = sdWorld.CreateImageFromFile( 'matter_container3_empty' );
 		
 		sdMatterContainer.MODE_EQUALIZE = 0;
 		sdMatterContainer.MODE_COLLECT = 1;
@@ -26,8 +26,8 @@ class sdMatterContainer extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.is_advanced_container ? -11 : -10; }
-	get hitbox_x2() { return this.is_advanced_container ? 11 : 10; }
+	get hitbox_x1() { return ( -6 * this.containers ) + ( this.is_advanced_container ? -11 : -10 ); }
+	get hitbox_x2() { return ( 6 * this.containers ) + ( this.is_advanced_container ? 11 : 10 );}
 	get hitbox_y1() { return this.is_advanced_container ? -15 : -14; }
 	get hitbox_y2() { return this.is_advanced_container ? 16.5 : 14; }
 	
@@ -38,7 +38,7 @@ class sdMatterContainer extends sdEntity
 	{ return true; }
 	
 	get mass()
-	{ return 60; }
+	{ return 60 + ( 30 * this.containers ); }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return !this.is_advanced_container; }
@@ -108,6 +108,65 @@ class sdMatterContainer extends sdEntity
 		if ( !this.is_advanced_container )
 		this._update_version++; // Just in case
 	}
+	onBuilt()
+	{
+		this.CheckNearbyContainersForMerging();
+	}
+	CheckNearbyContainersForMerging()
+	{
+		if ( this.containers > 0 )
+		return;
+	
+		if ( this._is_being_removed )
+		return;
+		
+		let ents = sdWorld.GetAnythingNear( this.x, this.y, 48 );
+		for ( let i = 0; i < ents.length; i++ )
+		{
+			if ( ents[ i ].is ( sdMatterContainer ) && !ents[ i ]._is_being_removed && ents[ i ] !== this && ( ents[ i ].matter_max / ( 1 + ents[ i ].containers ) === this.matter_max ) )
+			{
+				let container = ents[ i ];
+				if ( container.y === this.y && container.containers < 3 ) // Same Y coordinate? Also container not too big?
+				{
+					if ( this.x > container.x )
+					container.x += 6;
+					else
+					container.x -= 6;
+				
+					let matter_to_add = this.matter || 0;
+				
+					container.containers++; // Increase "containerss" merged by 1
+					container.UpdateContainerPropertiesOnMerge( matter_to_add ); // Update properties
+					
+					if ( this.is_advanced_container )
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+				
+					this.remove();
+					this._broken = false;
+					
+					break;
+					
+					// Container hitboxes increase by 16 per container merge. Stacks up to "4" containers (3 merges)
+				}
+			}
+		}
+	}
+	UpdateContainerPropertiesOnMerge( matter_to_add = 0 )
+	{
+		if ( this.containers === 0 )
+		return;
+	
+		{
+			let init_hmax = this._hmax / ( this.containers );
+			this._hmax += init_hmax;
+			let matter_to_increase = this.matter_max / ( this.containers );
+			this.matter_max += matter_to_increase;
+			this.matter += matter_to_add;
+		}
+
+		if ( !this.is_advanced_container )
+		this._update_version++;
+	}
 	
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
@@ -146,7 +205,7 @@ class sdMatterContainer extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
-		if ( !from_entity._is_being_removed )
+		if ( !from_entity._is_being_removed && !this.is_being_removed )
 		{
 			if ( from_entity.is( sdGun ) && this.is_advanced_container && this.containers === 0 )
 			{
@@ -160,6 +219,8 @@ class sdMatterContainer extends sdEntity
 					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 				}
 			}
+			//if ( from_entity.is( sdMatterContainer ) && this.is_advanced_container && from_entity.is_advanced_container )
+			//this.CheckNearbyContainersForMerging();
 		}
 	}
 	get title()
@@ -177,44 +238,62 @@ class sdMatterContainer extends sdEntity
 	{
 		ctx.apply_shading = false;
 		
+		let xx = 0;
+		
+		let yy = this.containers;
+		
 		if ( !this.is_advanced_container )
 		{
-			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 32, - 32, 64, 64 );
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, xx * 96, yy * 64, 96, 64, -48, -32, 96, 64 );
+				
+				//if ( this.matter_max > 40 )
+				//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 			
-			//if ( this.matter_max > 40 )
-			//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
-		
-			ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 2 );
+				ctx.filter = sdWorld.GetCrystalHue( ( this.matter_max / 2 ) / ( 1 + this.containers ) );
+				
+				//ctx.filter = sdWorld.GetCrystalHue( -1 );
 			
-			//ctx.filter = sdWorld.GetCrystalHue( -1 );
-		
-			ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
-			
-			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 32, - 32, 64, 64 );
-			
+				ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
+				
+				xx = 1;
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, xx * 96, yy * 64, 96, 64, -48, -32, 96, 64 );
+			}
 		}
 		else
 		{
 			// If container is not upgraded via chipset
 			if ( this.matter_max / ( 1 + this.containers ) === 5120 * 80 )
 			{
-				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container2_empty, - 32, - 32, 64, 64 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container2, xx * 96, yy * 64, 96, 64, -48, -32, 96, 64 );
 				
+				//if ( this.matter_max > 40 )
+				//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+			
 				ctx.filter = sdWorld.GetCrystalHue( -1 );
+				
+				//ctx.filter = sdWorld.GetCrystalHue( -1 );
 			
 				ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
 				
-				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container2, - 32, - 32, 64, 64 );
+				xx = 1;
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container2, xx * 96, yy * 64, 96, 64, -48, -32, 96, 64 );
 			}
 			else // Upgraded
 			{
-				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container3_empty, - 32, - 32, 64, 64 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container3, xx * 96, yy * 64, 96, 64, -48, -32, 96, 64 );
 				
+				//if ( this.matter_max > 40 )
+				//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+			
 				ctx.filter = sdWorld.GetCrystalHue( -1 );
+				
+				//ctx.filter = sdWorld.GetCrystalHue( -1 );
 			
 				ctx.globalAlpha = sdShop.isDrawing ? 1 : this.matter / this.matter_max;
 				
-				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container3, - 32, - 32, 64, 64 );
+				xx = 1;
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container3, xx * 96, yy * 64, 96, 64, -48, -32, 96, 64 );
 			}
 		}
 		ctx.globalAlpha = 1;
@@ -262,6 +341,10 @@ class sdMatterContainer extends sdEntity
 						this._update_version++;
 					}
 				}
+				if ( command_name === 'ADV_MERGE' )
+				{
+					this.CheckNearbyContainersForMerging();
+				}
 			}
 			else
 			executer_socket.SDServiceMessage( 'Matter container is too far' );
@@ -277,6 +360,9 @@ class sdMatterContainer extends sdEntity
 			this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.mode === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );
 			this.AddContextOptionNoTranslation( T( 'Set mode to Collect' ) + (( this.mode === 1 ) ? active_mode_text : ''), 'MODE', [ 1 ] );
 			this.AddContextOptionNoTranslation( T( 'Set mode to Release' ) + (( this.mode === 2 ) ? active_mode_text : ''), 'MODE', [ 2 ] );
+			
+			if ( this.is_advanced_container && this.containers === 0 )
+			this.AddContextOptionNoTranslation( T( 'Attempt nearby container merging' ), 'ADV_MERGE' );
 		}
 	}
 }

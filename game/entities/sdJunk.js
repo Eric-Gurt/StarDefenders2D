@@ -18,6 +18,7 @@ import sdWeather from './sdWeather.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdMatterContainer from './sdMatterContainer.js';
+import sdMatterMatrix from './sdMatterMatrix.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdFactions from './sdFactions.js';
 
@@ -994,7 +995,7 @@ class sdJunk extends sdEntity
 									if ( should_damage )*/
 									//if ( !damaged_ents_set.has( sdWorld.last_hit_entity ) )
 									//{
-										if ( ent.is( sdCrystal ) ) // Crystals have unique interaction - either get charged up or lose matter regen
+										if ( ent.is( sdCrystal ) || ent.is( sdMatterMatrix ) ) // Crystals (and now matter gen matrix ) have unique interaction - either get charged up or lose matter regen
 										{
 											let ent2 = ent;
 											// Essentially a 50/50 gamble for matter regen on crystals. Though it also scales how much it regenerates/loses depending on crystal max matter
@@ -1006,8 +1007,11 @@ class sdJunk extends sdEntity
 											if ( ent2.matter_regen + regen * mult > ent2.max_matter_regen )
 											regen = ( ent2.max_matter_regen - ent2.matter_regen ) / mult;
 											
-											if ( ent.is_anticrystal )
-											regen = 0;
+											if ( ent.is( sdCrystal ) )
+											{
+												if ( ent.is_anticrystal )
+												regen = 0;
+											}
 											
 											if ( regen > 0 )
 											{

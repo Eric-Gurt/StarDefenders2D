@@ -88,6 +88,11 @@ class sdMatterMatrix extends sdEntity
 	
 	get mass() { return 70; } // Should probably be somewhat moveable
 	
+	get max_matter_regen()
+	{
+		return 1000;
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		
@@ -153,7 +158,7 @@ class sdMatterMatrix extends sdEntity
 				let matter_to_feed = from_entity.matter_max * ( from_entity.matter_regen / 100 );
 				if ( matter_to_feed > 0 )
 				{
-					this.matter_regen = Math.min( 1000, this.matter_regen + 100 * ( matter_to_feed / ( 5120 * 16 ) ) );
+					this.matter_regen = Math.min( this.max_matter_regen , this.matter_regen + 100 * ( matter_to_feed / ( 5120 * 16 ) ) );
 					
 					// Add charge time. It should incentivize combining via crystal combiner for higher crystals.
 					if ( matter_to_feed > 2560 ) // Generally above 2.5k's should take some to charge it up.
