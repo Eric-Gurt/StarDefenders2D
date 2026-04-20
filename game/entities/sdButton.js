@@ -236,7 +236,7 @@ class sdButton extends sdEntity
 		this.filter = [ 0, '>', 0 ]; // Measures crystal's regen capacity
     
         if ( this.type === sdButton.TYPE_TEMPERATURE_SENSOR )
-		this.filter = [ 0, '>', 0 ]; // Measures crystal's regen capacity
+		this.filter = [ 0, '>', 0 ]; // Measures entity temperature
 
 		sdButton.buttons.push( this );
 	}
