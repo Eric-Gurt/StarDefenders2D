@@ -4719,7 +4719,8 @@ class sdGunClass
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
-				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
 				return obj;
 			},
