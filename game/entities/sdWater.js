@@ -1176,7 +1176,7 @@ class sdWater extends sdEntity
                             else
 							if ( this.type === sdWater.TYPE_CRYO )
 							{
-								e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'brightness(1.75) saturate(0.25) hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
+								e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'brightness(1.75) saturate(0.25) hue-rotate(60deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
 								sdSound.PlaySound({ name:'water_entrance', x:xx, y:yy, _server_allowed: true, volume: 0.1, pitch: 1 });
 							}
 							else
@@ -1338,8 +1338,8 @@ class sdWater extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	//DrawFG( ctx, attached )
-	Draw( ctx, attached )
+	//Draw( ctx, attached )
+	DrawFG( ctx, attached )
 	{
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		

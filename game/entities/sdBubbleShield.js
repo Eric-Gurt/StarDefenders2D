@@ -253,7 +253,7 @@ class sdBubbleShield extends sdEntity
 	{
 		return 'Bubble shield';
 	}
-	Draw( ctx, attached )
+	DrawFG( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		

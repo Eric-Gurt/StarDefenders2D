@@ -442,7 +442,7 @@ class sdBullet extends sdEntity
 		this._rail_alt = false;
 		this._rail_zap = false;
 
-		this._affected_by_gravity = false; // Bullet drop?
+		this.affected_by_gravity = false; // Bullet drop?
 		this.gravity_scale = 1;
 
 		this.explosion_radius = 0;
@@ -560,7 +560,7 @@ class sdBullet extends sdEntity
 			if ( this._rail_zap )
 			{
 				sdCrystal.ZapLine( this._start_x, this._start_y, this.x, this.y, this.color );
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color, scale:2, radius:5 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color, scale:2, radius:2 });
 			}
 			else
 			if ( this._rail_alt )
@@ -877,11 +877,9 @@ class sdBullet extends sdEntity
 				this.sy = this.sy * 0.95;
 			}
 
-
-			if ( this.is_grenade || this._affected_by_gravity )
+			if ( this.is_grenade || this.affected_by_gravity )
 			{
 				this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
-
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
 			}
 			else
@@ -1199,8 +1197,6 @@ class sdBullet extends sdEntity
 			 ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{
 			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || from_entity.IsPlayerClass() )
-			//if ( from_entity.GetClass() === 'sdCharacter' ||
-			//	 from_entity.GetClass() === 'sdVirus' )
 			{
 				if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
@@ -1297,8 +1293,11 @@ class sdBullet extends sdEntity
 								}, 'P' );
 							}
 
-							if ( this._bouncy )
-							this._damage *= 0.8;
+							if ( this._bouncy || this.penetrating )
+                            {
+                                this._damage *= 0.8;
+                                this.Damage( 30 );
+                            }
 							else
 							this._damage = 0; // for healguns
 						}
@@ -1311,6 +1310,7 @@ class sdBullet extends sdEntity
 					this._last_target = from_entity;
 
 					if ( this._detonate_on_impact )
+                    if ( !this.penetrating )
 					if ( this._damage === 0 || !sdWorld.is_server )
 					{
 						if ( this.model !== 'flare' || this.model !== 'stalker_target' )

@@ -223,7 +223,7 @@ class sdPlayerDrone extends sdCharacter
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 		
-		const matter_cost_4 = ( Math.abs( 100 * 1 * ( this.power_ef > 0 ? 2.5 : 1 ) ) * 1 + 30 ) * sdWorld.damage_to_matter;
+		const matter_cost_4 = Math.abs( 100 * 1 + 30 ) * sdWorld.damage_to_matter;
 		const matter_cost_5 = 100;
 		const matter_cost_7 = 1;
 		const matter_cost_2 = 4;
@@ -459,7 +459,7 @@ class sdPlayerDrone extends sdCharacter
 							bullet_obj.sx = dx * 12;
 							bullet_obj.sy = dy * 12;
 
-							bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * 1 * scale;
+							bullet_obj._damage = 10 * power * 1 * scale;
 
 
 							if ( mode === 7 )
@@ -619,7 +619,7 @@ class sdPlayerDrone extends sdCharacter
 			}
 		}
 		
-		this.HandlePlayerPowerups( GSPEED );
+		// this.HandlePlayerPowerups( GSPEED );
 		
 		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
 		this.PositionUpdateAsDriver();

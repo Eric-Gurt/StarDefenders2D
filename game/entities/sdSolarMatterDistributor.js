@@ -117,7 +117,7 @@ class sdSolarMatterDistributor extends sdEntity
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });
 	}*/
 
-	get mass() { return 180; } // Recommended to move with vehicles if blocked by something
+	get mass() { return 120; } // Recommended to move with vehicles if blocked by something
 	/*MeasureMatterCost()
 	{
 		//return 0; // Hack

@@ -10,7 +10,7 @@ class sdCraftingBench extends sdEntity
 {
 	static init_class()
 	{
-		sdCraftingBench.img_merger = sdWorld.CreateImageFromFile( 'sdCraftingBench' ); // by The Commander
+		sdCraftingBench.img_crafting_bench = sdWorld.CreateImageFromFile( 'sdCraftingBench' ); // by The Commander
 		
 		sdCraftingBench.access_range = 64;
 		
@@ -33,7 +33,7 @@ class sdCraftingBench extends sdEntity
     
     ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -32.1 ];
 	}
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
@@ -55,6 +55,8 @@ class sdCraftingBench extends sdEntity
 		
 		for ( var i = 0; i < sdCraftingBench.slots_tot; ++i )
 		this[ 'item' + i ] = null;
+
+        this._current_category_stack = [];
 	}
     GetCrafts() // So multiple variants could exist eventually
     {
@@ -80,12 +82,24 @@ class sdCraftingBench extends sdEntity
                 options: [ sdGun.CLASS_KVT_MMG_MK2 ]
             },
             {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_PISTOL ],
+                options: [ sdGun.CLASS_COUNCIL_PISTOL2 ]
+            },
+            {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_SHOTGUN ],
+                options: [ sdGun.CLASS_COUNCIL_SHOTGUN2 ]
+            },
+            {
+                needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_COUNCIL_BURST_RAIL ],
+                options: [ sdGun.CLASS_COUNCIL_BURST_RAIL2 ]
+            },
+            {
                 needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
-                options: [ sdGun.CLASS_SD_MINIGUN ]
+                options: [ sdGun.CLASS_SD_MINIGUN, sdGun.CLASS_LIGHT_CANNON ]
             },
             {
                 needed: [ sdGun.CLASS_ETERNAL_SHARD, sdGun.CLASS_CUBE_FUSION_CORE, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_ERTHAL_ENERGY_CELL ],
-                options: [ sdGun.CLASS_IMPACTOR ]
+                options: [ sdGun.CLASS_IMPACTOR, sdGun.CLASS_ANTI_TANK ]
             },
             {
                 needed: [ sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD, sdGun.CLASS_CUBE_SHARD ],
@@ -96,7 +110,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
+                needed: [ sdGun.CLASS_RAIL_PISTOL, sdGun.CLASS_RAIL_PISTOL ],
                 options: [ sdGun.CLASS_RAIL_PISTOL2, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_RAIL_SHOTGUN ],
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
@@ -104,7 +118,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
+                needed: [ sdGun.CLASS_TRIPLE_RAIL, sdGun.CLASS_TRIPLE_RAIL ],
                 options: [ sdGun.CLASS_TRIPLE_RAIL2 ],
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
@@ -112,7 +126,7 @@ class sdCraftingBench extends sdEntity
                 }
             },
             {
-                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
+                needed: [ sdGun.CLASS_RAIL_SHOTGUN, sdGun.CLASS_RAIL_SHOTGUN ],
                 options: [ sdGun.CLASS_RAIL_SHOTGUN2 ],
                 callback: ( gun ) => {
                     gun.sd_filter = sdWorld.CreateSDFilter();
@@ -183,6 +197,9 @@ class sdCraftingBench extends sdEntity
         const craft = this.GetAnyCraft( items );
         if ( !craft )
         return false;
+
+        if ( typeof index !== 'number' || index < 0 || index > craft.length )
+        return false;  
     
         const type = craft.options[ index ];
         if ( !type )
@@ -282,7 +299,7 @@ class sdCraftingBench extends sdEntity
 
         // slot-specific corrections
         const offset = {
-            1:  2,
+            1: 2,
             2: -2,
             5: 2,
             6: -2
@@ -319,7 +336,8 @@ class sdCraftingBench extends sdEntity
            // ctx.translate( 0, 12 );
         }
 
-		ctx.drawImageFilterCache( sdCraftingBench.img_merger, 0, 0, 64, 64, -32, -32, 64, 64 );
+		ctx.drawImageFilterCache( sdCraftingBench.img_crafting_bench, 0, 0, 64, 64, -32, -32, 64, 64 );
+
 		for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
         {
             const item = this[ 'item' + i ];
@@ -541,6 +559,8 @@ class sdCraftingBench extends sdEntity
                     const success = this.CraftWeapon( parameters_array[ 0 ] );
                     if ( !success )
                     executer_socket.SDServiceMessage( 'Not enough matter' );
+
+					this._update_version++;
                 }
                 if ( command_name === 'GET' )
                 {
@@ -554,8 +574,6 @@ class sdCraftingBench extends sdEntity
                     this._update_version++;
                 }
             }
-
-            this._update_version++;
         }
         else
         {
@@ -570,31 +588,90 @@ class sdCraftingBench extends sdEntity
 		if ( exectuter_character.hea > 0 )
         if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) && exectuter_character.canSeeForUse( this ) )
 		{
-			for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
-			{
-				const item = this[ 'item' + i ]
-				if ( item )
-                this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
-			}
-            const craft = this.GetAnyCraft( this.GetItems( false ) );
-            if ( craft )
+            if ( this._current_category_stack.length > 0 )
+            this.AddClientSideActionContextOption( 'Go back...', ()=>
             {
-                for ( let i = 0; i < craft.options.length; ++i )
-                {
-                    const option = craft.options[ i ];
-                    const title = sdGun.classes[ option ].title;
-                    const cost = sdGun.classes[ option ].matter_cost ?? 0;
-                    
-                    let text = `Craft ${ title }`;
-                    if ( cost > 0 )
-                    text += ` (${ sdWorld.RoundedThousandsSpaces( cost ) } matter)`;
+                this._current_category_stack.pop();
+                this.RebuildContextMenu();
+            }, false );
 
-                    this.AddContextOption( text, 'CRAFT', [ i ] );
+            if ( this._current_category_stack.length === 0 )
+            {
+                const craft = this.GetAnyCraft( this.GetItems( false ) );
+                if ( craft )
+                {
+                    for ( let i = 0; i < craft.options.length; ++i )
+                    {
+                        const option = craft.options[ i ];
+                        const title = sdGun.classes[ option ].title;
+                        const cost = sdGun.classes[ option ].matter_cost ?? 0;
+                        
+                        let text = `Craft ${ title }`;
+
+                        if ( cost > 0 )
+                        text += ` (${ sdWorld.RoundedThousandsSpaces( cost ) } matter)`;
+
+                        this.AddContextOption( text, 'CRAFT', [ i ] );
+                    }
+                }
+
+                for ( let i = 0; i < sdCraftingBench.slots_tot; ++i )
+                {
+                    const item = this[ 'item' + i ]
+                    if ( item )
+                    this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( item._net_id ), 'GET', [ i ] );
                 }
             }
+            /*else
+            {
+                const crafts = this.GetCrafts();
+                for ( const craft of crafts )
+                {
+                    const unique_items = craft.needed.filter( ( v, index ) => craft.needed.indexOf( v ) === index )
+                    let text = '';
+
+                    for ( let i = 0; i < unique_items.length; ++i )
+                    {
+                        const item = unique_items[ i ];
+                        const count = craft.needed.filter( ( v ) => ( v === item ) ).length;
+
+                        text += `${ sdGun.classes[ item ].title }`;
+
+                        if ( count > 1 )
+                        text += ` x${ count }`;
+                    
+                        if ( i !== unique_items.length - 1 )
+                        text += ' + ';
+                    }
+
+                    text += ' => ';
+
+                    for ( let i = 0; i < craft.options.length; ++i )
+                    {
+                        const result = craft.options[ i ];
+
+                        text += `${ sdGun.classes[ result ].title }`
+
+                        if ( i !== craft.options.length - 1 )
+                        text += ' or '
+                    }
+                    
+                    this.AddClientSideActionContextOption( text, ()=>
+                    {
+                        this.RebuildContextMenu();
+                    }, false );
+                }
+                return;
+            }
+            this.AddClientSideActionContextOption( 'Open options menu', ()=>
+            {
+                this._current_category_stack.push( 'recipe_menu' );
+                this.RebuildContextMenu();
+            }, false );*/
 		}
 	}
 }
+
 //sdCraftingBench.init_class();
 
 export default sdCraftingBench;

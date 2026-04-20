@@ -25,7 +25,7 @@ class sdCable extends sdEntity
 {
 	static init_class()
 	{
-		sdCable.max_distance = 200; // Same as for sdCom, at least for now
+		sdCable.max_distance = 256; // 200
 		/*
 		sdCable.colors = [ // color, opacity, width
 			'#000000', 0.5, 0.25, // any
@@ -44,7 +44,7 @@ class sdCable extends sdEntity
 			color: '#000000', 
 			opacity: 0.8, 
 			width: 0.5,
-			max_distance: 200
+			max_distance: 256
 		};
 		
 		sdCable.type_properties[ sdCable.TYPE_WIRELESS = 2 ] = {
@@ -68,7 +68,7 @@ class sdCable extends sdEntity
 			color: '#161617', 
 			opacity: 0.8, 
 			width: 1,
-			max_distance: 200
+			max_distance: 256
 		};
 		
 		sdCable.TYPE_LAST = sdCable.type_properties.length;

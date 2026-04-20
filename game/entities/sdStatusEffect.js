@@ -1360,7 +1360,18 @@ class sdStatusEffect extends sdEntity
 				status_entity.t -= GSPEED;
 				
 				return ( status_entity.t <= 0 ); // return true = delete
-			}
+			},
+            onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+
+                ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)';
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				ctx.filter = null;
+			},
 		};
 
 		sdStatusEffect.types[ sdStatusEffect.TYPE_PULSE_EFFECT = 11 ] = 
@@ -2482,10 +2493,71 @@ class sdStatusEffect extends sdEntity
 			{
 			}
 		};
+        sdStatusEffect.types[ sdStatusEffect.TYPE_TIMEWARP = 19 ] = 
+		{
+			remove_if_for_removed: true,
+			is_emote: false,
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.radius = params.radius;
+                status_entity.warp = params.warp * 100;
+                status_entity.owner_warp_mult = ( params.owner_warp_mult ?? 4 ) * 100;
+                status_entity.ttl = params.ttl;
+                
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+                if ( params.ttl > status_entity.ttl )
+                status_entity.ttl = params.ttl;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				//if ( sdWorld.is_server )
+				{
+                    status_entity.ttl -= GSPEED;
+                    if ( status_entity.ttl <= 0 )
+                    status_entity.remove();
+                }
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+            onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+
+                const brightness = ( 0.5 + ( status_entity.ttl < 100 ? 0.2 * Math.sin( ( sdWorld.time % 750 ) / 750 * Math.PI ) : 0 ) ).toFixed( 2 );
+                ctx.filter = `grayscale(1) brightness(${ brightness }) contrast(1.5) drop-shadow(0px 0px 1px #000000)`;
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				ctx.filter = null;
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+			}
+		};
 
 		sdStatusEffect.status_effects = [];
 		
 		sdStatusEffect.entity_to_status_effects = new WeakMap(); // entity => [ eff1, eff2 ... ].inversed = [ ... eff2, eff1 ]
+        sdStatusEffect.type_to_status_effects = new Map(); // type => [ eff1, eff2 ... ]
+        
+        for ( let i = 0; i < sdStatusEffect.types.length; ++i )
+        sdStatusEffect.type_to_status_effects.set( i, [] );
 		
 		//sdStatusEffect.line_of_sight_visibility_cache = new WeakMap(); // entity => { next_update_time, result, result_soft, lx, ly }
 	}
@@ -2724,9 +2796,7 @@ class sdStatusEffect extends sdEntity
 		if ( status_effects_on_entity[ i ].type === sdStatusEffect.TYPE_TEMPERATURE )
 		return status_effects_on_entity[ i ].t;
 		
-		const temperature_normal = 20; // Copy
-		
-		return temperature_normal;
+		return sdStatusEffect.temperature_normal;
 	}
 	
 	IsVisible( observer_entity )
@@ -2790,6 +2860,9 @@ class sdStatusEffect extends sdEntity
 		}
 		
 		sdStatusEffect.status_effects.push( this );
+        
+        const arr = sdStatusEffect.type_to_status_effects.get( params.type );
+        arr.push( this );
 	}
 	
 	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
@@ -2826,6 +2899,9 @@ class sdStatusEffect extends sdEntity
 		status_type.onBeforeRemove( this );
 		
 		sdStatusEffect.status_effects.splice( sdStatusEffect.status_effects.indexOf( this ), 1 );
+
+        const type_arr = sdStatusEffect.type_to_status_effects.get( this.type );
+        type_arr.splice( type_arr.indexOf( this ), 1 );
 		
 		if ( this._for_confirmed )
 		if ( this.for ) // Can be null if removed, which is fine
@@ -2847,6 +2923,12 @@ class sdStatusEffect extends sdEntity
 		sdStatusEffect.status_effects.splice( id0, 1 );
 		else
 		debugger;
+    
+        const type_arr = sdStatusEffect.type_to_status_effects.get( this.type );
+        const id1 = type_arr.indexOf( this );
+        
+        if ( id1 !== -1 )
+        type_arr.splice( id1, 1 );
 		
 		if ( this._for_confirmed )
 		if ( this.for ) // Can be null if removed, which is fine

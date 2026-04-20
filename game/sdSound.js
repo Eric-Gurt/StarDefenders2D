@@ -720,8 +720,27 @@ zombie_idle`;
 		// There could be logic to cancel all currently played sounds
 		sdSound.entity_to_channels_list.delete( for_entity );
 	}
+    static GetPitchScale( x, y )  // Anything distance/range base is better to handle with sdSensorArea-s, even crystal glow probably
+    {
+        let best_warp = 1;
+
+        for ( const timewarp of sdWorld.timewarps )
+        {
+            if ( sdWorld.inDist2D_Boolean( timewarp.x, timewarp.y, x, y, timewarp.r ) )
+            {
+                best_warp = timewarp.warp;
+            }
+        }
+        return best_warp;
+    }
 	static PlaySound( params, exclusive_to_sockets_arr=null )// name, x,y, volume=1, server_allowed=true )
 	{
+        if ( sdWorld.is_server || sdWorld.is_singleplayer )
+        {
+            if ( params.x && params.y )
+            params.pitch *= sdSound.GetPitchScale( params.x, params.y );
+        }
+
 		if ( sdWorld.is_singleplayer )
 		{
 		}
@@ -753,7 +772,6 @@ zombie_idle`;
 				// Array, synced sound from remote
 				
 				let entity = sdEntity.entities_by_net_id_cache_map.get( params.channel[ 0 ] );
-				
 				if ( entity )
 				{
 					sound_channel = sdSound.entity_to_channels_list.get( entity );

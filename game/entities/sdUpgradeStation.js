@@ -240,7 +240,7 @@ class sdUpgradeStation extends sdEntity
 		{
 			if ( !from_entity._is_being_removed )
 			{
-				if ( from_entity.is( sdGun ) )
+				if ( from_entity.is( sdGun ) && !( from_entity._held_by || from_entity.held_by ) )
 				{
 					if ( from_entity.class === sdGun.CLASS_UPGRADE_STATION_CHIPSET )
 					if ( this.level < sdUpgradeStation.MAX_STATION_LEVEL )

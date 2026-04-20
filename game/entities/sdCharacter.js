@@ -42,7 +42,7 @@ class sdCharacter extends sdEntity
 	static init_class()
 	{
 		sdCharacter.img_teammate = sdWorld.CreateImageFromFile( 'teammate' );
-		
+        sdCharacter.img_typing = sdWorld.CreateImageFromFile( 'typing' );
 		sdCharacter.climb_filter = [ 'sdBlock', 'sdLost', 'sdBarrel', 'sdCrystal', 'sdCharacter', 'sdDoor', 'sdMatterContainer', 'sdCube' ];
 		
 		sdCharacter.stability_damage_from_damage_scale = 0.75; // 1.25
@@ -1269,8 +1269,6 @@ THING is cosmic mic drop!`;
 			
 		this._global_user_uid = null; // Multiple sdCharacter-s can have same _global_user_uid because it points to user, not a character - user can have multiple characters. This can be null in sandbox modes that chose not to use global accounts yet might use presets and translations
 		
-		this.lag = false;
-		
 		this._self_boost = 0;
 		
 		this._god = false;
@@ -1518,8 +1516,8 @@ THING is cosmic mic drop!`;
 		this._matter_capacity_boosters_max = 20 * 45;
 		
 		//this.stim_ef = 0; // Stimpack effect
-		this.power_ef = 0; // Damage multiplication effect
-		this.time_ef = 0; // GSPEED manipulations
+		//this.power_ef = 0; // Damage multiplication effect
+		//this.time_ef = 0; // GSPEED manipulations
 		
 		this._matter_old = this.matter;
 		
@@ -1557,9 +1555,11 @@ THING is cosmic mic drop!`;
 		this._camera_zoom = sdWorld.default_zoom;
 		this._additional_camera_zoom_mult = 1; // Admins can change it
 		
-		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
+		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working
 
 		this.bleed_effect = this.GetBleedEffect(); // Clients need it in order to play proper walk sound
+        
+        this.typing = false;
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
@@ -5088,7 +5088,7 @@ THING is cosmic mic drop!`;
 			this._side = ( this.x < this.look_x ) ? 1 : -1;
 		}
 	
-		this.HandlePlayerPowerups( GSPEED );
+		//this.HandlePlayerPowerups( GSPEED );
 		
 
 		let act_y_or_unstable = ( this.driver_of || this._frozen > 0 ) ? 0 : this.act_y;
@@ -5245,7 +5245,7 @@ THING is cosmic mic drop!`;
 						bullet_obj._damage = 0;
 						bullet_obj.time_left = 20;
 						bullet_obj.model = 'grapple_hook'
-						bullet_obj._affected_by_gravity = true;
+						bullet_obj.affected_by_gravity = true;
 						bullet_obj.gravity_scale = 2;
 						
 						if ( this._hook_projectile )
@@ -6125,15 +6125,15 @@ THING is cosmic mic drop!`;
 		}
 	}
 
-	HandlePlayerPowerups( GSPEED )
+	/*HandlePlayerPowerups( GSPEED )
 	{
-		//if ( this.stim_ef > 0 )
-		//this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
+		if ( this.stim_ef > 0 )
+		this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
 		if ( this.power_ef > 0 )
 		this.power_ef = Math.max( 0, this.power_ef - GSPEED );
 		if ( this.time_ef > 0 )
 		this.time_ef = Math.max( 0, this.time_ef - GSPEED );
-	}
+	}*/
 	get friction_remain()
 	{ return ( this.hea <= 0 ) ? 0.7 : 0.8; } // Same 0.7 for ragdoll bones
 
@@ -7056,13 +7056,14 @@ THING is cosmic mic drop!`;
 		ent.onBuilt();
 	}
 	
-	AnnounceTooManyEffectsIfNeeded()
+	/*AnnounceTooManyEffectsIfNeeded()
 	{
+
 		if ( this.power_ef > 30 * 3 || this.time_ef > 30 * 3 )
 		{
 			this.Say( [ 'I\'m in', 'That is a power', 'Make your bets', 'Check out this combo', 'Good luck' ][ ~~( Math.random() * 3 ) ], false, false, true );
 		}
-	}
+	}*/
 	Draw( ctx, attached )
 	{
 		if ( ( this._inventory[ this.gun_slot ] && this._inventory[ this.gun_slot ].muzzle > 0 ) || this.flying )
@@ -7070,15 +7071,6 @@ THING is cosmic mic drop!`;
 		
 		if ( this.ghosting )
 		ctx.globalAlpha = 0.3;
-	
-		if ( this.lag )
-		if ( globalThis.enable_debug_info )
-		{
-			ctx.fillStyle = '#000000';
-			ctx.fillText( 'Connection problem', 0, -24.5 - 5, 50 ); 
-			ctx.fillStyle = '#ffff00';
-			ctx.fillText( 'Connection problem', 0, -25 - 5, 50 );
-		}
 		
 		if ( !attached )
 		if ( this.hook_relative_to || this.hook_projectile_net_id !== -1 )
@@ -7119,22 +7111,11 @@ THING is cosmic mic drop!`;
 		
 		//ctx.filter = this.filter;
 		ctx.sd_filter = this.sd_filter;
-		//if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
-		let effects = sdStatusEffect.entity_to_status_effects.get( this );
-		if ( effects !== undefined )
-		for ( let i = 0; i < effects.length; i++ )
-		{
-			if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
-			ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)'; // Give it the good old red outline
-		
-	
-		}
-		
 		//if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
 		//ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
 	
-		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
-		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
+		//if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
+		//ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
 		
 		const char_filter = ctx.filter;
 		
@@ -7425,6 +7406,11 @@ THING is cosmic mic drop!`;
 		{
 			ctx.drawImageFilterCache( sdCharacter.img_teammate, - 16, - 16 - 32 + this._crouch_intens * 6, 32,32 );
 		}
+        if ( this.hea > 0 && this.typing )
+        {
+            let raise = 4 * this.s / 100;
+            ctx.drawImageFilterCache( sdCharacter.img_typing, - 16, - 16 - 32 - raise, 32,32 );
+        }
 	}
 	
 	ManualRTPSequence( kill=false )
@@ -7680,12 +7666,12 @@ THING is cosmic mic drop!`;
 							task.remove();
 						});
 					}
-					if ( command_name === 'REMOVE_EFFECTS' )
+					/*if ( command_name === 'REMOVE_EFFECTS' )
 					{
 						//exectuter_character.stim_ef = 0;
 						exectuter_character.power_ef = 0;
 						exectuter_character.time_ef = 0;
-					}
+					}*/
 
 					if ( command_name === 'CC_SET_SPAWN' )
 					{
@@ -7921,9 +7907,9 @@ THING is cosmic mic drop!`;
 						this.AddContextOption( 'Drop armor', 'DROP_ARMOR', [] );
 						this.AddContextOption( 'Cancel all personal tasks', 'NO_TASKS', [] );
 
-						if ( this.power_ef > 0 || this.time_ef > 0 )
+						/*if ( this.power_ef > 0 || this.time_ef > 0 )
 						this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
-
+                        */
 						this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
 						this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
 

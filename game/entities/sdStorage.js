@@ -43,7 +43,7 @@ class sdStorage extends sdEntity
 	
 	GetSlotsTotal()
 	{
-		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : 6;
+		return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 48 : this.type === sdStorage.TYPE_PORTAL ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
 	}
 	
 	IsPortal()
@@ -108,6 +108,7 @@ class sdStorage extends sdEntity
 		this.stored_names = [];
 		this.is_armable = [];
 		this._stored_items = [];
+        this.space_taken = 0;
 		
 		/*let slots_total = this.GetSlotsTotal();
 		
@@ -132,14 +133,36 @@ class sdStorage extends sdEntity
 		this._open_anim = 0;
 		
 		this.filter = params.filter || 'saturate(0)';
+        
+        this._storage_fix_applied = false; // Remove after update
 	}
 	onSnapshotApplied() // To override
 	{
 		while ( this.is_armable.length < this._stored_items.length )
 		this.is_armable.push( 0 );
+
+        if ( !this._storage_fix_applied ) // Remove after update
+        {
+            const items = [];
+            for ( let i = this._stored_items.length - 1; i >= 0; i-- )
+            {
+                const ent = this.ExtractItem( i );
+                if ( ent )
+                items.push( ent );
+            }
+
+            for ( const item of items )
+            {
+                this.onMovementInRange( item );
+            }
+
+            this._storage_fix_applied = true;
+        }
 	}
 	onBuilt()
 	{
+        this._storage_fix_applied = true; // Remove after update
+
 		this._allow_pickup = true;
 		
 		if ( this._owner )
@@ -347,6 +370,16 @@ class sdStorage extends sdEntity
 		sdEntity.Tooltip( ctx, this.title );
 
 		this.BasicCarryTooltip( ctx, 8 );
+        
+        const c = this.space_taken / this.GetSlotsTotal();
+        const w = 16;
+        const h = this.hitbox_y1 - 8;
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect( 0 - w / 2, 0 + h, w, 3 );
+
+        ctx.fillStyle = '#00aaff';
+        ctx.fillRect( 1 - w / 2, 1 + h, ( w - 2 ) * Math.max( 0, c ), 1 );
 	}
 	Draw( ctx, attached )
 	{
@@ -474,12 +507,34 @@ class sdStorage extends sdEntity
 	{
 		return ( from_entity.title+' ( ' + sdWorld.RoundedThousandsSpaces(from_entity.matter_max) + ' max matter, ' + Math.round(from_entity.matter_regen) + '% regen rate )' );
 	}
+    
+    GetSlotsNeeded( from_entity ) // How many slots does this entity occupy?
+    {
+        if ( from_entity.is( sdCrystal ) && ( from_entity.type === sdCrystal.TYPE_CRYSTAL_BIG || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) )
+        return 12;
+    
+        if ( from_entity.is( sdStorage ) )
+        {
+            switch ( from_entity.type )
+            {
+                case sdStorage.TYPE_GUNS:
+                    return 2;
+                case sdStorage.TYPE_CRYSTALS:
+                case sdStorage.TYPE_CRYSTALS_PORTAL:
+                    return 4;
+                case sdStorage.TYPE_PORTAL:
+                    return 1;
+            }
+        }
+        
+        return 1;
+    }
 
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
 		return;
-		
+
 		if ( !this._allow_pickup )
 		{
 			console.warn('Removing outdated sdStorage. Should not happen for newly spawned ones!');
@@ -585,23 +640,29 @@ class sdStorage extends sdEntity
 				( 
 					this.type === sdStorage.TYPE_CARGO && 
 					from_entity !== this && 
-					from_entity.is( sdStorage ) && 
-					( from_entity.type === sdStorage.TYPE_GUNS || from_entity.type === sdStorage.TYPE_PORTAL ) 
+                    (
+                        from_entity.is( sdStorage ) &&
+                        from_entity.type !== sdStorage.TYPE_CARGO ||
+                        from_entity.is( sdCrystal ) &&
+                        ( from_entity.type === sdCrystal.TYPE_CRYSTAL_BIG || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+                    )
 				) 
 			)
 		{
 			//if ( from_entity._held_by === null )
 			if ( !from_entity._is_being_removed )
 			{
-				let free_slot = -1;
-				
-				let slots_total = this.GetSlotsTotal();
-				
-				for ( var i = 0; i < slots_total; i++ )
+				const slots_total = this.GetSlotsTotal();
+                const free_space = slots_total - this.space_taken;
+				const space_taken = this.GetSlotsNeeded( from_entity );
+
+                if ( free_space - space_taken >= 0 )
+				//for ( var i = 0; i < slots_total; i++ )
 				{
 					//if ( i + 1 > this._stored_items.length )
-					if ( i >= this._stored_items.length )
+					//if ( i >= this._stored_items.length )
 					{
+                        this.space_taken += space_taken;
 						this._stored_items.push( from_entity.GetSnapshot( GetFrame(), true ) );
 						
 						//console.log( this._stored_items );
@@ -696,24 +757,13 @@ class sdStorage extends sdEntity
 
 						return;
 					}
-					else
-					if ( free_slot === -1 )
-					free_slot = i;
 				}
 			}
 		}
 	}
 	GetItems() // As simple array
 	{
-		let arr = [];
-		
-		let slots_total = this.GetSlotsTotal();
-		
-		for ( var i = 0; i < slots_total; i++ )
-		if ( i < this.stored_names.length )
-		arr.push( this.stored_names[ i ] );
-		
-		return arr;
+		return this.stored_names;
 	}
 	DropSpecificWeapon( ent ) // Outdated method for guns. Method is still used by some other entities that can hold items
 	{
@@ -857,6 +907,10 @@ class sdStorage extends sdEntity
 		}
 
 		ent.PhysWakeUp();
+        this.space_taken -= this.GetSlotsNeeded( ent );
+        
+        if ( this.space_taken < 0 )
+        this.space_taken = 0; // Could happen if slots needed per entity was updated 
 
 		return returned_ent;
 

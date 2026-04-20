@@ -45,6 +45,7 @@ class sdButton extends sdEntity
         sdButton.TYPE_MATTER_PERCENTAGE_SENSOR = 7;
         sdButton.TYPE_VELOCITY_SENSOR = 8;
         sdButton.TYPE_REGEN_RATE_SENSOR = 9;
+        sdButton.TYPE_TEMPERATURE_SENSOR = 10;
 		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
 		
 		sdButton.BUTTON_KIND_TOGGLE = 0;
@@ -75,7 +76,7 @@ class sdButton extends sdEntity
 		if ( this.type === sdButton.TYPE_FLOOR_SENSOR )
 		return null;
 	
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -32.1 ];
 	}
 	
 	get hard_collision()
@@ -115,6 +116,9 @@ class sdButton extends sdEntity
     
         if ( this.type === sdButton.TYPE_REGEN_RATE_SENSOR )
 		return 'Matter regeneration rate sensor';
+    
+        if ( this.type === sdButton.TYPE_TEMPERATURE_SENSOR )
+		return 'Temperature sensor';
 	
 		return 'Button';
 	}
@@ -230,6 +234,9 @@ class sdButton extends sdEntity
     
         if ( this.type === sdButton.TYPE_REGEN_RATE_SENSOR )
 		this.filter = [ 0, '>', 0 ]; // Measures crystal's regen capacity
+    
+        if ( this.type === sdButton.TYPE_TEMPERATURE_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures entity temperature
 
 		sdButton.buttons.push( this );
 	}
@@ -243,7 +250,8 @@ class sdButton extends sdEntity
 			 this.type === sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR ||
              this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR ||
              this.type === sdButton.TYPE_VELOCITY_SENSOR ||
-             this.type === sdButton.TYPE_REGEN_RATE_SENSOR 
+             this.type === sdButton.TYPE_REGEN_RATE_SENSOR ||
+             this.type === sdButton.TYPE_TEMPERATURE_SENSOR 
         )
 		if ( from_entity._is_bg_entity === 0 )
 		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
@@ -306,6 +314,9 @@ class sdButton extends sdEntity
 					else
                     if ( this.type === sdButton.TYPE_VELOCITY_SENSOR )
 					v = Math.ceil( Math.sqrt( e.sx * e.sx + e.sy * e.sy ) || 0 );
+                    else
+                    if ( this.type === sdButton.TYPE_TEMPERATURE_SENSOR )
+					v = Math.ceil( sdStatusEffect.GetTemperature( e ) );
 					else
 					if ( this.type === sdButton.TYPE_WALL_MATTER_CAPACITY_SENSOR ||
 						 this.type === sdButton.TYPE_WALL_MATTER_SENSOR || 
@@ -1031,14 +1042,13 @@ class sdButton extends sdEntity
 	{
 		if ( this.filter && this.type !== sdButton.TYPE_ELEVATOR_CALLBACK_SENSOR )
 		{
-            const is_percentage = this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR || this.type === sdButton.TYPE_REGEN_RATE_SENSOR;
+            const suffix = this.type === sdButton.TYPE_MATTER_PERCENTAGE_SENSOR || this.type === sdButton.TYPE_REGEN_RATE_SENSOR ? '%' : this.type === sdButton.TYPE_TEMPERATURE_SENSOR ? '°C' : '';
             const filter = this.filter.slice();
 
-            if ( is_percentage )
-            filter[ sdButton.FILTER_OPTION_CURRENT ] = filter[ sdButton.FILTER_OPTION_CURRENT ] + "%"; // Hack?
+            filter[ sdButton.FILTER_OPTION_CURRENT ] = filter[ sdButton.FILTER_OPTION_CURRENT ] + suffix; // Hack?
 
 			sdEntity.Tooltip( ctx, this.title, 0, -8 );
-			sdEntity.TooltipUntranslated( ctx, filter.join(' ') + ( is_percentage ? "%" : '' ), 0, 0, this.IsFilterConditionsMet() ? '#66ff66' : '#ff6666' );
+			sdEntity.TooltipUntranslated( ctx, filter.join(' ') + suffix, 0, 0, this.IsFilterConditionsMet() ? '#66ff66' : '#ff6666' );
 		}
 		else
 		{

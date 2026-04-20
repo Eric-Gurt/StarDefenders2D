@@ -1496,9 +1496,12 @@ class sdAtlasMaterial
 			break;
 			case FakeCanvasContext.DRAW_IN_3D_GRASS:
 			{
-				layers = 4;
+				layers = sdRenderer.draw_in_3d ? 4 : 1;
 					
+				if ( sdRenderer.draw_in_3d )
 				odd_x_offset = 0.2 * 16;
+				else
+				is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
 				
 				top_x_offset = Math.round( Math.sin( sdWorld.time / 500 ) * 0.1 * 16 * 3 ) / 3;
 			}

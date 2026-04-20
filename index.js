@@ -2376,7 +2376,7 @@ io.on( 'connection', ( socket )=>
 		}
 	});
 	
-	socket.on('CHAT', ( t ) => { 
+	socket.on('CHAT', ( t ) => {
 		
 		if ( typeof t !== 'string' )
 		return;
@@ -2411,6 +2411,16 @@ io.on( 'connection', ( socket )=>
 			}
 			else*/
 			socket.character.Say( t, false, false, false, false, false );
+		}
+	});
+    socket.on('TYPING', ( t ) => {
+		if ( socket.character )
+		if ( socket.character.hea > 0 )
+		{
+            if ( t )
+            socket.character.typing = true;
+            else
+            socket.character.typing = false;
 		}
 	});
 	socket.muted_until = 0;
@@ -3063,6 +3073,8 @@ io.on( 'connection', ( socket )=>
 			
 			if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
 			socket.character.title = 'Disconnected ' + socket.character.title;
+        
+            socket.character.typing = false;
 
 			//socket.character._old_score = socket.score;
 
@@ -3378,11 +3390,11 @@ const ServerMainMethod = ()=>
 					
 			if ( socket.character && ( !socket.character._is_being_removed || socket.post_death_spectate_ttl > 0 ) )
 			{
+                /*
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate )
 				{
 					socket.character.lag = !socket.client.conn.transport.writable;
 				}
-				/*
 				
 				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable && sdWorld.time > socket.waiting_on_M_event_until ) // Buffering prevention?

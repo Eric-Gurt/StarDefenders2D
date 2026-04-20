@@ -228,6 +228,8 @@ class sdWorld
 		sdWorld.bulk_exclude = [];
 		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
+        
+        sdWorld.timewarps = [];
 		
 		sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY = 0;
 		sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER = 1;
@@ -600,7 +602,6 @@ class sdWorld
 		}
 
 		return Math.ceil( Math.pow( Math.sin( ( sdWorld.base_grass_level[ xx ] || 0 ) * 15 ) * 0.5 + 0.5, pow ) * 2 );
-
 	}
 	static GetGroundElevation( x )
 	{
@@ -2909,6 +2910,33 @@ class sdWorld
 			}
 		}
 	}
+    static GetTimeWarpSpeedForEntity( e )  // Anything distance/range base is better to handle with sdSensorArea-s, even crystal glow probably
+    {
+        let best_warp = 1;
+
+        for ( const timewarp of sdWorld.timewarps )
+        {
+            if ( sdWorld.inDist2D_Boolean( timewarp.x, timewarp.y, e.x, e.y, timewarp.r ) )
+            {
+                if ( !sdWorld.server_config.base_degradation )
+                if ( !sdWorld.CheckLineOfSight( timewarp.x, timewarp.y, ...e.GetClosestPointWithinCollision( timewarp.x, timewarp.y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
+                continue;
+
+                if ( e === timewarp.e || e === timewarp.e.driver_of || e.for === timewarp.e || ( e.is( sdGun ) && e._held_by === timewarp.e ) )
+                {
+                    
+                    best_warp = timewarp.warp * timewarp.owner_mult;
+                    break;
+                }
+                else
+                {
+                    if ( best_warp === 1 )
+                    best_warp = timewarp.warp;
+                }
+            }
+        }
+        return best_warp;
+    }
 	static HandleWorldLogicNoPlayers()
 	{
 		sdWorld.time = Date.now();
@@ -2999,7 +3027,7 @@ class sdWorld
 		let substeps_mult;
 		let skip_frames;
 
-		let timewarps = null;
+        sdWorld.timewarps = [];
 		let stop_motion_regions = null;
 
 		// Adding post-entity creation properties
@@ -3045,36 +3073,11 @@ class sdWorld
 
 		//if ( !sdWorld.paused )
 		{
-			if ( sdWorld.is_server && !sdWorld.is_singleplayer )
-			{
-				for ( i = 0; i < sdWorld.sockets.length; i++ )
-				if ( sdWorld.sockets[ i ].character )
-				if ( sdWorld.sockets[ i ].character.hea > 0 )
-				if ( !sdWorld.sockets[ i ].character._is_being_removed )
-				if ( sdWorld.sockets[ i ].character.time_ef > 0 )
-				{
-					if ( timewarps === null )
-					timewarps = [];
 
-					timewarps.push( { x: sdWorld.sockets[ i ].character.x, y: sdWorld.sockets[ i ].character.y, e: sdWorld.sockets[ i ].character, r: 128 } );
-				}
-			}
-			else
-			{
-				for ( i = 0; i < sdEntity.active_entities.length; i++ )
-				{
-					if ( sdEntity.active_entities[ i ].is( sdCharacter ) )
-					if ( sdEntity.active_entities[ i ].hea > 0 )
-					if ( !sdEntity.active_entities[ i ]._is_being_removed )
-					if ( sdEntity.active_entities[ i ].time_ef > 0 )
-					{
-						if ( timewarps === null )
-						timewarps = [];
-
-						timewarps.push( { x: sdEntity.active_entities[ i ].x, y: sdEntity.active_entities[ i ].y, e: sdEntity.active_entities[ i ], r: 128 } );
-					}
-				}
-			}
+            for ( const effect of sdStatusEffect.type_to_status_effects.get( sdStatusEffect.TYPE_TIMEWARP ) )
+            {
+                sdWorld.timewarps.push( { x: effect.for.x, y: effect.for.y, e: effect.for, r: effect.radius, warp: effect.warp / 100, owner_mult: effect.owner_warp_mult / 100 } );
+            }
 
 			for ( i = 0; i < sdPresetEditor.regions.length; i++ )
 			if ( sdPresetEditor.regions[ i ].time_scale !== 1000 )
@@ -3108,37 +3111,10 @@ class sdWorld
 
 			const bulk_exclude = sdWorld.bulk_exclude;
 			
-			// Anything distance/range base is better to handle with sdSensorArea-s, even crystal glow probably
-			const GetTimeWarpSpeedForEntity = ( e )=>
-			{
-				let best_warp = 1;
-				for ( i2 = 0; i2 < timewarps.length; i2++ )
-				{
-					if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
-					{
-						if ( !sdWorld.server_config.base_degradation )
-						if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
-						continue;
-
-						if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
-						{
-							best_warp = 0.5;
-							break;
-						}
-						else
-						{
-							if ( best_warp === 1 )
-							best_warp = 0.15;
-						}
-					}
-				}
-				return best_warp;
-			};
-			
 			if ( sdWorld.my_entity )
 			if ( !sdWorld.is_singleplayer )
 			{
-				let gs = Math.round( ( timewarps ? ( GetTimeWarpSpeedForEntity( sdWorld.my_entity ) ) : 1 ) * GSPEED * 1000 ) / 1000;
+				let gs = Math.round( ( sdWorld.timewarps.length > 0 ? ( sdWorld.GetTimeWarpSpeedForEntity( sdWorld.my_entity ) ) : 1 ) * GSPEED * 1000 ) / 1000;
 				
 				const max_merging_gspeed = 0; // Less data but less accurate too
 				
@@ -3157,7 +3133,7 @@ class sdWorld
 					trace( 'Too much input data is about to be sent. Or connection has been lost?' );
 				}
 			}
-			//sdWorld.my_inputs_and_gspeeds.push([ GetTimeWarpSpeedForEntity( sdWorld.my_entity ) * GSPEED, Object.assign( {}, sdWorld.my_entity._key_states.key_states ) ]);
+			//sdWorld.my_inputs_and_gspeeds.push([ sdWorld.GetTimeWarpSpeedForEntity( sdWorld.my_entity ) * GSPEED, Object.assign( {}, sdWorld.my_entity._key_states.key_states ) ]);
 
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
@@ -3240,9 +3216,9 @@ class sdWorld
 							}*/
 						}
 
-						if ( timewarps )
+						if ( sdWorld.timewarps.length > 0 )
 						{
-							best_warp = GetTimeWarpSpeedForEntity( e );
+							best_warp = sdWorld.GetTimeWarpSpeedForEntity( e );
 
 							gspeed_mult *= best_warp;
 						}
@@ -5409,6 +5385,18 @@ class sdWorld
 					else
 					socket.SDServiceMessage( 'Entity no longer exists' );
 				}
+                else
+                if ( cmd === 'TYPING' )
+                {
+                    if ( socket.character )
+                    if ( socket.character.hea > 0 )
+                    {
+                        if ( obj )
+                        socket.character.typing = true;
+                        else
+                        socket.character.typing = false;
+                    }
+                }
 				else
 				{
 					socket.SDServiceMessage( 'Singleplayer mode does not yet support command "'+cmd+'"' );

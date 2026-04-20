@@ -592,7 +592,7 @@ class sdEffect extends sdEntity
 	
 		this._no_smoke = params.no_smoke || false;
 		this._smoke_color = params.smoke_color || '';
-		this._spark_color = params.spark_color || sdEffect.default_explosion_color;
+		this._spark_color = params.spark_color ?? sdEffect.default_explosion_color;
 		this._shrapnel = params.shrapnel || false;
 		
 		this._extra_eff_timer = 0; // Secondary particle effect

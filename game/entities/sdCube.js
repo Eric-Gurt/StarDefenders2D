@@ -892,10 +892,6 @@ class sdCube extends sdEntity
 					
 					}, 500 );
 				}
-                if ( this.kind === sdCube.KIND_RED )
-                {
-                    sdEntity.Create( sdRift, { type:sdRift.TYPE_CUBE_PORTAL, x:this.x, y:this.y } );
-                }
 			}
 			this.remove();
 		}
@@ -1132,6 +1128,9 @@ class sdCube extends sdEntity
 					
 					if ( this._boss_death_pings_left === 0 )
 					{
+                        if ( this.kind === sdCube.KIND_RED )
+                        sdEntity.Create( sdRift, { type:sdRift.TYPE_CUBE_PORTAL, x:this.x, y:this.y } );
+
 						for ( let t = 0; t < 5; t++ )
 						{
 							setTimeout( ()=>{
@@ -1175,8 +1174,7 @@ class sdCube extends sdEntity
 					}
 				}
 			}
-			
-			
+
 			if ( this.kind === sdCube.KIND_MATTER_STEALER )
 			this.HungryMatterGlow( 0.01, 100, 0.25 );
 			else
@@ -1660,7 +1658,14 @@ class sdCube extends sdEntity
 		{
 			this._alert_intensity += GSPEED;
 		}
-        
+
+		if ( !this.held_by )
+        {
+            if ( !this.GetRotators().length )
+            this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+            else
+            this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
+        }
         // if ( sdWorld.is_server )
         {
             if ( sdWorld.is_server && !this._has_spawned_rotators )
@@ -1683,14 +1688,6 @@ class sdCube extends sdEntity
                     rotator.Spin( GSPEED );
                 }
             }
-        }
-
-		if ( !this.held_by )
-        {
-            if ( !this.GetRotators().length )
-            this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-            else
-            this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
         }
 	}
 	PlayerIsHooked( character, GSPEED )

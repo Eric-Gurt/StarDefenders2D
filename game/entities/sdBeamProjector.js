@@ -401,9 +401,11 @@ class sdBeamProjector extends sdEntity
 				y:this.y, 
 				radius:90, // 80 was too much?
 				damage_scale: 0.01, // 5 was too deadly on relatively far range
-				type:sdEffect.TYPE_EXPLOSION, 
+				type:sdEffect.TYPE_EXPLOSION_NON_ADDITIVE, 
 				owner:this,
-				color:'#000000' 
+				color:'#000000',
+                no_smoke: true,
+                shrapnel: true
 			});
 
 			let x = this.x;
@@ -413,22 +415,21 @@ class sdBeamProjector extends sdEntity
 
 			let pylon_mult = 1 + ( this.pylons === 3 ? 0.3 : this.pylons > 0 ? 0.15 : 0 ); // Pylons give up to 30% stronger unstable cores
 			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+                let gun;
+                gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+                gun.extra = 1;
 
-			let gun;
-			gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-			gun.extra = 1;
+                //gun.sx = sx;
+                //gun.sy = sy;
+                sdEntity.entities.push( gun );
+                
+                gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_UNSTABLE_CORE });
 
-			//gun.sx = sx;
-			//gun.sy = sy;
-			sdEntity.entities.push( gun );
-			
-			gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_UNSTABLE_CORE });
+                //gun.sx = sx;
+                //gun.sy = sy;
+                sdEntity.entities.push( gun );
 
-			//gun.sx = sx;
-			//gun.sy = sy;
-			sdEntity.entities.push( gun );
-
-			gun._max_dps = Math.min( gun._max_dps * pylon_mult, 450 ); // Increase core power if pylons were used
+                gun._max_dps = Math.min( gun._max_dps * pylon_mult, 450 ); // Increase core power if pylons were used
 			}, 500 );
 
 			this.remove();
@@ -919,8 +920,6 @@ class sdBeamProjector extends sdEntity
 			ctx.fillRect( 1 - w / 2, 1 - 28, ( w - 2 ) * Math.max( 0, this.progress / 100 ), 1 );
 		}
 	}
-	
-	
 	onRemove() // Class-specific, if needed
 	{
 		this.onRemoveAsFakeEntity();

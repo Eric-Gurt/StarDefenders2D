@@ -101,6 +101,30 @@ class sdGun extends sdEntity
 			null, // 31
 			sdWorld.ReplaceColorInSDFilter_v2( sdWorld.CreateSDFilter(), '#0042ff', '#ffffff' ) // 32
 		];
+
+        sdGun.ID_BASE = 0;
+		sdGun.ID_STOCK = 1;
+		sdGun.ID_MAGAZINE = 2;
+		sdGun.ID_BARREL = 3;
+		sdGun.ID_UNDERBARREL = 4;
+		sdGun.ID_MUZZLE = 5;
+		sdGun.ID_SCOPE = 6;
+		sdGun.ID_DAMAGE_MULT = 7;
+		sdGun.ID_FIRE_RATE = 8;
+		sdGun.ID_RECOIL_SCALE = 9;
+		sdGun.ID_HAS_EXPLOSION = 10;
+		sdGun.ID_TEMPERATURE_APPLIED = 11;
+		sdGun.ID_HAS_SHOTGUN_EFFECT = 12;
+		sdGun.ID_HAS_RAIL_EFFECT = 13;
+		sdGun.ID_SLOT = 14;
+		sdGun.ID_TITLE = 15;
+		sdGun.ID_PROJECTILE_COLOR = 16;
+		sdGun.ID_DAMAGE_VALUE = 17; // For non custom-guns so it can display damage properly.
+		sdGun.ID_ALT_DAMAGE_VALUE = 18;
+		sdGun.ID_HAS_EXALTED_CORE = 19; // Exalted core, final weapon damage multiplier by 25%
+		sdGun.ID_HAS_CUBE_FUSION_CORE = 20; // Cube fusion core, final weapon matter cost reduction by 25%
+        sdGun.ID_HAS_MERGED = 21; // DPS buff from weapon merging
+        sdGun.ID_HAS_ETERNAL_SHARD = 22; // Reduces build-up time for charging weapons
 		
 		sdGun.as_class_list = [ 'sdGun' ];
 		
@@ -181,6 +205,12 @@ class sdGun extends sdEntity
 	{
 		if ( sdWorld.server_config.keep_favourite_weapon_on_death === false ) // Needed for weapon bench scenario
 		return false;
+        
+        if ( sdGun.classes[ this.class ].armor_properties )
+        return false;
+    
+        if ( this.class === sdGun.CLASS_CUSTOM_RIFLE )
+        return false;
 		
 		// Don't allow guns which deal lost damage to be recoverable via LRTP after dying
 		if ( this.class === sdGun.CLASS_LOST_CONVERTER || this.class === sdGun.CLASS_CUBE_SPEAR || this.class === sdGun.CLASS_CUBE_SPEAR ||
@@ -618,16 +648,15 @@ class sdGun extends sdEntity
 		}
 	}
 	
-	onSnapshotApplied() // Remove after June 2026 (or if a server wipe/reset happens)
+	/*onSnapshotApplied() // Remove after June 2026 (or if a server wipe/reset happens)
 	{
 		//this.ResetInheritedGunClassProperties(); // Not good, missing params from constructor
-		/* Better to just cap DPS of old unnerfed guns
-			Reminder: Velox Minigun is now at 420 DPS
-			Zektaron focus beam is now at ~~ 600 DPS
-			Task ops shotgun (strongest slot 3) is now at 236.25 DPS instead of ~~282
+		// Better to just cap DPS of old unnerfed guns
+		//	Reminder: Velox Minigun is now at 420 DPS
+		//	Zektaron focus beam is now at ~~ 600 DPS
+		//	Task ops shotgun (strongest slot 3) is now at 236.25 DPS instead of ~~282
 			
-			Will need to rewrite sdGunClass to give damage value separately, outside onMade function. Or just have ID_DAMAGE_VALUE be a HUD display element and damage value put inside projectile properties - Booraz149
-		*/
+		//	Will need to rewrite sdGunClass to give damage value separately, outside onMade function. Or just have ID_DAMAGE_VALUE be a HUD display element and damage value put inside projectile properties - Booraz149
 
 		if ( sdGun.classes[ this.class ].slot === 2 )
 		{
@@ -660,7 +689,7 @@ class sdGun extends sdEntity
 		// Also cap the unstable cores to 450 DPS
 		if ( this.class === sdGun.CLASS_UNSTABLE_CORE && this._max_dps > 450 )
 		this._max_dps = 450;
-	}
+	}*/
 	
 	CollisionFiltering( from_entity )
 	{
@@ -739,6 +768,14 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
+        let can_reload = true;
+
+        if ( sdGun.classes[ this.class ].onReloadStart ) // Custom extra logic
+        can_reload = sdGun.classes[ this.class ].onReloadStart( this );
+
+        if ( !can_reload )
+        return;
+
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
 		this._held_by.reload_anim = 15;
 	}
@@ -1231,7 +1268,7 @@ class sdGun extends sdEntity
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
 					
-						if ( this.extra[ 19 ] ) // Has exalted core infused?
+						if ( this.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core infused?
 						bullet_obj._damage *= 1.25; // Increase damage by 25%
 						
 						// Weapon merging DPS application

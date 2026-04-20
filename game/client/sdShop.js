@@ -456,7 +456,8 @@ class sdShop
 			}
 			sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
+
+			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 1, _min_workbench_level: 3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCrystalCombiner', type: 2, _min_workbench_level: 8, _category:'Base equipment' });
 
@@ -939,6 +940,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdButton', type: 10, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMothershipContainer', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMatterMatrix', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });

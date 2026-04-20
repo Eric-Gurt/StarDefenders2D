@@ -223,6 +223,10 @@ class sdMatterContainer extends sdEntity
 			//this.CheckNearbyContainersForMerging();
 		}
 	}
+    IsAttachableToSteeringWheel()
+	{
+		return !this.is_advanced_container;
+	}
 	get title()
 	{
 		if ( this.is_advanced_container )
