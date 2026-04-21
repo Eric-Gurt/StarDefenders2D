@@ -23,7 +23,7 @@ import sdWeaponMerger from './sdWeaponMerger.js';
 import sdCraftingBench from './sdCraftingBench.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCrystal from './sdCrystal.js';
-
+import sdTurret from './sdTurret.js';
 import sdGunClass from './sdGunClass.js';
 
 import sdShop from '../client/sdShop.js';
