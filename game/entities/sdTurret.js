@@ -138,7 +138,13 @@ class sdTurret extends sdEntity
             sdGun.CLASS_OVERLORD_BLASTER,
             sdGun.CLASS_OVERLORD_BLASTER2,
             sdGun.CLASS_LIGHT_CANNON,
-            sdGun.CLASS_ZEKTARON_FOCUS_BEAM
+            sdGun.CLASS_ZEKTARON_FOCUS_BEAM,
+            sdGun.CLASS_STIMPACK,
+            sdGun.CLASS_DRINK,
+            sdGun.CLASS_BANANA,
+            sdGun.CLASS_POPCORN,
+            sdGun.CLASS_POWER_PACK,
+            sdGun.CLASS_POWER_STIMPACK
         ]
 		
 		sdTurret.KIND_LASER = 0;
@@ -158,17 +164,17 @@ class sdTurret extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -this.GetSize(); }
-	get hitbox_x2() { return this.GetSize(); }
-	get hitbox_y1() { return -this.GetSize(); }
-	get hitbox_y2() { return this.GetSize(); }
+	get hitbox_x1() { return this.kind === sdTurret.KIND_SENTRY ? -8 : -this.GetSize(); }
+	get hitbox_x2() { return this.kind === sdTurret.KIND_SENTRY ? 8 : this.GetSize(); }
+	get hitbox_y1() { return this.kind === sdTurret.KIND_SENTRY ? -6 : -this.GetSize(); }
+	get hitbox_y2() { return this.kind === sdTurret.KIND_SENTRY ? 11 : this.GetSize(); }
 	
 	get hard_collision()
 	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ 
-		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
+		if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_SENTRY )
 		return false;
 		
 		return true; 
@@ -225,7 +231,7 @@ class sdTurret extends sdEntity
 	
 	GetComWiredCache( ...args ) // Cretes .cio property for clients to know if com exists
 	{
-		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
+		if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_SENTRY )
 		return sdTurret.portable_fake_com;
 		
 		return super.GetComWiredCache( ...args );
@@ -273,6 +279,9 @@ class sdTurret extends sdEntity
 				 
 		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
 		this._hmax = 200;
+    
+        if ( this.kind === sdTurret.KIND_SENTRY )
+		this._hmax = 2500;
 	
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
@@ -308,7 +317,7 @@ class sdTurret extends sdEntity
 		//this.matter_max = params.matter_max || 20;
 		
 		this.matter = 0;
-		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 500 : sdTurret.matter_capacity;
+		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 1000 : sdTurret.matter_capacity;
 		
 		this.lvl = 0;
 		
@@ -337,7 +346,7 @@ class sdTurret extends sdEntity
 	}
 	onSnapshotApplied() // To override
 	{
-		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 500 : sdTurret.matter_capacity;
+		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 1000 : sdTurret.matter_capacity;
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -469,6 +478,9 @@ class sdTurret extends sdEntity
 	
 	GetShootCost()
 	{
+        if ( this.kind === sdTurret.KIND_SENTRY )
+        return 0;
+
 		var dmg = 1;
 		
 		var dmg_mult = 1 + this.lvl / 3;
@@ -619,8 +631,9 @@ class sdTurret extends sdEntity
                 if ( this.auto_shoot_in <= 0 )
                 {
                     shoot_from_scenario = true;
-                    //this.gun.Shoot( 0, this.GetBulletSpawnOffset(), true );
                     this.auto_shoot_in = 0;
+                    this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario );
+                    return
                 }
             }
             if ( this.kind === sdTurret.KIND_AUTO_CABLE )
@@ -888,6 +901,10 @@ class sdTurret extends sdEntity
                         if ( !this.gun || this.auto_shoot_in > 0 )
                         return;
 
+                        const cost = this.gun.GetBulletCost( true );
+                        if ( this.matter - cost < 0 )
+                        return;
+
                         this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario );
                         this.gun.ReloadComplete(); // Always reload ammo after each shot
                     }
@@ -977,13 +994,16 @@ class sdTurret extends sdEntity
 	{
 		if ( this.kind === sdTurret.KIND_LASER )
 		return 3;
-		if ( this.kind === sdTurret.KIND_ROCKET || this.kind === sdTurret.KIND_FREEZER || this.kind === sdTurret.KIND_SENTRY )
+		if ( this.kind === sdTurret.KIND_ROCKET || this.kind === sdTurret.KIND_FREEZER )
 		return 6;
 		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_ZAP )
 		return 4;
 	
 		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
 		return 6;
+    
+        if ( this.kind === sdTurret.KIND_SENTRY )
+        return 10
 	
 		return 2;
 	}
@@ -996,8 +1016,8 @@ class sdTurret extends sdEntity
 		if ( this.kind === sdTurret.KIND_ZAP )
 		return 120;
 	
-		//if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
-		//return 300;
+		if ( this.kind === sdTurret.KIND_SENTRY )
+		return 600;
 		
 		return 300 + this.lvl * 50; // 450 when upgraded
 	}
@@ -1059,6 +1079,9 @@ class sdTurret extends sdEntity
 			
 			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, 0,0,32,32, -16, -16, 32,32 );
 		}
+        
+        if ( this.kind === sdTurret.KIND_SENTRY )
+        ctx.drawImageFilterCache( sdTurret.img_turret9, 0,0,32,32, -16, -16, 32,32 );
 		
 		if ( this.kind === sdTurret.KIND_ZAP )
 		{
@@ -1085,15 +1108,9 @@ class sdTurret extends sdEntity
 			{
 				ctx.rotate( Math.PI );
 			}
-			
+
 			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, not_firing_now ? 32 : 64,0,32,32, -16, -16, 32,32 );
 		}
-        
-        ctx.save();
-        ctx.filter = 'none';
-        ctx.translate( 6, 0 );
-        this.gun?.Draw( ctx, true );
-		ctx.restore();
 	
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret2 : sdTurret.img_turret2_fire, -16, -16, 32,32 );
@@ -1117,7 +1134,15 @@ class sdTurret extends sdEntity
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret8 : sdTurret.img_turret8_fire, -16, -16, 32,32 );
     
         if ( this.kind === sdTurret.KIND_SENTRY )
-		ctx.drawImageFilterCache( sdTurret.img_turret9, -16, -16, 32,32 );
+        {
+            ctx.save();
+            ctx.filter = 'none';
+            ctx.translate( 6, 0 );
+            this.gun?.Draw( ctx, true );
+            ctx.restore();
+
+			ctx.drawImageFilterCache( sdTurret.img_turret9, 32 ,0,32,32, -16, -16, 32,32 );
+        }
     
 		ctx.filter = 'none';
         
@@ -1167,12 +1192,19 @@ class sdTurret extends sdEntity
 			this._sensor_area.remove();
 			this._sensor_area = null;
 		}
-        
-        if ( this.gun )
-        this.DropSpecificWeapon( this.gun );
 		
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 3 );
+        {
+            sdWorld.BasicEntityBreakEffect( this, 3 );
+
+            if ( this.gun )
+            this.DropSpecificWeapon( this.gun );
+        }
+        else
+        {
+            if ( this.gun )
+            this.gun.remove();
+        }
 	}
 	
 	RequireSpawnAlign()
