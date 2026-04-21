@@ -9983,6 +9983,7 @@ class sdGunClass
 						
 						if ( sdWorld.is_server )
 						if ( gun.fire_mode === 2 )
+                        if ( gun._held_by.IsPlayerClass() )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 150 });
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
@@ -9998,7 +9999,7 @@ class sdGunClass
 					{
 						let owner = gun._held_by;
 						
-						if ( owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
+						if ( owner.IsPlayerClass() && owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
 						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
 						{
 							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) );
