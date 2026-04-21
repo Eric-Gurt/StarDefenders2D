@@ -1384,8 +1384,9 @@ class sdGun extends sdEntity
 					//if ( this._last_muzzle < this.muzzle )
 					//if ( this._held_by )
 					{
-						let initial_an = this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2;
-						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + this._held_by._side * Math.PI / 2 * 0.5;
+						let initial_an = this._held_by.IsPlayerClass() ? this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2 : 
+                                         this._held_by.GetLookAngle();
+						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + ( this._held_by._side || 1 ) * Math.PI / 2 * 0.5;
 
 						let vel = 1 + Math.random();
 						
