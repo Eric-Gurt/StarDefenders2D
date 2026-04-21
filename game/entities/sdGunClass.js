@@ -1929,7 +1929,7 @@ class sdGunClass
 							gun._held_by.auto_shoot_in = 1;
 						}
 						// Alt fire mode, charge up then fire.
-						if ( gun.fire_mode !== 1 && ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by.auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
+						if ( gun.fire_mode !== 1 && ( ( gun._held_by.IsAttemptingShoot() ) || gun._held_by.auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
 						{
 							if ( gun._combo === 20 || ( gun._combo === 360 && gun._combo_timer < 5 ) ) // Started charging?
 							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
@@ -1961,7 +1961,7 @@ class sdGunClass
 					if ( gun.fire_mode === 1 ) // Normal fire mode?
 					{
 						if ( gun._held_by.matter >= matter_cost )
-						if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+						if ( gun._held_by.IsAttemptingShoot() )
 						{
 							gun._held_by.matter -= matter_cost;
 							gun._held_by.auto_shoot_in = 18;
@@ -1970,7 +1970,7 @@ class sdGunClass
 					if ( gun.fire_mode !== 1 ) // Alt fire mode?
 					{
 						if ( gun._held_by.matter >= matter_cost )
-						if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
+						if ( !gun._held_by.IsAttemptingShoot() ) // Attack on release
 						{
 							gun._held_by.matter -= matter_cost;
 							if ( gun._combo !== 360 )
@@ -1980,7 +1980,7 @@ class sdGunClass
 						}
 					}
 				}
-				if ( ( gun.fire_mode === 1 && gun._held_by._key_states.GetKey( 'Mouse1' ) ) || ( gun.fire_mode !== 1 && !gun._held_by._key_states.GetKey( 'Mouse1' ) ) )
+				if ( ( gun.fire_mode === 1 && gun._held_by.IsAttemptingShoot() ) || ( gun.fire_mode !== 1 && !gun._held_by.IsAttemptingShoot() ) )
 				{
 					if ( gun._held_by.auto_shoot_in <= 0 )
 					return true;
@@ -2925,7 +2925,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5 });
 					
 					if ( gun._held_by.matter >= 900 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 15;
 						gun._held_by.matter -= 900;
@@ -4152,7 +4152,7 @@ class sdGunClass
 					let matter_cost = gun.GetBulletCost();
 					
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 3 / ( 1 + Math.min(1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 30 per second? (GSPEED limit?)
 						gun._held_by.matter -= matter_cost;
@@ -4292,7 +4292,7 @@ class sdGunClass
 			title: 'DMR',
 			slot: 4,
 			reload_time: 10,
-			muzzle_x: 11,
+			muzzle_x: 10,
 			ammo_capacity: 8,
 			count: 1,
 			matter_cost: 160,
@@ -4620,7 +4620,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'saber_hit2', x:gun.x, y:gun.y, volume: 2, pitch: 3 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost; // Was 3. It is not that strong to drain matter that fast
@@ -5645,7 +5645,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
 					
 					if ( gun._held_by.matter >= 250 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						//if ( gun._held_by.stim_ef > 0 )
 						gun._held_by.auto_shoot_in = 7.5;
@@ -7023,7 +7023,7 @@ class sdGunClass
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 2 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 14 / ( 1 + gun._combo / 10 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
@@ -7322,7 +7322,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'alien_laser1', x:gun.x, y:gun.y, volume: 0.7, pitch: 1.42 });
 					
 					if ( gun._held_by.matter >= 6 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= 6;
@@ -7697,7 +7697,7 @@ class sdGunClass
 					sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:gun.x, y:gun.y, volume:1.2 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 3;
 						gun._held_by.matter -= matter_cost; // Zektaron beam is at 6 or 7 while being 2x as strong
@@ -7830,10 +7830,13 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				gun._held_by._key_states.SetKey( 'KeyA', 0 );
-				gun._held_by._key_states.SetKey( 'KeyD', 0 );
-				gun._held_by._key_states.SetKey( 'KeyW', 0 );
-				gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+                if ( gun._held_by.IsPlayerClass() )
+                {
+                    gun._held_by._key_states.SetKey( 'KeyA', 0 );
+                    gun._held_by._key_states.SetKey( 'KeyD', 0 );
+                    gun._held_by._key_states.SetKey( 'KeyW', 0 );
+                    gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+                }
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
@@ -7846,10 +7849,13 @@ class sdGunClass
 						sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1, pitch: 1.5 });
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.2 });
 					}
-					gun._held_by._key_states.SetKey( 'KeyA', 0 );
-					gun._held_by._key_states.SetKey( 'KeyD', 0 );
-					gun._held_by._key_states.SetKey( 'KeyW', 0 );
-					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch after charge sequence
+                    if ( gun._held_by.IsPlayerClass() )
+                    {
+                        gun._held_by._key_states.SetKey( 'KeyA', 0 );
+                        gun._held_by._key_states.SetKey( 'KeyD', 0 );
+                        gun._held_by._key_states.SetKey( 'KeyW', 0 );
+                        gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+                    }
 					return false;
 				}
 				else
@@ -7858,12 +7864,13 @@ class sdGunClass
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 0.7 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost;
 					}
 					else
+                    if ( gun._held_by.IsPlayerClass() )
 					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
 				}
 				return true;
@@ -8815,7 +8822,7 @@ class sdGunClass
 				{
 					if ( gun.fire_mode !== 1 )
 					if ( gun._held_by.matter >= 15 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 30
 						sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 0.9, pitch: 0.9 });
@@ -8825,7 +8832,7 @@ class sdGunClass
 					else
 					if ( gun.fire_mode === 1 )
 					if ( gun._held_by.matter >= 25 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						//if ( gun._held_by.stim_ef > 0 )
 						gun._held_by.auto_shoot_in = 25;
@@ -9220,7 +9227,7 @@ class sdGunClass
 				{
 					if ( gun.fire_mode !== 1 )
 					if ( gun._held_by.matter >= 280 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 45;
 						sdSound.PlaySound({ name: 'alien_energy_power_charge2_fast2', x:gun.x, y:gun.y, volume: 1.3, pitch: 1.1 });
@@ -9230,7 +9237,7 @@ class sdGunClass
 					else
 					if ( gun.fire_mode === 1 )
 					if ( gun._held_by.matter >= 35 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 15;
 						sdSound.PlaySound({ name: 'evil_alien_charge1_fast1', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
