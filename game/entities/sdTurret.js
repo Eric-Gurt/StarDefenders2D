@@ -84,6 +84,8 @@ class sdTurret extends sdEntity
         
         sdTurret.img_turret8 = sdWorld.CreateImageFromFile( 'turret8' );
 		sdTurret.img_turret8_fire = sdWorld.CreateImageFromFile( 'turret8_fire' );
+        
+        sdTurret.img_turret9 = sdWorld.CreateImageFromFile( 'turret9' );
 		
 		sdTurret.targetable_classes = new WeakSet( [ 
 			sdCharacter, 
@@ -132,7 +134,8 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_LASER_PORTABLE = 6;
         sdTurret.KIND_AUTO_CABLE = 7;
         sdTurret.KIND_AUTO_WELD = 8;
-		
+        sdTurret.KIND_SENTRY = 9;
+
 		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
 		
 		sdTurret.portable_fake_com = { _net_id: 0, subscribers:[ 'sdCharacter', 'sdPlayerDrone' ] };
@@ -187,6 +190,9 @@ class sdTurret extends sdEntity
     
         if ( this.kind === sdTurret.KIND_AUTO_WELD )
 		return ( 'Automatic welding turret' );
+    
+        if ( this.kind === sdTurret.KIND_SENTRY )
+		return ( 'Automatic sentry turret' );
 
 		return ( 'Automatic turret' );
 	}
@@ -283,13 +289,15 @@ class sdTurret extends sdEntity
 		//this._coms_near_cache = [];
 		
 		//this.matter = params.matter || 0;
-		//this._matter_max = params.matter_max || 20;
+		//this.matter_max = params.matter_max || 20;
 		
 		this.matter = 0;
-		this._matter_max = sdTurret.matter_capacity;
+		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 500 : sdTurret.matter_capacity;
 		
 		this.lvl = 0;
 		
+        this.gun = null;
+
 		this._time_amplification = 0;
 
         this._current_built_entity = null; // Used by cable and welding turrets turrets
@@ -301,19 +309,47 @@ class sdTurret extends sdEntity
 			type: -1, 
 			extra: 0 // Used for essence
 		};
+        
+        this.look_x = 0;
+        this.look_y = 0;
+        
+        this.reload_anim = 0;
+        
+        this.auto_shoot_in = 0;
 		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	onSnapshotApplied() // To override
 	{
-		this._matter_max = sdTurret.matter_capacity;
+		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 500 : sdTurret.matter_capacity;
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		if ( prop === '_auto_attack_reference' || prop === '_sensor_area' ) return true;
+		if ( prop === '_auto_attack_reference' || prop === '_sensor_area' || prop === 'gun' ) return true;
 
 		return false;
 	}
+    DropGun( exectuter_character )
+    {
+        if ( !this.gun )
+        return;
+
+        const gun = this.DropSpecificWeapon( this.gun );
+        gun.x = exectuter_character.x;
+        gun.y = exectuter_character.y;
+    }
+	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
+    {
+        this.gun = null;
+        ent._held_by = null;
+        ent.x = this.x;
+        ent.y = this.y;
+        ent.ttl = sdGun.disowned_guns_ttl;
+        ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+        ent.PhysWakeUp();
+        
+        return ent;
+    }
 	
 	IsLegitimateTarget( e, com_near=null, skip_raycast=true )
 	{
@@ -467,6 +503,18 @@ class sdTurret extends sdEntity
 				( is_rail ? 30 : 0 ) + 
 				( explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;*/
 	}
+    CanUseWeapons()
+    {
+        return this.kind === sdTurret.KIND_SENTRY;
+    }
+    GetLookAngle()
+    {
+        return  ( -this.an  ) / 100 + Math.PI / 2  //-Math.PI / 2
+    }
+    GetBulletSpawnOffset()
+    {
+        return { x: 0, y: 0 };
+    }
     PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
 		return this.kind === sdTurret.KIND_AUTO_CABLE;
@@ -500,12 +548,16 @@ class sdTurret extends sdEntity
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
 		}
 	}
+    IsAttemptingShoot()
+    {
+        return true; //this.auto_attack >= 0 || this._target;
+    }
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
-		
+		this.reload_anim = 0;
 		let can_hibernate = false;
-		
+
 		if ( this._disabled_timeout > 0 )
 		this._disabled_timeout -= GSPEED;
 		else
@@ -517,6 +569,7 @@ class sdTurret extends sdEntity
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		else
+            
 		{
 			can_hibernate = true;
 		}
@@ -538,9 +591,22 @@ class sdTurret extends sdEntity
 		
 		if ( this.fire_timer > 0 )
 		this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
-		
+
 		if ( sdWorld.is_server )
 		{
+            let shoot_from_scenario = false;
+
+            if ( this.auto_shoot_in > 0 && this.gun )
+            {
+                this.auto_shoot_in -= GSPEED;
+
+                if ( this.auto_shoot_in <= 0 )
+                {
+                    shoot_from_scenario = true;
+                    //this.gun.Shoot( 0, this.GetBulletSpawnOffset(), true );
+                    this.auto_shoot_in = 0;
+                }
+            }
             if ( this.kind === sdTurret.KIND_AUTO_CABLE )
             {
                 for ( const cable of this._built_cables )
@@ -660,6 +726,9 @@ class sdTurret extends sdEntity
 						this.an = Math.atan2( 
 							this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 + this._target.sy * di / vel - this.y, 
 							this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 + this._target.sx * di / vel - this.x ) * 100;
+                            
+                        this.look_x = this._target.x;
+                        this.look_y = this._target.y
 					}
 
 					if ( this.fire_timer <= 0 )
@@ -696,105 +765,116 @@ class sdTurret extends sdEntity
                         if ( this.kind === sdTurret.KIND_AUTO_WELD )
 						sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:0.75, pitch: 1.5 / ( 1 + this.lvl / 3 ) });
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-						bullet_obj._owner = this;
+                        if ( this.kind !== sdTurret.KIND_SENTRY )
+                        {
+                            let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-						bullet_obj.sx = Math.cos( this.an / 100 );
-						bullet_obj.sy = Math.sin( this.an / 100 );
-						
-						bullet_obj._armor_penetration_level = 3; // Prevent damaging world in arena but also prevent damage to workbench
+                            bullet_obj._owner = this;
 
-						//bullet_obj.x += bullet_obj.sx * 5;
-						//bullet_obj.y += bullet_obj.sy * 5;
+                            bullet_obj.sx = Math.cos( this.an / 100 );
+                            bullet_obj.sy = Math.sin( this.an / 100 );
+                            
+                            bullet_obj._armor_penetration_level = 3; // Prevent damaging world in arena but also prevent damage to workbench
 
-						bullet_obj.sx *= vel;
-						bullet_obj.sy *= vel;
+                            //bullet_obj.x += bullet_obj.sx * 5;
+                            //bullet_obj.y += bullet_obj.sy * 5;
 
-						this.fire_timer = this.GetReloadTime();
+                            bullet_obj.sx *= vel;
+                            bullet_obj.sy *= vel;
 
-						if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_LASER_PORTABLE )
-						{
-							bullet_obj._damage = 15;
-							bullet_obj.color = '#ff0000';
-						}
-						if ( this.kind === sdTurret.KIND_ZAP )
-						{
-							bullet_obj._damage = 100;
-							bullet_obj.color = '#ffffff';
-							bullet_obj._rail = true;
-							bullet_obj._rail_zap = true;
-							
-							bullet_obj.time_left = this.GetTurretRange() / vel;
-							
-							let px = Math.cos( this.an / 100 );
-							let py = Math.sin( this.an / 100 );
-							
-							bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
-							{
-								if ( typeof target_entity._matter !== 'undefined' )
-								target_entity._matter = Math.max( 0, target_entity._matter - 300 );
+                            this.fire_timer = this.GetReloadTime();
 
-								if ( typeof target_entity.matter !== 'undefined' )
-								target_entity.matter = Math.max( 0, target_entity.matter - 300 );
-								
-								target_entity.Impulse( px * 800, py * 800 );
-							};
-						}
-						if ( this.kind === sdTurret.KIND_SNIPER )
-						{
-							bullet_obj._damage = 85;
-							bullet_obj.color = '#ff00ff';
-							bullet_obj.penetrating = true;
-						}
-						if ( this.kind === sdTurret.KIND_ROCKET )
-						{
-							bullet_obj._damage = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
+                            if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_LASER_PORTABLE )
+                            {
+                                bullet_obj._damage = 15;
+                                bullet_obj.color = '#ff0000';
+                            }
+                            if ( this.kind === sdTurret.KIND_ZAP )
+                            {
+                                bullet_obj._damage = 100;
+                                bullet_obj.color = '#ffffff';
+                                bullet_obj._rail = true;
+                                bullet_obj._rail_zap = true;
+                                
+                                bullet_obj.time_left = this.GetTurretRange() / vel;
+                                
+                                let px = Math.cos( this.an / 100 );
+                                let py = Math.sin( this.an / 100 );
+                                
+                                bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+                                {
+                                    if ( typeof target_entity._matter !== 'undefined' )
+                                    target_entity._matter = Math.max( 0, target_entity._matter - 300 );
 
-							bullet_obj.explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
-							bullet_obj.model = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.model;
+                                    if ( typeof target_entity.matter !== 'undefined' )
+                                    target_entity.matter = Math.max( 0, target_entity.matter - 300 );
+                                    
+                                    target_entity.Impulse( px * 800, py * 800 );
+                                };
+                            }
+                            if ( this.kind === sdTurret.KIND_SNIPER )
+                            {
+                                bullet_obj._damage = 85;
+                                bullet_obj.color = '#ff00ff';
+                                bullet_obj.penetrating = true;
+                            }
+                            if ( this.kind === sdTurret.KIND_ROCKET )
+                            {
+                                bullet_obj._damage = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
 
-							bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
+                                bullet_obj.explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
+                                bullet_obj.model = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.model;
 
-							bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
+                                bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
 
-							if ( bullet_obj.ac > 0 )
-							{
-								bullet_obj.acx = Math.cos( this.an / 100 );
-								bullet_obj.acy = Math.sin( this.an / 100 );
-							}
-						}
-						if ( this.kind === sdTurret.KIND_FREEZER )
-						{
-							bullet_obj._damage = 1;
+                                bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
 
-							bullet_obj.model = 'ball';
-							
-							bullet_obj._temperature_addition = -50;
-						}
-                        
-                        if ( this.kind === sdTurret.KIND_AUTO_CABLE )
-						{
-							bullet_obj._damage = 1;
-                            bullet_obj.time_left = 2;
-                            bullet_obj.color = 'transparent';
-                            bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdCable.CableProjectileLogic;
-						}
-                        
-                        if ( this.kind === sdTurret.KIND_AUTO_WELD )
-						{
-							bullet_obj._damage = 1;
-                            bullet_obj.time_left = 2;
-                            bullet_obj.color = 'transparent';
-                            bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdSteeringWheel.WeldProjectileLogic;
-						}
+                                if ( bullet_obj.ac > 0 )
+                                {
+                                    bullet_obj.acx = Math.cos( this.an / 100 );
+                                    bullet_obj.acy = Math.sin( this.an / 100 );
+                                }
+                            }
+                            if ( this.kind === sdTurret.KIND_FREEZER )
+                            {
+                                bullet_obj._damage = 1;
 
-                        bullet_obj._damage *= 1 + this.lvl / 3;
-                        bullet_obj._temperature_addition *= 1 + this.lvl / 3;
+                                bullet_obj.model = 'ball';
+                                
+                                bullet_obj._temperature_addition = -50;
+                            }
+                            
+                            if ( this.kind === sdTurret.KIND_AUTO_CABLE )
+                            {
+                                bullet_obj._damage = 1;
+                                bullet_obj.time_left = 2;
+                                bullet_obj.color = 'transparent';
+                                bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdCable.CableProjectileLogic;
+                            }
+                            
+                            if ( this.kind === sdTurret.KIND_AUTO_WELD )
+                            {
+                                bullet_obj._damage = 1;
+                                bullet_obj.time_left = 2;
+                                bullet_obj.color = 'transparent';
+                                bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdSteeringWheel.WeldProjectileLogic;
+                            }
 
-						sdEntity.entities.push( bullet_obj );
-					}
+                            bullet_obj._damage *= 1 + this.lvl / 3;
+                            bullet_obj._temperature_addition *= 1 + this.lvl / 3;
 
+                            sdEntity.entities.push( bullet_obj );
+                        }
+                    }
+                    //else
+                    {
+                        if ( !this.gun || this.auto_shoot_in > 0 )
+                        return;
+
+                        this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario );
+                        this.gun.ReloadComplete(); // Always reload ammo after each shot
+                    }
 					this._update_version++;
 				}
 				else
@@ -809,6 +889,9 @@ class sdTurret extends sdEntity
 				}
 			}
 		}
+        
+        if ( this.gun )
+        this.gun.UpdateHeldPosition();
 		
 		if ( sdWorld.is_server )
 		if ( can_hibernate && this.fire_timer <= 0 )
@@ -868,6 +951,9 @@ class sdTurret extends sdEntity
 		return 20;
         if ( this.kind === sdTurret.KIND_AUTO_CABLE )
 		return 15;
+    
+        if ( this.kind === sdTurret.KIND_SENTRY )
+		return 0;
 
 		return 30;
 	}
@@ -875,7 +961,7 @@ class sdTurret extends sdEntity
 	{
 		if ( this.kind === sdTurret.KIND_LASER )
 		return 3;
-		if ( this.kind === sdTurret.KIND_ROCKET || this.kind === sdTurret.KIND_FREEZER )
+		if ( this.kind === sdTurret.KIND_ROCKET || this.kind === sdTurret.KIND_FREEZER || this.kind === sdTurret.KIND_SENTRY )
 		return 6;
 		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_ZAP )
 		return 4;
@@ -904,9 +990,9 @@ class sdTurret extends sdEntity
 		if ( this.type === 0 )
 		{
 			if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD )
-			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( '+ ~~(this.matter)+' / '+this._matter_max+' )' );
+			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( '+ ~~(this.matter)+' / '+this.matter_max+' )' );
 			else
-			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )' );
+			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this.matter_max+' )' );
 		}
 		else
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) );
@@ -982,6 +1068,12 @@ class sdTurret extends sdEntity
 			
 			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, not_firing_now ? 32 : 64,0,32,32, -16, -16, 32,32 );
 		}
+        
+        ctx.save();
+        ctx.filter = 'none';
+        ctx.translate( 6, 0 );
+        this.gun?.Draw( ctx, true );
+		ctx.restore();
 	
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret2 : sdTurret.img_turret2_fire, -16, -16, 32,32 );
@@ -1004,8 +1096,11 @@ class sdTurret extends sdEntity
         if ( this.kind === sdTurret.KIND_AUTO_WELD )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret8 : sdTurret.img_turret8_fire, -16, -16, 32,32 );
     
+        if ( this.kind === sdTurret.KIND_SENTRY )
+		ctx.drawImageFilterCache( sdTurret.img_turret9, -16, -16, 32,32 );
+    
 		ctx.filter = 'none';
-		
+        
 		if ( !sdShop.isDrawing )
 		if ( sdWorld.time % 4000 < 2000 )
 		if ( this.matter < this.GetShootCost() || !com_near )
@@ -1034,8 +1129,10 @@ class sdTurret extends sdEntity
 		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
 		return 60;
     
-        if ( this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD )
+        if ( this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD || this.kind === sdTurret.KIND_SENTRY )
 		return 750;
+    
+        return 100;
 	}
 	onRemove()
 	{
@@ -1050,6 +1147,9 @@ class sdTurret extends sdEntity
 			this._sensor_area.remove();
 			this._sensor_area = null;
 		}
+        
+        if ( this.gun )
+        this.DropSpecificWeapon( this.gun );
 		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
@@ -1109,10 +1209,36 @@ class sdTurret extends sdEntity
 					else
 					executer_socket.SDServiceMessage( 'Turret is at maximum level' );
 				}
-			}
+                if ( command_name === 'INSTALL' )
+				{
+                    if ( this.gun )
+                    return;
+
+                    const gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+                    if ( gun && !sdGun.classes[ gun.class ].is_build_gun )
+                    {
+                        exectuter_character.DropWeapon( exectuter_character.gun_slot );
+                        gun.x = this.x;
+                        gun.y = this.y;
+                        gun.sx = 0;
+                        gun.sy = 0;
+                        gun._held_by = this;
+                        gun.ttl = -1;
+                        this.gun = gun;
+                        this._update_version++;
+                    }
+                    else
+                    executer_socket.SDServiceMessage( 'No gun to install' );
+				}
+                if ( command_name === 'GET' )
+				{
+                    this.DropGun( exectuter_character );
+				}
+            }
 			else
 			executer_socket.SDServiceMessage( 'Turret is too far' );
 		}
+        this._update_version++;
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
@@ -1131,6 +1257,14 @@ class sdTurret extends sdEntity
 			else
 			this.AddContextOption( '- no upgrades available -', 'UPGRADE', [] );
 		}
+        
+        if ( this.kind === sdTurret.KIND_SENTRY )
+        {
+            if ( !this.gun )
+            this.AddContextOption( 'Install current weapon', 'INSTALL', [] );
+            else
+            this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.gun._net_id ), 'GET', [] );
+        }
 	}
 }
 //sdTurret.init_class();
