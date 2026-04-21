@@ -124,6 +124,22 @@ class sdTurret extends sdEntity
 			sdMeow
 			
 		] ); // Module random load order that causes error prevention
+        
+        sdTurret.disallowed_weapons = [
+            sdGun.CLASS_LOST_CONVERTER,
+            sdGun.CLASS_VOID_CAPACITOR,
+            sdGun.CLASS_CUBE_SPEAR,
+            sdGun.CLASS_CUBE_TELEPORTER,
+            sdGun.CLASS_CABLE_TOOL,
+            sdGun.CLASS_WELD_TOOL,
+            sdGun.CLASS_ADMIN_DAMAGER,
+            sdGun.CLASS_ADMIN_REMOVER,
+            sdGun.CLASS_ADMIN_TELEPORTER,
+            sdGun.CLASS_OVERLORD_BLASTER,
+            sdGun.CLASS_OVERLORD_BLASTER2,
+            sdGun.CLASS_LIGHT_CANNON,
+            sdGun.CLASS_ZEKTARON_FOCUS_BEAM
+        ]
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
@@ -989,7 +1005,7 @@ class sdTurret extends sdEntity
 	{
 		if ( this.type === 0 )
 		{
-			if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD )
+			if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_AUTO_CABLE || this.kind === sdTurret.KIND_AUTO_WELD || this.kind === sdTurret.KIND_SENTRY )
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( '+ ~~(this.matter)+' / '+this.matter_max+' )' );
 			else
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this.matter_max+' )' );
@@ -1015,6 +1031,10 @@ class sdTurret extends sdEntity
 			this.sy += y / this.mass;
 		}
 	}
+    IsWeaponAllowed( gun )
+    {
+        return !sdGun.classes[ gun.class ].is_build_gun && !sdGun.classes[ gun.class ].is_sword && !sdTurret.disallowed_weapons.includes( gun.class );
+    }
 	Draw( ctx, attached )
 	{
 		var not_firing_now = ( this.fire_timer < this.GetReloadTime() - 2.5 );
@@ -1167,7 +1187,7 @@ class sdTurret extends sdEntity
 		//if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD )
+		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD || this.kind !== sdTurret.KIND_SENTRY )
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
 			{
@@ -1215,7 +1235,7 @@ class sdTurret extends sdEntity
                     return;
 
                     const gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
-                    if ( gun && !sdGun.classes[ gun.class ].is_build_gun )
+                    if ( this.IsWeaponAllowed( gun ) )
                     {
                         exectuter_character.DropWeapon( exectuter_character.gun_slot );
                         gun.x = this.x;
@@ -1247,8 +1267,20 @@ class sdTurret extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
-		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD )
 		{
+            if ( this.kind === sdTurret.KIND_SENTRY )
+            if ( exectuter_character.canSeeForUse( this ) )
+            {
+                if ( !this.gun )
+                {   
+                    const gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+                    if ( this.IsWeaponAllowed( gun ) )
+                    this.AddContextOption( 'Install current weapon', 'INSTALL', [] );
+                }
+                else
+                this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.gun._net_id ), 'GET', [] );
+            }
+            if ( this.kind !== sdTurret.KIND_LASER_PORTABLE && this.kind !== sdTurret.KIND_AUTO_CABLE && this.kind !== sdTurret.KIND_AUTO_WELD && this.kind !== sdTurret.KIND_SENTRY )
 			if ( this.lvl < 3 )
 			{
 				this.AddContextOption( 'Upgrade damage to level 3 ('+ (3-this.lvl)*100 +' matter)', 'UPGRADE_MAX', [] );
@@ -1257,14 +1289,6 @@ class sdTurret extends sdEntity
 			else
 			this.AddContextOption( '- no upgrades available -', 'UPGRADE', [] );
 		}
-        
-        if ( this.kind === sdTurret.KIND_SENTRY )
-        {
-            if ( !this.gun )
-            this.AddContextOption( 'Install current weapon', 'INSTALL', [] );
-            else
-            this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.gun._net_id ), 'GET', [] );
-        }
 	}
 }
 //sdTurret.init_class();
