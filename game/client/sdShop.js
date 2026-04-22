@@ -523,6 +523,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:8, _category:'Base equipment', _min_build_tool_level: 2 });
+            sdShop.options.push({ _class: 'sdButton', type: 10, _category:'Base equipment' });
 
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 			sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
@@ -940,9 +941,9 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdButton', type: 10, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMothershipContainer', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMatterMatrix', _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdTurret', kind: sdTurret.KIND_SENTRY, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
