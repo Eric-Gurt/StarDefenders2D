@@ -21,6 +21,7 @@ import sdCube from './sdCube.js';
 import sdBomb from './sdBomb.js';
 import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
+import sdWater from './sdWater.js';
 import sdAsp from './sdAsp.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdSlug from './sdSlug.js';
@@ -316,7 +317,7 @@ class sdTurret extends sdEntity
 		//this.matter = params.matter || 0;
 		//this.matter_max = params.matter_max || 20;
 		
-		this.matter = 0;
+		this.matter = this.kind === sdTurret.KIND_SENTRY ? 1000 : 0;
 		this.matter_max = this.kind === sdTurret.KIND_SENTRY ? 1000 : sdTurret.matter_capacity;
 		
 		this.lvl = 0;
@@ -328,9 +329,9 @@ class sdTurret extends sdEntity
         this._current_built_entity = null; // Used by cable and welding turrets turrets
         this._built_cables = [];
         
-        this._liquid = { // Doesn't hold any, just for detection in cable network
-			max: 0, 
-			amount: 0, 
+        this.liquid = {
+			max: this.kind === sdTurret.KIND_SENTRY ? 250 : 0, 
+			amount: this.kind === sdTurret.KIND_SENTRY ? 250 : 0, // Spawn with max fuel
 			type: -1, 
 			extra: 0 // Used for essence
 		};
@@ -549,7 +550,7 @@ class sdTurret extends sdEntity
 	}
 	LiquidTransferMode() // 0 - balance liquids, 1 - only give liquids, 2 - only take liquids
 	{
-		return 1;
+		return this.lind === sdTurret.KIND_AUTO_CABLE ? 1 : 2;
 	}
 	IsLiquidTypeAllowed( type )
 	{
@@ -558,7 +559,12 @@ class sdTurret extends sdEntity
             if ( type === -1 )
             return true;
 
-            return ( this._liquid.type === -1 || this._liquid.type === type ); // Accepts all liquid types
+            return ( this.liquid.type === -1 || this.liquid.type === type ); // Accepts all liquid types
+        }
+        
+        if ( this.kind === sdTurret.KIND_SENTRY )
+        {
+            return type === sdWater.TYPE_INCENDIARY;
         }
 
         return false;
@@ -632,7 +638,16 @@ class sdTurret extends sdEntity
                 {
                     shoot_from_scenario = true;
                     this.auto_shoot_in = 0;
-                    this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario );
+                    const cost = this.gun.GetBulletCost( true );
+                    const fuel_cost = cost / 50;
+                    if ( this.matter - cost < 0 || this.liquid.amount - fuel_cost < 0 )
+                    return;
+
+                    if ( this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario ) )
+                    {
+                        this.liquid.amount -= fuel_cost;
+                        this.gun.ReloadComplete(); // Always reload ammo after each shot
+                    }
                     return
                 }
             }
@@ -902,11 +917,15 @@ class sdTurret extends sdEntity
                         return;
 
                         const cost = this.gun.GetBulletCost( true );
-                        if ( this.matter - cost < 0 )
+                        const fuel_cost = cost / 50;
+                        if ( this.matter - cost < 0 || this.liquid.amount - fuel_cost < 0 )
                         return;
 
-                        this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario );
-                        this.gun.ReloadComplete(); // Always reload ammo after each shot
+                        if ( this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario ) )
+                        {
+                            this.liquid.amount -= fuel_cost;
+                            this.gun.ReloadComplete(); // Always reload ammo after each shot
+                        }
                     }
 					this._update_version++;
 				}
@@ -1032,7 +1051,9 @@ class sdTurret extends sdEntity
 		}
 		else
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) );
-
+    
+        if ( this.kind === sdTurret.KIND_SENTRY )
+        sdEntity.TooltipUntranslated( ctx, `Fuel: ${ this.liquid.amount.toFixed( 0 ) } / ${ this.liquid.max }`, 0, 8, '#ffa840'  );
 		//this.DrawConnections( ctx );
 	}
 	get mass() { return this.is_static ? 100 : 60; }
@@ -1262,6 +1283,7 @@ class sdTurret extends sdEntity
 					executer_socket.SDServiceMessage( 'Turret is at maximum level' );
 				}
                 if ( command_name === 'INSTALL' )
+                if ( this.kind === sdTurret.KIND_SENTRY )
 				{
                     if ( this.gun )
                     return;
