@@ -4759,7 +4759,7 @@ class sdGunClass
 			spawnable: false,
 			//fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 36, color:'ffff00' },
+			projectile_properties: { _damage: 34, color:'ffff00' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
@@ -4787,7 +4787,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 36; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 33; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -8336,6 +8336,10 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
+			BulletCostMultiplier: ( gun )=>
+			{
+				return 3; // Healing (and now dual wielding)
+			},
 			projectile_properties: { _damage: 12, _dirt_mult: -0.5, _rail: true, color: '#00c600' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				let obj = { _dirt_mult: -0.5, time_left: 30, _rail: true, color: '#00c600' };
@@ -8359,7 +8363,7 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.DamageWithEffect( -4, null ); // Heal self if HP isn't max.
+					gun._held_by.DamageWithEffect( -2, null ); // Heal self if HP isn't max.
 				}
 				return true;
 			},
@@ -11484,7 +11488,7 @@ class sdGunClass
 			spawnable: false,
 			//fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 45, color:'ffff00' },
+			projectile_properties: { _damage: 42, color:'ffff00' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
@@ -11512,7 +11516,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 45; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 40; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},

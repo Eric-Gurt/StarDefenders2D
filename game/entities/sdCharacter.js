@@ -1408,8 +1408,9 @@ THING is cosmic mic drop!`;
 		//this._ignored_guns_until = [];
 		this._ignored_guns_infos = []; // arr of { ent, until }
 		
-		this._inventory = []; this._inventory.length = 10; this._inventory.fill( null );
+		this._inventory = []; this._inventory.length = 11; this._inventory.fill( null );
 		this.gun_slot = 0;
+		this.alt_gun_slot = -1; // For dual wielding
 		this._backup_slot = 0;
 		
 		//this.hook_x = 0;
@@ -1637,6 +1638,14 @@ THING is cosmic mic drop!`;
 	
 	ReloadAndCombatLogic( GSPEED )
 	{
+		if ( sdWorld.is_server )
+		{
+			if ( this.gun_slot === 1 && this._inventory[ 10 ] )
+			this.alt_gun_slot = 10;
+			else
+			this.alt_gun_slot = -1;
+		}
+		
 		if ( this._weapon_draw_timer > 0 )
 		this._weapon_draw_timer = Math.max( 0, this._weapon_draw_timer - GSPEED );
 	
@@ -1657,10 +1666,15 @@ THING is cosmic mic drop!`;
 
 		let offset = null;
 		
+		
 		for ( let i = 0; i < this._inventory.length; i++ )
 		if ( this._inventory[ i ] )
-		this._inventory[ i ].UpdateHeldPosition();
-
+		{
+			this._inventory[ i ].UpdateHeldPosition();
+			//console.log( 'inv slot:' + i + ', gun slot: ' + this._inventory[ i ].GetSlot() +', gun name:' + this._inventory[ i ].GetTitle() );
+			
+		}
+	
 		if ( this.reload_anim > 0 )
 		{
 			let is_stimmed = false;
@@ -1677,6 +1691,9 @@ THING is cosmic mic drop!`;
 			{
 				if ( this._inventory[ this.gun_slot ] )
 				this._inventory[ this.gun_slot ].ReloadComplete();
+			
+				if ( this._inventory[ this.alt_gun_slot ] )
+				this._inventory[ this.alt_gun_slot ].ReloadComplete();
 			}
 		}
 		else
@@ -1808,7 +1825,11 @@ THING is cosmic mic drop!`;
 					if ( this._key_states.GetKey( 'KeyN' ) )
 					{
                         if ( this.auto_shoot_in <= 0 )
-						this._inventory[ this.gun_slot ].ChangeFireModeStart();
+						{
+							this._inventory[ this.gun_slot ].ChangeFireModeStart();
+							if ( this._inventory[ this.alt_gun_slot ] )
+							this._inventory[ this.alt_gun_slot ].ChangeFireModeStart();
+						}
 					}
 					else
 					if ( this._key_states.GetKey( 'KeyR' ) &&
@@ -1816,6 +1837,13 @@ THING is cosmic mic drop!`;
 						 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
 					{
 						this._inventory[ this.gun_slot ].ReloadStart();
+					}
+					else
+					if ( this._inventory[ this.alt_gun_slot ] && this._key_states.GetKey( 'KeyR' ) &&
+						 this._inventory[ this.alt_gun_slot ].ammo_left >= 0 && 
+						 this._inventory[ this.alt_gun_slot ].ammo_left < this._inventory[ this.alt_gun_slot ].GetAmmoCapacity() )
+					{
+						this._inventory[ this.alt_gun_slot ].ReloadStart();
 					}
 					else
 					{
@@ -1841,7 +1869,7 @@ THING is cosmic mic drop!`;
 									this.sx += Math.sin( an ) * boost_waste;
 									this.sy += Math.cos( an ) * boost_waste;
 								}
-
+								
 								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
 								{
 									this.fire_anim = 5;
@@ -1857,6 +1885,47 @@ THING is cosmic mic drop!`;
 								{
 									this.fire_anim = 5;
 									this._last_fire_state = will_fire;
+								}
+							}
+							// Alt gun/dual wield weapon
+							if ( this._inventory[ this.alt_gun_slot ] )
+							{
+								if ( this._inventory[ this.alt_gun_slot ].fire_mode === 1 )
+								{
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
+								
+									if ( !this.stands )
+									if ( sdGun.classes[ this._inventory[ this.alt_gun_slot ].class ] )
+									if ( sdGun.classes[ this._inventory[ this.alt_gun_slot ].class ].is_sword )
+									{
+										let boost_waste = sdWorld.limit( 0, this._self_boost, GSPEED );
+										this._self_boost -= boost_waste;
+										
+										let an = this.GetLookAngle();
+										
+										boost_waste *= 0.2;
+
+										this.sx += Math.sin( an ) * boost_waste;
+										this.sy += Math.cos( an ) * boost_waste;
+									}
+									
+									if ( this._inventory[ this.alt_gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+									{
+										this.fire_anim = 5;
+									}
+								}
+								else
+								if ( this._inventory[ this.alt_gun_slot ].fire_mode === 2 && this._last_fire_state !== will_fire ) // Somehow this line caused crash, possible due to .Shoot call above caused weapon to be removed
+								{
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
+
+									if ( this._inventory[ this.alt_gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+									{
+										this.fire_anim = 5;
+										this._last_fire_state = will_fire;
+									}
 								}
 							}
 						}
@@ -1927,6 +1996,19 @@ THING is cosmic mic drop!`;
 
 			this._inventory[ this.gun_slot ] = null;
 		}
+		if ( this._inventory[ this.alt_gun_slot ] )
+		if ( this._inventory[ this.alt_gun_slot ]._is_being_removed )
+		{
+			console.warn( 'sdCharacter holds removed gun (slot '+this.alt_gun_slot+'). Gun snapshot: ' + JSON.stringify( this._inventory[ this.alt_gun_slot ].GetSnapshot( GetFrame(), true ) ) );
+
+			if ( sdWorld.is_server )
+			{
+				if ( this._socket )
+				this._socket.SDServiceMessage( 'Error: Your character holds gun that is already removed. Report if you know how this happened ~' );
+			}
+
+			this._inventory[ this.alt_gun_slot ] = null;
+		}
 	}
 	
 	DropWeaponLogic( GSPEED )
@@ -1953,6 +2035,12 @@ THING is cosmic mic drop!`;
 					this.DropWeapon( this.gun_slot );
 
 					this.gun_slot = 0;
+					
+					if ( this.gun_slot === 1 && this._inventory[ 10 ] )
+					this.alt_gun_slot = 10;
+					else
+					this.alt_gun_slot = -1;
+					
 					if ( sdWorld.my_entity === this )
 					sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
 
@@ -1984,6 +2072,12 @@ THING is cosmic mic drop!`;
 
 					this._backup_slot = this.gun_slot;
 					this.gun_slot = b;
+					
+					if ( b === 1 && this._inventory[ 10 ] )
+					this.alt_gun_slot = 10;
+					else
+					this.alt_gun_slot = -1;
+				
 					if ( sdWorld.my_entity === this )
 					sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
 
@@ -2004,6 +2098,12 @@ THING is cosmic mic drop!`;
 					{
 						this._backup_slot = this.gun_slot;
 						this.gun_slot = i;
+						
+						if ( i === 1 && this._inventory[ 10 ] )
+						this.alt_gun_slot = 10;
+						else
+						this.alt_gun_slot = -1;
+					
 						if ( sdWorld.my_entity === this )
 						sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
 
@@ -4976,6 +5076,7 @@ THING is cosmic mic drop!`;
 				this.workbench_level = 0;*/
 
 				//this._task_reward_counter = Math.min(1, this._task_reward_counter + GSPEED / 1800 ); // For testing
+				
 
 				if ( this._task_reward_counter >= 1 )
 				sdTask.MakeSureCharacterHasTask({ 
@@ -4988,7 +5089,6 @@ THING is cosmic mic drop!`;
 			//let offset = this.GetBulletSpawnOffset();
 
 			//this._an = -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
-			
 			
 			
 			this.ReloadAndCombatLogic( GSPEED );
@@ -6284,6 +6384,9 @@ THING is cosmic mic drop!`;
 	}
 	DropWeapon( i ) // by slot
 	{
+		if ( i === 1 && this._inventory[ 10 ] ) // Drop akimbo gun aswell
+		this.DropWeapon( 10 );
+		
 		let gun = this._inventory[ i ];
 		
 		if ( gun )
@@ -6404,7 +6507,13 @@ THING is cosmic mic drop!`;
 					return; // Can happen is very rare cases, if gun self-destructs, perhaps.
 					//throw new Error('[ 1 ] How did character touch gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 				}
-
+				if ( this._inventory.length === 10 ) // What the hell am I doing - Booraz
+				{
+					// Make room for akimbo pistol
+					this._inventory.length = 11;
+					this._inventory[ 10 ] = null;
+					console.log( this._inventory );
+				}
 				let will_ignore_pickup = this.IsGunIgnored( from_entity, false );
 
 				if ( from_entity._held_by === null ) // Not in inventory
@@ -6412,18 +6521,21 @@ THING is cosmic mic drop!`;
 				if ( from_entity !== this._previous_carrying || sdWorld.time > this._previous_carrying_ignore_until ) // Let players pick-up armor and score shards to later throw them away, without picking up
 				if ( !will_ignore_pickup )
 				if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
-				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null )
+				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && from_entity.class === this._inventory[ 1 ].class ) ) // inventory slot 10 (11) = 2nd pistol for akimbo
 				if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 					  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 				{	
 					//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
-
 					if ( from_entity._is_being_removed )
 					{
 						throw new Error('[ 2 ] How did character pick gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 					}
-
+					if ( this._inventory[ from_entity.GetSlot() ] === null )
 					this._inventory[ from_entity.GetSlot() ] = from_entity;
+					else
+					if ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null ) // Akimbo, baby!
+					this._inventory[ 10 ] = from_entity;
+					
 					from_entity._held_by = this;
 					from_entity.ttl = -1;
 

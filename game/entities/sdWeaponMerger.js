@@ -164,8 +164,10 @@ class sdWeaponMerger extends sdEntity
 			{
 				if ( sdGun.classes[ this.item0.class ].slot === 4 )
 				mult = 0.8; // 360 max DPS at max power cores.
-				if ( sdGun.classes[ this.item0.class ].slot === 1 || sdGun.classes[ this.item0.class ].slot === 3 )
+				if ( sdGun.classes[ this.item0.class ].slot === 3 )
 				mult = 0.6; // 270 max DPS at max power cores
+				if ( sdGun.classes[ this.item0.class ].slot === 1 )
+				mult = 0.5; // 225 max DPS at max power cores
 			
 				// Unstable core + unstable core scenario
 				// Take stronger core's power and add 15% value of the weaker, capping at 450 power
