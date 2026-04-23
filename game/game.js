@@ -2388,11 +2388,11 @@ let enf_once = true;
 			
 			for ( let t = 0; t < 10; t++ )
 			{
-				if ( i >= sdWorld.my_entity._inventory.length )
+				if ( i >= sdWorld.my_entity._inventory.length - 1 )
 				i = 0;
 				else
 				if ( i < 0 )
-				i = sdWorld.my_entity._inventory.length - 1;
+				i = sdWorld.my_entity._inventory.length - 2;
 						
 				if ( t !== 0 )
 				if ( sdWorld.my_entity._inventory[ i ] )
