@@ -6423,6 +6423,11 @@ THING is cosmic mic drop!`;
 
 			gun.ttl = sdGun.disowned_guns_ttl;
 			gun._held_by = null;
+			if ( gun.extra[ sdGun.ID_SLOT ] )
+			{
+				if ( gun.extra[ sdGun.ID_SLOT ] === 10 )
+				gun.extra[ sdGun.ID_SLOT ] = null; // 1 works too
+			}
 			gun.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			this._inventory[ i ] = null;
 			
@@ -6521,7 +6526,7 @@ THING is cosmic mic drop!`;
 				if ( from_entity !== this._previous_carrying || sdWorld.time > this._previous_carrying_ignore_until ) // Let players pick-up armor and score shards to later throw them away, without picking up
 				if ( !will_ignore_pickup )
 				if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
-				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && from_entity.class === this._inventory[ 1 ].class ) ) // inventory slot 10 (11) = 2nd pistol for akimbo
+				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && this._inventory[ from_entity.GetSlot() ].class === from_entity.class ) ) // inventory slot 10 (11) = 2nd pistol for akimbo
 				if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 					  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 				{	
@@ -6534,7 +6539,10 @@ THING is cosmic mic drop!`;
 					this._inventory[ from_entity.GetSlot() ] = from_entity;
 					else
 					if ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null ) // Akimbo, baby!
-					this._inventory[ 10 ] = from_entity;
+					{
+						this._inventory[ 10 ] = from_entity;
+						from_entity.extra[ sdGun.ID_SLOT ] = 10; // Sets "slot" to 10, so it fixes client side issues (All slot 1 guns have "slot_dynamic" for this functionality)
+					}
 					
 					from_entity._held_by = this;
 					from_entity.ttl = -1;

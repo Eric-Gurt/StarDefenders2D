@@ -1448,10 +1448,10 @@ class sdGun extends sdEntity
 			if ( !this._held_by._is_being_removed )
 			if ( this._held_by.IsPlayerClass() )
 			{
-				if ( this._held_by._inventory[ 10 ] !== this )
+				//if ( this._held_by._inventory[ 10 ] !== this )
 				this._held_by._inventory[ this.GetSlot() ] = this;
-				else
-				this._held_by._inventory[ 10 ] = this;
+				//else
+				//this._held_by._inventory[ 10 ] = this;
 			}
 
 			// Other kinds of entities like sdStorage will handle pointers properly without extra logic here (since they are public and entity pointers will naturally work)

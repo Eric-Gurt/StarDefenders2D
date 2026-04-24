@@ -250,7 +250,7 @@ class sdWeaponMerger extends sdEntity
 		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
 		return false;
 		
-		if ( weapon.class === sdGun.CLASS_SETR_REPULSOR || weapon.class === sdGun.CLASS_CUSTOM_RIFLE || weapon.class === sdGun.CLASS_LIGHT_CANNON ) // Disabled guns due to balance reasons
+		if ( weapon.class === sdGun.CLASS_SETR_REPULSOR || weapon.class === sdGun.CLASS_CUSTOM_RIFLE || weapon.class === sdGun.CLASS_LIGHT_CANNON || weapon.class === sdGun.CLASS_PISTOL ) // Disabled guns due to balance reasons
 		return false;
 		
 		if ( weapon._max_dps === 1 ) // Exclude armor, shards, etc...

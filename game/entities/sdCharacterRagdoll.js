@@ -1315,8 +1315,7 @@ class sdCharacterRagdoll
 				{
 					if ( gun_counter === 0 ) // First arm, for dual wield ( I hate how I made this - Booraz )
 					{
-						// this.character._inventory[ this.character.alt_gun_slot ] does not work for some reason, so this should do the trick for now
-						if ( this.character._inventory[ this.character.gun_slot ] && this.character.alt_gun_slot === 10 && !attached )
+						if ( this.character._inventory[ this.character.alt_gun_slot ] && this.character.alt_gun_slot === 10 && !attached )
 							{
 								ctx.save();
 								{
@@ -1334,7 +1333,7 @@ class sdCharacterRagdoll
 									ctx.filter = 'none';
 									ctx.sd_filter = null;
 
-									this.character._inventory[ this.character.gun_slot ].Draw( ctx, true );
+									this.character._inventory[ this.character.alt_gun_slot ].Draw( ctx, true );
 
 									ctx.filter = char_filter;
 									ctx.sd_filter = this.character.sd_filter;
