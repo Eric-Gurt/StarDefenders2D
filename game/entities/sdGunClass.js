@@ -819,7 +819,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'pistol' ),
 			sound: 'gun_pistol',
 			title: 'Pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 5,
 			muzzle_x: 3,
 			ammo_capacity: 12,
@@ -1625,7 +1625,7 @@ class sdGunClass
 			sound: 'cube_attack',
 			sound_pitch: 0.9,
 			title: 'Cube-pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 3,
 			muzzle_x: 4,
 			burst: 3,
@@ -2046,7 +2046,7 @@ class sdGunClass
             sound_volume: 2,
 			sound_pitch: 1,
 			title: 'Laser Pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 6,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			muzzle_x: 4,
@@ -2495,7 +2495,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'smg' ),
 			sound: 'gun_pistol',
 			title: 'Burst SMG',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 1.7,
 			muzzle_x: 5,
 			ammo_capacity: 24,
@@ -2549,7 +2549,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( '/guns/kivortec/kvt_smg' ),
 			sound: 'gun_pistol',
 			title: 'KVT SMG P49 "The Advocate"',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 1.9,
 			muzzle_x: 6,
 			ammo_capacity: 28,
@@ -4041,7 +4041,7 @@ class sdGunClass
 			sound: 'spider_attackC',
 			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 8.5,
 			muzzle_x: 8,
 			ammo_capacity: 8,
@@ -4348,7 +4348,7 @@ class sdGunClass
 			sound: 'gun_f_rifle',
 			sound_pitch: 1.5,
 			title: 'Velox Burst Pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 2,
 			muzzle_x: 5,
 			ammo_capacity: 12,
@@ -4750,7 +4750,7 @@ class sdGunClass
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 8,
 			muzzle_x: 6,
 			ammo_capacity: -1,
@@ -4759,7 +4759,7 @@ class sdGunClass
 			spawnable: false,
 			//fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 36, color:'ffff00' },
+			projectile_properties: { _damage: 34, color:'ffff00' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
@@ -4787,7 +4787,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 36; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 33; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -7135,7 +7135,7 @@ class sdGunClass
 			sound: 'gun_the_ripper2',
 			sound_pitch: 0.5,
 			title: 'KVT Handcannon P36 "Iron Bull"',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 16,
 			muzzle_x: 8,
 			ammo_capacity: 6,
@@ -7143,7 +7143,7 @@ class sdGunClass
 			count: 1,
 			fire_type: 2,
 			spawnable: false,
-			projectile_properties: { _damage: 54, _dirt_mult: -0.5 }, // 63, lowered as it can now fullfill it's role - Ghost581
+			projectile_properties: { _damage: 76, _dirt_mult: -0.5 }, // 63, lowered as it can now fullfill it's role - Ghost581
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -7152,9 +7152,9 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._critical_hit_mult = 0.75; // 1.75x damage at point blank range, execution tool.
-				obj._critical_hit_range = 48; // guide: 16 = A dirt block
-				obj._weak_critical_hit_range = 64; // 4 dirt blocks
+				obj._critical_hit_mult = 0.25; // 1.25x damage at closer range, same as SMG's now.
+				obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				obj._weak_critical_hit_range = 112; // 7 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -7176,7 +7176,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 54; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 76; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -7374,7 +7374,7 @@ class sdGunClass
 			sound: 'cube_attack',
 			sound_pitch: 0.9,
 			title: 'Cube-pistol v2',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 3,
 			muzzle_x: 5,
 			burst: 3,
@@ -7558,7 +7558,7 @@ class sdGunClass
 			sound: 'tzyrg_fire',
 			sound_pitch: 2,
 			title: 'Shurg Pistol',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 7,
 			muzzle_x: 5,
 			ammo_capacity: 10,
@@ -7610,7 +7610,7 @@ class sdGunClass
 			sound: 'gun_railgun',
 			title: 'Setr Repulsor',
 			sound_pitch: 5, volume: 0.33,
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 38,
 			muzzle_x: null,
 			ammo_capacity: -1,
@@ -8280,7 +8280,7 @@ class sdGunClass
 			sound_pitch: 1.6,
 			sound_volume: 0.6, // too loud
 			title: 'Sarronian SMG',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 1.9,
 			muzzle_x: 7,
 			ammo_capacity: -1,
@@ -8336,13 +8336,17 @@ class sdGunClass
 			sound_pitch: 3.2,
 			sound_volume: 0.6, // too loud
 			title: 'Sarronian Ray', // TODO: Add on-hit vampirism and on-kill armor, currently it's on shooting temporarily. - Ghost581
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 2.3,
 			muzzle_x: null,
 			ammo_capacity: 42,
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
+			BulletCostMultiplier: ( gun )=>
+			{
+				return 3; // Healing (and now dual wielding)
+			},
 			projectile_properties: { _damage: 12, _dirt_mult: -0.5, _rail: true, color: '#00c600' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				let obj = { _dirt_mult: -0.5, time_left: 30, _rail: true, color: '#00c600' };
@@ -8366,7 +8370,7 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.DamageWithEffect( -4, null ); // Heal self if HP isn't max.
+					gun._held_by.DamageWithEffect( -2, null ); // Heal self if HP isn't max.
 				}
 				return true;
 			},
@@ -11483,7 +11487,7 @@ class sdGunClass
 			sound: 'cube_attack',
 			sound_pitch: 1.25,
 			title: 'Council Pistol v2',
-			slot: 1,
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
 			reload_time: 6,
 			muzzle_x: 6,
 			ammo_capacity: -1,
@@ -11492,7 +11496,7 @@ class sdGunClass
 			spawnable: false,
 			//fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 45, color:'ffff00' },
+			projectile_properties: { _damage: 42, color:'ffff00' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
@@ -11520,7 +11524,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 45; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 40; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},

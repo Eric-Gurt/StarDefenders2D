@@ -1999,6 +1999,11 @@ for ( let i = 0; i < visible_entities.length; i++ )
 							ctx.save();
 							ctx.translate( 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 30 );
 							sdWorld.my_entity._inventory[ i ].Draw( ctx, true );
+							if ( i === 1 && sdWorld.my_entity._inventory[ 10 ]) // Slot 1, draw akimbo weapon if player has one
+							{
+								ctx.translate( 6, 6 );
+								sdWorld.my_entity._inventory[ 10 ].Draw( ctx, true );
+							}
 							ctx.restore();
 							
 							if ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot )

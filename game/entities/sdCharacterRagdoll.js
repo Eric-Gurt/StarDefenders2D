@@ -557,14 +557,27 @@ class sdCharacterRagdoll
 			
 			dx += -this.character._side * 0.3 * activation;
 			dy += 0.4 * activation;
-		
-			this.MoveBoneRelative( this.hand1, 
-				this.chest._tx + dx * ( 9 + gun_offset_x - reload ) * scale, 
-				this.chest._ty + dy * ( 9 + gun_offset_x - reload ) * scale - breathe_rise );
-
-			this.MoveBoneRelative( this.hand2, 
-				this.chest._tx + dx * ( 9 + gun_offset_x - 3 + reload ) * scale, 
-				this.chest._ty + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale - breathe_rise );
+			if ( !this.character.carrying && this.character.gun_slot === 1 )
+			{
+				let akimbo = this.character.alt_gun_slot === 10 ? 3 : 0;
+				this.MoveBoneRelative( this.hand1, 
+					this.chest._tx + dx * ( 16 + gun_offset_x - reload ) * scale, 
+					this.chest._ty + dy * ( 16 + akimbo + gun_offset_x - reload ) * scale - breathe_rise );
+						
+				this.MoveBoneRelative( this.hand2, 
+					this.chest._tx + dx * ( 16 - akimbo + gun_offset_x - 3 + reload ) * scale, 
+					this.chest._ty + dy * ( 16 - akimbo + gun_offset_x - 3 + reload ) * scale + 2 * scale - breathe_rise );
+			}
+			else	
+			{
+				this.MoveBoneRelative( this.hand1, 
+					this.chest._tx + dx * ( 9 + gun_offset_x - reload ) * scale, 
+					this.chest._ty + dy * ( 9 + gun_offset_x - reload ) * scale - breathe_rise );
+						
+				this.MoveBoneRelative( this.hand2, 
+					this.chest._tx + dx * ( 9 + gun_offset_x - 3 + reload ) * scale, 
+					this.chest._ty + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale - breathe_rise );
+			}
 		}
 		else
 		{
@@ -1299,53 +1312,86 @@ class sdCharacterRagdoll
 				ctx.scale( this.character.s / 100, side * this.character.s / 100 );
 
 				if ( spring.image === 96 ) // lower arm
-				if ( gun_counter++ === 1 )
 				{
-					if ( this.character.carrying )
+					if ( gun_counter === 0 ) // First arm, for dual wield ( I hate how I made this - Booraz )
 					{
-						ctx.save();
-						{
-							ctx.filter = 'none';
-							ctx.sd_filter = null;
-							
-							ctx.translate( -7, 3 );
-							ctx.rotate( Math.PI );
-							
-							let s = 1 / ( this.character.s / 100 );
-							ctx.scale( ( this.character._side < 0 ) ? -s : s, s );
-							
-							this.character.carrying.Draw( ctx, true );
-							
-							ctx.filter = char_filter;
-							ctx.sd_filter = this.character.sd_filter;
-						}
-						ctx.restore();
+						if ( this.character._inventory[ this.character.alt_gun_slot ] && this.character.alt_gun_slot === 10 && !attached )
+							{
+								ctx.save();
+								{
+									ctx.translate( -7, 3 );
+
+									let activation = Math.pow( this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time, 2 );
+									//let scale = this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time;
+
+									//activation = Math.round( activation * 3 ) / 3;
+
+									ctx.rotate( ( Math.PI / 2 - this.character.GetLookAngle( true ) - Math.atan2( spring.parent.y - spring.child.y, spring.parent.x - spring.child.x ) ) * this.character._side + activation * Math.PI / 2 );
+
+									//ctx.scale( 1 - scale, 1 - scale );
+
+									ctx.filter = 'none';
+									ctx.sd_filter = null;
+
+									this.character._inventory[ this.character.alt_gun_slot ].Draw( ctx, true );
+
+									ctx.filter = char_filter;
+									ctx.sd_filter = this.character.sd_filter;
+								}
+								ctx.restore();
+							}
+						
 					}
-					else
-					if ( this.character._inventory[ this.character.gun_slot ] && !attached )
+					if ( gun_counter++ === 1 )
 					{
-						ctx.save();
+						if ( this.character.carrying )
 						{
-							ctx.translate( -7, 3 );
-
-							let activation = Math.pow( this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time, 2 );
-							//let scale = this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time;
-
-							//activation = Math.round( activation * 3 ) / 3;
-
-							ctx.rotate( ( Math.PI / 2 - this.character.GetLookAngle( true ) - Math.atan2( spring.parent.y - spring.child.y, spring.parent.x - spring.child.x ) ) * this.character._side + activation * Math.PI / 2 );
-
-							//ctx.scale( 1 - scale, 1 - scale );
-
-							ctx.filter = 'none';
-							ctx.sd_filter = null;
-
-							this.character._inventory[ this.character.gun_slot ].Draw( ctx, true );
-
-							ctx.filter = char_filter;
-							ctx.sd_filter = this.character.sd_filter;
+							ctx.save();
+							{
+								ctx.filter = 'none';
+								ctx.sd_filter = null;
+								
+								ctx.translate( -7, 3 );
+								ctx.rotate( Math.PI );
+								
+								let s = 1 / ( this.character.s / 100 );
+								ctx.scale( ( this.character._side < 0 ) ? -s : s, s );
+								
+								this.character.carrying.Draw( ctx, true );
+								
+								ctx.filter = char_filter;
+								ctx.sd_filter = this.character.sd_filter;
+							}
+							ctx.restore();
 						}
-						ctx.restore();
+						else
+						{
+							if ( this.character._inventory[ this.character.gun_slot ] && !attached )
+							{
+								ctx.save();
+								{
+									ctx.translate( -7, 3 );
+
+									let activation = Math.pow( this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time, 2 );
+									//let scale = this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time;
+
+									//activation = Math.round( activation * 3 ) / 3;
+
+									ctx.rotate( ( Math.PI / 2 - this.character.GetLookAngle( true ) - Math.atan2( spring.parent.y - spring.child.y, spring.parent.x - spring.child.x ) ) * this.character._side + activation * Math.PI / 2 );
+
+									//ctx.scale( 1 - scale, 1 - scale );
+
+									ctx.filter = 'none';
+									ctx.sd_filter = null;
+
+									this.character._inventory[ this.character.gun_slot ].Draw( ctx, true );
+
+									ctx.filter = char_filter;
+									ctx.sd_filter = this.character.sd_filter;
+								}
+								ctx.restore();
+							}
+						}
 					}
 				}
 				

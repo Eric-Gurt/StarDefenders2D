@@ -626,10 +626,28 @@ class sdGun extends sdEntity
 
 			if ( this._max_dps === 1 && this.extra[ 17 ] ) // If not overridden by has_class.onMade and it has a damage value
 			{
-				if ( !sdGun.classes[ this.class ].burst )
-				this._max_dps = ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
-				else // Burst fire gun scenario
-				this._max_dps = ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
+				if ( this.GetAmmoCapacity() === -1 ) // Infinite ammo scenario
+				{
+					if ( !sdGun.classes[ this.class ].burst )
+					this._max_dps = ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
+					else // Burst fire gun scenario
+					this._max_dps = ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
+				}
+				else
+				{
+					// Limited ammo, take reloading into account for DPS calculation. (Reload is 0.5 seconds at the moment, so time to dump mag + 0.5 seconds)
+					if ( !sdGun.classes[ this.class ].burst )
+					{
+						let time_to_empty_mag = this.GetAmmoCapacity() / ( 30 / this._reload_time );
+						this._max_dps = ( time_to_empty_mag / ( time_to_empty_mag + 0.5 ) ) * ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
+					}
+					else // Burst fire gun scenario
+					{
+						let time_to_empty_mag = this.GetAmmoCapacity() / ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) );
+						this._max_dps = ( time_to_empty_mag / ( time_to_empty_mag + 0.5 ) ) * ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
+					}
+					
+				}
 
 				if ( this._max_dps === Infinity )
 				{
@@ -743,7 +761,7 @@ class sdGun extends sdEntity
 				if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
 				if ( !this._held_by.driver_of )
 				{
-					return ( this._held_by.gun_slot === this.GetSlot() );
+					return ( this._held_by.gun_slot === this.GetSlot() || this._held_by.alt_gun_slot - 9 === this.GetSlot() );
 				}
 			}
 		}
@@ -777,7 +795,7 @@ class sdGun extends sdEntity
         return;
 
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
-		this._held_by.reload_anim = 15;
+		this._held_by.reload_anim = this._held_by.alt_gun_slot === 10 ? 30 : 15; // Akimbo needs to reload 2 guns
 	}
 	ChangeFireModeStart() // Can happen multiple times
 	{
@@ -897,8 +915,9 @@ class sdGun extends sdEntity
 		
 		let mult = ( this.extra[ 20 ] ) ? 0.75 : 1; // Cube fusion core merging reduces weapon matter cost by 25%
 		
-		if ( sdGun.classes[ this.class ].slot === 1 ) // Slot 1 weapons get additional 50% matter cost reduction
-		mult = mult * 0.5;
+		//if ( sdGun.classes[ this.class ].slot === 1 ) // Slot 1 weapons get additional 50% matter cost reduction
+		//mult = mult * 0.5;
+		// Not anymore, all slot 1 can be dual wielded now
 		
 		if ( sdGun.classes[ this.class ].BulletCostMultiplier ) // In some cases this is better than GetAmmoCost()
 		mult = mult * sdGun.classes[ this.class ].BulletCostMultiplier( this );
@@ -1443,7 +1462,10 @@ class sdGun extends sdEntity
 			if ( !this._held_by._is_being_removed )
 			if ( this._held_by.IsPlayerClass() )
 			{
+				//if ( this._held_by._inventory[ 10 ] !== this )
 				this._held_by._inventory[ this.GetSlot() ] = this;
+				//else
+				//this._held_by._inventory[ 10 ] = this;
 			}
 
 			// Other kinds of entities like sdStorage will handle pointers properly without extra logic here (since they are public and entity pointers will naturally work)
