@@ -1648,6 +1648,14 @@ THING is cosmic mic drop!`;
 			this.alt_gun_slot = 10;
 			else
 			this.alt_gun_slot = -1;
+		
+			if ( !this._inventory[ 1 ] && this._inventory[ 10 ] ) // Cases where slot 1 is lost while dual wielding, like Octopus attack
+			{
+				if ( this._inventory[ 10 ].extra[ sdGun.ID_SLOT ] )
+				this._inventory[ 10 ].extra[ sdGun.ID_SLOT ] = null;
+				this._inventory[ 10 ] = this._inventory[ 1 ]; // Put the dual wield slot into primary pistol slot
+				this._inventory[ 10 ] = null;
+			}
 		}
 		
 		if ( this._weapon_draw_timer > 0 )

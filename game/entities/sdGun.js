@@ -761,7 +761,7 @@ class sdGun extends sdEntity
 				if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
 				if ( !this._held_by.driver_of )
 				{
-					return ( this._held_by.gun_slot === this.GetSlot() || this._held_by.alt_gun_slot - 9 === this.GetSlot() );
+					return ( this._held_by.gun_slot === this.GetSlot() || this._held_by.alt_gun_slot === this.GetSlot() );
 				}
 			}
 		}
