@@ -2030,6 +2030,7 @@ for ( let i = 0; i < visible_entities.length; i++ )
 							if ( i === 1 && sdWorld.my_entity._inventory[ 10 ]) // Slot 1, draw akimbo weapon if player has one
 							{
 								ctx.translate( 6, 6 );
+                                ctx.globalAlpha = icons_opacity;
 								sdWorld.my_entity._inventory[ 10 ].Draw( ctx, true );
 							}
 							ctx.restore();
