@@ -32,6 +32,9 @@ class sdTeleport extends sdEntity
 	get hitbox_x2() { return this.half_size; }
 	get hitbox_y1() { return -this.half_size; }
 	get hitbox_y2() { return this.half_size; }
+    
+    get spawn_align_x(){ return this.half_size; };
+	get spawn_align_y(){ return this.half_size; };
 	
 	
 	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
