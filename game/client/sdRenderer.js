@@ -122,6 +122,18 @@ class sdRenderer
 		sdRenderer.known_light_sources = []; // Array of entities
 		
 		sdRenderer.visible_chunks = new Map(); // hash -> { x, y, last_active_visibility_time, active_visibility, opacity }
+
+		 sdRenderer.star_pattern = [];
+        const old_seed = sdWorld.SeededRandomNumberGenerator.seed;
+        sdWorld.SeededRandomNumberGenerator.seed = 55126;
+        for ( let i = 0; i < 100; ++i )
+        {
+            const rand = sdWorld.SeededRandomNumberGenerator.random( i, 100 );
+            const rand2 = sdWorld.SeededRandomNumberGenerator.random( 100, i );
+
+            sdRenderer.star_pattern.push({ size: 1 + rand / 4, glow: rand < 0.1, color: rand2 < 0.02 ? '#0000ff': '#ffffff', angle: rand * Math.PI * 2, distance: Math.sqrt( rand2 * 750_000 ) });
+        }
+		sdWorld.SeededRandomNumberGenerator.seed = old_seed;
 		
 		if ( typeof window !== 'undefined' )
 		{
@@ -791,6 +803,20 @@ class sdRenderer
 	{
 		return ( sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities );
 	}
+	static DrawStars( ctx )
+    {
+        const old_hue = ctx.sd_hue_rotation;
+        ctx.sd_hue_rotation = 0;
+        for ( const star of sdRenderer.star_pattern )
+        {
+            const angle = star.angle - sdWeather.only_instance.day_time / ( 30 * 60 * 24 );
+            const x = Math.cos( angle ) * star.distance;
+            const y = Math.sin( angle ) * star.distance;
+            ctx.fillStyle = star.color;
+            ctx.fillRect( 0.5 + x + sdRenderer.screen_width / 2, 0.5 + y + sdRenderer.screen_height / 2, star.size, star.size );
+        }
+        ctx.sd_hue_rotation = old_hue;
+    }
 	static Render( frame )
 	{
 		let GSPEED = sdWorld.GSPEED;
@@ -1081,7 +1107,14 @@ class sdRenderer
 					ctx.globalAlpha = Math.min( 0.99, ( Math.cos( day_progress ) * 0.5 + 0.5 ) * brightness );
 					ctx.fillStyle = sdRenderer.sky_gradient;
 					ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
-					
+
+					if ( i === 0 )
+                    {
+                        const sun_brightness = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 );
+                        
+                        ctx.globalAlpha = 1 - sun_brightness;
+                        sdRenderer.DrawStars( ctx );
+                    }
 					if ( i === sdRenderer.dark_lands_colors.length - 1 )
 					{
 						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 ); // Just in case
