@@ -27,14 +27,16 @@ class sdTeleport extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return -16; }
-	get hitbox_y2() { return 16; }
+
+	get hitbox_x1() { return -this.half_size; }
+	get hitbox_x2() { return this.half_size; }
+	get hitbox_y1() { return -this.half_size; }
+	get hitbox_y2() { return this.half_size; }
+	
 	
 	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
 	{
-		return ( Math.abs( this.x - x ) > 8 && Math.abs( this.y - y ) > 8 );
+		return ( Math.abs( this.x - x ) > 5 && Math.abs( this.y - y ) > 5 );
 	}
 	
 	DrawIn3D()
@@ -103,6 +105,7 @@ class sdTeleport extends sdEntity
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this.delay = 0;
+        this.half_size = params.half_size || 16; // or 8
 		//this._update_version++
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -151,28 +154,36 @@ class sdTeleport extends sdEntity
 	{
 		return `Teleport nodes can be used to teleport various kinds of entities between teleport nodes that are wired together. Connect access management node to configure which entities should be teleported.`;
 	}
-	
-	Draw( ctx, attached )
+    Draw( ctx, attached )
 	{
-		if ( this.delay === 0 )
+        if ( this.delay === 0 )
 		ctx.apply_shading = false;
-		
-		let xx = 0;
 
+        let xx = 0;
+		let yy = 0;
+		
+		
 		if ( this.GetComWiredCache() || sdShop.isDrawing )
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )
-			xx = 0;
-			//ctx.drawImageFilterCache( sdTeleport.img_teleport, -16, -16, 32,32 );
+			yy = 0;
 			else
-			xx = 1;
-			//ctx.drawImageFilterCache( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
+			yy = 1;
 		}
 		else
-		//ctx.drawImageFilterCache( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
-		xx = 2;
-		ctx.drawImageFilterCache( sdTeleport.img_teleport, xx * 32, 0, 32, 32, - 16, - 16, 32,32 );
-	}
+		yy = 2;
+		
+		if ( this.half_size === 16 )
+		{
+		}
+		else
+		if ( this.half_size === 8 )
+		{
+			xx += 1;
+		}
+
+		ctx.drawImageFilterCache( sdTeleport.img_teleport, xx * 32, yy * 32, this.half_size*2, this.half_size*2, - this.half_size, - this.half_size, this.half_size*2,this.half_size*2 );
+    }
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title );
@@ -188,6 +199,7 @@ class sdTeleport extends sdEntity
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
 		if ( this.DoesOverlapWith( from_entity ) ) // Prevent bug that causes overlapping 2 teleports to let player teleport twice as further and raid some bases
+        //if ( from_entity.hitbox_x1 >= this.hitbox_x1 && from_entity.hitbox_x2 <= this.hitbox_x2 && from_entity.hitbox_y1 >= this.hitbox_y1 && from_entity.hitbox_y2 <= this.hitbox_y2 ) // Don't teleport entities that are larger than this
 		{
 			let com_near = this.GetComWiredCache();
 
