@@ -78,11 +78,19 @@ class sdLiquidAbsorber extends sdEntity
 		this.charge = 0;
 		this.matter_max = 40;
 		this.matter = 0;
+        this.collect_liquids = false;
 		this._allow_liquid_removal = true;
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this.toggle_enabled = false; // sdButton thing, makes it work indefinitely
+        
+        this._liquid = {
+			max: 100, 
+			amount: 0, 
+			type: -1, 
+			extra: 0 // Used for essence
+		};
 		
 		// 1 slot
 		
@@ -96,6 +104,19 @@ class sdLiquidAbsorber extends sdEntity
 	onToggleEnabledChange()
 	{
 		this.SetState();
+	}
+    LiquidTransferMode() // 0 - balance liquids, 1 - only give liquids, 2 - only take liquids
+	{
+		return 1;
+	}
+	IsLiquidTypeAllowed( type )
+	{
+        if ( type === -1 )
+        return true;
+
+        return ( this._liquid.type === -1 || this._liquid.type === type ); // Accepts all liquid types
+
+        return false;
 	}
 	SetState()
 	{
@@ -146,14 +167,16 @@ class sdLiquidAbsorber extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
-	
+
+        this.GiveLiquid( 0.01, GSPEED );
+
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		else
-		if ( !this.enabled )
+		if ( !this.enabled && this._liquid.amount === 0 )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	
 		if ( this.enabled )
@@ -180,14 +203,26 @@ class sdLiquidAbsorber extends sdEntity
 				{
 					if ( ( liquids[ i ].type === sdWater.TYPE_WATER || liquids[ i ].type === sdWater.TYPE_ACID ) && this._allow_liquid_removal )
 					{
-						liquids[ i ].remove();
-						
-						let gas_x = Math.floor( this.x / 16 ) * 16;
-						let gas_y = Math.floor( this.y / 16 ) * 16;
-						let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
-						gas._natural = false;
-						sdEntity.entities.push( gas );
-						
+                        if ( !this.collect_liquids )
+                        {
+                            liquids[ i ].remove();
+                            
+                            let gas_x = Math.floor( this.x / 16 ) * 16;
+                            let gas_y = Math.floor( this.y / 16 ) * 16;
+                            let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
+                            gas._natural = false;
+                            sdEntity.entities.push( gas );
+                        }
+                        else
+                        if ( this.IsLiquidTypeAllowed( liquids[ i ].type ) && this._liquid.amount + liquids[ i ]._volume * 100 >= this._liquid.max )
+                        {
+                            this._liquid.type = liquids[ i ].type;
+                            this._liquid.amount += liquids[ i ]._volume * 100;
+                            liquids[ i ].remove();
+
+                            this._update_version++;
+						}
+
 						this._allow_liquid_removal = false;
 						sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:15 });
 						this.matter = Math.max( 0, this.matter - sdLiquidAbsorber.cost_per_absorption );
@@ -311,6 +346,12 @@ class sdLiquidAbsorber extends sdEntity
 						this._update_version++;
 					}
 				}
+                
+                if ( command_name === 'COLLECT_LIQUIDS' )
+				{
+                    this.collect_liquids = !this.collect_liquids;
+                    this._update_version++;
+				}
 			}
 			else
 			executer_socket.SDServiceMessage( 'Liquid absorber is too far' );
@@ -326,10 +367,15 @@ class sdLiquidAbsorber extends sdEntity
 		{
 			if ( sdWorld.my_entity )
 			{
-				if ( this.enabled === false )
+				if ( !this.enabled )
 				this.AddContextOption( 'Activate liquid absorber', 'SCAN_FOR_LIQUIDS', [] );
 				else
 				this.AddContextOption( 'Deactivate liquid absorber', 'SCAN_FOR_LIQUIDS', [] );
+            
+                if ( !this.collect_liquids )
+				this.AddContextOption( 'Enable liquid collection', 'COLLECT_LIQUIDS', [] );
+				else
+				this.AddContextOption( 'Disable liquid collection', 'COLLECT_LIQUIDS', [] );
 			}
 		}
 	}
