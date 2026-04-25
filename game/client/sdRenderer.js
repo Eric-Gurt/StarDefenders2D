@@ -982,6 +982,12 @@ class sdRenderer
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, 0 - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 				}*/
+                
+                const day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
+                const sun_brightness = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 );
+                ctx.globalAlpha = 1 - sun_brightness;
+                sdRenderer.DrawStars( ctx );
+				ctx.globalAlpha = 1;
 				
 				let current_camera_scale = ( sdWorld.camera.scale / 4.75 );
 				
@@ -1030,8 +1036,6 @@ class sdRenderer
 						// Not ideal but it works? - Booraz149
 					}
 				}
-				//
-				
 				
 				if ( sdRenderer.dark_lands_canvases )
 				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
@@ -1098,9 +1102,7 @@ class sdRenderer
 					ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x * 0.8 / 16, 360 ) );
 					
 					let brightness = 3 / sdRenderer.dark_lands_colors.length;
-					
-					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
-					
+
 					if ( sdWeather.only_instance._dustiness > 0 )
 					brightness += sdWeather.only_instance._dustiness * 6 / sdRenderer.dark_lands_colors.length;
 					
@@ -1108,16 +1110,9 @@ class sdRenderer
 					ctx.fillStyle = sdRenderer.sky_gradient;
 					ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 
-					if ( i === 0 )
-                    {
-                        const sun_brightness = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 );
-                        
-                        ctx.globalAlpha = 1 - sun_brightness;
-                        sdRenderer.DrawStars( ctx );
-                    }
 					if ( i === sdRenderer.dark_lands_colors.length - 1 )
 					{
-						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 ); // Just in case
+						ctx.globalAlpha = sun_brightness; // Just in case
 						
 						if ( ctx.globalAlpha > 0 )
 						{
