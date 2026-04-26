@@ -640,7 +640,7 @@ class sdTurret extends sdEntity
                     this.auto_shoot_in = 0;
                     const cost = this.gun.GetBulletCost( true );
                     const fuel_cost = cost / 50;
-                    if ( this.matter - cost < 0 || this.liquid.amount - fuel_cost < 0 )
+                    if ( this.matter - cost < 0 || this.liquid.amount - fuel_cost < 0 || this.gun.ammo_left === 0 )
                     return;
 
                     if ( this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario ) )
@@ -918,7 +918,7 @@ class sdTurret extends sdEntity
 
                         const cost = this.gun.GetBulletCost( true );
                         const fuel_cost = cost / 50;
-                        if ( this.matter - cost < 0 || this.liquid.amount - fuel_cost < 0 )
+                        if ( this.matter - cost < 0 || this.liquid.amount - fuel_cost < 0 || this.gun.ammo_left === 0 )
                         return;
 
                         if ( this.gun.Shoot( 0, this.GetBulletSpawnOffset(), shoot_from_scenario ) )
@@ -1299,6 +1299,7 @@ class sdTurret extends sdEntity
                         gun._held_by = this;
                         gun.ttl = -1;
                         this.gun = gun;
+                        this.gun.ReloadComplete(); // Always reload ammo after each shot
                         this._update_version++;
                     }
                     else
