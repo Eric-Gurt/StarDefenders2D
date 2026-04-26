@@ -786,14 +786,6 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
-        let can_reload = true;
-
-        if ( sdGun.classes[ this.class ].onReloadStart ) // Custom extra logic
-        can_reload = sdGun.classes[ this.class ].onReloadStart( this );
-
-        if ( !can_reload )
-        return;
-
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
 		this._held_by.reload_anim = this._held_by.alt_gun_slot === 10 ? 30 : 15; // Akimbo needs to reload 2 guns
 	}
@@ -955,6 +947,14 @@ class sdGun extends sdEntity
 	
 		if ( !sdWorld.is_server )
 		return;
+    
+        let can_reload = true;
+
+        if ( sdGun.classes[ this.class ].onReloadAttempt ) // Custom extra logic
+        can_reload = sdGun.classes[ this.class ].onReloadAttempt( this );
+
+        if ( !can_reload )
+        return;
 	
         const can_say = this._held_by.IsPlayerClass();
 		// Upgrade for guns that used to work on magazine basis but no longer do:
