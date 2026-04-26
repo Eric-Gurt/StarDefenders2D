@@ -206,12 +206,16 @@ class sdLiquidAbsorber extends sdEntity
                         if ( !this.collect_liquids )
                         {
                             liquids[ i ].remove();
-                            
-                            let gas_x = Math.floor( this.x / 16 ) * 16;
-                            let gas_y = Math.floor( this.y / 16 ) * 16;
-                            let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
-                            gas._natural = false;
-                            sdEntity.entities.push( gas );
+                            if ( liquids[ i ].type === sdWater.TYPE_ACID )
+                            {
+                                let gas_x = Math.floor( this.x / 16 ) * 16;
+                                let gas_y = Math.floor( this.y / 16 ) * 16;
+                                let gas = new sdWater ({ x: gas_x, y: gas_y, type: sdWater.TYPE_TOXIC_GAS });
+                                gas._natural = false;
+                                sdEntity.entities.push( gas );
+                            }
+                            else
+                            sdWorld.SendEffect({ x: this.x, y: this.y, sy: -1, type: sdEffect.TYPE_SMOKE, radius: 1, scale: 2, color: '#eeeeee', spark_color: false });
                         }
                         else
                         if ( this.IsLiquidTypeAllowed( liquids[ i ].type ) && this._liquid.amount + liquids[ i ]._volume * 100 >= this._liquid.max )
