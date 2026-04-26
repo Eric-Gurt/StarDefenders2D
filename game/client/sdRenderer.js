@@ -809,7 +809,7 @@ class sdRenderer
         ctx.sd_hue_rotation = 0;
         for ( const star of sdRenderer.star_pattern )
         {
-            const angle = star.angle - sdWeather.only_instance.day_time / ( 30 * 60 * 24 );
+            const angle = star.angle - Math.PI * 2 * sdWeather.only_instance.day_time / ( 30 * 60 * 24 );
             const x = Math.cos( angle ) * star.distance;
             const y = Math.sin( angle ) * star.distance;
             ctx.fillStyle = star.color;
