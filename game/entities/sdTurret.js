@@ -138,7 +138,7 @@ class sdTurret extends sdEntity
             sdGun.CLASS_ADMIN_TELEPORTER,
             sdGun.CLASS_OVERLORD_BLASTER,
             sdGun.CLASS_OVERLORD_BLASTER2,
-            sdGun.CLASS_LIGHT_CANNON,
+            //sdGun.CLASS_LIGHT_CANNON,
             sdGun.CLASS_ZEKTARON_FOCUS_BEAM,
             sdGun.CLASS_STIMPACK,
             sdGun.CLASS_DRINK,
