@@ -11614,9 +11614,12 @@ class sdGunClass
 			},
             onReloadAttempt: ( gun )=>
             {
-                const quotes = [ 'It cannot be reloaded', 'Maybe one day' ];
-                const quotes_no_ammo = [ 'It cannot be reloaded', 'It had a good run', 'I should put this on display instead', 'Then its over?', 'Maybe one day' ];
-                gun._held_by?.Say( sdWorld.AnyOf( gun.ammo_left <= 0 ? quotes_no_ammo : quotes ) );
+                if ( gun._held_by && gun._held_by.Say )
+                {
+                    const quotes = [ 'It cannot be reloaded', 'Maybe one day' ];
+                    const quotes_no_ammo = [ 'It cannot be reloaded', 'It had a good run', 'I should put this on display instead', 'Then its over?', 'Maybe one day' ];
+                    gun._held_by?.Say( sdWorld.AnyOf( gun.ammo_left <= 0 ? quotes_no_ammo : quotes ) );
+                }
 
                 return false;
             },
