@@ -790,6 +790,10 @@ class sdCharacter extends sdEntity
 	{
 		return true;
 	}
+    CanUseWeapons()
+    {
+        return true;
+    }
 	GiveScore( amount, killed_entity=null, allow_partial_drop=true )
 	{
 		sdWorld.GiveScoreToPlayerEntity( amount, killed_entity, allow_partial_drop, this );
@@ -4598,6 +4602,10 @@ THING is cosmic mic drop!`;
 		
 		this.carrying = null;
 	}
+    IsAttemptingShoot()
+    {
+        return this._key_states.GetKey( 'Mouse1' );
+    }
 	ManagePlayerVehicleEntrance( GSPEED )
 	{
 		let e_state = this._key_states.GetKey( 'KeyE' );

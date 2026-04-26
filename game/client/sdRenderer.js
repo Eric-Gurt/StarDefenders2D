@@ -122,6 +122,18 @@ class sdRenderer
 		sdRenderer.known_light_sources = []; // Array of entities
 		
 		sdRenderer.visible_chunks = new Map(); // hash -> { x, y, last_active_visibility_time, active_visibility, opacity }
+
+		 sdRenderer.star_pattern = [];
+        const old_seed = sdWorld.SeededRandomNumberGenerator.seed;
+        sdWorld.SeededRandomNumberGenerator.seed = 55126;
+        for ( let i = 0; i < 100; ++i )
+        {
+            const rand = sdWorld.SeededRandomNumberGenerator.random( i, 100 );
+            const rand2 = sdWorld.SeededRandomNumberGenerator.random( 100, i );
+
+            sdRenderer.star_pattern.push({ size: 1 + rand / 4, glow: rand < 0.1, color: rand2 < 0.02 ? '#0000ff': '#ffffff', angle: rand * Math.PI * 2, distance: Math.sqrt( rand2 * 750_000 ) });
+        }
+		sdWorld.SeededRandomNumberGenerator.seed = old_seed;
 		
 		if ( typeof window !== 'undefined' )
 		{
@@ -791,6 +803,20 @@ class sdRenderer
 	{
 		return ( sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities );
 	}
+	static DrawStars( ctx )
+    {
+        const old_hue = ctx.sd_hue_rotation;
+        ctx.sd_hue_rotation = 0;
+        for ( const star of sdRenderer.star_pattern )
+        {
+            const angle = star.angle - Math.PI * 2 * sdWeather.only_instance.day_time / ( 30 * 60 * 24 );
+            const x = Math.cos( angle ) * star.distance;
+            const y = Math.sin( angle ) * star.distance;
+            ctx.fillStyle = star.color;
+            ctx.fillRect( 0.5 + x + sdRenderer.screen_width / 2, 0.5 + y + sdRenderer.screen_height / 2, star.size, star.size );
+        }
+        ctx.sd_hue_rotation = old_hue;
+    }
 	static Render( frame )
 	{
 		let GSPEED = sdWorld.GSPEED;
@@ -956,6 +982,12 @@ class sdRenderer
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, 0 - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 				}*/
+                
+                const day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
+                const sun_brightness = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 );
+                ctx.globalAlpha = 1 - sun_brightness;
+                sdRenderer.DrawStars( ctx );
+				ctx.globalAlpha = 1;
 				
 				let current_camera_scale = ( sdWorld.camera.scale / 4.75 );
 				
@@ -1004,8 +1036,6 @@ class sdRenderer
 						// Not ideal but it works? - Booraz149
 					}
 				}
-				//
-				
 				
 				if ( sdRenderer.dark_lands_canvases )
 				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
@@ -1072,19 +1102,17 @@ class sdRenderer
 					ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x * 0.8 / 16, 360 ) );
 					
 					let brightness = 3 / sdRenderer.dark_lands_colors.length;
-					
-					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
-					
+
 					if ( sdWeather.only_instance._dustiness > 0 )
 					brightness += sdWeather.only_instance._dustiness * 6 / sdRenderer.dark_lands_colors.length;
 					
 					ctx.globalAlpha = Math.min( 0.99, ( Math.cos( day_progress ) * 0.5 + 0.5 ) * brightness );
 					ctx.fillStyle = sdRenderer.sky_gradient;
 					ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
-					
+
 					if ( i === sdRenderer.dark_lands_colors.length - 1 )
 					{
-						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 ); // Just in case
+						ctx.globalAlpha = sun_brightness; // Just in case
 						
 						if ( ctx.globalAlpha > 0 )
 						{
@@ -2002,6 +2030,7 @@ for ( let i = 0; i < visible_entities.length; i++ )
 							if ( i === 1 && sdWorld.my_entity._inventory[ 10 ]) // Slot 1, draw akimbo weapon if player has one
 							{
 								ctx.translate( 6, 6 );
+                                ctx.globalAlpha = icons_opacity;
 								sdWorld.my_entity._inventory[ 10 ].Draw( ctx, true );
 							}
 							ctx.restore();
