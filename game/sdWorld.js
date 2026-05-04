@@ -1348,7 +1348,8 @@ class sdWorld
 					let status_entity = status_effects[ i ];
 					if ( status_entity.type === sdStatusEffect.TYPE_TEMPERATURE )
 					{
-						gib.ApplyStatusEffect({ type: status_entity.type, t:status_entity.t, initiator: status_entity._initiator }); // Probably should only get temperature ones, otherwise may cause bugs or crashes with other types
+                        const t = status_entity.t < 0 ? status_entity.t : status_entity.t / 4; // Prevent fire from instantly destroying gibs
+						gib.ApplyStatusEffect({ type: status_entity.type, t: t, initiator: status_entity._initiator }); // Probably should only get temperature ones, otherwise may cause bugs or crashes with other types
 						break;
 					}
 				}
