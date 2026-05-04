@@ -939,7 +939,9 @@ class sdCrystal extends sdEntity
                     }
                     else
                     {
-                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIMEWARP, ttl: 30 * 30, radius: 128, warp: 0.25, owner_warp_mult: 1 });
+                        if ( !e.is_very_depleted )
+                        if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIMEWARP, ttl: 1, radius: 96, warp: 0.25, owner_warp_mult: 1 });
                     }
 				}
 			},
@@ -1085,24 +1087,24 @@ class sdCrystal extends sdEntity
 			onThink: ( e, GSPEED )=>
 			{
 				if ( sdWorld.is_server )
-				if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+                if ( e.speciality === 1 )
                 {
-                    if ( e.speciality === 1 )
+                    if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
                     {
                         if ( e.matter > 100 )
                         {
                             e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
-                            
+                                
                             if ( e._private_props.zap_timer > 60 )
                             {
                                 e._private_props.zap_timer -= 60 * ( 0.5 + Math.random() * 0.5 );
-                                
+                                    
                                 if ( e._anything_near )
                                 {
                                     e.matter -= 100;
-                            
+                                
                                     //let play_sound = 0;
-                                    
+                                        
                                     sdWorld.SendEffect({ 
                                         x:e.x, 
                                         y:e.y, 
@@ -1124,36 +1126,47 @@ class sdCrystal extends sdEntity
                                             sdLost.ApplyAffection( e2, 100, null, sdLost.FILTER_GOLDEN );
                                         }
                                     }
-                                    
+                                        
                                     sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:e.x, y:e.y, volume: 0.5, pitch: e.is_big?0.5:1 });
-                                
+                                    
                                     //if ( play_sound )
                                     //sdSound.PlaySound({ name:'drone_explosion', x:e.x, y:e.y, volume:1, pitch: 0.3 });
-                            
+                                
                                 }
                             }
                         }
                     }
-                    else
+                }
+                else
+                {
+                    e._private_props.tp_timer = ( e._private_props.tp_timer || 0 ) + GSPEED;
+
+                    if ( !e._private_props.tp_timer_max )
+                    e._private_props.tp_timer_max = 10 + Math.random() * 60;
+
+                    if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+                    if ( e._private_props.tp_timer >= e._private_props.tp_timer_max && !e.is_very_depleted )
                     {
-                        if ( Math.random() < 0.01 * GSPEED && !e.is_very_depleted )
+                        const range = Math.random() * 96;
+                        const angle = Math.random() * Math.PI * 2;
+
+                        const x = e.x + Math.cos( angle ) * range;
+                        const y = e.y + Math.sin( angle ) * range;
+
+                        if ( e.CanMoveWithoutOverlap( x, y, 0 ) )
                         {
-                            const range = Math.random() * 96;
-                            const angle = Math.random() * Math.PI * 2;
-                            
-                            const x = e.x + Math.cos( angle ) * range;
-                            const y = e.y + Math.sin( angle ) * range;
-                            
-                            if ( e.CanMoveWithoutOverlap( x, y, 0 ) )
-                            {
-                                e.sx = e.sy = 0;
-                                e.x = x;
-                                e.y = y;
-                                e.PhysWakeUp();
-                                e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-                                sdSound.PlaySound({ name: 'cube_teleport', pitch: 1, x: e.x, y: e.y, volume: 1 });
-                            }
+                            e.held_by?.DropCrystal( e, false );
+
+                            e.sx = e.sy = 0;
+                            e.x = x;
+                            e.y = y;
+                            e.PhysWakeUp();
+                            e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+                            sdSound.PlaySound({ name: 'cube_teleport', pitch: 1, x: e.x, y: e.y, volume: 1 });
                         }
+
+                        e._private_props.tp_timer = 0;
+                        e._private_props.tp_timer_max = 10 + Math.random() * 60;
                     }
                 }
 			}
@@ -1172,7 +1185,7 @@ class sdCrystal extends sdEntity
                 if ( e.speciality === 2 )
 				return 'hue-rotate(55deg)contrast(1.5)brightness(1.6)saturate(1.5)contrast(2)drop-shadow(0px 0px 2px #00aaff)drop-shadow(0px 0px 4px #00aaff)';
             
-                return ctx_filter + 'saturate(2)hue-rotate(-50deg)contrast(3)';
+                return ctx_filter + 'saturate(0.4)hue-rotate(-50deg)contrast(3)';
 			},
 			
 			onThinkFrozen: ( e, GSPEED )=>
