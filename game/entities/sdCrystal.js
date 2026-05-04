@@ -913,49 +913,44 @@ class sdCrystal extends sdEntity
                 if ( e.speciality === 1 )
 				return 'Burning ' + base_title.toLowerCase();
             
-                return 'Incinerating ' + base_title.toLowerCase();
+                return 'Timewarp ' + base_title.toLowerCase();
 			},
             
             GetFilterAltering: ( e, ctx_filter )=>
 			{
 				if ( e.speciality === 2 )
-				return ctx_filter + 'saturate(0.6)contrast(5)';
+				return 'hue-rotate(100deg)saturate(0.5)contrast(3)brightness(0.35)drop-shadow(0px 0px 2px #000000)';
             
-                return ctx_filter;
+                return ctx_filter + 'saturate(0.6)contrast(5)';
 			},
 			
 			onThink: ( e, GSPEED )=>
 			{
 				if ( sdWorld.is_server )
 				{
-                    if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
-                    if ( Math.random() < 0.05 * GSPEED && e.speciality === 2 )
+                    if ( e.speciality === 1 )
                     {
-                        const ents = sdWorld.GetAnythingNear( e.x, e.y, 32 );
-                        for ( const entity of ents )
+                        if ( e.is_very_depleted )
                         {
-                            if ( Math.random() < 0.25 * GSPEED )
-                            if ( entity !== e )
-                            if ( entity._is_bg_entity === e._is_bg_entity )
-                            if ( entity.IsTargetable( e ) )
-                            {
-                                sdCrystal.Zap( e, entity, '#ff8000' );
-                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 2500, initiator: e });
-                            }
+                            e.speciality = 0;
                         }
+                        else
+                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value: 1000, remain_part: 0.8, GSPEED:GSPEED }); // 700-800 won't cause fire spreading // 1000 is not enough to burn stuff around on its own, but can burn stuff when couple of such crystals are there
                     }
-					if ( e.is_very_depleted )
-					{
-						e.speciality = 0;
-					}
-					else
-					e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value: e.speciality === 2 ? 3000 : 1000, remain_part: 0.8, GSPEED:GSPEED }); // 700-800 won't cause fire spreading // 1000 is not enough to burn stuff around on its own, but can burn stuff when couple of such crystals are there
+                    else
+                    {
+                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIMEWARP, ttl: 30 * 30, radius: 128, warp: 0.25, owner_warp_mult: 1 });
+                    }
 				}
 			},
-			
+            onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				if ( e.speciality === 2 )
+				e._hea = Math.min( e._hmax, e._hea + dmg * 0.9 );
+			},
 			isFireAndAcidDamageResistant: ( e )=>
 			{
-				return true;
+				return e.speciality === 1;
 			}
 		};
 		sdCrystal.speciality_table[ 10240 ] = {
