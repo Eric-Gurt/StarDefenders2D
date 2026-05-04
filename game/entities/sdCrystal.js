@@ -1172,7 +1172,7 @@ class sdCrystal extends sdEntity
                 if ( e.speciality === 2 )
 				return 'hue-rotate(55deg)contrast(1.5)brightness(1.6)saturate(1.5)contrast(2)drop-shadow(0px 0px 2px #00aaff)drop-shadow(0px 0px 4px #00aaff)';
             
-                return ctx_filter;
+                return ctx_filter + 'saturate(2)hue-rotate(-50deg)contrast(3)';
 			},
 			
 			onThinkFrozen: ( e, GSPEED )=>
