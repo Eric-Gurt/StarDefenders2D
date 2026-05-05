@@ -544,6 +544,10 @@ class sdTurret extends sdEntity
     {
         return { x: 0, y: 0 };
     }
+	get _side() // Fix some sdGun shoot cases
+	{
+		return 1;
+	}
     PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
 		return this.kind === sdTurret.KIND_AUTO_CABLE;
