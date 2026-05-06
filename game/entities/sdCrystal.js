@@ -1255,17 +1255,25 @@ class sdCrystal extends sdEntity
                         }
 					}
                     else
-                    if ( !e.is_very_depleted && e.matter > e.matter_max / 2 )
                     {
-                        const ents = sdWorld.GetAnythingNear( e.x, e.y, 64 );
-                        for ( const entity of ents )
+                        e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
+                        if ( e._private_props.zap_timer > 30 )
                         {
-                            if ( entity !== e )
-                            if ( entity.is( sdCrystal ) && entity._time_amplification === 0 )
+                            if ( !e.is_very_depleted && e.matter > e.matter_max / 2 )
                             {
-                                sdCrystal.Zap( e, entity, '#55ccff' );
-                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 60 + ( Math.random() * 30 * 60 ) });
-                                sdSound.PlaySound({ name:'matter_charge_loop2', pitch: 4, x:e.x, y:e.y, volume: 0.5 });
+                                const ents = sdWorld.GetAnythingNear( e.x, e.y, 64 );
+                                for ( const entity of ents )
+                                {
+                                    if ( entity !== e )
+                                    if ( entity.is( sdCrystal ) && entity._time_amplification === 0 )
+                                    {
+                                        sdCrystal.Zap( e, entity, '#55ccff' );
+                                        entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 60 + ( Math.random() * 30 * 60 ) });
+                                        sdSound.PlaySound({ name:'matter_charge_loop2', pitch: 4, x:e.x, y:e.y, volume: 0.5 });
+                                        e._private_props.zap_timer = 0;
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
