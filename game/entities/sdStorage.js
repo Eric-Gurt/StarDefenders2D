@@ -43,7 +43,7 @@ class sdStorage extends sdEntity
 	
 	GetSlotsTotal()
 	{
-		return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 48 : this.type === sdStorage.TYPE_PORTAL ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
+		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
 	}
 	
 	IsPortal()
