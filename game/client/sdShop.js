@@ -325,8 +325,24 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });
 			}
 
-
-			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
+            {
+                const filter = 'saturate(0)';
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, _category:'Doors' });
+                    
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+                    
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+                    
+                sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_BASIC_SMALL, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_ARMORED_SMALL, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_CIRCULAR_LIGHTS_SMALL, _category:'Doors' });
+            }
 
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, _category:'Walls' });
