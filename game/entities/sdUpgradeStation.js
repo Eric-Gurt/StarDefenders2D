@@ -126,7 +126,7 @@ class sdUpgradeStation extends sdEntity
                     items = [ sdGun.CLASS_LASER_PISTOL, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
                     break;
 				default: // Level 3 or higher
-                    items = [ sdGun.CLASS_SMG, sdGun.CLASS_LMG, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
+                    items = [ sdGun.CLASS_SMG, sdGun.CLASS_BATTLE_RIFLE, sdGun.CLASS_SHOTGUN_MK2, sdGun.CLASS_SABER, sdGun.CLASS_MEDIKIT, sdGun.CLASS_BUILD_TOOL ];
                     break;
 			}
 			
