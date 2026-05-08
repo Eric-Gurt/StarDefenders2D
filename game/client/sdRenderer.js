@@ -2240,10 +2240,11 @@ for ( let i = 0; i < visible_entities.length; i++ )
 			const gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
 			
 			if ( gun )
-			if ( !sdGun.classes[ gun.class ].is_build_gun  )
+			if ( !sdGun.classes[ gun.class ].is_build_gun )
 			{
+                const is_alt = gun.fire_mode === 2 && gun.alt_ammo_left !== undefined;
 				ctx.fillStyle = '#ffffff';
-				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( gun.GetAmmoCapacity() ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
+				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
 			}
 			if ( globalThis.enable_debug_info )
 			{
