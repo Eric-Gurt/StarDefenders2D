@@ -11761,7 +11761,8 @@ class sdGunClass
             alt_ammo_capacity: 6,
 			spread: 0.01,
 			count: 1,
-            spawnable: false,
+			matter_cost: 200,
+			min_build_tool_level: 10,
             projectile_velocity: sdGun.default_projectile_velocity * 1.35,
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
