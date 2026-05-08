@@ -2242,7 +2242,7 @@ for ( let i = 0; i < visible_entities.length; i++ )
 			if ( gun )
 			if ( !sdGun.classes[ gun.class ].is_build_gun )
 			{
-                const is_alt = gun.fire_mode === 2 && gun.alt_ammo_left !== undefined;
+              			const is_alt = gun.fire_mode === 2 && typeof gun.alt_ammo_left === 'number';
 				ctx.fillStyle = '#ffffff';
 				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
 			}
