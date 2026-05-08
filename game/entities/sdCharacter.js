@@ -1846,6 +1846,7 @@ THING is cosmic mic drop!`;
 				else
 				if ( this._inventory[ this.gun_slot ] )
 				{
+                    const is_alt = this._inventory[ this.gun_slot ].fire_mode === 2 && this._inventory[ this.gun_slot ].alt_ammo_left !== undefined;
 					if ( this._key_states.GetKey( 'KeyN' ) )
 					{
                         if ( this.auto_shoot_in <= 0 )
@@ -1857,8 +1858,8 @@ THING is cosmic mic drop!`;
 					}
 					else
 					if ( this._key_states.GetKey( 'KeyR' ) &&
-						 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
-						 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
+                     ( is_alt ? this._inventory[ this.gun_slot ].alt_ammo_left : this._inventory[ this.gun_slot ].ammo_left ) >= 0 &&
+                     ( is_alt ? this._inventory[ this.gun_slot ].alt_ammo_left < this._inventory[ this.gun_slot ].GetAltAmmoCapacity() : this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() ) )
 					{
 						this._inventory[ this.gun_slot ].ReloadStart();
 					}
