@@ -499,6 +499,10 @@ class sdGun extends sdEntity
 	{
 		return sdGun.classes[ this.class ].ammo_capacity_dynamic ? sdGun.classes[ this.class ].ammo_capacity_dynamic( this ) : sdGun.classes[ this.class ].ammo_capacity;
 	}
+    GetAltAmmoCapacity()
+	{
+		return sdGun.classes[ this.class ].alt_ammo_capacity_dynamic ? sdGun.classes[ this.class ].alt_ammo_capacity_dynamic( this ) : sdGun.classes[ this.class ].alt_ammo_capacity;
+	}
 	get speciality()
 	{
 		// Assuming it is a crystal shard
@@ -544,6 +548,7 @@ class sdGun extends sdEntity
 		this._held_by_removed_panic = 0;
 		
 		this.ammo_left = -123;
+        this.alt_ammo_left = undefined;
 		this.burst_ammo = -123;
 
 		this._combo = 0; // Specifically made for the time shifter blade, this increases rate of fire / swing rate of sword for every hit you make
@@ -942,6 +947,8 @@ class sdGun extends sdEntity
 	
 	ReloadComplete()
 	{
+        const is_alt = this.fire_mode === 2 && this.alt_ammo_left !== undefined;
+
 		if ( !this._held_by )
 		return;
 	
@@ -961,16 +968,20 @@ class sdGun extends sdEntity
 		if ( this.GetAmmoCapacity() === -1 )
 		this.ammo_left = -1;
 		
-		let ammo_to_spawn = this.GetAmmoCapacity() - this.ammo_left;
+		let ammo_to_spawn = ( is_alt ? this.GetAltAmmoCapacity() : this.GetAmmoCapacity() ) - ( is_alt ? this.alt_ammo_left : this.ammo_left );
 		let ammo_cost = this.GetBulletCost( true );
 		
 		//trace( 'Matter cost for gun: ', ammo_cost );
 		
-		if ( this._is_manual_reload	!== true )
+		if ( !this._is_manual_reload )
 		{
 			while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
 			{
-				this.ammo_left++;
+                if ( is_alt )
+                this.alt_ammo_left++
+                else
+                this.ammo_left++;
+
 				ammo_to_spawn--;
 				this._held_by.matter -= ammo_cost;
 			}
@@ -978,9 +989,15 @@ class sdGun extends sdEntity
 		else // Reload one round per reload.
 		{
 			if ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
-			this.ammo_left++;
-			ammo_to_spawn--;
-			this._held_by.matter -= ammo_cost;
+            {
+                if ( is_alt )
+                this.alt_ammo_left++
+                else
+                this.ammo_left++;
+
+                ammo_to_spawn--;
+                this._held_by.matter -= ammo_cost;
+            }
 		}
 		
 		if ( ammo_to_spawn > 0 && this._held_by.matter < ammo_cost )
@@ -1054,11 +1071,17 @@ class sdGun extends sdEntity
 		
 		if ( this.reload_time_left <= 0 && !is_unknown )
 		{	
-			if ( this.ammo_left !== 0 )
+            const is_alt = this.fire_mode === 2 && this.alt_ammo_left !== undefined;
+            const ammo = is_alt ? this.alt_ammo_left : this.ammo_left
+			if ( ammo !== 0 )
 			{
-				if ( this.ammo_left > 0 ) // can be -1
+				if ( ammo > 0 ) // can be -1
 				{
-					this.ammo_left--;
+					if ( is_alt )
+                    this.alt_ammo_left--;
+                    else
+                    this.ammo_left--;
+
 					if ( sdGun.classes[ this.class ].burst )
 					this.burst_ammo--; 
 				}
@@ -1529,6 +1552,9 @@ class sdGun extends sdEntity
 			sdGun.classes[ this.class ].ammo_capacity = -1;
 			
 			this.ammo_left = this.GetAmmoCapacity();
+            
+            this.alt_ammo_left = this.GetAltAmmoCapacity(); // Will be undefined if it does not exist on class
+
 			if ( sdGun.classes[ this.class ].burst )
 			this.burst_ammo = Math.min( this.ammo_left, sdGun.classes[ this.class ].burst );
 		}
