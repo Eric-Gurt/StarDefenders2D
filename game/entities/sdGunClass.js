@@ -5517,7 +5517,7 @@ class sdGunClass
 			title: 'Task Ops Shotgun',
 			slot: 3,
 			reload_time: 8,
-			muzzle_x: 10,
+			muzzle_x: 11,
 			ammo_capacity: 20,
 			count: 3,
 			spread: 0.13,
