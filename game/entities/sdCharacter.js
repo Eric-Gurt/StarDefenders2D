@@ -6548,7 +6548,7 @@ THING is cosmic mic drop!`;
 				if ( from_entity !== this._previous_carrying || sdWorld.time > this._previous_carrying_ignore_until ) // Let players pick-up armor and score shards to later throw them away, without picking up
 				if ( !will_ignore_pickup )
 				if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
-				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && this._inventory[ from_entity.GetSlot() ].class === from_entity.class ) ) // inventory slot 10 (11) = 2nd pistol for akimbo
+				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && this._inventory[ from_entity.GetSlot() ].class === from_entity.class && !sdGun.classes[ from_entity.class ].no_akimbo) ) // inventory slot 10 (11) = 2nd pistol for akimbo
 				if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 					  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 				{	
