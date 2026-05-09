@@ -852,6 +852,8 @@ class sdTurret extends sdEntity
                                 
                                 bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
                                 {
+                                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:3 });
+
                                     if ( typeof target_entity._matter !== 'undefined' )
                                     target_entity._matter = Math.max( 0, target_entity._matter - 300 );
 
