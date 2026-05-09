@@ -4364,7 +4364,7 @@ class sdWorld
 		return 'none';
 	}
 	
-	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, sound='blockB4', type=sdEffect.TYPE_ROCK )
+	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, sound='blockB4', type=sdEffect.TYPE_ROCK, filter='' )
 	{
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
@@ -4391,7 +4391,7 @@ class sdWorld
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 
-				sdEntity.entities.push( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() }) );
+				sdEntity.entities.push( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter: filter || that.GetBleedEffectFilter(), hue: that.hue || 0 }) );
 			}
 		}
 	}
