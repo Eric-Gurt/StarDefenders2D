@@ -4696,10 +4696,12 @@ class sdGunClass
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 				},
 				_custom_target_reaction_protected:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 				}
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -4708,10 +4710,12 @@ class sdGunClass
 					_custom_target_reaction:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 					},
 					_custom_target_reaction_protected:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 					}
 				};
 				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
@@ -11818,45 +11822,32 @@ class sdGunClass
 			sound: 'bsu_attack',
 			sound_pitch: 2,
 			title: 'Velox Taser',
-			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
+			slot: 1,
+            no_akimbo: true,
 			reload_time: 2,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-            projectile_velocity: 100,
-            self_recoil_scale: 0.1,
+            self_recoil_scale: 0,
 			projectile_properties: { _rail: true, _rail_zap: true, _damage: 16, color: '#80ffff' },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
-                const reaction = ( bullet, target_entity ) => {
-                    let color = '#80ffff';
-                    if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
-                    color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
-        
-                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:color, scale:1, radius:0.5 });
-                }
-				
-				let obj = { color: 'transparent', time_left: 1, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ],
+				let obj = { color: '#80ffff', time_left: 6, _rail: true, _rail_zap: true, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ],
                     _custom_target_reaction:( bullet, target_entity )=>
                     {
-                        reaction( bullet, target_entity );
+                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:1, radius:0.5 });
                     },
                     _custom_target_reaction_protected:( bullet, target_entity )=>
                     {
-                        reaction( bullet, target_entity );
-                    },
-                    _custom_detonation_logic:( bullet )=>
-                    {
-                        let color = '#80ffff';
-                        if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
-                        color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
-
-                        sdCrystal.ZapLine( bullet._start_x, bullet._start_y, bullet.x, bullet.y, color );
-                    }
+                       sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:1, radius:0.5 });
+                    } 
                 }; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+                
+                if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
 				return obj;
 			},
