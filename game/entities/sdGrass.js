@@ -226,8 +226,9 @@ class sdGrass extends sdEntity
 		this._liquid_sip_timer = null;
 		this._liquid_sip_target = null;
 		
-		this._leaf_spawn_timer = 120;
+		this._leaf_spawn_timer = 10 + Math.random() * 120;
 		
+        if ( sdWorld.is_server && !( sdWorld.is_singleplayer && ( this.variation == sdGrass.VARIATION_TREE || this.variation == sdGrass.VARIATION_TREE_LARGE ) ) ) // Needed for leaf spawning in singleplayer, unfortunately
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
 		this.onSnapshotApplied();
@@ -355,17 +356,19 @@ class sdGrass extends sdEntity
     onThink( GSPEED )
     {
 
-        if ( !sdWorld.is_server )
+        if ( !sdWorld.is_server || sdWorld.is_singleplayer )
         {
             if ( !( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE ) )
             return;
+        
+            this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Needed for singleplayer grass spawning, unfortunately
 
             this._leaf_spawn_timer -= GSPEED;
             
             if ( this._leaf_spawn_timer <= 0 )
             {
-				const x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
-				const y = this.y + ( this._hitbox_y1 * Math.random() );
+                const x = this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2;
+                const y = this.y + ( this._hitbox_y1 * 0.75 + this._hitbox_y2 * 0.25 );
                 
                 let filter = this.filter;
                 if ( this.snowed )
