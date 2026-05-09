@@ -11811,6 +11811,73 @@ class sdGunClass
                 ( [], '#ffff94', 15 ),
                 '#300000', 15 ) )
 		};
+        
+        sdGun.classes[ sdGun.CLASS_ELECTROSHOCK = 172 ] = 
+        {
+			image: sdWorld.CreateImageFromFile( 'electroshock' ),
+			sound: 'bsu_attack',
+			sound_pitch: 2,
+			title: 'Velox Taser',
+			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
+			reload_time: 2,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+            projectile_velocity: 100,
+            self_recoil_scale: 0.1,
+			projectile_properties: { _rail: true, _rail_zap: true, _damage: 16, color: '#80ffff' },
+			spawnable: false,
+			projectile_properties_dynamic: ( gun )=>{ 
+                const reaction = ( bullet, target_entity ) => {
+                    let color = '#80ffff';
+                    if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+                    color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+        
+                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:color, scale:1, radius:0.5 });
+                }
+				
+				let obj = { color: 'transparent', time_left: 1, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ],
+                    _custom_target_reaction:( bullet, target_entity )=>
+                    {
+                        reaction( bullet, target_entity );
+                    },
+                    _custom_target_reaction_protected:( bullet, target_entity )=>
+                    {
+                        reaction( bullet, target_entity );
+                    },
+                    _custom_detonation_logic:( bullet )=>
+                    {
+                        let color = '#80ffff';
+                        if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+                        color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+
+                        sdCrystal.ZapLine( bullet._start_x, bullet._start_y, bullet.x, bullet.y, color );
+                    }
+                }; // Default value for _knock_scale
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 16; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
+                [], '#80ffff', 20 ),
+                '#300000', 20 ), )
+		};
 
 		// Add new gun classes above this line //
 
