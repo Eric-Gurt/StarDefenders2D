@@ -3,6 +3,7 @@
 
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
+import sdEffect from './sdEffect.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
