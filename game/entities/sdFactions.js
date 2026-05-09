@@ -263,7 +263,7 @@ class sdFactions extends sdEntity
 			else
 			{ 
 				{
-					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL });
+					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: Math.random() < 0.15 ? sdGun.CLASS_ELECTROSHOCK : sdGun.CLASS_VELOX_PISTOL });
 					sdEntity.entities.push( gun );
 					
 					character_entity._ai_gun_slot = 1;
