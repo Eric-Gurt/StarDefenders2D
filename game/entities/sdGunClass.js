@@ -11820,6 +11820,7 @@ class sdGunClass
         {
 			image: sdWorld.CreateImageFromFile( 'electroshock' ),
 			sound: 'bsu_attack',
+            sound_volume: 0.75,
 			sound_pitch: 2,
 			title: 'Velox Taser',
 			slot: 1,
