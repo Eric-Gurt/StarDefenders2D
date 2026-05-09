@@ -225,7 +225,7 @@ class sdGrass extends sdEntity
 		this._liquid_sip_timer = null;
 		this._liquid_sip_target = null;
 		
-		//this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		this._leaf_spawn_timer = 120;
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
@@ -351,6 +351,32 @@ class sdGrass extends sdEntity
 			}
 		}
 	}
+    onThink( GSPEED )
+    {
+
+        if ( !sdWorld.is_server )
+        {
+            if ( !( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE ) )
+            return;
+
+            this._leaf_spawn_timer -= GSPEED;
+            
+            if ( this._leaf_spawn_timer <= 0 )
+            {
+				const x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+				const y = this.y + ( this._hitbox_y1 * Math.random() );
+                
+                let filter = this.filter;
+                if ( this.snowed )
+                filter += 'saturate(0.05) brightness(2)';
+
+                sdEntity.entities.push( new sdEffect({ x: x, y: y, type: sdEffect.TYPE_LEAF, sx: 0, sy: 0, filter: filter, hue: this.hue }) );
+                this._leaf_spawn_timer = 10 + Math.random() * 120;
+            }
+        }
+        else
+        this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+    }
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_block' );
@@ -461,9 +487,17 @@ class sdGrass extends sdEntity
 		}
 		
 		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
-		{
-			sdWorld.BasicEntityBreakEffect( this, 5 );
-		}
+        sdWorld.BasicEntityBreakEffect( this, 5 );
+
+        if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_BUSH )
+        {
+            let filter = this.filter;
+            if ( this.snowed )
+            filter += 'saturate(0.05) brightness(2)';
+        
+            const count = this.variation === sdGrass.VARIATION_TREE_LARGE ? 30 : this.variation === sdGrass.VARIATION_TREE ? 15 : 7;
+            sdWorld.BasicEntityBreakEffect( this, count, 3, 0, 0, null, sdEffect.TYPE_LEAF, filter );
+        }
 	}
 	LookupLiquids( from_entity=null )
 	{
