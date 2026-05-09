@@ -1131,10 +1131,10 @@ class sdEffect extends sdEntity
             if ( this.sy !== 0 )
             {
                 const drift =  Math.sin( sdWorld.time * 0.001 + ( this._rand * 1000 ) );
-                this.sx = drift * this._xscale * GSPEED;
+                this.sx = drift * ( this._rand < 0.5 ? 1 : -1 ) * GSPEED;
             }
         
-            this._rotation += Math.min( 0.1, ( this.sy * 0.1 * GSPEED * this._xscale ) );
+            this._rotation += Math.min( 0.1, ( this.sy * 0.1 * GSPEED * ( this._rand < 0.5 ? 1 : -1 ) ) );
 		}
 
 		if ( this._ani >= this._duration )
@@ -1578,7 +1578,7 @@ class sdEffect extends sdEntity
 	
 	static GetSmokeColor( hex_color_arr )
 	{
-		 return hex_color_arr[( Math.floor( Math.random() * hex_color_arr.length ))];
+        return sdWorld.AnyOf( hex_color_arr );
 	}
 	
 	onRemove() // Class-specific, if needed
