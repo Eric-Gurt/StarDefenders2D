@@ -2253,11 +2253,11 @@ for ( let i = 0; i < visible_entities.length; i++ )
                 const is_alt = gun.fire_mode === 2 && typeof gun.alt_ammo_left === 'number';
                 
 				ctx.fillStyle = '#ffffff';
-				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 35 );
+				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 37 );
                 if ( sdWorld.my_entity.gun_slot === 1 && sdWorld.my_entity._inventory[ 10 ] )
                 {
                     gun = sdWorld.my_entity._inventory[ 10 ];
-                    ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 35 + 15 );
+                    ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 37 + 20 );
                 }
 			}
 			if ( globalThis.enable_debug_info )
