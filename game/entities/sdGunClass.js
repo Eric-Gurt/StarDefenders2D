@@ -10237,8 +10237,8 @@ class sdGunClass
 				if ( gun.fire_mode === 2 )
 				{
 					obj._homing = true;
-					obj._homing_mult = 0.1;
-					obj.ac = 0.2;
+					obj._homing_mult = 0.02;
+					obj.ac = 0.05;
 				}
 				
 				return obj;
@@ -10974,7 +10974,7 @@ class sdGunClass
                         
                             bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
                             bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
-                            bullet_obj.time_left = 100
+                            bullet_obj.time_left = 100;
                             bullet_obj._damage = 32 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
                             //bullet_obj._temperature_addition = 200;
 
@@ -11869,6 +11869,91 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
                 [], '#80ffff', 20 ),
                 '#300000', 20 ), )
+		};
+        
+        sdGun.classes[ sdGun.CLASS_HEAVY_ROCKET = 173 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'heavy_rocket' ),
+			sound: 'gun_rocket',
+            sound_volume: 1.5,
+            sound_pitch: 0.8,
+			title: 'Heavy Rocket Launcher',
+			slot: 5,
+			reload_time: 35,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			spread: 0.01,
+			projectile_velocity: 32,
+			count: 1,
+            spawnable: false,
+			projectile_properties: { color: sdEffect.default_explosion_color },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { time_left: 60, explosion_radius: 32, model: 'f_hover_rocket', color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.01, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2, _custom_detonation_logic:( bullet )=>
+					{
+                        const initial_rand = Math.random() * Math.PI * 2;
+                        const count = 6;
+                        const speed = 16;
+
+                        let an = 0;
+
+                        for ( let i = 0; i < count; ++i )
+                        {
+                            an = i / count * Math.PI * 2;
+                            
+                            const bullet_obj = new sdBullet({ 
+                                x: bullet.x + Math.cos( an + initial_rand ) * 1, 
+                                y: bullet.y + Math.sin( an + initial_rand ) * 1 
+                            });	
+                        
+                            bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
+                            bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
+                            bullet_obj.time_left = 100;
+                            bullet_obj._damage = 32 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
+                            //bullet_obj._temperature_addition = 200;
+
+                            bullet_obj.affected_by_gravity = true;
+                            bullet_obj.gravity_scale = 2;
+
+                            bullet_obj._owner = bullet._owner;
+
+                            bullet_obj._can_hit_owner = false;
+                            bullet_obj.color = '#ffff00';
+
+                            sdEntity.entities.push( bullet_obj );
+                        } 
+                    }
+                };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
+				
+				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 125; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+					if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+					obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
+                [], '#ffc400', 20 ),
+                '#ff0000', 20 ), )
 		};
 
 		// Add new gun classes above this line //
