@@ -11889,7 +11889,7 @@ class sdGunClass
 			projectile_properties: { color: sdEffect.default_explosion_color },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 60, explosion_radius: 32, model: 'f_hover_rocket', color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.01, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2, _custom_detonation_logic:( bullet )=>
+				let obj = { time_left: 60, explosion_radius: 32, model: 'f_hover_rocket', color:sdEffect.default_explosion_color, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
@@ -11929,6 +11929,13 @@ class sdGunClass
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
+                
+                if ( gun.fire_mode === 2 )
+                {
+                    obj.ac = 0.4;
+                    obj._homing =  true;
+                    obj._homing_mult = 0.01;
+                }
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
