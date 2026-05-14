@@ -1576,7 +1576,7 @@ class sdWorld
 	{
 		if ( !sdWorld.is_server )
 		return;
-				
+
 		let extra_affected_chars = [];
 		
 		//console.log('send effect');
@@ -1687,6 +1687,9 @@ class sdWorld
 				
 				sdEntity.entities.push( bullet_obj );
 			}
+            if ( !params.screen_shake && params.damage_scale > 0.01 )
+            params.screen_shake = params.radius / 20;
+
 			delete params.damage_scale;
 			
 			if ( params.owner ) // Will point to real object
