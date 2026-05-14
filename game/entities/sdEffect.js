@@ -960,10 +960,6 @@ class sdEffect extends sdEntity
 			else
 			if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 			{
-                //if ( this._radius / 20 > 0.5 )
-                {
-                    sdRenderer.ScreenShake( ( this._radius / 20 ) * sdSound.GetDistanceMultForPosition( this.x, this.y ), 1, this._radius / 4 );
-                }
 				for ( let i = 0; i < 5 * sdRenderer.effects_quality; i++ )
 				{
 					if ( !this._no_smoke )
@@ -994,6 +990,9 @@ class sdEffect extends sdEntity
 				}
 			}
 		}
+
+        if ( params.screen_shake )
+        sdRenderer.ScreenShake( params.screen_shake * sdSound.GetDistanceMultForPosition( params.x, params.y ), this._radius / 4 );
 	}
 	static Transliterate( word )
 	{
