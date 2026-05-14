@@ -60,6 +60,8 @@ class sdRenderer
 				
 		sdRenderer.resolution_quality = 1;
         sdRenderer.draw_in_3d = true;
+        
+        sdRenderer.enable_screen_shakes = true;
 	
 		var canvas = document.createElement('canvas');
 		canvas.id     = "SD2D";
@@ -134,7 +136,7 @@ class sdRenderer
             const rand = sdWorld.SeededRandomNumberGenerator.random( i, 100 );
             const rand2 = sdWorld.SeededRandomNumberGenerator.random( 100, i );
 
-            sdRenderer.star_pattern.push({ size: 1 * rand < 0.1 ? 4 : 1, glow: rand < 0.1, color: rand2 < 0.02 ? '#0000ff': '#ffffff', angle: rand * Math.PI * 2, distance: Math.sqrt( rand2 ) * 875 })
+            sdRenderer.star_pattern.push({ size: 1 + rand / 4, glow: rand < 0.1, color: rand2 < 0.02 ? '#0000ff': '#ffffff', angle: rand * Math.PI * 2, distance: Math.sqrt( rand2 ) * 875 });
         }
 		sdWorld.SeededRandomNumberGenerator.seed = old_seed;
 		
@@ -844,11 +846,17 @@ class sdRenderer
     }
     static ScreenShake( intensity, decay_speed, ttl )
     {
+        if ( !sdRenderer.enable_screen_shakes )
+        return;
+
         sdRenderer.quakes.push({ intensity, decay_speed, ttl });
         sdRenderer.quake_intensity += intensity;
     }
     static HandleScreenShakes( GSPEED )
     {
+        if ( !sdRenderer.enable_screen_shakes )
+        return;
+
         let decrease = 0;
         for ( let i = sdRenderer.quakes.length - 1; i >= 0; i-- )
         {
@@ -1299,37 +1307,37 @@ class sdRenderer
 			}
 		}
 		
-		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
-		ctx.scale( sdWorld.camera.scale, 
-				   sdWorld.camera.scale );
-		ctx.translate( -sdRenderer.screen_width / 2, -sdRenderer.screen_height / 2 );
-		
-			
-		
-		ctx.translate( -sdWorld.camera.x, -sdWorld.camera.y );
-		
-        if ( sdRenderer._quake_screen_shake_since === 0 )
-        sdRenderer._quake_screen_shake_since = sdWorld.time;
-
-        let quake_intensity = sdRenderer.quake_intensity;
-
-        if ( sdWeather.only_instance )
-        quake_intensity += sdWeather.only_instance.quake_intensity / 100;
-
-        if ( quake_intensity > 0 )
+        if ( sdRenderer.enable_screen_shakes )
         {
-            sdRenderer.HandleScreenShakes( GSPEED );
-            //quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - sdRenderer._quake_screen_shake_since ) / 1000 ) );
-            const an = sdWorld.mod( sdWorld.time / 30, Math.PI * 2 );
-            const x = Math.cos( an ) * quake_intensity;
-            const y = Math.sin( an ) * quake_intensity;
-            ctx.translate( x, y );
-        }
-        else
-        {
+            if ( sdRenderer._quake_screen_shake_since === 0 )
             sdRenderer._quake_screen_shake_since = sdWorld.time;
+
+            let quake_intensity = sdRenderer.quake_intensity;
+
+            if ( sdWeather.only_instance )
+            quake_intensity += sdWeather.only_instance.quake_intensity / 300;
+
+            if ( quake_intensity > 0 )
+            {
+                sdRenderer.HandleScreenShakes( GSPEED );
+                //quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - sdRenderer._quake_screen_shake_since ) / 1000 ) );
+                const an = sdWorld.mod( sdWorld.time / 30, Math.PI * 2 );
+                const x = Math.cos( an ) * quake_intensity;
+                const y = Math.sin( an ) * quake_intensity;
+
+                sdWorld.camera.x += x;
+                sdWorld.camera.y += y;
+            }
+            else
+            {
+                sdRenderer._quake_screen_shake_since = sdWorld.time;
+            }
         }
-		
+
+		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
+		ctx.scale( sdWorld.camera.scale,  sdWorld.camera.scale );
+		ctx.translate( -sdRenderer.screen_width / 2, -sdRenderer.screen_height / 2 );
+		ctx.translate( -sdWorld.camera.x, -sdWorld.camera.y );
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
 		
 		// In-world
