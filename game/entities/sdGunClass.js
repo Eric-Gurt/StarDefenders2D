@@ -11877,7 +11877,7 @@ class sdGunClass
 			sound: 'gun_rocket',
             sound_volume: 1.5,
             sound_pitch: 0.8,
-			title: 'Heavy Rocket Launcher',
+			title: 'Rocket Launcher SD-202',
 			slot: 5,
 			reload_time: 35,
 			muzzle_x: 10,
