@@ -11061,7 +11061,7 @@ class sdGunClass
 			{
 				return { 
 					_damage: gun.extra[ sdGun.ID_DAMAGE_VALUE ] * gun.extra [ sdGun.ID_DAMAGE_MULT ],
-					model: 'drain_sniper_projectile', 
+					model: 'phase_rifle_projectile', 
 					_hittable_by_bullets: false,
 					color: '#6ac2ff',
                     _no_explosion_smoke: true,
