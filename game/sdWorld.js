@@ -5494,9 +5494,11 @@ class sdWorld
 		
 		sdRenderer.effects_quality = player_settings['effects_quality'] || 2;
 		
-		sdRenderer.display_coords = player_settings['coords1'] ? true : false
+		sdRenderer.display_coords = player_settings['coords1'] ? true : false;
 
-		sdRenderer.draw_in_3d = player_settings['3d_mode1'] ? true : false
+		sdRenderer.draw_in_3d = player_settings['3d_mode1'] ? true : false;
+        
+        sdRenderer.enable_screen_shakes = player_settings['screen_shake1'] ? true : false;
 
 		sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 		window.onresize();
