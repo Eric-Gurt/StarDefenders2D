@@ -43,7 +43,7 @@ class sdRenderer
 		
 		sdRenderer.debug_nothing_screen = false;
         
-        sdRenderer.quakes = []; // { intensity, decay_speed, ttl }
+        sdRenderer.quakes = []; // { intensity, ttl }
         sdRenderer.quake_intensity = 0;
 		sdRenderer._quake_screen_shake_since = 0;
 		
@@ -844,12 +844,12 @@ class sdRenderer
 
         ctx.globalAlpha = 1;
     }
-    static ScreenShake( intensity, decay_speed, ttl )
+    static ScreenShake( intensity, ttl )
     {
         if ( !sdRenderer.enable_screen_shakes )
         return;
 
-        sdRenderer.quakes.push({ intensity, decay_speed, ttl });
+        sdRenderer.quakes.push({ intensity, ttl });
         sdRenderer.quake_intensity += intensity;
     }
     static HandleScreenShakes( GSPEED )
@@ -861,7 +861,7 @@ class sdRenderer
         for ( let i = sdRenderer.quakes.length - 1; i >= 0; i-- )
         {
             const quake = sdRenderer.quakes[ i ];
-            quake.ttl -= GSPEED * quake.decay_speed;
+            quake.ttl -= GSPEED;
             
             if ( quake.ttl <= 0 )
             {
