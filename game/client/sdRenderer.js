@@ -861,7 +861,8 @@ class sdRenderer
         for ( let i = sdRenderer.quakes.length - 1; i >= 0; i-- )
         {
             const quake = sdRenderer.quakes[ i ];
-            quake.ttl -= GSPEED;
+            quake.ttl -= GSPEED * quake.decay_speed;
+            
             if ( quake.ttl <= 0 )
             {
                 decrease += quake.intensity;
