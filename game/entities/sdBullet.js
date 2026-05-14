@@ -76,6 +76,7 @@ class sdBullet extends sdEntity
             'ball_large': 0.7,
 			'anti_rifle_projectile_overcharged': 0.3,
 			'anti_rifle_projectile': 0.15,
+            'drain_sniper_projectile': 0.3,
             'drain_sniper_projectile_overcharged': 1,
 			'drain_shotgun_projectile_overcharged': 0.05,
 			'drain_shotgun_projectile': 0.01
@@ -1005,7 +1006,7 @@ class sdBullet extends sdEntity
         
             if ( sdBullet.images_with_screen_shake[ this.model ] )
             {
-                sdRenderer.ScreenShake( sdBullet.images_with_screen_shake[ this.model ] * sdSound.GetDistanceMultForPosition( this.x, this.y ), 1, 1 );
+                sdRenderer.ScreenShake( sdBullet.images_with_screen_shake[ this.model ] * sdSound.GetDistanceMultForPosition( this.x, this.y ), 1 );
             }
 		}
 		
