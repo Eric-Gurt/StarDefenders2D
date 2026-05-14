@@ -521,6 +521,13 @@
 				],
 				default_option: 1
 			});
+            AddOption({ caption: `Screen shake`, prefix: `screen_shake`,
+				options: [
+					[ 2, `Disabled` ], 
+					[ 1, `Enabled` ]
+				],
+				default_option: 1
+			});
 			AddOption({ caption: `UI style`, prefix: `ui_style`,
 				options: [
 					[ 1, `Default` ], 
@@ -1247,6 +1254,7 @@
 			JustOne( ret, 'effects_quality', last_changed_el );
 			JustOne( ret, 'coords', last_changed_el );
 			JustOne( ret, '3d_mode', last_changed_el );
+            JustOne( ret, 'screen_shake', last_changed_el );
 
 			for ( let i = 0; i < conditional_elements.length; i++ )
 			{
