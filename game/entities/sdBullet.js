@@ -70,6 +70,17 @@ class sdBullet extends sdEntity
 			'drain_shotgun_projectile_overcharged': 1,
 			'drain_shotgun_projectile': 1
 		};
+        sdBullet.images_with_screen_shake = 
+		{
+            'ball_large_circled': 1,
+            'ball_large': 0.7,
+			'anti_rifle_projectile_overcharged': 0.3,
+			'anti_rifle_projectile': 0.15,
+            'drain_sniper_projectile': 0.3,
+            'drain_sniper_projectile_overcharged': 1,
+			'drain_shotgun_projectile_overcharged': 0.05,
+			'drain_shotgun_projectile': 0.01
+		};
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -560,7 +571,7 @@ class sdBullet extends sdEntity
 			if ( this._rail_zap )
 			{
 				sdCrystal.ZapLine( this._start_x, this._start_y, this.x, this.y, this.color );
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color, scale:2, radius:2 });
+				//sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color, scale:2, radius:2 });
 			}
 			else
 			if ( this._rail_alt )
@@ -992,6 +1003,11 @@ class sdBullet extends sdEntity
 					this._smoke_spawn_wish = 0.5;
 				}
 			}
+        
+            if ( sdBullet.images_with_screen_shake[ this.model ] )
+            {
+                sdRenderer.ScreenShake( sdBullet.images_with_screen_shake[ this.model ] * sdSound.GetDistanceMultForPosition( this.x, this.y ), 1 );
+            }
 		}
 		
 		if ( sdWorld.is_server )

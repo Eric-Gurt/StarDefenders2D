@@ -23,7 +23,7 @@ import sdWeaponMerger from './sdWeaponMerger.js';
 import sdCraftingBench from './sdCraftingBench.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCrystal from './sdCrystal.js';
-
+import sdTurret from './sdTurret.js';
 import sdGunClass from './sdGunClass.js';
 
 import sdShop from '../client/sdShop.js';
@@ -224,7 +224,7 @@ class sdGun extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		// Just so we don't have to apply extra accuracy for sdGun-s and sdCharacter-s when they are too far from connected players...
-		if ( from_entity.IsPlayerClass() )
+		if ( from_entity.CanUseWeapons() )
 		{
 			from_entity.onMovementInRange( this );
 			
@@ -499,6 +499,10 @@ class sdGun extends sdEntity
 	{
 		return sdGun.classes[ this.class ].ammo_capacity_dynamic ? sdGun.classes[ this.class ].ammo_capacity_dynamic( this ) : sdGun.classes[ this.class ].ammo_capacity;
 	}
+    GetAltAmmoCapacity()
+	{
+		return sdGun.classes[ this.class ].alt_ammo_capacity_dynamic ? sdGun.classes[ this.class ].alt_ammo_capacity_dynamic( this ) : sdGun.classes[ this.class ].alt_ammo_capacity;
+	}
 	get speciality()
 	{
 		// Assuming it is a crystal shard
@@ -544,6 +548,7 @@ class sdGun extends sdEntity
 		this._held_by_removed_panic = 0;
 		
 		this.ammo_left = -123;
+        this.alt_ammo_left = undefined;
 		this.burst_ammo = -123;
 
 		this._combo = 0; // Specifically made for the time shifter blade, this increases rate of fire / swing rate of sword for every hit you make
@@ -740,7 +745,7 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
-			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) || this._held_by.is( sdCraftingBench ) )
+			if ( this._held_by.is( sdWeaponBench ) || this._held_by.is( sdWeaponMerger ) || this._held_by.is( sdCraftingBench ) || this._held_by.is( sdTurret ) )
 			return true;
 			else
 			if ( this._held_by.is( sdStorage ) )
@@ -786,14 +791,6 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
-        let can_reload = true;
-
-        if ( sdGun.classes[ this.class ].onReloadStart ) // Custom extra logic
-        can_reload = sdGun.classes[ this.class ].onReloadStart( this );
-
-        if ( !can_reload )
-        return;
-
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
 		this._held_by.reload_anim = this._held_by.alt_gun_slot === 10 ? 30 : 15; // Akimbo needs to reload 2 guns
 	}
@@ -817,7 +814,7 @@ class sdGun extends sdEntity
 	{
 		if ( sdGun.classes[ this.class ].is_build_gun )
 		{
-			if ( !this._held_by.IsPlayerClass() )
+			if ( !this._held_by.CanUseWeapons() )
 			return Infinity; // Held by Weapon bench
 			
 			if ( this._held_by._build_params === null )
@@ -950,26 +947,41 @@ class sdGun extends sdEntity
 	
 	ReloadComplete()
 	{
+        const is_alt = this.fire_mode === 2 && this.alt_ammo_left !== undefined;
+
 		if ( !this._held_by )
 		return;
 	
 		if ( !sdWorld.is_server )
 		return;
+    
+        let can_reload = true;
+
+        if ( sdGun.classes[ this.class ].onReloadAttempt ) // Custom extra logic
+        can_reload = sdGun.classes[ this.class ].onReloadAttempt( this );
+
+        if ( !can_reload )
+        return;
 	
+        const can_say = this._held_by.IsPlayerClass();
 		// Upgrade for guns that used to work on magazine basis but no longer do:
 		if ( this.GetAmmoCapacity() === -1 )
 		this.ammo_left = -1;
 		
-		let ammo_to_spawn = this.GetAmmoCapacity() - this.ammo_left;
+		let ammo_to_spawn = ( is_alt ? this.GetAltAmmoCapacity() : this.GetAmmoCapacity() ) - ( is_alt ? this.alt_ammo_left : this.ammo_left );
 		let ammo_cost = this.GetBulletCost( true );
 		
 		//trace( 'Matter cost for gun: ', ammo_cost );
 		
-		if ( this._is_manual_reload	!== true )
+		if ( !this._is_manual_reload )
 		{
 			while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
 			{
-				this.ammo_left++;
+                if ( is_alt )
+                this.alt_ammo_left++
+                else
+                this.ammo_left++;
+
 				ammo_to_spawn--;
 				this._held_by.matter -= ammo_cost;
 			}
@@ -977,13 +989,20 @@ class sdGun extends sdEntity
 		else // Reload one round per reload.
 		{
 			if ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
-			this.ammo_left++;
-			ammo_to_spawn--;
-			this._held_by.matter -= ammo_cost;
+            {
+                if ( is_alt )
+                this.alt_ammo_left++
+                else
+                this.ammo_left++;
+
+                ammo_to_spawn--;
+                this._held_by.matter -= ammo_cost;
+            }
 		}
 		
 		if ( ammo_to_spawn > 0 && this._held_by.matter < ammo_cost )
 		{
+            if ( can_say )
 			this._held_by.Say( sdWorld.GetAny([
 				'I\'m out of matter...',
 				'This might be the end...',
@@ -995,6 +1014,8 @@ class sdGun extends sdEntity
 	}
 	Shoot( background_shoot=0, offset=null, shoot_from_scenario=false ) // It becomes 1 when player holds shift
 	{
+        const can_say = this._held_by.IsPlayerClass();
+
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		if ( this.class === sdGun.CLASS_CUSTOM_RIFLE )
 		{
@@ -1026,14 +1047,14 @@ class sdGun extends sdEntity
 			return false;
 		}
 		
-		if ( !this._held_by.IsPlayerClass() )
+		if ( !this._held_by.CanUseWeapons() )
 		{
-			console.warn( 'Server logic error: Something calls .Shoot method of sdGun is not owned by PlayerClass.' );
+			console.warn( 'Server logic error: Something calls .Shoot method of sdGun is not owned by CanUseWeapons.' );
 			
 			debugger;
 			
 			for ( var i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].SDServiceMessage( 'Server logic error: Something calls .Shoot method of sdGun but sdGun owner isn\'t a PlayerClass - report this error if you understand how, when or why it happens.' );
+			sdWorld.sockets[ i ].SDServiceMessage( 'Server logic error: Something calls .Shoot method of sdGun but sdGun owner isn\'t a CanUseWeapons - report this error if you understand how, when or why it happens.' );
 		
 			this.remove();
 			return false;
@@ -1041,6 +1062,7 @@ class sdGun extends sdEntity
 		
 		if ( this.biometry_lock !== -1 && this.biometry_lock !== this._held_by.biometry )
 		{
+            if ( can_say )
 			this._held_by.Say( 'This weapon is biometry-locked' );
 			return false;
 		}
@@ -1049,11 +1071,17 @@ class sdGun extends sdEntity
 		
 		if ( this.reload_time_left <= 0 && !is_unknown )
 		{	
-			if ( this.ammo_left !== 0 )
+            const is_alt = this.fire_mode === 2 && this.alt_ammo_left !== undefined;
+            const ammo = is_alt ? this.alt_ammo_left : this.ammo_left
+			if ( ammo !== 0 )
 			{
-				if ( this.ammo_left > 0 ) // can be -1
+				if ( ammo > 0 ) // can be -1
 				{
-					this.ammo_left--;
+					if ( is_alt )
+                    this.alt_ammo_left--;
+                    else
+                    this.ammo_left--;
+
 					if ( sdGun.classes[ this.class ].burst )
 					this.burst_ammo--; 
 				}
@@ -1080,8 +1108,10 @@ class sdGun extends sdEntity
 						if ( ammo_cost === Infinity )
 						{
 							if ( projectile_properties._admin_picker )
+                            if ( can_say )
 							this._held_by.Say( 'This weapon can be only used by admins' );
 							else
+                            if ( can_say )
 							this._held_by.Say( 'Nothing to build or upgrade' ); // Also will happen to regular users trying to build admin entities like sdArea
 						}
 						else
@@ -1090,11 +1120,14 @@ class sdGun extends sdEntity
 							if ( this._held_by.build_tool_level >= sdCharacter.max_level )
 							{
 								if ( this._held_by._matter_capacity_boosters >= this._held_by._matter_capacity_boosters_max )
+                                if ( can_say )
 								this._held_by.Say( 'I should try building lower tier version of this entity, then update gradually by right clicking it' );
 								else
+                                if ( can_say )
 								this._held_by.Say( 'I could need matter capacity boosters, such as cube shards' );
 							}
 							else
+                            if ( can_say )
 							this._held_by.Say( 'I need more score in order to have higher matter capacity' );
 							//this._held_by.Say( 'Need matter capacity upgrade and more matter' );
 						}
@@ -1102,6 +1135,7 @@ class sdGun extends sdEntity
 						{
 							let n = '[' + Math.ceil( ammo_cost - this._held_by.matter ) + ']';
 							
+                            if ( can_say )
 							this._held_by.Say( [
 								'Need at least '+n+' more matter',
 								'What\'s the MATTER?',
@@ -1131,11 +1165,10 @@ class sdGun extends sdEntity
 				{
 					return false;
 				}
-				
+
 				if ( !this._held_by ) // Just in case if onShootAttempt removes/disowns gun? It happened once on line if ( this._held_by.power_ef > 0 )
 				return false;
-				
-				let scale = this._held_by.s / 100;
+				let scale = ( this._held_by.s || 100 ) / 100;
 						
 				if ( this._sound )
 				{
@@ -1215,7 +1248,9 @@ class sdGun extends sdEntity
 						}
 					}
 					
-					let initial_an = this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) );
+                    
+					let initial_an = this._held_by.IsPlayerClass() ?  this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) ) : 
+                                    this._held_by.GetLookAngle();
 					
 					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = this._spread; //sdGun.classes[ this.class ].spread || 0;
@@ -1341,17 +1376,18 @@ class sdGun extends sdEntity
 							throw new Error( report.join(', \n') );
 						}*/
 							
-						let self_recoil_scale = ( sdGun.classes[ this.class ].self_recoil_scale === undefined ) ? 1 : sdGun.classes[ this.class ].self_recoil_scale;
-						
-						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale * self_recoil_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale * self_recoil_scale );
-						
-						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
+                        if ( bullet_obj._owner.IsPlayerClass() )
+                        {
+                            let self_recoil_scale = ( sdGun.classes[ this.class ].self_recoil_scale === undefined ) ? 1 : sdGun.classes[ this.class ].self_recoil_scale;
+                            
+                            bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale * self_recoil_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale * self_recoil_scale );
+                            
+                            bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
 
-						bullet_obj._bg_shooter = background_shoot ? true : false;
-						
-						if ( bullet_obj._owner.IsPlayerClass() )
-						bullet_obj.time_left *= bullet_obj._owner.s / 100;
-
+                            bullet_obj._bg_shooter = background_shoot ? true : false;
+                            
+                            bullet_obj.time_left *= bullet_obj._owner.s / 100;
+                        }
 
 						if ( sdWorld.is_server )
 						{
@@ -1390,8 +1426,9 @@ class sdGun extends sdEntity
 					//if ( this._last_muzzle < this.muzzle )
 					//if ( this._held_by )
 					{
-						let initial_an = this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2;
-						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + this._held_by._side * Math.PI / 2 * 0.5;
+						let initial_an = this._held_by.IsPlayerClass() ? this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2 : 
+                                         this._held_by.GetLookAngle();
+						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + ( this._held_by._side || 1 ) * Math.PI / 2 * 0.5;
 
 						let vel = 1 + Math.random();
 						
@@ -1515,6 +1552,9 @@ class sdGun extends sdEntity
 			sdGun.classes[ this.class ].ammo_capacity = -1;
 			
 			this.ammo_left = this.GetAmmoCapacity();
+            
+            this.alt_ammo_left = this.GetAltAmmoCapacity(); // Will be undefined if it does not exist on class
+
 			if ( sdGun.classes[ this.class ].burst )
 			this.burst_ammo = Math.min( this.ammo_left, sdGun.classes[ this.class ].burst );
 		}

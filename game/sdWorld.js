@@ -1348,7 +1348,8 @@ class sdWorld
 					let status_entity = status_effects[ i ];
 					if ( status_entity.type === sdStatusEffect.TYPE_TEMPERATURE )
 					{
-						gib.ApplyStatusEffect({ type: status_entity.type, t:status_entity.t, initiator: status_entity._initiator }); // Probably should only get temperature ones, otherwise may cause bugs or crashes with other types
+                        const t = status_entity.t < 0 ? status_entity.t : status_entity.t / 4; // Prevent fire from instantly destroying gibs
+						gib.ApplyStatusEffect({ type: status_entity.type, t: t, initiator: status_entity._initiator }); // Probably should only get temperature ones, otherwise may cause bugs or crashes with other types
 						break;
 					}
 				}
@@ -1575,7 +1576,7 @@ class sdWorld
 	{
 		if ( !sdWorld.is_server )
 		return;
-				
+
 		let extra_affected_chars = [];
 		
 		//console.log('send effect');
@@ -1686,6 +1687,9 @@ class sdWorld
 				
 				sdEntity.entities.push( bullet_obj );
 			}
+            if ( !params.screen_shake && params.damage_scale > 0.01 )
+            params.screen_shake = params.radius / 20;
+
 			delete params.damage_scale;
 			
 			if ( params.owner ) // Will point to real object
@@ -4363,7 +4367,7 @@ class sdWorld
 		return 'none';
 	}
 	
-	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, sound='blockB4', type=sdEffect.TYPE_ROCK )
+	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1, sound='blockB4', type=sdEffect.TYPE_ROCK, filter='' )
 	{
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
@@ -4390,7 +4394,7 @@ class sdWorld
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 
-				sdEntity.entities.push( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() }) );
+				sdEntity.entities.push( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter: filter || that.GetBleedEffectFilter(), hue: that.hue || 0 }) );
 			}
 		}
 	}
@@ -5493,9 +5497,11 @@ class sdWorld
 		
 		sdRenderer.effects_quality = player_settings['effects_quality'] || 2;
 		
-		sdRenderer.display_coords = player_settings['coords1'] ? true : false
+		sdRenderer.display_coords = player_settings['coords1'] ? true : false;
 
-		sdRenderer.draw_in_3d = player_settings['3d_mode1'] ? true : false
+		sdRenderer.draw_in_3d = player_settings['3d_mode1'] ? true : false;
+        
+        sdRenderer.enable_screen_shakes = player_settings['screen_shake1'] ? true : false;
 
 		sdRenderer.resolution_quality = 1;//BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 		window.onresize();

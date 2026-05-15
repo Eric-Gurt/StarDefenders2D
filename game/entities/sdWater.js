@@ -100,7 +100,7 @@ class sdWater extends sdEntity
         if ( this.type === sdWater.TYPE_CRYO )
 		return 'Cryo liquid';
         if ( this.type === sdWater.TYPE_INCENDIARY )
-		return 'Incendiary liquid';
+		return 'Fuel';
 	
 		return 'Liquid ' + this.type;
 	}
@@ -345,7 +345,7 @@ class sdWater extends sdEntity
 				contains_class: contains_class,
 				contains_class_params: contains_class_params,
 				filter: filter,
-                natural: this.type === sdWater.TYPE_LAVA, // So no BGs
+                natural: false, // this.type === sdWater.TYPE_LAVA, // So no BGs
 				plants: null
 			});
 			ent._hea *= hp_mult;

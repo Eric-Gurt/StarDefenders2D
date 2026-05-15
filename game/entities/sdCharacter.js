@@ -611,7 +611,19 @@ class sdCharacter extends sdEntity
 		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
 
 		sdCharacter.max_level = 60;
-		
+        
+        sdCharacter.score_to_level = [];
+        let score_to_level = 0;
+        let additive = 50;
+
+        for ( let lvl = 0; lvl <= sdCharacter.max_level; ++lvl )
+        {
+            score_to_level += additive;
+            sdCharacter.score_to_level[ lvl ] = score_to_level;
+
+            additive *= 1.04;
+        }
+
 		sdCharacter.allow_alive_players_think = false; // Will be switching on/off depending on where from onThink was called (multiplayer players will have onThink logic delayed)
 		
 		sdCharacter.max_stand_on_elevation = 0.15; // 0.1 was not enough for case of walking on top of combiner-mounted crystals while occasionaly doing step-up logic
@@ -790,6 +802,10 @@ class sdCharacter extends sdEntity
 	{
 		return true;
 	}
+    CanUseWeapons()
+    {
+        return true;
+    }
 	GiveScore( amount, killed_entity=null, allow_partial_drop=true )
 	{
 		sdWorld.GiveScoreToPlayerEntity( amount, killed_entity, allow_partial_drop, this );
@@ -1830,6 +1846,7 @@ THING is cosmic mic drop!`;
 				else
 				if ( this._inventory[ this.gun_slot ] )
 				{
+                    const is_alt = this._inventory[ this.gun_slot ].fire_mode === 2 && this._inventory[ this.gun_slot ].alt_ammo_left !== undefined;
 					if ( this._key_states.GetKey( 'KeyN' ) )
 					{
                         if ( this.auto_shoot_in <= 0 )
@@ -1841,8 +1858,8 @@ THING is cosmic mic drop!`;
 					}
 					else
 					if ( this._key_states.GetKey( 'KeyR' ) &&
-						 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
-						 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
+                     ( is_alt ? this._inventory[ this.gun_slot ].alt_ammo_left : this._inventory[ this.gun_slot ].ammo_left ) >= 0 &&
+                     ( is_alt ? this._inventory[ this.gun_slot ].alt_ammo_left < this._inventory[ this.gun_slot ].GetAltAmmoCapacity() : this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() ) )
 					{
 						this._inventory[ this.gun_slot ].ReloadStart();
 					}
@@ -4598,6 +4615,10 @@ THING is cosmic mic drop!`;
 		
 		this.carrying = null;
 	}
+    IsAttemptingShoot()
+    {
+        return this._key_states.GetKey( 'Mouse1' );
+    }
 	ManagePlayerVehicleEntrance( GSPEED )
 	{
 		let e_state = this._key_states.GetKey( 'KeyE' );
@@ -4969,14 +4990,7 @@ THING is cosmic mic drop!`;
 				this.hook_projectile_net_id = -1;
 			}
 		}
-		/*
-		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
-		{
-			this.build_tool_level++;
-			this._score_to_level_additive = this._score_to_level_additive * 1.04;
-			this._score_to_level = this._score_to_level + this._score_to_level_additive;
-		}*/
-																		
+
 		this.ManagePlayerFlashLight();
 		
 		this.ManagePlayerVehicleEntrance( GSPEED ); // Before fire logic, because Mouse1 will throw crystals and it needs to block attacks
@@ -6534,7 +6548,7 @@ THING is cosmic mic drop!`;
 				if ( from_entity !== this._previous_carrying || sdWorld.time > this._previous_carrying_ignore_until ) // Let players pick-up armor and score shards to later throw them away, without picking up
 				if ( !will_ignore_pickup )
 				if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
-				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && this._inventory[ from_entity.GetSlot() ].class === from_entity.class ) ) // inventory slot 10 (11) = 2nd pistol for akimbo
+				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && this._inventory[ from_entity.GetSlot() ].class === from_entity.class && !sdGun.classes[ from_entity.class ].no_akimbo) ) // inventory slot 10 (11) = 2nd pistol for akimbo
 				if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 					  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 				{	
@@ -7745,6 +7759,12 @@ THING is cosmic mic drop!`;
                             this._ai = null;
 
 							executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
+
+                            if ( sdWorld.is_singleplayer )
+                            {
+                                sdWorld.my_entity_net_id = this._net_id;
+                                sdWorld.ResolveMyEntityByNetId();
+                            }
 
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						}

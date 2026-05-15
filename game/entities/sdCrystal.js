@@ -1,4 +1,5 @@
 
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -909,26 +910,49 @@ class sdCrystal extends sdEntity
 			
 			AlterTitle: ( e, base_title )=>
 			{
+                if ( e.speciality === 1 )
 				return 'Burning ' + base_title.toLowerCase();
+            
+                return 'Timewarp ' + base_title.toLowerCase();
+			},
+            
+            GetFilterAltering: ( e, ctx_filter )=>
+			{
+				if ( e.speciality === 2 )
+				return 'hue-rotate(100deg)saturate(0.5)contrast(3)brightness(0.35)drop-shadow(0px 0px 2px #000000)';
+            
+                return ctx_filter + 'saturate(0.6)contrast(5)';
 			},
 			
 			onThink: ( e, GSPEED )=>
 			{
 				if ( sdWorld.is_server )
 				{
-					//e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED });
-					if ( e.is_very_depleted )
-					{
-						e.speciality = 0;
-					}
-					else
-					e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:1000, remain_part: 0.8, GSPEED:GSPEED }); // 700-800 won't cause fire spreading // 1000 is not enough to burn stuff around on its own, but can burn stuff when couple of such crystals are there
+                    if ( e.speciality === 1 )
+                    {
+                        if ( e.is_very_depleted )
+                        {
+                            e.speciality = 0;
+                        }
+                        else
+                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value: 1000, remain_part: 0.8, GSPEED:GSPEED }); // 700-800 won't cause fire spreading // 1000 is not enough to burn stuff around on its own, but can burn stuff when couple of such crystals are there
+                    }
+                    else
+                    {
+                        if ( !e.is_very_depleted )
+                        if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIMEWARP, ttl: 1, radius: 96, warp: 0.25, owner_warp_mult: 1 });
+                    }
 				}
 			},
-			
+            onDamage: ( e, dmg, initiator=null, was_alive=true )=>
+			{
+				if ( e.speciality === 2 )
+				e._hea = Math.min( e._hmax, e._hea + dmg * 0.9 );
+			},
 			isFireAndAcidDamageResistant: ( e )=>
 			{
-				return true;
+				return e.speciality === 1;
 			}
 		};
 		sdCrystal.speciality_table[ 10240 ] = {
@@ -996,134 +1020,263 @@ class sdCrystal extends sdEntity
 		sdCrystal.speciality_table[ 20480 ] = {
 			
 			AlterTitle: ( e, base_title )=>{
+                if ( e.speciality === 1 )
 				return base_title + ' of emptiness';
+
+				return 'Teleporting ' + base_title.toLowerCase();
+			},
+            
+            onDraw: ( e, ctx, attached )=>
+			{
+				if ( e.speciality === 2 )
+				{
+					let phase = sdWorld.time + ( e._net_id || 0 ) * 1239;
+					let amp = 3;
+					let an = Math.sin( phase / 56 );
+					let s = Math.sin( phase / 20 ) * amp;
+					let xx = Math.sin( an ) * s * 0.2;
+					let yy = Math.cos( an ) * s;
+
+					ctx.globalAlpha = 1 - Math.abs( s / amp ) * 0.8;
+
+					ctx.save();
+					{
+						ctx.translate( -xx, -yy );
+						e._DefaultDraw( ctx, attached );
+					}
+					ctx.restore();
+
+					ctx.globalAlpha = ( 1 - Math.abs( s / amp ) * 0.8 ) * Math.abs( s / amp );
+
+					ctx.save();
+					{
+						ctx.translate( xx, yy );
+						e._DefaultDraw( ctx, attached );
+					}
+					ctx.restore();
+					ctx.globalAlpha = 1;
+				}
+                else if ( e.speciality === 1 )
+                return e._DefaultDraw( ctx, attached )
 			},
 			
 			GetFilterAltering: ( e, ctx_filter )=>
 			{
+                if ( e.speciality === 1 )
 				return ctx_filter + 'sepia(1)saturate(4)hue-rotate(-40deg)brightness(0.7)contrast(2)';
+            
+                return ctx_filter + 'brightness(1.2)saturate(0.5)hue-rotate(50deg)drop-shadow(0px 0px 2px #0088ff)';
 			},
 			
 			onDamage: ( e, dmg, initiator=null, was_alive=true )=>
 			{
+                if ( e.speciality === 1 )
 				e._hea = Math.min( e._hmax, e._hea + dmg * 0.5 );
+                else
+                e._hea = Math.min( e._hmax, e._hea + dmg * 0.8 ); // So falls won't break it
+			},
+            
+            ImpactAltering: ( e, vel )=>
+			{
+                if ( e.speciality === 2 )
+				vel = 0; // No fall damage
+
+				return vel;
 			},
 			
 			onThink: ( e, GSPEED )=>
 			{
 				if ( sdWorld.is_server )
-				if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
-				if ( e.matter > 100 )
-				{
-					e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
-					
-					if ( e._private_props.zap_timer > 60 )
-					{
-						e._private_props.zap_timer -= 60 * ( 0.5 + Math.random() * 0.5 );
-						
-						if ( e._anything_near )
-						{
-							e.matter -= 100;
-					
-							//let play_sound = 0;
-							
-							sdWorld.SendEffect({ 
-								x:e.x, 
-								y:e.y, 
-								radius: e.is_big ? 60 : 30,
-								damage_scale: 0, // Just a decoration effect
-								type:sdEffect.TYPE_EXPLOSION, 
-								owner:e,
-								color:'#ffff66',
-								no_smoke:true,
-								shrapnel:true
-							});
+                if ( e.speciality === 1 )
+                {
+                    if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+                    {
+                        if ( e.matter > 100 )
+                        {
+                            e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
+                                
+                            if ( e._private_props.zap_timer > 60 )
+                            {
+                                e._private_props.zap_timer -= 60 * ( 0.5 + Math.random() * 0.5 );
+                                    
+                                if ( e._anything_near )
+                                {
+                                    e.matter -= 100;
+                                
+                                    //let play_sound = 0;
+                                        
+                                    sdWorld.SendEffect({ 
+                                        x:e.x, 
+                                        y:e.y, 
+                                        radius: e.is_big ? 60 : 30,
+                                        damage_scale: 0, // Just a decoration effect
+                                        type:sdEffect.TYPE_EXPLOSION, 
+                                        owner:e,
+                                        color:'#ffff66',
+                                        no_smoke:true,
+                                        shrapnel:true
+                                    });
 
-							for ( let i = 0; i < e._anything_near.length; i++ )
-							{
-								let e2 = e._anything_near[ i ];
+                                    for ( let i = 0; i < e._anything_near.length; i++ )
+                                    {
+                                        let e2 = e._anything_near[ i ];
 
-								if ( e2.IsTargetable( e ) )
-								{
-									sdLost.ApplyAffection( e2, 100, null, sdLost.FILTER_GOLDEN );
-								}
-							}
-							
-							sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:e.x, y:e.y, volume: 0.5, pitch: e.is_big?0.5:1 });
-						
-							//if ( play_sound )
-							//sdSound.PlaySound({ name:'drone_explosion', x:e.x, y:e.y, volume:1, pitch: 0.3 });
-					
-						}
-					}
-				}
+                                        if ( e2.IsTargetable( e ) )
+                                        {
+                                            sdLost.ApplyAffection( e2, 100, null, sdLost.FILTER_GOLDEN );
+                                        }
+                                    }
+                                        
+                                    sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:e.x, y:e.y, volume: 0.5, pitch: e.is_big?0.5:1 });
+                                    
+                                    //if ( play_sound )
+                                    //sdSound.PlaySound({ name:'drone_explosion', x:e.x, y:e.y, volume:1, pitch: 0.3 });
+                                
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    e._private_props.tp_timer = ( e._private_props.tp_timer || 0 ) + GSPEED;
+
+                    if ( !e._private_props.tp_timer_max )
+                    e._private_props.tp_timer_max = 10 + Math.random() * 60;
+
+                    if ( !e.held_by || !e.held_by.is( sdMatterAmplifier ) || !e.held_by.shielded )
+                    if ( e._private_props.tp_timer >= e._private_props.tp_timer_max && !e.is_very_depleted )
+                    {
+                        const range = Math.random() * 96;
+                        const angle = Math.random() * Math.PI * 2;
+
+                        const x = e.x + Math.cos( angle ) * range;
+                        const y = e.y + Math.sin( angle ) * range;
+
+                        if ( e.CanMoveWithoutOverlap( x, y, 0 ) )
+                        {
+                            e.held_by?.DropCrystal( e, false );
+
+                            e.sx = e.sy = 0;
+                            e.x = x;
+                            e.y = y;
+                            e.PhysWakeUp();
+                            e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+                            sdSound.PlaySound({ name: 'cube_teleport', pitch: 1, x: e.x, y: e.y, volume: 1 });
+                        }
+
+                        e._private_props.tp_timer = 0;
+                        e._private_props.tp_timer_max = 10 + Math.random() * 60;
+                    }
+                }
 			}
 		};
 		sdCrystal.speciality_table[ 40960 ] = {
 			
 			AlterTitle: ( e, base_title )=>{
+                if ( e.speciality === 1 )
 				return 'Freezing ' + base_title.toLowerCase();
+            
+                return 'Catalysis ' + base_title.toLowerCase();
+			},
+            
+            GetFilterAltering: ( e, ctx_filter )=>
+			{
+                if ( e.speciality === 2 )
+				return 'hue-rotate(55deg)contrast(1.5)brightness(1.6)saturate(1.5)contrast(2)drop-shadow(0px 0px 2px #00aaff)drop-shadow(0px 0px 4px #00aaff)';
+            
+                return ctx_filter + 'saturate(0.4)hue-rotate(-50deg)contrast(3)';
 			},
 			
 			onThinkFrozen: ( e, GSPEED )=>
 			{
-				e.onThink( GSPEED );
-				
-				return true; // Prevent regular frozen logic
+                if ( this.speciality === 1 )
+                {
+                    e.onThink( GSPEED );
+                    
+                    return true; // Prevent regular frozen logic
+                }
+                return false;
 			},
 			
 			onThink: ( e, GSPEED )=>
 			{
 				if ( sdWorld.is_server )
 				{
-					e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:-100, remain_part: 0.8, GSPEED:GSPEED });
+                    if ( e.speciality === 1 )
+                    {
+                        e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:-100, remain_part: 0.8, GSPEED:GSPEED });
 
-					let visited_ents = new Set();
-					for ( let i = 0; i < 4; i++ )
-					{
-						let e2 = e.GetRandomEntityNearby( 64 );
-						
-						if ( e2 )
-						if ( !visited_ents.has( e2 ) )
-						{
-							visited_ents.add( e2 );
-							//let old_t = ( e2.is( sdCharacter ) ) ? sdStatusEffect.GetTemperature( e2 ) : 0;
+                        let visited_ents = new Set();
+                        for ( let i = 0; i < 4; i++ )
+                        {
+                            let e2 = e.GetRandomEntityNearby( 64 );
+                            
+                            if ( e2 )
+                            if ( !visited_ents.has( e2 ) )
+                            {
+                                visited_ents.add( e2 );
+                                //let old_t = ( e2.is( sdCharacter ) ) ? sdStatusEffect.GetTemperature( e2 ) : 0;
 
-							e2.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:-100, remain_part: 0.8, GSPEED:GSPEED * 0.125 });
+                                e2.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:-100, remain_part: 0.8, GSPEED:GSPEED * 0.125 });
 
-							//if ( Math.random() < 0.5 )
-							if ( sdWorld.time > e2._last_damage_upg_complain + 6000 )
-							if ( e2.is( sdCharacter ) )
-							if ( e2._frozen <= 0 )
-							{
-								let new_t = Math.floor( sdStatusEffect.GetTemperature( e2 ) );
+                                //if ( Math.random() < 0.5 )
+                                if ( sdWorld.time > e2._last_damage_upg_complain + 6000 )
+                                if ( e2.is( sdCharacter ) )
+                                if ( e2._frozen <= 0 )
+                                {
+                                    let new_t = Math.floor( sdStatusEffect.GetTemperature( e2 ) );
 
-								if ( new_t < 20 )
-								{
-									e2._last_damage_upg_complain = sdWorld.time;
-									
-									let new_t_str = ( new_t > 0 ) ? '+'+new_t : new_t;
-									
-									if ( new_t > 10 )
-									e2.Say( [ 
-										new_t_str + ' degrees. It is getting really cold there',
-										new_t_str + ' degrees. I hope I wont turn into an ice block',
-										new_t_str + ' degrees. I better run away now',
-										new_t_str + ' degrees. I\'m very cold',
-										new_t_str + ' degrees. I should better go to a warmer place',
-									][ ~~( Math.random() * 5 ) ] );	
-									else
-									e2.Say( [ 
-										new_t_str + ' degrees. I\'m an icicle now',
-										new_t_str + ' degrees. I\'m soon gone',
-										new_t_str + ' degrees. I won\'t be able to move soon',
-										new_t_str + ' degrees. This is more than chill. Should I be worried?',
-										new_t_str + ' degrees. I could really use some fireplace'
-									][ ~~( Math.random() * 5 ) ] );
-								}
-							}
-						}
+                                    if ( new_t < 20 )
+                                    {
+                                        e2._last_damage_upg_complain = sdWorld.time;
+                                        
+                                        let new_t_str = ( new_t > 0 ) ? '+'+new_t : new_t;
+                                        
+                                        if ( new_t > 10 )
+                                        e2.Say( [ 
+                                            new_t_str + ' degrees. It is getting really cold there',
+                                            new_t_str + ' degrees. I hope I won\'t turn into an ice block',
+                                            new_t_str + ' degrees. I better run away now',
+                                            new_t_str + ' degrees. I\'m very cold',
+                                            new_t_str + ' degrees. I should better go to a warmer place',
+                                        ][ ~~( Math.random() * 5 ) ] );	
+                                        else
+                                        e2.Say( [ 
+                                            new_t_str + ' degrees. I\'m an icicle now',
+                                            new_t_str + ' degrees. I\'m soon gone',
+                                            new_t_str + ' degrees. I won\'t be able to move soon',
+                                            new_t_str + ' degrees. This is more than chill. Should I be worried?',
+                                            new_t_str + ' degrees. I could really use some fireplace'
+                                        ][ ~~( Math.random() * 5 ) ] );
+                                    }
+                                }
+                            }
+                        }
 					}
+                    else
+                    {
+                        e._private_props.zap_timer = ( e._private_props.zap_timer || 0 ) + GSPEED;
+                        if ( e._private_props.zap_timer > 30 )
+                        {
+                            if ( !e.is_very_depleted && e.matter > e.matter_max / 2 )
+                            {
+                                const ents = sdWorld.GetAnythingNear( e.x, e.y, 64 );
+                                for ( const entity of ents )
+                                {
+                                    if ( entity !== e )
+                                    if ( entity.is( sdCrystal ) && entity._time_amplification === 0 )
+                                    {
+                                        sdCrystal.Zap( e, entity, '#55ccff' );
+                                        entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: 30 * 60 + ( Math.random() * 30 * 60 ) });
+                                        sdSound.PlaySound({ name:'matter_charge_loop2', pitch: 4, x:e.x, y:e.y, volume: 0.5 });
+                                        e._private_props.zap_timer = 0;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
 				}
 			}
 		};

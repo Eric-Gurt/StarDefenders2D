@@ -474,17 +474,25 @@ class sdBlock extends sdEntity
 
 				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				{
+                    const rank = 40 * Math.pow( 2, ( this.p >> 2 ) );
+                    const speciality = this.speciality
+
 					if ( this._contains_class === 'sdCrystal' )
 					{
-						sdEntity.Create( sdCrystal, { x:this.x+this.width/2, y:this.y+this.height/2, type:sdCrystal.TYPE_CRYSTAL, matter_max:Math.pow( 2, this.p )*40 } );
+						sdEntity.Create( sdCrystal, { x:this.x+this.width/2, y:this.y+this.height/2, type:sdCrystal.TYPE_CRYSTAL, matter_max: rank, speciality: speciality } );
 						this._contains_class = null;
 					}
 					else
 					{
 						sdWorld.DropShards( this.x+this.width/2, this.y+this.height/2, 0, 0, 
 							10,
-							Math.pow( 2, this.p ),
-							8
+							rank / 40,
+							8,
+                            undefined,
+                            undefined,
+                            null,
+                            null,
+                            speciality
 						); // Spawn some shards
 					}
 				}
@@ -1041,13 +1049,16 @@ class sdBlock extends sdEntity
 	{
 		if ( this.IsInSafeArea() )
 		return null;
+    
+        let speciality = Math.random() < 0.05 ? 1 : 0;
+        if ( speciality === 1 && Math.random() < 0.1 )
+        speciality = 2;
 	
 		let ent2 = sdEntity.Create( sdBlock, { x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, 
 			hue:this.hue,br:this.br,filter:this.filter,
 			//rank: Math.round( Math.random() * 6 ) 
-			rank: 1 + Math.floor( Math.pow( Math.random(), 1.5 ) * 11 )
+			rank: ( ( 1 + Math.floor( Math.pow( Math.random(), 1.5 ) * 11 ) ) << 2 ) | speciality // Combine speciality and matter into 1 value
 		});
-		// Don't allow orange and anticrystal shards due to their glow effect overriding the block.
 
 		this.remove();
 		this._broken = false;
@@ -1245,6 +1256,9 @@ class sdBlock extends sdEntity
 	UnmergeBlocks()
 	{
 		if ( !sdWorld.is_server )
+		return [];
+
+		if ( this._is_being_removed )
 		return [];
 	
 		if ( !this._merged )
@@ -2072,6 +2086,13 @@ class sdBlock extends sdEntity
 		return `All walls have same amount of hitpoints no matter how they look like. You can use base shielding units to apply additional protection to them.`;
 	}
     
+    get speciality() // For crystal shard blocks
+    {
+        return this.p & 3;
+    }
+    
+    
+    
     //DrawFG( ctx, attached )
 	Draw( ctx, attached )
 	{
@@ -2199,18 +2220,31 @@ class sdBlock extends sdEntity
 				ctx.sd_color_mult_r = 1;
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
+                
+                const rank = 40 * Math.pow( 2, ( this.p >> 2 ) );
+                const speciality = this.speciality
+                
+                //console.log( rank, speciality );
 				
-				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ), 0.2 );
+				ctx.filter = sdWorld.GetCrystalHue( rank, 0.2 );
+                
+                if ( speciality > 0 )
+                {
+                    if ( sdCrystal.speciality_table[ rank ] && sdCrystal.speciality_table[ rank ].GetFilterAltering )
+                    ctx.filter = sdCrystal.speciality_table[ rank ].GetFilterAltering( this, ctx.filter );
+                }
 
 				let old_scale = ctx.camera_relative_world_scale;
 				ctx.camera_relative_world_scale *= 0.999;
 				{
 					let old_mode = ctx.volumetric_mode;
+
                     if ( sdRenderer.draw_in_3d )
 					ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
-					{
-						ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
-					}
+
+                    ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+                    
+                    //ctx.filter = null
 					ctx.volumetric_mode = old_mode;
 				}
 				ctx.camera_relative_world_scale = old_scale;

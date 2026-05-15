@@ -1929,7 +1929,7 @@ class sdGunClass
 							gun._held_by.auto_shoot_in = 1;
 						}
 						// Alt fire mode, charge up then fire.
-						if ( gun.fire_mode !== 1 && ( ( gun._held_by._key_states.GetKey( 'Mouse1' ) ) || gun._held_by.auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
+						if ( gun.fire_mode !== 1 && ( ( gun._held_by.IsAttemptingShoot() ) || gun._held_by.auto_shoot_in <= 0 ) ) // Build up damage when holding the Button
 						{
 							if ( gun._combo === 20 || ( gun._combo === 360 && gun._combo_timer < 5 ) ) // Started charging?
 							sdSound.PlaySound({ name:'crystal_combiner_end', x:gun._held_by.x, y:gun._held_by.y, volume:1.25, pitch:2 });
@@ -1961,7 +1961,7 @@ class sdGunClass
 					if ( gun.fire_mode === 1 ) // Normal fire mode?
 					{
 						if ( gun._held_by.matter >= matter_cost )
-						if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+						if ( gun._held_by.IsAttemptingShoot() )
 						{
 							gun._held_by.matter -= matter_cost;
 							gun._held_by.auto_shoot_in = 18;
@@ -1970,7 +1970,7 @@ class sdGunClass
 					if ( gun.fire_mode !== 1 ) // Alt fire mode?
 					{
 						if ( gun._held_by.matter >= matter_cost )
-						if ( !gun._held_by._key_states.GetKey( 'Mouse1' ) ) // Attack on release
+						if ( !gun._held_by.IsAttemptingShoot() ) // Attack on release
 						{
 							gun._held_by.matter -= matter_cost;
 							if ( gun._combo !== 360 )
@@ -1980,7 +1980,7 @@ class sdGunClass
 						}
 					}
 				}
-				if ( ( gun.fire_mode === 1 && gun._held_by._key_states.GetKey( 'Mouse1' ) ) || ( gun.fire_mode !== 1 && !gun._held_by._key_states.GetKey( 'Mouse1' ) ) )
+				if ( ( gun.fire_mode === 1 && gun._held_by.IsAttemptingShoot() ) || ( gun.fire_mode !== 1 && !gun._held_by.IsAttemptingShoot() ) )
 				{
 					if ( gun._held_by.auto_shoot_in <= 0 )
 					return true;
@@ -2925,7 +2925,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5 });
 					
 					if ( gun._held_by.matter >= 900 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 15;
 						gun._held_by.matter -= 900;
@@ -4152,7 +4152,7 @@ class sdGunClass
 					let matter_cost = gun.GetBulletCost();
 					
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 3 / ( 1 + Math.min(1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 30 per second? (GSPEED limit?)
 						gun._held_by.matter -= matter_cost;
@@ -4292,7 +4292,7 @@ class sdGunClass
 			title: 'DMR',
 			slot: 4,
 			reload_time: 10,
-			muzzle_x: 11,
+			muzzle_x: 10,
 			ammo_capacity: 8,
 			count: 1,
 			matter_cost: 160,
@@ -4620,7 +4620,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'saber_hit2', x:gun.x, y:gun.y, volume: 2, pitch: 3 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost; // Was 3. It is not that strong to drain matter that fast
@@ -4696,10 +4696,12 @@ class sdGunClass
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 				},
 				_custom_target_reaction_protected:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                    sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 				}
 			},
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -4708,10 +4710,12 @@ class sdGunClass
 					_custom_target_reaction:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 					},
 					_custom_target_reaction_protected:( bullet, target_entity )=>
 					{
 						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 					}
 				};
 				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
@@ -5517,7 +5521,7 @@ class sdGunClass
 			title: 'Task Ops Shotgun',
 			slot: 3,
 			reload_time: 8,
-			muzzle_x: 10,
+			muzzle_x: 11,
 			ammo_capacity: 20,
 			count: 3,
 			spread: 0.13,
@@ -5645,7 +5649,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
 					
 					if ( gun._held_by.matter >= 250 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						//if ( gun._held_by.stim_ef > 0 )
 						gun._held_by.auto_shoot_in = 7.5;
@@ -7023,7 +7027,7 @@ class sdGunClass
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 2 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 14 / ( 1 + gun._combo / 10 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= matter_cost;
@@ -7322,7 +7326,7 @@ class sdGunClass
 					sdSound.PlaySound({ name: 'alien_laser1', x:gun.x, y:gun.y, volume: 0.7, pitch: 1.42 });
 					
 					if ( gun._held_by.matter >= 6 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= 6;
@@ -7697,7 +7701,7 @@ class sdGunClass
 					sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:gun.x, y:gun.y, volume:1.2 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 3;
 						gun._held_by.matter -= matter_cost; // Zektaron beam is at 6 or 7 while being 2x as strong
@@ -7830,10 +7834,13 @@ class sdGunClass
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
-				gun._held_by._key_states.SetKey( 'KeyA', 0 );
-				gun._held_by._key_states.SetKey( 'KeyD', 0 );
-				gun._held_by._key_states.SetKey( 'KeyW', 0 );
-				gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+                if ( gun._held_by.IsPlayerClass() )
+                {
+                    gun._held_by._key_states.SetKey( 'KeyA', 0 );
+                    gun._held_by._key_states.SetKey( 'KeyD', 0 );
+                    gun._held_by._key_states.SetKey( 'KeyW', 0 );
+                    gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+                }
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
@@ -7846,10 +7853,13 @@ class sdGunClass
 						sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1, pitch: 1.5 });
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.2 });
 					}
-					gun._held_by._key_states.SetKey( 'KeyA', 0 );
-					gun._held_by._key_states.SetKey( 'KeyD', 0 );
-					gun._held_by._key_states.SetKey( 'KeyW', 0 );
-					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch after charge sequence
+                    if ( gun._held_by.IsPlayerClass() )
+                    {
+                        gun._held_by._key_states.SetKey( 'KeyA', 0 );
+                        gun._held_by._key_states.SetKey( 'KeyD', 0 );
+                        gun._held_by._key_states.SetKey( 'KeyW', 0 );
+                        gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+                    }
 					return false;
 				}
 				else
@@ -7858,12 +7868,13 @@ class sdGunClass
 					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 0.7 });
 					let matter_cost = gun.GetBulletCost();
 					if ( gun._held_by.matter >= matter_cost )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 4;
 						gun._held_by.matter -= matter_cost;
 					}
 					else
+                    if ( gun._held_by.IsPlayerClass() )
 					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
 				}
 				return true;
@@ -8819,7 +8830,7 @@ class sdGunClass
 				{
 					if ( gun.fire_mode !== 1 )
 					if ( gun._held_by.matter >= 15 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 30
 						sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 0.9, pitch: 0.9 });
@@ -8829,7 +8840,7 @@ class sdGunClass
 					else
 					if ( gun.fire_mode === 1 )
 					if ( gun._held_by.matter >= 25 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						//if ( gun._held_by.stim_ef > 0 )
 						gun._held_by.auto_shoot_in = 25;
@@ -9224,7 +9235,7 @@ class sdGunClass
 				{
 					if ( gun.fire_mode !== 1 )
 					if ( gun._held_by.matter >= 280 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 45;
 						sdSound.PlaySound({ name: 'alien_energy_power_charge2_fast2', x:gun.x, y:gun.y, volume: 1.3, pitch: 1.1 });
@@ -9234,7 +9245,7 @@ class sdGunClass
 					else
 					if ( gun.fire_mode === 1 )
 					if ( gun._held_by.matter >= 35 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = 15;
 						sdSound.PlaySound({ name: 'evil_alien_charge1_fast1', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
@@ -9980,6 +9991,7 @@ class sdGunClass
 						
 						if ( sdWorld.is_server )
 						if ( gun.fire_mode === 2 )
+                        if ( gun._held_by.IsPlayerClass() )
 						gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 150 });
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.75 });
@@ -9995,7 +10007,7 @@ class sdGunClass
 					{
 						let owner = gun._held_by;
 						
-						if ( owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
+						if ( owner.IsPlayerClass() && owner._key_states.GetKey( 'Mouse3' ) ) // Right-click to boost forward
 						if ( owner.look_x !== null && owner.look_y !== null ) // Prevent weird bugs
 						{
 							let an = ( Math.atan2( owner.look_x - owner.x, owner.look_y - owner.y ) );
@@ -10225,8 +10237,8 @@ class sdGunClass
 				if ( gun.fire_mode === 2 )
 				{
 					obj._homing = true;
-					obj._homing_mult = 0.1;
-					obj.ac = 0.2;
+					obj._homing_mult = 0.02;
+					obj.ac = 0.05;
 				}
 				
 				return obj;
@@ -10962,7 +10974,7 @@ class sdGunClass
                         
                             bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
                             bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
-                            bullet_obj.time_left = 100
+                            bullet_obj.time_left = 100;
                             bullet_obj._damage = 32 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
                             //bullet_obj._temperature_addition = 200;
 
@@ -11049,7 +11061,7 @@ class sdGunClass
 			{
 				return { 
 					_damage: gun.extra[ sdGun.ID_DAMAGE_VALUE ] * gun.extra [ sdGun.ID_DAMAGE_MULT ],
-					model: 'drain_sniper_projectile', 
+					model: 'phase_rifle_projectile', 
 					_hittable_by_bullets: false,
 					color: '#6ac2ff',
                     _no_explosion_smoke: true,
@@ -11551,7 +11563,7 @@ class sdGunClass
                         const multi_classes = [ 'sdHover', 'sdLifeBox', 'sdCube', 'sdDrone', 'sdEnemyMech', 'sdSetrDestroyer', 'sdCouncilIncinerator', 'sdStalker', 'sdRotator' ];
                         if ( multi_classes.includes( target_entity.GetClass() ) )
                         {
-                            target_entity.DamageWithEffect( 450 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1, bullet._owner );
+                            target_entity.DamageWithEffect( 500 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1, bullet._owner );
                         } 
                     }
                 }
@@ -11591,7 +11603,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'light_cannon' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 0.75,
-			title: 'Light Cannon SD-314',
+			title: 'Light Cannon SD-240',
 			slot: 2,
 			reload_time: 4,
 			muzzle_x: 16,
@@ -11604,11 +11616,14 @@ class sdGunClass
 			{
 				return 0;
 			},
-            onReloadStart: ( gun )=>
+            onReloadAttempt: ( gun )=>
             {
-                const quotes = [ 'It cannot be reloaded', 'Maybe one day' ];
-                const quotes_no_ammo = [ 'It cannot be reloaded', 'It had a good run', 'I should put this on display instead', 'Then its over?', 'Maybe one day' ];
-                gun._held_by?.Say( sdWorld.AnyOf( gun.ammo_left <= 0 ? quotes_no_ammo : quotes ) );
+                if ( gun._held_by && gun._held_by.Say )
+                {
+                    const quotes = [ 'It cannot be reloaded', 'Maybe one day' ];
+                    const quotes_no_ammo = [ 'It cannot be reloaded', 'It had a good run', 'I should put this on display instead', 'Then its over?', 'Maybe one day' ];
+                    gun._held_by?.Say( sdWorld.AnyOf( gun.ammo_left <= 0 ? quotes_no_ammo : quotes ) );
+                }
 
                 return false;
             },
@@ -11735,6 +11750,217 @@ class sdGunClass
 				'#0f0f0f', 15, 'main detail' ),
                 '#000000', 15, 'alt detail' ),
 				'#ff7c00', 15, 'pointer' ) )
+		};
+        
+        sdGun.classes[ sdGun.CLASS_BATTLE_RIFLE = 171 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'battle_rifle' ),
+			sound: 'gun_pistol',
+            sound_pitch: 0.85,
+			title: 'Battle Rifle SD-97',
+			slot: 2,
+			reload_time: 3,
+			muzzle_x: 9,
+			ammo_capacity: 50,
+            alt_ammo_capacity: 6,
+			spread: 0.01,
+			count: 1,
+			matter_cost: 200,
+			min_build_tool_level: 10,
+            projectile_velocity: sdGun.default_projectile_velocity * 1.35,
+			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+                
+                if ( gun.fire_mode === 2 )
+                {
+                    obj.model = 'grenade3';
+                    obj.explosion_radius = 16;
+                    obj.affected_by_gravity = true;
+                    obj.color = sdEffect.default_explosion_color;
+                    obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
+                }
+				
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+			
+				// if ( gun.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
+				
+				return obj;
+			},
+            onFireModeChange: ( gun, fire_mode ) =>
+            {
+                gun._reload_time = sdGun.classes[ gun.class ].reload_time * ( fire_mode === 2 ? 8 : 1 );
+                gun._sound = fire_mode === 2 ? 'gun_grenade_launcher' : 'gun_pistol';
+            },
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 35; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+            upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+                ( [], '#ffff94', 15 ),
+                '#300000', 15 ) )
+		};
+        
+        sdGun.classes[ sdGun.CLASS_ELECTROSHOCK = 172 ] = 
+        {
+			image: sdWorld.CreateImageFromFile( 'electroshock' ),
+			sound: 'bsu_attack',
+            sound_volume: 0.75,
+			sound_pitch: 2,
+			title: 'Velox Taser',
+			slot: 1,
+            no_akimbo: true,
+			reload_time: 2,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+            self_recoil_scale: 0,
+			projectile_properties: { _rail: true, _rail_zap: true, _damage: 16, color: '#80ffff' },
+			spawnable: false,
+			projectile_properties_dynamic: ( gun )=>{ 
+				let obj = { color: '#80ffff', time_left: 6, _rail: true, _rail_zap: true, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ],
+                    _custom_target_reaction:( bullet, target_entity )=>
+                    {
+                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:1, radius:0.5 });
+                    },
+                    _custom_target_reaction_protected:( bullet, target_entity )=>
+                    {
+                       sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:1, radius:0.5 });
+                    } 
+                }; // Default value for _knock_scale
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+                
+                if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 16; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
+                [], '#80ffff', 20 ),
+                '#300000', 20 ), )
+		};
+        
+        sdGun.classes[ sdGun.CLASS_HEAVY_ROCKET = 173 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'heavy_rocket' ),
+			sound: 'gun_rocket',
+            sound_volume: 1.5,
+            sound_pitch: 0.8,
+			title: 'Rocket Launcher SD-202',
+			slot: 5,
+			reload_time: 35,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			spread: 0.01,
+			projectile_velocity: 32,
+			count: 1,
+            spawnable: false,
+			projectile_properties: { color: sdEffect.default_explosion_color },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { time_left: 60, explosion_radius: 32, model: 'f_hover_rocket', color:sdEffect.default_explosion_color, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2, _custom_detonation_logic:( bullet )=>
+					{
+                        const initial_rand = Math.random() * Math.PI * 2;
+                        const count = 6;
+                        const speed = 16;
+
+                        let an = 0;
+
+                        for ( let i = 0; i < count; ++i )
+                        {
+                            an = i / count * Math.PI * 2;
+                            
+                            const bullet_obj = new sdBullet({ 
+                                x: bullet.x + Math.cos( an + initial_rand ) * 1, 
+                                y: bullet.y + Math.sin( an + initial_rand ) * 1 
+                            });	
+                        
+                            bullet_obj.sx = Math.cos( an + initial_rand ) * speed;
+                            bullet_obj.sy = Math.sin( an + initial_rand ) * speed;
+                            bullet_obj.time_left = 100;
+                            bullet_obj._damage = 32 * bullet._gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
+                            //bullet_obj._temperature_addition = 200;
+
+                            bullet_obj.affected_by_gravity = true;
+                            bullet_obj.gravity_scale = 2;
+
+                            bullet_obj._owner = bullet._owner;
+
+                            bullet_obj._can_hit_owner = false;
+                            bullet_obj.color = '#ffff00';
+
+                            sdEntity.entities.push( bullet_obj );
+                        } 
+                    }
+                };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
+                
+                if ( gun.fire_mode === 2 )
+                {
+                    obj.ac = 0.4;
+                    obj._homing =  true;
+                    obj._homing_mult = 0.01;
+                }
+				
+				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 125; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+					if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+					obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
+                [], '#ffc400', 20 ),
+                '#ff0000', 20 ), )
 		};
 
 		// Add new gun classes above this line //

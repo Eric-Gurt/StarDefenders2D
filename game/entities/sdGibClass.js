@@ -64,7 +64,7 @@ class sdGibClass
 			hitbox_y1: -2,
 			hitbox_y2: 2,
 			mass: 15,
-			health: 50,
+			health: 500,
 			blood: 0, // 0 = wall_hit effect
 			effect_when_removed: false // Entity break effect when the gib is removed?
 			

@@ -28,6 +28,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdCraftingBench from './sdCraftingBench.js';
 import sdMatterMatrix from './sdMatterMatrix.js';
+import sdTurret from './sdTurret.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -922,6 +923,12 @@ class sdLongRangeTeleport extends sdEntity
 			let matrix = new sdMatterMatrix({ x:this.x, y:this.y - 32 });
 			sdEntity.entities.push( matrix );
 		}
+        else
+		if ( rewards === 'CLAIM_SENTRY_TURRET' )
+		{
+			const turret = new sdTurret({ x:this.x, y:this.y - 32, kind: sdTurret.KIND_SENTRY });
+			sdEntity.entities.push( turret );
+		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -1301,7 +1308,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_MERGER_CORE' ||
 						command_name === 'CLAIM_UPGRADE_STATION_CHIP' ||
 						command_name === 'CLAIM_MATTER_CONTAINER_CHIP' ||
-						command_name === 'CLAIM_MATTER_MATRIX'
+						command_name === 'CLAIM_MATTER_MATRIX' ||
+                        command_name === 'CLAIM_SENTRY_TURRET'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1324,6 +1332,9 @@ class sdLongRangeTeleport extends sdEntity
 							
 								if ( command_name === 'CLAIM_MATTER_MATRIX' )
 								claim_cost = 5;
+
+                                if ( command_name === 'CLAIM_SENTRY_TURRET' )
+                                claim_cost = 3;
 								
 								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{
@@ -1980,6 +1991,7 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
 								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
 								this.AddContextOption( 'Claim matter generation matrix ( 5 reward cost )', 'CLAIM_MATTER_MATRIX', [] );
+                                this.AddContextOption( 'Claim sentry turret ( 3 reward cost )', 'CLAIM_SENTRY_TURRET', [] );
 							}
 						}
 
