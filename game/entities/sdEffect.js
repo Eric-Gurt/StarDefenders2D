@@ -992,7 +992,7 @@ class sdEffect extends sdEntity
 		}
 
         if ( params.screen_shake )
-        sdRenderer.ScreenShake( params.screen_shake * sdSound.GetDistanceMultForPosition( params.x, params.y ), this._radius / 4 );
+        sdRenderer.ScreenShake( params.screen_shake * sdSound.GetDistanceMultForPosition( this.x, this.y ), this._radius / 4 );
 	}
 	static Transliterate( word )
 	{
