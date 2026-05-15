@@ -234,11 +234,13 @@ class sdManualTurret extends sdEntity
 
 									bullet_obj.time_left = 45;
 
-									bullet_obj.model = 'rocket_proj';
-									bullet_obj._damage = 350 * 4; // 25 * 3; // 350 * 2 = strong as tank
-									bullet_obj.explosion_radius = 100; // But larger radius
+									bullet_obj._damage = 400 * 4; // 25 * 3; // 350 * 2 = strong as tank
+									bullet_obj.explosion_radius = 128; // But larger radius
 									bullet_obj.color = '#80ffff';
 									bullet_obj._rail = true;
+                                    bullet_obj._rail_circled = true;
+                                    bullet_obj._explosion_shrapnel = true;
+                                    bullet_obj._no_explosion_smoke = true;
 
 									if ( this.anti_base_mode )
 									{
