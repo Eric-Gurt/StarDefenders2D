@@ -914,6 +914,11 @@ class sdEntity
 	{
 		return false;
 	}
+
+    CanUseWeapons() // Characters, custom turrets or anything that can fire sdGun entities
+    {
+        return false;
+    }
 	
 	ImpactWithDamageEffect( vel, initiator=null )
 	{

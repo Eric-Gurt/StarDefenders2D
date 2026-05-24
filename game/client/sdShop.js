@@ -116,7 +116,6 @@ class sdShop
 			sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 			
 			//
-
 			sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 			sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });
 			sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
@@ -326,8 +325,24 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_CRATE, hue:f, _category:'Walls' });
 			}
 
-
-			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
+            {
+                const filter = 'saturate(0)';
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, _category:'Doors' });
+                    
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+                    
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+                    
+                sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_BASIC_SMALL, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_ARMORED_SMALL, _category:'Doors' });
+                sdShop.options.push({ _class: 'sdDoor', w:16, h:16, filter: filter, model: sdDoor.MODEL_CIRCULAR_LIGHTS_SMALL, _category:'Doors' });
+            }
 
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, _category:'Walls' });
@@ -340,6 +355,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:12 });
 			sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:14 });
 			sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdTeleport', half_size: 8, _category:'Base equipment', _min_build_tool_level: 15 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 1, _category:'Base equipment', _min_build_tool_level: 35 });
 			sdShop.options.push({ _class: 'sdSampleBuilder', type: 0, half_size:8, _category:'Base equipment', _min_build_tool_level: 45 });
@@ -523,6 +539,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdButton', type:4, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:6, _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdButton', type:8, _category:'Base equipment', _min_build_tool_level: 2 });
+            sdShop.options.push({ _class: 'sdButton', type: 10, _category:'Base equipment' });
 
 			for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 			sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
@@ -533,7 +550,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBotFactory', _category:'Base equipment', _min_build_tool_level: 7  });
 			sdShop.options.push({ _class: 'sdBotCharger', _category:'Base equipment', _min_build_tool_level: 7  });
 
-			for ( var i = 0; i < 3; i++ )
+			for ( let i = 0; i < 3; i++ )
 			{
 				let filter = '';
 				if ( i === 1 )
@@ -544,12 +561,16 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, _category:'Background walls' });
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, _category:'Background walls' });
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, _category:'Background walls' });
-
+            }
+            for ( let i = 0; i < 4; i++ )
+            {
 				let filter2 = '';
 				if ( i === 1 )
 				filter2 = 'hue-rotate(-60deg)brightness(.5)';
 				if ( i === 2 )
 				filter2 = 'hue-rotate(44deg)brightness(.8)';
+                if ( i === 3 )
+				filter2 = 'hue-rotate(140deg)brightness(.7)';
 
 				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
@@ -940,9 +961,9 @@ class sdShop
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdButton', type: 10, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMothershipContainer', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMatterMatrix', _category:'Development tests' });
+                sdShop.options.push({ _class: 'sdTurret', kind: sdTurret.KIND_SENTRY, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });

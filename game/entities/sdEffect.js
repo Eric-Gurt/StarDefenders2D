@@ -70,6 +70,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_GLASS = 31;
 		sdEffect.TYPE_SHRAPNEL = 32;
 		sdEffect.TYPE_GLOW_ALT = 33;
+        sdEffect.TYPE_LEAF = 34;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -411,8 +412,17 @@ class sdEffect extends sdEntity
 			random_rotation: true,
 			gravity: true,
 			collisions: true,
-			bounce_intensity: 0.25,
-			apply_shading: false
+			bounce_intensity: 0.25
+		};
+        
+        sdEffect.types[ sdEffect.TYPE_LEAF ] = {
+			images: [ sdWorld.CreateImageFromFile( 'leaf' ) ],
+			speed: 1 / 130,
+			random_speed_percentage: 0.5,
+			random_flip: true,
+			gravity: true,
+			collisions: true,
+            gravity_mult: 0.333
 		};
 		
 		sdEffect.types[ sdEffect.TYPE_SHRAPNEL ] = Object.assign( {}, sdEffect.types[ sdEffect.TYPE_SPARK ] );
@@ -599,6 +609,8 @@ class sdEffect extends sdEntity
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
+        
+        this._rand = Math.random();
 		//this._attachment = params.attachment || null;
 		
 		//this._nested_translateables = null;
@@ -978,6 +990,9 @@ class sdEffect extends sdEntity
 				}
 			}
 		}
+
+        if ( params.screen_shake )
+        sdRenderer.ScreenShake( params.screen_shake * sdSound.GetDistanceMultForPosition( this.x, this.y ), this._radius / 4 );
 	}
 	static Transliterate( word )
 	{
@@ -1110,6 +1125,19 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_GLASS || this._type === sdEffect.TYPE_SHELL )
 		{
 			this._rotation += this.sx * 0.5 * GSPEED;
+		}
+        
+        if ( this._type === sdEffect.TYPE_LEAF )
+		{
+            this.sy = Math.min( 1, this.sy );
+
+            if ( this.sy !== 0 )
+            {
+                const drift =  Math.sin( sdWorld.time * 0.001 + ( this._rand * 1000 ) );
+                this.sx = drift * ( this._rand < 0.5 ? 1 : -1 ) * GSPEED;
+            }
+        
+            this._rotation += Math.min( 0.1, ( this.sy * 0.1 * GSPEED * ( this._rand < 0.5 ? 1 : -1 ) ) );
 		}
 
 		if ( this._ani >= this._duration )
@@ -1553,7 +1581,7 @@ class sdEffect extends sdEntity
 	
 	static GetSmokeColor( hex_color_arr )
 	{
-		 return hex_color_arr[( Math.floor( Math.random() * hex_color_arr.length ))];
+        return sdWorld.AnyOf( hex_color_arr );
 	}
 	
 	onRemove() // Class-specific, if needed

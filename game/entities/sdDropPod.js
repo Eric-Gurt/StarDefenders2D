@@ -359,40 +359,8 @@ class sdDropPod extends sdEntity
 		{
 			if ( Math.random() < 0.02 ) // 2% chance for some task reward loot
 			{
-				let rng = Math.random() * 7; // Value between 0 and 7 at the moment.
-				if ( rng <= 1 ) // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MERGER_CORE }) );
-				}
-				else
-				if ( rng <= 2 ) // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL4_ARMOR_REGEN }) );
-				}
-				else
-				if ( rng <= 3 ) // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ZAPPER }) );
-				}
-				else
-				if ( rng <= 4 ) // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_COMBAT_INSTRUCTOR }) );
-				}
-				else
-				if ( rng <= 5 ) // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ILLUSION_MAKER }) );
-				}
-				else
-				if ( rng <= 6 ) // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET }) );
-				}
-				else // 1 in 7
-				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET }) );
-				}
+                const classes = [ sdGun.CLASS_MERGER_CORE, sdGun.CLASS_LVL4_ARMOR_REGEN, sdGun.CLASS_ZAPPER, sdGun.CLASS_COMBAT_INSTRUCTOR, sdGun.CLASS_ILLUSION_MAKER, sdGun.CLASS_UPGRADE_STATION_CHIPSET, sdGun.CLASS_MATTER_CONTAINER_CHIPSET ];
+                const gun = new sdGun({ x:this.x, y:this.y, class:sdWorld.AnyOf( classes ) });
 			}
 			else // Random other loot, like workbench and build tool items
 			{
@@ -452,10 +420,20 @@ class sdDropPod extends sdEntity
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_CUSTOM_RIFLE }) );
 				}
+                else
+				if ( rng < 0.85 ) // 5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BATTLE_RIFLE }) );
+				}
 				else
 				if ( rng < 0.90 ) // 10%
 				{
 					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SHOTGUN_MK2 }) );
+				}
+                else
+				if ( rng < 0.95 ) // 5%
+				{
+					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_HEAVY_ROCKET }) );
 				}
 				else
 				{

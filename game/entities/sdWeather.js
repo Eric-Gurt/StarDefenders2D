@@ -186,15 +186,11 @@ class sdWeather extends sdEntity
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
 		sdWeather.pattern = [];
-        sdWeather.depth_pattern = [];
 
         const min = -128;
         const max = 128;
 		for ( var i = 0; i < 300; i++ )
-        {
-            sdWeather.pattern.push({ x:Math.random(), y:Math.random(), last_vis:false, last_y:0, last_x:0 });
-            sdWeather.depth_pattern.push( Math.random() * ( max - min ) + min );
-        }
+        sdWeather.pattern.push({ x: Math.random(), y: Math.random(), z: Math.random() * ( max - min ) + min, last_vis: false, last_y: 0, last_x: 0 });
 		
 		sdWeather.debug_rain = false;
 		
@@ -5461,14 +5457,19 @@ class sdWeather extends sdEntity
 				if ( vis )
 				{
                     const old_offset = ctx.z_offset;
-                    ctx.z_offset = sdWeather.depth_pattern[ i ];
+                    ctx.z_offset = p.z;
 
 					if ( this.snow )
 					{
-						ctx.drawImageFilterCache( sdWeather.img_snow, 
-						xx - 16, 
-						yy - 16, 
-						32,32 );
+                        const flip = ( i & 1 ) === 0 ? 1 : -1;
+                        let rotation = sdWorld.mod( ( i + sdWorld.time / 1500 ), Math.PI * 2 );
+                        rotation *= flip;
+
+                        ctx.save();
+                        ctx.translate( xx, yy );
+                        ctx.rotate( rotation );
+						ctx.drawImageFilterCache( sdWeather.img_snow, -16, -16, 32, 32 );
+                        ctx.restore();
 					}
 					else
 					if ( this.acid_rain )
@@ -5482,7 +5483,7 @@ class sdWeather extends sdEntity
                         const image = sdWeather.img_crystal_shard;
                         const frame = i % ~~( image.width / image.height );
                         const flip = ( i & 1 ) === 0 ? 1 : -1;
-                        let rotation = ( i + sdWorld.time / 350 ) % Math.PI * 2;
+                        let rotation = sdWorld.mod( ( i + sdWorld.time / 350 ), Math.PI * 2 );
                         rotation *= flip;
 
                         ctx.save();

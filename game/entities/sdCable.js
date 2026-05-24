@@ -257,7 +257,7 @@ class sdCable extends sdEntity
     static CableProjectileLogic( bullet, target_entity ) // Can be easily used by multiple entities using this way
     {
         // Someone fired cable tool and then dropped it onto weaponbench?
-        if ( !bullet._owner )
+        if ( !bullet._owner || bullet._owner._is_being_removed )
         return;
 			
         const is_player = bullet._owner.IsPlayerClass();

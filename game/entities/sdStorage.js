@@ -43,7 +43,7 @@ class sdStorage extends sdEntity
 	
 	GetSlotsTotal()
 	{
-		return this.type === sdStorage.TYPE_CRYSTALS_PORTAL ? 48 : this.type === sdStorage.TYPE_PORTAL ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
+		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
 	}
 	
 	IsPortal()
@@ -133,6 +133,9 @@ class sdStorage extends sdEntity
 		this._open_anim = 0;
 		
 		this.filter = params.filter || 'saturate(0)';
+        
+        this.nick = '';
+        this.nick_censored = false;
         
         this._storage_fix_applied = false; // Remove after update
 	}
@@ -367,7 +370,14 @@ class sdStorage extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+        let t = this.nick;
+		sdEntity.Tooltip( ctx, this.title, 0, t ? -8 : 0 );
+
+        if ( sdWorld.client_side_censorship && this.nick_censored )
+        t = sdWorld.CensoredText( t );
+
+        if ( t )
+		sdEntity.Tooltip( ctx, t, 0, 0, '#777777' );
 
 		this.BasicCarryTooltip( ctx, 8 );
         
@@ -668,7 +678,7 @@ class sdStorage extends sdEntity
 						//console.log( this._stored_items );
 						let name = '?';
 						
-						let is_armable = 0;
+						let is_armable = false;
 						
 						if ( from_entity.is( sdLost ) )
 						name = from_entity._title_as_storage_item;
@@ -681,7 +691,7 @@ class sdStorage extends sdEntity
 						else
 						if ( from_entity.is( sdJunk ) )
 						{
-							is_armable = 1;
+							is_armable = true;
 						
 							if ( from_entity.type === sdJunk.TYPE_ALIEN_BATTERY )
 							name = ( 'Alien battery' );
@@ -693,7 +703,7 @@ class sdStorage extends sdEntity
 							name = ( 'Cryo-substance barrel' );
 							else
 							if ( from_entity.type === sdJunk.TYPE_FIRE_BARREL )
-							name = ( 'Flammable-substance barrel' );
+							name = ( 'Fuel barrel' );
                             if ( from_entity.type === sdJunk.TYPE_TOXIC_BARREL )
 							name = ( 'Toxic gas barrel' );
 							else
@@ -719,7 +729,11 @@ class sdStorage extends sdEntity
 						}
 						else
 						if ( from_entity.is( sdStorage ) )
-						name = ( from_entity.title );
+                        {
+                            name = ( from_entity.title );
+                            if ( from_entity.nick )
+                            name += ` (${ from_entity.nick })`
+                        }
 						else
 						if ( from_entity.is( sdFaceCrab ) )
 						{
@@ -1003,6 +1017,19 @@ class sdStorage extends sdEntity
 						return;
 					}
 				}
+                
+                if ( command_name === 'RENAME' )
+                if ( parameters_array )
+                if ( typeof parameters_array[ 0 ] === 'string' )
+                {
+                    if ( parameters_array[ 0 ].length < 32 )
+                    {
+                        this.nick = parameters_array[ 0 ];
+                        this.nick_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+                    }
+                    else
+                    executer_socket.SDServiceMessage( 'Name is too long' );
+                }
 
 				if ( command_name === 'STORAGE_GET' )
 				{
@@ -1066,6 +1093,8 @@ class sdStorage extends sdEntity
 				{
 					this.AddContextOption( 'Disarm', 'DISARM', [ ], true, { color: '#ffff00' } );
 				}
+
+                this.AddPromptContextOption( 'Set label', 'RENAME', [ undefined ], 'Enter label', '', 32 );
 			}
 		}
 	}

@@ -263,7 +263,7 @@ class sdCommandCentre extends sdEntity
         let t = this.biometry;
 		
         if ( sdWorld.client_side_censorship && this.biometry_censored )
-        t = sdWorld.biometry_censoredText( t );
+        t = sdWorld.CensoredText( t );
 
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+t+')', 0, -8 - 6 );
 		

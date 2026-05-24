@@ -11,6 +11,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdWeather from './sdWeather.js';
 import sdCom from './sdCom.js';
 import sdSound from '../sdSound.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 class sdThruster extends sdEntity

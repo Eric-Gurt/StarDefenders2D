@@ -36,12 +36,15 @@ class sdRenderer
 		return;
 	
 		sdRenderer.img_sun = sdWorld.CreateImageFromFile( 'sun' );
-		
+    
 		sdRenderer.ad_happens = false;
 		
 		sdRenderer.dark_tint = 1;
 		
 		sdRenderer.debug_nothing_screen = false;
+        
+        sdRenderer.quakes = []; // { intensity, ttl }
+        sdRenderer.quake_intensity = 0;
 		sdRenderer._quake_screen_shake_since = 0;
 		
 		sdRenderer.line_of_sight_mode = true;
@@ -57,6 +60,8 @@ class sdRenderer
 				
 		sdRenderer.resolution_quality = 1;
         sdRenderer.draw_in_3d = true;
+        
+        sdRenderer.enable_screen_shakes = true;
 	
 		var canvas = document.createElement('canvas');
 		canvas.id     = "SD2D";
@@ -122,6 +127,18 @@ class sdRenderer
 		sdRenderer.known_light_sources = []; // Array of entities
 		
 		sdRenderer.visible_chunks = new Map(); // hash -> { x, y, last_active_visibility_time, active_visibility, opacity }
+
+		 sdRenderer.star_pattern = [];
+        const old_seed = sdWorld.SeededRandomNumberGenerator.seed;
+        sdWorld.SeededRandomNumberGenerator.seed = 55126;
+        for ( let i = 0; i < 100; ++i )
+        {
+            const rand = sdWorld.SeededRandomNumberGenerator.random( i, 100 );
+            const rand2 = sdWorld.SeededRandomNumberGenerator.random( 100, i );
+
+            sdRenderer.star_pattern.push({ size: 1 + rand / 4, glow: rand < 0.1, color: rand2 < 0.02 ? '#0000ff': '#ffffff', angle: rand * Math.PI * 2, distance: Math.sqrt( rand2 ) * 875 });
+        }
+		sdWorld.SeededRandomNumberGenerator.seed = old_seed;
 		
 		if ( typeof window !== 'undefined' )
 		{
@@ -787,10 +804,95 @@ class sdRenderer
 		//else
 		//sdRenderer.canvas.style.cursor = '';
 	}
+    static DrawUIBar( ctx, x, y, v1, v2, color = "#ff0000", width, height, name, display_value = true ) {
+        const padding = 5;
+        const padding_name = width * 0.2;
+
+        // background
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.fillRect( x - ( name ? padding_name : 0 ), y, width + ( name ? padding_name : 0 ) + ( display_value ? padding_name / 2 : 0 ), height );
+
+        const fill = sdWorld.limit( 0, 1, v1 / v2 );
+
+        ctx.globalAlpha = 0.3;
+        
+        // bar background
+        ctx.fillRect(
+            x + padding,
+            y + padding,
+            ( width - padding * 2 ),
+            height - padding * 2
+        );
+        
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = color;
+        // bar
+        ctx.fillRect(
+            x + padding,
+            y + padding,
+            ( width - padding * 2 ) * fill,
+            height - padding * 2
+        );
+
+        if ( name )
+        ctx.fillText( T( name ), x - padding_name / 2.75, y + padding + height / 2 );
+
+        if ( display_value )
+        ctx.fillText( Math.ceil( v1 ), x + width + padding_name / 4, y + padding + height / 2 );
+
+        ctx.globalAlpha = 1;
+    }
+    static ScreenShake( intensity, ttl )
+    {
+        if ( !sdRenderer.enable_screen_shakes )
+        return;
+
+        sdRenderer.quakes.push({ intensity, ttl });
+        sdRenderer.quake_intensity += intensity;
+    }
+    static HandleScreenShakes( GSPEED )
+    {
+        if ( !sdRenderer.enable_screen_shakes )
+        return;
+
+        let decrease = 0;
+        for ( let i = sdRenderer.quakes.length - 1; i >= 0; i-- )
+        {
+            const quake = sdRenderer.quakes[ i ];
+            quake.ttl -= GSPEED;
+            
+            if ( quake.ttl <= 0 )
+            {
+                decrease += quake.intensity;
+                sdRenderer.quakes.splice( i, 1 );
+            }
+        }
+        
+        sdRenderer.quake_intensity -= decrease;
+        
+        if ( sdRenderer.quake_intensity < 0 )
+        sdRenderer.quake_intensity = 0;
+    }
 	static GetVisibleEntities()
 	{
 		return ( sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities );
 	}
+	static DrawStars( ctx )
+    {
+        const old_hue = ctx.sd_hue_rotation;
+        ctx.sd_hue_rotation = 0;
+        for ( const star of sdRenderer.star_pattern )
+        {
+            const angle = star.angle - Math.PI * 2 * sdWeather.only_instance.day_time / ( 30 * 60 * 24 );
+            const x = Math.cos( angle ) * star.distance;
+            const y = Math.sin( angle ) * star.distance;
+            ctx.fillStyle = star.color;
+            ctx.fillRect( 0.5 + x + sdRenderer.screen_width / 2, 0.5 + y + sdRenderer.screen_height / 2, star.size, star.size );
+        }
+        ctx.sd_hue_rotation = old_hue;
+    }
 	static Render( frame )
 	{
 		let GSPEED = sdWorld.GSPEED;
@@ -956,6 +1058,12 @@ class sdRenderer
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, 0 - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 				}*/
+                
+                const day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
+                const sun_brightness = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 );
+                ctx.globalAlpha = 1 - sun_brightness;
+                sdRenderer.DrawStars( ctx );
+				ctx.globalAlpha = 1;
 				
 				let current_camera_scale = ( sdWorld.camera.scale / 4.75 );
 				
@@ -1004,8 +1112,6 @@ class sdRenderer
 						// Not ideal but it works? - Booraz149
 					}
 				}
-				//
-				
 				
 				if ( sdRenderer.dark_lands_canvases )
 				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
@@ -1072,19 +1178,17 @@ class sdRenderer
 					ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x * 0.8 / 16, 360 ) );
 					
 					let brightness = 3 / sdRenderer.dark_lands_colors.length;
-					
-					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
-					
+
 					if ( sdWeather.only_instance._dustiness > 0 )
 					brightness += sdWeather.only_instance._dustiness * 6 / sdRenderer.dark_lands_colors.length;
 					
 					ctx.globalAlpha = Math.min( 0.99, ( Math.cos( day_progress ) * 0.5 + 0.5 ) * brightness );
 					ctx.fillStyle = sdRenderer.sky_gradient;
 					ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
-					
+
 					if ( i === sdRenderer.dark_lands_colors.length - 1 )
 					{
-						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 ); // Just in case
+						ctx.globalAlpha = sun_brightness; // Just in case
 						
 						if ( ctx.globalAlpha > 0 )
 						{
@@ -1204,32 +1308,37 @@ class sdRenderer
 			}
 		}
 		
+        if ( sdRenderer.enable_screen_shakes )
+        {
+            if ( sdRenderer._quake_screen_shake_since === 0 )
+            sdRenderer._quake_screen_shake_since = sdWorld.time;
+
+            let quake_intensity = sdRenderer.quake_intensity;
+
+            if ( sdWeather.only_instance )
+            quake_intensity += sdWeather.only_instance.quake_intensity / 300;
+
+            if ( quake_intensity > 0 )
+            {
+                sdRenderer.HandleScreenShakes( GSPEED );
+                //quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - sdRenderer._quake_screen_shake_since ) / 1000 ) );
+                const an = sdWorld.mod( sdWorld.time / 30, Math.PI * 2 );
+                const x = Math.cos( an ) * quake_intensity;
+                const y = Math.sin( an ) * quake_intensity;
+
+                sdWorld.camera.x += x;
+                sdWorld.camera.y += y;
+            }
+            else
+            {
+                sdRenderer._quake_screen_shake_since = sdWorld.time;
+            }
+        }
+
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
-		ctx.scale( sdWorld.camera.scale, 
-				   sdWorld.camera.scale );
+		ctx.scale( sdWorld.camera.scale,  sdWorld.camera.scale );
 		ctx.translate( -sdRenderer.screen_width / 2, -sdRenderer.screen_height / 2 );
-		
-			
-		
 		ctx.translate( -sdWorld.camera.x, -sdWorld.camera.y );
-		
-		if ( sdWorld.entity_classes.sdWeather.only_instance )
-		{
-			if ( sdRenderer._quake_screen_shake_since === 0 )
-			sdRenderer._quake_screen_shake_since = sdWorld.time;
-			
-			let quake_intensity = sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100;
-			if ( quake_intensity > 0 )
-			{
-				quake_intensity = Math.max( 0.1, 1 / ( 1 + ( sdWorld.time - sdRenderer._quake_screen_shake_since ) / 1000 ) );
-				ctx.translate( 0, Math.sin( sdWorld.time / 30 ) * quake_intensity );
-			}
-			else
-			{
-				sdRenderer._quake_screen_shake_since = sdWorld.time;
-			}
-		}
-		
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
 		
 		// In-world
@@ -1947,9 +2056,9 @@ for ( let i = 0; i < visible_entities.length; i++ )
 			
 			ctx.font = 11*scale + "px Verdana";
 			
-			ctx.globalAlpha = 0.5;
+            ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 5, 5, 445 * scale, 17 );
+			//ctx.fillRect( 5, 5, 445 * scale, 17 );
 			
 			
 			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
@@ -1976,19 +2085,27 @@ for ( let i = 0; i < visible_entities.length; i++ )
 						}
 
 						ctx.fillStyle = '#000000';
-						ctx.fillRect( 5 + t * 35, 5 + 17 + 5, 30, 17 );
+						ctx.fillRect( 5 + t * 35, 17 + 17 + 10, 30, 17 );
 
 						ctx.globalAlpha = ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot ) ? 1 : 0.5;
 
 						ctx.fillStyle = '#ffffff';
 						ctx.textAlign = 'center';
-						ctx.fillText( i + '', 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 12 );
+						ctx.fillText( i + '', 5 + t * 35 + 30 / 2, 17 + 17 + 10 + 12 );
 
-						if ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot )
+						if ( i === sdWorld.my_entity.gun_slot )
 						{
+                            let yy = 55;
+                            let text = sdWorld.my_entity._inventory[ i ].title;
+                            if ( i === 1 && sdWorld.my_entity._inventory[ 10 ] )
+                            {
+                                text += ` & ${ sdWorld.my_entity._inventory[ 10 ].title }`;
+                                yy += 15;
+                            }
+    
 							ctx.fillStyle = '#00ffff';
 							ctx.textAlign = 'left';
-							ctx.fillText( sdWorld.my_entity._inventory[ i ].title, 15 + 345 * scale, 40 + 20 );
+							ctx.fillText( text, 15 + 345 * scale, yy );
 						}
 
 						//if ( sdWorld.time < sdWorld.my_entity_protected_vars_untils[ 'gun_slot' ] + 1000 )
@@ -1997,11 +2114,12 @@ for ( let i = 0; i < visible_entities.length; i++ )
 							ctx.globalAlpha = icons_opacity;
 
 							ctx.save();
-							ctx.translate( 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 30 );
+							ctx.translate( 5 + t * 35 + 30 / 2, 17 + 17 + 5 + 30 );
 							sdWorld.my_entity._inventory[ i ].Draw( ctx, true );
 							if ( i === 1 && sdWorld.my_entity._inventory[ 10 ]) // Slot 1, draw akimbo weapon if player has one
 							{
 								ctx.translate( 6, 6 );
+                                ctx.globalAlpha = icons_opacity;
 								sdWorld.my_entity._inventory[ 10 ].Draw( ctx, true );
 							}
 							ctx.restore();
@@ -2025,7 +2143,7 @@ for ( let i = 0; i < visible_entities.length; i++ )
 					{
 						ctx.globalAlpha = 0.15;
 						ctx.fillStyle = '#000000';
-						ctx.fillRect( 5 + t * 35, 5 + 17 + 5, 30, 17 );
+						ctx.fillRect( 5 + t * 35, 17 + 17 + 10, 30, 17 );
 					}
 				}
 			}
@@ -2098,18 +2216,59 @@ for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				
 			}
-			
-			
-			ctx.globalAlpha = 1;
-			
-			ctx.fillStyle = '#ff0000';
-			//ctx.fillRect( 7, 7, 296 * sdWorld.my_entity.hea / sdWorld.my_entity.hmax, 2 );
-			
-			ctx.textAlign = 'left';
-			ctx.fillStyle = '#ff0000';
-			ctx.fillText( T("Health") + ": " + Math.ceil( sdWorld.my_entity.hea ), 5 + 5 * scale, 17 );
 
-			ctx.fillStyle = '#77aaff';
+            const bar_width = 270 * scale;
+            const bar_height = 17 * scale;
+            // Health bar
+            sdRenderer.DrawUIBar( ctx, 64 - 10, 5, sdWorld.my_entity.hea, sdWorld.my_entity.hmax, '#ff0000', bar_width, bar_height, 'Health' );
+
+            // Armor bar
+            sdRenderer.DrawUIBar( ctx, 64 - 10, 5 + bar_height, sdWorld.my_entity.armor, sdWorld.my_entity.armor_max, '#77aaff', bar_width, bar_height, 'Armor ' );
+
+            // Matter
+            sdRenderer.DrawUIBar( ctx, 64 - 10 + bar_width - bar_width * 0.2 + bar_width * 0.5, 5, sdWorld.my_entity.matter, sdWorld.my_entity.matter_max, '#00ffff', bar_width, bar_height, 'Matter' );
+            
+            const score_bar_width = bar_width * 0.75;
+            // Level
+            let additive = 50;
+            for ( let i = 1; i < sdWorld.my_entity.build_tool_level; ++i )
+            additive *= 1.04;
+
+            const current_score = sdWorld.my_score;
+            const level_end = sdCharacter.score_to_level[ sdWorld.my_entity.build_tool_level ];
+            const prev_additive = additive / 1.04;
+            const level_start = level_end - prev_additive;
+            const progress = sdWorld.my_entity.build_tool_level >= sdCharacter.max_level ? 1 : current_score - level_start;
+            const range = sdWorld.my_entity.build_tool_level >= sdCharacter.max_level ? 1 : level_end - level_start;
+
+            sdRenderer.DrawUIBar(
+                ctx,
+                sdRenderer.screen_width - leaderboard_width - score_bar_width - 5,
+                5,
+                progress,
+                range,
+                '#ffff00',
+                score_bar_width,
+                bar_height,
+                `${T('Lvl')} ${sdWorld.my_entity.build_tool_level}`,
+                false
+            );
+            ctx.fillStyle = '#ffff00';
+			ctx.fillText( T("Score") + ": " + Math.floor( sdWorld.my_score ), sdRenderer.screen_width - leaderboard_width - score_bar_width - 7, 35 );
+            
+            if ( sdRenderer.display_coords )
+			{
+				ctx.fillStyle = '#ffffaa';
+				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed( 0 ) + ", Y = " + sdWorld.my_entity.y.toFixed( 0 ), sdRenderer.screen_width - 120 * scale, sdRenderer.screen_height - 15 );
+			}
+            
+            //ctx, x, y, v1, v2, color = "#ff0000", width = 20, height = 3, name
+
+            ctx.textAlign = 'left';
+			//ctx.fillStyle = '#ff0000';
+			//ctx.fillText( T("Health")  + Math.ceil( sdWorld.my_entity.hea ), 5 + 5 * scale, 17 );
+
+			/*ctx.fillStyle = '#77aaff';
 			ctx.fillText( T("Armor") + ": " + Math.ceil( sdWorld.my_entity.armor ), 5 + 95 * scale, 17 );			
 
 			ctx.fillStyle = '#00ffff';
@@ -2125,15 +2284,22 @@ for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				ctx.fillStyle = '#ffffaa';
 				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 465 * scale, 17 );
-			}
+			}*/
 			
-			const gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
+			let gun = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ];
 			
 			if ( gun )
-			if ( !sdGun.classes[ gun.class ].is_build_gun  )
+			if ( !sdGun.classes[ gun.class ].is_build_gun )
 			{
+                const is_alt = gun.fire_mode === 2 && typeof gun.alt_ammo_left === 'number';
+                
 				ctx.fillStyle = '#ffffff';
-				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( gun.GetAmmoCapacity() ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 40 );
+				ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 37 );
+                if ( sdWorld.my_entity.gun_slot === 1 && sdWorld.my_entity._inventory[ 10 ] )
+                {
+                    gun = sdWorld.my_entity._inventory[ 10 ];
+                    ctx.fillText( T("Ammo") + ": " +  ( gun.ammo_left === -1 ? "-" : ( is_alt ? gun.alt_ammo_left : gun.ammo_left ) + " / " + ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) + ` ( ${( gun.GetBulletCost( false, false ) * Math.abs( ( is_alt ? gun.GetAltAmmoCapacity() : gun.GetAmmoCapacity() ) ) ).toFixed( 0 ) } matter )`, 15 + 345 * scale, 37 + 17 );
+                }
 			}
 			if ( globalThis.enable_debug_info )
 			{
@@ -2153,7 +2319,7 @@ for ( let i = 0; i < visible_entities.length; i++ )
 			}
 			
 			ctx.save();
-			ctx.translate( 5 + 5 * scale, 80 );
+			ctx.translate( 15 * scale, 100 );
 			for ( let t = 0; t < sdTask.tasks.length; t++ )
 			{
 				let task = sdTask.tasks[ t ];

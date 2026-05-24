@@ -32,6 +32,7 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.FT_VELOX_A = 					factions_length++; // Velox Devastator
 		sdFactionTools.FT_VELOX_B = 					factions_length++; // Velox Soldier Combat Rifle Class
 		sdFactionTools.FT_VELOX_C = 					factions_length++; // Velox Soldier Burst Pistol Class
+        sdFactionTools.FT_VELOX_D = 					factions_length++; // Velox Soldier Taser
 		sdFactionTools.FT_SETR_A = 						factions_length++; // Setr Soldier Light Machine Gunner
 		sdFactionTools.FT_SETR_B = 						factions_length++; // Setr Soldier Shotgun
 		sdFactionTools.FT_TZYRG_A = 					factions_length++; // Tzyrg Shotgun
@@ -375,7 +376,17 @@ class sdFactionTools extends sdEntity
 				}
 			}
 			else
-
+            if ( type === sdFactionTools.FT_VELOX_D )
+			{
+				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				ENTITIES_ARRAY.push( character_entity );
+				{
+					ENTITIES_ARRAY.push( gun_entity = new GUN_CLASS({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ELECTROSHOCK }) );
+					character_entity._ai_gun_slot = 1;
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_VELOX, ...CLASSES_AND_STUFF );
+				}
+			}
+			else
 			if ( type === sdFactionTools.FT_SETR_A )
 			{
 				character_entity = new CHARACTER_CLASS({ x:xx, y:yy, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });

@@ -14,6 +14,7 @@ import sdDrone from './sdDrone.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
 import sdRift from './sdRift.js';
+import sdStatusEffect from './sdStatusEffect.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 class sdSandWorm extends sdEntity
@@ -33,7 +34,7 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_corrupted_head_attack = sdWorld.CreateImageFromFile( 'worm_corrupted_head_attack' );
 		sdSandWorm.img_worm_corrupted_body = sdWorld.CreateImageFromFile( 'worm_corrupted_body' );
 
-		// Council mecha worm sprites by 𝔱revoga
+		// Council mecha worm sprites by trevoga
 		sdSandWorm.img_worm_council_head_idle = sdWorld.CreateImageFromFile( 'worm_council_head_idle' );
 		sdSandWorm.img_worm_council_head_attack = sdWorld.CreateImageFromFile( 'worm_council_head_attack' );
 		sdSandWorm.img_worm_council_glow = sdWorld.CreateImageFromFile( 'worm_council_glow' );
@@ -78,7 +79,7 @@ class sdSandWorm extends sdEntity
     
     ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{ 
-		return [ 0, 0, -40 ];
+		return [ 0, 0, -64 ];
 	}
 	
 	get hard_collision() // For world geometry where players can walk
@@ -1348,7 +1349,7 @@ class sdSandWorm extends sdEntity
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) )
 				{
-					from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 40, intensity: 1.5, owner: this._owner });
+                            		from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 300, intensity: 1.5, owner: this });
 				}
 
 				this.model = 0;
