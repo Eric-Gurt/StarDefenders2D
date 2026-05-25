@@ -5255,7 +5255,7 @@ class sdGunClass
 			projectile_properties: { model: 'ball', _damage: 0, color:'#00ffff',
 				_custom_target_reaction_protected: ( bullet, target_entity )=>
 				{
-					if ( target_entity.is( sdBlock ) && target_entity.texture_id === sdBlock.TEXTURE_sdGun.ID_PORTAL )
+					if ( target_entity.is( sdBlock ) && target_entity.texture_id === sdBlock.TEXTURE_ID_PORTAL )
 					{
 						let portals_by_owner = [];
 						
