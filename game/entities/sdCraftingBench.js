@@ -1,10 +1,9 @@
-
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
-
 import sdEffect from './sdEffect.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdCraftingBench extends sdEntity
 {
@@ -235,7 +234,8 @@ class sdCraftingBench extends sdEntity
         craft.callback( gun );
 
         sdEntity.entities.push( gun );
-        
+        gun.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
+	
         return true;
     }
     
