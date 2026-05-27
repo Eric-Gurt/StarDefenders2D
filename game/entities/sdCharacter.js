@@ -7194,6 +7194,8 @@ THING is cosmic mic drop!`;
 			if ( typeof ent._hmax !== 'undefined' )
 			ent.Damage( ent._hmax * 0.9, null, false, false ); // Start with low hp
 		}
+        
+        ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 
 		ent.onBuilt();
 	}
