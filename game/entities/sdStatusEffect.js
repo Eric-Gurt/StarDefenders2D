@@ -2581,7 +2581,7 @@ class sdStatusEffect extends sdEntity
 				if ( !status_entity.for )
 				return;
 
-                const brightness = status_entity.ttl / 30;
+                const brightness = Math.max( 0, status_entity.ttl / 30 );
 				ctx.sd_status_effect_tint_filter = [ 1 + brightness, 1 + brightness, 1 + brightness * 4 ];
 			},
 			onAfterEntityRender: ( status_entity, ctx, attached )=>
