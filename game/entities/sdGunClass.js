@@ -11761,7 +11761,7 @@ class sdGunClass
 			slot: 2,
 			reload_time: 3,
 			muzzle_x: 9,
-			ammo_capacity: 50,
+			ammo_capacity: 40,
             alt_ammo_capacity: 6,
 			spread: 0.01,
 			count: 1,
