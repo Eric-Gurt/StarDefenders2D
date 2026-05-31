@@ -224,15 +224,8 @@
 	}
 	GoToScreen('screen_menu');
 	
-	function ServerButtonPressed( element, skip_confirm=false )
+	function ServerButtonPressed( url, skip_confirm=false )
 	{
-		let url = element.innerHTML.substring( 0, element.innerHTML.indexOf( '<' ) );
-		
-		if ( url.indexOf( 'localhost' ) === 0 )
-		url = 'http://' + url;
-		else
-		url = 'https://www.' + url;
-		
 		if ( skip_confirm || confirm( 'Each server keeps separate Settings and version of the game.\n\nYou can copy your current Settings as well as your character progress to a new server only by using red Long range teleports while playing.\n\nSimply switching servers won\'t do that.\n\nContinue to '+url+'?' ) )
 		{
 			window.location = url;

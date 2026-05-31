@@ -2550,6 +2550,45 @@ class sdStatusEffect extends sdEntity
 			{
 			}
 		};
+        
+        sdStatusEffect.types[ sdStatusEffect.TYPE_BUILT_ENTITY = 20 ] = 
+		{
+            remove_if_for_removed: true,
+
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.ttl = 30 * 1;
+			},
+			
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return true; // Cancel merge
+			},
+			
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+                if ( status_entity.for )
+				status_entity.ttl -= GSPEED;
+			
+				return ( status_entity.ttl <= 0 ); // return true = delete
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+
+                const brightness = Math.max( 0, status_entity.ttl / 30 );
+				ctx.sd_status_effect_tint_filter = [ 1 + brightness, 1 + brightness, 1 + brightness * 4 ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				ctx.sd_status_effect_tint_filter = null;
+			}
+		};
 
 		sdStatusEffect.status_effects = [];
 		

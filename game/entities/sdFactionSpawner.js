@@ -13,6 +13,7 @@ import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
 import sdFactions from './sdFactions.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 // This is an entity which spawns humanoids and drones of specific factions inside generated outposts.
 
@@ -216,6 +217,7 @@ class sdFactionSpawner extends sdEntity
 
 						sdEntity.entities.push( character_entity );
 						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_TZYRG ); // Give them Tzyrg properties
+                        character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 					}
 				}
 				else // If no space for humanoids, then try to spawn drones
@@ -225,6 +227,7 @@ class sdFactionSpawner extends sdEntity
 						sdEntity.entities.push( drone );
 						drone.sy = -2;
 						drone.sx = -3 + ( Math.random() * 6 );
+                        drone.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 				}
 			}
 		}
