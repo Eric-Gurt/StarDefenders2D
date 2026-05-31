@@ -1631,9 +1631,11 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 10,
 			ammo_capacity: -1,
+			spread: 0.01,
 			count: 1,
             matter_cost: 500, // Used in crafting bench
 			fire_type: 2,
+			
 			projectile_properties: { _rail: true, _damage: 22, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -4045,6 +4047,7 @@ class sdGunClass
 			reload_time: 8.5,
 			muzzle_x: 8,
 			ammo_capacity: 8,
+			spread: 0.01,
 			count: 1,
 			spawnable:false,
 			projectile_velocity: 16,
@@ -7143,7 +7146,7 @@ class sdGunClass
 			reload_time: 16,
 			muzzle_x: 8,
 			ammo_capacity: 6,
-			spread: 0,
+			spread: 0.01,
 			count: 1,
 			fire_type: 2,
 			spawnable: false,
@@ -7384,6 +7387,7 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 10,
 			ammo_capacity: -1,
+			spread: 0.01,
 			count: 1,
 			fire_type: 2,
             matter_cost: 1500, // Used in crafting bench
