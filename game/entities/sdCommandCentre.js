@@ -382,6 +382,7 @@ class sdCommandCentre extends sdEntity
                     this.biometry = parameters_array[ 0 ].toUpperCase();
                     this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
                     this._update_version++;
+					return;
                 }
                 else
                 executer_socket.SDServiceMessage( 'Name is too long' );
