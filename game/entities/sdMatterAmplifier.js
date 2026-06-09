@@ -431,15 +431,15 @@ class sdMatterAmplifier extends sdEntity
 		return ( 200 ) * this.multiplier + this._hmax * sdWorld.damage_to_matter;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		if ( parameters_array instanceof Array )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 			{
 				if ( command_name === 'SHIELD_TOGGLE' )
 				{
@@ -462,7 +462,7 @@ class sdMatterAmplifier extends sdEntity
 							{
 								if ( option.multiplier !== undefined )
 								if ( option.multiplier > this.multiplier && ( !best_option || option.multiplier < best_option.multiplier ) )
-								if ( exectuter_character.build_tool_level >= ( option._min_build_tool_level || 0 ) )
+								if ( executer_character.build_tool_level >= ( option._min_build_tool_level || 0 ) )
 								best_option = option;
 							}
 						}
@@ -481,9 +481,9 @@ class sdMatterAmplifier extends sdEntity
 							
 							cost = Math.min( 1800, cost ); // Keep it available even if wide version has crazy multipliers
 
-							if ( exectuter_character.matter >= cost )
+							if ( executer_character.matter >= cost )
 							{
-								exectuter_character.matter -= cost;
+								executer_character.matter -= cost;
 								
 								this._update_version++;
 								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -516,13 +516,13 @@ class sdMatterAmplifier extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 		{
 			this.AddContextOption( 'Toggle shields', 'SHIELD_TOGGLE', [] );
 			this.AddContextOption( 'Upgrade tier', 'UPGRADE', [] );

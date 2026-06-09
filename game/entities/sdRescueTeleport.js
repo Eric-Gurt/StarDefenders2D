@@ -690,20 +690,20 @@ class sdRescueTeleport extends sdEntity
 		}
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 			{
-				if ( exectuter_character.canSeeForUse( this ) )
+				if ( executer_character.canSeeForUse( this ) )
 				{
 					if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
 					{
-						if ( this.driver0 !== exectuter_character )
+						if ( this.driver0 !== executer_character )
 						{
 							if ( command_name === 'SABOTAGE' )
 							{
@@ -731,9 +731,9 @@ class sdRescueTeleport extends sdEntity
 					{
 						//if ( this._owner === null || ( this._owner.hea || this._owner._hea ) <= 0 || this._owner._is_being_removed )
 						//{
-							this._owner = exectuter_character;
-							this.owner_biometry = exectuter_character.biometry;
-							this._owner_hash = exectuter_character._my_hash;
+							this._owner = executer_character;
+							this.owner_biometry = executer_character.biometry;
+							this._owner_hash = executer_character._my_hash;
 
 							this._update_version++;
 
@@ -747,7 +747,7 @@ class sdRescueTeleport extends sdEntity
 					else
 					if ( command_name === 'UNRESCUE_HERE' )
 					{
-						//if ( exectuter_character === this._owner )
+						//if ( executer_character === this._owner )
 						//{
 							this._owner = null;
 							this.owner_biometry = -1;
@@ -770,18 +770,18 @@ class sdRescueTeleport extends sdEntity
 			executer_socket.SDServiceMessage( this.title+' is too far' );
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-		if ( exectuter_character.canSeeForUse( this ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
+		if ( executer_character.canSeeForUse( this ) )
 		{
 			if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
 			{
-				if ( this.driver0 !== exectuter_character )
+				if ( this.driver0 !== executer_character )
 				this.AddContextOption( 'Sabotage cloning', 'SABOTAGE', [] );
 				else
 				this.AddContextOption( 'Continue at rescue teleport instead', 'CANCEL', [] );
@@ -790,7 +790,7 @@ class sdRescueTeleport extends sdEntity
 			//if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
 			if ( this.owner_biometry !== -1 )
 			{
-				if ( this.owner_biometry === exectuter_character.biometry )
+				if ( this.owner_biometry === executer_character.biometry )
 				this.AddContextOption( 'Lose ownership', 'UNRESCUE_HERE', [] );
 				else
 				this.AddContextOption( 'Reset ownership', 'UNRESCUE_HERE', [] );

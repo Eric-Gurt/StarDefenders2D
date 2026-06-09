@@ -50,6 +50,8 @@ class sdRenderer
 		sdRenderer.line_of_sight_mode = true;
 		
 		sdRenderer.single_player_visibles_array = [];
+		
+		sdRenderer.bar_cached_values = new Map();
 	
 		sdRenderer.distance_scale_background = 1.4; // 1.2
 		sdRenderer.distance_scale_in_world = 1; // Can be altered with .CameraDistanceScale3D
@@ -804,43 +806,121 @@ class sdRenderer
 		//else
 		//sdRenderer.canvas.style.cursor = '';
 	}
-    static DrawUIBar( ctx, x, y, v1, v2, color = "#ff0000", width, height, name, display_value = true ) {
+    static DrawUIBar( ctx, GSPEED, params )
+	{
+		let { 
+			x, 
+			y, 
+			value_current, 
+			value_maximum, 
+			color="#ff0000", 
+			width, 
+			height, 
+			caption='', 
+			show_value=true, 
+			caption_width=undefined, 
+			value_width=undefined, 
+			translate=true,
+			damage_color=null,
+			damage_color_inverted=false
+			
+		} = params;
+		
         const padding = 5;
-        const padding_name = width * 0.2;
-
+		const bar_vertical_padding = 7;
+		
+		let value_text = show_value ? ''+Math.ceil( value_current ) : '';
+		
+		if ( caption_width === undefined )
+		caption_width = ( caption.length > 0 ) ? ctx.measureText( caption ).width + padding : 0;
+	
+		let value_previous = sdRenderer.bar_cached_values.get( caption );
+		if ( value_previous === undefined )
+		value_previous = value_current;
+	
+		if ( value_width === undefined )
+		value_width = ( value_text.length > 0 ) ? ctx.measureText( value_text ).width + padding : 0;
+		
         // background
         ctx.globalAlpha = 0.5;
         ctx.fillStyle = '#000000';
         ctx.textAlign = 'center';
-        ctx.fillRect( x - ( name ? padding_name : 0 ), y, width + ( name ? padding_name : 0 ) + ( display_value ? padding_name / 2 : 0 ), height );
+		ctx.fillRect( x, y, width, height );
 
-        const fill = sdWorld.limit( 0, 1, v1 / v2 );
+        const fill = sdWorld.limit( 0, 1, value_current / value_maximum );
+		const fill_previous = sdWorld.limit( 0, 1, value_previous / value_maximum );
 
+		let least_fill = Math.min( fill, fill_previous );
+		
+		let x0 = x + padding + caption_width;
+		let x1 = x + padding + caption_width + ( width - caption_width - value_width - padding * 2 ) * fill_previous;
+		let x2 = x + padding + caption_width + ( width - caption_width - value_width - padding * 2 ) * least_fill;
+		let x3 = x + padding + caption_width + ( width - caption_width - value_width - padding * 2 ) * 1;
+		
         ctx.globalAlpha = 0.3;
         
         // bar background
         ctx.fillRect(
-            x + padding,
-            y + padding,
-            ( width - padding * 2 ),
-            height - padding * 2
+            x0,
+            y + bar_vertical_padding,
+            x3-x0,
+            height - bar_vertical_padding * 2
         );
         
         ctx.globalAlpha = 0.8;
         ctx.fillStyle = color;
         // bar
         ctx.fillRect(
-            x + padding,
-            y + padding,
-            ( width - padding * 2 ) * fill,
-            height - padding * 2
+            x0,
+            y + bar_vertical_padding,
+            x2-x0,
+            height - bar_vertical_padding * 2
         );
 
-        if ( name )
-        ctx.fillText( T( name ), x - padding_name / 2.75, y + padding + height / 2 );
+        if ( caption.length > 0 )
+		{
+			ctx.textAlign = 'left';
+			ctx.fillText( translate ? T( caption ) : caption, 
+				x + padding, 
+				y + height / 2 + 7/2 );
+		}
 
-        if ( display_value )
-        ctx.fillText( Math.ceil( v1 ), x + width + padding_name / 4, y + padding + height / 2 );
+        if ( value_text.length > 0 )
+		{
+			ctx.textAlign = 'right';
+			ctx.fillText( value_text, 
+				x + width - padding, 
+				y + height / 2 + 7/2 );
+		}
+
+		// Damage portion of bar
+		if ( value_previous > value_current )
+		{
+			if ( damage_color !== null )
+			{
+				ctx.globalAlpha = 1;
+				ctx.fillStyle = damage_color;
+
+				ctx.fillRect(
+					x1,
+					y + bar_vertical_padding,
+					x2-x1,
+					height - bar_vertical_padding * 2
+				);
+
+				value_previous = value_previous - GSPEED * 2;
+
+				if ( value_previous < value_current )
+				value_previous = value_current;
+			}
+		}
+		else
+		if ( value_previous < value_current )
+		{
+			value_previous = Math.min( sdWorld.MorphWithTimeScale( value_previous, value_current, 0.9, GSPEED ) + GSPEED * 0.5, value_current );
+		}
+		
+		sdRenderer.bar_cached_values.set( caption, value_previous );
 
         ctx.globalAlpha = 1;
     }
@@ -901,7 +981,7 @@ class sdRenderer
 		if ( Math.random() > 0.1 )
 		return;*/
 												
-		let visible_entities = sdEntity.entities.slice();
+		let visible_entities; //  = sdEntity.entities.slice(); This won't work well with singleplayer worlds with tens of thousands of entities
 		
 		let min_x = sdWorld.camera.x - 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
 		let max_x = sdWorld.camera.x + 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
@@ -909,13 +989,17 @@ class sdRenderer
 		let min_y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
 		let max_y = sdWorld.camera.y + 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
 
-		if ( sdWorld.is_singleplayer )
+		let will_sort = false;
+		
+		will_sort = true; // Hack
+		
+		//if ( sdWorld.is_singleplayer )
 		{
-			const mark_flag_reference = sdEntity.flag_counter++;
+			const is_visible_flag = sdEntity.flag_counter++;
 			
-			visible_entities = sdRenderer.single_player_visibles_array = [];
+			let new_visible = new Set();
 			
-			let tot = 0;
+			visible_entities = sdRenderer.single_player_visibles_array;
 			
 			for ( let yy = Math.round( min_y ); yy < max_y; yy += sdWorld.CHUNK_SIZE )
 			for ( let xx = Math.round( min_x ); xx < max_x; xx += sdWorld.CHUNK_SIZE )
@@ -925,26 +1009,124 @@ class sdRenderer
 				for ( let i = 0; i < arr.length; i++ )
 				{
 					let e = arr[ i ];
-					if ( e._flag2 !== mark_flag_reference )
+					e._flag2 = is_visible_flag;
+					new_visible.add( e );
+					
+					/*if ( e._flag2 !== mark_flag_reference )
 					{
 						e._flag2 = mark_flag_reference;
 						visible_entities[ tot++ ] = e;
-					}
+					}*/
 				}
 			}
 			
 			for ( let i = 0; i < sdEntity.global_entities.length; i++ )
 			{
 				let e = sdEntity.global_entities[ i ];
-				if ( e._flag2 !== mark_flag_reference )
+				e._flag2 = is_visible_flag;
+				new_visible.add( e );
+				
+				/*if ( e._flag2 !== mark_flag_reference )
 				{
 					e._flag2 = mark_flag_reference;
 					visible_entities[ tot++ ] = e;
+				}*/
+			}
+			
+			for ( let e of sdEffect.client_side_effects )
+			{
+				if ( e._is_being_removed )
+				{
+					sdEffect.client_side_effects.delete( e );
+					debugger;
+				}
+				else
+				if ( ( e.x > min_x && e.x < max_x && e.y > min_y && e.y < max_y ) || // TODO: Improve railgun effects visibility
+				     ( e.x2 > min_x && e.x2 < max_x && e.y2 > min_y && e.y2 < max_y ) )
+				{					
+					e._flag2 = is_visible_flag;
+					new_visible.add( e );
 				}
 			}
 			
-			visible_entities.length = tot;
+			// Remove no longer visible entities
+			for ( let i = 0; i < visible_entities.length; i++ )
+			{
+				let e = visible_entities[ i ];
+				
+				if ( e._flag2 === is_visible_flag )
+				{
+					// Do not re-add
+					new_visible.delete( e );
+				}
+				else
+				{
+					// Delete no longer listed entity
+					visible_entities.splice( i, 1 );
+					i--;
+				}
+			}
+			
+			// Add missing entities
+			if ( new_visible.size > 0 )
+			{
+				will_sort = true;
+				
+				for ( let e of new_visible )
+				visible_entities.push( e );
+			}
 		}
+		
+		// Sorting (which should not be the case, rework rendering if needed) optimizations
+		if ( will_sort )
+		{
+			let debug_found_explosion = null;
+			
+			for ( let i = 0; i < visible_entities.lengh; i++ )
+			{
+				let e = visible_entities[ i ];
+				if ( e._sort === -999 ) // Update only once per entity?
+				//if ( e._sortA === -999 ) // Update only once per entity?
+				{
+					let offsetA = e.ObjectOffset3D( -1 );
+					let offsetB = e.ObjectOffset3D( 0 );
+					let offsetC = e.ObjectOffset3D( 1 );
+
+					// Why do we sort by non-depth axis is I don't know - EG
+					//e._sortA = ( offsetA ? offsetA[ 2 ] : 0 );
+					//e._sortB = ( offsetB ? offsetB[ 1 ] : 0 );
+					//e._sortC = ( offsetC ? offsetC[ 0 ] : 0 );
+
+					// 2 iz Z-offset
+					//e._sortA = ( offsetA ? offsetA[ 2 ] : 0 );
+					//e._sortB = ( offsetB ? offsetB[ 2 ] : 0 );
+					//e._sortC = ( offsetC ? offsetC[ 2 ] : 0 );
+					
+					// Might be just enough. Only doors have 2 versions of offsets but they are drawn in 3D anyway - we use background offset for them, the lowest one, so they can't cover something important
+					e._sort = Math.min(
+							offsetA ? offsetA[ 2 ] : 0,
+							offsetB ? offsetB[ 2 ] : 0,
+							offsetC ? offsetC[ 2 ] : 0
+						);
+				}
+				
+				if ( e.is( sdEffect ) )
+				if ( e._type === sdEffect.TYPE_EXPLOSION || e._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+				{
+					debug_found_explosion = e;
+				}
+			}
+			
+			if ( debug_found_explosion )
+			{
+				visible_entities = [ e ];
+			}
+			
+			visible_entities.sort( ( e1, e2 ) => e2._sort - e1._sort );
+			
+			
+		}
+		
 			
 		const show_hud = ( !sdWorld.my_entity || !sdWorld.my_entity.is( sdPlayerSpectator ) || sdChat.open || sdContextMenu.open );
 			
@@ -1308,6 +1490,8 @@ class sdRenderer
 			}
 		}
 		
+		let quake_offset_x = 0;
+		let quake_offset_y = 0;
         if ( sdRenderer.enable_screen_shakes )
         {
             if ( sdRenderer._quake_screen_shake_since === 0 )
@@ -1326,8 +1510,10 @@ class sdRenderer
                 const x = Math.cos( an ) * quake_intensity;
                 const y = Math.sin( an ) * quake_intensity;
 
-                sdWorld.camera.x += x;
-                sdWorld.camera.y += y;
+                //sdWorld.camera.x += x; These are stored and later rounded values, better not to use them - otherwise quake will affect camera position in slow camera mode
+                //sdWorld.camera.y += y;
+                quake_offset_x += x;
+                quake_offset_y += y;
             }
             else
             {
@@ -1338,7 +1524,7 @@ class sdRenderer
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
 		ctx.scale( sdWorld.camera.scale,  sdWorld.camera.scale );
 		ctx.translate( -sdRenderer.screen_width / 2, -sdRenderer.screen_height / 2 );
-		ctx.translate( -sdWorld.camera.x, -sdWorld.camera.y );
+		ctx.translate( -sdWorld.camera.x - quake_offset_x, -sdWorld.camera.y - quake_offset_y );
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
 		
 		// In-world
@@ -1466,9 +1652,12 @@ class sdRenderer
 			
 			const box_caps = sdRenderer.ctx.box_caps;
 		
-            //if ( !sdRenderer.draw_in_3d )
-            visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( -1 ) ? e2.ObjectOffset3D( -1 )[ 2 ] : 0 ) - ( e1.ObjectOffset3D( -1 ) ? e1.ObjectOffset3D( -1 )[ 2 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
-
+            //if ( will_sort )
+            //visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( -1 ) ? e2.ObjectOffset3D( -1 )[ 2 ] : 0 ) - ( e1.ObjectOffset3D( -1 ) ? e1.ObjectOffset3D( -1 )[ 2 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
+			
+			//if ( will_sort )
+			//visible_entities.sort( ( e1, e2 ) => e2._sortA - e1._sortA );
+			
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
@@ -1524,8 +1713,12 @@ class sdRenderer
 			ctx.z_offset = offset1 * sdWorld.camera.scale;
 			ctx.z_depth = ( sdRenderer.draw_in_3d ? 16 : 0 ) * sdWorld.camera.scale;
 			
-            //if ( !sdRenderer.draw_in_3d )
-            visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 0 ) ? e2.ObjectOffset3D( 0 )[ 1 ] : 0 ) - ( e1.ObjectOffset3D( 0 ) ? e1.ObjectOffset3D( 0 )[ 1 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
+            //if ( will_sort )
+            //visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 0 ) ? e2.ObjectOffset3D( 0 )[ 1 ] : 0 ) - ( e1.ObjectOffset3D( 0 ) ? e1.ObjectOffset3D( 0 )[ 1 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
+			
+			//if ( will_sort )
+			//visible_entities.sort( ( e1, e2 ) => e2._sortB - e1._sortB );
+			
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
@@ -1665,9 +1858,13 @@ class sdRenderer
 			
 			//ctx.z_offset = 0 * sdWorld.camera.scale;
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
-            //if ( !sdRenderer.draw_in_3d )
-            visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 1 ) ? e2.ObjectOffset3D( 1 )[ 0 ] : 0 ) - ( e1.ObjectOffset3D( 1 ) ? e1.ObjectOffset3D( 1 )[ 0 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
-for ( let i = 0; i < visible_entities.length; i++ )
+            //if ( will_sort )
+            //visible_entities.sort( ( e1, e2 ) => ( e2.ObjectOffset3D( 1 ) ? e2.ObjectOffset3D( 1 )[ 0 ] : 0 ) - ( e1.ObjectOffset3D( 1 ) ? e1.ObjectOffset3D( 1 )[ 0 ] : 0 ) ); // I don't like this, but this seems to be the only way to solve layers for now
+			
+			//if ( will_sort )
+			//visible_entities.sort( ( e1, e2 ) => e2._sortC - e1._sortC );
+			
+			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				const e = visible_entities[ i ];
 				
@@ -2217,16 +2414,43 @@ for ( let i = 0; i < visible_entities.length; i++ )
 				
 			}
 
-            const bar_width = 270 * scale;
+            const bar_width = 345 * scale;
             const bar_height = 17 * scale;
+			const caption_width = 50 * scale;
+			const value_width = 30 * scale;
+			const value_width_matter = 40 * scale;
             // Health bar
-            sdRenderer.DrawUIBar( ctx, 64 - 10, 5, sdWorld.my_entity.hea, sdWorld.my_entity.hmax, '#ff0000', bar_width, bar_height, 'Health' );
+            sdRenderer.DrawUIBar( ctx, GSPEED, {
+				x: 5, 
+				y: 5,
+				caption_width: caption_width,
+				value_width: value_width,
+				value_current: sdWorld.my_entity.hea, 
+				value_maximum: sdWorld.my_entity.hmax, color:'#ff0000', width:bar_width, height:bar_height, caption:'Health',
+				damage_color: '#ffffff'
+			});
 
             // Armor bar
-            sdRenderer.DrawUIBar( ctx, 64 - 10, 5 + bar_height, sdWorld.my_entity.armor, sdWorld.my_entity.armor_max, '#77aaff', bar_width, bar_height, 'Armor ' );
+            sdRenderer.DrawUIBar( ctx, GSPEED, {
+				x: 5, 
+				y: 5 + bar_height, 
+				caption_width: caption_width,
+				value_width: value_width,
+				value_current: sdWorld.my_entity.armor, 
+				value_maximum: sdWorld.my_entity.armor_max, color:'#77aaff', width:bar_width, height:bar_height, caption:'Armor',
+				damage_color: '#ffffff'
+			});
 
             // Matter
-            sdRenderer.DrawUIBar( ctx, 64 - 10 + bar_width - bar_width * 0.2 + bar_width * 0.5, 5, sdWorld.my_entity.matter, sdWorld.my_entity.matter_max, '#00ffff', bar_width, bar_height, 'Matter' );
+            sdRenderer.DrawUIBar( ctx, GSPEED, {
+				x: 10 + bar_width, 
+				y: 5, 
+				caption_width: caption_width,
+				value_width: value_width_matter,
+				value_current: sdWorld.my_entity.matter, 
+				value_maximum: sdWorld.my_entity.matter_max, color:'#00ffff', width:bar_width, height:bar_height, caption:'Matter',
+				damage_color: '#007777'
+			});
             
             const score_bar_width = bar_width * 0.75;
             // Level
@@ -2241,20 +2465,22 @@ for ( let i = 0; i < visible_entities.length; i++ )
             const progress = sdWorld.my_entity.build_tool_level >= sdCharacter.max_level ? 1 : current_score - level_start;
             const range = sdWorld.my_entity.build_tool_level >= sdCharacter.max_level ? 1 : level_end - level_start;
 
-            sdRenderer.DrawUIBar(
-                ctx,
-                sdRenderer.screen_width - leaderboard_width - score_bar_width - 5,
-                5,
-                progress,
-                range,
-                '#ffff00',
-                score_bar_width,
-                bar_height,
-                `${T('Lvl')} ${sdWorld.my_entity.build_tool_level}`,
-                false
-            );
+            sdRenderer.DrawUIBar( ctx, GSPEED, {
+                x: sdRenderer.screen_width - leaderboard_width - score_bar_width - 10,
+                y: 5,
+                value_current: progress,
+                value_maximum: range,
+                color: '#ffff00',
+                width: score_bar_width,
+                height: bar_height,
+				
+                caption: `${T('Level')} ${sdWorld.my_entity.build_tool_level}`,
+				translate: false,
+				
+                show_value: false
+			});
             ctx.fillStyle = '#ffff00';
-			ctx.fillText( T("Score") + ": " + Math.floor( sdWorld.my_score ), sdRenderer.screen_width - leaderboard_width - score_bar_width - 7, 35 );
+			ctx.fillText( T("Score") + ": " + sdWorld.RoundedThousandsSpaces( sdWorld.my_score ), sdRenderer.screen_width - leaderboard_width - score_bar_width - 7, 35 );
             
             if ( sdRenderer.display_coords )
 			{

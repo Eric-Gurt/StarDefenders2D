@@ -852,16 +852,16 @@ class sdBadDog extends sdEntity
 	{
 		return 0; // Hack
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
 			if ( command_name === 'PAT' || command_name === 'ARMOR' || command_name === 'TURRET' )
 			{
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 				{
 				}
 				else
@@ -873,9 +873,9 @@ class sdBadDog extends sdEntity
 			
 			if ( command_name === 'OWN' )
 			{
-				if ( exectuter_character._god )
+				if ( executer_character._god )
 				{
-					this.master = exectuter_character;
+					this.master = executer_character;
 					this.SetTarget( null );
 				}
 			}
@@ -904,7 +904,7 @@ class sdBadDog extends sdEntity
 							} 
 						};
 
-						if ( this.master === exectuter_character )
+						if ( this.master === executer_character )
 						params.text = 'Aw, thanks man';
 						else
 						params.text = 'Thanks, but I only accept pats from ' + this.master.title;
@@ -914,7 +914,7 @@ class sdBadDog extends sdEntity
 				}
 			}
 			
-			if ( this.master === exectuter_character )
+			if ( this.master === executer_character )
 			{
 				if ( command_name === 'FOLLOW_TOGGLE' )
 				{
@@ -981,21 +981,21 @@ class sdBadDog extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( exectuter_character._god )
-			if ( this.master !== exectuter_character )
+			if ( executer_character._god )
+			if ( this.master !== executer_character )
 			{
 				this.AddContextOption( 'sudo own', 'OWN', [] );
 			}
 
 			if ( this.master )
-			if ( this.master === exectuter_character )
+			if ( this.master === executer_character )
 			{
 				if ( this.follow )
 				this.AddContextOption( 'Stop following me', 'FOLLOW_TOGGLE', [] );
@@ -1005,13 +1005,13 @@ class sdBadDog extends sdEntity
 				this.AddContextOption( 'Lose ownership', 'DISOWN', [] );
 			}
 
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 			{
 				if ( this.master )
 				{
 					this.AddContextOption( 'Give pats', 'PAT', [] );
 
-					if ( this.master === exectuter_character )
+					if ( this.master === executer_character )
 					{
 						if ( this.type === 0 )
 						this.AddContextOption( 'Build armor for the dog (300 matter)', 'ARMOR', [] );

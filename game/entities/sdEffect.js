@@ -24,6 +24,8 @@ class sdEffect extends sdEntity
 		else
 		sdEffect.initiated = true;
 	
+		sdEffect.client_side_effects = new Set();
+	
 		sdEffect.local_effect_counter = 0;
 		
 		//console.log('sdEffect class initiated');
@@ -993,6 +995,8 @@ class sdEffect extends sdEntity
 
         if ( params.screen_shake )
         sdRenderer.ScreenShake( params.screen_shake * sdSound.GetDistanceMultForPosition( this.x, this.y ), this._radius / 4 );
+	
+		sdEffect.client_side_effects.add( this );
 	}
 	static Transliterate( word )
 	{
@@ -1031,6 +1035,12 @@ class sdEffect extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		/*if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+		{
+			trace( 'onThink', this );
+			debugger;
+		}*/
+		
 		if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 		this._ani += GSPEED * this._decay_speed * ( 20 / this._radius ) / this._scale;
 		else
@@ -1150,6 +1160,11 @@ class sdEffect extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		/*if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+		{
+			trace( 'Draw', this );
+		}*/
+		
 		if ( this._is_being_removed )
 		return;
 	
@@ -1318,6 +1333,11 @@ class sdEffect extends sdEntity
 	}
 	DrawFG( ctx, attached )
 	{
+		/*if ( this._type === sdEffect.TYPE_EXPLOSION || this._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+		{
+			trace( 'DrawFG', this );
+		}*/
+		
 		if ( this._is_being_removed )
 		return;
 	
@@ -1590,6 +1610,8 @@ class sdEffect extends sdEntity
 		sdMusic.SpeakStop();
 	
 		sdEffect.effect_counters[ this._type ]--;
+		
+		sdEffect.client_side_effects.delete( this );
 	}
 }
 //sdEffect.init_class();

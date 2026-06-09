@@ -319,13 +319,13 @@ class sdManualTurret extends sdEntity
 	RequireSpawnAlign()
 	{ return true; }
 	
-	/*PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	/*PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		//if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 512 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 512 ) )
 		{
 			this.AddContextOption( 'Set to anti-base mode', 'MODE', [] );
 			this.AddContextOption( 'Set to anti-base mode', 'MODE', [] );

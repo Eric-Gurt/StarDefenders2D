@@ -1642,25 +1642,25 @@ class sdSteeringWheel extends sdEntity
 		return 1000;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdSteeringWheel.access_range ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdSteeringWheel.access_range ) )
 			{
 				if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 				{
 					if ( command_name === 'SCAN' )
-					this.Scan( exectuter_character );
+					this.Scan( executer_character );
 				}
 				else
 				if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 				{
 					if ( command_name === 'SCAN' )
-					this.Scan( exectuter_character );
+					this.Scan( executer_character );
 				
 					if ( command_name === 'SET_SPEED' )
 					{
@@ -1692,13 +1692,13 @@ class sdSteeringWheel extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdSteeringWheel.access_range ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdSteeringWheel.access_range ) )
 		{
 			if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 			this.AddContextOption( 'Rescan base entities', 'SCAN', [] );

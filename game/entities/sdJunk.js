@@ -904,7 +904,8 @@ class sdJunk extends sdEntity
                 this.sx += Math.cos( an ) * 3 * GSPEED;
                 this.sy += Math.sin( an ) * 3 * GSPEED;
 
-                if ( Math.random() < 0.1 * GSPEED )
+                //if ( Math.random() < 0.1 * GSPEED ) 100% chance at GSPEED of 10, which isn't right
+				if ( Math.random() > Math.pow( 0.9, GSPEED ) )
                 {
                     this.DamageWithEffect( 3 * GSPEED, this );
                     sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:1, pitch: 2 });
@@ -912,7 +913,8 @@ class sdJunk extends sdEntity
 
                     for ( const near of nears )
                     {
-                        if ( Math.random() < 0.3 * GSPEED )
+                        //if ( Math.random() < 0.3 * GSPEED ) 100% chance at GSPEED of 4, which isn't right
+						if ( Math.random() > Math.pow( 0.7, GSPEED ) )
                         if ( near && near !== this )
                         if ( !near.is( sdBaseShieldingUnit ) )
 						if ( near._is_bg_entity === this._is_bg_entity )
@@ -1972,14 +1974,14 @@ class sdJunk extends sdEntity
 			}
 		}
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
-			if ( exectuter_character )
-			if ( exectuter_character.hea > 0 )
+			if ( executer_character )
+			if ( executer_character.hea > 0 )
 			{
-				if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
+				if ( this.inRealDist2DToEntity_Boolean( executer_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
 				{
 					if ( command_name === 'MODE' )
 					{
@@ -1995,13 +1997,13 @@ class sdJunk extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
-			if ( exectuter_character )
-			if ( exectuter_character.hea > 0 )
-			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+			if ( executer_character )
+			if ( executer_character.hea > 0 )
+			if ( executer_character._god || this.inRealDist2DToEntity_Boolean( executer_character, 64 ) )
 			{
 				let active_mode_text = ' ( ' + T( 'active' ) + ' )';
 				this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.glow_animation === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );

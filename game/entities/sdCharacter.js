@@ -1350,7 +1350,7 @@ THING is cosmic mic drop!`;
 		
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
 		this._save_file = undefined; // Used to transfer save file together with character
-		this.biometry = Math.floor( Math.random() * 9007199254740991 ); // Used for entities to recognize player when he leaves server (_net_id is different on other servers)
+		this.biometry = Math.floor( Math.random() * 9007199254740991 ); // Used for entities to recognize player when he leaves server (_net_id is different on other servers) // This property should be never changed nor assigned to non-player entities
 		//this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
 		this._score = 0; // Only place where score will be kept from now
 		
@@ -7647,15 +7647,15 @@ THING is cosmic mic drop!`;
 		}
 	}
 	
-	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	AllowContextCommandsInRestirectedAreas( executer_character, executer_socket ) // executer_character can be null
 	{
 		return true;
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		{
-			/*if ( exectuter_character )
+			/*if ( executer_character )
 			if ( command_name === 'REPORT' )
 			{
 				if ( typeof parameters_array[ 0 ] === 'string' )
@@ -7699,10 +7699,10 @@ THING is cosmic mic drop!`;
 			}*/
 			
 			if ( this.hea > 0 )
-			if ( exectuter_character )
-			if ( exectuter_character.hea > 0 )
+			if ( executer_character )
+			if ( executer_character.hea > 0 )
 			{
-				if ( exectuter_character._god )
+				if ( executer_character._god )
 				{
 					if ( command_name === 'ADMIN_TOGGLE' )
 					{
@@ -7746,14 +7746,14 @@ THING is cosmic mic drop!`;
 						}
 						else
 						{
-							exectuter_character._god = false;
-							exectuter_character._socket = null;
+							executer_character._god = false;
+							executer_character._socket = null;
 
 							this._socket = executer_socket;
 							executer_socket.character = this;
 
-							//this.title = exectuter_character.title;
-							//this.title_censored = exectuter_character.title_censored;
+							//this.title = executer_character.title;
+							//this.title_censored = executer_character.title_censored;
 
 							//this._god = true;
                             //this._ai_team = 0;
@@ -7773,10 +7773,10 @@ THING is cosmic mic drop!`;
 					}
 				}
 
-				//if ( exectuter_character ) 
-				//if ( exectuter_character.hea > 0 ) 
+				//if ( executer_character ) 
+				//if ( executer_character.hea > 0 ) 
 
-				if ( exectuter_character === this )
+				if ( executer_character === this )
 				{
 					if ( command_name === 'RTP' )
 					{
@@ -7787,7 +7787,7 @@ THING is cosmic mic drop!`;
 					{
 						if ( parameters_array[ 0 ] === 'HEARTS' )
 						{
-							exectuter_character.ApplyStatusEffect({ type: sdStatusEffect.TYPE_HEARTS });
+							executer_character.ApplyStatusEffect({ type: sdStatusEffect.TYPE_HEARTS });
 						}
 						if ( parameters_array[ 0 ] === 'NOTHING' )
 						{
@@ -7801,14 +7801,14 @@ THING is cosmic mic drop!`;
 
 					if ( command_name === 'DROP_ARMOR' )
 					{
-						if ( exectuter_character.armor > 0 ) 
+						if ( executer_character.armor > 0 ) 
 						{
-							exectuter_character.DropArmor();
+							executer_character.DropArmor();
 						}
 					}
 					if ( command_name === 'NO_TASKS' )
 					{
-						sdTask.PerformActionOnTasksOf( exectuter_character, ( task )=>
+						sdTask.PerformActionOnTasksOf( executer_character, ( task )=>
 						{
 							if ( task.mission !== sdTask.MISSION_TRACK_ENTITY )
 							if ( task.mission !== sdTask.MISSION_TASK_CLAIM_REWARD )
@@ -7818,20 +7818,20 @@ THING is cosmic mic drop!`;
 					}
 					/*if ( command_name === 'REMOVE_EFFECTS' )
 					{
-						//exectuter_character.stim_ef = 0;
-						exectuter_character.power_ef = 0;
-						exectuter_character.time_ef = 0;
+						//executer_character.stim_ef = 0;
+						executer_character.power_ef = 0;
+						executer_character.time_ef = 0;
 					}*/
 
 					if ( command_name === 'CC_SET_SPAWN' )
 					{
-						if ( exectuter_character )
-						if ( exectuter_character.cc )
-						if ( this.cc === exectuter_character.cc )
+						if ( executer_character )
+						if ( executer_character.cc )
+						if ( this.cc === executer_character.cc )
 						{
-							if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+							if ( executer_character._cc_rank < this._cc_rank || executer_character === this )
 							{
-								exectuter_character.cc.KickNetID( this, true );
+								executer_character.cc.KickNetID( this, true );
 							}
 							else
 							executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
@@ -7862,7 +7862,7 @@ THING is cosmic mic drop!`;
 
 								sdTask.MakeSureCharacterHasTask({ 
 									similarity_hash:'TRACK-LRTP'+e._net_id, 
-									executer: exectuter_character,
+									executer: executer_character,
 									target: e,
 									mission: sdTask.MISSION_TRACK_ENTITY,
 
@@ -7888,11 +7888,11 @@ THING is cosmic mic drop!`;
 
 
 				if ( command_name === 'INSTALL_DRONE_GUN' )
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-				if ( exectuter_character.matter >= 200 )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
+				if ( executer_character.matter >= 200 )
 				//if ( this.is( sdPlayerDrone ) )
 				if ( this.GetClass() === 'sdPlayerDrone' )
-				if ( exectuter_character.is( sdCharacter ) )
+				if ( executer_character.is( sdCharacter ) )
 				{
 					let ents = sdWorld.GetAnythingNear( this.x, this.y, 32 );
 
@@ -7907,7 +7907,7 @@ THING is cosmic mic drop!`;
 
 					if ( ok )
 					{
-						let gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+						let gun = executer_character._inventory[ executer_character.gun_slot ];
 						if ( gun && !sdGun.classes[ gun.class ].is_build_gun )
 						{
 							let guns = 0;
@@ -7919,8 +7919,8 @@ THING is cosmic mic drop!`;
 
 							if ( guns < 2 )
 							{
-								exectuter_character.matter -= 200;
-								exectuter_character.DropWeapon( exectuter_character.gun_slot );
+								executer_character.matter -= 200;
+								executer_character.DropWeapon( executer_character.gun_slot );
 								gun._unblocked_for_drones = true;
 								gun.x = this.x;
 								gun.y = this.y;
@@ -7942,18 +7942,18 @@ THING is cosmic mic drop!`;
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
-		if ( !this._is_being_removed || exectuter_character === sdWorld.my_entity )
+		if ( !this._is_being_removed || executer_character === sdWorld.my_entity )
 		{
-			/*if ( exectuter_character )
+			/*if ( executer_character )
 			this.AddPromptContextOption( 'Report this player', 'REPORT', [ undefined ], 'Specify report reason in short', '', 500 );*/
 			
-			if ( this.hea > 0 || exectuter_character === sdWorld.my_entity )
-			if ( exectuter_character )
-			if ( exectuter_character.hea > 0 || exectuter_character === sdWorld.my_entity )
+			if ( this.hea > 0 || executer_character === sdWorld.my_entity )
+			if ( executer_character )
+			if ( executer_character.hea > 0 || executer_character === sdWorld.my_entity )
 			{
-				if ( exectuter_character._god )
+				if ( executer_character._god )
 				{
 					this.AddContextOption( 'Press "E"', 'ADMIN_PRESS', [ 'KeyE' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Press "Mouse1"', 'ADMIN_PRESS', [ 'Mouse1' ], true, { color:'ff0000' } );
@@ -7983,9 +7983,9 @@ THING is cosmic mic drop!`;
 
 
 
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 				{
-					if ( this === exectuter_character )
+					if ( this === executer_character )
 					{
 						if ( sdWorld.is_singleplayer )
 						{
@@ -8084,10 +8084,10 @@ THING is cosmic mic drop!`;
 					else
 					{
 						if ( this.GetClass() === 'sdPlayerDrone' )
-						if ( exectuter_character.is( sdCharacter ) )
+						if ( executer_character.is( sdCharacter ) )
 						this.AddContextOption( 'Install current weapon (200 matter)', 'INSTALL_DRONE_GUN', [] );
 
-						/*if ( this.cc_id === exectuter_character.cc_id )
+						/*if ( this.cc_id === executer_character.cc_id )
 						{
 
 							this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
@@ -8095,10 +8095,10 @@ THING is cosmic mic drop!`;
 					}
 				}
 
-				if ( this !== exectuter_character )
+				if ( this !== executer_character )
 				{
 					if ( this.cc_id !== 0 )
-					if ( this.cc_id === exectuter_character.cc_id )
+					if ( this.cc_id === executer_character.cc_id )
 					this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
 				}
 			}

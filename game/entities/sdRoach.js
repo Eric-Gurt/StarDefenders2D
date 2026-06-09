@@ -36,7 +36,7 @@ class sdRoach extends sdEntity
 	get hitbox_y1() { return ( this.bgcrawl === 1 && this.fr <= 2 ) ? -5 : -1; }
 	get hitbox_y2() { return ( this.bgcrawl === 1 && this.fr <= 2 ) ? 5 : 3; }
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{ 
 		return [ 0, 0, 30 ];
 	}
@@ -568,13 +568,13 @@ class sdRoach extends sdEntity
 		ctx.sd_filter = null;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.type !== sdRoach.TYPE_MOTH )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 		{
 			if ( command_name === 'SET_TEXT' )
 			{
@@ -634,13 +634,13 @@ class sdRoach extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.type !== sdRoach.TYPE_MOTH )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 		{
 			this.AddPromptContextOption( 'Give a name', 'SET_TEXT', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.nick_censored ) ? sdWorld.CensoredText( this.nick ) : this.nick, 100 );
 			this.AddContextOption( 'Get creative', 'CREATIVE', [ ], false );

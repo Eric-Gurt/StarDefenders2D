@@ -563,18 +563,18 @@ class sdCom extends sdEntity
 	}
 	
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		if ( 
 				(
-					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) 
+					sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdCom.action_range ) 
 					&&
-					exectuter_character.canSeeForUse( this )
+					executer_character.canSeeForUse( this )
 				)
 				||
-				( command_name === 'COM_KICK' && parameters_array[ 0 ] === exectuter_character.biometry ) 
+				( command_name === 'COM_KICK' && parameters_array[ 0 ] === executer_character.biometry ) 
 			)
 		{
 			if ( command_name === 'COM_SUB' )
@@ -601,7 +601,7 @@ class sdCom extends sdEntity
 			{
 				if ( !sdWorld.server_config.base_degradation )
 				{
-					exectuter_character.Say( sdWorld.GetAny([
+					executer_character.Say( sdWorld.GetAny([
 						'Hacking is illegal, ez',
 						'I know nothing about hacking. It is almost like this planet made me forget it was even possible to do in first place',
 						'Let\'s challenge them with pong isntead'
@@ -610,13 +610,13 @@ class sdCom extends sdEntity
 				else
 				if ( this.variation >= 7 )
 				if ( this.hacking_left <= 0 )
-				if ( exectuter_character.build_tool_level >= 14 )
+				if ( executer_character.build_tool_level >= 14 )
 				{
-					let near = this.GetHackablesNearby( exectuter_character );
+					let near = this.GetHackablesNearby( executer_character );
 
 					if ( near.length > 0 )
 					{
-						exectuter_character.Say( sdWorld.GetAny([
+						executer_character.Say( sdWorld.GetAny([
 							'Hacking into mainframe',
 							'Initiating hacks',
 							'Purchasing license for illegal software',
@@ -631,14 +631,14 @@ class sdCom extends sdEntity
 						]));
 
 						this.hacking_left = sdCom.hacking_duration;
-						this._hacker = exectuter_character;
+						this._hacker = executer_character;
 						//this._update_version++;
 						this._hacking_timer_total = 0;
 						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
 					else
 					{
-						exectuter_character.Say( sdWorld.GetAny([
+						executer_character.Say( sdWorld.GetAny([
 							'Not much to hack here',
 							'Nothing to hack',
 							'I should try putting this node closer'
@@ -648,14 +648,14 @@ class sdCom extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdCom.action_range ) )
 			{
-				if ( exectuter_character.canSeeForUse( this ) )
+				if ( executer_character.canSeeForUse( this ) )
 				{
 					//this.AddContextOption( 'Get ', 'GET', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.text_censored ) ? sdWorld.CensoredText( this.text ) : this.text, 100 );
 
@@ -742,7 +742,7 @@ class sdCom extends sdEntity
 
 					if ( this.variation >= 7 )
 					if ( this.hacking_left <= 0 )
-					if ( exectuter_character.build_tool_level >= 14 )
+					if ( executer_character.build_tool_level >= 14 )
 					this.AddContextOption( 'Initiate hacking', 'HACKING', [ 1 ], true, { color:'#006600' } );
 				}
 			}

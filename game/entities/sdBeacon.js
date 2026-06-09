@@ -33,8 +33,8 @@ class sdBeacon extends sdEntity
 		
 		this.hea = 100 * 4;
 		
-		this.biometry = ( 1000 + Math.floor( Math.random() * 8999 ) ) + '';
-		this.biometry_censored = '';
+		this.nickname = ( 1000 + Math.floor( Math.random() * 8999 ) ) + '';
+		this.nickname_censored = '';
 		
 		this._owner = null;
 		
@@ -92,9 +92,9 @@ class sdBeacon extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		let t = this.biometry;
+		let t = this.nickname;
 
-		if ( sdWorld.client_side_censorship && this.biometry_censored )
+		if ( sdWorld.client_side_censorship && this.nickname_censored )
 		t = sdWorld.CensoredText( t );
 
 		sdEntity.Tooltip( ctx, this.title, 0, -8 );
@@ -125,19 +125,19 @@ class sdBeacon extends sdEntity
 	
 	
 	
-	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	AllowContextCommandsInRestirectedAreas( executer_character, executer_socket ) // executer_character can be null
 	{
 		return [ 'TRACK', 'STOP' ];
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
-			if ( exectuter_character.canSeeForUse( this ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
+			if ( executer_character.canSeeForUse( this ) )
 			{
 				if ( command_name === 'SET_TEXT' )
 				{
@@ -146,8 +146,8 @@ class sdBeacon extends sdEntity
 					{
 						if ( parameters_array[ 0 ].length < 100 )
 						{
-							this.biometry = parameters_array[ 0 ];
-							this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+							this.nickname = parameters_array[ 0 ];
+							this.nickname_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
 
 							executer_socket.SDServiceMessage( 'ID updated' );
 						}
@@ -160,13 +160,13 @@ class sdBeacon extends sdEntity
 			if ( command_name === 'TRACK' )
 			{
 				sdTask.MakeSureCharacterHasTask({ 
-					similarity_hash:'TRACK-BEACON'+this.biometry, 
-					executer: exectuter_character,
+					similarity_hash:'TRACK-BEACON'+this.nickname, 
+					executer: executer_character,
 					target: this,
 					mission: sdTask.MISSION_TRACK_ENTITY,
 
 					title: 'Tracking beacon',
-					description: 'Beacon ID: ' + this.biometry
+					description: 'Beacon ID: ' + this.nickname
 				});
 			}
 			
@@ -174,7 +174,7 @@ class sdBeacon extends sdEntity
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
-					if ( sdTask.tasks[ i ]._executer === exectuter_character )
+					if ( sdTask.tasks[ i ]._executer === executer_character )
 					if ( sdTask.tasks[ i ]._target === this )
 					{
 						sdTask.tasks[ i ].remove();
@@ -183,20 +183,20 @@ class sdBeacon extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
 			this.AddContextOption( 'Track this beacon', 'TRACK', [] );
 			this.AddContextOption( 'Stop tracking this beacon', 'STOP', [] );
 			
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
-			if ( exectuter_character.canSeeForUse( this ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
+			if ( executer_character.canSeeForUse( this ) )
 			{
-				this.AddPromptContextOption( 'Set an ID', 'SET_TEXT', [ undefined ], 'Enter new ID', ( sdWorld.client_side_censorship && this.biometry_censored ) ? sdWorld.CensoredText( this.biometry ) : this.biometry, 100 );
+				this.AddPromptContextOption( 'Set an ID', 'SET_TEXT', [ undefined ], 'Enter new ID', ( sdWorld.client_side_censorship && this.nickname_censored ) ? sdWorld.CensoredText( this.nickname ) : this.nickname, 100 );
 			}
 		}
 	}

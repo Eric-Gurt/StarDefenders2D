@@ -244,7 +244,7 @@ class sdTheatre extends sdEntity
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
 	{ return 1; }
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{ 
 		return [ 0, 0, -32.1 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
 	}
@@ -586,12 +586,12 @@ class sdTheatre extends sdEntity
 			});
 		}
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 		{
 			if ( command_name === 'SET_SOURCE' )
 			if ( parameters_array.length === 1 )
@@ -709,12 +709,12 @@ class sdTheatre extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 		{
 			this.AddPromptContextOption( 'Change video URL', 'SET_SOURCE', [ undefined ], 'Enter video or livestream URL', '', 128 );
 			//this.AddPromptContextOption( 'Set to twitch live stream', 'SET_TWITCH', [ undefined ], 'Enter or paste only the channel name', this.channel, 64 );

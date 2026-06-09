@@ -25,7 +25,7 @@ class sdWeaponBench extends sdEntity
 	get hitbox_y1()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? -24 : -11; }
 	get hitbox_y2()  { return this.type === sdWeaponBench.TYPE_DISPLAY ? 24 : 0; }
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{
 		if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 		return null;
@@ -670,18 +670,18 @@ class sdWeaponBench extends sdEntity
 		}
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
         if ( parameters_array )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdWeaponBench.access_range ) && executer_character.canSeeForUse( this ) )
 			{
 				let key = null;
-				let potential_key = exectuter_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ];
+				let potential_key = executer_character._inventory[ sdGun.classes [ sdGun.CLASS_ACCESS_KEY ].slot ];
 				if ( potential_key && potential_key.class === sdGun.CLASS_ACCESS_KEY )
 				key = potential_key;
 
@@ -689,10 +689,10 @@ class sdWeaponBench extends sdEntity
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 				if ( sdWorld.time > this._last_key_created + 3000 )
 				{
-					if ( this.locked && !exectuter_character._god )
+					if ( this.locked && !executer_character._god )
 					return;
 				
-					let keycard = new sdGun({ x:exectuter_character.x, y:exectuter_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
+					let keycard = new sdGun({ x:executer_character.x, y:executer_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
 					
 					sdEntity.entities.push( keycard );
 				
@@ -707,7 +707,7 @@ class sdWeaponBench extends sdEntity
 				if ( command_name === 'SET_KEY' )
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 				{
-					if ( this.locked && !exectuter_character._god )
+					if ( this.locked && !executer_character._god )
 					return;
 				
 					if ( typeof parameters_array[ 0 ] === 'string' )
@@ -729,7 +729,7 @@ class sdWeaponBench extends sdEntity
 									'I mean, who else is gonna use this thing? Hopefully only me'
 								] );
 							
-								exectuter_character.Say ( t );
+								executer_character.Say ( t );
 							}
 
 							this._update_version++;
@@ -796,7 +796,7 @@ class sdWeaponBench extends sdEntity
 				if ( this.type === sdWeaponBench.TYPE_DISPLAY )
 				if ( sdWorld.time > this._last_locked + 1000 ) // No sound spam
 				{	
-					this.LockLogic( exectuter_character, key );
+					this.LockLogic( executer_character, key );
 				
 					return;
 				}
@@ -812,7 +812,7 @@ class sdWeaponBench extends sdEntity
 					
 						if ( this[ 'item' + slot ] )
 						{
-							this.ExtractItem( this[ 'item' + slot ]._net_id, exectuter_character );
+							this.ExtractItem( this[ 'item' + slot ]._net_id, executer_character );
 							this.gun_password = null;
 						}
 
@@ -821,7 +821,7 @@ class sdWeaponBench extends sdEntity
 					else
 					if ( this.type === sdWeaponBench.TYPE_UPGRADE_BENCH )
 					{
-						if ( item.biometry_lock !== -1 && item.biometry_lock !== exectuter_character.biometry )
+						if ( item.biometry_lock !== -1 && item.biometry_lock !== executer_character.biometry )
 						{
 							executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
 							return;
@@ -843,13 +843,13 @@ class sdWeaponBench extends sdEntity
 							
 									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
 									let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
-									if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+									if ( executer_character.matter >= ( normal_cost || 0 ) )
 									{
 										let result = true;
 									
 										if ( upgrades[ i ].action )
 										{
-											if ( false === upgrades[ i ].action( item, exectuter_character, ...parameters_array[ 0 ].slice ( 1 ) ) )
+											if ( false === upgrades[ i ].action( item, executer_character, ...parameters_array[ 0 ].slice ( 1 ) ) )
 											result = false;
 										}
 
@@ -857,7 +857,7 @@ class sdWeaponBench extends sdEntity
 										{
 											sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-											exectuter_character.matter -= ( normal_cost || 0 );	
+											executer_character.matter -= ( normal_cost || 0 );	
 										}
 
 										this._update_version++;
@@ -874,13 +874,13 @@ class sdWeaponBench extends sdEntity
 
 									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
 									let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
-									if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+									if ( executer_character.matter >= ( normal_cost || 0 ) )
 									{
 										let result = true;
 									
 										if ( upgrades[ i ].action )
 										{
-											if ( false === upgrades[ i ].action( item, exectuter_character, ...parameters_array.slice( 1 ) ) )
+											if ( false === upgrades[ i ].action( item, executer_character, ...parameters_array.slice( 1 ) ) )
 											result = false;
 										}
 
@@ -888,7 +888,7 @@ class sdWeaponBench extends sdEntity
 										{
 											sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-											exectuter_character.matter -= ( normal_cost || 0 );	
+											executer_character.matter -= ( normal_cost || 0 );	
 										}
 									
 										this._update_version++;
@@ -897,13 +897,13 @@ class sdWeaponBench extends sdEntity
 									executer_socket.SDServiceMessage( 'Not enough matter' );
 								}
 								else
-								if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
+								if ( executer_character.matter >= ( upgrades[ i ].cost || 0 ) )
 								{
 									let result = true;
 
 									if ( upgrades[ i ].action )
 									{
-										if ( false === upgrades[ i ].action( item, exectuter_character, ...parameters_array.slice( 1 ) ) )
+										if ( false === upgrades[ i ].action( item, executer_character, ...parameters_array.slice( 1 ) ) )
 										result = false;
 									}
 
@@ -911,7 +911,7 @@ class sdWeaponBench extends sdEntity
 									{
 										sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-										exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
+										executer_character.matter -= ( upgrades[ i ].cost || 0 );
 									}
 
 									this._update_version++;
@@ -927,11 +927,11 @@ class sdWeaponBench extends sdEntity
                             if ( !sdGun.classes[ item.class ].armor_properties )
 							{
 								let matter_cost = sdGun.classes[ item.class ].spawnable !== false ? ( sdGun.classes[ item.class ].matter_cost || 30 ) : 300;
-								if ( exectuter_character.matter >= ( matter_cost ) )
+								if ( executer_character.matter >= ( matter_cost ) )
 								{
 									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-									exectuter_character.matter -= matter_cost;
+									executer_character.matter -= matter_cost;
 
 									item._hea = 500;
 
@@ -953,23 +953,23 @@ class sdWeaponBench extends sdEntity
 								if ( !item.IsGunRecoverable() ) // Just in case
 								executer_socket.SDServiceMessage( 'This weapon cannot have retrieval.' );
 								else
-								if ( exectuter_character.matter >= ( matter_cost ) )
+								if ( executer_character.matter >= ( matter_cost ) )
 								{
 
 									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-									exectuter_character.matter -= matter_cost;
+									executer_character.matter -= matter_cost;
 
 									if ( item.biometry_lock === -1 )
-									item.biometry_lock = exectuter_character.biometry;
+									item.biometry_lock = executer_character.biometry;
 									else
 									item.biometry_lock = -1;
 							
-									for ( let i = 0; i < exectuter_character._inventory.length; i++ )
+									for ( let i = 0; i < executer_character._inventory.length; i++ )
 									{
-										if ( exectuter_character._inventory[ i ] )
+										if ( executer_character._inventory[ i ] )
 										{
-											if ( exectuter_character._inventory[ i ].biometry_lock === exectuter_character.biometry )
+											if ( executer_character._inventory[ i ].biometry_lock === executer_character.biometry )
 											{
 												player_has_weapon_with_biometry = true;
 												break;
@@ -980,7 +980,7 @@ class sdWeaponBench extends sdEntity
 									{
 										if ( !player_has_weapon_with_biometry )
 										{
-											exectuter_character.Say( [ 
+											executer_character.Say( [ 
 								'In case of my demise, someone is in for a surprise.', 
 								'It should automatically teleport back to the Mothership if forcefully removed.', 
 								'This weapon will automatically recall into the Mothership if I disappear whilst having it.',
@@ -993,7 +993,7 @@ class sdWeaponBench extends sdEntity
 										}
 										else
 										{
-											exectuter_character.Say( [ 
+											executer_character.Say( [ 
 								'I already have a weapon to prioritize saving.', 
 								'Having multiple of these will not work.', 
 								'I can only save one weapon, in case of death.',
@@ -1005,7 +1005,7 @@ class sdWeaponBench extends sdEntity
 									}
 									else
 										{
-										exectuter_character.Say( [ 
+										executer_character.Say( [ 
 							'Priority retrieval disabled for this item.', 
 							'It will no longer attempt retrieval to Mothership on death, if equipped'
 						][ ~~( Math.random() * 1 ) ] );
@@ -1030,13 +1030,13 @@ class sdWeaponBench extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-        if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponBench.access_range ) && exectuter_character.canSeeForUse( this ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+        if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdWeaponBench.access_range ) && executer_character.canSeeForUse( this ) )
 		{
 			if ( !this.locked )
 			for ( let i = 0; i < this.GetSlotsTotal(); i++ )
@@ -1156,7 +1156,7 @@ class sdWeaponBench extends sdEntity
 			{
 				this.AddContextOption( 'Toggle lock', 'LOCK', [ ] );
 				
-				if ( !this.locked || exectuter_character._god )
+				if ( !this.locked || executer_character._god )
 				{
 					this.AddPromptContextOption( 'Set access ID', 'SET_KEY', [ undefined ], 'Enter new ID', '', 32 );
 				

@@ -237,7 +237,7 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 			program_map.set( ent, obj );
 			
 			if ( ent.is( sdBeacon ) )
-			obj.id = ent.biometry;
+			obj.id = ent.nickname;
 
 			if ( ent.is( sdBot ) )
 			obj.carrying = sdProgram.GetShellObjectByEntity( ent.carrying, program );

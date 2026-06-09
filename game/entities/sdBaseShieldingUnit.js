@@ -2040,17 +2040,17 @@ class sdBaseShieldingUnit extends sdEntity
 		//this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		this.ShareValueIfHadntRecently();
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		//if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			//if ( sdWorld.inDist2D_Boolean( this.x, this.y * 2, exectuter_character.x, exectuter_character.y * 2, 32 ) )
-			if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 15 ) )
+			//if ( sdWorld.inDist2D_Boolean( this.x, this.y * 2, executer_character.x, executer_character.y * 2, 32 ) )
+			if ( this.inRealDist2DToEntity_Boolean( executer_character, 15 ) )
 			{
-				if ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD && !exectuter_character._god )
+				if ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD && !executer_character._god )
 				return;
 			
 				if ( command_name === 'SHIELD_ON' )
@@ -2067,7 +2067,7 @@ class sdBaseShieldingUnit extends sdEntity
 							if ( this.matter_crystal >= 1 )
 							{
 								if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this ) )
-								this.SetShieldState( true, exectuter_character );
+								this.SetShieldState( true, executer_character );
 								else
 								executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
 							}
@@ -2078,7 +2078,7 @@ class sdBaseShieldingUnit extends sdEntity
 						if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER ) !== -1 ) )
 						{
 							if ( this.matter_crystal >= 800 )
-							this.SetShieldState( true, exectuter_character );
+							this.SetShieldState( true, executer_character );
 							else
 							executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 in total matter capacity crystals to be put into it' );
 						}
@@ -2086,7 +2086,7 @@ class sdBaseShieldingUnit extends sdEntity
 						if ( this.type === sdBaseShieldingUnit.TYPE_MATTER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_MATTER ) !== -1 ) )
 						{
 							if ( this.matter >= 320 )
-							this.SetShieldState( true, exectuter_character );
+							this.SetShieldState( true, executer_character );
 							else
 							executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
 						}
@@ -2094,7 +2094,7 @@ class sdBaseShieldingUnit extends sdEntity
 						if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ) !== -1 ) )
 						{
 							//if ( this.matter >= 320 )
-							this.SetShieldState( true, exectuter_character );
+							this.SetShieldState( true, executer_character );
 							//else
 							//executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
 						}
@@ -2125,15 +2125,15 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( command_name === 'SHIELD_OFF' )
 				{
 					if ( this.enabled === true )
-					this.SetShieldState( false, exectuter_character );
+					this.SetShieldState( false, executer_character );
 				}
 				if ( command_name === 'SHIELD_RESCAN' )
 				{
 					if ( this.enabled === true )
 					{
-						this.SetShieldState( false, exectuter_character );
+						this.SetShieldState( false, executer_character );
 						if ( !this.IsOutOfBounds() )
-						this.SetShieldState( true, exectuter_character );
+						this.SetShieldState( true, executer_character );
 					}
 				}
 				if ( command_name === 'ATTACK' )
@@ -2183,14 +2183,14 @@ class sdBaseShieldingUnit extends sdEntity
 							let mult = parameters_array[ 0 ];
 
 							if ( mult === 1 || mult === 7 )
-							if ( exectuter_character._score >= 500 * mult )
+							if ( executer_character._score >= 500 * mult )
 							{
 								let increase = ~~Math.min( sdBaseShieldingUnit.score_timed_max_capacity - this.matter_crystal, 500 * mult );
 
 								if ( increase > 1 )
 								{
 									this.matter_crystal += increase;
-									exectuter_character._score -= increase;
+									executer_character._score -= increase;
 
 									sdSound.PlaySound({ name:'level_up', x:this.x, y:this.y, volume:2, pitch:0.4 });
 								}
@@ -2242,16 +2242,16 @@ class sdBaseShieldingUnit extends sdEntity
 			executer_socket.SDServiceMessage( 'Base shielding unit is too far' );
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		//if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		//if ( sdWorld.inDist2D_Boolean( this.x, this.y * 2, exectuter_character.x, exectuter_character.y * 2, 32 ) )
-		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 15 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		//if ( sdWorld.inDist2D_Boolean( this.x, this.y * 2, executer_character.x, executer_character.y * 2, 32 ) )
+		if ( this.inRealDist2DToEntity_Boolean( executer_character, 15 ) )
 		{
-			if ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD && !exectuter_character._god )
+			if ( this.type === sdBaseShieldingUnit.TYPE_FACTION_SHIELD && !executer_character._god )
 			return;
 			
 			if ( sdWorld.my_entity )

@@ -217,8 +217,7 @@ class sdEntity
 	{
 		if ( sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( this.x, this.y ) ) // Not in someone's base?
 		{
-			let i = 0;
-			for ( i = 0; i < sdWorld.sockets.length; i++ )
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			if ( sdWorld.sockets[ i ].character )
 			{
 				// Let's make sure it's far away from players before anything happens.
@@ -226,10 +225,21 @@ class sdEntity
 				return;
 			}
 			
-			for ( i = 0; i < sdWorld.sockets.length; i++ )
+			let options = [];
+			
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			if ( sdWorld.sockets[ i ].character )
+			options.push( sdWorld.sockets[ i ].character );
+			
+			//for ( i = 0; i < sdWorld.sockets.length; i++ ) Prioritizes player who has joined first, not ideal - EG
+			//if ( sdWorld.sockets[ i ].character )
+			while ( options.length > 0 )
 			{
-				let character = sdWorld.sockets[ i ].character;
+				let i = ~~( Math.random() * options.length );
+				let character = options[ i ];
+				options.splice( i, 1 );
+				
+				//let character = sdWorld.sockets[ i ].character;
 				let tr = 100;
 				while( tr > 0 )
 				{
@@ -583,7 +593,7 @@ class sdEntity
 		box_caps.is_rotated = false;
 	}
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG, return null or array of [x,y,z] offsets
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{ return null; }
 	
 	CameraDistanceScale3D( layer ) // so far called for layer FG (which is 1), usually only used by chat messages
@@ -2939,7 +2949,14 @@ class sdEntity
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-		this._flag2 = 0; // Used solely by client-side rendering since ._flag will often be overriden during render logic and thus cause rare flickering
+		{
+			this._flag2 = 0; // Used solely by client-side rendering since ._flag will often be overriden during render logic and thus cause rare flickering
+			
+			this._sort = -999;
+			//this._sortA = -999;
+			//this._sortB = -999;
+			//this._sortC = -999;
+		}
 	
 		//this._flag3 = 0; // Accurate line of sight reuse cache, used on both server and client
 		this._near_player_until = 0; // Optimization for server to know if entity is near player and thus should keep high update rate - faster than looking up every nearby player to apply every single logic step
@@ -6033,32 +6050,32 @@ class sdEntity
 	{
 	}
 	
-	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	AllowContextCommandsInRestirectedAreas( executer_character, executer_socket ) // executer_character can be null
 	{
 		return false;
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		/*
 		if ( !this._is_being_removed )
 		if ( ( this._hea || this.hea ) > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 		{
 		}
 		*/
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{	
 		/*
 		if ( !this._is_being_removed )
 		if ( ( this._hea || this.hea ) > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 		{
-			this.AddContextOption( 'Unsubscribe from network', 'COM_UNSUB', exectuter_character._net_id );
+			this.AddContextOption( 'Unsubscribe from network', 'COM_UNSUB', executer_character._net_id );
 		}
 		*/
 	}

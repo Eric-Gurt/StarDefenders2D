@@ -925,23 +925,23 @@ class sdGuanako extends sdEntity
 		}
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		if ( this.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 		{
 			if ( this.action_id === sdGuanako.ACTION_SLEEP )
 			this.PlayAction( sdGuanako.ACTION_IDLE );
 		
-			if ( this.x > exectuter_character.x )
+			if ( this.x > executer_character.x )
 			this.side = -1;
 			else
 			this.side = 1;
 		
-			if ( this._current_target === exectuter_character )
+			if ( this._current_target === executer_character )
 			{
 				this.Say( 'No, I don\'t like you >:(' );
 				sdSound.PlaySound({ name:'guanako_confused', x:this.x, y:this.y, volume: 0.5, pitch:1, channel:this._voice_channel });
@@ -962,13 +962,13 @@ class sdGuanako extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		if ( this.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 		{
 			this.AddContextOption( 'Ask for crystals', 'REQUEST_CRYSTAL', [ ], false );
 		}

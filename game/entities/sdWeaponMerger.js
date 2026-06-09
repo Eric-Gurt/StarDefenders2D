@@ -609,18 +609,18 @@ class sdWeaponMerger extends sdEntity
 		//this.upgraded_dur = false;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponMerger.access_range ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdWeaponMerger.access_range ) )
 			{
 				if ( this.item0 )
 				{
-					if ( this.item0.biometry_lock !== -1 && this.item0.biometry_lock !== exectuter_character.biometry )
+					if ( this.item0.biometry_lock !== -1 && this.item0.biometry_lock !== executer_character.biometry )
 					{
 						executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
 						return;
@@ -629,14 +629,14 @@ class sdWeaponMerger extends sdEntity
 					if ( command_name === 'GET1' )
 					{
 						if ( this.item0 )
-						this.ExtractItem( this.item0._net_id, exectuter_character );
+						this.ExtractItem( this.item0._net_id, executer_character );
 
 						this._update_version++;
 					}
 				}
 				if ( this.item1 )
 				{
-					if ( this.item1.biometry_lock !== -1 && this.item1.biometry_lock !== exectuter_character.biometry )
+					if ( this.item1.biometry_lock !== -1 && this.item1.biometry_lock !== executer_character.biometry )
 					{
 						executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
 						return;
@@ -645,14 +645,14 @@ class sdWeaponMerger extends sdEntity
 					if ( command_name === 'GET2' )
 					{
 						if ( this.item1 )
-						this.ExtractItem( this.item1._net_id, exectuter_character );
+						this.ExtractItem( this.item1._net_id, executer_character );
 
 						this._update_version++;
 					}
 				}
 				if ( this.item2 )
 				{
-					if ( this.item2.biometry_lock !== -1 && this.item2.biometry_lock !== exectuter_character.biometry )
+					if ( this.item2.biometry_lock !== -1 && this.item2.biometry_lock !== executer_character.biometry )
 					{
 						executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
 						return;
@@ -661,7 +661,7 @@ class sdWeaponMerger extends sdEntity
 					if ( command_name === 'GET3' )
 					{
 						if ( this.item2 )
-						this.ExtractItem( this.item2._net_id, exectuter_character );
+						this.ExtractItem( this.item2._net_id, executer_character );
 
 						this._update_version++;
 					}
@@ -695,13 +695,13 @@ class sdWeaponMerger extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdWeaponMerger.access_range ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdWeaponMerger.access_range ) )
 		{
 			if ( this.item0 )
 			{
@@ -725,7 +725,7 @@ class sdWeaponMerger extends sdEntity
 			}
 			
 			/*
-			if ( this.owner === exectuter_character )
+			if ( this.owner === executer_character )
 			{
 				this.AddContextOption( 'Accept everyone', 'ACCEPT_ALL', [ ] );
 				this.AddContextOption( 'Reject everyone', 'REJECT_ALL', [ ] );
