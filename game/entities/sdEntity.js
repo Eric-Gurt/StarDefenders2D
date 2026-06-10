@@ -4872,7 +4872,14 @@ class sdEntity
 						{
 							if ( !sdWorld.server_config.base_degradation )
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, ...e.GetClosestPointWithinCollision( this.x, this.y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
-							continue;
+							{
+								// Not having this caused Bit silence anti-crystal raids where it should have not been possible
+								
+								// Remove these that do not match anyway, at least for brief period of time until GetAnythingNearCache overrides this list - less time to spend on property existence checks
+								arr.splice( i, 1 );
+								i--;
+								continue;
+							}
 						}
 						
 						e.TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
@@ -4892,6 +4899,7 @@ class sdEntity
 					// Remove these that do not match anyway, at least for brief period of time until GetAnythingNearCache overrides this list - less time to spend on property existence checks
 					arr.splice( i, 1 );
 					i--;
+					continue;
 				}
 			}
 		}
