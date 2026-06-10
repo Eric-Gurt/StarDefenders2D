@@ -1103,7 +1103,7 @@ class sdRenderer
 					//e._sortC = ( offsetC ? offsetC[ 2 ] : 0 );
 					
 					// Might be just enough. Only doors have 2 versions of offsets but they are drawn in 3D anyway - we use background offset for them, the lowest one, so they can't cover something important
-					e._sort = Math.min(
+					e._sort = Math.max(
 							offsetA ? offsetA[ 2 ] : 0,
 							offsetB ? offsetB[ 2 ] : 0,
 							offsetC ? offsetC[ 2 ] : 0
