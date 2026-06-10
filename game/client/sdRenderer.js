@@ -1080,7 +1080,7 @@ class sdRenderer
 		// Sorting (which should not be the case, rework rendering if needed) optimizations
 		if ( will_sort )
 		{
-			let debug_found_explosion = null;
+			//let debug_found_explosion = null;
 			
 			for ( let i = 0; i < visible_entities.length; i++ )
 			{
@@ -1110,18 +1110,18 @@ class sdRenderer
 						);
 				}
 				
-				if ( e.is( sdEffect ) )
+				/*if ( e.is( sdEffect ) )
 				if ( e._type === sdEffect.TYPE_EXPLOSION || e._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 				{
 					debug_found_explosion = e;
-				}
+				}*/
 			}
 			
-			if ( debug_found_explosion )
+			/*if ( debug_found_explosion )
 			{
 				visible_entities = [ e ];
-			}
-			
+			}*/
+
 			visible_entities.sort( ( e1, e2 ) => e2._sort - e1._sort );
 		}
 
