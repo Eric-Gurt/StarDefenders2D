@@ -1080,9 +1080,9 @@ class sdRenderer
 		// Sorting (which should not be the case, rework rendering if needed) optimizations
 		if ( will_sort )
 		{
-			let debug_found_explosion = null;
+			//let debug_found_explosion = null;
 			
-			for ( let i = 0; i < visible_entities.lengh; i++ )
+			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				let e = visible_entities[ i ];
 				if ( e._sort === -999 ) // Update only once per entity?
@@ -1103,33 +1103,30 @@ class sdRenderer
 					//e._sortC = ( offsetC ? offsetC[ 2 ] : 0 );
 					
 					// Might be just enough. Only doors have 2 versions of offsets but they are drawn in 3D anyway - we use background offset for them, the lowest one, so they can't cover something important
-					e._sort = Math.min(
+					e._sort = Math.max(
 							offsetA ? offsetA[ 2 ] : 0,
 							offsetB ? offsetB[ 2 ] : 0,
 							offsetC ? offsetC[ 2 ] : 0
 						);
 				}
 				
-				if ( e.is( sdEffect ) )
+				/*if ( e.is( sdEffect ) )
 				if ( e._type === sdEffect.TYPE_EXPLOSION || e._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 				{
 					debug_found_explosion = e;
-				}
+				}*/
 			}
 			
-			if ( debug_found_explosion )
+			/*if ( debug_found_explosion )
 			{
 				visible_entities = [ e ];
-			}
-			
+			}*/
+
 			visible_entities.sort( ( e1, e2 ) => e2._sort - e1._sort );
-			
-			
 		}
-		
-			
+
 		const show_hud = ( !sdWorld.my_entity || !sdWorld.my_entity.is( sdPlayerSpectator ) || sdChat.open || sdContextMenu.open );
-			
+
 		let ms_since_last_render = sdRenderer.last_render - sdWorld.time;
 		sdRenderer.last_render = sdWorld.time;
 		

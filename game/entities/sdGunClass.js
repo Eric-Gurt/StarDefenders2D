@@ -11105,8 +11105,8 @@ class sdGunClass
                 if ( gun._held_by )
                 if ( gun.overheat >= 100 )
                 {
-                    gun._held_by.DamageWithEffect( gun.overheat * gun._count / 50 );
                     gun._held_by.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 30 * gun._count });
+                    gun._held_by.DamageWithEffect( gun.overheat * gun._count / 50 );
                 }
 				return true;
 			},
@@ -11760,12 +11760,13 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'battle_rifle' ),
 			sound: 'gun_pistol',
+            sound_volume: 1.5,
             sound_pitch: 0.85,
 			title: 'Battle Rifle SD-97',
 			slot: 2,
-			reload_time: 3,
+			reload_time: 5,
 			muzzle_x: 9,
-			ammo_capacity: 40,
+			ammo_capacity: 20,
             alt_ammo_capacity: 6,
 			spread: 0.01,
 			count: 1,
@@ -11811,7 +11812,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 35; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 45; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},

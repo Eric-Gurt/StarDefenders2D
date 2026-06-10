@@ -382,6 +382,7 @@ class sdCommandCentre extends sdEntity
                     this.nickname = parameters_array[ 0 ].toUpperCase();
                     this.nickname_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
                     this._update_version++;
+					return;
                 }
                 else
                 executer_socket.SDServiceMessage( 'Name is too long' );
