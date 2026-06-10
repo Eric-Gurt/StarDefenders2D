@@ -1082,7 +1082,7 @@ class sdRenderer
 		{
 			let debug_found_explosion = null;
 			
-			for ( let i = 0; i < visible_entities.lengh; i++ )
+			for ( let i = 0; i < visible_entities.length; i++ )
 			{
 				let e = visible_entities[ i ];
 				if ( e._sort === -999 ) // Update only once per entity?
@@ -1123,13 +1123,10 @@ class sdRenderer
 			}
 			
 			visible_entities.sort( ( e1, e2 ) => e2._sort - e1._sort );
-			
-			
 		}
-		
-			
+
 		const show_hud = ( !sdWorld.my_entity || !sdWorld.my_entity.is( sdPlayerSpectator ) || sdChat.open || sdContextMenu.open );
-			
+
 		let ms_since_last_render = sdRenderer.last_render - sdWorld.time;
 		sdRenderer.last_render = sdWorld.time;
 		
