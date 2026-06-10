@@ -329,12 +329,12 @@ class sdMatterContainer extends sdEntity
 		if ( this.matter_max === 40960 * 2 )
 		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.0275;
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
+			if ( this.inRealDist2DToEntity_Boolean( executer_character, 64 ) && executer_socket.character.canSeeForUse( this ) )
 			{
 				if ( command_name === 'MODE' )
 				{
@@ -354,11 +354,11 @@ class sdMatterContainer extends sdEntity
 			executer_socket.SDServiceMessage( 'Matter container is too far' );
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( executer_character._god || this.inRealDist2DToEntity_Boolean( executer_character, 64 ) )
 		{
 			let active_mode_text = ' ( ' + T( 'active' ) + ' )';
 			this.AddContextOptionNoTranslation( T( 'Set mode to Equalize' ) + (( this.mode === 0 ) ? active_mode_text : ''), 'MODE', [ 0 ] );

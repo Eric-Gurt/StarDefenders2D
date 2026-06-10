@@ -208,7 +208,7 @@ class sdLongRangeTeleport extends sdEntity
 		
 		sdLongRangeTeleport.long_range_teleports.push( this );
 	}
-	get biometry()
+	get biometry() // Could be best if only sdCharacters had biometry property - EG
 	{
 		return 'Long-range teleport';
 	}
@@ -1226,22 +1226,22 @@ class sdLongRangeTeleport extends sdEntity
 		sdMotherShipStorageManager.HandleServerCommand( command_name, parameters_array );
 	}
 	
-	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	AllowContextCommandsInRestirectedAreas( executer_character, executer_socket ) // executer_character can be null
 	{
 		return true;
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
 			if ( command_name === 'LIST_PRIVATE_STORAGE' )
 			{
 				if ( sdWorld.server_config.allow_private_storage_access )
 				{
-					let initiator_hash_or_user_uid = exectuter_character._my_hash;
+					let initiator_hash_or_user_uid = executer_character._my_hash;
 
 					sdDatabase.Exec( 
 						[ 
@@ -1280,13 +1280,13 @@ class sdLongRangeTeleport extends sdEntity
 				return;
 			}
 			
-			//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
-			if ( exectuter_character._god || ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) ) )
+			//if ( executer_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
+			if ( executer_character._god || ( this.inRealDist2DToEntity_Boolean( executer_character, 64 ) && executer_socket.character.canSeeForUse( this ) ) )
 			{
 				//let can_reset_teleport = !( this.is_charging || sdWorld.time < this._is_busy_since + 15 * 1000 );
 				let can_reset_teleport = !this.is_charging || ( this.is_charging && sdWorld.time > this._is_busy_since + 15 * 1000 );
 				
-				if ( ( exectuter_character._god && command_name === 'TELEPORT_RESET' ) || ( this.is_charging && can_reset_teleport ) )
+				if ( ( executer_character._god && command_name === 'TELEPORT_RESET' ) || ( this.is_charging && can_reset_teleport ) )
 				{
 					this.Deactivation();
 					//this._is_busy_since = 0;
@@ -1336,7 +1336,7 @@ class sdLongRangeTeleport extends sdEntity
                                 if ( command_name === 'CLAIM_SENTRY_TURRET' )
                                 claim_cost = 3;
 								
-								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
+								if ( this.delay === 0 && executer_character._task_reward_counter >= claim_cost )
 								{
 									this.Activation();
 									
@@ -1344,14 +1344,14 @@ class sdLongRangeTeleport extends sdEntity
 									{
 										this.Deactivation();
 										
-										if ( exectuter_character._is_being_removed ) // LRTP duping prevention
+										if ( executer_character._is_being_removed ) // LRTP duping prevention
 										{
 											return;
 										}
 										
-										if ( exectuter_character._task_reward_counter < claim_cost ) // Prevent claiming reward on multiple long-range teleports
+										if ( executer_character._task_reward_counter < claim_cost ) // Prevent claiming reward on multiple long-range teleports
 										{
-											if ( exectuter_character._task_reward_counter >= 1 )
+											if ( executer_character._task_reward_counter >= 1 )
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - not enough rewards earned' );
 											else
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - reward was claimed somewhere else' );
@@ -1365,12 +1365,12 @@ class sdLongRangeTeleport extends sdEntity
 										}
 										
 										this.GiveRewards( command_name, executer_socket );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
-										exectuter_character.UpdateClaimRewardsTaskCounter();
+										executer_character._task_reward_counter = Math.max( 0, executer_character._task_reward_counter - claim_cost );
+										executer_character.UpdateClaimRewardsTaskCounter();
 									};
 								}
 								else
-								if ( exectuter_character._task_reward_counter >= claim_cost )
+								if ( executer_character._task_reward_counter >= claim_cost )
 								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
 								else
 								executer_socket.SDServiceMessage( 'Not enough rewards for this option' );
@@ -1490,7 +1490,7 @@ class sdLongRangeTeleport extends sdEntity
 									}
 									if ( nearest_antenna )
 									{
-										if ( !nearest_antenna.AttemptTeleportToTarget( exectuter_character ) )
+										if ( !nearest_antenna.AttemptTeleportToTarget( executer_character ) )
 										executer_socket.SDServiceMessage( 'Teleport path is blocked.' );
 									}
 									else
@@ -1541,14 +1541,14 @@ class sdLongRangeTeleport extends sdEntity
 
 										if ( command_name === 'TELEPORT_STUFF' )
 										{
-											this.ExtractEntitiesOnTop( collected_entities_array, true, exectuter_character );
+											this.ExtractEntitiesOnTop( collected_entities_array, true, executer_character );
 										
 											if ( collected_entities_array.length === 0 )
 											executer_socket.SDServiceMessage( 'You need to assign yourself a task using a Command Centre!' );
 											else
 											{
 												for ( let i = 0; i < collected_entities_array.length; i++ )
-												exectuter_character.GiveScore( sdEntity.SCORE_REWARD_TASK_ITEM_FUNCTION( collected_entities_array[ i ] ), collected_entities_array[ i ] );
+												executer_character.GiveScore( sdEntity.SCORE_REWARD_TASK_ITEM_FUNCTION( collected_entities_array[ i ] ), collected_entities_array[ i ] );
 
 												this.matter = 0;
 											}
@@ -1587,14 +1587,14 @@ class sdLongRangeTeleport extends sdEntity
 											}
 											
 											this._remote_supported_entity_classes = classes;
-											let snapshots = this.ExtractEntitiesOnTop( collected_entities_array, false, exectuter_character );
+											let snapshots = this.ExtractEntitiesOnTop( collected_entities_array, false, executer_character );
 											
 										
 											if ( collected_entities_array.length === 0 )
 											executer_socket.SDServiceMessage( 'Nothing was saved' );
 											else
 											{
-												let initiator_hash_or_user_uid = exectuter_character._my_hash;
+												let initiator_hash_or_user_uid = executer_character._my_hash;
 												let this_x = this.x;
 												let this_y = this.y;
 												
@@ -1632,7 +1632,7 @@ class sdLongRangeTeleport extends sdEntity
 										if ( command_name === 'GET_PRIVATE_STORAGE' )
 										{
 									
-											let initiator_hash_or_user_uid = exectuter_character._my_hash;
+											let initiator_hash_or_user_uid = executer_character._my_hash;
 											let this_x = this.x;
 											let this_y = this.y;
 
@@ -1666,7 +1666,7 @@ class sdLongRangeTeleport extends sdEntity
 															{
 																for ( let i = 0; i < this._last_overlap_issue_entities.length; i++ )
 																if ( this._last_overlap_issue_entities[ i ] ) // Not null, which is a world bounds
-																this._last_overlap_issue_entities[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 6, 0.5, 0.5 ], observer: exectuter_character });
+																this._last_overlap_issue_entities[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 6, 0.5, 0.5 ], observer: executer_character });
 
 																while ( this._last_inserted_entities_array.length > 0 )
 																{
@@ -1852,7 +1852,7 @@ class sdLongRangeTeleport extends sdEntity
 					}
 				}
 				else
-				if ( exectuter_character._god )
+				if ( executer_character._god )
 				{
 					let admin_row = sdModeration.GetAdminRow( executer_socket );
 					
@@ -1884,14 +1884,14 @@ class sdLongRangeTeleport extends sdEntity
 			executer_socket.SDServiceMessage( 'Long-range teleport is too far' );
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
-		if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		//if ( executer_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
+		if ( executer_character._god || this.inRealDist2DToEntity_Boolean( executer_character, 64 ) )
 		{
 			/*if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
 			this.AddContextOption( 'Lose ownership', 'UNRESCUE_HERE', [] );
@@ -1900,7 +1900,7 @@ class sdLongRangeTeleport extends sdEntity
 		
 			//
 			if ( this.is_server_teleport )
-			if ( exectuter_character._god )
+			if ( executer_character._god )
 			{
 				this.AddPromptContextOption( 'Set remote server URL', 'SET_REMOTE_SERVER_URL', [ undefined ], 'Enter remote server URL (same as for players)', this.remote_server_url, 300 );
 				this.AddPromptContextOption( 'Set remote long-range teleport _net_id', 'SET_REMOTE_TARGET_NET_ID', [ undefined ], 'Enter remote server URL (same as for players)', this.remote_server_target_net_id, 64 );

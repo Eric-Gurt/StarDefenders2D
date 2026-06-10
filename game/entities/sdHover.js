@@ -1342,15 +1342,15 @@ class sdHover extends sdEntity
 			this.hmax * sdWorld.damage_to_matter + 800;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		//if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
-		//if ( exectuter_character.canSeeForUse( this ) )
-		if ( exectuter_character._god || exectuter_character.driver_of === this )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		//if ( executer_character._god || this.inRealDist2DToEntity_Boolean( executer_character, 64 ) )
+		//if ( executer_character.canSeeForUse( this ) )
+		if ( executer_character._god || executer_character.driver_of === this )
 		{
 			let v = this.doors_locked;
 			
@@ -1366,15 +1366,15 @@ class sdHover extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		//if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
-		//if ( exectuter_character.canSeeForUse( this ) )
-		if ( exectuter_character._god || exectuter_character.driver_of === this )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		//if ( executer_character._god || this.inRealDist2DToEntity_Boolean( executer_character, 64 ) )
+		//if ( executer_character.canSeeForUse( this ) )
+		if ( executer_character._god || executer_character.driver_of === this )
 		{
 			if ( this.doors_locked )
 			this.AddContextOption( 'Unlock doors', 'UNLOCK', [] );

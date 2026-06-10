@@ -101,8 +101,8 @@ class sdCommandCentre extends sdEntity
 		
 		this.owner = params.owner || null;
 		
-		this.biometry = globalThis.sdDictionaryWords ? sdDictionaryWords.GetRandomWord().toUpperCase() : 'UNKNOWN';
-        this.biometry_censored = false;
+		this.nickname = globalThis.sdDictionaryWords ? sdDictionaryWords.GetRandomWord().toUpperCase() : 'UNKNOWN';
+        this.nickname_censored = false;
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
@@ -260,9 +260,9 @@ class sdCommandCentre extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-        let t = this.biometry;
+        let t = this.nickname;
 		
-        if ( sdWorld.client_side_censorship && this.biometry_censored )
+        if ( sdWorld.client_side_censorship && this.nickname_censored )
         t = sdWorld.CensoredText( t );
 
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+t+')', 0, -8 - 6 );
@@ -360,17 +360,17 @@ class sdCommandCentre extends sdEntity
 		}
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( this.inRealDist2DToEntity_Boolean( executer_character, 32 ) )
 		{
 			/*if ( command_name === 'REQUEST_TASK' )
 			{
-				this.GivePlayerTask( exectuter_character );
+				this.GivePlayerTask( executer_character );
 			}
 			else*/
             if ( command_name === 'RENAME' )
@@ -379,8 +379,8 @@ class sdCommandCentre extends sdEntity
             {
                 if ( parameters_array[ 0 ].length < 32 )
                 {
-                    this.biometry = parameters_array[ 0 ].toUpperCase();
-                    this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+                    this.nickname = parameters_array[ 0 ].toUpperCase();
+                    this.nickname_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
                     this._update_version++;
 					return;
                 }
@@ -388,7 +388,7 @@ class sdCommandCentre extends sdEntity
                 executer_socket.SDServiceMessage( 'Name is too long' );
             }
 
-			if ( this.owner === exectuter_character )
+			if ( this.owner === executer_character )
 			{
 				const AcceptNetID = ( net_id )=>
 				{
@@ -400,7 +400,7 @@ class sdCommandCentre extends sdEntity
 						ent._cc_rank = 1;
 
 						if ( ent._socket )
-						ent._socket.SDServiceMessage( 'You have been accepted to {1}\'s team!', [ exectuter_character.title ] );
+						ent._socket.SDServiceMessage( 'You have been accepted to {1}\'s team!', [ executer_character.title ] );
 					}
 				};
 				const RejectNetID = ( net_id )=>
@@ -412,7 +412,7 @@ class sdCommandCentre extends sdEntity
 						//ent.cc_id = this._net_id;
 
 						if ( ent._socket )
-						ent._socket.SDServiceMessage( 'You have been rejected from joining {1}\'s team', [ exectuter_character.title ] );
+						ent._socket.SDServiceMessage( 'You have been rejected from joining {1}\'s team', [ executer_character.title ] );
 					}
 				};
 				
@@ -511,13 +511,13 @@ class sdCommandCentre extends sdEntity
 							executer_socket.SDServiceMessage( 'Too many team join requests - wait until Command Centre owner reviews them' );
 						}
 						else
-						if ( this.pending_team_joins.indexOf( exectuter_character._net_id ) !== -1 )
+						if ( this.pending_team_joins.indexOf( executer_character._net_id ) !== -1 )
 						{
 							executer_socket.SDServiceMessage( 'Team join request already sent' );
 						}
 						else
 						{
-							this.pending_team_joins.push( exectuter_character._net_id );
+							this.pending_team_joins.push( executer_character._net_id );
 							executer_socket.SDServiceMessage( 'Team join request sent' );
 					
 							this._update_version++;
@@ -530,7 +530,7 @@ class sdCommandCentre extends sdEntity
 				{
 					//let lrtp_near = this.GetComWiredCache( null, sdLongRangeTeleport );
 					//if ( lrtp_near )
-					this.GivePlayerTask( exectuter_character );
+					this.GivePlayerTask( executer_character );
 					//else
 					//executer_socket.SDServiceMessage( 'You need to connect a long range teleporter to command centre!' );
 				}*/
@@ -539,19 +539,19 @@ class sdCommandCentre extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		//if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
-		if ( exectuter_character.canSeeForUse( this ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		//if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
+		if ( this.inRealDist2DToEntity_Boolean( executer_character, 64 ) )
+		if ( executer_character.canSeeForUse( this ) )
 		{
             this.AddPromptContextOption( 'Set command center ID', 'RENAME', [ undefined ], 'Enter new ID', '', 32 );
 
-			if ( this.owner === exectuter_character )
+			if ( this.owner === executer_character )
 			{
 				this.AddContextOption( 'Accept everyone', 'ACCEPT_ALL', [ ] );
 				this.AddContextOption( 'Reject everyone', 'REJECT_ALL', [ ] );
@@ -567,7 +567,7 @@ class sdCommandCentre extends sdEntity
 			{
 				this.AddContextOption( 'Request team join', 'REQUEST', [] );
 			}
-			//if ( exectuter_character.cc_id === this._net_id )
+			//if ( executer_character.cc_id === this._net_id )
 			//this.AddContextOption( 'Request tasks', 'REQUEST_TASK', [] );
 		}
 	}

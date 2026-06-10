@@ -77,7 +77,7 @@ class sdSandWorm extends sdEntity
 	get hitbox_y1() { return -11 * this.scale; }
 	get hitbox_y2() { return 11 * this.scale; }
     
-    ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+    ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{ 
 		return [ 0, 0, -64 ];
 	}

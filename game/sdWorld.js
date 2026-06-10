@@ -1592,7 +1592,7 @@ class sdWorld
 				if ( params.attachment.driver_of )
 				if ( params.attachment.driver_of.is( sdCommandCentre ) )
 				{
-					params.text = 'CC-' + params.attachment.driver_of.biometry + ': ' + params.text;
+					params.text = 'CC-' + params.attachment.driver_of.nickname + ': ' + params.text;
 					
 					delete params.x;
 					delete params.y;
@@ -2918,8 +2918,11 @@ class sdWorld
     {
         let best_warp = 1;
 
-        for ( const timewarp of sdWorld.timewarps )
+        //for ( const timewarp of sdWorld.timewarps ) It is slow
+		for ( let i = 0; i < sdWorld.timewarps.length; i++ )
         {
+			let timewarp = sdWorld.timewarps[ i ];
+			
             if ( sdWorld.inDist2D_Boolean( timewarp.x, timewarp.y, e.x, e.y, timewarp.r ) )
             {
                 if ( !sdWorld.server_config.base_degradation )
@@ -2928,7 +2931,6 @@ class sdWorld
 
                 if ( e === timewarp.e || e === timewarp.e.driver_of || e.for === timewarp.e || ( e.is( sdGun ) && e._held_by === timewarp.e ) )
                 {
-                    
                     best_warp = timewarp.warp * timewarp.owner_mult;
                     break;
                 }
@@ -3031,7 +3033,8 @@ class sdWorld
 		let substeps_mult;
 		let skip_frames;
 
-        sdWorld.timewarps = [];
+        //sdWorld.timewarps = [];
+		let timewarps_total = 0;
 		let stop_motion_regions = null;
 
 		// Adding post-entity creation properties
@@ -3078,10 +3081,29 @@ class sdWorld
 		//if ( !sdWorld.paused )
 		{
 
-            for ( const effect of sdStatusEffect.type_to_status_effects.get( sdStatusEffect.TYPE_TIMEWARP ) )
+            //for ( const effect of sdStatusEffect.type_to_status_effects.get( sdStatusEffect.TYPE_TIMEWARP ) ) Slow
+			let effs = sdStatusEffect.type_to_status_effects.get( sdStatusEffect.TYPE_TIMEWARP );
+			for ( let i = 0; i < effs.length; i++ )
             {
-                sdWorld.timewarps.push( { x: effect.for.x, y: effect.for.y, e: effect.for, r: effect.radius, warp: effect.warp / 100, owner_mult: effect.owner_warp_mult / 100 } );
+				let effect = effs[ i ];
+                //sdWorld.timewarps.push( { x: effect.for.x, y: effect.for.y, e: effect.for, r: effect.radius, warp: effect.warp / 100, owner_mult: effect.owner_warp_mult / 100 } );
+				
+				// Reusing array and objects made to minimize GC usage
+				if ( timewarps_total < sdWorld.timewarps.length )
+				{
+					let w = sdWorld.timewarps[ timewarps_total++ ];
+					
+					w.x = effect.for.x;
+					w.y = effect.for.y;
+					w.e = effect.for;
+					w.r = effect.radius;
+					w.warp = effect.warp / 100;
+					w.owner_mult = effect.owner_warp_mult / 100;
+				}
+				else
+				sdWorld.timewarps[ timewarps_total++ ] = { x: effect.for.x, y: effect.for.y, e: effect.for, r: effect.radius, warp: effect.warp / 100, owner_mult: effect.owner_warp_mult / 100 };
             }
+			sdWorld.timewarps.length = timewarps_total;
 
 			for ( i = 0; i < sdPresetEditor.regions.length; i++ )
 			if ( sdPresetEditor.regions[ i ].time_scale !== 1000 )
@@ -4996,6 +5018,9 @@ class sdWorld
 
 			var ef = new sdEffect( params );
 			sdEntity.entities.push( ef );
+			
+			//if ( ef._type === sdEffect.TYPE_EXPLOSION || ef._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
+			//debugger;
 		}
 		else
 		if ( type === 'P' ) // Projectiles pushing ragdolls

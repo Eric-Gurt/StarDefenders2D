@@ -81,7 +81,7 @@ class sdDoor extends sdEntity
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{ 
 		if ( layer === -1 )
 		return [ 0, 0, -0.01 ];

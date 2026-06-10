@@ -971,17 +971,17 @@ class sdStorage extends sdEntity
 		}
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdStorage.access_range ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdStorage.access_range ) )
 		{
-			if ( exectuter_character.canSeeForUse( this ) )
+			if ( executer_character.canSeeForUse( this ) )
 			{
 				if ( this._armed_with.length > 0 )
 				{
-					if ( exectuter_character.biometry === this.owner_biometry )
+					if ( executer_character.biometry === this.owner_biometry )
 					{
 						if ( command_name === 'DISARM' )
 						{
@@ -990,7 +990,7 @@ class sdStorage extends sdEntity
 							// Extract last entity if full
 							if ( this._stored_items.length === slots_total )
 							{
-								let ent = this.ExtractItem( slots_total - 1, exectuter_character );
+								let ent = this.ExtractItem( slots_total - 1, executer_character );
 								
 								if ( !ent )
 								{
@@ -1012,7 +1012,7 @@ class sdStorage extends sdEntity
 					}
 					else
 					{
-						this.ActivateTrap( exectuter_character );
+						this.ActivateTrap( executer_character );
 						executer_socket.SDServiceMessage( 'Storage had a trap' );
 						return;
 					}
@@ -1035,7 +1035,7 @@ class sdStorage extends sdEntity
 				{
 					let slot = parameters_array[ 0 ];
 
-					this.ExtractItem( slot, exectuter_character );
+					this.ExtractItem( slot, executer_character );
 				}
 				else
 				if ( command_name === 'STORAGE_TRAP' )
@@ -1064,11 +1064,11 @@ class sdStorage extends sdEntity
 			executer_socket.SDServiceMessage( 'Can\'t access storage through walls' );
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdStorage.access_range ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdStorage.access_range ) )
 		{
 			//if ( this.held_by === null )
 			{
@@ -1089,7 +1089,7 @@ class sdStorage extends sdEntity
 				}
 				
 				if ( sdWorld.time < this.disarm_until )
-				if ( exectuter_character.biometry === this.owner_biometry )
+				if ( executer_character.biometry === this.owner_biometry )
 				{
 					this.AddContextOption( 'Disarm', 'DISARM', [ ], true, { color: '#ffff00' } );
 				}

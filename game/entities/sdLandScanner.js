@@ -270,21 +270,21 @@ class sdLandScanner extends sdEntity
 		
 		return Infinity;
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 			{
 				if ( command_name === 'SCAN_DIRT' )
 				{
 					{
 						if ( this.matter >= 100 )
 						{
-							this._intel_receiver = exectuter_character;
+							this._intel_receiver = executer_character;
 							this.SetScanState( true );
 						}
 						else
@@ -296,13 +296,13 @@ class sdLandScanner extends sdEntity
 			executer_socket.SDServiceMessage( 'Land scanner is too far' );
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 ) )
 		{
 			if ( sdWorld.my_entity )
 			{

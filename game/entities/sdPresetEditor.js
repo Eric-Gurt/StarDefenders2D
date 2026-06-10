@@ -1213,17 +1213,17 @@ class sdPresetEditor extends sdEntity
 		// For hover reaction?
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( exectuter_character._god )
+			if ( executer_character._god )
 			{
 				if ( command_name === 'CHECK' )
 				{
-					this.GetEntitiesInside( exectuter_character, true );
+					this.GetEntitiesInside( executer_character, true );
 				}
 				if ( command_name === 'ADDTAG' )
 				{
@@ -1357,7 +1357,7 @@ class sdPresetEditor extends sdEntity
 						if ( this.preset_name === '' )
 						executer_socket.SDServiceMessage( 'Your preset needs a name.' );
 						else
-						if ( this.SaveEntitiesInsidePreset( exectuter_character ) )
+						if ( this.SaveEntitiesInsidePreset( executer_character ) )
 						executer_socket.SDServiceMessage( 'Preset saved successfully!' );
 						else
 						executer_socket.SDServiceMessage( 'Error! Cannot save preset. Maybe you don\'t have permissions to do so?' );
@@ -1369,25 +1369,25 @@ class sdPresetEditor extends sdEntity
 				if ( command_name === 'LOAD' )
 				{
 					if ( parameters_array[ 0 ] !== '' )
-					this.LoadPreset( exectuter_character, parameters_array[ 0 ], false, true );
+					this.LoadPreset( executer_character, parameters_array[ 0 ], false, true );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'LOAD_DEL' )
 				{
 					if ( parameters_array[ 0 ] !== '' )
-					this.LoadPreset( exectuter_character, parameters_array[ 0 ], true );
+					this.LoadPreset( executer_character, parameters_array[ 0 ], true );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'SOFT_LOAD' )
 				{
 					if ( parameters_array[ 0 ] !== '' )
-					this.LoadPreset( exectuter_character, parameters_array[ 0 ], false, false );
+					this.LoadPreset( executer_character, parameters_array[ 0 ], false, false );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'SOFT_LOAD_DEL' )
 				{
 					if ( parameters_array[ 0 ] !== '' )
-					this.LoadPreset( exectuter_character, parameters_array[ 0 ], true, false );
+					this.LoadPreset( executer_character, parameters_array[ 0 ], true, false );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'TIMESCALE' )
@@ -1404,7 +1404,7 @@ class sdPresetEditor extends sdEntity
 				}
 				if ( command_name === 'ERASE' )
 				{
-					this.EraseEntitiesInEditor( exectuter_character );
+					this.EraseEntitiesInEditor( executer_character );
 				}
 				if ( command_name === 'CANCEL' )
 				{
@@ -1413,21 +1413,21 @@ class sdPresetEditor extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			//if ( exectuter_character._god )
-			//if ( this.owner !== exectuter_character )
+			//if ( executer_character._god )
+			//if ( this.owner !== executer_character )
 			//{
 			//	this.AddContextOption( 'sudo own', 'OWN', [] );
 			//}
 
 			//if ( this.owner )
-			//if ( this.owner === exectuter_character )
-			if ( exectuter_character._god )
+			//if ( this.owner === executer_character )
+			if ( executer_character._god )
 			{
 				this.AddContextOption( 'Check saveable content', 'CHECK', [] );
 				this.AddPromptContextOption( 'Save preset...', 'SAVE', [ undefined ], 'Enter preset name to save as (will override if exists)', this.preset_name, 300 );

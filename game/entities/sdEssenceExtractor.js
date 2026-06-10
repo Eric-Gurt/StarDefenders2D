@@ -525,15 +525,15 @@ class sdEssenceExtractor extends sdEntity
 		return 400;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		if ( parameters_array instanceof Array )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 			{
 				if ( command_name === 'DRAIN' )
 				{
@@ -562,7 +562,7 @@ class sdEssenceExtractor extends sdEntity
 					if ( parameters_array[ 0 ] >= 0 )
 					if ( parameters_array[ 0 ] < 3 )
 					{
-						if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) < 32 )
+						if ( this.GetAccurateDistance( executer_character.x + ( executer_character.hitbox_x1 + executer_character.hitbox_x2 ) / 2, executer_character.y + ( executer_character.hitbox_y1 + executer_character.hitbox_y2 ) / 2 ) < 32 )
 						{
 							if ( command_name === 'TRANSFER_MODE' )
 							{
@@ -579,13 +579,13 @@ class sdEssenceExtractor extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 64 ) )
 		{
 			this.AddContextOption( 'Consume crystal', 'DRAIN', [] );
 

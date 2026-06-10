@@ -30,7 +30,7 @@ class sdCraftingBench extends sdEntity
 	get spawn_align_x() { return 8; };
 	get spawn_align_y() { return 8; };
     
-    ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+    ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{
 		return [ 0, 0, -32.1 ];
 	}
@@ -544,17 +544,18 @@ class sdCraftingBench extends sdEntity
 			item.PhysWakeUp();
 		}
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
         if ( parameters_array )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) && exectuter_character.canSeeForUse( this ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdCraftingBench.access_range ) && executer_character.canSeeForUse( this ) )
 			{
                 if ( command_name === 'CRAFT' )
+				if ( typeof parameters_array[ 0 ] === 'number' )
                 {
                     const success = this.CraftWeapon( parameters_array[ 0 ] );
                     if ( !success )
@@ -562,13 +563,15 @@ class sdCraftingBench extends sdEntity
 
 					this._update_version++;
                 }
+				
                 if ( command_name === 'GET' )
+				if ( typeof parameters_array[ 0 ] === 'number' )
                 {
                     let slot = parameters_array[ 0 ];
 					
                     if ( this[ 'item' + slot ] )
                     {
-                        this.ExtractItem( this[ 'item' + slot ]._net_id, exectuter_character );
+                        this.ExtractItem( this[ 'item' + slot ]._net_id, executer_character );
                     }
 
                     this._update_version++;
@@ -580,13 +583,13 @@ class sdCraftingBench extends sdEntity
             executer_socket.SDServiceMessage( 'Too far' );
         }
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-        if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCraftingBench.access_range ) && exectuter_character.canSeeForUse( this ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+        if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, sdCraftingBench.access_range ) && executer_character.canSeeForUse( this ) )
 		{
             if ( this._current_category_stack.length > 0 )
             this.AddClientSideActionContextOption( 'Go back...', ()=>

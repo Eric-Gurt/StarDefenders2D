@@ -327,7 +327,7 @@ class sdTurret extends sdEntity
 		this._time_amplification = 0;
 
         this._current_built_entity = null; // Used by cable and welding turrets turrets
-        this._built_cables = [];
+        this._built_cables = []; // Arrays are not saved to snapshot by default, sdSteeringWheel only saves _net_id-s, recognizing object pointers in array properties would be way too slow - EG
         
         this.liquid = {
 			max: this.kind === sdTurret.KIND_SENTRY ? 250 : 0, 
@@ -355,14 +355,14 @@ class sdTurret extends sdEntity
 
 		return false;
 	}
-    DropGun( exectuter_character )
+    DropGun( executer_character )
     {
         if ( !this.gun )
         return;
 
         const gun = this.DropSpecificWeapon( this.gun );
-        gun.x = exectuter_character.x;
-        gun.y = exectuter_character.y;
+        gun.x = executer_character.x;
+        gun.y = executer_character.y;
     }
 	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
     {
@@ -1240,15 +1240,15 @@ class sdTurret extends sdEntity
 	get spawn_align_y(){ return 4; };
 	
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		//if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD || this.kind !== sdTurret.KIND_SENTRY )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 			{
 				if ( command_name === 'UPGRADE' || command_name === 'UPGRADE_MAX' )
 				{
@@ -1262,12 +1262,12 @@ class sdTurret extends sdEntity
 						
 						if ( this.lvl < 3 )
 						{
-							if ( exectuter_character.matter >= 100 )
+							if ( executer_character.matter >= 100 )
 							{
 								upgraded = true;
 
 								this.lvl += 1;
-								exectuter_character.matter -= 100;
+								executer_character.matter -= 100;
 
 								this._update_version++;
 							}
@@ -1294,10 +1294,10 @@ class sdTurret extends sdEntity
                     if ( this.gun )
                     return;
 
-                    const gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+                    const gun = executer_character._inventory[ executer_character.gun_slot ];
                     if ( this.IsWeaponAllowed( gun ) )
                     {
-                        exectuter_character.DropWeapon( exectuter_character.gun_slot );
+                        executer_character.DropWeapon( executer_character.gun_slot );
                         gun.x = this.x;
                         gun.y = this.y;
                         gun.sx = 0;
@@ -1313,7 +1313,7 @@ class sdTurret extends sdEntity
 				}
                 if ( command_name === 'GET' )
 				{
-                    this.DropGun( exectuter_character );
+                    this.DropGun( executer_character );
 				}
             }
 			else
@@ -1321,20 +1321,20 @@ class sdTurret extends sdEntity
 		}
         this._update_version++;
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		//if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 		{
             if ( this.kind === sdTurret.KIND_SENTRY )
-            if ( exectuter_character.canSeeForUse( this ) )
+            if ( executer_character.canSeeForUse( this ) )
             {
                 if ( !this.gun )
                 {   
-                    const gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+                    const gun = executer_character._inventory[ executer_character.gun_slot ];
                     if ( this.IsWeaponAllowed( gun ) )
                     this.AddContextOption( 'Install current weapon', 'INSTALL', [] );
                 }

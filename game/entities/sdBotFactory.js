@@ -739,12 +739,12 @@ function BrainModelB()
 		sdCodeEditor.HandleServerCommand( command_name, parameters_array );
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( this.inRealDist2DToEntity_Boolean( executer_character, 32 ) )
 		{
 			/*if ( command_name === 'SET_TEXT' )
 			if ( parameters_array.length === 1 )
@@ -786,7 +786,7 @@ function BrainModelB()
 			{
 				executer_socket.CommandFromEntityClass( sdBotFactory, 'OPEN_CODE_EDITOR', [ this._net_id, ( this._code || sdBotFactory.default_program ), this.program_message ] ); // class, command_name, parameters_array
 				
-				this._developer = exectuter_character;
+				this._developer = executer_character;
 			}
 			else
 			if ( command_name === 'RESUME' )
@@ -822,12 +822,12 @@ function BrainModelB()
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( this.inRealDist2DToEntity_Boolean( executer_character, 32 ) )
 		{
 			//this.AddPromptContextOption( 'Change text', 'SET_TEXT', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.text_censored ) ? sdWorld.CensoredText( this.text ) : this.text, 100 );
 			

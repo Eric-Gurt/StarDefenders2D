@@ -635,16 +635,16 @@ class sdDropPod extends sdEntity
 	onRemoveAsFakeEntity()
 	{
 	}
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
 			if ( (this.type === sdDropPod.TYPE_KVT ) && command_name === 'PROGRESS' ) // All types which need unlocking should have this context option
 			{
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 * 1.25 ) )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 * 1.25 ) )
 				{
 					if ( this.metal_shards === this.metal_shards_max )
 					{	
@@ -656,13 +656,13 @@ class sdDropPod extends sdEntity
 							if ( this.level === 2 )
 							{
 								if ( Math.random() > 0.8 )
-								exectuter_character.Say( 'Open sesame!' );
+								executer_character.Say( 'Open sesame!' );
 								else if ( Math.random() > 0.6 )
-								exectuter_character.Say( 'I hope it\'s not rigged..' );
+								executer_character.Say( 'I hope it\'s not rigged..' );
 								else if ( Math.random() > 0.2 )
-								exectuter_character.Say( 'Let\'s see what we\'ve got here...' );
+								executer_character.Say( 'Let\'s see what we\'ve got here...' );
 								else
-								exectuter_character.Say( 'I hope they don\'t send someone after me..' );
+								executer_character.Say( 'I hope they don\'t send someone after me..' );
 							}
 						}
 						else
@@ -675,23 +675,23 @@ class sdDropPod extends sdEntity
 							sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1, pitch:0.44 });
 
 							if ( Math.random() > 0.8 )
-							exectuter_character.Say( '"This is some advanced tech.. I failed."' );
+							executer_character.Say( '"This is some advanced tech.. I failed."' );
 							else if ( Math.random() > 0.5 )
-							exectuter_character.Say( 'Ow! That clipped my hand. That didn\'t go well.' );
+							executer_character.Say( 'Ow! That clipped my hand. That didn\'t go well.' );
 							else if ( Math.random() > 0.2 )
-							exectuter_character.Say( 'You\'ve got to be kidding me. Bypass failed.' );
+							executer_character.Say( 'You\'ve got to be kidding me. Bypass failed.' );
 							else if ( Math.random() > 0.75 )
-							exectuter_character.Say( 'What is this thing made out of anyway? Looks like that didn\'t work.' );
+							executer_character.Say( 'What is this thing made out of anyway? Looks like that didn\'t work.' );
 							else
-							exectuter_character.Say( '...Bastard. Bypass failed' );
+							executer_character.Say( '...Bastard. Bypass failed' );
 						}
 					}
 					else
 					{
 						if ( Math.random() > 0.5 )
-						exectuter_character.Say( 'I don\'t have enough resources to try bypassing the security.' );
+						executer_character.Say( 'I don\'t have enough resources to try bypassing the security.' );
 						else
-						exectuter_character.Say( 'I\'m gonna need more than my wits to get this thing open.' );
+						executer_character.Say( 'I\'m gonna need more than my wits to get this thing open.' );
 					}
 				}
 				else
@@ -703,7 +703,7 @@ class sdDropPod extends sdEntity
 
 			if ( command_name === 'OPEN' )
 			{
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 * 1.25 ) )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 * 1.25 ) )
 				{	
 					this.Open();
 				}
@@ -716,7 +716,7 @@ class sdDropPod extends sdEntity
 
 			if ( command_name === 'LOOT' )
 			{
-				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 * 1.25 ) )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 * 1.25 ) )
 				{	
 					if ( this.uses > 0 )
 					{
@@ -725,11 +725,11 @@ class sdDropPod extends sdEntity
 					else
 					{
 						if ( Math.random() > 0.7 )
-						exectuter_character.Say( "It seems to have been looted already." );
+						executer_character.Say( "It seems to have been looted already." );
 						else if ( Math.random() > 0.33 )
-						exectuter_character.Say( "Either someone got here earlier than me, or there is a criminal among us." );
+						executer_character.Say( "Either someone got here earlier than me, or there is a criminal among us." );
 						else
-						exectuter_character.Say( "A weapons pod with no weapons in it? What a cruel joke." );
+						executer_character.Say( "A weapons pod with no weapons in it? What a cruel joke." );
 					}
 				}
 				else
@@ -740,13 +740,13 @@ class sdDropPod extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
 		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 * 1.5 ) )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 32 * 1.5 ) )
 		{
 			if ( this.level < 2 && ( this.type === sdDropPod.TYPE_KVT ) )
 			this.AddContextOption( 'Attempt to bypass the locking mechanisms (Requires metal shards)', 'PROGRESS', [] );

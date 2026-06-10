@@ -158,7 +158,7 @@ class sdCable extends sdEntity
 	IsBGEntity() // 3 = cables
 	{ return 3; }
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{ 
 		return [ 0, 0, -64 ];
 	}
@@ -990,8 +990,8 @@ class sdCable extends sdEntity
 			{
 				ctx.fillStyle = properties.by_node_variation[ this.v ];
 				
-				let exectuter_character = sdWorld.my_entity;
-				if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) >= 32 )
+				let executer_character = sdWorld.my_entity;
+				if ( this.GetAccurateDistance( executer_character.x + ( executer_character.hitbox_x1 + executer_character.hitbox_x2 ) / 2, executer_character.y + ( executer_character.hitbox_y1 + executer_character.hitbox_y2 ) / 2 ) >= 32 )
 				{
 					ctx.globalAlpha *= 0.15;
 				}
@@ -1117,24 +1117,24 @@ class sdCable extends sdEntity
 	
 	
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
 		{
-			if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
+			if ( sdArea.CheckPointDamageAllowed( executer_character.x, executer_character.y ) || this.p === executer_character || this.c === executer_character )
 			{
-				if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) < 32 )
+				if ( this.GetAccurateDistance( executer_character.x + ( executer_character.hitbox_x1 + executer_character.hitbox_x2 ) / 2, executer_character.y + ( executer_character.hitbox_y1 + executer_character.hitbox_y2 ) / 2 ) < 32 )
 				{
-					if ( exectuter_character.is( sdPlayerDrone ) ||
-						 ( exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
-						   exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
+					if ( executer_character.is( sdPlayerDrone ) ||
+						 ( executer_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
+						   executer_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
 					{
 						if ( command_name === 'CUT_CABLE' )
 						{
 							if ( this._shielded && !this._shielded._is_being_removed && this._shielded.protect_cables )
-							exectuter_character.Say( 'Protected by the base shielding unit... Really?' );
+							executer_character.Say( 'Protected by the base shielding unit... Really?' );
 							else
 							this.remove();
 						}
@@ -1155,7 +1155,7 @@ class sdCable extends sdEntity
 						}
 					}
 					else
-					exectuter_character.Say( 'I\'d need cable management tool' );
+					executer_character.Say( 'I\'d need cable management tool' );
 				}
 				else
 				{
@@ -1178,13 +1178,13 @@ class sdCable extends sdEntity
 			}
 		}
 	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	PopulateContextOptions( executer_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		//if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
-		if ( this.GetAccurateDistance( exectuter_character.x + ( exectuter_character.hitbox_x1 + exectuter_character.hitbox_x2 ) / 2, exectuter_character.y + ( exectuter_character.hitbox_y1 + exectuter_character.hitbox_y2 ) / 2 ) < 20 ) // 32 can cause door to be "hackable" if first socket was on top
+		if ( executer_character )
+		if ( executer_character.hea > 0 )
+		//if ( sdArea.CheckPointDamageAllowed( executer_character.x, executer_character.y ) || this.p === executer_character || this.c === executer_character )
+		if ( this.GetAccurateDistance( executer_character.x + ( executer_character.hitbox_x1 + executer_character.hitbox_x2 ) / 2, executer_character.y + ( executer_character.hitbox_y1 + executer_character.hitbox_y2 ) / 2 ) < 20 ) // 32 can cause door to be "hackable" if first socket was on top
 		{
 			if ( this.t === sdCable.TYPE_WIRELESS )
 			{

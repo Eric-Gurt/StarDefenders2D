@@ -341,7 +341,7 @@ class sdBlock extends sdEntity
 		if ( mat === sdBlock.MATERIAL_SNOW )
 		return 'Snow';
     
-        if ( mat === sdBlock.MATERIAL_SNOW )
+        if ( mat === sdBlock.MATERIAL_ICE )
 		return 'Ice';
 	
 		if ( mat === sdBlock.MATERIAL_CORRUPTION )
@@ -358,7 +358,7 @@ class sdBlock extends sdEntity
 		return FakeCanvasContext.DRAW_IN_3D_BOX; 
 	}
 	
-	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	ObjectOffset3D( layer ) // Layer values: -1 for BG, 0 for normal, 1 for FG. Returns [ x, y, z ] offset or null
 	{
 		// Glowing lines prevention
 		//if ( sdRenderer._visual_settings === 3 )
@@ -1057,7 +1057,7 @@ class sdBlock extends sdEntity
 		let ent2 = sdEntity.Create( sdBlock, { x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, 
 			hue:this.hue,br:this.br,filter:this.filter,
 			//rank: Math.round( Math.random() * 6 ) 
-			rank: ( ( 1 + Math.floor( Math.pow( Math.random(), 1.5 ) * 11 ) ) << 2 ) | speciality // Combine speciality and matter into 1 value
+			rank: ( ( 1 + Math.floor( Math.pow( Math.random(), 1.5 ) * 11 ) ) << 2 ) | speciality // Combine speciality and matter into 1 value // TODO: Speciality can be extended into more variants than just 3. This could result into world versions incompatibility eventually.
 		});
 
 		this.remove();
