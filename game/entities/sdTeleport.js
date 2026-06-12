@@ -157,7 +157,7 @@ class sdTeleport extends sdEntity
 	{
 		return `Teleport nodes can be used to teleport various kinds of entities between teleport nodes that are wired together. Connect access management node to configure which entities should be teleported.`;
 	}
-    Draw( ctx, attached )
+    DrawFG( ctx, attached )
 	{
         if ( this.delay === 0 )
 		ctx.apply_shading = false;
