@@ -341,7 +341,7 @@ class sdSampleBuilder extends sdEntity
 	get spawn_align_x(){ return this.half_size; };
 	get spawn_align_y(){ return this.half_size; };
 	
-	Draw( ctx, attached )
+	DrawFG( ctx, attached )
 	{
 		let xx = 0;
 		let yy = 0;
