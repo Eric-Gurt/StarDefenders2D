@@ -109,6 +109,10 @@ class sdTeleport extends sdEntity
 		
 		this.delay = 0;
         this.half_size = params.half_size || 16; // or 8
+        
+        if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+        this._sort = -1;
+
 		//this._update_version++
 	}
 	ExtraSerialzableFieldTest( prop )

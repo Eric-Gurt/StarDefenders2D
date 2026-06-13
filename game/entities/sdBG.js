@@ -149,6 +149,9 @@ class sdBG extends sdEntity
 		this._decals = null; // array of _net_id-s of sdBloodDecal-s
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+        
+        if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+        this._sort = 1;
 		
 		if ( !sdWorld.server_config.enable_background_merging ) // This way it can attempt merging when created (if enabled)
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
