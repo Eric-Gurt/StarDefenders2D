@@ -139,6 +139,9 @@ class sdSampleBuilder extends sdEntity
 		this.matter_max = ( this.type === sdSampleBuilder.TYPE_BUILDER ) ? 500 : 0;
 		
 		this.delay = 0;
+        
+        if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+        this._sort = -1;
 		//this._update_version++
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -341,7 +344,7 @@ class sdSampleBuilder extends sdEntity
 	get spawn_align_x(){ return this.half_size; };
 	get spawn_align_y(){ return this.half_size; };
 	
-	DrawFG( ctx, attached )
+	Draw( ctx, attached )
 	{
 		let xx = 0;
 		let yy = 0;
