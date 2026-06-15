@@ -18,29 +18,17 @@ Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9
 
 # Installation
 
-Upload files to your server, remove node_modules folder as it might appear outdated (yet should be fine as long as server is not accessible from Internet, even if your server config has password).
-
-Then, in command line (linux, CentOS):
+For Linux servers with systemd, download only the installer and run it:
 ```
-apt update
-
-apt install nodejs
-
-apt install npm
+curl -fsSL -o install-linux.sh https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/install-linux.sh
+sudo bash install-linux.sh
 ```
-*pick directory where your Star Defenders 2D files are, index.js file specifically*
-```
-npm init
 
-npm install express --save
+The installer needs a systemd-based Linux server with root/sudo access and internet access. It can install missing dependencies, install Node.js through nvm, clone/update this repository, install npm production dependencies, create a crash-restarting systemd service, enable optional GitHub auto-updates, configure `sslconfig.json`, verify SSL certificate/key file permissions for the service user, optionally install Let's Encrypt, and watch `server_config*.js` / `sslconfig.json` for edits then enact graceful restarts.
 
-npm install socket.io --save
+Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a game world publicly, make sure the selected world-slot port, such as `3000` for slot `0` or `4002` for slot `1002`, is open in both the server firewall and any VPS/provider firewall.
 
-npm install socket.io-client --save
-```
-PS: You'll probably need latest Node.JS version. If something does not work - you can contact me or discuss it at #sd-discussion at PB2's discord server.
-
-PSS: It is all pretty much same for Windows, just download Node.JS from their official website ( https://nodejs.org ), then follow the instructions towards running simple express application. Eventually just put game files instead of that index.js file and run it. For debugging using Chromium browsers you can run it with command line (cmd.exe application):
+For Windows/manual development, install Node.js from https://nodejs.org, install npm dependencies from the repository directory, and run the server directly. For debugging using Chromium browsers you can run it with command line (cmd.exe application):
 ```
 node --inspect index.js
 ```
