@@ -24,7 +24,17 @@ curl -fsSL -o install-linux.sh https://raw.githubusercontent.com/Eric-Gurt/StarD
 sudo bash install-linux.sh
 ```
 
-The installer needs a systemd-based Linux server with root/sudo access and internet access. It can install missing dependencies, install Node.js through nvm, clone/update this repository, install npm production dependencies, create a crash-restarting systemd service, enable optional GitHub auto-updates, configure `sslconfig.json`, verify SSL certificate/key file permissions for the service user, optionally install Let's Encrypt, and watch `server_config*.js` / `sslconfig.json` for edits then enact graceful restarts.
+The installer needs a systemd-based Linux server with root/sudo access and internet access. It can install missing dependencies, install Node.js through nvm, clone/update this repository, install npm production dependencies, create a crash-restarting systemd service, enable optional GitHub auto-updates, configure `sslconfig.json`, verify SSL certificate/key file permissions for the service user, optionally install Let's Encrypt, create periodic world-data backups, write a service-specific admin command reference, and watch `server_config*.js` / `sslconfig.json` for edits then enact graceful restarts.
+
+If the game is already cloned on the server and you only want to add or repair the systemd service, auto-update timer, and restart watcher around that existing checkout, run the installer from that checkout with:
+```
+sudo bash install-linux.sh --existing-checkout
+```
+This mode requires the selected install/repo directory to already be a Git checkout with an `origin` remote. It skips the initial clone/checkout/reset step, but the generated update timer will still deploy future updates from the selected branch.
+
+Choosing `skip` for `sslconfig.json` leaves the file unchanged. If an existing `sslconfig.json` is present, the installer can still verify and repair certificate/key file permissions so the systemd service user can read the configured paths.
+
+The generated maintenance backup timer defaults to every two days, can be changed during installation, and copies only the selected world's `star_defenders_snapshot*.v`, optional raw snapshot, and `chunks*` folder if present. Update-time backups use the same scope. Periodic backups keep the latest periodic copy by default, and all managed backup folders still purge entries older than the configured retention period.
 
 Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a game world publicly, make sure the selected world-slot port, such as `3000` for slot `0` or `4002` for slot `1002`, is open in both the server firewall and any VPS/provider firewall.
 

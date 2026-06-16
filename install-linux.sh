@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SCRIPT_VERSION="1.0.5"
+SCRIPT_VERSION="1.0.10"
 DEFAULT_REPO_URL="https://github.com/Eric-Gurt/StarDefenders2D.git"
 DEFAULT_BRANCH="main"
 DEFAULT_SERVICE_NAME="stardefenders"
 DEFAULT_APP_USER="stardefenders"
 DEFAULT_LAUNCH_COMMAND="node index.js"
 DEFAULT_UPDATE_INTERVAL="5min"
+DEFAULT_BACKUP_INTERVAL="2d"
 DEFAULT_NODE_VERSION="lts/*"
 DEFAULT_WORLD_SLOT="0"
 DEFAULT_BACKUP_RETENTION_DAYS="30"
@@ -27,6 +28,7 @@ NVM_VERSION=""
 NODE_ENV_VALUE="production"
 UPDATE_ENABLED=""
 UPDATE_INTERVAL=""
+BACKUP_INTERVAL=""
 CONFIG_WATCH_ENABLED=""
 WATCH_SERVER_CONFIG=""
 WATCH_SSLCONFIG=""
@@ -38,6 +40,7 @@ SSL_KEY_PATH=""
 SSL_ONLINE_PATH=""
 SSL_CLOUDFLARE=""
 SSL_FIX_PERMISSIONS=""
+SSL_PERMISSION_PROMPTED="no"
 LETSENCRYPT_DOMAIN=""
 LETSENCRYPT_EMAIL=""
 LETSENCRYPT_STAGING=""
@@ -51,6 +54,7 @@ WRITE_UNINSTALL_HELPER=""
 DRY_RUN="no"
 ASSUME_DEFAULTS="no"
 CONFIG_FILE=""
+EXISTING_CHECKOUT_ONLY=""
 
 die() {
   echo "Error: $*" >&2
@@ -63,6 +67,7 @@ StarDefenders2D Linux installer ${SCRIPT_VERSION}
 
 Usage:
   sudo bash install-linux.sh
+  sudo bash install-linux.sh --existing-checkout
   sudo bash install-linux.sh --dry-run
   sudo bash install-linux.sh --config ./install.env --yes
   bash install-linux.sh --help
@@ -77,9 +82,11 @@ sslconfig.json from the issued certificate paths, verify service user access,
 and create world-slot-aware file watchers for graceful restarts.
 
 Options:
-  --config FILE  Load shell-style installer defaults before prompting.
-  --yes          Use loaded/default answers without prompting.
-  --dry-run      Print the resulting plan without changing the system.
+  --config FILE        Load shell-style installer defaults before prompting.
+  --yes                Use loaded/default answers without prompting.
+  --dry-run            Print the resulting plan without changing the system.
+  --existing-checkout  Reconfigure services around an existing Git checkout;
+                       skip the initial clone/checkout/reset step.
 EOF
 }
 
@@ -96,6 +103,10 @@ parse_args() {
         ;;
       --dry-run)
         DRY_RUN="yes"
+        shift
+        ;;
+      --existing-checkout|--reuse-existing|--service-only)
+        EXISTING_CHECKOUT_ONLY="yes"
         shift
         ;;
       -y|--yes|--non-interactive|--noninteractive)
@@ -525,8 +536,21 @@ EOF
     APP_DIR="${APP_DIR%/}"
   fi
 
+  local existing_checkout_default="n"
+  if [[ -d "${APP_DIR}/.git" ]]; then
+    existing_checkout_default="y"
+  fi
+  if prompt_yes_no "Use existing checkout as-is and skip initial clone/reset" "${EXISTING_CHECKOUT_ONLY:-$existing_checkout_default}"; then
+    EXISTING_CHECKOUT_ONLY="yes"
+  else
+    EXISTING_CHECKOUT_ONLY="no"
+  fi
+
   REPO_URL="$(prompt_text "Git repository URL" "${REPO_URL:-$DEFAULT_REPO_URL}")"
   REPO_BRANCH="$(prompt_text "Git branch to deploy" "${REPO_BRANCH:-$DEFAULT_BRANCH}")"
+  if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
+    warn "Initial setup will not reset ${APP_DIR}; future auto-updates still reset to origin/${REPO_BRANCH}."
+  fi
 
   echo
   echo "Node.js will be installed and launched through nvm for ${APP_USER}."
@@ -585,7 +609,7 @@ EOF
 
   echo
   echo "SSL configuration:"
-  echo "  skip      Leave sslconfig.json unchanged."
+  echo "  skip      Leave sslconfig.json unchanged; optionally verify existing cert/key permissions."
   echo "  copy      Copy an existing sslconfig.json from this Linux server."
   echo "  create    Prompt for certificate/key paths and write sslconfig.json."
   echo "  letsencrypt"
@@ -641,7 +665,18 @@ EOF
   fi
 
   if [[ "${SSLCONFIG_MODE}" != "skip" ]]; then
+    SSL_PERMISSION_PROMPTED="yes"
     if prompt_yes_no "Verify and fix SSL file permissions for ${APP_USER}" "${SSL_FIX_PERMISSIONS:-y}"; then
+      SSL_FIX_PERMISSIONS="yes"
+    else
+      SSL_FIX_PERMISSIONS="no"
+    fi
+  elif [[ -f "${APP_DIR}/sslconfig.json" ]]; then
+    echo
+    echo "Existing ${APP_DIR}/sslconfig.json found."
+    echo "The installer can leave the file unchanged while checking that ${APP_USER} can read its certificate and key paths."
+    SSL_PERMISSION_PROMPTED="yes"
+    if prompt_yes_no "Verify and fix SSL file permissions for existing sslconfig.json" "${SSL_FIX_PERMISSIONS:-y}"; then
       SSL_FIX_PERMISSIONS="yes"
     else
       SSL_FIX_PERMISSIONS="no"
@@ -650,6 +685,8 @@ EOF
     SSL_FIX_PERMISSIONS="no"
   fi
 
+  BACKUP_INTERVAL="$(prompt_text "Periodic world backup interval for systemd timer" "${BACKUP_INTERVAL:-$DEFAULT_BACKUP_INTERVAL}")"
+  [[ -n "${BACKUP_INTERVAL}" ]] || die "Backup interval cannot be blank."
   BACKUP_RETENTION_DAYS="$(prompt_text "Delete managed backups older than this many days" "${BACKUP_RETENTION_DAYS:-$DEFAULT_BACKUP_RETENTION_DAYS}")"
   is_nonnegative_integer "${BACKUP_RETENTION_DAYS}" || die "Backup retention must be a non-negative integer."
 
@@ -707,6 +744,9 @@ EOF
   else
     warn "Installer is running from ${current_dir}, but the repo will be installed to ${APP_DIR}."
   fi
+  if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
+    [[ -d "${APP_DIR}/.git" ]] || die "Existing-checkout mode requires ${APP_DIR} to be a Git checkout."
+  fi
   if systemctl list-unit-files "${SERVICE_NAME}.service" --no-legend --no-pager 2>/dev/null | grep -q "^${SERVICE_NAME}[.]service"; then
     warn "${SERVICE_NAME}.service already exists."
     systemctl show "${SERVICE_NAME}.service" -p FragmentPath -p User -p ExecStart -p ActiveState --no-pager 2>/dev/null || true
@@ -730,6 +770,7 @@ Configuration summary:
   Directory: ${APP_DIR}
   Repo: ${REPO_URL}
   Branch: ${REPO_BRANCH}
+  Existing checkout only: ${EXISTING_CHECKOUT_ONLY}
   Service: ${SERVICE_NAME}.service
   Launch: ${LAUNCH_COMMAND}
   World slot: ${WORLD_SLOT}
@@ -743,6 +784,7 @@ Configuration summary:
   Expected port: ${EXPECTED_PORT}
   Open firewall: ${OPEN_FIREWALL}
   Backup retention: ${BACKUP_RETENTION_DAYS} day(s)
+  Backup interval: ${BACKUP_INTERVAL}
   Cert renewal hook: ${INSTALL_CERT_RENEWAL_HOOK}
   Uninstall helper: ${WRITE_UNINSTALL_HELPER}
   Dry run: ${DRY_RUN}
@@ -755,6 +797,19 @@ EOF
 prepare_checkout() {
   ensure_app_user
   install -d -o "${APP_USER}" -g "${APP_GROUP}" "$(dirname "${APP_DIR}")"
+
+  if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
+    [[ -d "${APP_DIR}" ]] || die "Existing-checkout mode requires ${APP_DIR} to exist."
+    [[ -d "${APP_DIR}/.git" ]] || die "Existing-checkout mode requires ${APP_DIR} to be a Git checkout."
+    info "Using existing Git checkout at ${APP_DIR} without initial reset"
+    chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
+    run_as_app git -C "${APP_DIR}" rev-parse --is-inside-work-tree >/dev/null
+    if ! run_as_app git -C "${APP_DIR}" remote get-url origin >/dev/null 2>&1; then
+      die "Existing-checkout mode requires a Git remote named origin for auto-updates."
+    fi
+    return 0
+  fi
+
   prepare_existing_non_git_directory
 
   if [[ -d "${APP_DIR}/.git" ]]; then
@@ -964,13 +1019,36 @@ verify_or_fix_ssl_permissions_from_file() {
   ensure_onlinepath_access "${online_path}"
 }
 
+offer_existing_ssl_permission_check_after_checkout() {
+  if [[ "${SSLCONFIG_MODE}" != "skip" ]]; then
+    return 0
+  fi
+  if [[ "${SSL_FIX_PERMISSIONS}" == "yes" ]]; then
+    return 0
+  fi
+  if [[ "${SSL_PERMISSION_PROMPTED}" == "yes" ]]; then
+    return 0
+  fi
+  if [[ ! -f "${APP_DIR}/sslconfig.json" ]]; then
+    return 0
+  fi
+
+  echo
+  echo "Existing ${APP_DIR}/sslconfig.json found after checkout preparation."
+  echo "The installer can leave the file unchanged while checking that ${APP_USER} can read its certificate and key paths."
+  SSL_PERMISSION_PROMPTED="yes"
+  if prompt_yes_no "Verify and fix SSL file permissions for existing sslconfig.json" "y"; then
+    SSL_FIX_PERMISSIONS="yes"
+  fi
+}
+
 purge_old_managed_backups() {
   local dir
   local days="${BACKUP_RETENTION_DAYS:-30}"
   [[ "${days}" =~ ^[0-9]+$ ]] || days=30
-  for dir in "${APP_DIR}/backups/pre-update" "${APP_DIR}/backups/config"; do
+  for dir in "${APP_DIR}/backups/update" "${APP_DIR}/backups/pre-update" "${APP_DIR}/backups/periodic" "${APP_DIR}/backups/config"; do
     if [[ -d "${dir}" ]]; then
-      find "${dir}" -type f -name '*.bak' -mtime "+${days}" -delete
+      find "${dir}" -mindepth 1 -mtime "+${days}" -exec rm -rf {} +
     fi
   done
 }
@@ -1003,6 +1081,7 @@ write_environment_file() {
   write_env_var "${env_file}" "APP_DIR" "${APP_DIR}"
   write_env_var "${env_file}" "REPO_URL" "${REPO_URL}"
   write_env_var "${env_file}" "REPO_BRANCH" "${REPO_BRANCH}"
+  write_env_var "${env_file}" "EXISTING_CHECKOUT_ONLY" "${EXISTING_CHECKOUT_ONLY}"
   write_env_var "${env_file}" "SERVICE_NAME" "${SERVICE_NAME}"
   write_env_var "${env_file}" "LAUNCH_COMMAND" "${LAUNCH_COMMAND}"
   write_env_var "${env_file}" "WORLD_SLOT" "${WORLD_SLOT}"
@@ -1016,6 +1095,7 @@ write_environment_file() {
   write_env_var "${env_file}" "WATCH_SERVER_CONFIG" "${WATCH_SERVER_CONFIG}"
   write_env_var "${env_file}" "WATCH_SSLCONFIG" "${WATCH_SSLCONFIG}"
   write_env_var "${env_file}" "EXPECTED_PORT" "${EXPECTED_PORT}"
+  write_env_var "${env_file}" "BACKUP_INTERVAL" "${BACKUP_INTERVAL}"
   write_env_var "${env_file}" "BACKUP_RETENTION_DAYS" "${BACKUP_RETENTION_DAYS}"
   write_env_var "${env_file}" "OPEN_FIREWALL" "${OPEN_FIREWALL}"
   write_env_var "${env_file}" "SSLCONFIG_MODE" "${SSLCONFIG_MODE}"
@@ -1068,7 +1148,6 @@ set -Eeuo pipefail
 source "__ENV_FILE__"
 LOCK_FILE="/run/lock/${SERVICE_NAME}-deploy.lock"
 SUPPRESS_FILE="/run/${SERVICE_NAME}-config-restart.suppress_until"
-BACKUP_DIR="${APP_DIR}/backups/pre-update"
 
 log() {
   printf '[%s] %s\n' "$(date -Is)" "$*"
@@ -1090,9 +1169,9 @@ purge_old_backups() {
   local dir
   local days="${BACKUP_RETENTION_DAYS:-30}"
   [[ "${days}" =~ ^[0-9]+$ ]] || days=30
-  for dir in "${APP_DIR}/backups/pre-update" "${APP_DIR}/backups/config"; do
+  for dir in "${APP_DIR}/backups/update" "${APP_DIR}/backups/pre-update" "${APP_DIR}/backups/periodic" "${APP_DIR}/backups/config"; do
     if [[ -d "${dir}" ]]; then
-      find "${dir}" -type f -name '*.bak' -mtime "+${days}" -delete
+      find "${dir}" -mindepth 1 -mtime "+${days}" -exec rm -rf {} +
     fi
   done
 }
@@ -1125,24 +1204,8 @@ log "Update available: ${current_rev} -> ${target_rev}"
 log "Stopping ${SERVICE_NAME}.service gracefully..."
 systemctl stop "${SERVICE_NAME}.service"
 
-timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-install -d -o "${APP_USER}" -g "${APP_GROUP}" "${BACKUP_DIR}"
-shopt -s nullglob
-snapshot_files=(
-  "${APP_DIR}"/star_defenders_snapshot"${FILE_SUFFIX}".v
-  "${APP_DIR}"/star_defenders_snapshot"${FILE_SUFFIX}".raw.v
-  "${APP_DIR}"/moderation_data"${FILE_SUFFIX}".v
-  "${APP_DIR}"/database_data"${FILE_SUFFIX}"_*.v
-)
-
-if (( ${#snapshot_files[@]} > 0 )); then
-  log "Backing up ${#snapshot_files[@]} snapshot/database file(s)."
-  for file in "${snapshot_files[@]}"; do
-    target="${BACKUP_DIR}/$(basename "${file}").${timestamp}.bak"
-    cp -a --reflink=auto "${file}" "${target}" 2>/dev/null || cp -a "${file}" "${target}"
-    chown "${APP_USER}:${APP_GROUP}" "${target}"
-  done
-fi
+log "Backing up world snapshot/chunks before update..."
+"/usr/local/bin/${SERVICE_NAME}-backup.sh" update --service-already-stopped
 purge_old_backups
 
 log "Resetting checkout to origin/${REPO_BRANCH}..."
@@ -1154,6 +1217,130 @@ run_app_shell "cd $(printf '%q' "${APP_DIR}"); ${prefix}npm install --omit=dev -
 log "Starting ${SERVICE_NAME}.service..."
 systemctl start "${SERVICE_NAME}.service"
 log "Deploy complete at $(run_as_app git rev-parse --short HEAD)."
+EOF
+  sed -i "s#__ENV_FILE__#/etc/default/${SERVICE_NAME}#g" "${path}"
+  chmod 755 "${path}"
+}
+
+write_backup_script() {
+  local path="/usr/local/bin/${SERVICE_NAME}-backup.sh"
+  info "Writing ${path}"
+  cat > "${path}" <<'EOF'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+source "__ENV_FILE__"
+
+MODE="${1:-periodic}"
+SERVICE_ALREADY_STOPPED="no"
+if [[ "${2:-}" == "--service-already-stopped" ]]; then
+  SERVICE_ALREADY_STOPPED="yes"
+fi
+
+case "${MODE}" in
+  update|periodic) ;;
+  *) echo "Usage: $0 [update|periodic] [--service-already-stopped]" >&2; exit 2 ;;
+esac
+
+LOCK_FILE="/run/lock/${SERVICE_NAME}-deploy.lock"
+BACKUP_ROOT="${APP_DIR}/backups/${MODE}"
+
+log() {
+  printf '[%s] %s\n' "$(date -Is)" "$*"
+}
+
+run_as_app() {
+  runuser -u "${APP_USER}" -- "$@"
+}
+
+purge_old_backups() {
+  local dir
+  local days="${BACKUP_RETENTION_DAYS:-30}"
+  [[ "${days}" =~ ^[0-9]+$ ]] || days=30
+  for dir in "${APP_DIR}/backups/update" "${APP_DIR}/backups/pre-update" "${APP_DIR}/backups/periodic" "${APP_DIR}/backups/config"; do
+    if [[ -d "${dir}" ]]; then
+      find "${dir}" -mindepth 1 -mtime "+${days}" -exec rm -rf {} +
+    fi
+  done
+}
+
+copy_file() {
+  local source="$1"
+  local target="$2"
+  cp -a --reflink=auto "${source}" "${target}" 2>/dev/null || cp -a "${source}" "${target}"
+}
+
+make_backup() {
+  local timestamp
+  local backup_dir
+  local copied="no"
+  local snapshot
+  local chunks_dir
+
+  timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  backup_dir="${BACKUP_ROOT}/${timestamp}"
+  install -d -o "${APP_USER}" -g "${APP_GROUP}" "${backup_dir}"
+
+  shopt -s nullglob
+  for snapshot in \
+    "${APP_DIR}"/star_defenders_snapshot"${FILE_SUFFIX}".v \
+    "${APP_DIR}"/star_defenders_snapshot"${FILE_SUFFIX}".raw.v
+  do
+    if [[ -f "${snapshot}" ]]; then
+      log "Backing up $(basename "${snapshot}")"
+      copy_file "${snapshot}" "${backup_dir}/$(basename "${snapshot}")"
+      copied="yes"
+    fi
+  done
+
+  chunks_dir="${APP_DIR}/chunks${FILE_SUFFIX}"
+  if [[ -d "${chunks_dir}" ]]; then
+    log "Backing up $(basename "${chunks_dir}")/"
+    cp -a "${chunks_dir}" "${backup_dir}/$(basename "${chunks_dir}")"
+    copied="yes"
+  fi
+
+  if [[ "${copied}" != "yes" ]]; then
+    rmdir "${backup_dir}" 2>/dev/null || true
+    log "No snapshot or chunks folder found for world slot ${WORLD_SLOT}; no backup was created."
+    return 0
+  fi
+
+  chown -R "${APP_USER}:${APP_GROUP}" "${backup_dir}"
+  if [[ "${MODE}" == "periodic" ]]; then
+    find "${BACKUP_ROOT}" -mindepth 1 -maxdepth 1 -type d ! -name "${timestamp}" -exec rm -rf {} +
+  fi
+  purge_old_backups
+  log "Backup complete: ${backup_dir}"
+}
+
+if [[ "${SERVICE_ALREADY_STOPPED}" == "yes" ]]; then
+  make_backup
+  exit 0
+fi
+
+exec 9>"${LOCK_FILE}"
+if ! flock -n 9; then
+  log "Deploy/update lock is busy; skipping backup."
+  exit 0
+fi
+
+was_active="no"
+if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+  was_active="yes"
+  log "Stopping ${SERVICE_NAME}.service for consistent backup..."
+  systemctl stop "${SERVICE_NAME}.service"
+fi
+
+restart_if_needed() {
+  if [[ "${was_active}" == "yes" ]]; then
+    log "Starting ${SERVICE_NAME}.service after backup..."
+    systemctl start "${SERVICE_NAME}.service"
+  fi
+}
+trap restart_if_needed EXIT
+
+make_backup
 EOF
   sed -i "s#__ENV_FILE__#/etc/default/${SERVICE_NAME}#g" "${path}"
   chmod 755 "${path}"
@@ -1247,6 +1434,31 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
+  cat > "/etc/systemd/system/${SERVICE_NAME}-backup.service" <<EOF
+[Unit]
+Description=Back up StarDefenders2D (${SERVICE_NAME}) world snapshot and chunks
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=900
+ExecStart=/usr/local/bin/${SERVICE_NAME}-backup.sh periodic
+EOF
+
+  cat > "/etc/systemd/system/${SERVICE_NAME}-backup.timer" <<EOF
+[Unit]
+Description=Run StarDefenders2D (${SERVICE_NAME}) periodic world backup timer
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=${BACKUP_INTERVAL}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
   cat > "/etc/systemd/system/${SERVICE_NAME}-config-restart.service" <<EOF
 [Unit]
 Description=Gracefully restart StarDefenders2D (${SERVICE_NAME}) after config changes
@@ -1283,6 +1495,7 @@ enable_units() {
   info "Reloading systemd"
   systemctl daemon-reload
   systemctl enable "${SERVICE_NAME}.service"
+  systemctl enable --now "${SERVICE_NAME}-backup.timer"
 
   if [[ "${UPDATE_ENABLED}" == "yes" ]]; then
     systemctl enable --now "${SERVICE_NAME}-update.timer"
@@ -1330,8 +1543,10 @@ EOF
 }
 
 write_uninstall_helper() {
-  local path="/usr/local/bin/${SERVICE_NAME}-uninstall.sh"
+  local path="${APP_DIR}/${SERVICE_NAME}-uninstall.sh"
   [[ "${WRITE_UNINSTALL_HELPER}" == "yes" ]] || return 0
+  install -d -o "${APP_USER}" -g "${APP_GROUP}" "${APP_DIR}"
+  info "Writing ${path}"
   cat > "${path}" <<EOF
 #!/usr/bin/env bash
 set -Eeuo pipefail
@@ -1344,22 +1559,105 @@ case "\${answer}" in
   *) echo "Cancelled."; exit 1 ;;
 esac
 
-systemctl disable --now ${SERVICE_NAME}.service ${SERVICE_NAME}-update.timer ${SERVICE_NAME}-config-watch.path 2>/dev/null || true
+systemctl disable --now "${SERVICE_NAME}.service" "${SERVICE_NAME}-update.timer" "${SERVICE_NAME}-backup.timer" "${SERVICE_NAME}-config-watch.path" 2>/dev/null || true
 rm -f \
-  /etc/systemd/system/${SERVICE_NAME}.service \
-  /etc/systemd/system/${SERVICE_NAME}-update.service \
-  /etc/systemd/system/${SERVICE_NAME}-update.timer \
-  /etc/systemd/system/${SERVICE_NAME}-config-restart.service \
-  /etc/systemd/system/${SERVICE_NAME}-config-watch.path \
-  /usr/local/bin/${SERVICE_NAME}-run.sh \
-  /usr/local/bin/${SERVICE_NAME}-deploy.sh \
-  /usr/local/bin/${SERVICE_NAME}-config-restart.sh \
-  /etc/default/${SERVICE_NAME}
-rm -f /etc/letsencrypt/renewal-hooks/deploy/${SERVICE_NAME}-restart.sh 2>/dev/null || true
+  "/etc/systemd/system/${SERVICE_NAME}.service" \
+  "/etc/systemd/system/${SERVICE_NAME}-update.service" \
+  "/etc/systemd/system/${SERVICE_NAME}-update.timer" \
+  "/etc/systemd/system/${SERVICE_NAME}-backup.service" \
+  "/etc/systemd/system/${SERVICE_NAME}-backup.timer" \
+  "/etc/systemd/system/${SERVICE_NAME}-config-restart.service" \
+  "/etc/systemd/system/${SERVICE_NAME}-config-watch.path" \
+  "/usr/local/bin/${SERVICE_NAME}-run.sh" \
+  "/usr/local/bin/${SERVICE_NAME}-deploy.sh" \
+  "/usr/local/bin/${SERVICE_NAME}-backup.sh" \
+  "/usr/local/bin/${SERVICE_NAME}-config-restart.sh" \
+  "/etc/default/${SERVICE_NAME}" \
+  "/usr/local/bin/${SERVICE_NAME}-uninstall.sh" \
+  "${APP_DIR}/${SERVICE_NAME}-admin-commands.txt" \
+  "${APP_DIR}/${SERVICE_NAME}-uninstall.sh"
+rm -f "/etc/letsencrypt/renewal-hooks/deploy/${SERVICE_NAME}-restart.sh" 2>/dev/null || true
 systemctl daemon-reload
 echo "Removed generated units/scripts for ${SERVICE_NAME}. Repo and world data were left in place."
 EOF
+  chown "${APP_USER}:${APP_GROUP}" "${path}"
   chmod 755 "${path}"
+}
+
+write_admin_commands_file() {
+  local path="${APP_DIR}/${SERVICE_NAME}-admin-commands.txt"
+  info "Writing ${path}"
+  install -d -o "${APP_USER}" -g "${APP_GROUP}" "${APP_DIR}"
+  cat > "${path}" <<EOF
+StarDefenders2D admin commands for ${SERVICE_NAME}
+Generated by install-linux.sh ${SCRIPT_VERSION}
+
+Service identity
+  Service: ${SERVICE_NAME}.service
+  Repo: ${APP_DIR}
+  User: ${APP_USER}
+  World slot: ${WORLD_SLOT}
+  Expected port: ${EXPECTED_PORT}
+
+Status and logs
+  systemctl status ${SERVICE_NAME}.service
+  journalctl -u ${SERVICE_NAME}.service -f
+  systemctl status ${SERVICE_NAME}-update.timer
+  systemctl status ${SERVICE_NAME}-backup.timer
+  systemctl status ${SERVICE_NAME}-config-watch.path
+
+Start, stop, restart
+  systemctl start ${SERVICE_NAME}.service
+  systemctl stop ${SERVICE_NAME}.service
+  systemctl restart ${SERVICE_NAME}.service
+
+Auto-update
+  Disable: systemctl disable --now ${SERVICE_NAME}-update.timer
+  Re-enable: systemctl enable --now ${SERVICE_NAME}-update.timer
+  Run once now: systemctl start ${SERVICE_NAME}-update.service
+  Approved during install: ${UPDATE_ENABLED}
+
+Periodic world backups
+  Disable: systemctl disable --now ${SERVICE_NAME}-backup.timer
+  Re-enable: systemctl enable --now ${SERVICE_NAME}-backup.timer
+  Run once now: systemctl start ${SERVICE_NAME}-backup.service
+  Interval: ${BACKUP_INTERVAL}
+  Backup folders:
+    ${APP_DIR}/backups/update
+    ${APP_DIR}/backups/periodic
+  Retention: older than ${BACKUP_RETENTION_DAYS} day(s) are purged.
+  Periodic backups keep only the newest periodic copy by default.
+
+Config file watcher
+  Disable: systemctl disable --now ${SERVICE_NAME}-config-watch.path
+  Re-enable: systemctl enable --now ${SERVICE_NAME}-config-watch.path
+  Trigger restart once: systemctl start ${SERVICE_NAME}-config-restart.service
+  Approved during install: ${CONFIG_WATCH_ENABLED}
+  Watched server_config${FILE_SUFFIX}.js: ${WATCH_SERVER_CONFIG}
+  Watched sslconfig.json: ${WATCH_SSLCONFIG}
+
+Firewall rule opened by installer
+  Approved during install: ${OPEN_FIREWALL}
+  If ufw is used, disable manually only if this port is no longer needed:
+    ufw delete allow ${EXPECTED_PORT}/tcp
+  Re-enable:
+    ufw allow ${EXPECTED_PORT}/tcp
+
+Let's Encrypt renewal hook
+  Approved during install: ${INSTALL_CERT_RENEWAL_HOOK}
+  Disable:
+    rm -f /etc/letsencrypt/renewal-hooks/deploy/${SERVICE_NAME}-restart.sh
+  Re-enable:
+    rerun install-linux.sh for this service and approve the renewal hook.
+
+Generated uninstall helper
+  ${APP_DIR}/${SERVICE_NAME}-uninstall.sh
+
+Full uninstall for this service only
+  sudo ${APP_DIR}/${SERVICE_NAME}-uninstall.sh
+EOF
+  chown "${APP_USER}:${APP_GROUP}" "${path}"
+  chmod 640 "${path}"
 }
 
 verify_service_health() {
@@ -1420,20 +1718,26 @@ Useful commands:
   systemctl status ${SERVICE_NAME}.service
   journalctl -u ${SERVICE_NAME}.service -f
   systemctl status ${SERVICE_NAME}-update.timer
+  systemctl status ${SERVICE_NAME}-backup.timer
   systemctl start ${SERVICE_NAME}-update.service
+  systemctl start ${SERVICE_NAME}-backup.service
   systemctl status ${SERVICE_NAME}-config-watch.path
 
 Generated files:
   /etc/default/${SERVICE_NAME}
   /usr/local/bin/${SERVICE_NAME}-run.sh
   /usr/local/bin/${SERVICE_NAME}-deploy.sh
+  /usr/local/bin/${SERVICE_NAME}-backup.sh
   /usr/local/bin/${SERVICE_NAME}-config-restart.sh
   /etc/systemd/system/${SERVICE_NAME}.service
   /etc/systemd/system/${SERVICE_NAME}-update.service
   /etc/systemd/system/${SERVICE_NAME}-update.timer
+  /etc/systemd/system/${SERVICE_NAME}-backup.service
+  /etc/systemd/system/${SERVICE_NAME}-backup.timer
   /etc/systemd/system/${SERVICE_NAME}-config-restart.service
   /etc/systemd/system/${SERVICE_NAME}-config-watch.path
-  /usr/local/bin/${SERVICE_NAME}-uninstall.sh (if enabled)
+  ${APP_DIR}/${SERVICE_NAME}-admin-commands.txt
+  ${APP_DIR}/${SERVICE_NAME}-uninstall.sh (if enabled)
   /etc/letsencrypt/renewal-hooks/deploy/${SERVICE_NAME}-restart.sh (if enabled)
 
 EOF
@@ -1453,6 +1757,7 @@ main() {
   ensure_base_packages
   prepare_checkout
   install_node_runtime
+  offer_existing_ssl_permission_check_after_checkout
   install_optional_config_file "${SERVER_CONFIG_SOURCE}" "server_config${FILE_SUFFIX}.js"
   if [[ "${SSLCONFIG_MODE}" == "copy" ]]; then
     install_optional_config_file "${SSLCONFIG_SOURCE}" "sslconfig.json"
@@ -1467,11 +1772,13 @@ main() {
   purge_old_managed_backups
   write_environment_file
   write_run_script
+  write_backup_script
   write_deploy_script
   write_config_restart_script
   write_systemd_units
   write_cert_renewal_hook
   write_uninstall_helper
+  write_admin_commands_file
   enable_units
   configure_firewall
   start_or_update_service
