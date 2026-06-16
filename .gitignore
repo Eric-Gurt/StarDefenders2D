@@ -1,3 +1,22 @@
+# Fork-local ignore policy
+# Ignore all newly generated or local-only files in this devtests fork.
+# Existing tracked upstream files remain tracked by Git.
+*
+!*/
+!.gitignore
+
+# AI and agent workspace content
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.claude/
+.clavix/
+.codex/
+.cursor/
+.gemini/
+.windsurf/
+.aider*
+
 # Logs
 logs
 *.log
