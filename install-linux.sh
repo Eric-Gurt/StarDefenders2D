@@ -55,6 +55,7 @@ DRY_RUN="no"
 ASSUME_DEFAULTS="no"
 CONFIG_FILE=""
 EXISTING_CHECKOUT_ONLY=""
+EXISTING_NON_GIT_ACTION=""
 
 die() {
   echo "Error: $*" >&2
@@ -425,6 +426,29 @@ prepare_existing_non_git_directory() {
     return 0
   fi
 
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "init" ]]; then
+    EXISTING_NON_GIT_ACTION="git"
+  elif [[ "${EXISTING_NON_GIT_ACTION}" == "backup" ]]; then
+    EXISTING_NON_GIT_ACTION="startfresh"
+  fi
+
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "git" ]]; then
+    backup_existing_directory_for_in_place_install
+    initialize_git_metadata_for_existing_directory
+    return 0
+  fi
+
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
+    backup_existing_directory_for_in_place_install
+    info "Using existing non-Git directory ${APP_DIR} without configuring repository metadata"
+    chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
+    return 0
+  fi
+
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "abort" ]]; then
+    die "Choose an empty directory, an existing Git checkout, plain-directory reuse, or Git initialization."
+  fi
+
   if (( project_markers == 0 )); then
     warn "${APP_DIR} exists but is not a Git checkout. It does not look like a StarDefenders2D repo."
     warn "This commonly happens when the installer itself was uploaded into the intended install directory."
@@ -432,8 +456,10 @@ prepare_existing_non_git_directory() {
     warn "${APP_DIR} exists and contains project-looking files, but it is not a Git checkout."
   fi
 
-  if ! prompt_yes_no "Back up current contents and clone StarDefenders2D into this directory" "y"; then
-    die "Choose an empty directory or an existing Git checkout, then rerun the installer."
+  if [[ "${EXISTING_NON_GIT_ACTION}" != "startfresh" ]]; then
+    if ! prompt_yes_no "Back up current contents and clone StarDefenders2D into this directory" "y"; then
+      die "Choose an empty directory or an existing Git checkout, then rerun the installer."
+    fi
   fi
 
   backup_dir="${APP_DIR}.preinstall.$(date -u +%Y%m%dT%H%M%SZ)"
@@ -441,6 +467,53 @@ prepare_existing_non_git_directory() {
   mkdir -p "${backup_dir}"
   find "${APP_DIR}" -mindepth 1 -maxdepth 1 -exec mv -t "${backup_dir}" {} +
   chown -R "${APP_USER}:${APP_GROUP}" "${backup_dir}" "${APP_DIR}"
+}
+
+backup_existing_directory_for_in_place_install() {
+  local backup_root="${APP_DIR}/installerbackup"
+  local backup_dir
+
+  [[ -d "${APP_DIR}" ]] || return 0
+
+  backup_dir="${backup_root}/$(date -u +%Y%m%dT%H%M%SZ)"
+  info "Backing up existing directory contents to ${backup_dir}"
+  mkdir -p "${backup_dir}"
+
+  if find "${APP_DIR}" -mindepth 1 -maxdepth 1 ! -name installerbackup -exec cp -a -t "${backup_dir}" {} +; then
+    chown -R "${APP_USER}:${APP_GROUP}" "${backup_root}"
+  else
+    die "Failed to create installer backup at ${backup_dir}"
+  fi
+}
+
+initialize_git_metadata_for_existing_directory() {
+  local target_ref="origin/${REPO_BRANCH}"
+
+  [[ -d "${APP_DIR}" ]] || die "Cannot initialize Git metadata because ${APP_DIR} does not exist."
+  [[ ! -d "${APP_DIR}/.git" ]] || return 0
+
+  info "Initializing Git metadata in existing directory ${APP_DIR}"
+  chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
+  run_as_app git -C "${APP_DIR}" init
+  run_as_app git -C "${APP_DIR}" check-ref-format --branch "${REPO_BRANCH}" >/dev/null
+  if run_as_app git -C "${APP_DIR}" remote get-url origin >/dev/null 2>&1; then
+    run_as_app git -C "${APP_DIR}" remote set-url origin "${REPO_URL}"
+  else
+    run_as_app git -C "${APP_DIR}" remote add origin "${REPO_URL}"
+  fi
+  run_as_app git -C "${APP_DIR}" fetch --prune origin
+  run_as_app git -C "${APP_DIR}" rev-parse --verify "${target_ref}^{commit}" >/dev/null
+  run_as_app git -C "${APP_DIR}" symbolic-ref HEAD "refs/heads/${REPO_BRANCH}"
+  run_as_app git -C "${APP_DIR}" reset --mixed "${target_ref}"
+  run_as_app git -C "${APP_DIR}" branch --set-upstream-to="${target_ref}" "${REPO_BRANCH}" >/dev/null 2>&1 || true
+
+  if ! run_as_app git -C "${APP_DIR}" diff --quiet --; then
+    warn "${APP_DIR} now has Git metadata, but tracked files differ from ${target_ref}."
+    warn "The installer will not overwrite those files in in-place initialization mode."
+    die "Review local changes with: sudo -u ${APP_USER} git -C ${APP_DIR} status --short"
+  fi
+
+  info "Existing directory is now a Git checkout tracking ${target_ref}"
 }
 
 install_nvm_and_node() {
@@ -536,20 +609,50 @@ EOF
     APP_DIR="${APP_DIR%/}"
   fi
 
+  if [[ -d "${APP_DIR}" && ! -d "${APP_DIR}/.git" ]] &&
+     [[ -e "${APP_DIR}/index.js" || -e "${APP_DIR}/package.json" || -d "${APP_DIR}/game" ]]; then
+    echo
+    echo "${APP_DIR} contains StarDefenders2D-looking files, but it is not configured as a Git checkout."
+    echo "  git     Keep files in place, initialize Git metadata, fetch origin, and verify tracked files match the selected branch."
+    echo "  plain   Keep files in place without Git metadata; GitHub auto-updates will be disabled."
+    echo "  startfresh"
+    echo "          Move current contents to a timestamped backup directory, then clone a fresh checkout."
+    echo "  abort   Stop before changing this directory."
+    if [[ "${EXISTING_NON_GIT_ACTION:-}" == "init" ]]; then
+      EXISTING_NON_GIT_ACTION="git"
+    elif [[ "${EXISTING_NON_GIT_ACTION:-}" == "backup" ]]; then
+      EXISTING_NON_GIT_ACTION="startfresh"
+    fi
+    EXISTING_NON_GIT_ACTION="$(prompt_choice "Existing non-Git directory action" "${EXISTING_NON_GIT_ACTION:-git}" "git" "plain" "startfresh" "abort")"
+  fi
+
   local existing_checkout_default="n"
   if [[ -d "${APP_DIR}/.git" ]]; then
     existing_checkout_default="y"
   fi
-  if prompt_yes_no "Use existing checkout as-is and skip initial clone/reset" "${EXISTING_CHECKOUT_ONLY:-$existing_checkout_default}"; then
-    EXISTING_CHECKOUT_ONLY="yes"
-  else
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
     EXISTING_CHECKOUT_ONLY="no"
+  else
+    if prompt_yes_no "Use existing checkout as-is and skip initial clone/reset" "${EXISTING_CHECKOUT_ONLY:-$existing_checkout_default}"; then
+      EXISTING_CHECKOUT_ONLY="yes"
+    else
+      EXISTING_CHECKOUT_ONLY="no"
+    fi
   fi
 
-  REPO_URL="$(prompt_text "Git repository URL" "${REPO_URL:-$DEFAULT_REPO_URL}")"
-  REPO_BRANCH="$(prompt_text "Git branch to deploy" "${REPO_BRANCH:-$DEFAULT_BRANCH}")"
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
+    REPO_URL="${REPO_URL:-$DEFAULT_REPO_URL}"
+    REPO_BRANCH="${REPO_BRANCH:-$DEFAULT_BRANCH}"
+  else
+    REPO_URL="$(prompt_text "Git repository URL" "${REPO_URL:-$DEFAULT_REPO_URL}")"
+    REPO_BRANCH="$(prompt_text "Git branch to deploy" "${REPO_BRANCH:-$DEFAULT_BRANCH}")"
+  fi
   if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
     warn "Initial setup will not reset ${APP_DIR}; future auto-updates still reset to origin/${REPO_BRANCH}."
+  elif [[ "${EXISTING_NON_GIT_ACTION}" == "git" ]]; then
+    warn "Initial setup will preserve ${APP_DIR} files while adding Git metadata; future auto-updates reset to origin/${REPO_BRANCH}."
+  elif [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
+    warn "Initial setup will preserve ${APP_DIR} as a plain directory without Git metadata."
   fi
 
   echo
@@ -582,12 +685,18 @@ EOF
     OPEN_FIREWALL="no"
   fi
 
-  if prompt_yes_no "Enable automatic GitHub updates" "${UPDATE_ENABLED:-y}"; then
-    UPDATE_ENABLED="yes"
-    UPDATE_INTERVAL="$(prompt_text "Update interval for systemd timer" "${UPDATE_INTERVAL:-$DEFAULT_UPDATE_INTERVAL}")"
-  else
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
     UPDATE_ENABLED="no"
-    UPDATE_INTERVAL="${DEFAULT_UPDATE_INTERVAL}"
+    UPDATE_INTERVAL="${UPDATE_INTERVAL:-$DEFAULT_UPDATE_INTERVAL}"
+    warn "Automatic GitHub updates disabled because ${APP_DIR} will remain a plain non-Git directory."
+  else
+    if prompt_yes_no "Enable automatic GitHub updates" "${UPDATE_ENABLED:-y}"; then
+      UPDATE_ENABLED="yes"
+      UPDATE_INTERVAL="$(prompt_text "Update interval for systemd timer" "${UPDATE_INTERVAL:-$DEFAULT_UPDATE_INTERVAL}")"
+    else
+      UPDATE_ENABLED="no"
+      UPDATE_INTERVAL="${DEFAULT_UPDATE_INTERVAL}"
+    fi
   fi
 
   if prompt_yes_no "Watch files for graceful restarts" "${CONFIG_WATCH_ENABLED:-y}"; then
@@ -747,6 +856,9 @@ EOF
   if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
     [[ -d "${APP_DIR}/.git" ]] || die "Existing-checkout mode requires ${APP_DIR} to be a Git checkout."
   fi
+  if [[ "${EXISTING_NON_GIT_ACTION}" == "abort" ]]; then
+    die "Installation cancelled because ${APP_DIR} is not configured as a Git checkout."
+  fi
   if systemctl list-unit-files "${SERVICE_NAME}.service" --no-legend --no-pager 2>/dev/null | grep -q "^${SERVICE_NAME}[.]service"; then
     warn "${SERVICE_NAME}.service already exists."
     systemctl show "${SERVICE_NAME}.service" -p FragmentPath -p User -p ExecStart -p ActiveState --no-pager 2>/dev/null || true
@@ -771,6 +883,7 @@ Configuration summary:
   Repo: ${REPO_URL}
   Branch: ${REPO_BRANCH}
   Existing checkout only: ${EXISTING_CHECKOUT_ONLY}
+  Existing non-Git action: ${EXISTING_NON_GIT_ACTION:-<none>}
   Service: ${SERVICE_NAME}.service
   Launch: ${LAUNCH_COMMAND}
   World slot: ${WORLD_SLOT}
@@ -1082,6 +1195,7 @@ write_environment_file() {
   write_env_var "${env_file}" "REPO_URL" "${REPO_URL}"
   write_env_var "${env_file}" "REPO_BRANCH" "${REPO_BRANCH}"
   write_env_var "${env_file}" "EXISTING_CHECKOUT_ONLY" "${EXISTING_CHECKOUT_ONLY}"
+  write_env_var "${env_file}" "EXISTING_NON_GIT_ACTION" "${EXISTING_NON_GIT_ACTION}"
   write_env_var "${env_file}" "SERVICE_NAME" "${SERVICE_NAME}"
   write_env_var "${env_file}" "LAUNCH_COMMAND" "${LAUNCH_COMMAND}"
   write_env_var "${env_file}" "WORLD_SLOT" "${WORLD_SLOT}"
@@ -1183,6 +1297,11 @@ if ! flock -n 9; then
 fi
 
 cd "${APP_DIR}"
+
+if [[ "${EXISTING_NON_GIT_ACTION:-}" == "plain" || ! -d "${APP_DIR}/.git" ]]; then
+  log "${APP_DIR} is not configured as a Git checkout; GitHub auto-update is unavailable for this installation."
+  exit 0
+fi
 
 log "Fetching ${REPO_URL} ${REPO_BRANCH}..."
 run_as_app git fetch --prune origin
@@ -1577,6 +1696,16 @@ rm -f \
   "${APP_DIR}/${SERVICE_NAME}-admin-commands.txt" \
   "${APP_DIR}/${SERVICE_NAME}-uninstall.sh"
 rm -f "/etc/letsencrypt/renewal-hooks/deploy/${SERVICE_NAME}-restart.sh" 2>/dev/null || true
+if [[ -d "${APP_DIR}/installerbackup" ]]; then
+  read -r -p "Delete installer backup folder ${APP_DIR}/installerbackup? [y/N]: " delete_backup
+  case "\${delete_backup}" in
+    y|Y|yes|YES)
+      rm -rf "${APP_DIR}/installerbackup"
+      echo "Deleted ${APP_DIR}/installerbackup."
+      ;;
+    *) echo "Kept ${APP_DIR}/installerbackup." ;;
+  esac
+fi
 systemctl daemon-reload
 echo "Removed generated units/scripts for ${SERVICE_NAME}. Repo and world data were left in place."
 EOF
@@ -1625,6 +1754,7 @@ Periodic world backups
   Backup folders:
     ${APP_DIR}/backups/update
     ${APP_DIR}/backups/periodic
+    ${APP_DIR}/installerbackup (created before git/plain in-place setup)
   Retention: older than ${BACKUP_RETENTION_DAYS} day(s) are purged.
   Periodic backups keep only the newest periodic copy by default.
 

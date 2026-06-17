@@ -19,27 +19,34 @@ Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9
 # Installation
 
 For Linux servers with systemd, download only the installer and run it:
-```
+
+```bash
 curl -fsSL -o install-linux.sh https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/install-linux.sh
 sudo bash install-linux.sh
 ```
 
-The installer needs a systemd-based Linux server with root/sudo access and internet access. It can install missing dependencies, install Node.js through nvm, clone/update this repository, install npm production dependencies, create a crash-restarting systemd service, enable optional GitHub auto-updates, configure `sslconfig.json`, verify SSL certificate/key file permissions for the service user, optionally install Let's Encrypt, create periodic world-data backups, write a service-specific admin command reference, and watch `server_config*.js` / `sslconfig.json` for edits then enact graceful restarts.
+The installer can set up Node.js through nvm, clone or reuse the repository, install production dependencies, create systemd service/timer units, configure `sslconfig.json`, verify certificate/key permissions, add optional Let's Encrypt support, and create world-data backups.
 
-If the game is already cloned on the server and you only want to add or repair the systemd service, auto-update timer, and restart watcher around that existing checkout, run the installer from that checkout with:
-```
+If you already have the game on the server, run the installer from that directory. For a real Git checkout, use:
+
+```bash
 sudo bash install-linux.sh --existing-checkout
 ```
-This mode requires the selected install/repo directory to already be a Git checkout with an `origin` remote. It skips the initial clone/checkout/reset step, but the generated update timer will still deploy future updates from the selected branch.
 
-Choosing `skip` for `sslconfig.json` leaves the file unchanged. If an existing `sslconfig.json` is present, the installer can still verify and repair certificate/key file permissions so the systemd service user can read the configured paths.
+If the directory has game files but no `.git`, the installer offers:
 
-The generated maintenance backup timer defaults to every two days, can be changed during installation, and copies only the selected world's `star_defenders_snapshot*.v`, optional raw snapshot, and `chunks*` folder if present. Update-time backups use the same scope. Periodic backups keep the latest periodic copy by default, and all managed backup folders still purge entries older than the configured retention period.
+- `git`: add Git metadata in place, after backing up the directory to `installerbackup`.
+- `plain`: keep it as a non-Git install, after backing up the directory to `installerbackup`; GitHub auto-updates are disabled.
+- `startfresh`: move the old directory contents aside and clone a fresh checkout.
+- `abort`: stop without changing the directory.
 
-Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a game world publicly, make sure the selected world-slot port, such as `3000` for slot `0` or `4002` for slot `1002`, is open in both the server firewall and any VPS/provider firewall.
+Choosing `skip` for `sslconfig.json` leaves it unchanged, but the installer can still repair certificate/key permissions for the service user. The backup timer defaults to every two days and only backs up the selected world's snapshot/chunks data.
+
+Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a world publicly, open the selected world-slot port in both the server firewall and any VPS/provider firewall.
 
 For Windows/manual development, install Node.js from https://nodejs.org, install npm dependencies from the repository directory, and run the server directly. For debugging using Chromium browsers you can run it with command line (cmd.exe application):
-```
+
+```bash
 node --inspect index.js
 ```
 After you've done that, green cube icon will magically appear at top left of any open devtools window.
