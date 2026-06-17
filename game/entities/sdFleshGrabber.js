@@ -394,7 +394,7 @@ class sdFleshGrabber extends sdEntity
 							
 					bullet_obj.model = 'ab_tooth';
 
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 					bullet_obj2.sx = dx + ( Math.random() * 0.15 ) - ( Math.random() * 0.15 );
 					bullet_obj2.sy = dy + ( Math.random() * 0.15 ) - ( Math.random() * 0.15 );
@@ -408,7 +408,7 @@ class sdFleshGrabber extends sdEntity
 							
 					bullet_obj2.model = 'ab_tooth';
 
-					sdEntity.entities.push( bullet_obj2 );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 
 					bullet_obj3.sx = dx + ( Math.random() * 0.075 ) - ( Math.random() * 0.075 );
 					bullet_obj3.sy = dy + ( Math.random() * 0.075 ) - ( Math.random() * 0.075 );
@@ -422,7 +422,7 @@ class sdFleshGrabber extends sdEntity
 							
 					bullet_obj3.model = 'ab_tooth';
 
-					sdEntity.entities.push( bullet_obj3 );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
 					
 					this.tenta_tim = 30;
 				}

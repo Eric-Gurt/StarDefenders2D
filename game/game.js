@@ -1154,7 +1154,7 @@ let enf_once = true;
 								
 							   
 								ent = new entity_class( params );
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 							}
 							
 							//let props = ent.GetSnapshot( -2, false, null );

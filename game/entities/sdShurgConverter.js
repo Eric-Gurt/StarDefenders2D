@@ -198,7 +198,7 @@ class sdShurgConverter extends sdEntity
 
 					//gun.sx = sx;
 					//gun.sy = sy;
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 					}, 500 );
 				}

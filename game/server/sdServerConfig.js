@@ -359,7 +359,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		if ( guns.indexOf( i ) !== -1 )
 		{
 			let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 
 			//if ( i !== sdGun.CLASS_BUILD_TOOL )
 			//character_entity.gun_slot = sdGun.classes[ i ].slot;
@@ -429,7 +429,7 @@ class sdServerConfigFull extends sdServerConfigShort
 			hover.doors_locked = true;
 			hover.nick = 'Extraction Hover';
 			
-			sdEntity.entities.push( hover );
+			sdEntity.AddEntityToEntitiesArray( hover );
 			
 			for ( let rise = 0; rise < 10; rise++ )
 			{
@@ -465,7 +465,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				pilot.matter = 1;
 				pilot.matter_max = 1;
 				
-				sdEntity.entities.push( pilot );
+				sdEntity.AddEntityToEntitiesArray( pilot );
 				
 				hover.AddDriver( pilot, true );
 			}
@@ -812,13 +812,13 @@ class sdServerConfigFull extends sdServerConfigShort
 			}, 5500 );
 			
 			
-			sdEntity.entities.push( instructor_entity );
-			sdEntity.entities.push( instructor_gun );
+			sdEntity.AddEntityToEntitiesArray( instructor_entity );
+			sdEntity.AddEntityToEntitiesArray( instructor_gun );
 			
 			if ( Math.random() < 0.25 )
 			{
 				let instructor_gun2 = new sdGun({ x:instructor_entity.x, y:instructor_entity.y, class:sdGun.CLASS_EMERGENCY_INSTRUCTOR });
-				sdEntity.entities.push( instructor_gun2 );
+				sdEntity.AddEntityToEntitiesArray( instructor_gun2 );
 				
 				instructor_entity.onMovementInRange( instructor_gun2 );
 			}

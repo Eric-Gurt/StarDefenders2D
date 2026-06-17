@@ -187,7 +187,7 @@ class sdEssenceExtractor extends sdEntity
 			ent.matter = snapshot.matter;
 			ent.matter_regen = snapshot.matter_regen;
 			
-			sdEntity.entities.push( ent );
+			sdEntity.AddEntityToEntitiesArray( ent );
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

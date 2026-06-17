@@ -150,7 +150,7 @@ class sdBloodDecal extends sdEntity
 					if ( Math.random() < sdWorld.server_config.roach_spawn_rate ) // Depends on server config option, default is 50%
 					{
 						let ent = new sdRoach({ x: this.x + this._hitbox_x2 / 2, y: this.y + this._hitbox_y2 / 2, type: Math.random() < 0.05 ? sdRoach.TYPE_MOTH : sdRoach.TYPE_ROACH });
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 						
 						if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
 						{

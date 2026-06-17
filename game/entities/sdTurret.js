@@ -682,7 +682,7 @@ class sdTurret extends sdEntity
 				else
 				{
 					this._sensor_area = new sdSensorArea({ x: this.x-range, y: this.y-range, w: range*2, h: range*2, on_movement_target: this });
-					sdEntity.entities.push( this._sensor_area );
+					sdEntity.AddEntityToEntitiesArray( this._sensor_area );
 				}
 				if ( this._seek_timer <= 0 && this.disabled === false )
 				{
@@ -914,7 +914,7 @@ class sdTurret extends sdEntity
                             bullet_obj._damage *= 1 + this.lvl / 3;
                             bullet_obj._temperature_addition *= 1 + this.lvl / 3;
 
-                            sdEntity.entities.push( bullet_obj );
+                            sdEntity.AddEntityToEntitiesArray( bullet_obj );
                         }
                     }
                     //else

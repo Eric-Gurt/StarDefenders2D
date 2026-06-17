@@ -341,7 +341,7 @@ class sdRift extends sdEntity
 									filter: 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)',
 									crystal_worth: 160
 								});
-								sdEntity.entities.push( asp );
+								sdEntity.AddEntityToEntitiesArray( asp );
 								sdWorld.UpdateHashPosition( asp, false ); // Prevent intersection with other ones
 							}
 						}
@@ -358,7 +358,7 @@ class sdRift extends sdEntity
 								//sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
 							//quickie.sd_filter = quickie_filter;
 							quickie.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
-							sdEntity.entities.push( quickie );
+							sdEntity.AddEntityToEntitiesArray( quickie );
 							sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones
 						}
 					}
@@ -376,7 +376,7 @@ class sdRift extends sdEntity
 							cube.sy += ( 10 - ( Math.random() * 20 ) );
 							cube.sx += ( 10 - ( Math.random() * 20 ) );
 
-							sdEntity.entities.push( cube );
+							sdEntity.AddEntityToEntitiesArray( cube );
 
 							if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
 							{
@@ -397,7 +397,7 @@ class sdRift extends sdEntity
 							asteroid.sy += ( 10 - ( Math.random() * 20 ) );
 							asteroid.sx += ( 10 - ( Math.random() * 20 ) );
 
-							sdEntity.entities.push( asteroid );
+							sdEntity.AddEntityToEntitiesArray( asteroid );
 
 							/*if ( !asteroid.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
 							{
@@ -434,7 +434,7 @@ class sdRift extends sdEntity
 
 							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
-							sdEntity.entities.push( character_entity );
+							sdEntity.AddEntityToEntitiesArray( character_entity );
 							character_entity.s = 110;
 							{
 								let x,y;
@@ -559,7 +559,7 @@ class sdRift extends sdEntity
 
 						//gun.sx = sx;
 						//gun.sy = sy;
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 						
 						
 						while ( this._consumed_guns_snapshots.length > 0 )
@@ -574,7 +574,7 @@ class sdRift extends sdEntity
 								ent.sy = 0 + Math.random() * 8 - 4;
 								ent.ttl = sdGun.disowned_guns_ttl;
 								ent._held_by = null;
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 
 								sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 							}

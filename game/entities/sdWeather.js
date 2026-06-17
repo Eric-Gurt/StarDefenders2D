@@ -618,7 +618,7 @@ class sdWeather extends sdEntity
 			
 			let dog = new ( params.class )( spawn_params );
 
-			sdEntity.entities.push( dog );
+			sdEntity.AddEntityToEntitiesArray( dog );
 
 			{
 				let x,y,i;
@@ -966,25 +966,25 @@ class sdWeather extends sdEntity
 				x = init_x;
 				{
 					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-					sdEntity.entities.push( block );
+					sdEntity.AddEntityToEntitiesArray( block );
 
 					if ( j === 4 || j === 5 )
 					potential_doors.push( block ); // Left-middle side is a potential door entrance
 
 					let bg = new sdBG({ x:x, y:y , width: 32, height: 32 });
-					sdEntity.entities.push( bg );
+					sdEntity.AddEntityToEntitiesArray( bg );
 				}
 				for ( let i = 0; i < 8; i++ )
 				{
 					x += 32;
 
 					let bg = new sdBG({ x:x, y:y , width: 32, height: 32 });
-					sdEntity.entities.push( bg );
+					sdEntity.AddEntityToEntitiesArray( bg );
 
 					if ( j === 0 || j === 9 )
 					{
 						let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-						sdEntity.entities.push( block );
+						sdEntity.AddEntityToEntitiesArray( block );
 
 						if ( i === 3 || i === 4 )
 						potential_doors.push( block ); // Top-middle and bottom-middle side is a potential door entrance
@@ -993,13 +993,13 @@ class sdWeather extends sdEntity
 				x += 32;
 				{
 					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-					sdEntity.entities.push( block );
+					sdEntity.AddEntityToEntitiesArray( block );
 
 					if ( j === 4 || j === 5 )
 					potential_doors.push( block ); // Right-middle side is a potential door entrance
 
 					let bg = new sdBG({ x:x, y:y , width: 32, height: 32});
-					sdEntity.entities.push( bg );
+					sdEntity.AddEntityToEntitiesArray( bg );
 				}
 			}
 			// Interior types
@@ -1011,46 +1011,46 @@ class sdWeather extends sdEntity
 				// Lamps
 
 				let lamp = new sdLamp({ x:x + 64 + 16, y:y + 64 + 16 });
-				sdEntity.entities.push( lamp );
+				sdEntity.AddEntityToEntitiesArray( lamp );
 
 				let lamp2 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 16 });
-				sdEntity.entities.push( lamp2 );
+				sdEntity.AddEntityToEntitiesArray( lamp2 );
 
 				let lamp3 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
-				sdEntity.entities.push( lamp3 );
+				sdEntity.AddEntityToEntitiesArray( lamp3 );
 
 				let lamp4 = new sdLamp({ x:x + 64 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
-				sdEntity.entities.push( lamp4 );
+				sdEntity.AddEntityToEntitiesArray( lamp4 );
 
 				// Turrets
 
 				let turret = new sdTurret({ x:x + 64 + 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret );
+				sdEntity.AddEntityToEntitiesArray( turret );
 				turret.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret2 = new sdTurret({ x:x + 64 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret2 );
+				sdEntity.AddEntityToEntitiesArray( turret2 );
 				turret2.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret2.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret3 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret3 );
+				sdEntity.AddEntityToEntitiesArray( turret3 );
 				turret3.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret3.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret4 = new sdTurret({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret4 );
+				sdEntity.AddEntityToEntitiesArray( turret4 );
 				turret4.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret4.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret5 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret5 );
+				sdEntity.AddEntityToEntitiesArray( turret5 );
 				turret5.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret5.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret6 = new sdTurret({ x:x + 64 + 32, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret6 );
+				sdEntity.AddEntityToEntitiesArray( turret6 );
 				turret6.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret6.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
@@ -1059,51 +1059,51 @@ class sdWeather extends sdEntity
 				// Blocks
 
 				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block );
+				sdEntity.AddEntityToEntitiesArray( block );
 
 				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block2 );
+				sdEntity.AddEntityToEntitiesArray( block2 );
 
 				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block3 );
+				sdEntity.AddEntityToEntitiesArray( block3 );
 
 				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block4 );
+				sdEntity.AddEntityToEntitiesArray( block4 );
 
 				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block5 );
+				sdEntity.AddEntityToEntitiesArray( block5 );
 
 				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block6 );
+				sdEntity.AddEntityToEntitiesArray( block6 );
 
 				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block7 );
+				sdEntity.AddEntityToEntitiesArray( block7 );
 
 				let block8 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block8 );
+				sdEntity.AddEntityToEntitiesArray( block8 );
 
 				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block9 );
+				sdEntity.AddEntityToEntitiesArray( block9 );
 
 				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block10 );
+				sdEntity.AddEntityToEntitiesArray( block10 );
 
 				let block11 = new sdBlock({ x:x + 64, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block11 );
+				sdEntity.AddEntityToEntitiesArray( block11 );
 
 				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block12 );
+				sdEntity.AddEntityToEntitiesArray( block12 );
 
 				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block13 );
+				sdEntity.AddEntityToEntitiesArray( block13 );
 
 				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block14 );
+				sdEntity.AddEntityToEntitiesArray( block14 );
 
 				//Spawner
 					
 				let spawner = new sdFactionSpawner({ x:x + 160, y:y + ( 32 * 8 ) + 16, type:ai_team });
-				sdEntity.entities.push( spawner );
+				sdEntity.AddEntityToEntitiesArray( spawner );
 
 				// Doors
 
@@ -1116,7 +1116,7 @@ class sdWeather extends sdEntity
 
 
 					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
-					sdEntity.entities.push( door );
+					sdEntity.AddEntityToEntitiesArray( door );
 
 					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
 				}
@@ -1129,13 +1129,13 @@ class sdWeather extends sdEntity
 				// Lamps
 
 				let lamp = new sdLamp({ x:x + 64 + 16, y:y + 64 + 16 });
-				sdEntity.entities.push( lamp );
+				sdEntity.AddEntityToEntitiesArray( lamp );
 
 				let lamp2 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 16 });
-				sdEntity.entities.push( lamp2 );
+				sdEntity.AddEntityToEntitiesArray( lamp2 );
 
 				let lamp3 = new sdLamp({ x:x + ( 32 * 5 ), y:y + ( 32 * 6 ) + 48 });
-				sdEntity.entities.push( lamp3 );
+				sdEntity.AddEntityToEntitiesArray( lamp3 );
 
 				//let lamp4 = new sdLamp({ x:x + 64 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
 				//sdEntity.entities.push( lamp4 );
@@ -1143,32 +1143,32 @@ class sdWeather extends sdEntity
 				// Turrets
 
 				let turret = new sdTurret({ x:x + 64 + 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret );
+				sdEntity.AddEntityToEntitiesArray( turret );
 				turret.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret2 = new sdTurret({ x:x + 64 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret2 );
+				sdEntity.AddEntityToEntitiesArray( turret2 );
 				turret2.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret2.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret3 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret3 );
+				sdEntity.AddEntityToEntitiesArray( turret3 );
 				turret3.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret3.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret4 = new sdTurret({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret4 );
+				sdEntity.AddEntityToEntitiesArray( turret4 );
 				turret4.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret4.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret5 = new sdTurret({ x:x + ( 32 * 8 ) - 64, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret5 );
+				sdEntity.AddEntityToEntitiesArray( turret5 );
 				turret5.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret5.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
 				let turret6 = new sdTurret({ x:x + 64 + 64, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
-				sdEntity.entities.push( turret6 );
+				sdEntity.AddEntityToEntitiesArray( turret6 );
 				turret6.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
 				turret6.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
 
@@ -1177,57 +1177,57 @@ class sdWeather extends sdEntity
 				// Blocks
 
 				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block );
+				sdEntity.AddEntityToEntitiesArray( block );
 
 				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block2 );
+				sdEntity.AddEntityToEntitiesArray( block2 );
 
 				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block3 );
+				sdEntity.AddEntityToEntitiesArray( block3 );
 
 				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block4 );
+				sdEntity.AddEntityToEntitiesArray( block4 );
 
 				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block5 );
+				sdEntity.AddEntityToEntitiesArray( block5 );
 
 				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block6 );
+				sdEntity.AddEntityToEntitiesArray( block6 );
 
 				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block7 );
+				sdEntity.AddEntityToEntitiesArray( block7 );
 
 				let block8 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block8 );
+				sdEntity.AddEntityToEntitiesArray( block8 );
 
 				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block9 );
+				sdEntity.AddEntityToEntitiesArray( block9 );
 
 				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block10 );
+				sdEntity.AddEntityToEntitiesArray( block10 );
 
 				let block11 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block11 );
+				sdEntity.AddEntityToEntitiesArray( block11 );
 
 				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block12 );
+				sdEntity.AddEntityToEntitiesArray( block12 );
 
 				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block13 );
+				sdEntity.AddEntityToEntitiesArray( block13 );
 
 				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block14 );
+				sdEntity.AddEntityToEntitiesArray( block14 );
 
 				let block15 = new sdBlock({ x:x + 96, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block15 );
+				sdEntity.AddEntityToEntitiesArray( block15 );
 
 				let block16 = new sdBlock({ x:x + 192, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
-				sdEntity.entities.push( block16 );
+				sdEntity.AddEntityToEntitiesArray( block16 );
 
 				//Spawner
 					
 				let spawner = new sdFactionSpawner({ x:x + 160, y:y + ( 32 * 8 ) + 16, type:ai_team });
-				sdEntity.entities.push( spawner );
+				sdEntity.AddEntityToEntitiesArray( spawner );
 
 				// Doors
 
@@ -1240,17 +1240,17 @@ class sdWeather extends sdEntity
 
 
 					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
-					sdEntity.entities.push( door );
+					sdEntity.AddEntityToEntitiesArray( door );
 
 					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
 				}
 
 				let door = new sdDoor({ x:x + 96 - 16, y:y + ( 32 * 6 ) + 16, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
-				sdEntity.entities.push( door );
+				sdEntity.AddEntityToEntitiesArray( door );
 				door.Damage( 1 );
 
 				let door2 = new sdDoor({ x:x + 224 + 16, y:y + ( 32 * 6 ) + 16, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
-				sdEntity.entities.push( door2 );
+				sdEntity.AddEntityToEntitiesArray( door2 );
 				door2.Damage( 1 );
 			}
 		}
@@ -1380,7 +1380,7 @@ class sdWeather extends sdEntity
 					kind:   sdCube.GetRandomKind() // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
 				});
 				cube.sy += 10;
-				sdEntity.entities.push( cube );
+				sdEntity.AddEntityToEntitiesArray( cube );
 
 				if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
 				{
@@ -1451,7 +1451,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -1536,7 +1536,7 @@ class sdWeather extends sdEntity
 					y:sdWorld.world_bounds.y1 + 32
 				});
 				//asp.sy += 10;
-				sdEntity.entities.push( asp );
+				sdEntity.AddEntityToEntitiesArray( asp );
 
 				if ( !asp.CanMoveWithoutOverlap( asp.x, asp.y, 0 ) )
 				{
@@ -1575,7 +1575,7 @@ class sdWeather extends sdEntity
 
 				let virus_entity = new sdVirus({ x:0, y:0, _is_big:true });
 				//virus_entity._is_big = true;
-				sdEntity.entities.push( virus_entity );
+				sdEntity.AddEntityToEntitiesArray( virus_entity );
 				//sdVirus.big_viruses++;
 				{
 					if ( !sdWeather.SetRandomSpawnLocation( virus_entity ) )
@@ -1673,7 +1673,7 @@ class sdWeather extends sdEntity
 
 					let portal = new sdRift({ x:0, y:0 });
 
-					sdEntity.entities.push( portal );
+					sdEntity.AddEntityToEntitiesArray( portal );
 
 					{
 						let x,y,i;
@@ -1827,7 +1827,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -1869,7 +1869,7 @@ class sdWeather extends sdEntity
 				let obelisk = new sdObelisk({ x:0, y:0 });
 				obelisk.type = Math.round( 1 + Math.random() * 7 );
 
-				sdEntity.entities.push( obelisk );
+				sdEntity.AddEntityToEntitiesArray( obelisk );
 
 				{
 					let x,y,i;
@@ -2031,7 +2031,7 @@ class sdWeather extends sdEntity
 				{
 					let anticrystal = new sdJunk({ x:0, y:0, type: 3 });
 
-					sdEntity.entities.push( anticrystal );
+					sdEntity.AddEntityToEntitiesArray( anticrystal );
 
 					let x,y,i;
 					let tr = 1000;
@@ -2148,7 +2148,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -2239,7 +2239,7 @@ class sdWeather extends sdEntity
 				{
 					let council_bomb = new sdJunk({ x:0, y:0, type: 4 });
 
-					sdEntity.entities.push( council_bomb );
+					sdEntity.AddEntityToEntitiesArray( council_bomb );
 
 					let x,y,i;
 					let tr = 1000;
@@ -2351,7 +2351,7 @@ class sdWeather extends sdEntity
 				{
 					let erthal_beacon = new sdJunk({ x:0, y:0, type: 5 });
 
-					sdEntity.entities.push( erthal_beacon );
+					sdEntity.AddEntityToEntitiesArray( erthal_beacon );
 
 					let x,y,i;
 					let tr = 1000;
@@ -2466,7 +2466,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -2586,12 +2586,12 @@ class sdWeather extends sdEntity
 						{
 							if ( Math.random() < 0.2 )
 							{
-								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+								sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 								character_entity._ai_gun_slot = 4;
 							}
 							else
 							{
-								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+								sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 								character_entity._ai_gun_slot = 3;
 							}
 						}
@@ -2599,12 +2599,12 @@ class sdWeather extends sdEntity
 						{ 
 							if ( Math.random() < 0.1 )
 							{
-								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+								sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 								character_entity._ai_gun_slot = 2;
 							}
 							else
 							{
-								sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+								sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 								character_entity._ai_gun_slot = 2;
 							}
 						}
@@ -2775,7 +2775,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -2861,7 +2861,7 @@ class sdWeather extends sdEntity
 
 				let destroyer_entity = new sdSetrDestroyer({ x:0, y:0 });
 
-				sdEntity.entities.push( destroyer_entity );
+				sdEntity.AddEntityToEntitiesArray( destroyer_entity );
 
 				{
 					let x,y;
@@ -2927,7 +2927,7 @@ class sdWeather extends sdEntity
 
 				let amphid = new sdAmphid({ x:0, y:0 });
 
-				sdEntity.entities.push( amphid );
+				sdEntity.AddEntityToEntitiesArray( amphid );
 
 				{
 					var ax,ay;
@@ -3018,7 +3018,7 @@ class sdWeather extends sdEntity
 					y:sdWorld.world_bounds.y1 + 32
 				});
 				//asp.sy += 10;
-				sdEntity.entities.push( biter );
+				sdEntity.AddEntityToEntitiesArray( biter );
 
 				if ( !biter.CanMoveWithoutOverlap( biter.x, biter.y, 0 ) )
 				{
@@ -3156,7 +3156,7 @@ class sdWeather extends sdEntity
 										let yy = e.y - 16;
 
 										let water_ent = new sdWater({ x: xx, y: yy, type: e.type, volume: grow_left });
-										sdEntity.entities.push( water_ent );
+										sdEntity.AddEntityToEntitiesArray( water_ent );
 										sdWorld.UpdateHashPosition( water_ent, false );
 
 										expirations.set( water_ent, expiration_in );
@@ -3297,7 +3297,7 @@ class sdWeather extends sdEntity
 
 				/*let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE, s:250 });
 
-				sdEntity.entities.push( character_entity );*/
+				sdEntity.AddEntityToEntitiesArray( character_entity );*/
 				let [ character_entity, gun ] = sdFactionTools.SpawnCharacter( sdFactionTools.FT_FSB, { x:0,y:0 } );
 
 				{
@@ -3415,7 +3415,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -3593,7 +3593,7 @@ class sdWeather extends sdEntity
 				{
 					let ent = new sdTzyrgAbsorber({ x:0, y:0});
 
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 
 					let x,y,i;
 					let tr = 1000;
@@ -3701,7 +3701,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -3797,7 +3797,7 @@ class sdWeather extends sdEntity
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 
 					{
 						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
@@ -3811,7 +3811,7 @@ class sdWeather extends sdEntity
 							let character_settings;
 							{
 								{ 
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TELEPORT_SWORD }) );
+									sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TELEPORT_SWORD }) );
 									character_entity._ai_gun_slot = 0;
 								}
 
@@ -4498,7 +4498,7 @@ class sdWeather extends sdEntity
 					layer:spawn_layer,
 					model: ent_model
 				});
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 				
 			}
 
@@ -4812,7 +4812,7 @@ class sdWeather extends sdEntity
 												/*let snow_block = new sdBlock({ x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 });
 												snow_block._hea = snow_block._hmax = 10;
 
-												sdEntity.entities.push( snow_block );
+												sdEntity.AddEntityToEntitiesArray( snow_block );
 												sdWorld.UpdateHashPosition( snow_block, false );*/
 
 												let snow_block = sdEntity.Create( sdBlock, { x:xx, y:e.y - 4, width: 16, height: 4, material: sdBlock.MATERIAL_SNOW, filter:'saturate(0.1)', br:400, hue:180 } );
@@ -4827,7 +4827,7 @@ class sdWeather extends sdEntity
 									if ( !this.matter_rain )
 									{
 										/*let water = new sdWater({ x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
-										sdEntity.entities.push( water );
+										sdEntity.AddEntityToEntitiesArray( water );
 										sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 										*/
 										sdEntity.Create( sdWater, { 
@@ -5445,7 +5445,7 @@ class sdWeather extends sdEntity
 						    else
 						    e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((ctx.globalAlpha * 0.5)*10))/10+')' });
 						
-						    sdEntity.entities.push( e );
+						    sdEntity.AddEntityToEntitiesArray( e );
 						}
 					}
 				}

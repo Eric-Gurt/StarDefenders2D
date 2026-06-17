@@ -402,7 +402,7 @@ class sdSandWorm extends sdEntity
 					wyrmhide.sx = sx;
 					wyrmhide.sy = sy;
 					wyrmhide.extra = this.filter + ' brightness(0.5)';
-					sdEntity.entities.push( wyrmhide );
+					sdEntity.AddEntityToEntitiesArray( wyrmhide );
 				}, 500 );
 			}
 			if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Council mecha worms spawn metal shards on death
@@ -417,7 +417,7 @@ class sdSandWorm extends sdEntity
 					let shard = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
 					shard.sx = sx;
 					shard.sy = sy;
-					sdEntity.entities.push( shard );
+					sdEntity.AddEntityToEntitiesArray( shard );
 
 				}, 500 );
 
@@ -429,7 +429,7 @@ class sdSandWorm extends sdEntity
 
 				//gun.sx = sx;
 				//gun.sy = sy;
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 
 				}, 500 );
 				
@@ -441,7 +441,7 @@ class sdSandWorm extends sdEntity
 
 				//gun.sx = sx;
 				//gun.sy = sy;
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 
 				}, 500 );
 			}
@@ -610,7 +610,7 @@ class sdSandWorm extends sdEntity
 						wyrmhide.sx = sx;
 						wyrmhide.sy = sy;
 						wyrmhide.extra = this.filter + ' brightness(0.5)';
-						sdEntity.entities.push( wyrmhide );
+						sdEntity.AddEntityToEntitiesArray( wyrmhide );
 
 					}, 500 );
 				}
@@ -626,7 +626,7 @@ class sdSandWorm extends sdEntity
 						let shard = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
 						shard.sx = sx;
 						shard.sy = sy;
-						sdEntity.entities.push( shard );
+						sdEntity.AddEntityToEntitiesArray( shard );
 
 					}, 500 );
 				}
@@ -681,7 +681,7 @@ class sdSandWorm extends sdEntity
 					let a = Math.random() * 2 * Math.PI;
 					let s = Math.random() * 4;
 					let ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s });
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 				}
 			}
 		}
@@ -733,7 +733,7 @@ class sdSandWorm extends sdEntity
 
 					ent.towards_head = arr[ i - 1 ];
 					arr[ i - 1 ].towards_tail = ent;
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 
 					arr[ i ] = ent;
 				}
@@ -996,7 +996,7 @@ class sdSandWorm extends sdEntity
 
 							bullet_obj.color = '#ffff00'; // Yellow color
 
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 							this._last_attack = sdWorld.time;
 
 							sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:this.x, y:this.y, volume:0.8 });
@@ -1458,7 +1458,7 @@ class sdSandWorm extends sdEntity
 			/*if ( Math.random() < 0.9 ) Improper placement, no use
 			{
 				let ent = new sdCrystal({ x: this.x, y: this.y });
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 			}*/
 		}

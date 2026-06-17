@@ -159,7 +159,7 @@ class sdMeow extends sdEntity
 				
 				bullet_obj._extra_filtering_method = extra_filtering_method;
 
-				sdEntity.entities.push( bullet_obj );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj );
 			}
 		}
 		

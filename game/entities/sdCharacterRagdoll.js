@@ -803,10 +803,10 @@ class sdCharacterRagdoll
 				if ( preview_screeen_mode )
 				{
 					this.bones[ i ]._remove();
-					
-					let id = sdEntity.entities.indexOf( this.bones[ i ] );
-					if ( id !== -1 )
-					sdEntity.entities.splice( id, 1 );
+
+					// Swap-and-pop via the registry helper (keeps _entities_array_index valid); a raw
+					// indexOf()+splice() here would shift every later entity without fixing their index.
+					sdEntity.RemoveEntityFromEntitiesArray( this.bones[ i ] );
 				}
 			}
 		}
@@ -820,14 +820,14 @@ class sdCharacterRagdoll
 		//radius *= this.character.s / 100;
 	
 		let bone = new sdBone({ x:this.character.x + x - 16, y:this.character.y + y - 16, radius: ( radius > 2 ) ? radius * 0.5 : radius, ragdoll:this, sx:this.character.sx, sy:this.character.sy, bone_name:part_name, initial_x:x, initial_y:y, bounciness:bounciness, friction_remain:friction_remain, soft_bone_of:null });
-		sdEntity.entities.push( bone );
+		sdEntity.AddEntityToEntitiesArray( bone );
 		this.bones.push( bone );
 	
 		// Has side effect of mass increase. Makes impacts more interesting
 		if ( radius > 2 )
 		{
 			let soft_bone = new sdBone({ x:this.character.x + x - 16, y:this.character.y + y - 16, radius:radius, ragdoll:this, sx:this.character.sx, sy:this.character.sy, bone_name:'soft_'+part_name, initial_x:x, initial_y:y, bounciness:bounciness, friction_remain:friction_remain, soft_bone_of:bone });
-			sdEntity.entities.push( soft_bone );
+			sdEntity.AddEntityToEntitiesArray( soft_bone );
 			this.springs.push( new sdSpring( bone, soft_bone, null, 0, 0, 0, sdCharacterRagdoll.spring_both ) );
 			this.bones.push( soft_bone );
 			

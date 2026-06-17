@@ -218,7 +218,7 @@ class sdLandMine extends sdEntity
 					bullet_obj._can_hit_owner = false;
 					bullet_obj.color = '#ffff00';
 
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 				}
 			}
 		}

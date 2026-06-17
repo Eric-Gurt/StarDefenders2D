@@ -357,7 +357,7 @@ class sdDrone extends sdEntity
 						
 						ent.sx = dx * 0.05 + this.sx;
 						ent.sy = dy * 0.05 + this.sy - Math.abs( dx ) * 0.05;
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 
 						//sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 						sdWorld.UpdateHashPosition( ent, false, false ); // Important! Prevents memory leaks and hash tree bugs // UPD: onMovementInRange was making them be fed into BSUs indefinitely...
@@ -777,7 +777,7 @@ class sdDrone extends sdEntity
 					{
 						gun.sx = this.sx + Math.random() * 2 - 1;
 						gun.sy = this.sy + Math.random() * 2 - 1;
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 					}
 
 				}, 100 );
@@ -793,7 +793,7 @@ class sdDrone extends sdEntity
 
 					gun.sx = this.sx + Math.random() * 2 - 1;
 					gun.sy = this.sy + Math.random() * 2 - 1;
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 				}, 100 );
 			}
@@ -1372,7 +1372,7 @@ class sdDrone extends sdEntity
 								bullet_obj.color = '#afdfff';
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 2;
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
@@ -1400,7 +1400,7 @@ class sdDrone extends sdEntity
 								bullet_obj.color = '#00aaff';
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 2;
 								this._burst_ammo--;
@@ -1435,7 +1435,7 @@ class sdDrone extends sdEntity
 								bullet_obj._no_explosion_smoke = true;
 								bullet_obj.model = 'sarronian_ball';
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 3;
 								this._attack_timer = 60;
@@ -1546,7 +1546,7 @@ class sdDrone extends sdEntity
 												}
 											};
 									};
-									sdEntity.entities.push( obj );
+									sdEntity.AddEntityToEntitiesArray( obj );
 									this._alt_attack_timer = 240;
 									this._attack_timer = 30;
 								}
@@ -1560,7 +1560,7 @@ class sdDrone extends sdEntity
 									drone.y += drone.sy;
 									drone._ignore_collisions_with = this; // Make sure it can pass through the detonator carrier 
 
-									sdEntity.entities.push( drone );
+									sdEntity.AddEntityToEntitiesArray( drone );
 									this._attack_timer = 90;
 								}
 								
@@ -1640,7 +1640,7 @@ class sdDrone extends sdEntity
 									bullet_obj._no_explosion_smoke = true;
 									
 									sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:this.x, y:this.y, volume: 1.5, pitch: 2 });
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									
 									// this._alt_attack_timer = 90
 									this._attack_timer = 90; // 75 + 90 + 1
@@ -1670,7 +1670,7 @@ class sdDrone extends sdEntity
 								bullet_obj._no_explosion_smoke = true;
 								bullet_obj.model = 'ball_red';
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 1;
 								this._burst_ammo--;
@@ -1707,7 +1707,7 @@ class sdDrone extends sdEntity
 									bullet_obj.explosion_radius = 9;
 									bullet_obj._no_explosion_smoke = true;
 
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 								// bullet_obj.sx = dx;
 								// bullet_obj.sy = dy;
@@ -1783,7 +1783,7 @@ class sdDrone extends sdEntity
 									}
 
 									sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1.3, pitch:0.18 });
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									
 									this._alt_attack_timer = 156;
 									this._attack_timer = 80;
@@ -1813,7 +1813,7 @@ class sdDrone extends sdEntity
 									bullet_obj._rail_circled = true;
 									
 									sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1.3, pitch:0.33 });
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									
 									this._attack_timer = 156;
 									this._alt_attack_timer = 80;
@@ -1918,7 +1918,7 @@ class sdDrone extends sdEntity
 								bullet_obj.time_left = 10;
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 2;
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
@@ -1944,7 +1944,7 @@ class sdDrone extends sdEntity
 								bullet_obj._damage = 15;
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								let bullet_obj2 = new sdBullet({ x: this.x + ( Math.sin( -this.attack_an / 1000 ) * 3 ) , y: this.y - ( Math.cos( -this.attack_an / 1000 ) * 3 ) });
 
@@ -1961,7 +1961,7 @@ class sdDrone extends sdEntity
 								bullet_obj2._damage = 15;
 
 
-								sdEntity.entities.push( bullet_obj2 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 
 								this.attack_frame = 2;
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
@@ -1993,7 +1993,7 @@ class sdDrone extends sdEntity
 									bullet_obj._damage = 15;
 
 
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 
 								this.attack_frame = 2;
@@ -2025,7 +2025,7 @@ class sdDrone extends sdEntity
 								bullet_obj._rail_circled = true;
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 2;
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
@@ -2052,7 +2052,7 @@ class sdDrone extends sdEntity
 								bullet_obj.color = '#ffaa00';
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 2;
 								this._burst_ammo--;
@@ -2099,7 +2099,7 @@ class sdDrone extends sdEntity
 								bullet_obj._temperature = 100;
 
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 								this.attack_frame = 2;
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;

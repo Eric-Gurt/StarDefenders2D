@@ -377,7 +377,7 @@ class sdCom extends sdEntity
 									type: sdCable.TYPE_MATTER
 								});
 
-								sdEntity.entities.push( cable );
+								sdEntity.AddEntityToEntitiesArray( cable );
 
 								if ( this._hacker )
 								{

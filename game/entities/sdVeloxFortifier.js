@@ -102,7 +102,7 @@ class sdVeloxFortifier extends sdEntity
 
 			//gun.sx = sx;
 			//gun.sy = sy;
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 
 			}, 500 );
 			
@@ -175,7 +175,7 @@ class sdVeloxFortifier extends sdEntity
 
 						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-						sdEntity.entities.push( character_entity );
+						sdEntity.AddEntityToEntitiesArray( character_entity );
 
 						{
 							let x,y;

@@ -217,7 +217,7 @@ class sdCrystalCombiner extends sdEntity
 				else
 				ent.matter_regen = snapshot.crystal1_matter_regen;
 
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 
 				if ( snapshot.crystals === 1 )
@@ -504,7 +504,7 @@ class sdCrystalCombiner extends sdEntity
 				this._next_steam_spawn = sdWorld.time + 1000 * 2 + 1000 * 2 * Math.random();
 
 				let ent = new sdEffect({ x: this.x + ( this.hitbox_x2 - this.hitbox_x1 ) * ( Math.random() - 0.5 ), y: this.y, sy:-2, type:sdEffect.TYPE_SMOKE, color:'#eeeeee', spark_color: false });
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 			}
 		}
 		

@@ -495,7 +495,7 @@ class sdPlayerDrone extends sdCharacter
 
 							bullet_obj.time_left *= scale;
 
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 						}
 					}
 				}
@@ -615,7 +615,7 @@ class sdPlayerDrone extends sdCharacter
 				
 				sdSound.PlaySound({ name:'gravity_gun', x:this.x, y:this.y, volume:1.25, pitch:0.8, _server_allowed: true });
 				
-				sdEntity.entities.push( ent, ent2 )
+				sdEntity.AddEntityToEntitiesArray( ent, ent2 )
 			}
 		}
 		

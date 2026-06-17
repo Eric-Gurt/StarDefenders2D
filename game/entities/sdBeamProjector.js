@@ -225,7 +225,7 @@ class sdBeamProjector extends sdEntity
 				{
 					let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5 });
 
-					sdEntity.entities.push( worm );
+					sdEntity.AddEntityToEntitiesArray( worm );
 
 					{
 						let x,y;
@@ -292,7 +292,7 @@ class sdBeamProjector extends sdEntity
 				{
 					let drone = new sdDrone({ x:0, y:0 , type: 18 });
 
-					sdEntity.entities.push( drone );
+					sdEntity.AddEntityToEntitiesArray( drone );
 								
 					let x,y;
 					let tr = 100;
@@ -421,13 +421,13 @@ class sdBeamProjector extends sdEntity
 
                 //gun.sx = sx;
                 //gun.sy = sy;
-                sdEntity.entities.push( gun );
+                sdEntity.AddEntityToEntitiesArray( gun );
                 
                 gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_UNSTABLE_CORE });
 
                 //gun.sx = sx;
                 //gun.sy = sy;
-                sdEntity.entities.push( gun );
+                sdEntity.AddEntityToEntitiesArray( gun );
 
                 gun._max_dps = Math.min( gun._max_dps * pylon_mult, 450 ); // Increase core power if pylons were used
 			}, 500 );
@@ -451,7 +451,7 @@ class sdBeamProjector extends sdEntity
 
 				if ( event_type !== 0 ) // Not a Council Nullifier?
 					{
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 						let x,y;
 						let tr = 100;
 						do
@@ -525,7 +525,7 @@ class sdBeamProjector extends sdEntity
 
 				if ( event_type !== 0 ) // Not a Council Nullifier?
 					{
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 						let x,y;
 						let tr = 100;
 						do
@@ -613,7 +613,7 @@ class sdBeamProjector extends sdEntity
 
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
 
-				sdEntity.entities.push( character_entity );
+				sdEntity.AddEntityToEntitiesArray( character_entity );
 				{
 					let x,y;
 					let tr = 100;

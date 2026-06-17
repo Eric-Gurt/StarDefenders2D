@@ -239,7 +239,7 @@ class sdStatusEffect extends sdEntity
 						let yy = status_entity.for.y + y_offset + Math.cos( a ) * r;
 
 						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_HEARTS, sx: 0, sy: up_velocity });
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 						
 						status_entity._effects.push( ent );
 					}
@@ -398,7 +398,7 @@ class sdStatusEffect extends sdEntity
 
 						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:xx, y:yy, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 2, scale:1, radius: Math.random() * 1.5 + 1 / 3, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: '#FF8800'});
 						status_entity._next_smoke_spawn = 1;
-						sdEntity.entities.push( s );
+						sdEntity.AddEntityToEntitiesArray( s );
 					}
 
 					if ( status_entity._next_spawn <= 0 )
@@ -430,7 +430,7 @@ class sdStatusEffect extends sdEntity
 
 							let ent = new sdEffect({ x: xx, y: yy, type: ( status_entity.t >= temperature_fire ) ? sdEffect.TYPE_FIRE : sdEffect.TYPE_FROZEN, sx: 0, sy: up_velocity * ( 0.5 + 0.5 * Math.random() ) });
 						
-							sdEntity.entities.push( ent );
+							sdEntity.AddEntityToEntitiesArray( ent );
 
 							status_entity._effects.push( ent );
 						}
@@ -1055,7 +1055,7 @@ class sdStatusEffect extends sdEntity
 						let yy = status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2 + Math.cos( a ) * r;
 
 						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_SPEED, sx: 0, sy: -0.5 });
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 					}
 				}
 				
@@ -1256,7 +1256,7 @@ class sdStatusEffect extends sdEntity
 							status_entity.for._ai_gun_slot = -1;
 							status_entity.for.gun_slot = -1; // Hide the equipped weapon
 							status_entity.for._ai_allow_weapon_switch = false;
-							sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
+							sdEntity.AddEntityToEntitiesArray( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
 						}
 						else
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
@@ -1523,7 +1523,7 @@ class sdStatusEffect extends sdEntity
 						let s = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:status_entity.for.x, y:status_entity.for.y, sx: -Math.random() + Math.random(), sy:-1 - Math.random() * 3, scale:1, radius:1/3, color: Math.random() > 0.5 ? '#000000' : '#200000' });
 						s._spark_color = s._color; 
 						status_entity._next_smoke_spawn = 2;
-						sdEntity.entities.push( s );
+						sdEntity.AddEntityToEntitiesArray( s );
 					}
 
 					if ( status_entity._next_spawn <= 0 )
@@ -1541,7 +1541,7 @@ class sdStatusEffect extends sdEntity
 						let yy = status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2 + Math.cos( a ) * r;
 
 						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_VOID_FIRE, sx: 0, sy: -0.5 });
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 					}
 				}
 
@@ -1788,7 +1788,7 @@ class sdStatusEffect extends sdEntity
 								let ent2 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x - 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
 							
 								let ent3 = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x + 8, y:status_entity.for.y - 48, sx:0, sy:10, scale:5, radius:1, color:'#FF0000' });
-								sdEntity.entities.push( ent1, ent2, ent3 );
+								sdEntity.AddEntityToEntitiesArray( ent1, ent2, ent3 );
 							
 								break;
 							}
@@ -1805,7 +1805,7 @@ class sdStatusEffect extends sdEntity
 							case 4:
 							{
 								let ent = new sdEffect({ type: sdEffect.TYPE_LENS_FLARE, x:status_entity.for.x, y:status_entity.for.y - 32, sx:0, sy:-5, scale:5, radius:5, color:'#00FFFF' });
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 							
 								break;
 							}
@@ -1835,7 +1835,7 @@ class sdStatusEffect extends sdEntity
 									}
 								});
 								
-								sdEntity.entities.push( chat_ent );
+								sdEntity.AddEntityToEntitiesArray( chat_ent );
 								
 								break;
 							}
@@ -2323,7 +2323,7 @@ class sdStatusEffect extends sdEntity
 							bullet_obj.time_left = 90 + Math.random() * 60;
 							bullet_obj._bouncy = true;
 							
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 											
 							sdSound.PlaySound({ name:'explosion', x:ent.x, y:ent.y, volume:1, pitch:0.25 });
 							sdSound.PlaySound({ name:'council_teleport', x:ent.x, y:ent.y, volume:0.5, pitch:2 });
@@ -2384,7 +2384,7 @@ class sdStatusEffect extends sdEntity
 							status_entity.for._ai_gun_slot = -1;
 							status_entity.for.gun_slot = -1; // Hide the equipped weapon
 							status_entity.for._ai_allow_weapon_switch = false;
-							sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_HIGH_COUNCIL_SWORD }) );
+							sdEntity.AddEntityToEntitiesArray( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_HIGH_COUNCIL_SWORD }) );
 						}
 						else
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
@@ -2820,7 +2820,7 @@ class sdStatusEffect extends sdEntity
 		if ( !status_type.onNotMergedAndAboutToBeMade || status_type.onNotMergedAndAboutToBeMade( params ) )
 		{
 			let task = new sdStatusEffect( params );
-			sdEntity.entities.push( task );
+			sdEntity.AddEntityToEntitiesArray( task );
 
 			task.onThink( 0 ); // Assign .for property instantly so sdStatusEffect.entity_to_status_effects is updated in case of multiple effects are going to be applied during same frame
 		}

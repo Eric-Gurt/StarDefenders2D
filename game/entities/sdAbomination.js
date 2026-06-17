@@ -439,7 +439,7 @@ class sdAbomination extends sdEntity
 
 					bullet_obj.model = 'ab_tooth';
 
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 				}
 						
 				this.attack_timer = 30;

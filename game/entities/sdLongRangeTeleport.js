@@ -424,7 +424,7 @@ class sdLongRangeTeleport extends sdEntity
 				a = Math.random() * 2 * Math.PI;
 				s = Math.random() * 4;
 				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 			}*/
 		}
 	}
@@ -731,7 +731,7 @@ class sdLongRangeTeleport extends sdEntity
 				let shard = new sdGun({ x:this.x + ( -16 + i * 8 ), y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
                 shard.sd_filter = sdWorld.CreateSDFilter();
                 shard.sd_filter.s = sdCraftingBench.cube_items_filter.s;
-				sdEntity.entities.push( shard );
+				sdEntity.AddEntityToEntitiesArray( shard );
 			}
 		}
 		else
@@ -739,77 +739,77 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_2' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_3' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_4' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_5' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_6' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_7' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_8' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_9' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_PLASMA_RIFLE });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_10' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TELEKINETICS });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
         else
 		if ( rewards === 'CLAIM_REWARD_WEAPON_11' )
 		{
 			let gun;
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_GRENADE_LAUNCHER });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_CRYSTALS_1x' )
@@ -817,7 +817,7 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 3; i++ )
 			{
 				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-				sdEntity.entities.push( crystal );
+				sdEntity.AddEntityToEntitiesArray( crystal );
 			}
 		}
 		else
@@ -826,7 +826,7 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 3; i++ )
 			{
 				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 10240, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-				sdEntity.entities.push( crystal );
+				sdEntity.AddEntityToEntitiesArray( crystal );
 			}
 		}
 		else
@@ -835,7 +835,7 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 3; i++ )
 			{
 				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 20480, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-				sdEntity.entities.push( crystal );
+				sdEntity.AddEntityToEntitiesArray( crystal );
 			}
 		}
 		else
@@ -844,25 +844,25 @@ class sdLongRangeTeleport extends sdEntity
 			for( let i = 0; i < 3; i++ )
 			{
 				let crystal = new sdCrystal({ x:this.x + ( -24 + i * 24 ), y:this.y - 24, matter_max: 40960, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-				sdEntity.entities.push( crystal );
+				sdEntity.AddEntityToEntitiesArray( crystal );
 			}
 		}
 		else
 		if ( rewards === 'CLAIM_REWARD_CONTAINER' )
 		{
 			let container = new sdMatterContainer({ x:this.x, y:this.y - 32, matter_max: 5120 * 8 * 10, matter: 5120 * 8 * 10 });
-			sdEntity.entities.push( container );
+			sdEntity.AddEntityToEntitiesArray( container );
 		}
 		else
 		if ( rewards === 'CLAIM_SCANNER' )
 		{
 			let scanner = new sdLandScanner({ x:this.x, y:this.y - 32});
-			sdEntity.entities.push( scanner );
+			sdEntity.AddEntityToEntitiesArray( scanner );
 		}
 		else
 		if ( rewards === 'CLAIM_BUILD_TOOL' )
 		{
-			sdEntity.entities.push( new sdGun({ x:this.x, y:this.y - 32, class:sdGun.CLASS_BUILD_TOOL }) );
+			sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y - 32, class:sdGun.CLASS_BUILD_TOOL }) );
 		}
 		else
 		if ( rewards === 'CLAIM_HOVER' )
@@ -874,7 +874,7 @@ class sdLongRangeTeleport extends sdEntity
 				
 				e.filter = 'sepia(1) hue-rotate(180deg) brightness(1.5)';
 				
-				sdEntity.entities.push( e );
+				sdEntity.AddEntityToEntitiesArray( e );
 			}
 			else
 			{
@@ -893,7 +893,7 @@ class sdLongRangeTeleport extends sdEntity
 				
 				let r = [ 640, 1280, 2560, 5120 ][ ~~( Math.pow( Math.random(), 2 ) * 4 ) ];
 				let crystal = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: r, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
-				sdEntity.entities.push( crystal );
+				sdEntity.AddEntityToEntitiesArray( crystal );
 			}
 		}
 		else
@@ -901,33 +901,33 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			let core;
 			core = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MERGER_CORE });
-			sdEntity.entities.push( core );
+			sdEntity.AddEntityToEntitiesArray( core );
 		}
 		else
 		if ( rewards === 'CLAIM_UPGRADE_STATION_CHIP' )
 		{
 			let chipset;
 			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_UPGRADE_STATION_CHIPSET });
-			sdEntity.entities.push( chipset );
+			sdEntity.AddEntityToEntitiesArray( chipset );
 		}
 		else
 		if ( rewards === 'CLAIM_MATTER_CONTAINER_CHIP' )
 		{
 			let chipset;
 			chipset = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MATTER_CONTAINER_CHIPSET });
-			sdEntity.entities.push( chipset );
+			sdEntity.AddEntityToEntitiesArray( chipset );
 		}
 		else
 		if ( rewards === 'CLAIM_MATTER_MATRIX' )
 		{
 			let matrix = new sdMatterMatrix({ x:this.x, y:this.y - 32 });
-			sdEntity.entities.push( matrix );
+			sdEntity.AddEntityToEntitiesArray( matrix );
 		}
         else
 		if ( rewards === 'CLAIM_SENTRY_TURRET' )
 		{
 			const turret = new sdTurret({ x:this.x, y:this.y - 32, kind: sdTurret.KIND_SENTRY });
-			sdEntity.entities.push( turret );
+			sdEntity.AddEntityToEntitiesArray( turret );
 		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });

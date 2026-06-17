@@ -189,7 +189,7 @@ class sdPlayerOverlord extends sdCharacter
 					gun.sx = this.sx;
 					gun.sy = this.sy;
 					
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					this._droppen_gun_entity = gun;
 					
@@ -539,7 +539,7 @@ class sdPlayerOverlord extends sdCharacter
 						
 						//bullet_obj.explosion_radius = 0; // Hack
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this.matter -= 0.5;
 					}
@@ -577,7 +577,7 @@ class sdPlayerOverlord extends sdCharacter
 
 									bullet_obj._damage = 60;
 
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 
 								if ( this.melee_anim > 30 )

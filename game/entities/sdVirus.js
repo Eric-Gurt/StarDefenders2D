@@ -226,7 +226,7 @@ class sdVirus extends sdEntity
 						y: this.y
 					});
 					
-					sdEntity.entities.push( virus );
+					sdEntity.AddEntityToEntitiesArray( virus );
 
 					let placed = false;
 					

@@ -199,7 +199,7 @@ class sdFactionSpawner extends sdEntity
 					{
 						let character_entity = new sdCharacter({ x:this.x, y:this.y - 8, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-						sdEntity.entities.push( character_entity );
+						sdEntity.AddEntityToEntitiesArray( character_entity );
 						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK ); // Give them Falkok properties
 					}
 				}
@@ -215,7 +215,7 @@ class sdFactionSpawner extends sdEntity
 					{
 						let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-						sdEntity.entities.push( character_entity );
+						sdEntity.AddEntityToEntitiesArray( character_entity );
 						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_TZYRG ); // Give them Tzyrg properties
                         character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 					}
@@ -224,7 +224,7 @@ class sdFactionSpawner extends sdEntity
 				if ( drones < sdWorld.entity_classes.sdWeather.only_instance._max_drone_count ) // Check for drones
 				{
 						let drone = new sdDrone({ x:this.x, y:this.y, type: sdDrone.DRONE_TZYRG, _ai_team: this._ai_team });
-						sdEntity.entities.push( drone );
+						sdEntity.AddEntityToEntitiesArray( drone );
 						drone.sy = -2;
 						drone.sx = -3 + ( Math.random() * 6 );
                         drone.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });

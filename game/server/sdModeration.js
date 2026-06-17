@@ -652,11 +652,11 @@ class sdModeration
 						//for ( let i = 0; i < sdWorld.sockets.length; i++ )
 						//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
 
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
-						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
+						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
+						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
+						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
+						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
+						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
 
 						//socket.character.InstallUpgrade( 'upgrade_jetpack' );
 						//socket.character.InstallUpgrade( 'upgrade_hook' );

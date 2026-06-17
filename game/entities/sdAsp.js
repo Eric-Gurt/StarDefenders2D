@@ -523,7 +523,7 @@ class sdAsp extends sdEntity
 										return false; // Go right through everything including walls
 									};
 								}
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 							}
 							
 							this.attack_frame = 3;

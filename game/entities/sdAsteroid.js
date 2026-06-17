@@ -122,7 +122,7 @@ class sdAsteroid extends sdEntity
 					else
 					{
 						let e = new sdMimic({ x: this.x, y: this.y });
-						sdEntity.entities.push( e );
+						sdEntity.AddEntityToEntitiesArray( e );
 						this.remove();
 					}
 
@@ -214,7 +214,7 @@ class sdAsteroid extends sdEntity
 				/*if ( this.type === sdAsteroid.TYPE_FLESH )
 				{
 					let ent = new sdMimic({ x: this.x, y: this.y });
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 					sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 					
 				}
@@ -304,7 +304,7 @@ class sdAsteroid extends sdEntity
 				bullet_obj._can_hit_owner = false;
 				bullet_obj.color = '#ffff00';
 
-				sdEntity.entities.push( bullet_obj );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 				this._warhead_detonated = true;
 			}
@@ -487,11 +487,11 @@ class sdAsteroid extends sdEntity
 				let yy = -this.sy / 4 + ( -Math.random() + Math.random() );
 				
 				let e = new sdEffect({ type: sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx: xx, sy: yy, color: this._eff_color });
-				sdEntity.entities.push( e );
+				sdEntity.AddEntityToEntitiesArray( e );
 				if ( this.type !== sdAsteroid.TYPE_FLESH )
 				{
 					let e2 = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + xx * 2, y:this.y + yy * 2, sx: xx, sy:yy, scale:1, radius:this.scale / 200, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color:this._eff_color });
-					sdEntity.entities.push( e2 );
+					sdEntity.AddEntityToEntitiesArray( e2 );
 				}
 					
 				this._eff_timer = 1;

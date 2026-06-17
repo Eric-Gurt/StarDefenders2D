@@ -234,7 +234,7 @@ class sdShurgManualTurret extends sdEntity
 			{
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-				sdEntity.entities.push( character_entity );
+				sdEntity.AddEntityToEntitiesArray( character_entity );
 				
 				sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SHURG );
 				character_entity._potential_vehicle = this;
@@ -490,10 +490,10 @@ class sdShurgManualTurret extends sdEntity
 					{
 						this.matter -= cost;
 
-						sdEntity.entities.push( bullet_obj );
-						sdEntity.entities.push( bullet_obj2 );
-						sdEntity.entities.push( bullet_obj3 );
-						sdEntity.entities.push( bullet_obj4 );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj4 );
 
 						this._bullets_reload = 7;
 

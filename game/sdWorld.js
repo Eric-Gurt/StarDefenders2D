@@ -941,7 +941,7 @@ class sdWorld
 				if ( Math.random() < 0.2 && !will_break_on_touch )
 				{
 					let bush = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation:sdGrass.VARIATION_BUSH });
-					sdEntity.entities.push( bush );
+					sdEntity.AddEntityToEntitiesArray( bush );
 
 					plants.push( bush._net_id );
 					plants_objs.push( bush );
@@ -949,7 +949,7 @@ class sdWorld
 				else
 				{
 					let grass = new sdGrass({ x:x, y:y - 16, filter:f, variation:sdWorld.GetFinalGrassHeight( x ) });
-					sdEntity.entities.push( grass );
+					sdEntity.AddEntityToEntitiesArray( grass );
 
 					plants.push( grass._net_id );
 					plants_objs.push( grass );
@@ -958,7 +958,7 @@ class sdWorld
 					{
 						let tree_variation = ( Math.random() < 0.35 ) ? ( ( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_LARGE_BARREN : sdGrass.VARIATION_TREE_LARGE ) : ( ( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_BARREN : sdGrass.VARIATION_TREE );
 						let tree = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation: tree_variation });
-						sdEntity.entities.push( tree );
+						sdEntity.AddEntityToEntitiesArray( tree );
 
 						plants.push( tree._net_id );
 						plants_objs.push( tree );
@@ -1007,14 +1007,14 @@ class sdWorld
 			if ( y % 16 === 0 )
 			{
 				let ent2 = new sdWater({ x:x, y:y, volume:1, type:allow_lava ? sdWater.TYPE_LAVA : sdWater.TYPE_WATER });
-				sdEntity.entities.push( ent2 );
+				sdEntity.AddEntityToEntitiesArray( ent2 );
 				sdWorld.UpdateHashPosition( ent2, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 				
 				if ( !allow_lava )
 				if ( Math.random() < 0.01 )
 				{
 					let ent3 = new sdShark({ x:x + 8, y:y + 8 });
-					sdEntity.entities.push( ent3 );
+					sdEntity.AddEntityToEntitiesArray( ent3 );
 				}
 			}
 
@@ -1040,7 +1040,7 @@ class sdWorld
 
 		if ( ent )
 		{
-			sdEntity.entities.push( ent );
+			sdEntity.AddEntityToEntitiesArray( ent );
 			sdWorld.UpdateHashPosition( ent, false ); // Prevent intersection with other ones
 		}
 		
@@ -1099,7 +1099,7 @@ class sdWorld
 				
 				for ( let xx = x; xx < xx2; xx += sdDeepSleep.normal_cell_size )
 				for ( let yy = y; yy < yy2; yy += sdDeepSleep.normal_cell_size )
-				sdEntity.entities.push( new sdDeepSleep({
+				sdEntity.AddEntityToEntitiesArray( new sdDeepSleep({
 					x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
 				}) );
 			}
@@ -1279,7 +1279,11 @@ class sdWorld
 
 
 
-						sdEntity.entities.splice( i, 1 );
+						// Swap-and-pop instead of splice(i,1): a forward splice would shift every later
+						// entity down without updating their _entities_array_index, corrupting the
+						// O(1)-removal invariant. The helper moves the last entity into slot i and fixes
+						// its index; i-- re-examines that swapped-in entity on the next iteration.
+						sdEntity.RemoveEntityFromEntitiesArrayByIndex( i );
 						i--;
 						continue;
 					}
@@ -1355,7 +1359,7 @@ class sdWorld
 				}
 			}
 
-			sdEntity.entities.push( gib );
+			sdEntity.AddEntityToEntitiesArray( gib );
 			//gib.s = scale;
 			
 			sdWorld.UpdateHashPosition( gib, false ); // Make it appear instantly for clients
@@ -1541,7 +1545,7 @@ class sdWorld
 
 						//water_ent.extra = extra;
 						
-						sdEntity.entities.push( water_ent );
+						sdEntity.AddEntityToEntitiesArray( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 
 						if ( liquid_to_modify )
@@ -1685,7 +1689,7 @@ class sdWorld
 					bullet_obj._anti_shield_damage_bonus = bullet_obj._damage * 10;
 				}
 				
-				sdEntity.entities.push( bullet_obj );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj );
 			}
             if ( !params.screen_shake && params.damage_scale > 0.01 )
             params.screen_shake = params.radius / 20;
@@ -1744,7 +1748,7 @@ class sdWorld
 								filter: params.filter,
 								hue: params.hue
 							});
-							sdEntity.entities.push( ent );
+							sdEntity.AddEntityToEntitiesArray( ent );
 							//sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
 
 							/*if ( bg._decals === null )
@@ -4416,7 +4420,7 @@ class sdWorld
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 
-				sdEntity.entities.push( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter: filter || that.GetBleedEffectFilter(), hue: that.hue || 0 }) );
+				sdEntity.AddEntityToEntitiesArray( new sdEffect({ x: x, y: y, type:type, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter: filter || that.GetBleedEffectFilter(), hue: that.hue || 0 }) );
 			}
 		}
 	}
@@ -5017,7 +5021,7 @@ class sdWorld
 			}
 
 			var ef = new sdEffect( params );
-			sdEntity.entities.push( ef );
+			sdEntity.AddEntityToEntitiesArray( ef );
 			
 			//if ( ef._type === sdEffect.TYPE_EXPLOSION || ef._type === sdEffect.TYPE_EXPLOSION_NON_ADDITIVE )
 			//debugger;
@@ -5135,7 +5139,7 @@ class sdWorld
 					if ( arr[ 0 ] === 'EFF' )
 					{
 						let e = new sdEffect( arr[ 1 ] );
-						sdEntity.entities.push( e );
+						sdEntity.AddEntityToEntitiesArray( e );
 					}
 					else
 					if ( arr[ 0 ] === 'CARRY_END' )
@@ -5332,7 +5336,7 @@ class sdWorld
 							if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 							sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
 
-							sdEntity.entities.push( character_entity );
+							sdEntity.AddEntityToEntitiesArray( character_entity );
 							
 							if ( sdWorld.server_config.onRespawn )
 							sdWorld.server_config.onRespawn( character_entity, player_settings );
@@ -5361,7 +5365,7 @@ class sdWorld
 					if ( sdShop.options[ i ]._min_workbench_level === 0 )
 					{
 						let gun = new sdGun({ x: character_entity.x, y: character_entity.y, class: sdShop.options[ i ].class });
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 					}*/
 				}
 				else

@@ -146,8 +146,8 @@ class sdCrystal extends sdEntity
 							a.sy = e.sy;
 							b.sx = e.sx;
 							b.sy = e.sy;
-							sdEntity.entities.push( a );
-							sdEntity.entities.push( b );
+							sdEntity.AddEntityToEntitiesArray( a );
+							sdEntity.AddEntityToEntitiesArray( b );
 
 							let okA = false;
 							let okB = false;
@@ -371,7 +371,7 @@ class sdCrystal extends sdEntity
 								if ( yy === 0 )
 								ent.y += ent.hitbox_y1 - ent.hitbox_y2 - 0.1;
 
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 								sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 
 								if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y, 0 ) )
@@ -2014,7 +2014,7 @@ class sdCrystal extends sdEntity
 						ent.matter = this.matter / 4;
 						ent.matter_regen = this.matter_regen;
 
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 						sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 
 						replacement_entity = ent;

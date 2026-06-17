@@ -133,7 +133,7 @@ class sdUpgradeStation extends sdEntity
 			for ( let i = 0; i < items.length; i++ )
 			{
 				let gun = new sdGun({ x:character.x, y:character.y, class:items[ i ] });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 			}
 		}, 500 );
 		this.cooldown = 900; // 30 second cooldown so it does not get spammed.

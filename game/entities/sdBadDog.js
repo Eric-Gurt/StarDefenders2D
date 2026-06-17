@@ -616,7 +616,7 @@ class sdBadDog extends sdEntity
 									
 									this._owner = this.master; // To make bullets pass through master
 									
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 								else
 								this._last_turret_attack_attempt = sdWorld.time;

@@ -239,7 +239,7 @@ class sdVeloxMiner extends sdEntity
 									bullet_obj._rail_circled = true;
 
 
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 									//this.attack_frame = 2;
 									//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;

@@ -574,7 +574,7 @@ class sdWater extends sdEntity
 									if ( Math.random() < 0.3 )
 									{
 										let ent = new sdEffect({ x: e.x, y: this.y, type:sdEffect.TYPE_GLOW_HIT, color:'#FFAA33' });
-										sdEntity.entities.push( ent );
+										sdEntity.AddEntityToEntitiesArray( ent );
 									}
 								}
 							}
@@ -664,11 +664,11 @@ class sdWater extends sdEntity
 				if ( Math.random() < 0.1 )
 				{
 					ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB_GREEN, sx: Math.sin(a)*s, sy: Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 				}
 				
 				ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_BLOOD_GREEN, sx: Math.sin(a)*s, sy: Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 			}
 			
 			if ( this.type === sdWater.TYPE_ESSENCE ) // Apparently water entites are removed before this can execute on client most of the time
@@ -677,7 +677,7 @@ class sdWater extends sdEntity
 				for ( let i = 0; i < Math.ceil( this._volume * 4 ); i++ )
 				{
 					let ent = new sdEffect({ x: this.x + Math.random() * this.hitbox_x2, y: this.y + Math.random() * ( this.hitbox_y2 - this.hitbox_y1 ), sy:-2, type:sdEffect.TYPE_GLOW_HIT, color:sdWater.reference_colors[ this.type ] });
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 				}
 
 				this.v = 0;
@@ -1001,7 +1001,7 @@ class sdWater extends sdEntity
 						water_ent._natural = this._natural;
 						water_ent._volume = subtract;
 						water_ent.v = Math.ceil( water_ent._volume * 100 );
-						sdEntity.entities.push( water_ent );
+						sdEntity.AddEntityToEntitiesArray( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 						
 						this.AwakeSelfAndNear();
@@ -1021,7 +1021,7 @@ class sdWater extends sdEntity
 						water_ent._natural = this._natural;
 						water_ent._volume = subtract;
 						water_ent.v = Math.ceil( water_ent._volume * 100 );
-						sdEntity.entities.push( water_ent );
+						sdEntity.AddEntityToEntitiesArray( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 						
 						this.AwakeSelfAndNear();
@@ -1188,7 +1188,7 @@ class sdWater extends sdEntity
 					
 							if ( e )
 							{
-								sdEntity.entities.push( e );
+								sdEntity.AddEntityToEntitiesArray( e );
 							}
 						}
 					}
@@ -1212,7 +1212,7 @@ class sdWater extends sdEntity
 								let yy = this.y + 8;
 								
 								let ent = new sdShark({ x: xx, y: yy });
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 
 								if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
 								{

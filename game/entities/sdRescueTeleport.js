@@ -272,7 +272,7 @@ class sdRescueTeleport extends sdEntity
 				if ( guns.indexOf( i ) !== -1 )
 				{
 					let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 					character_entity.onMovementInRange( gun );
 				}
@@ -685,7 +685,7 @@ class sdRescueTeleport extends sdEntity
 				a = Math.random() * 2 * Math.PI;
 				s = Math.random() * 4;
 				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 			}*/
 		}
 	}

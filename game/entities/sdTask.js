@@ -682,7 +682,7 @@ class sdTask extends sdEntity
 		}
 	
 		let task = new sdTask( params );
-		sdEntity.entities.push( task );
+		sdEntity.AddEntityToEntitiesArray( task );
 		
 		return true;
 	}

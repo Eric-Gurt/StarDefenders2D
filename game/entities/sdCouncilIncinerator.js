@@ -349,7 +349,7 @@ class sdCouncilIncinerator extends sdEntity
 
 				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
 
-				sdEntity.entities.push( drone );
+				sdEntity.AddEntityToEntitiesArray( drone );
 
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}*/
@@ -476,7 +476,7 @@ class sdCouncilIncinerator extends sdEntity
 
 							gun.sx = sx;
 							gun.sy = sy;
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 					}
@@ -503,7 +503,7 @@ class sdCouncilIncinerator extends sdEntity
 
 							gun.sx = sx;
 							gun.sy = sy;
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 					}
@@ -525,7 +525,7 @@ class sdCouncilIncinerator extends sdEntity
 
 							gun.sx = sx + Math.random() - Math.random();
 							gun.sy = sy + Math.random() - Math.random();
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 						shards--;
@@ -564,7 +564,7 @@ class sdCouncilIncinerator extends sdEntity
 					let drone_type = ( this.hea <= this._hmax / 2 ) ? sdDrone.DRONE_COUNCIL : sdDrone.DRONE_COUNCIL_ATTACK; // If it has enough health, spawn attack drones, else spawn healers
 					
 					let drone = new sdDrone({ x: this.x - 96 + ( Math.random() * 192 ), y: this.y - 96 + ( Math.random() * 192 ), type: drone_type, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
-					sdEntity.entities.push( drone );
+					sdEntity.AddEntityToEntitiesArray( drone );
 
 					// Make sure drone has any speed when deployed so drones don't get stuck into each other
 					if ( Math.abs( drone.sx ) < 0.5 )
@@ -889,7 +889,7 @@ class sdCouncilIncinerator extends sdEntity
 									bullet_obj._damage = 30;
 									bullet_obj.color = 'ffff00';
 
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 
 									//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
@@ -945,7 +945,7 @@ class sdCouncilIncinerator extends sdEntity
 						else
 						ent = new sdEffect({ x:xx, y:yy, sx:( Math.random() * 2 - 1 ) * 1, sy:( Math.random() * 2 - 1 ) * 1, type:sdEffect.TYPE_FIRE });
 
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 					}
 				}
 			}

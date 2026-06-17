@@ -142,7 +142,7 @@ class sdObelisk extends sdEntity
 		if ( this.type === 7 ) // Obelisk which holds artifact, is destroyed and artifact can be extracted to mothership as a task.
 		{
 			let artifact = new sdJunk({ x: this.x, y: this.y + 4, type: sdJunk.TYPE_ALIEN_ARTIFACT });
-			sdEntity.entities.push( artifact );
+			sdEntity.AddEntityToEntitiesArray( artifact );
 			color = '#880000';
 		}
 		if ( this.type === 8 ) // A larger obelisk which summons 10 events of same type. ( 10 x cubes, 10x asp event, for example )

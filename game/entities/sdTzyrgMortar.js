@@ -209,7 +209,7 @@ class sdTzyrgMortar extends sdEntity
                     if ( Math.random() < 0.1 )
                     {
                         const gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TZYRG_GRENADE_LAUNCHER });
-                        sdEntity.entities.push( gun );
+                        sdEntity.AddEntityToEntitiesArray( gun );
                     }
                 }, 500 );
 
@@ -326,7 +326,7 @@ class sdTzyrgMortar extends sdEntity
 									
 									this._last_attack = 0; // Reset "last seen" timer
 		
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 
 								this.attack_frame = 1;

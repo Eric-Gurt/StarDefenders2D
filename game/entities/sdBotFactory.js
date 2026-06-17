@@ -636,7 +636,7 @@ function BrainModelB()
 						this.matter -= 600;
 					
 						let ent = new sdBot({ x: this.x, y: this.y, owner: this, kind: this._building_kind, code: '('+this._building_brain_function_code+')()' });
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 
 						this._bot_net_ids.push( ent._net_id );
 

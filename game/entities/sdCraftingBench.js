@@ -233,7 +233,7 @@ class sdCraftingBench extends sdEntity
         if ( craft.callback )
         craft.callback( gun );
 
-        sdEntity.entities.push( gun );
+        sdEntity.AddEntityToEntitiesArray( gun );
         gun.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 	
         return true;

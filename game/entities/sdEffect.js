@@ -4,7 +4,7 @@
 	sdWorld.SendEffect({ x: , y: , type:sdEffect.TYPE_WALL_HIT });
 
 	Client-side effect test:
-	sdEntity.entities.push( new sdWorld.entity_classes.sdEffect({ x:bone_to.x, y:bone_to.y, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT }) );
+	sdEntity.AddEntityToEntitiesArray( new sdWorld.entity_classes.sdEffect({ x:bone_to.x, y:bone_to.y, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT }) );
 
 */
 /* global THREE, sdMusic */
@@ -718,7 +718,7 @@ class sdEffect extends sdEntity
 					if ( i > 0 )
 					{
 						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_RAIL_TRAIL, color:this._color });
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 					}
 					
 					xx += dx;
@@ -727,7 +727,7 @@ class sdEffect extends sdEntity
 			}
 			
 			let ent = new sdEffect({ x: this._x2, y: this._y2, type:sdEffect.TYPE_RAIL_HIT, color:this._color });
-			sdEntity.entities.push( ent );
+			sdEntity.AddEntityToEntitiesArray( ent );
 		}
 		
 		let s = sdEffect.types[ this._type ].sound_to_play;
@@ -956,7 +956,7 @@ class sdEffect extends sdEntity
 				{
 					let e = new sdEffect({ type: ( this._type === sdEffect.TYPE_BLOOD ) ? sdEffect.TYPE_BLOOD_DROP : sdEffect.TYPE_BLOOD_DROP_GREEN, 
 						x:this.x+xx*2, y:this.y+yy*2, sx:this.sx+xx, sy:this.sy+yy, hue:this._hue, filter:this._filter });
-					sdEntity.entities.push( e );
+					sdEntity.AddEntityToEntitiesArray( e );
 				}
 			}
 			else
@@ -972,7 +972,7 @@ class sdEffect extends sdEntity
 						let zy = Math.cos( an ) * ( -2 * Math.random() - ( Math.random() * 0.5 * Math.max( 1, this._radius / 20 ) ) );
 					
 						let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x + zx * 2, y:this.y + zy * 2, sx: zx, sy:zy, scale:this._radius / 20, radius:this._radius / 20, color:this._smoke_color || sdEffect.GetSmokeColor( sdEffect.smoke_colors ), spark_color: this._color });
-						sdEntity.entities.push( e );
+						sdEntity.AddEntityToEntitiesArray( e );
 					}
 					
 					if ( sdRenderer.effects_quality >= 2 )
@@ -987,7 +987,7 @@ class sdEffect extends sdEntity
 						let mult = type === sdEffect.TYPE_SHRAPNEL ? 2 / 3 : 1;
 						
 						let s = new sdEffect({ type:type, x:this.x + xx * 3, y:this.y + yy * 3, sx:xx*mult, sy:yy*mult, color: this._color, scale: type === sdEffect.TYPE_SHRAPNEL ? Math.min( 1.5, Math.random() + 1 ) : 1 });
-						sdEntity.entities.push( s );
+						sdEntity.AddEntityToEntitiesArray( s );
 					}
 				}
 			}
@@ -1114,7 +1114,7 @@ class sdEffect extends sdEntity
 			if ( sdRenderer.effects_quality >= 2 && this._spark_color && Math.random() < 0.005 && this._ani < 0.5 )
 			{
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:this.sx + ( Math.random() * 3 - Math.random() * 3 ), sy:this.sy * Math.random() * 2, color: this._spark_color });
-				sdEntity.entities.push( e );
+				sdEntity.AddEntityToEntitiesArray( e );
 			}
 		}
 		
@@ -1126,7 +1126,7 @@ class sdEffect extends sdEntity
 			if ( this._extra_eff_timer <= 0 )
 			{
 				let e = new sdEffect({ type:sdEffect.TYPE_SPARK, x:this.x, y:this.y, sx:( Math.random() - 0.5) * 3, sy:( Math.random() - 0.5 ) * 3, color: this._color });
-				sdEntity.entities.push( e );
+				sdEntity.AddEntityToEntitiesArray( e );
 				
 				this._extra_eff_timer = 2;
 			}

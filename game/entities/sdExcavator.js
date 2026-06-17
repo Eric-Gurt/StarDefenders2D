@@ -192,7 +192,7 @@ class sdExcavator extends sdEntity
 				crystal.matter_max = Math.max( 40, this.crystal_matter );
 				crystal.matter = this.crystal_matter;
 				
-				sdEntity.entities.push( crystal );
+				sdEntity.AddEntityToEntitiesArray( crystal );
 				
 				// Make the excavator disappear
 				this.remove();
@@ -240,7 +240,7 @@ class sdExcavator extends sdEntity
 					}
 				};
 				
-				sdEntity.entities.push( bullet_obj );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj );
 				
 				let bullet_obj2 = new sdBullet({ x: this.x + 10, y: this.y - 8, time_left: 2 }); // Right
 
@@ -265,7 +265,7 @@ class sdExcavator extends sdEntity
 					}
 				};
 				
-				sdEntity.entities.push( bullet_obj2 );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 				// Center excavating point
 				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y - 8, time_left: 2 }); // Center left
 
@@ -290,7 +290,7 @@ class sdExcavator extends sdEntity
 					}
 				};
 				
-				sdEntity.entities.push( bullet_obj3 );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
 			}
 		}
 	}

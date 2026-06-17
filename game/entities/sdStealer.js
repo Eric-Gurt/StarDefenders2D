@@ -110,7 +110,7 @@ class sdStealer extends sdEntity
 					let artifact = new sdJunk({ x:this.x, y:this.y, type: sdJunk.TYPE_STEALER_ARTIFACT });
 					artifact.sx = this.sx;
 					artifact.sy = this.sy;
-					sdEntity.entities.push( artifact );
+					sdEntity.AddEntityToEntitiesArray( artifact );
 
 				}, 500 );
 				

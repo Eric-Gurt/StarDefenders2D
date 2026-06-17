@@ -1830,7 +1830,7 @@ THING is cosmic mic drop!`;
 
 							bullet_obj._armor_penetration_level = 0;
 
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 							
 							sdSound.PlaySound({ name:'sword_attack2', x:this.x, y:this.y, volume: 0.5, pitch: 1 });
 						}
@@ -1998,7 +1998,7 @@ THING is cosmic mic drop!`;
 								if ( this.s >= 249 )
 								bullet_obj._damage = 200; // Falkonian sword bot should be lethal at close range.
 
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 							}
 						}
 					}
@@ -2613,7 +2613,7 @@ THING is cosmic mic drop!`;
 			// Create temporary copy just for visuals
 			//let copy_ent = new sdCharacter({ x:this.x, y:this.y });
 			let copy_ent = new sdWorld.entity_classes[ this.GetClass() ]({ x:this.x, y:this.y });
-			sdEntity.entities.push( copy_ent );
+			sdEntity.AddEntityToEntitiesArray( copy_ent );
 			copy_ent.ApplySnapshot( this.GetSnapshot( 0, true, null ) );
 			copy_ent.hea = Math.min( copy_ent.hea, -1 );
 			copy_ent.stability = 0;
@@ -2962,7 +2962,7 @@ THING is cosmic mic drop!`;
 
             ent._held_by = null;
 
-            sdEntity.entities.push( ent );
+            sdEntity.AddEntityToEntitiesArray( ent );
 
             this._ignored_guns_infos.push( { ent: ent, until: sdWorld.time + 300 } );
             this.TriggerMovementInRange();
@@ -5374,7 +5374,7 @@ THING is cosmic mic drop!`;
 						if ( !this._hook_projectile._is_being_removed )
 						this._hook_projectile.remove();
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this._hook_projectile = bullet_obj;
 						this.hook_projectile_net_id = bullet_obj._net_id;
@@ -5809,7 +5809,7 @@ THING is cosmic mic drop!`;
 					let type = sdEffect.TYPE_SPARK;
 					
 					let e = new sdEffect({ type: type, x:this.x + offset, y:this.y, sx: this.sx / 2 + ( -Math.random() + Math.random() ) * 2, sy: this.sy / 2 + Math.random() * 4, color: '#ffff00' });
-					sdEntity.entities.push( e );
+					sdEntity.AddEntityToEntitiesArray( e );
 					
 					this._jetpack_effect_timer = 2;
 				}
@@ -8279,7 +8279,7 @@ THING is cosmic mic drop!`;
 				RequireCensorshipTest();
 				
 				let ef = new sdEffect( params );
-				sdEntity.entities.push( ef );
+				sdEntity.AddEntityToEntitiesArray( ef );
 			}
 		}
 	}
