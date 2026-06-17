@@ -42,7 +42,7 @@ If the directory has game files but no `.git`, the installer offers:
 
 Choosing `skip` for `sslconfig.json` leaves it unchanged, but the installer can still repair certificate/key permissions for the service user. The backup timer defaults to every two days and only backs up the selected world's snapshot/chunks data.
 
-Installed services write crash-loop diagnostics to `crash_reports` inside the server directory. After repeated failed starts within the configured window, systemd pauses restarts until the owner fixes the cause and runs `systemctl reset-failed`.
+Installed services write crash-loop diagnostics to `crash_reports` inside the server directory. After repeated failed starts within the configured window, systemd pauses restarts until the owner fixes the cause and runs `systemctl reset-failed`. Timestamped crash reports are also pruned by count and age.
 
 Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a world publicly, open the selected world-slot port in both the server firewall and any VPS/provider firewall.
 

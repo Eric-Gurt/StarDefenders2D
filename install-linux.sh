@@ -15,6 +15,8 @@ DEFAULT_BACKUP_RETENTION_DAYS="30"
 DEFAULT_CRASH_LIMIT="5"
 DEFAULT_CRASH_WINDOW_SEC="600"
 DEFAULT_CRASH_RESTART_SEC="15"
+DEFAULT_CRASH_REPORT_KEEP="50"
+DEFAULT_CRASH_REPORT_RETENTION_DAYS="30"
 
 APP_USER=""
 APP_GROUP=""
@@ -57,6 +59,8 @@ WRITE_UNINSTALL_HELPER=""
 CRASH_LIMIT=""
 CRASH_WINDOW_SEC=""
 CRASH_RESTART_SEC=""
+CRASH_REPORT_KEEP=""
+CRASH_REPORT_RETENTION_DAYS=""
 DRY_RUN="no"
 ASSUME_DEFAULTS="no"
 CONFIG_FILE=""
@@ -863,6 +867,11 @@ EOF
   [[ "${CRASH_WINDOW_SEC}" != "0" ]] || die "Crash-loop window must be greater than zero."
   CRASH_RESTART_SEC="$(prompt_text "Delay between failed-start restart attempts in seconds" "${CRASH_RESTART_SEC:-$DEFAULT_CRASH_RESTART_SEC}")"
   is_nonnegative_integer "${CRASH_RESTART_SEC}" || die "Restart delay must be a non-negative integer."
+  CRASH_REPORT_KEEP="$(prompt_text "Keep newest crash report files" "${CRASH_REPORT_KEEP:-$DEFAULT_CRASH_REPORT_KEEP}")"
+  is_nonnegative_integer "${CRASH_REPORT_KEEP}" || die "Crash report keep count must be a non-negative integer."
+  [[ "${CRASH_REPORT_KEEP}" != "0" ]] || die "Crash report keep count must be greater than zero."
+  CRASH_REPORT_RETENTION_DAYS="$(prompt_text "Delete crash reports older than this many days" "${CRASH_REPORT_RETENTION_DAYS:-$DEFAULT_CRASH_REPORT_RETENTION_DAYS}")"
+  is_nonnegative_integer "${CRASH_REPORT_RETENTION_DAYS}" || die "Crash report retention must be a non-negative integer."
 
   if [[ "${SSLCONFIG_MODE}" == "letsencrypt" ]]; then
     if prompt_yes_no "Install a Let's Encrypt renewal hook to restart this service after certificate renewal" "${INSTALL_CERT_RENEWAL_HOOK:-y}"; then
@@ -964,6 +973,7 @@ Configuration summary:
   Backup retention: ${BACKUP_RETENTION_DAYS} day(s)
   Backup interval: ${BACKUP_INTERVAL}
   Crash loop: ${CRASH_LIMIT} failure(s) / ${CRASH_WINDOW_SEC}s, restart delay ${CRASH_RESTART_SEC}s
+  Crash reports: keep ${CRASH_REPORT_KEEP}, delete older than ${CRASH_REPORT_RETENTION_DAYS} day(s)
   Cert renewal hook: ${INSTALL_CERT_RENEWAL_HOOK}
   Uninstall helper: ${WRITE_UNINSTALL_HELPER}
   Dry run: ${DRY_RUN}
@@ -1280,6 +1290,8 @@ write_environment_file() {
   write_env_var "${env_file}" "CRASH_LIMIT" "${CRASH_LIMIT}"
   write_env_var "${env_file}" "CRASH_WINDOW_SEC" "${CRASH_WINDOW_SEC}"
   write_env_var "${env_file}" "CRASH_RESTART_SEC" "${CRASH_RESTART_SEC}"
+  write_env_var "${env_file}" "CRASH_REPORT_KEEP" "${CRASH_REPORT_KEEP}"
+  write_env_var "${env_file}" "CRASH_REPORT_RETENTION_DAYS" "${CRASH_REPORT_RETENTION_DAYS}"
   write_env_var "${env_file}" "OPEN_FIREWALL" "${OPEN_FIREWALL}"
   write_env_var "${env_file}" "SSLCONFIG_MODE" "${SSLCONFIG_MODE}"
   write_env_var "${env_file}" "SSL_CERT_PATH" "${SSL_CERT_PATH}"
@@ -1321,6 +1333,29 @@ chown "${APP_USER}:${APP_GROUP}" "${CRASH_DIR}" 2>/dev/null || true
 chmod 640 "${RUN_LOG}" 2>/dev/null || true
 
 exec > >(tee -a "${RUN_LOG}") 2>&1
+
+purge_old_crash_reports() {
+  local keep="${CRASH_REPORT_KEEP:-50}"
+  local days="${CRASH_REPORT_RETENTION_DAYS:-30}"
+  local delete_list
+
+  [[ "${keep}" =~ ^[0-9]+$ ]] || keep=50
+  [[ "${days}" =~ ^[0-9]+$ ]] || days=30
+
+  if (( days > 0 )); then
+    find "${CRASH_DIR}" -maxdepth 1 -type f -name "${SERVICE_NAME}-crash-*.txt" -mtime "+${days}" -delete 2>/dev/null || true
+  fi
+
+  delete_list="$(mktemp)"
+  find "${CRASH_DIR}" -maxdepth 1 -type f -name "${SERVICE_NAME}-crash-*.txt" -printf '%T@ %p\n' 2>/dev/null \
+    | sort -rn \
+    | awk -v keep="${keep}" 'NR > keep { $1=""; sub(/^ /, ""); print }' > "${delete_list}" || true
+
+  if [[ -s "${delete_list}" ]]; then
+    xargs -r rm -f < "${delete_list}"
+  fi
+  rm -f "${delete_list}"
+}
 
 record_failure() {
   local status="$1"
@@ -1372,6 +1407,7 @@ record_failure() {
 
   cp "${report_file}" "${LATEST_CRASH}"
   chmod 640 "${report_file}" "${LATEST_CRASH}" 2>/dev/null || true
+  purge_old_crash_reports
 
   echo "Crash report written to ${report_file}"
   echo "Latest crash report: ${LATEST_CRASH}"
@@ -1926,6 +1962,7 @@ Crash-loop protocol
   Policy:
     systemd pauses after ${CRASH_LIMIT} failed run(s) within ${CRASH_WINDOW_SEC} seconds.
     Restart delay between failures: ${CRASH_RESTART_SEC} seconds.
+    Timestamped crash reports keep newest ${CRASH_REPORT_KEEP} and purge files older than ${CRASH_REPORT_RETENTION_DAYS} day(s).
   After fixing a crash loop:
     systemctl reset-failed ${SERVICE_NAME}.service
     systemctl start ${SERVICE_NAME}.service
@@ -2049,6 +2086,7 @@ Useful commands:
 Crash-loop behavior:
   After ${CRASH_LIMIT} failed run(s) within ${CRASH_WINDOW_SEC} seconds, systemd pauses restarts.
   Crash report folder: ${APP_DIR}/crash_reports
+  Timestamped crash reports: keep newest ${CRASH_REPORT_KEEP}, purge older than ${CRASH_REPORT_RETENTION_DAYS} day(s)
 
 Generated files:
   /etc/default/${SERVICE_NAME}
