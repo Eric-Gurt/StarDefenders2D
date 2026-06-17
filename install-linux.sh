@@ -1559,6 +1559,7 @@ write_systemd_units() {
 [Unit]
 Description=StarDefenders2D (${SERVICE_NAME})
 After=network.target
+ConditionPathIsDirectory=${APP_DIR}
 
 [Service]
 Type=simple
@@ -1570,6 +1571,7 @@ ExecStart=/usr/local/bin/${SERVICE_NAME}-run.sh
 KillSignal=SIGTERM
 TimeoutStopSec=300
 Restart=always
+RestartPreventExitStatus=200
 RestartSec=5
 
 [Install]

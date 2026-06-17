@@ -2031,7 +2031,7 @@ class sdServerConfigFull extends sdServerConfigShort
 
 				setTimeout( ()=>
 				{
-					process.exit(1);
+					process.exit( err ? 1 : 0 );
 				}, 500 );
 
 			};
