@@ -202,6 +202,9 @@ class sdTask extends sdEntity
 				return -1;
 			},
 			onTaskMade: ( task, params )=>{
+				if ( !task._executer || task._executer._is_being_removed )
+				return;
+
 				task.SetClaimRewardsProgress( Math.floor( task._executer._task_reward_counter ) ); // Also needs to update when players complete tasks, and claim rewards.
 			},
 			failure_condition: ( task )=>
@@ -210,6 +213,9 @@ class sdTask extends sdEntity
 			},
 			completion_condition: ( task )=>
 			{
+				if ( !task._executer || task._executer._is_being_removed )
+				return true;
+
 				if ( task._executer._task_reward_counter < 1 ) //sdTask.reward_claim_task_amount )
 				return true;
 				else
