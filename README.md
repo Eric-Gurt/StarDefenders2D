@@ -42,6 +42,8 @@ If the directory has game files but no `.git`, the installer offers:
 
 Choosing `skip` for `sslconfig.json` leaves it unchanged, but the installer can still repair certificate/key permissions for the service user. The backup timer defaults to every two days and only backs up the selected world's snapshot/chunks data.
 
+Installed services write crash-loop diagnostics to `crash_reports` inside the server directory. After repeated failed starts within the configured window, systemd pauses restarts until the owner fixes the cause and runs `systemctl reset-failed`.
+
 Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a world publicly, open the selected world-slot port in both the server firewall and any VPS/provider firewall.
 
 For Windows/manual development, install Node.js from https://nodejs.org, install npm dependencies from the repository directory, and run the server directly. For debugging using Chromium browsers you can run it with command line (cmd.exe application):

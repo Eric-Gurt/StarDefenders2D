@@ -12,6 +12,9 @@ DEFAULT_BACKUP_INTERVAL="2d"
 DEFAULT_NODE_VERSION="lts/*"
 DEFAULT_WORLD_SLOT="0"
 DEFAULT_BACKUP_RETENTION_DAYS="30"
+DEFAULT_CRASH_LIMIT="5"
+DEFAULT_CRASH_WINDOW_SEC="600"
+DEFAULT_CRASH_RESTART_SEC="15"
 
 APP_USER=""
 APP_GROUP=""
@@ -51,6 +54,9 @@ EXPECTED_PORT=""
 OPEN_FIREWALL=""
 INSTALL_CERT_RENEWAL_HOOK=""
 WRITE_UNINSTALL_HELPER=""
+CRASH_LIMIT=""
+CRASH_WINDOW_SEC=""
+CRASH_RESTART_SEC=""
 DRY_RUN="no"
 ASSUME_DEFAULTS="no"
 CONFIG_FILE=""
@@ -847,6 +853,17 @@ EOF
   BACKUP_RETENTION_DAYS="$(prompt_text "Delete managed backups older than this many days" "${BACKUP_RETENTION_DAYS:-$DEFAULT_BACKUP_RETENTION_DAYS}")"
   is_nonnegative_integer "${BACKUP_RETENTION_DAYS}" || die "Backup retention must be a non-negative integer."
 
+  echo
+  echo "Crash-loop protection writes reports to ${APP_DIR}/crash_reports and lets systemd pause repeated failures."
+  CRASH_LIMIT="$(prompt_text "Pause service after this many failed starts" "${CRASH_LIMIT:-$DEFAULT_CRASH_LIMIT}")"
+  is_nonnegative_integer "${CRASH_LIMIT}" || die "Crash limit must be a non-negative integer."
+  [[ "${CRASH_LIMIT}" != "0" ]] || die "Crash limit must be greater than zero."
+  CRASH_WINDOW_SEC="$(prompt_text "Crash-loop detection window in seconds" "${CRASH_WINDOW_SEC:-$DEFAULT_CRASH_WINDOW_SEC}")"
+  is_nonnegative_integer "${CRASH_WINDOW_SEC}" || die "Crash-loop window must be a non-negative integer."
+  [[ "${CRASH_WINDOW_SEC}" != "0" ]] || die "Crash-loop window must be greater than zero."
+  CRASH_RESTART_SEC="$(prompt_text "Delay between failed-start restart attempts in seconds" "${CRASH_RESTART_SEC:-$DEFAULT_CRASH_RESTART_SEC}")"
+  is_nonnegative_integer "${CRASH_RESTART_SEC}" || die "Restart delay must be a non-negative integer."
+
   if [[ "${SSLCONFIG_MODE}" == "letsencrypt" ]]; then
     if prompt_yes_no "Install a Let's Encrypt renewal hook to restart this service after certificate renewal" "${INSTALL_CERT_RENEWAL_HOOK:-y}"; then
       INSTALL_CERT_RENEWAL_HOOK="yes"
@@ -946,6 +963,7 @@ Configuration summary:
   Open firewall: ${OPEN_FIREWALL}
   Backup retention: ${BACKUP_RETENTION_DAYS} day(s)
   Backup interval: ${BACKUP_INTERVAL}
+  Crash loop: ${CRASH_LIMIT} failure(s) / ${CRASH_WINDOW_SEC}s, restart delay ${CRASH_RESTART_SEC}s
   Cert renewal hook: ${INSTALL_CERT_RENEWAL_HOOK}
   Uninstall helper: ${WRITE_UNINSTALL_HELPER}
   Dry run: ${DRY_RUN}
@@ -1259,6 +1277,9 @@ write_environment_file() {
   write_env_var "${env_file}" "EXPECTED_PORT" "${EXPECTED_PORT}"
   write_env_var "${env_file}" "BACKUP_INTERVAL" "${BACKUP_INTERVAL}"
   write_env_var "${env_file}" "BACKUP_RETENTION_DAYS" "${BACKUP_RETENTION_DAYS}"
+  write_env_var "${env_file}" "CRASH_LIMIT" "${CRASH_LIMIT}"
+  write_env_var "${env_file}" "CRASH_WINDOW_SEC" "${CRASH_WINDOW_SEC}"
+  write_env_var "${env_file}" "CRASH_RESTART_SEC" "${CRASH_RESTART_SEC}"
   write_env_var "${env_file}" "OPEN_FIREWALL" "${OPEN_FIREWALL}"
   write_env_var "${env_file}" "SSLCONFIG_MODE" "${SSLCONFIG_MODE}"
   write_env_var "${env_file}" "SSL_CERT_PATH" "${SSL_CERT_PATH}"
@@ -1286,6 +1307,94 @@ source "__ENV_FILE__"
 cd "${APP_DIR}"
 export NODE_ENV
 
+CRASH_DIR="${APP_DIR}/crash_reports"
+RUN_LOG="${CRASH_DIR}/${SERVICE_NAME}-latest.log"
+HISTORY_FILE="${CRASH_DIR}/${SERVICE_NAME}-crash-history.tsv"
+LATEST_CRASH="${CRASH_DIR}/${SERVICE_NAME}-latest-crash.txt"
+LOOP_MARKER="${CRASH_DIR}/${SERVICE_NAME}-crash-loop-detected.txt"
+STARTED_AT="$(date -Is)"
+START_EPOCH="$(date +%s)"
+
+mkdir -p "${CRASH_DIR}"
+chown "${APP_USER}:${APP_GROUP}" "${CRASH_DIR}" 2>/dev/null || true
+: > "${RUN_LOG}"
+chmod 640 "${RUN_LOG}" 2>/dev/null || true
+
+exec > >(tee -a "${RUN_LOG}") 2>&1
+
+record_failure() {
+  local status="$1"
+  local now_epoch
+  local now_iso
+  local tmp_history
+  local recent_count
+  local report_file
+
+  now_epoch="$(date +%s)"
+  now_iso="$(date -Is)"
+  tmp_history="$(mktemp)"
+
+  touch "${HISTORY_FILE}"
+  awk -v cutoff="$(( now_epoch - ${CRASH_WINDOW_SEC:-600} ))" -F '\t' '$1 >= cutoff { print }' "${HISTORY_FILE}" > "${tmp_history}" || true
+  printf '%s\t%s\t%s\n' "${now_epoch}" "${status}" "${STARTED_AT}" >> "${tmp_history}"
+  mv "${tmp_history}" "${HISTORY_FILE}"
+  chmod 640 "${HISTORY_FILE}" 2>/dev/null || true
+
+  recent_count="$(wc -l < "${HISTORY_FILE}" | tr -d ' ')"
+  report_file="${CRASH_DIR}/${SERVICE_NAME}-crash-${now_iso//:/-}.txt"
+
+  {
+    echo "StarDefenders2D service crash report"
+    echo "service=${SERVICE_NAME}"
+    echo "user=${APP_USER}"
+    echo "app_dir=${APP_DIR}"
+    echo "world_slot=${WORLD_SLOT}"
+    echo "expected_port=${EXPECTED_PORT}"
+    echo "launch_command=${LAUNCH_COMMAND}"
+    echo "node_env=${NODE_ENV}"
+    echo "started_at=${STARTED_AT}"
+    echo "failed_at=${now_iso}"
+    echo "uptime_seconds=$(( now_epoch - START_EPOCH ))"
+    echo "exit_status=${status}"
+    echo "recent_failures_in_window=${recent_count}"
+    echo "crash_limit=${CRASH_LIMIT:-5}"
+    echo "crash_window_sec=${CRASH_WINDOW_SEC:-600}"
+    echo
+    echo "Useful commands:"
+    echo "  systemctl status ${SERVICE_NAME}.service -l --no-pager"
+    echo "  journalctl -u ${SERVICE_NAME}.service -n 200 -o cat --no-pager"
+    echo "  systemctl reset-failed ${SERVICE_NAME}.service"
+    echo "  systemctl start ${SERVICE_NAME}.service"
+    echo
+    echo "Last 200 service output lines:"
+    tail -n 200 "${RUN_LOG}" 2>/dev/null || true
+  } > "${report_file}"
+
+  cp "${report_file}" "${LATEST_CRASH}"
+  chmod 640 "${report_file}" "${LATEST_CRASH}" 2>/dev/null || true
+
+  echo "Crash report written to ${report_file}"
+  echo "Latest crash report: ${LATEST_CRASH}"
+
+  if (( recent_count >= ${CRASH_LIMIT:-5} )); then
+    {
+      echo "Crash loop detected for ${SERVICE_NAME} at ${now_iso}."
+      echo "${recent_count} failed run(s) occurred within ${CRASH_WINDOW_SEC:-600} seconds."
+      echo "systemd will stop retrying after StartLimitBurst=${CRASH_LIMIT:-5} in StartLimitIntervalSec=${CRASH_WINDOW_SEC:-600}."
+      echo
+      echo "Inspect:"
+      echo "  ${LATEST_CRASH}"
+      echo "  ${RUN_LOG}"
+      echo
+      echo "After fixing the cause:"
+      echo "  systemctl reset-failed ${SERVICE_NAME}.service"
+      echo "  systemctl start ${SERVICE_NAME}.service"
+    } > "${LOOP_MARKER}"
+    chmod 640 "${LOOP_MARKER}" 2>/dev/null || true
+    echo "Crash loop marker written to ${LOOP_MARKER}"
+  fi
+}
+
 export NVM_DIR="${APP_HOME}/.nvm"
 if [[ ! -s "${NVM_DIR}/nvm.sh" ]]; then
   echo "nvm.sh not found at ${NVM_DIR}/nvm.sh" >&2
@@ -1294,7 +1403,22 @@ fi
 . "${NVM_DIR}/nvm.sh"
 nvm use --silent "${NVM_VERSION}"
 
-exec bash -c "exec ${LAUNCH_COMMAND}"
+echo "Starting ${SERVICE_NAME} at ${STARTED_AT}"
+echo "Working directory: ${APP_DIR}"
+echo "Launch command: ${LAUNCH_COMMAND}"
+
+set +e
+bash -lc "exec ${LAUNCH_COMMAND}"
+status="$?"
+set -e
+
+if [[ "${status}" == "0" ]]; then
+  echo "${SERVICE_NAME} exited cleanly at $(date -Is)."
+  exit 0
+fi
+
+record_failure "${status}"
+exit "${status}"
 EOF
   sed -i "s#__ENV_FILE__#/etc/default/${SERVICE_NAME}#g" "${path}"
   chmod 755 "${path}"
@@ -1560,6 +1684,8 @@ write_systemd_units() {
 Description=StarDefenders2D (${SERVICE_NAME})
 After=network.target
 ConditionPathIsDirectory=${APP_DIR}
+StartLimitIntervalSec=${CRASH_WINDOW_SEC}
+StartLimitBurst=${CRASH_LIMIT}
 
 [Service]
 Type=simple
@@ -1572,7 +1698,7 @@ KillSignal=SIGTERM
 TimeoutStopSec=300
 Restart=always
 RestartPreventExitStatus=200
-RestartSec=5
+RestartSec=${CRASH_RESTART_SEC}
 
 [Install]
 WantedBy=multi-user.target
@@ -1781,6 +1907,8 @@ Service identity
 Status and logs
   systemctl status ${SERVICE_NAME}.service
   journalctl -u ${SERVICE_NAME}.service -f
+  tail -n 200 ${APP_DIR}/crash_reports/${SERVICE_NAME}-latest.log
+  cat ${APP_DIR}/crash_reports/${SERVICE_NAME}-latest-crash.txt
   systemctl status ${SERVICE_NAME}-update.timer
   systemctl status ${SERVICE_NAME}-backup.timer
   systemctl status ${SERVICE_NAME}-config-watch.path
@@ -1789,6 +1917,18 @@ Start, stop, restart
   systemctl start ${SERVICE_NAME}.service
   systemctl stop ${SERVICE_NAME}.service
   systemctl restart ${SERVICE_NAME}.service
+
+Crash-loop protocol
+  Crash reports:
+    ${APP_DIR}/crash_reports/${SERVICE_NAME}-latest-crash.txt
+    ${APP_DIR}/crash_reports/${SERVICE_NAME}-latest.log
+    ${APP_DIR}/crash_reports/${SERVICE_NAME}-crash-loop-detected.txt
+  Policy:
+    systemd pauses after ${CRASH_LIMIT} failed run(s) within ${CRASH_WINDOW_SEC} seconds.
+    Restart delay between failures: ${CRASH_RESTART_SEC} seconds.
+  After fixing a crash loop:
+    systemctl reset-failed ${SERVICE_NAME}.service
+    systemctl start ${SERVICE_NAME}.service
 
 Auto-update
   Disable: systemctl disable --now ${SERVICE_NAME}-update.timer
@@ -1897,11 +2037,18 @@ Installation complete.
 Useful commands:
   systemctl status ${SERVICE_NAME}.service
   journalctl -u ${SERVICE_NAME}.service -f
+  tail -n 200 ${APP_DIR}/crash_reports/${SERVICE_NAME}-latest.log
+  cat ${APP_DIR}/crash_reports/${SERVICE_NAME}-latest-crash.txt
   systemctl status ${SERVICE_NAME}-update.timer
   systemctl status ${SERVICE_NAME}-backup.timer
   systemctl start ${SERVICE_NAME}-update.service
   systemctl start ${SERVICE_NAME}-backup.service
   systemctl status ${SERVICE_NAME}-config-watch.path
+  systemctl reset-failed ${SERVICE_NAME}.service
+
+Crash-loop behavior:
+  After ${CRASH_LIMIT} failed run(s) within ${CRASH_WINDOW_SEC} seconds, systemd pauses restarts.
+  Crash report folder: ${APP_DIR}/crash_reports
 
 Generated files:
   /etc/default/${SERVICE_NAME}
