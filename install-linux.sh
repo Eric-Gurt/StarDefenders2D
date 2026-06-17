@@ -488,6 +488,21 @@ backup_existing_directory_for_in_place_install() {
 
 initialize_git_metadata_for_existing_directory() {
   local target_ref="origin/${REPO_BRANCH}"
+  local ignored_pathspecs=(
+    ":(exclude)backups/**"
+    ":(exclude)installerbackup/**"
+    ":(exclude)node_modules/**"
+    ":(exclude)node_modules_win10/**"
+    ":(exclude)server_config*.js"
+    ":(exclude)sslconfig.json"
+    ":(exclude)superuser_pass*.txt"
+    ":(exclude)presets/*.json"
+    ":(exclude)presets_users/**"
+    ":(exclude)moderation_data*.v"
+    ":(exclude)star_defenders_snapshot*.v"
+    ":(exclude)star_defenders_snapshot*.raw.v"
+    ":(exclude)chunks*/**"
+  )
 
   [[ -d "${APP_DIR}" ]] || die "Cannot initialize Git metadata because ${APP_DIR} does not exist."
   [[ ! -d "${APP_DIR}/.git" ]] || return 0
@@ -495,6 +510,7 @@ initialize_git_metadata_for_existing_directory() {
   info "Initializing Git metadata in existing directory ${APP_DIR}"
   chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
   run_as_app git -C "${APP_DIR}" init
+  add_local_git_excludes_for_server_runtime
   run_as_app git -C "${APP_DIR}" check-ref-format --branch "${REPO_BRANCH}" >/dev/null
   if run_as_app git -C "${APP_DIR}" remote get-url origin >/dev/null 2>&1; then
     run_as_app git -C "${APP_DIR}" remote set-url origin "${REPO_URL}"
@@ -507,13 +523,45 @@ initialize_git_metadata_for_existing_directory() {
   run_as_app git -C "${APP_DIR}" reset --mixed "${target_ref}"
   run_as_app git -C "${APP_DIR}" branch --set-upstream-to="${target_ref}" "${REPO_BRANCH}" >/dev/null 2>&1 || true
 
-  if ! run_as_app git -C "${APP_DIR}" diff --quiet --; then
-    warn "${APP_DIR} now has Git metadata, but tracked files differ from ${target_ref}."
+  if ! run_as_app git -C "${APP_DIR}" diff --quiet -- . "${ignored_pathspecs[@]}"; then
+    warn "${APP_DIR} now has Git metadata, but repository source files differ from ${target_ref}."
     warn "The installer will not overwrite those files in in-place initialization mode."
-    die "Review local changes with: sudo -u ${APP_USER} git -C ${APP_DIR} status --short"
+    run_as_app git -C "${APP_DIR}" diff --name-status -- . "${ignored_pathspecs[@]}" || true
+    die "Review source file changes above, or choose plain/startfresh mode when rerunning the installer."
   fi
 
   info "Existing directory is now a Git checkout tracking ${target_ref}"
+}
+
+add_local_git_excludes_for_server_runtime() {
+  local exclude_file="${APP_DIR}/.git/info/exclude"
+  local pattern
+  local patterns=(
+    "backups/"
+    "installerbackup/"
+    "node_modules/"
+    "node_modules_win10/"
+    "server_config*.js"
+    "sslconfig.json"
+    "superuser_pass*.txt"
+    "presets/*.json"
+    "presets_users/"
+    "moderation_data*.v"
+    "star_defenders_snapshot*.v"
+    "star_defenders_snapshot*.raw.v"
+    "chunks*/"
+  )
+
+  if [[ ! -e "${exclude_file}" ]]; then
+    install -o "${APP_USER}" -g "${APP_GROUP}" -m 644 /dev/null "${exclude_file}" 2>/dev/null || touch "${exclude_file}"
+  fi
+  chown "${APP_USER}:${APP_GROUP}" "${exclude_file}"
+  for pattern in "${patterns[@]}"; do
+    if ! grep -qxF "${pattern}" "${exclude_file}" 2>/dev/null; then
+      printf '%s\n' "${pattern}" >> "${exclude_file}"
+    fi
+  done
+  chown "${APP_USER}:${APP_GROUP}" "${exclude_file}"
 }
 
 install_nvm_and_node() {
