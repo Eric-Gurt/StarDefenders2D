@@ -1619,6 +1619,36 @@ class sdServerConfigFull extends sdServerConfigShort
 
 			let strange_position_classes = {};
 
+			// Phase 4: report-only duplicate _net_id detection. Two snapshot entries
+			// sharing a _net_id is the snapshot-corruption signature (it yields dangling
+			// pointers / shadowed entities_by_net_id_cache_map entries after reconstruction).
+			// We do NOT drop anything here so loading stays gameplay-preserving - the
+			// save-path guard prevents new duplicates; this just surfaces pre-existing ones.
+			{
+				let seen_net_ids = new Set();
+				let dup_total = 0;
+				let dup_classes = {};
+				for ( let d = 0; d < save_obj.entities.length; d++ )
+				{
+					let snap = save_obj.entities[ d ];
+					if ( !snap )
+					continue;
+					let nid = snap._net_id;
+					if ( nid === undefined || nid === null )
+					continue;
+					if ( seen_net_ids.has( nid ) )
+					{
+						dup_total++;
+						let cls = snap._class || 'unknown';
+						dup_classes[ cls ] = ( dup_classes[ cls ] || 0 ) + 1;
+					}
+					else
+					seen_net_ids.add( nid );
+				}
+				if ( dup_total > 0 )
+				console.warn( 'InitialSnapshotLoadAttempt: snapshot contains ' + dup_total + ' duplicate _net_id entr' + ( dup_total === 1 ? 'y' : 'ies' ) + ' across ' + save_obj.entities.length + ' entities (by class: ' + JSON.stringify( dup_classes ) + '). Loaded as-is; the save-path guard prevents new ones.' );
+			}
+
 			for ( i = 0; i < save_obj.entities.length; i++ )
 			{
 				try
@@ -1757,12 +1787,33 @@ class sdServerConfigFull extends sdServerConfigShort
 			}
 
 
+			let saved_net_ids = new Set(); // Phase 4: dedup _net_ids within a single snapshot (snapshot-corruption root cause = two live entities sharing a _net_id)
+			let duplicate_net_id_skips = 0;
+
 			while ( true )
 			{
 				for ( var i = 0; i < sdEntity.entities.length; i++ )
 				if ( !sdEntity.entities[ i ]._is_being_removed )
 				if ( !sdWorld.server_config.EntitySaveAllowedTest || sdWorld.server_config.EntitySaveAllowedTest( sdEntity.entities[ i ] ) )
 				{
+					let _dup_net_id = sdEntity.entities[ i ]._net_id;
+					if ( _dup_net_id !== undefined && _dup_net_id !== null )
+					{
+						if ( saved_net_ids.has( _dup_net_id ) )
+						{
+							// A second live entity is claiming a _net_id that was already
+							// serialized this save. Baking both into the snapshot is the
+							// snapshot-corruption root cause (duplicate net_ids -> dangling
+							// pointers / orphaned reconstructions on load). Keep the first,
+							// skip the rest. Rate-limited so a mass-dup save can't flood logs.
+							duplicate_net_id_skips++;
+							if ( duplicate_net_id_skips <= 20 )
+							console.warn( 'SaveSnapshot: skipping duplicate _net_id ' + _dup_net_id + ' (' + sdEntity.entities[ i ].GetClass() + ' at ' + sdEntity.entities[ i ].x + ', ' + sdEntity.entities[ i ].y + ') - already serialized this save.' + ( duplicate_net_id_skips === 20 ? ' [further duplicate warnings suppressed]' : '' ) );
+							continue;
+						}
+						saved_net_ids.add( _dup_net_id );
+					}
+
 					if ( isNaN( sdEntity.entities[ i ].x ) || isNaN( sdEntity.entities[ i ].y ) || sdEntity.entities[ i ].x === null || sdEntity.entities[ i ].y === null )
 					if ( typeof strange_position_classes[ sdEntity.entities[ i ].GetClass() ] === 'undefined' )
 					{
@@ -1801,6 +1852,9 @@ class sdServerConfigFull extends sdServerConfigShort
 
 					entities.push( ent_snapshot );
 				}
+
+				if ( duplicate_net_id_skips > 0 )
+				console.warn( 'SaveSnapshot: skipped ' + duplicate_net_id_skips + ' duplicate-_net_id entit' + ( duplicate_net_id_skips === 1 ? 'y' : 'ies' ) + ' to keep the snapshot consistent (kept the first occurrence of each net_id).' );
 
 				//trace( 'Times by sdDeepSleep.type: ', times_by_deep_sleep_type );
 
