@@ -16,7 +16,10 @@ class sdLandMine extends sdEntity
 		sdLandMine.VARIATION_BASIC = 0;
 		sdLandMine.VARIATION_JUMPER = 1;
 		sdLandMine.VARIATION_BANANA = 2;
-		
+
+		sdLandMine.ignored_classes_active = [ 'sdCharacter' ]; // Reused so GetClassListByClassNameList caching can hit (avoids per-call array allocation)
+		sdLandMine.ignored_classes_none = [];
+
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -3; }
@@ -66,7 +69,7 @@ class sdLandMine extends sdEntity
 	}
 	GetIgnoredEntityClasses()
 	{
-		return ( this.activated || this.variation === sdLandMine.VARIATION_BANANA ) ? [ 'sdCharacter' ] : [ ];
+		return ( this.activated || this.variation === sdLandMine.VARIATION_BANANA ) ? sdLandMine.ignored_classes_active : sdLandMine.ignored_classes_none;
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
