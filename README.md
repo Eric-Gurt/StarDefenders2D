@@ -22,15 +22,17 @@ For Linux servers with systemd, download only the installer and run it:
 
 ```bash
 curl -fsSL -o install-linux.sh https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/install-linux.sh
-sudo bash install-linux.sh
+sudo -E bash install-linux.sh
 ```
+
+Run the installer from the Linux account that should own and run the server. `sudo -E` preserves that invoking user for the installer, so the default service owner matches the account you started from.
 
 The installer can set up Node.js through nvm, clone or reuse the repository, install production dependencies, create systemd service/timer units, configure `sslconfig.json`, verify certificate/key permissions, add optional Let's Encrypt support, and create world-data backups.
 
 If you already have the game on the server, run the installer from that directory. For a real Git checkout, use:
 
 ```bash
-sudo bash install-linux.sh --existing-checkout
+sudo -E bash install-linux.sh --existing-checkout
 ```
 
 If the directory has game files but no `.git`, the installer offers:
