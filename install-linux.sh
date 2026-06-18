@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SCRIPT_VERSION="1.0.10"
+SCRIPT_VERSION="1.0.11"
 DEFAULT_REPO_URL="https://github.com/Eric-Gurt/StarDefenders2D.git"
 DEFAULT_BRANCH="main"
 DEFAULT_SERVICE_NAME="stardefenders"
@@ -152,6 +152,29 @@ warn() {
 
 command_exists() {
   command -v "$1" >/dev/null 2>&1
+}
+
+default_app_user() {
+  local candidate
+
+  if [[ -n "${APP_USER:-}" ]]; then
+    printf '%s' "${APP_USER}"
+    return 0
+  fi
+
+  candidate="${SUDO_USER:-}"
+  if [[ -n "${candidate}" && "${candidate}" != "root" ]] && getent passwd "${candidate}" >/dev/null 2>&1; then
+    printf '%s' "${candidate}"
+    return 0
+  fi
+
+  candidate="$(id -un 2>/dev/null || true)"
+  if [[ -n "${candidate}" && "${candidate}" != "root" ]] && getent passwd "${candidate}" >/dev/null 2>&1; then
+    printf '%s' "${candidate}"
+    return 0
+  fi
+
+  printf '%s' "${DEFAULT_APP_USER}"
 }
 
 require_root() {
@@ -598,9 +621,9 @@ install_nvm_and_node() {
 }
 
 prompt_configuration() {
-  local sudo_user="${SUDO_USER:-}"
-  local detected_user="${sudo_user:-$DEFAULT_APP_USER}"
+  local detected_user
   local current_dir
+  detected_user="$(default_app_user)"
   current_dir="$(pwd -P)"
 
   cat <<EOF
@@ -637,9 +660,23 @@ EOF
   if [[ -f "/etc/default/${SERVICE_NAME}" ]]; then
     if prompt_yes_no "Existing /etc/default/${SERVICE_NAME} found. Reuse it as defaults" "y"; then
       local selected_service_name="${SERVICE_NAME}"
+      local selected_app_user="${APP_USER}"
+      local loaded_app_user
       # shellcheck disable=SC1090
       source "/etc/default/${SERVICE_NAME}"
+      loaded_app_user="${APP_USER:-}"
       SERVICE_NAME="${selected_service_name}"
+      APP_USER="${selected_app_user}"
+      if [[ -n "${loaded_app_user}" && "${loaded_app_user}" != "${APP_USER}" ]]; then
+        warn "Existing profile uses APP_USER=${loaded_app_user}; keeping selected APP_USER=${APP_USER}."
+        if [[ "${APP_HOME:-}" == "/home/${loaded_app_user}" ]]; then
+          APP_HOME=""
+        fi
+        if [[ "${APP_DIR:-}" == "/home/${loaded_app_user}" || "${APP_DIR:-}" == "/home/${loaded_app_user}/"* ]]; then
+          APP_DIR=""
+        fi
+        APP_GROUP=""
+      fi
       echo "Loaded previous installer profile from /etc/default/${SERVICE_NAME}."
       is_nonnegative_integer "${WORLD_SLOT}" || die "Loaded WORLD_SLOT is not a non-negative integer: ${WORLD_SLOT}"
       if [[ "${WORLD_SLOT}" == "0" ]]; then
