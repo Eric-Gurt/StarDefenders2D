@@ -1119,6 +1119,14 @@ class sdSteeringWheel extends sdEntity
 		let stopping_entities = [];
 		let stopped_entities = []; // Ones that are likely to take damage, together with stopping_entities
 
+		// phase-13-lagmachine-02: O(1) membership for the dedup checks below. All three arrays are
+		// append-only within this method (only ever pushed, never spliced), so a parallel Set stays
+		// in sync as long as every push also adds. Replaces O(n) .indexOf() scans that become O(n^2)
+		// when a moving base pushes many entities. (scan itself is already deduped via initiator._scan_set.)
+		let stuff_to_push_set = new Set();
+		let stopping_entities_set = new Set();
+		let stopped_entities_set = new Set();
+
 		let will_move = true;
 		
 		let scan_set = null;
@@ -1142,10 +1150,11 @@ class sdSteeringWheel extends sdEntity
 				return false;
 			}
 			
-			if ( stuff_to_push.indexOf( ent2 ) === -1 )
+			if ( !stuff_to_push_set.has( ent2 ) )
 			{
 				stuff_to_push.push( ent2 );
-				
+				stuff_to_push_set.add( ent2 );
+
 				if ( ent2.is( sdWorld.entity_classes.sdStorage ) )
 				debugger;
 				
@@ -1251,18 +1260,22 @@ class sdSteeringWheel extends sdEntity
 					if ( CanAPassThroughB( ent2, current ) )
 					return false;
 
-					if ( stopping_entities.indexOf( ent2 ) === -1 )
-					if ( stuff_to_push.indexOf( ent2 ) === -1 )
+					if ( !stopping_entities_set.has( ent2 ) )
+					if ( !stuff_to_push_set.has( ent2 ) )
 					{
 						if ( declare_stopping )
 						{
 							stopping_entities.push( ent2 );
+							stopping_entities_set.add( ent2 );
 
 							//trace( 'Added stopping entity', ent2 );
 
 							if ( !forceful )
-							if ( stopped_entities.indexOf( current ) === -1 )
-							stopped_entities.push( current );
+							if ( !stopped_entities_set.has( current ) )
+							{
+								stopped_entities.push( current );
+								stopped_entities_set.add( current );
+							}
 						}
 						else
 						{
@@ -1338,8 +1351,11 @@ class sdSteeringWheel extends sdEntity
 			{
 				// Stopped by sdDeepSleep case, they won't trigger filter
 				if ( !forceful )
-				if ( stopped_entities.indexOf( current ) === -1 )
-				stopped_entities.push( current );
+				if ( !stopped_entities_set.has( current ) )
+				{
+					stopped_entities.push( current );
+					stopped_entities_set.add( current );
+				}
 			}
 			
 			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 )
@@ -1381,8 +1397,11 @@ class sdSteeringWheel extends sdEntity
 				{
 					// Stopped by sdDeepSleep case, they won't trigger filter
 					if ( !forceful )
-					if ( stopped_entities.indexOf( current ) === -1 )
-					stopped_entities.push( current );
+					if ( !stopped_entities_set.has( current ) )
+					{
+						stopped_entities.push( current );
+						stopped_entities_set.add( current );
+					}
 				}
 			}
 			
