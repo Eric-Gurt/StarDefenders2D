@@ -42,7 +42,19 @@ class sdByteShifter
 		sdByteShifter.simulate_packet_delay = false;
 		
 		sdByteShifter.events_overflow_warning_next_time = 0;
-		
+
+		// Adaptive .sd_events drain (phase-12-events-04). Base drain per sync (10) is the
+		// historical floor and is what runs whenever there is no backlog, so the common
+		// case is unchanged. Under backlog the drain scales up to events_drain_max so the
+		// queue is cleared before it reaches events_overflow_cap (important now that sync
+		// cadence can slow under the adaptive sync budget). At the hard cap only the OLDEST
+		// cosmetic sound/effect events are shed; control events (position corrections etc.)
+		// are always kept, fixing the old "drop the whole queue" behavior. All tunable live.
+		sdByteShifter.events_drain_base = 10;
+		sdByteShifter.events_drain_max = 60;
+		sdByteShifter.events_overflow_cap = 100;
+		sdByteShifter.droppable_event_commands = new Set([ 'EFF', 'S', 'P' ]); // cosmetic-only: effect, sound, projectile-ragdoll-push
+
 		if ( sdByteShifter.simulate_packet_shuffle || sdByteShifter.simulate_packet_delay )
 		console.warn( 'sdByteShifter debug features are enabled' );
 		
@@ -175,7 +187,15 @@ class sdByteShifter
 			const SyncDataToPlayer = async ()=>
 			{
 				socket.sync_busy = true;
-				
+
+				// Per-socket snapshot-sync instrumentation (phase-12-sync-01). Zero cost
+				// unless globalThis.DEBUG_SYNC_PROFILE is set live on the inspector console.
+				// Captures the per-build shape (cost, entities listed, static reuse, full vs
+				// partial vs deletion entries, event backlog/drain/drop, payload size) so the
+				// dominant multiplier behind sdByteShifter.AddEntity can be confirmed per socket.
+				const SYNC_DBG = globalThis.DEBUG_SYNC_PROFILE;
+				const _dbg = SYNC_DBG ? { t0: Date.now(), add_calls: 0, listed: 0, static_reuse: 0, full_create: 0, partial_update: 0 } : null;
+
 				let allow_silent_event_skip = ( sdWorld.time > socket.last_sync + 1000 );
 				
 				socket.last_sync = sdWorld.time;
@@ -229,14 +249,18 @@ class sdByteShifter
 					
 					const AddEntity = ( ent )=>//, forced )=>
 					{
+						if ( SYNC_DBG ) _dbg.add_calls++;
+
 						if ( ent._flag < visited_ent_flag )
 						{
 							ent._near_player_until = near_player_until_time;
-							
+
 							if ( ( ent.IsVisible === default_IsVisible || ent.IsVisible( socket.character ) ) && !ent._is_being_removed )
 							{
 								ent._flag = listed_ent_flag;
-							
+
+								if ( SYNC_DBG ) _dbg.listed++;
+
 								//current_snapshot_entities.push( ent );
 								current_snapshot_entities_by_net_id.set( ent._net_id, ent );
 								
@@ -258,6 +282,8 @@ class sdByteShifter
 										
 										if ( snap )
 										{
+											if ( SYNC_DBG ) _dbg.static_reuse++;
+
 											//replacement_for_confirmed_snapshot.set( ent, snap );
 											replacement_for_confirmed_snapshot.set( ent._net_id, snap );
 
@@ -274,7 +300,8 @@ class sdByteShifter
 									
 								if ( confirmed_state === undefined )
 								{
-									
+									if ( SYNC_DBG ) _dbg.full_create++;
+
 									let class_info = ent._class_id; // Number or string if class has initial type/class/mission properties
 									
 									for ( let i = 0; i < sdEntity.properties_important_upon_creation.length; i++ )
@@ -416,13 +443,17 @@ class sdByteShifter
 									}
 									
 									if ( prop_ids !== null )
-									snapshot.push([
+									{
+										if ( SYNC_DBG ) _dbg.partial_update++;
 
-										ent._net_id, // 0
-										prop_ids, // 1 - list of indexes of properties to update OR class name if it is a first sync OR -1 if removal OR -2 if broken
-										...values_array_partial // 2... - values of properties
+										snapshot.push([
 
-									]);
+											ent._net_id, // 0
+											prop_ids, // 1 - list of indexes of properties to update OR class name if it is a first sync OR -1 if removal OR -2 if broken
+											...values_array_partial // 2... - values of properties
+
+										]);
+									}
 								}
 								
 								let snap_stored_copy = null;
@@ -808,26 +839,64 @@ class sdByteShifter
 
 					let sd_events = [];
 
-					if ( socket.sd_events.length > 100 )
+					let _events_backlog = socket.sd_events.length;
+
+					if ( SYNC_DBG ) { _dbg.events_backlog = _events_backlog; _dbg.events_dropped = 0; }
+
+					// Adaptive drain budget: with no backlog this stays at the historical base
+					// (10), so normal play is unchanged. Under backlog it scales up (drain ~half
+					// the queue, capped at events_drain_max) so the queue is cleared before it can
+					// reach the hard cap, instead of letting it grow until a mass drop.
+					let _drain_budget = sdByteShifter.events_drain_base;
+					if ( _events_backlog > _drain_budget )
+					_drain_budget = Math.min( sdByteShifter.events_drain_max, Math.ceil( _events_backlog / 2 ) );
+
+					// Hard cap: if production still outruns even the raised drain, shed load
+					// WITHOUT dropping gameplay-critical control events. Drop only the oldest
+					// cosmetic sound/effect events; keep every control event ('C' position
+					// corrections, 'UI_REPLY', 'ONLINE', ...) and the newest cosmetic events.
+					// This replaces the old behavior of clearing the entire queue (which could
+					// drop position corrections and cause rubber-banding).
+					if ( _events_backlog > sdByteShifter.events_overflow_cap )
 					{
-						if ( !allow_silent_event_skip )
-						if ( Date.now() > sdByteShifter.events_overflow_warning_next_time )
+						let target_drop = _events_backlog - sdByteShifter.events_overflow_cap;
+						let dropped = 0;
+						let kept = [];
+
+						for ( let e = 0; e < socket.sd_events.length; e++ )
 						{
-							// Once in 6 hours
-							sdByteShifter.events_overflow_warning_next_time = Date.now() + 1000 * 60 * 60 * 6;
-							trace( '.sd_events overflow: ' + JSON.stringify( socket.sd_events ) );
+							let ev = socket.sd_events[ e ];
+
+							if ( dropped < target_drop && ev && sdByteShifter.droppable_event_commands.has( ev[ 0 ] ) )
+							{
+								dropped++;
+								continue;
+							}
+
+							kept.push( ev );
 						}
-						
-						//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
 
-						//debugger;
+						socket.sd_events = kept;
 
-						socket.SDServiceMessage( 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
+						if ( dropped > 0 )
+						{
+							if ( SYNC_DBG ) _dbg.events_dropped = dropped;
 
-						socket.sd_events.length = 0;
+							if ( !allow_silent_event_skip )
+							if ( Date.now() > sdByteShifter.events_overflow_warning_next_time )
+							{
+								// Once in 6 hours
+								sdByteShifter.events_overflow_warning_next_time = Date.now() + 1000 * 60 * 60 * 6;
+								trace( '.sd_events overflow: dropped ' + dropped + ' cosmetic events (backlog was ' + _events_backlog + ', kept ' + socket.sd_events.length + ' incl. control events)' );
+							}
+
+							//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
+
+							socket.SDServiceMessage( 'Server: .sd_events overflow (' + dropped + ' sound/effect events were skipped). Some sounds and effects might not spawn as result of that.' );
+						}
 					}
 
-					while ( sd_events.length < 10 && socket.sd_events.length > 0 )
+					while ( sd_events.length < _drain_budget && socket.sd_events.length > 0 )
 					sd_events.push( socket.sd_events.shift() );
 				
 				
@@ -928,8 +997,39 @@ class sdByteShifter
 						if ( i < keys_arr.length )
 						socket.character.onSeesEntity( keys_arr[ i ] );
 					}
+
+					if ( SYNC_DBG )
+					{
+						_dbg.sync_ms = Date.now() - _dbg.t0;
+						_dbg.snapshot_entries = snapshot.length;
+						_dbg.snapshot_json_len = JSON.stringify( snapshot ).length;
+						_dbg.entities_by_net_id = current_snapshot_entities_by_net_id.size;
+						_dbg.events_drained = sd_events.length;
+
+						sdByteShifter._sync_dbg_agg = sdByteShifter._sync_dbg_agg || { builds: 0, sync_ms: 0, listed: 0, full_create: 0, partial_update: 0, static_reuse: 0, events_dropped: 0 };
+						let agg = sdByteShifter._sync_dbg_agg;
+						agg.builds++;
+						agg.sync_ms += _dbg.sync_ms;
+						agg.listed += _dbg.listed;
+						agg.full_create += _dbg.full_create;
+						agg.partial_update += _dbg.partial_update;
+						agg.static_reuse += _dbg.static_reuse;
+						agg.events_dropped += _dbg.events_dropped;
+
+						if ( Date.now() > ( socket._sync_dbg_next_log || 0 ) )
+						{
+							socket._sync_dbg_next_log = Date.now() + 5000;
+							console.log( '[SYNC_SOCK] ' + ( socket.character ? socket.character.title : '?' ) +
+								' sync_ms=' + _dbg.sync_ms + ' add_calls=' + _dbg.add_calls + ' listed=' + _dbg.listed +
+								' static_reuse=' + _dbg.static_reuse + ' full=' + _dbg.full_create + ' partial=' + _dbg.partial_update +
+								' snap_entries=' + _dbg.snapshot_entries + ' snap_json=' + _dbg.snapshot_json_len + 'B' +
+								' events backlog/drained/dropped=' + _dbg.events_backlog + '/' + _dbg.events_drained + '/' + _dbg.events_dropped +
+								' | AGG builds=' + agg.builds + ' avg_ms=' + ( agg.sync_ms / agg.builds ).toFixed(2) +
+								' avg_listed=' + ( agg.listed / agg.builds ).toFixed(0) + ' full=' + agg.full_create + ' partial=' + agg.partial_update + ' reuse=' + agg.static_reuse + ' ev_dropped=' + agg.events_dropped );
+						}
+					}
 				}
-				
+
 				socket.sync_busy = false;
 			};
 

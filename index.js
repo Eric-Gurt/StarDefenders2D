@@ -3306,25 +3306,53 @@ const ServerMainMethod = ()=>
 		for ( var i = 0; i < sockets.length; i++ )
 		{
 			var socket = sockets[ i ];
-			
+
 			if ( !socket.client.conn.transport.writable )
 			unwritable++;
-		
+
 			//sdWorld.max_update_rate;
 		}
+
+		// Debug-only snapshot scheduler accounting (phase-12-sync-02). Zero cost unless
+		// globalThis.DEBUG_SYNC_PROFILE is set on the inspector console. Attributes, per
+		// frame, why each socket did or did not get a SendSnapshot, so the per-frame sync
+		// budget can be tuned against sdWorld.last_frame_time with real numbers.
+		const SYNC_SCHED_DBG = globalThis.DEBUG_SYNC_PROFILE;
+		let _sched = null;
+		if ( SYNC_SCHED_DBG )
+		{
+			_sched = { eligible:0, writable:0, sent:0, skip_nth:0, skip_rate:0, skip_unwritable:0, skip_m_event:0, skip_busy:0 };
+			if ( !globalThis._sync_sched_next_log )
+			globalThis._sync_sched_next_log = 0;
+		}
 		
-		if ( unwritable === sockets.length )
+		// Snapshot scheduler backpressure. Historically only_do_nth_connection_per_frame
+		// only reacted to TCP unwritability (all sockets non-writable = network saturated),
+		// never to CPU/frame-time pressure. On a fast-network VPS that meant N writable
+		// clients each triggered a full per-client snapshot build every frame, and with
+		// 5-11 players the per-client snapshot path (sdByteShifter.AddEntity, ~28% of CPU
+		// in the 2026-06-18 world1003 remote profile) starved the simulation down to 4-5 FPS.
+		// sdWorld.last_frame_time is the PREVIOUS frame's simulation-only cost (set inside
+		// HandleWorldLogic, before this sync loop), so it is a clean overload signal: when
+		// it exceeds sdWorld.sync_backpressure_ms we spread client snapshot builds across
+		// more frames (ramp nth up toward sockets.length, ~1 client/frame at the cap),
+		// preserving simulation FPS instead of trying to freshly sync every client. When
+		// the server is healthy (sim under the threshold) nth decays back to 1 and behavior
+		// is identical to before, so normal/low-load multiplayer is unaffected.
+		const sync_cpu_overloaded = ( sdWorld.last_frame_time > sdWorld.sync_backpressure_ms );
+
+		if ( unwritable === sockets.length || sync_cpu_overloaded )
 		{
 			//if ( only_do_nth_connection_per_frame < sockets.length )
 			//console.log( sdWorld.time + ': only_do_nth_connection_per_frame increases to ' + (only_do_nth_connection_per_frame + 1) + ' (all sockets are non-writable)' );
-		
+
 			only_do_nth_connection_per_frame = Math.min( Math.max( 1, sockets.length ), only_do_nth_connection_per_frame + 1 );
 		}
 		else
 		{
 			//if ( only_do_nth_connection_per_frame > 1 )
 			//console.log( sdWorld.time + ': only_do_nth_connection_per_frame decreases to ' + (only_do_nth_connection_per_frame - 1) + ' (all sockets are writable)' );
-		
+
 			only_do_nth_connection_per_frame = Math.max( 1, only_do_nth_connection_per_frame - 1 );
 		}
 		
@@ -4029,6 +4057,26 @@ const ServerMainMethod = ()=>
 				*/
 			   
 			   
+				if ( SYNC_SCHED_DBG )
+				{
+					_sched.eligible++;
+					if ( socket.client.conn.transport.writable )
+					_sched.writable++;
+
+					if ( i % only_do_nth_connection_per_frame !== nth_connection_shift )
+					_sched.skip_nth++;
+					else if ( socket.sync_busy )
+					_sched.skip_busy++;
+					else if ( !( sdWorld.time > socket.last_sync + socket.max_update_rate ) )
+					_sched.skip_rate++;
+					else if ( !socket.client.conn.transport.writable )
+					_sched.skip_unwritable++;
+					else if ( !( sdWorld.time > socket.waiting_on_M_event_until ) )
+					_sched.skip_m_event++;
+					else
+					_sched.sent++;
+				}
+
 				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable && sdWorld.time > socket.waiting_on_M_event_until ) // Buffering prevention?
 				socket.byte_shifter.SendSnapshot();
@@ -4041,12 +4089,21 @@ const ServerMainMethod = ()=>
 			}
 		}
 		//sockets_array_locked = false;
+
+		if ( SYNC_SCHED_DBG && Date.now() > globalThis._sync_sched_next_log )
+		{
+			globalThis._sync_sched_next_log = Date.now() + 1000;
+			console.log( '[SYNC_SCHED] sim_frame_time=' + sdWorld.last_frame_time + 'ms nth=' + only_do_nth_connection_per_frame + '/' + sockets.length +
+				' eligible=' + _sched.eligible + ' writable=' + _sched.writable + ' sent=' + _sched.sent +
+				' | skip nth=' + _sched.skip_nth + ' rate=' + _sched.skip_rate + ' busy=' + _sched.skip_busy +
+				' unwritable=' + _sched.skip_unwritable + ' m_event=' + _sched.skip_m_event );
+		}
 	}
 	else
 	{
 		sdWorld.HandleWorldLogicNoPlayers();
 	}
-	
+
 	frame++;
 	
 	sdMemoryLeakSeeker.ThinkNow();
