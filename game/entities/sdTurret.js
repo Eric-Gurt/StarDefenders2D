@@ -393,14 +393,23 @@ class sdTurret extends sdEntity
 		}
 
 		const targetable_classes = sdTurret.targetable_classes;
-						
+
+		// phase-13-lagmachine-02: bail on the cheap class check BEFORE the per-call array allocation
+		// in GetClosestPointWithinCollision + the inDist math. A moving base (sdSteeringWheel) floods
+		// every overlapping turret sensor area with movement callbacks for sdBlock/sdCrystal/sdDoor/
+		// etc. that can never be targets; this WeakSet.has was already the 2nd condition below, so
+		// hoisting it is behavior-identical (the function would otherwise fall through to its final
+		// `return false`) but skips the allocation + distance work for all non-targetable entities.
+		if ( !targetable_classes.has( e.constructor ) )
+		return false;
+
 		const range = this.GetTurretRange();
-		
+
 		let [ cx, cy ] = e.GetClosestPointWithinCollision( this.x, this.y );
-		
+
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, cx, cy, range ) )
 		if ( targetable_classes.has( e.constructor ) )
-		if ( 
+		if (
 				( !e._is_being_removed ) &&
 				( e.hea || e._hea ) > 0 && 
 				( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
