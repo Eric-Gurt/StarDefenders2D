@@ -2661,6 +2661,55 @@ class sdWorld
 		else
 		return ~~v;
 	}
+	// Behavior-preserving movement-callback reaction filter. UpdateHashPosition only queues an onMovementInRange
+	// pair when CanReactToMovement( a, b ) || CanReactToMovement( b, a ) is true; otherwise the pair is a proven
+	// no-op (per the movement-reaction semantics audit) and is skipped, removing the dominant onMovementInRange
+	// fan-out cost when many entities move together in one tick (e.g. a steering-wheel base move). Returns false
+	// ONLY for cases proven to never change state; when unsure it returns true (never skips a pair that could react).
+	static CanReactToMovement( receiver, mover )
+	{
+		// A receiver with no override of onMovementInRange is the base no-op -> can never react.
+		if ( receiver.onMovementInRange === sdEntity.prototype.onMovementInRange )
+		return false;
+
+		const ec = sdWorld.entity_classes;
+		const rc = receiver.constructor;
+
+		// sdBlock receiver (sdBlock.onMovementInRange): reacts only if material is SHARP/CORRUPTION AND same _is_bg_entity layer.
+		// Ordinary blocks (the bulk of a moving base) react to nothing; the bg-layer guard always rejects sensor/BG/statuseffect movers.
+		// Conservative: the finer held-gun/bone/effect/player-driver sub-guards are NOT modelled, so this can only under-count skips.
+		const sdBlock_class = ec.sdBlock;
+		if ( rc === sdBlock_class )
+		{
+			if ( receiver.material !== sdBlock_class.MATERIAL_SHARP && receiver.material !== sdBlock_class.MATERIAL_CORRUPTION )
+			return false;
+			if ( mover._is_bg_entity !== receiver._is_bg_entity )
+			return false;
+			return true;
+		}
+
+		// sdSensorArea receiver: relays unconditionally to on_movement_target.SensorAreaMovementCallback, so liveness is target-dependent.
+		if ( rc === ec.sdSensorArea )
+		{
+			const target = receiver.on_movement_target;
+			if ( !target || target._is_being_removed )
+			return true; // unknown/about-to-remove target: do not skip
+			const tc = target.constructor;
+			if ( tc === ec.sdTurret )
+			return ec.sdTurret.targetable_classes.has( mover.constructor ); // turret only add/deletes targetable classes; delete is a no-op for never-added non-targetable classes
+			if ( tc === ec.sdDoor )
+			{
+				// AI_TEAM doors react ONLY to (non-static) sdCharacter/sdDrone of their team -> a non-char/drone mover is provably dead (class-based).
+				// COM_NODE doors match subscribers by net_id/biometry/GetClass()/'*', any of which could match a MOVING static entity -> cannot prove dead, keep.
+				if ( target.open_type === ec.sdDoor.OPEN_TYPE_AI_TEAM )
+				return mover.is( ec.sdCharacter ) || mover.is( ec.sdDrone );
+				return true;
+			}
+			return true; // sdAntigravity (reacts to ALL movers incl. blocks) or any other/subclass target: never skip
+		}
+
+		return true; // any other receiver: not proven safe -> never skip
+	}
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
 		if ( sdWorld.is_server )
@@ -2874,6 +2923,11 @@ class sdWorld
 							 entity.x + entity._hitbox_x1 < another_entity.x + another_entity._hitbox_x2 &&
 							 entity.y + entity._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 &&
 							 entity.y + entity._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 )
+						// Reaction filter: m1/m2 already prove which side has a non-default onMovementInRange (== CanReactToMovement's first
+						// guard), so skip the predicate call for a handler-less side and short-circuit once one side is proven reactive.
+						// Equivalent to CanReactToMovement( entity, another ) || CanReactToMovement( another, entity ); skips proven no-op pairs.
+						if ( ( m1 && sdWorld.CanReactToMovement( entity, another_entity ) ) ||
+							 ( m2 && sdWorld.CanReactToMovement( another_entity, entity ) ) )
 						map.add( another_entity );
 					}
 				}
