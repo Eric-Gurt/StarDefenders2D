@@ -127,7 +127,10 @@ class sdWorld
 		
 		sdWorld.last_frame_time = 0; // For lag reporting
 		sdWorld.last_slowest_class = 'nothing';
-		
+
+		// phase-13-fanout-03: live byte-identical check for the sensor-area index (SENSOR_SCAN_MODE==='verify').
+		sdWorld.sensor_verify_profile = sdWorld.CreateSensorVerifyProfile();
+
 		sdWorld.target_scale = 2; // Current one, this one depends on screen size
 		sdWorld.default_zoom = 2;
 		sdWorld.current_zoom = sdWorld.default_zoom; // Synced from server, for example when player is in vehicle or steering wheel
@@ -2710,6 +2713,52 @@ class sdWorld
 
 		return true; // any other receiver: not proven safe -> never skip
 	}
+	// phase-13-fanout-03: Cell.sensor_relevant_arr maintenance. An entity belongs in the index iff a TURRET sensor-area mover
+	// could ever queue a movement callback for it: ( non-default onMovementInRange AND not sdBlock ) OR turret-targetable.
+	// Stable per entity (handler-ness, class, and targetable_classes never change at runtime), so add/remove stay consistent.
+	static _SensorRelevant( e )
+	{
+		const ec = sdWorld.entity_classes;
+		if ( e.onMovementInRange !== sdEntity.prototype.onMovementInRange && e.constructor !== ec.sdBlock )
+		return true;
+		let t = ec.sdTurret;
+		return ( t && t.targetable_classes ) ? t.targetable_classes.has( e.constructor ) : false;
+	}
+	static _SensorIndexAdd( cell, e ) // keep in lockstep with cell.arr.push (preserves arr relative order)
+	{
+		if ( sdWorld._SensorRelevant( e ) )
+		{
+			if ( cell.sensor_relevant_arr === null )
+			cell.sensor_relevant_arr = [];
+			cell.sensor_relevant_arr.push( e );
+		}
+	}
+	static _SensorIndexRemove( cell, e ) // keep in lockstep with cell.arr.splice
+	{
+		let sr = cell.sensor_relevant_arr;
+		if ( sr !== null )
+		{
+			let k = sr.indexOf( e );
+			if ( k !== -1 )
+			sr.splice( k, 1 );
+		}
+	}
+	static CreateSensorVerifyProfile() // phase-13-fanout-03
+	{
+		return { start_time: sdWorld.time, calls:0, mismatches:0, miss_classes:Object.create( null ), full_scan:0, idx_scan:0 };
+	}
+	static DumpSensorVerifyProfile( reset = true ) // phase-13-fanout-03
+	{
+		let p = sdWorld.sensor_verify_profile;
+		let dt = Math.max( 0.001, ( sdWorld.time - p.start_time ) / 1000 );
+		function Top( o ){ let e=[]; for ( let k in o ) e.push( k+'='+o[k] ); return e.length ? e.join( ', ' ) : '(none)'; }
+		let red = p.full_scan > 0 ? ( 100 * ( p.full_scan - p.idx_scan ) / p.full_scan ).toFixed( 1 ) : '0.0';
+		console.warn( '[SENSOR_VERIFY] ' + dt.toFixed( 1 ) + 's turret-sensor moves=' + p.calls + ' mismatches=' + p.mismatches +
+			( p.mismatches > 0 ? '  MISSED(in full,not index)/EXTRA classes: ' + Top( p.miss_classes ) : '  (index byte-identical so far)' ) +
+			'  | scan full=' + p.full_scan + ' index=' + p.idx_scan + ' -> ' + red + '% fewer scanned' );
+		if ( reset )
+		sdWorld.sensor_verify_profile = sdWorld.CreateSensorVerifyProfile();
+	}
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
 		if ( sdWorld.is_server )
@@ -2789,6 +2838,7 @@ class sdWorld
 				throw new Error('Bad hash object - it should contain this entity but it does not');
 			
 				entity._affected_hash_arrays[ i ].arr.splice( ind, 1 );
+				sdWorld._SensorIndexRemove( entity._affected_hash_arrays[ i ], entity ); // phase-13-fanout-03
 				//entity._affected_hash_arrays[ i ].RecreateWithout( ind );
 					
 				if ( entity._affected_hash_arrays[ i ].arr.length === 0 && new_affected_hash_arrays.indexOf( entity._affected_hash_arrays[ i ] ) === -1 ) // Empty and not going to re-add(!)
@@ -2859,6 +2909,7 @@ class sdWorld
 				
 				//new_affected_hash_arrays[ i ].push( entity );
 				arr.push( entity );
+				sdWorld._SensorIndexAdd( new_affected_hash_arrays[ i ], entity ); // phase-13-fanout-03
 				//new_affected_hash_arrays[ i ].RecreateWith( entity );
 				
 				if ( arr.length > 1000 ) // Dealing with NaN bounds?
@@ -2908,10 +2959,34 @@ class sdWorld
 
 				const default_movement_in_range_method = sdEntity.prototype.onMovementInRange;
 
-				for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
-				for ( i = 0; i < new_affected_hash_arrays[ i2 ].arr.length; i++ )
+				// phase-13-fanout-03: is THIS mover a turret sensor-area (the ~50%-of-scan case)? SENSOR_SCAN_MODE:
+				// undefined/'off' = legacy full-arr scan; 'verify' = full scan + shadow-compare the index (logs mismatches, uses
+				// legacy result); 'on' = use Cell.sensor_relevant_arr as the authoritative scan source.
+				const SSM = globalThis.SENSOR_SCAN_MODE;
+				let is_turret_sensor = false;
+				if ( SSM )
 				{
-					another_entity = new_affected_hash_arrays[ i2 ].arr[ i ];
+					const ec = sdWorld.entity_classes;
+					if ( entity.constructor === ec.sdSensorArea )
+					{
+						let tgt = entity.on_movement_target;
+						is_turret_sensor = !!( tgt && !tgt._is_being_removed && tgt.constructor === ec.sdTurret );
+					}
+				}
+				let sensor_on = ( SSM === 'on' && is_turret_sensor );
+
+				for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
+				{
+					let scan_src = new_affected_hash_arrays[ i2 ].arr; // phase-13-fanout-03
+					if ( sensor_on )
+					{
+						scan_src = new_affected_hash_arrays[ i2 ].sensor_relevant_arr;
+						if ( scan_src === null )
+						continue;
+					}
+					for ( i = 0; i < scan_src.length; i++ )
+					{
+						another_entity = scan_src[ i ];
 
 					if ( another_entity !== entity )
 					{
@@ -2931,8 +3006,41 @@ class sdWorld
 						map.add( another_entity );
 					}
 				}
-				
-				
+				} // phase-13-fanout-03: close the per-cell outer loop (paired with the scan-source switch above)
+
+				if ( SSM === 'verify' && is_turret_sensor ) // phase-13-fanout-03: shadow-compare index scan vs the full-scan map just built
+				{
+					let vp = sdWorld.sensor_verify_profile;
+					vp.calls++;
+					let idx_set = new Set();
+					for ( let vi2 = 0; vi2 < new_affected_hash_arrays.length; vi2++ )
+					{
+						vp.full_scan += new_affected_hash_arrays[ vi2 ].arr.length; // measure the win: full-arr vs index scan size
+						let vsr = new_affected_hash_arrays[ vi2 ].sensor_relevant_arr;
+						if ( vsr === null )
+						continue;
+						vp.idx_scan += vsr.length;
+						for ( let vi = 0; vi < vsr.length; vi++ )
+						{
+							let A = vsr[ vi ];
+							if ( A === entity )
+							continue;
+							let vm2 = ( A.onMovementInRange !== default_movement_in_range_method );
+							if ( entity.x + entity._hitbox_x2 > A.x + A._hitbox_x1 &&
+								 entity.x + entity._hitbox_x1 < A.x + A._hitbox_x2 &&
+								 entity.y + entity._hitbox_y2 > A.y + A._hitbox_y1 &&
+								 entity.y + entity._hitbox_y1 < A.y + A._hitbox_y2 )
+							if ( sdWorld.CanReactToMovement( entity, A ) || ( vm2 && sdWorld.CanReactToMovement( A, entity ) ) )
+							idx_set.add( A );
+						}
+					}
+					map.forEach( ( A )=>{ if ( !idx_set.has( A ) ) { vp.mismatches++; let c = A.GetClass(); vp.miss_classes[ c ] = ( vp.miss_classes[ c ] || 0 ) + 1; } } );
+					idx_set.forEach( ( A )=>{ if ( !map.has( A ) ) { vp.mismatches++; let c = 'EXTRA:' + A.GetClass(); vp.miss_classes[ c ] = ( vp.miss_classes[ c ] || 0 ) + 1; } } );
+					if ( sdWorld.time - vp.start_time >= 5000 )
+					sdWorld.DumpSensorVerifyProfile( true );
+				}
+
+
 				// Always call onMovementInRange with last interacted water as it might not receive onMovementInRange as it is only called whenever something enters water, not when it leaves it
 				let water = sdWater.all_swimmers.get( entity );
 				if ( water )
@@ -6234,9 +6342,15 @@ class Cell
 	{
 		this.arr = [];
 		this.hash = hash;
-		
+		// phase-13-fanout-03: secondary index = the subset of arr that a TURRET sensor-area mover could ever queue a
+		// movement callback for = ( has a non-default onMovementInRange AND is not sdBlock ) OR is in sdTurret.targetable_classes.
+		// (sdBlock is provably excluded: sensor areas are bg-layer 3, blocks never are, so CanReactToMovement(block,sensorArea)
+		// is always false.) Lazy-null until the first relevant entity is added (most base-hull cells stay null = no alloc).
+		// Maintained in sync with arr at the 2 membership-mutation sites in UpdateHashPosition. Read ONLY by turret-sensor movers.
+		this.sensor_relevant_arr = null;
+
 		//this.snapshot_scan_id = 0; // Used during snapshot scan to keep track of visited cells
-		
+
 		//this.length = null;
 		Object.seal( this );
 	}
