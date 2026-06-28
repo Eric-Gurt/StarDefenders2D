@@ -27,7 +27,7 @@ sudo -E bash install-linux.sh
 
 Run the installer from the Linux account that should own and run the server. `sudo -E` preserves that invoking user for the installer, so the default service owner matches the account you started from.
 
-The installer can set up Node.js through nvm, clone or reuse the repository, install production dependencies, create systemd service/timer units, configure `sslconfig.json`, verify certificate/key permissions, add optional Let's Encrypt support, and create world-data backups.
+The installer can set up Node.js through nvm, clone or reuse the repository, install production dependencies, create systemd service/timer units, configure `sslconfig.json`, verify certificate/key permissions, add optional Let's Encrypt support, create world-data backups, and write per-service admin/uninstall helper files.
 
 If you already have the game on the server, run the installer from that directory. For a real Git checkout, use:
 
@@ -45,6 +45,18 @@ If the directory has game files but no `.git`, the installer offers:
 Choosing `skip` for `sslconfig.json` leaves it unchanged, but the installer can still repair certificate/key permissions for the service user. The backup timer defaults to every two days and only backs up the selected world's snapshot/chunks data.
 
 Installed services write crash-loop diagnostics to `crash_reports` inside the server directory. After repeated failed starts within the configured window, systemd pauses restarts until the owner fixes the cause and runs `systemctl reset-failed`. Timestamped crash reports are also pruned by count and age.
+
+Each Linux install writes `<service-name>-admin-commands.txt` and `<service-name>-uninstall.sh` into the server directory. To remove only the generated service/timer files for one install, run:
+
+```bash
+sudo /path/to/StarDefenders2D/<service-name>-uninstall.sh
+```
+
+If an older install has the admin commands file but is missing the uninstall helper, regenerate it with:
+
+```bash
+sudo bash create-linux-uninstall-helper.sh /path/to/StarDefenders2D/<service-name>-admin-commands.txt
+```
 
 Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a world publicly, open the selected world-slot port in both the server firewall and any VPS/provider firewall.
 
