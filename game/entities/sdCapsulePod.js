@@ -10,6 +10,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdGun from './sdGun.js';
+import sdCom from './sdCom.js';
 import sdTimer from './sdTimer.js';
 
 import sdSound from '../sdSound.js';
@@ -342,14 +343,91 @@ class sdCapsulePod extends sdEntity
 	}
 	onAfterDriverExcluded( slot, character )
 	{
+		// Note: exit position is decided in ExcludeDriver (LOS-guarded against the
+		// "seal the pod to phase through walls" raid exploit). Do NOT override
+		// character.x/character.y here or that protection is defeated.
 		this.occupied = 0;
 		this._update_version++;
-		
+
 		if ( this._sleep_timer )
 		{
 			this._sleep_timer.Cancel();
 			this._sleep_timer = null;
 		}
+	}
+	ExcludeDriver( c, force=false ) // Overridden to guarantee the player can never be ejected through a wall (anti-raid). Building blocks over an occupied pod used to squeeze the exiting player into a sealed base.
+	{
+		if ( !force )
+		if ( !sdWorld.is_server )
+		return;
+
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		{
+			if ( this[ 'driver' + i ] === c )
+			{
+				let exit_x = this.x;
+				let exit_y = this.y;
+
+				if ( !force )
+				{
+					// Candidate exit spots around the pod, cardinal directions.
+					let cands = [
+						[ this.x,                                  this.y + this._hitbox_y1 - c._hitbox_y2 ], // above
+						[ this.x + this._hitbox_x1 - c._hitbox_x2, this.y ],                                  // left
+						[ this.x + this._hitbox_x2 - c._hitbox_x1, this.y ],                                  // right
+						[ this.x,                                  this.y + this._hitbox_y2 - c._hitbox_y1 ]   // below
+					];
+
+					let found = false;
+
+					for ( var ci = 0; ci < cands.length; ci++ )
+					{
+						let cx = cands[ ci ][ 0 ];
+						let cy = cands[ ci ][ 1 ];
+
+						// Spot must be free AND reachable in a straight line from the pod
+						// center without crossing a wall, so the player can never end up
+						// on the far (interior) side of a base wall.
+						if ( c.CanMoveWithoutOverlap( cx, cy, 0 ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, sdCom.com_visibility_ignored_classes, null ) )
+						{
+							exit_x = cx;
+							exit_y = cy;
+							found = true;
+							break;
+						}
+					}
+
+					if ( !found )
+					{
+						// Pod is sealed - refuse to eject rather than phase the player through walls.
+						if ( c._socket )
+						c._socket.SDServiceMessage( 'The Capsule pod is sealed - clear the blocks around it before exiting' );
+
+						return;
+					}
+				}
+
+				this[ 'driver' + i ] = null;
+				c.driver_of = null;
+				c.SetCameraZoom( sdWorld.default_zoom );
+
+				c.x = exit_x;
+				c.y = exit_y;
+
+				c.PhysWakeUp();
+
+				if ( c._socket )
+				c._socket.SDServiceMessage( 'Leaving vehicle' );
+
+				this.onAfterDriverExcluded( i, c );
+
+				return;
+			}
+		}
+
+		if ( c._socket )
+		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
 	IsVehicle()
 	{
