@@ -120,6 +120,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED, sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ] to allow specific ones or null to allow all
+	//static score_timed_max_owner_score = 5000; // Timed (red) base shielding units are meant for new players: a player at or above this score can no longer activate or charge them. Uncomment and set to -1 to disable this restriction entirely (anyone may use red BSUs), or change the score threshold.
 	static allow_private_storage = true; // These are accesible via LRTPs. Setting this to false will make database reject access, not server itself (set allow_private_storage_access to false if you want to disable private storate on specific servers only)
 	static allow_rescue_teleports = true;
 	static allowed_rescue_teleports = null; // [ sdRescueTeleport.TYPE_INFINITE_RANGE, sdRescueTeleport.TYPE_SHORT_RANGE, sdRescueTeleport.TYPE_CLONER, sdRescueTeleport.TYPE_RESPAWN_POINT ]

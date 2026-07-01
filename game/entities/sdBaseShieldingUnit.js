@@ -67,9 +67,14 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.0375; // 0.15 / 1.32 * 0.66; // Was 0.15 but ( / 1.32 * 0.66 ) makes it equal to average matter cost of a weapon. It is slightly less effective for non-sword weapons such as bullets or rails
 		
 		sdBaseShieldingUnit.score_timed_max_capacity = 1000; // 1000 = 2 days // 3500 = 7 days
-		
+
+		// Score-timed (red) BSUs are an early-game tool: players at or above this score can
+		// no longer activate or charge them. Can be overridden by sdWorld.server_config.score_timed_max_owner_score.
+		// Set to a negative value to disable the new-player gate entirely.
+		sdBaseShieldingUnit.score_timed_max_owner_score = 5000;
+
 		// Prevent peopel use score BSUs forever - they are for new players only
-		sdBaseShieldingUnit.no_score_bsu_areas = []; // Array of { x, y, allowed_for:BSU, allowed_is_allowed_until:time+1000*60*60, anything_is_disallowed_until:time+60*60*24*4 }
+		sdBaseShieldingUnit.no_score_bsu_areas = []; // Array of { x, y, owner_biometry, allowed_for:BSU, allowed_is_allowed_until:time+1000*60*60, anything_is_disallowed_until:time+60*60*24*4 }
 		sdBaseShieldingUnit.no_score_bsu_area_radius = sdBaseShieldingUnit.protect_distance_stretch;
 		sdBaseShieldingUnit.no_score_bsu_area_loopie = 0;
 		
@@ -178,6 +183,7 @@ class sdBaseShieldingUnit extends sdEntity
 		//this._last_sync_matter = 0;
 		//this.matter_crystal_max = 2000000;
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter // Also score for score type is stored here
+		this._score_timed_owner_biometry = -1; // biometry of the player who last activated this score-timed (red) BSU. Used to rate-limit red BSU protection per-player rather than per-location ( -1 = none )
 		this._protected_entities = [];
 		this._protected_entities_when_disabled = null; // Becomes new Set() of _net_id-s // this._protected_entities are moved there for ~5 minutes so raiders can not claim your whole base...
 		this._protected_entities_when_disabled_until = 0;
@@ -279,7 +285,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_protected_entities' || prop === '_flesh_infestation_net_id_to_allowed_after' );
+		return ( prop === '_protected_entities' || prop === '_flesh_infestation_net_id_to_allowed_after' || prop === '_score_timed_owner_biometry' );
 	}
 	
 	MeasureProtectionPercentage()
@@ -1091,21 +1097,55 @@ class sdBaseShieldingUnit extends sdEntity
 			return;
 		}
 	}
-	static EnableNoScoreBSUArea( bsu, spawn_new_area=true )
+	static IsNewPlayerForScoreTimed( character ) // Score-timed (red) BSUs are an early-game tool. Returns false for established players so they can not activate/charge them.
+	{
+		if ( !character )
+		return false;
+
+		let max = ( sdWorld.server_config && typeof sdWorld.server_config.score_timed_max_owner_score === 'number' ) ?
+			sdWorld.server_config.score_timed_max_owner_score :
+			sdBaseShieldingUnit.score_timed_max_owner_score;
+
+		if ( max < 0 ) // Gate disabled
+		return true;
+
+		// Server: the character carries the authoritative _score. Client (context-menu hint):
+		// _score is not synced onto the entity, so fall back to sdWorld.my_score.
+		let score = ( character._score !== undefined ) ? character._score : ( sdWorld.my_score || 0 );
+
+		return ( score < max );
+	}
+	static EnableNoScoreBSUArea( bsu, spawn_new_area=true, enforce_owner_cooldown=false )
 	{
 		let r = sdBaseShieldingUnit.no_score_bsu_area_radius;
-		
+
 		let x = bsu.x;
 		let y = bsu.y;
-		
+
+		// Owner identity (biometry) of the player activating this red BSU. The per-player
+		// cooldown is only enforced on user-initiated activation/rescan, never on passive
+		// re-occupy (snapshot load) or cable-network value sharing.
+		let owner = ( bsu._score_timed_owner_biometry === undefined ) ? -1 : bsu._score_timed_owner_biometry;
+
 		let allowed = true;
-		
+
 		for ( let i = 0; i < sdBaseShieldingUnit.no_score_bsu_areas.length; i++ )
 		{
 			let a = sdBaseShieldingUnit.no_score_bsu_areas[ i ];
-			
+
 			if ( sdWorld.time < a.anything_is_disallowed_until )
 			{
+				// Per-player cooldown: a player who already holds an active red BSU footprint
+				// can not start/refresh another one in a different spot. This is what stops
+				// flying the unit to a fresh region OR building a brand new unit elsewhere to
+				// dodge the per-location lock. Re-using the SAME unit in its SAME place is fine.
+				if ( enforce_owner_cooldown )
+				if ( owner !== -1 && a.owner_biometry === owner )
+				if ( !( a.allowed_for === bsu && sdWorld.inDist2D_Boolean( x, y, a.x, a.y, 32 ) ) )
+				{
+					allowed = false;
+				}
+
 				if ( sdWorld.inDist2D_Boolean( x, y, a.x, a.y, r * 0.5 ) )
 				if ( a.allowed_for === bsu )
 				{
@@ -1119,9 +1159,10 @@ class sdBaseShieldingUnit extends sdEntity
 						// Allow
 						if ( sdWorld.inDist2D_Boolean( x, y, a.x, a.y, 32 ) )
 						{
+							if ( !( enforce_owner_cooldown && !allowed ) ) // Do not let same-place insta-allow override a per-player cooldown hit
 							return true; // Insta-allow if it is in same place
 						}
-						
+
 						// Otherwise simply allow until there is some else area
 					}
 					else
@@ -1131,17 +1172,18 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 			}
 		}
-		
+
 		if ( allowed )
 		if ( spawn_new_area )
 		sdBaseShieldingUnit.no_score_bsu_areas.push({
 			x: x,
 			y: y,
+			owner_biometry: owner,
 			allowed_for: bsu,
 			allowed_is_allowed_until: sdWorld.time + 1000*60*60*8,
 			anything_is_disallowed_until: sdWorld.time + 1000*60*60*24*4
 		});
-	
+
 		return allowed;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -2060,13 +2102,20 @@ class sdBaseShieldingUnit extends sdEntity
 					{
 						this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
 							
-						if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && 
-							( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || 
+						if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED &&
+							( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null ||
 							  sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_SCORE_TIMED ) !== -1 ) )
-						{	
+						{
+							if ( !sdBaseShieldingUnit.IsNewPlayerForScoreTimed( executer_character ) )
+							{
+								executer_socket.SDServiceMessage( 'Timed base shielding units are meant for new players only. Use a crystal consumption-based or matter-based base shielding unit instead' );
+							}
+							else
 							if ( this.matter_crystal >= 1 )
 							{
-								if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this ) )
+								this._score_timed_owner_biometry = executer_character.biometry;
+
+								if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this, true, true ) )
 								this.SetShieldState( true, executer_character );
 								else
 								executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
@@ -2132,6 +2181,17 @@ class sdBaseShieldingUnit extends sdEntity
 					if ( this.enabled === true )
 					{
 						this.SetShieldState( false, executer_character );
+
+						// Red BSUs must re-validate they are still allowed at their CURRENT location
+						// and that the owner is not already shielding elsewhere. Without this, rescan
+						// could refresh protection in a forbidden region (e.g. after flying the unit
+						// in on a steering wheel) - the original raid exploit. Mirrors the SHIELD_ON gate.
+						if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED &&
+							 !sdBaseShieldingUnit.EnableNoScoreBSUArea( this, true, true ) )
+						{
+							executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
+						}
+						else
 						if ( !this.IsOutOfBounds() )
 						this.SetShieldState( true, executer_character );
 					}
@@ -2178,6 +2238,11 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( command_name === 'PROLONG_BY_DAY' )
 					{
+						if ( !sdBaseShieldingUnit.IsNewPlayerForScoreTimed( executer_character ) )
+						{
+							executer_socket.SDServiceMessage( 'Timed base shielding units are meant for new players only. Use a crystal consumption-based or matter-based base shielding unit instead' );
+						}
+						else
 						if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this, false ) )
 						{
 							let mult = parameters_array[ 0 ];
@@ -2259,7 +2324,14 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( this.enabled === false )
 				{
 					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
-					this.AddContextOption( 'Scan nearby unprotected entities', 'SHIELD_ON', [] );
+					{
+						// Tell established players up-front why they can not use it, instead of only
+						// on a failed click. Authoritative check still happens server-side.
+						if ( sdBaseShieldingUnit.IsNewPlayerForScoreTimed( executer_character ) )
+						this.AddContextOption( 'Scan nearby unprotected entities', 'SHIELD_ON', [] );
+						else
+						this.AddContextOption( 'Timed shield units are for new players only', 'SHIELD_ON', [] );
+					}
 					else
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
