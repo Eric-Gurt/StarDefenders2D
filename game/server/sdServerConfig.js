@@ -1865,6 +1865,43 @@ class sdServerConfigFull extends sdServerConfigShort
 				callback( err );
 			}
 
+			// --- backup-tail-decouple: hand deflate + file write + rename to the dedicated snapshot
+			// worker so the snapshot persists on time even when the main event loop is saturated by
+			// per-client sync (production 5-11 players). Gated + multiplayer-only; ANY failure
+			// transparently falls back to the original inline zlib.deflate path below. Output is
+			// byte-identical (worker uses zlib.deflateSync with the same defaults).
+			if ( globalThis.SNAPSHOT_DEFLATE_MODE === 'worker' && !sdWorld.is_singleplayer && typeof globalThis.SnapshotDeflateToFile === 'function' )
+			{
+				let snapshot_path_temp = snapshot_path.split('.');
+				snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ];
+				snapshot_path_temp = snapshot_path_temp.join('.');
+
+				globalThis.SnapshotDeflateToFile( json, snapshot_path_temp, snapshot_path, true )
+				.then( ( info )=>
+				{
+					deflate_done_time = json_made_time + info.deflate_ms; // honest compute time, not main-loop delivery lag
+					save_done_time = deflate_done_time + info.write_ms;
+					console.log('Snapshot compression+write complete via worker (' + info.bytes + ' bytes)...');
+					console.log('TEMP file renamed.');
+					Report( false );
+					snapshot_save_busy = false;
+				})
+				.catch( ( e )=>
+				{
+					console.warn( 'Snapshot worker unavailable (' + ( ( e && e.message ) || e ) + '); falling back to inline compression.' );
+					DoInlineDeflate();
+				});
+
+				if ( sdWorld.server_config.save_raw_version_of_snapshot )
+				fs.writeFile( snapshot_path + '.raw.v', json, ( err )=>{} );
+
+				return;
+			}
+
+			DoInlineDeflate();
+
+			function DoInlineDeflate()
+			{
 			// zlib.deflate(buffer
 			zlib.deflate( json, ( err, buffer )=>{
 
@@ -1942,6 +1979,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				}
 
 			});
+			}
 		}
 
 		sdWorld.SaveSnapshot = SaveSnapshot;
