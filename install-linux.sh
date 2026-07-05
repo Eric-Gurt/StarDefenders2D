@@ -45,6 +45,7 @@ SSL_KEY_PATH=""
 SSL_ONLINE_PATH=""
 SSL_CLOUDFLARE=""
 SSL_FIX_PERMISSIONS=""
+SSL_READ_GROUP="ssl-cert"
 SSL_PERMISSION_PROMPTED="no"
 LETSENCRYPT_DOMAIN=""
 LETSENCRYPT_EMAIL=""
@@ -927,7 +928,11 @@ EOF
     else
       INSTALL_CERT_RENEWAL_HOOK="no"
     fi
-  elif [[ "${SSLCONFIG_MODE}" != "skip" ]] && [[ -d /etc/letsencrypt || -e /usr/bin/certbot || -e /snap/bin/certbot ]]; then
+  elif [[ -d /etc/letsencrypt || -e /usr/bin/certbot || -e /snap/bin/certbot ]]; then
+    # Also offered for skip/copy/create modes: certbot renewal recreates the key
+    # root-owned and only re-serves after a restart, so the hook (which restarts,
+    # triggering the fixperms SSL re-grant) is what keeps existing-cert installs
+    # durable across renewals.
     if prompt_yes_no "Install a Let's Encrypt renewal hook to restart this service after certificate renewal" "${INSTALL_CERT_RENEWAL_HOOK:-y}"; then
       INSTALL_CERT_RENEWAL_HOOK="yes"
     else
@@ -1179,7 +1184,9 @@ grant_user_dir_execute_acl() {
   done
 }
 
-grant_group_dir_execute() {
+# chgrp the shared SSL_READ_GROUP + g+x up the directory chain toward the cert
+# so the group can traverse to it, stopping before shared system roots.
+grant_group_dir_traverse() {
   local dir="$1"
 
   while [[ -n "${dir}" && "${dir}" != "/" ]]; do
@@ -1188,10 +1195,31 @@ grant_group_dir_execute() {
         break
         ;;
     esac
-    chgrp "${APP_GROUP}" "${dir}" 2>/dev/null || true
+    chgrp "${SSL_READ_GROUP}" "${dir}" 2>/dev/null || true
     chmod g+x "${dir}" 2>/dev/null || true
     dir="$(dirname "${dir}")"
   done
+}
+
+ensure_ssl_read_group() {
+  # A shared, standard group the service user joins so it can read the cert/key
+  # via plain DAC. This works even where POSIX ACLs are unsupported or -- as seen
+  # in the wild -- silently not enforced. Being shared, multiple service users on
+  # one host coexist instead of stealing the key's group from one another (the
+  # old per-user chgrp fallback caused exactly that clobber).
+  getent group "${SSL_READ_GROUP}" >/dev/null 2>&1 || groupadd --system "${SSL_READ_GROUP}"
+  if ! id -nG "${APP_USER}" 2>/dev/null | tr ' ' '\n' | grep -qx "${SSL_READ_GROUP}"; then
+    info "Adding ${APP_USER} to ${SSL_READ_GROUP} for SSL key read access"
+    usermod -aG "${SSL_READ_GROUP}" "${APP_USER}"
+  fi
+}
+
+# Verify readability with a REAL open() as the service user. test -r / access(2)
+# does not reflect ACL- or (on some hosts) group-granted reads, but open() does
+# -- and open() is exactly what the server performs on the key at boot. Reads
+# zero bytes.
+run_as_app_can_read() {
+  run_as_app dd if="$1" of=/dev/null bs=1 count=0 2>/dev/null
 }
 
 grant_user_file_read() {
@@ -1202,23 +1230,26 @@ grant_user_file_read() {
   resolved="$(readlink -f "${path}")"
   [[ -f "${resolved}" ]] || die "SSL path is not a regular file after resolving symlinks: ${path}"
 
+  # Primary, portable grant: a shared read group via standard DAC.
+  ensure_ssl_read_group
+  chgrp "${SSL_READ_GROUP}" "${resolved}" 2>/dev/null || true
+  chmod g+r "${resolved}" 2>/dev/null || true
+  grant_group_dir_traverse "$(dirname "${resolved}")"
+  if [[ "${resolved}" != "${path}" ]]; then
+    grant_group_dir_traverse "$(dirname "${path}")"
+  fi
+
+  # Additive per-user ACLs where setfacl exists -- harmless where ACLs are not
+  # enforced, and redundant (but fine) where the group grant already covers it.
   if command_exists setfacl; then
-    grant_user_dir_execute_acl "$(dirname "${resolved}")" || die "Failed to grant directory ACLs for ${resolved}"
-    setfacl -m "u:${APP_USER}:r" "${resolved}" || die "Failed to grant read ACL for ${resolved}"
+    grant_user_dir_execute_acl "$(dirname "${resolved}")" || true
+    setfacl -m "u:${APP_USER}:r" "${resolved}" 2>/dev/null || true
     if [[ "${resolved}" != "${path}" && -L "${path}" ]]; then
-      grant_user_dir_execute_acl "$(dirname "${path}")" || die "Failed to grant directory ACLs for ${path}"
-    fi
-  else
-    warn "setfacl not found; using group ownership/chmod fallback for ${resolved}."
-    chgrp "${APP_GROUP}" "${resolved}"
-    chmod g+r,o-rwx "${resolved}"
-    grant_group_dir_execute "$(dirname "${resolved}")"
-    if [[ "${resolved}" != "${path}" ]]; then
-      grant_group_dir_execute "$(dirname "${path}")"
+      grant_user_dir_execute_acl "$(dirname "${path}")" || true
     fi
   fi
 
-  run_as_app test -r "${path}" || die "${APP_USER} still cannot read ${path}"
+  run_as_app_can_read "${path}" || die "${APP_USER} still cannot read ${path} (open failed as the service user)"
 }
 
 ensure_onlinepath_access() {
@@ -1347,6 +1378,7 @@ write_environment_file() {
   write_env_var "${env_file}" "SSL_ONLINE_PATH" "${SSL_ONLINE_PATH}"
   write_env_var "${env_file}" "SSL_CLOUDFLARE" "${SSL_CLOUDFLARE}"
   write_env_var "${env_file}" "SSL_FIX_PERMISSIONS" "${SSL_FIX_PERMISSIONS}"
+  write_env_var "${env_file}" "SSL_READ_GROUP" "${SSL_READ_GROUP}"
   write_env_var "${env_file}" "LETSENCRYPT_DOMAIN" "${LETSENCRYPT_DOMAIN}"
   write_env_var "${env_file}" "LETSENCRYPT_EMAIL" "${LETSENCRYPT_EMAIL}"
   write_env_var "${env_file}" "LETSENCRYPT_STAGING" "${LETSENCRYPT_STAGING}"
@@ -1568,20 +1600,18 @@ for d in "${APP_DIR}/chunks${suffix}" "${APP_DIR}/crash_reports"; do
   fi
 done
 
-# 5) SSL cert/key read access -- self-heal on every boot. index.js reads the key
+# 5) SSL cert/key read access -- self-heal on every boot. index.js opens the key
 #    directly at startup, and the install-time grant does NOT survive:
-#      * certbot renewal writes a fresh root-owned archive/privkeyN.pem and
-#        repoints the live/ symlink, dropping the grant on the old file; the
-#        deploy hook only restarts the service.
-#      * installing another slot on the same box re-runs the group-ownership
-#        fallback (chgrp; chmod o-rwx) on the shared key, stealing this user's
-#        access.
-#    Either way the User= service then hits EACCES on privkey.pem and crash-loops
-#    until someone re-grants by hand. Re-assert an additive read ACL here so a
-#    plain restart (which the renewal hook already triggers) fixes it.
+#      * certbot renewal writes a fresh archive/privkeyN.pem (typically root-owned
+#        0600) and repoints the live/ symlink; the deploy hook only restarts us.
+#      * another slot's install could reset ownership on the shared key.
+#    Re-assert the shared-group read here (the durable, portable mechanism -- it
+#    works even where POSIX ACLs are unsupported or silently not enforced), plus
+#    an additive per-user ACL where setfacl exists. Because the renewal deploy
+#    hook restarts the service, this ExecStartPre runs after every renewal and
+#    self-heals the grant. Best-effort; never blocks startup.
 regrant_ssl_read() {
-  command -v setfacl >/dev/null 2>&1 || return 0
-
+  local group="${SSL_READ_GROUP:-ssl-cert}"
   local sslconfig="${APP_DIR}/sslconfig.json"
   local cert="${SSL_CERT_PATH:-}"
   local key="${SSL_KEY_PATH:-}"
@@ -1593,17 +1623,32 @@ regrant_ssl_read() {
     [[ -n "${key}" ]]  || key="$(sed -n 's/.*"keypath"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${sslconfig}" | head -n1)"
   fi
 
+  # The service user is added to this group at install time; if it is gone we
+  # cannot grant, so bail rather than churn.
+  getent group "${group}" >/dev/null 2>&1 || return 0
+  local have_setfacl=0
+  command -v setfacl >/dev/null 2>&1 && have_setfacl=1
+
   local p resolved dir start
   for p in "${cert}" "${key}"; do
     [[ -n "${p}" && -e "${p}" ]] || continue
     resolved="$(readlink -f "${p}")"
     [[ -f "${resolved}" ]] || continue
-    setfacl -m "u:${APP_USER}:r" "${resolved}" 2>/dev/null || true
-    # Traverse (x) on every parent dir of both the real file and the symlink.
+
+    # Primary: shared-group DAC on the (possibly renewed) key/cert file.
+    chgrp "${group}" "${resolved}" 2>/dev/null || true
+    chmod g+r "${resolved}" 2>/dev/null || true
+    [[ "${have_setfacl}" -eq 1 ]] && setfacl -m "u:${APP_USER}:r" "${resolved}" 2>/dev/null || true
+
+    # Group traverse (and additive ACL x) up each parent chain of the real file
+    # and the symlink, stopping before shared system roots (already world-x).
     for start in "$(dirname "${resolved}")" "$(dirname "${p}")"; do
       dir="${start}"
       while [[ -n "${dir}" && "${dir}" != "/" ]]; do
-        setfacl -m "u:${APP_USER}:x" "${dir}" 2>/dev/null || true
+        case "${dir}" in /etc|/home|/var|/usr|/opt|/srv) break ;; esac
+        chgrp "${group}" "${dir}" 2>/dev/null || true
+        chmod g+x "${dir}" 2>/dev/null || true
+        [[ "${have_setfacl}" -eq 1 ]] && setfacl -m "u:${APP_USER}:x" "${dir}" 2>/dev/null || true
         dir="$(dirname "${dir}")"
       done
     done
