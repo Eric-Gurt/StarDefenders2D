@@ -63,7 +63,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	static port = undefined; // Will be automatically set to 3000 + world_slot, but you can specify specific port instead
 	static database_server = null; // Example: 'https://www.gevanni.com:3000'; // Remote database_server must allow current server's IP in list above. Set as null if this server should have its' own database
 	static adsense_client = 'ca-pub-7381466440820611'; // To learn how to install your ads go there https://developers.google.com/ad-placement/docs/beta . This adsense_client comes from HTML code for AdSense. You'll additionally be requested to allow ads on your domain via ads.txt file. Your server will not show ads designed for other servers and vice versa
-	
+	static ad_reward_daily_cap = 8; // Max amount of times (per 24h, per account) a player can claim the free "watch an ad" Long-range teleport crystal reward. The server has no way to verify an ad SDK actually played an ad client-side, so this cap bounds the impact of a client that requests the reward without ever showing one. Set to -1 to disable the cap (not recommended)
+
 	static save_raw_version_of_snapshot = false; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)

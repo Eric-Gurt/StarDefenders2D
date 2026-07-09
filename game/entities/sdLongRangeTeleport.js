@@ -61,8 +61,37 @@ class sdLongRangeTeleport extends sdEntity
 		sdLongRangeTeleport.ignored_class_pointers.add( 'sdSensorArea' );
 		sdLongRangeTeleport.ignored_class_pointers.add( 'sdBG' );
 		//sdLongRangeTeleport.ignored_class_pointers.add( 'sdStatusEffect' );
-		
+
+		sdLongRangeTeleport.ad_reward_claims_by_hash = new Map(); // my_hash -> { count, window_start }. Server-side daily cap for CLAIM_REWARD_AD, since ad-watch completion can't be verified server-side (see AD_REWARD_START / GiveRewards)
+
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	static CanClaimAdReward( my_hash ) // Independent of the 5-minute AD_REWARD_START cooldown - bounds worst case if a client skips watching the ad entirely
+	{
+		if ( !my_hash ) // No persistent identity to rate-limit against - deny rather than allow unbounded free claims
+		return false;
+
+		let cap = sdWorld.server_config.ad_reward_daily_cap;
+
+		if ( cap === -1 )
+		return true;
+
+		let entry = sdLongRangeTeleport.ad_reward_claims_by_hash.get( my_hash );
+
+		if ( !entry || sdWorld.time > entry.window_start + 1000 * 60 * 60 * 24 )
+		{
+			entry = { count: 0, window_start: sdWorld.time };
+			sdLongRangeTeleport.ad_reward_claims_by_hash.set( my_hash, entry );
+		}
+
+		return entry.count < cap;
+	}
+	static RegisterAdRewardClaim( my_hash )
+	{
+		let entry = sdLongRangeTeleport.ad_reward_claims_by_hash.get( my_hash );
+
+		if ( entry ) // CanClaimAdReward always runs first and creates/refreshes the window, so this should never be missing
+		entry.count++;
 	}
 	get hitbox_x1() { return -48; }
 	get hitbox_x2() { return 48; }
@@ -890,7 +919,8 @@ class sdLongRangeTeleport extends sdEntity
 			if ( socket && socket.ad_reward_pending )
 			{
 				socket.ad_reward_pending = false;
-				
+				sdLongRangeTeleport.RegisterAdRewardClaim( socket.my_hash );
+
 				let r = [ 640, 1280, 2560, 5120 ][ ~~( Math.pow( Math.random(), 2 ) * 4 ) ];
 				let crystal = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: r, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 				sdEntity.entities.push( crystal );
@@ -1394,10 +1424,15 @@ class sdLongRangeTeleport extends sdEntity
 							{
 								if ( sdWorld.time > executer_socket.next_ad_time )
 								{
-									executer_socket.ResetAdCooldown();
-									executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
+									if ( sdLongRangeTeleport.CanClaimAdReward( executer_socket.my_hash ) )
+									{
+										executer_socket.ResetAdCooldown();
+										executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
 
-									executer_socket.ad_reward_pending = true;
+										executer_socket.ad_reward_pending = true;
+									}
+									else
+									executer_socket.SDServiceMessage( 'Daily limit for ad rewards reached. Try again tomorrow.' );
 								}
 								else
 								executer_socket.SDServiceMessage( 'Not so soon. Try in 5 minutes' );
