@@ -244,7 +244,12 @@ class sdSampleBuilder extends sdEntity
 						delta_y = s._sample_entity.y + ( s._sample_entity._hitbox_y1 + s._sample_entity._hitbox_y2 ) / 2 - s.y;
 					}
 					
-					let ent = sdCharacter.GeneralCreateBuildObject( this.x + delta_x, this.y + delta_y, s._sample_shop_item, null, this._build_tool_level, this._workbench_level, true, false, false );
+					// Pass this (not null) as initiator so GeneralCheckBuildObjectPossibilityNow still runs its
+					// early-threat wall/LOS check and its restricted-area check anchored on the builder's own
+					// position, instead of skipping both (those checks special-case a null initiator as "always
+					// allow") - otherwise this auto-crafter could stamp out turrets/bombs/mines through walls or
+					// inside no-build zones with nobody ever having had line of sight to the build spot.
+					let ent = sdCharacter.GeneralCreateBuildObject( this.x + delta_x, this.y + delta_y, s._sample_shop_item, this, this._build_tool_level, this._workbench_level, true, false, false );
 
 					if ( ent )
 					{								

@@ -6852,8 +6852,8 @@ THING is cosmic mic drop!`;
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
 					{
-						let off;
-						
+						let off = { x:0, y:0 }; // Default for non-character initiators (e.g. sdSampleBuilder) which have no GetBulletSpawnOffset
+
 						if ( initiator )
 						if ( initiator.GetBulletSpawnOffset )
 						off = initiator.GetBulletSpawnOffset();
