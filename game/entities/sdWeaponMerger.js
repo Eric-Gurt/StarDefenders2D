@@ -162,13 +162,16 @@ class sdWeaponMerger extends sdEntity
 			let mult = 1;
 			if ( this.item1.class === sdGun.CLASS_UNSTABLE_CORE ) // Adjust multiplier/power depending on weapon slot
 			{
-				if ( sdGun.classes[ this.item0.class ].slot === 4 )
+				if ( this.item0.GetSlot() === 4 )
 				mult = 0.8; // 360 max DPS at max power cores.
-				if ( sdGun.classes[ this.item0.class ].slot === 3 )
+				if ( this.item0.GetSlot() === 3 )
 				mult = 0.6; // 270 max DPS at max power cores
-				if ( sdGun.classes[ this.item0.class ].slot === 1 )
+				if ( this.item0.GetSlot() === 1 || this.item0.GetSlot() === 11 ) // 11 checked just in case
 				mult = 0.5; // 225 max DPS at max power cores
 			
+				
+				console.log( sdGun.classes[ this.item0.class ].slot );
+				console.log( mult);
 				// Unstable core + unstable core scenario
 				// Take stronger core's power and add 15% value of the weaker, capping at 450 power
 				if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE )
@@ -184,8 +187,6 @@ class sdWeaponMerger extends sdEntity
 					this.item0._max_dps = Math.min( 450, this.item0._max_dps ); // Cap the power
 				}
 			}
-		
-			dps_proportions *= mult;
 		
 			if ( this.item0.class !== sdGun.CLASS_UNSTABLE_CORE )
 			{
@@ -358,10 +359,12 @@ class sdWeaponMerger extends sdEntity
 					else
 					{
 						let mult = 1;
-						if ( sdGun.classes[ this.item0.class ].slot === 4 )
-						mult = 0.8;
-						if ( sdGun.classes[ this.item0.class ].slot === 1 || sdGun.classes[ this.item0.class ].slot === 3 )
-						mult = 0.6;
+						if ( this.item0.GetSlot() === 4 )
+						mult = 0.8; // 360 max DPS at max power cores.
+						if ( this.item0.GetSlot() === 3 )
+						mult = 0.6; // 270 max DPS at max power cores
+						if ( this.item0.GetSlot() === 1 || this.item0.GetSlot() === 11 ) // 11 checked just in case
+						mult = 0.5; // 225 max DPS at max power cores
 						sdEntity.TooltipUntranslated( ctx, T('Power') + ': ' + Math.round( this.power1 * mult ) + ' ' + max, 10, -10, '#ffffff' );
 					}
 					
