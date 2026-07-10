@@ -1162,8 +1162,16 @@ class sdBaseShieldingUnit extends sdEntity
 			let yy = 0;
 			
 			if ( this._revenge_target )
-			if ( this._revenge_target._is_being_removed || ( this._revenge_target.IsPlayerClass() && ( this._revenge_target.hea || this._revenge_target._hea || 0 ) <= 0 ) ) // Broken tanks still can damage shields walls with conveyors indefinitely
-			this._revenge_target = null;
+			{
+				if ( this._revenge_target._is_being_removed || ( this._revenge_target.IsPlayerClass() && ( this._revenge_target.hea || this._revenge_target._hea || 0 ) <= 0 ) ) // Broken tanks still can damage shields walls with conveyors indefinitely
+				this._revenge_target = null;
+				
+				if ( this._revenge_target.IsPlayerClass() && this._revenge_target.driver_of ) // Check if target is in a vehicle
+				{
+					if ( this._revenge_target.driver_of.GetClass() === 'sdRescueTeleport' ) // Rescue cloner?
+					this._revenge_target = null; // Stop targeting
+				}
+			}
 			
 			if ( this._revenge_turret_parent && this._revenge_turret )
 			{
