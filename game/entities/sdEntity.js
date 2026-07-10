@@ -94,7 +94,7 @@ class sdEntity
 		{
 			if ( entity.is( sdWorld.entity_classes.sdCrystal ) )
 			{
-				return Math.ceil( entity.matter_max / 640 );
+				return Math.ceil( ( entity.matter_max / 640 ) * ( entity.matter_regen / 100 ) );
 			}
 			
 			if ( entity.is( sdWorld.entity_classes.sdJunk ) )
