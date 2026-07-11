@@ -6830,17 +6830,20 @@ THING is cosmic mic drop!`;
 				// This is used to make it include sdButton-s when putting new sdButtons on top
 				const custom_filtering_method = ( e )=>
 				{
-					if ( !fake_ent._hard_collision ) 
+					if ( e.GetClass() === 'sdWater' ) // Building over a liquid is always allowed - the liquid itself gets deleted on successful placement (see ApplyPostBuiltProperties / sdWater.RemoveWaterInFootprint). Checked before the hard_collision branches below since water never blocks placement regardless of what's being built.
+					return false;
+
+					if ( !fake_ent._hard_collision )
 					{
 						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 						if ( e.GetClass() === 'sdBone' )
 						{
 							return false;
 						}
-						
+
 						return true;
 					}
-					
+
 					return e._hard_collision;
 				};
 				
