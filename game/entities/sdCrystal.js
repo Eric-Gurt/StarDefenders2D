@@ -1007,8 +1007,6 @@ class sdCrystal extends sdEntity
 							
 							e._private_props.charges_left -= 1;
 							e2._private_props.charges_left = e._private_props.charges_left;
-							
-							console.log( e._private_props.charges_left );
 						}
 					}
 					return 0.05;
