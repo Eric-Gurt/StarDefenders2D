@@ -984,7 +984,10 @@ class sdCrystal extends sdEntity
 						
 						e._private_props.medusa_cooldown = Math.max( 0, ( e._private_props.medusa_cooldown || 0 ) - GSPEED_scaled );
 
-						if ( e._private_props.medusa_cooldown > 0 )
+						if ( !e._private_props.charges_left ) // Avoid making it 0 so this condition remains false at 1 - when we don't want it to have charges
+						e._private_props.charges_left = 5;
+
+						if ( e._private_props.medusa_cooldown > 0 || e._private_props.charges_left <= 1 || e.is_depleted ) // If depleted, it cannot convert
 						break;
 
 						if ( e2.is( sdCrystal ) )
@@ -999,8 +1002,13 @@ class sdCrystal extends sdEntity
 							sdCrystal.Zap( e, e2, '#ffaa00' );
 							sdSound.PlaySound({ name:'drone_explosion', x:e.x, y:e.y, volume:1, pitch: 0.6 });
 							
-							e._private_props.medusa_cooldown = 10 + Math.random() * 10;
-							e2._private_props.medusa_cooldown = 10 + Math.random() * 10;
+							e._private_props.medusa_cooldown = 100 + Math.random() * 100;
+							e2._private_props.medusa_cooldown = 100 + Math.random() * 100;
+							
+							e._private_props.charges_left -= 1;
+							e2._private_props.charges_left = e._private_props.charges_left;
+							
+							console.log( e._private_props.charges_left );
 						}
 					}
 					return 0.05;
