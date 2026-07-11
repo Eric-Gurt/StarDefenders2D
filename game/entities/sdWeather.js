@@ -1428,6 +1428,11 @@ class sdWeather extends sdEntity
 
 		if ( r === sdWeather.EVENT_DROUGHT )
 		{
+			// Daytime-only event: only start it if it is already bright out. Never force day_time to get
+			// there - that used to fast-forward (or rewind) the clock to reach midday, which made the sun
+			// visibly jump around (including backwards) whenever a drought rolled at night. If it rolls at
+			// night, this is just a no-op; the scheduler will try again later, most likely during the day.
+			if ( this.GetSunIntensity() >= 0.85 )
 			this._drought_amount = 30 * 15 * ( 1 + Math.random() * 3 ); // start drought for ~15-60 seconds
 		}
 
@@ -4999,16 +5004,10 @@ class sdWeather extends sdEntity
 
 			if ( this.drought > 0 )
 			{
-				// A drought is a daytime event - if it is dark, fast-forward the clock to midday.
-				const noon = 30 * 60 * 24 / 2; // day_time value for peak sun
-				if ( this.GetSunIntensity() < 0.85 )
-				{
-					let step = GSPEED * 300; // ~2-3s to reach noon
-					if ( Math.abs( this.day_time - noon ) <= step )
-					this.day_time = noon;
-					else
-					this.day_time += ( this.day_time < noon ? 1 : -1 ) * step;
-				}
+				// day_time is never touched here - a drought only ever starts while it's already
+				// daytime (see ExecuteEvent), and the natural day/night cycle (this.day_time += GSPEED
+				// above) is left alone. If a drought happens to still be winding down as night falls
+				// naturally, its effects just fade out along with the normal sun.
 
 				// Keep players informed on the left-side HUD (refreshed so late-joiners get it too).
 				if ( sdWorld.time > this._next_drought_notify )
