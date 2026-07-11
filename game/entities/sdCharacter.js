@@ -7198,6 +7198,9 @@ THING is cosmic mic drop!`;
         ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 
 		ent.onBuilt();
+
+		if ( !demo_mode && !ent.is( sdWater ) ) // Building over a liquid gets rid of it - water has no hard_collision so placement is never blocked on it, they'd otherwise just silently coexist. Exclude sdWater itself (buildable via the admin dev-test shop options) so it doesn't delete itself on placement
+		sdWater.RemoveWaterInFootprint( ent.x + ent._hitbox_x1, ent.y + ent._hitbox_y1, ent.x + ent._hitbox_x2, ent.y + ent._hitbox_y2 );
 	}
 	
 	/*AnnounceTooManyEffectsIfNeeded()
