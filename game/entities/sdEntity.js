@@ -4447,6 +4447,10 @@ class sdEntity
 												
 		//let existing = sdEntity.GetObjectByClassAndNetId( snapshot._class ? snapshot._class : 'auto', snapshot._net_id );
 		let existing = sdEntity.GetObjectByClassAndNetId( snapshot._class, snapshot._net_id );
+
+		if ( existing && existing._is_being_removed ) // Entity is queued for deferred removal (.remove() was called but BulkRemoveEntitiesFromEntitiesArray hasn't reached it yet) - still cache-resolvable but a zombie. Resurrecting it here (ApplySnapshot never restores _is_being_removed) would pop it back into the world only for the pending removal pass to silently sweep it away again. Treat it as gone and reconstruct fresh below instead. This is what let sdStorage.ExtractItem() occasionally hand back a ghost that vanishes, or fail to hand back anything at all for a slot that still shows contents.
+		existing = null;
+
 		if ( existing )
 		{
 			existing.ApplySnapshot( snapshot );
@@ -5730,10 +5734,17 @@ class sdEntity
 			{
 				//if ( sdEntity.entities_by_net_id_cache[ this._net_id ] !== this )
 				if ( sdEntity.entities_by_net_id_cache_map.get( this._net_id ) !== this )
-				debugger; // Should never happen
-			
-				//delete sdEntity.entities_by_net_id_cache[ this._net_id ];
-				sdEntity.entities_by_net_id_cache_map.delete( this._net_id );
+				{
+					// A newer entity already reclaimed this _net_id in the cache (see the
+					// _is_being_removed skip in GetObjectFromSnapshot: a zombie entity can still
+					// be pending this deferred removal after a fresh replacement was constructed
+					// for the same _net_id). Do not delete a mapping that no longer belongs to us.
+				}
+				else
+				{
+					//delete sdEntity.entities_by_net_id_cache[ this._net_id ];
+					sdEntity.entities_by_net_id_cache_map.delete( this._net_id );
+				}
 				
 				if ( sdWorld.is_server )
 				if ( !sdWorld.is_singleplayer )
