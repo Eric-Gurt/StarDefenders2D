@@ -1376,9 +1376,28 @@ class sdRenderer
 							ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - 0.001;// - sdRenderer.dark_lands_colors.length * 0.001;
 
 							if ( sdRenderer.img_sun.loaded )
-							ctx.drawImageFilterCache( sdRenderer.img_sun, 
-								-200 + sdRenderer.screen_width / 2 - Math.sin( day_progress ) * sdRenderer.screen_width / 2 * 0.8, 
-								-200 + sdRenderer.screen_height / 2 - Math.cos( day_progress ) * sdRenderer.screen_height / 2 * 0.5 );
+							{
+								let sun_x = -200 + sdRenderer.screen_width / 2 - Math.sin( day_progress ) * sdRenderer.screen_width / 2 * 0.8;
+								let sun_y = -200 + sdRenderer.screen_height / 2 - Math.cos( day_progress ) * sdRenderer.screen_height / 2 * 0.5;
+
+								// During a drought/heatwave the sun swells (up to 400% bigger at full intensity).
+								let drought = sdWeather.only_instance.drought || 0;
+								if ( drought > 0 )
+								{
+									let m = 1 + 4 * drought; // 1x .. 5x ( 400% bigger )
+
+									// img_sun is a 400x400 source - the rest of this frame draws with
+									// imageSmoothingEnabled=false (nearest-neighbor, set above for the
+									// pixel-art background), which made the up-to-5x upscale look blocky
+									// and low-res. Smooth only this enlarged draw, then restore it so
+									// nothing else in the frame is affected.
+									ctx.imageSmoothingEnabled = true;
+									ctx.drawImageFilterCache( sdRenderer.img_sun, sun_x - 200 * ( m - 1 ), sun_y - 200 * ( m - 1 ), 400 * m, 400 * m );
+									ctx.imageSmoothingEnabled = false;
+								}
+								else
+								ctx.drawImageFilterCache( sdRenderer.img_sun, sun_x, sun_y );
+							}
 							else
 							sdRenderer.img_sun.RequiredNow();
 

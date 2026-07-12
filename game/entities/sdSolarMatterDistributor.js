@@ -180,7 +180,8 @@ class sdSolarMatterDistributor extends sdEntity
 
 			if ( sun_intensity > 0.2 )
 			{
-				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity * this._multiplier );
+				let drought_boost = 1 + 2 * ( sdWeather.only_instance.drought || 0 ); // 200% more effective during a drought/heatwave
+				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity * this._multiplier * drought_boost );
 				//this.MatterGlow( 0.01, 50, GSPEED );
 			}
 			

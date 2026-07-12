@@ -242,6 +242,19 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		return true; // Always enable earthquakes if possible
 	}
+	static WaterEvaporationEnabled()
+	{
+		return true; // Naturally dry out sky-exposed, shallow, natural (rain-spawned) water/acid so it does not accumulate forever and pin the CPU. Player-placed water and deep seas are never touched. Set to false to deploy inert / profile before-after.
+	}
+	// --- Optional: tune natural water evaporation & drought (defaults live as statics on sdWater) ---
+	// Override these from onAfterSnapshotLoad() if the defaults do not suit your map. Uncomment & adjust:
+	//   sdWorld.entity_classes.sdWater.EVAP_MAX_DEPTH = 5;         // water columns deeper than this many cells are seas -> never evaporate; raise to protect shallow natural seas
+	//   sdWorld.entity_classes.sdWater.EVAP_BASE_RATE = 0.02;      // volume dried per step at full sun; lower = slower drying
+	//   sdWorld.entity_classes.sdWater.EVAP_BUDGET = 24;           // surface cells swept per frame (CPU cap); lower = cheaper/slower
+	//   sdWorld.entity_classes.sdWater.EVAP_DROUGHT_BUDGET = 48;   // extra cells swept per frame at full drought
+	//   sdWorld.entity_classes.sdWater.WAKE_CASCADE_MAX_DEPTH = 0; // 0 = original wake behavior; set e.g. 2 to tame wake-storms in huge pools (perf)
+	// To exclude the drought/heatwave event entirely, return its id from GetDisallowedWorldEvents():
+	//   return [ sdWorld.entity_classes.sdWeather.EVENT_DROUGHT ];
 	static EnableForbiddenCubes()
 	{
 		return false; // Enable shield and invisibility cubes?

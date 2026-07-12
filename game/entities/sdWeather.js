@@ -179,6 +179,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
 		sdWeather.EVENT_STALKER =				event_counter++; // 58
 		
+		sdWeather.EVENT_DROUGHT =				event_counter++; // 59 - heatwave: accelerates natural water evaporation and melts snow. Excludable via GetDisallowedWorldEvents.
+
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
 		sdWeather.supported_events.push( i );
@@ -241,6 +243,11 @@ class sdWeather extends sdEntity
 		
 		this._rain_amount = 0;
 		this.raining_intensity = 0;
+
+		this._drought_amount = 0; // Time budget left for the current drought/heatwave, mirrors _rain_amount
+		this.drought = 0; // 0..1, PUBLIC (synced to clients for the big-sun visual). Drives sdWater evaporation factor, snow melt, solar boost
+		this._next_snow_melt = 0; // Throttles snow-melt sampling during drought
+		this._next_drought_notify = 0; // Throttles the per-player drought HUD notification
 		this.acid_rain = 0; // 0 or 1
 		this.snow = 0; // 0 or 1
 		this.matter_rain = 0; // 0,1 or 2 ( 1 = crystal shard rain, 2 = anti-crystal shard rain )
@@ -343,7 +350,7 @@ class sdWeather extends sdEntity
 	{
 		if ( n === sdWeather.EVENT_ACID_RAIN || n === sdWeather.EVENT_ASTEROIDS || n === sdWeather.EVENT_QUAKE ||
 		n === sdWeather.EVENT_WATER_RAIN || n === sdWeather.EVENT_SNOW || n === sdWeather.EVENT_MATTER_RAIN ||
-		n === sdWeather.EVENT_DIRTY_AIR || n === sdWeather.EVENT_EM_ANOMALIES )
+		n === sdWeather.EVENT_DIRTY_AIR || n === sdWeather.EVENT_EM_ANOMALIES || n === sdWeather.EVENT_DROUGHT )
 		return true;
 		
 		return false;
@@ -1312,6 +1319,80 @@ class sdWeather extends sdEntity
 
 		return true;
 	}
+	NotifyDrought() // Left-side HUD notification for every online player while a drought is active
+	{
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character )
+		if ( !sdWorld.sockets[ i ].character._is_being_removed )
+		{
+			sdTask.MakeSureCharacterHasTask({
+				similarity_hash: 'DROUGHT',
+				executer: sdWorld.sockets[ i ].character,
+				mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+				title: 'Heatwave',
+				description: 'The sun scorches the land! Water is evaporating and snow is melting - but solar powered matter distributors are 200% more effective right now. Make the most of it!',
+				time_left: 30 * 12 // ~12s; refreshed every 4s so it persists through the drought and clears shortly after
+			});
+		}
+	}
+	IsMeltableSnow( block ) // Drought only melts sky-exposed snow blocks
+	{
+		if ( block._is_being_removed )
+		return false;
+
+		if ( !block.is( sdBlock ) )
+		return false;
+
+		if ( block.material !== sdBlock.MATERIAL_SNOW )
+		return false;
+
+		if ( !this.TraceDamagePossibleHere( block.x + 8, block.y - 8, Infinity, false, true ) ) // Sky-exposed
+		return false;
+
+		return true;
+	}
+	MeltSnowBlock( e ) // Inverse of the snow-accumulation step in the rain logic: shave 4px off the top
+	{
+		e.y += 4;
+		e.height -= 4;
+		e._hea -= 10;
+		e._hmax -= 10;
+
+		if ( e.height <= 0 || e._hmax <= 0 )
+		{
+			e.remove();
+			return;
+		}
+
+		e._update_version++;
+		sdWorld.UpdateHashPosition( e, false );
+	}
+	MeltSnowIntoWater( e, xx ) // Rain washing snow away: shave the snow and leave (natural) water behind
+	{
+		let liquid_type = this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER;
+
+		e.y += 4;
+		e.height -= 4;
+		e._hea -= 10;
+		e._hmax -= 10;
+
+		if ( e.height <= 0 || e._hmax <= 0 )
+		{
+			// Snow fully melted - drop a water cell where it stood.
+			let wy = Math.floor( e.y / 16 ) * 16;
+			e.remove();
+			sdEntity.Create( sdWater, { x: xx, y: wy, type: liquid_type, volume: 0.25 } );
+		}
+		else
+		{
+			e._update_version++;
+			sdWorld.UpdateHashPosition( e, false );
+
+			// Trickle a little meltwater above the shrinking snow ( same spot rain water uses ).
+			if ( Math.random() < 0.1 )
+			sdEntity.Create( sdWater, { x: xx, y: Math.floor( e.y / 16 ) * 16 - 16, type: liquid_type, volume: 0.25 } );
+		}
+	}
 	SimpleExecuteEvent( r = -1 ) // Old ExecuteEvent so we can still use this while debugging / testing in DevTools
 	{
 		this.ExecuteEvent({
@@ -1343,6 +1424,16 @@ class sdWeather extends sdEntity
 		if ( r === sdWeather.EVENT_ACID_RAIN || r === sdWeather.EVENT_WATER_RAIN || r === sdWeather.EVENT_SNOW || r === sdWeather.EVENT_MATTER_RAIN )
 		{
 			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 3 ); // start rain for ~15 seconds
+		}
+
+		if ( r === sdWeather.EVENT_DROUGHT )
+		{
+			// Daytime-only event: only start it if it is already bright out. Never force day_time to get
+			// there - that used to fast-forward (or rewind) the clock to reach midday, which made the sun
+			// visibly jump around (including backwards) whenever a drought rolled at night. If it rolls at
+			// night, this is just a no-op; the scheduler will try again later, most likely during the day.
+			if ( this.GetSunIntensity() >= 0.85 )
+			this._drought_amount = 30 * 15 * ( 1 + Math.random() * 3 ); // start drought for ~15-60 seconds
 		}
 
 		if ( r === sdWeather.EVENT_ASTEROIDS )
@@ -4676,6 +4767,13 @@ class sdWeather extends sdEntity
 							//if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
 							if ( this.TraceDamagePossibleHere( xx + 8, e.y - 8, Infinity, false, true ) )
 							{
+								// Liquid rain ( water / acid ) washes snow away, converting it into water.
+								if ( !this.snow && !this.matter_rain )
+								if ( e.material === sdBlock.MATERIAL_SNOW )
+								{
+									this.MeltSnowIntoWater( e, xx );
+									continue;
+								}
 								if ( e.DoesRegenerate() )
 								{
 									if ( e._plants === null )
@@ -4889,6 +4987,52 @@ class sdWeather extends sdEntity
 				}*/
 			}
 			
+
+			// --- Drought / heatwave ---
+			// Ramps this.drought (0..1, public/synced), which sdWater.GlobalEvaporationThink reads to
+			// dry out natural surface water faster. At high intensity it also melts snow. The client
+			// reads this.drought to draw the enlarged sun, and solar distributors read it for the boost.
+			if ( this._drought_amount > 0 )
+			{
+				this.drought = Math.min( 1, this.drought + GSPEED * 0.001 );
+				this._drought_amount -= this.drought;
+			}
+			else
+			{
+				this.drought = Math.max( 0, this.drought - GSPEED * 0.001 );
+			}
+
+			if ( this.drought > 0 )
+			{
+				// day_time is never touched here - a drought only ever starts while it's already
+				// daytime (see ExecuteEvent), and the natural day/night cycle (this.day_time += GSPEED
+				// above) is left alone. If a drought happens to still be winding down as night falls
+				// naturally, its effects just fade out along with the normal sun.
+
+				// Keep players informed on the left-side HUD (refreshed so late-joiners get it too).
+				if ( sdWorld.time > this._next_drought_notify )
+				{
+					this._next_drought_notify = sdWorld.time + 4000;
+					this.NotifyDrought();
+				}
+			}
+
+			if ( this.drought > 0.5 )
+			if ( sdWorld.time > this._next_snow_melt )
+			{
+				this._next_snow_melt = sdWorld.time + 100;
+
+				sdWorld.last_hit_entity = null;
+
+				for ( let i = ~~( sdBlock.natural_blocks_total / 1000 * 1.5 ); i > 0; i-- )
+				{
+					let e = sdEntity.GetRandomEntity();
+
+					if ( e )
+					if ( this.IsMeltableSnow( e ) )
+					this.MeltSnowBlock( e );
+				}
+			}
 			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
 			
 			//if ( this.quake_intensity >= 100 )

@@ -51,6 +51,24 @@ class sdWater extends sdEntity
 		sdWater.all_swimmers_previous_frame_exit_swap = new Set();
 		
 		sdWater.all_waters = []; // Only for client-side
+		// --- Natural water evaporation (server) ---
+		// Fixes: rain-spawned TYPE_WATER / TYPE_ACID never despawn, accumulating until
+		// hundreds of active entities pin the CPU. A bounded global sweep dries out
+		// sky-exposed, single-surface, shallow, *natural* water off-think (so it works
+		// on hibernated/settled water that the main think loop skips). Player-placed
+		// water ( _natural === false ) and deep seas are never touched.
+		sdWater.server_waters = []; // Server-side registry swept by GlobalEvaporationThink (swap-and-pop maintained)
+		sdWater._evap_cursor = 0; // Round-robin cursor, persists across frames
+
+		sdWater.EVAP_MIN_VOLUME = 0.02; // At/below this a cell fully evaporates and is removed
+		sdWater.EVAP_MAX_DEPTH = 5; // Columns with water still present this many cells down are seas -> preserved
+		sdWater.EVAP_BASE_RATE = 0.02; // Volume removed per step at full drying factor
+		sdWater.EVAP_SUN_WEIGHT = 1; // Daytime sun contribution to drying factor
+		sdWater.EVAP_DROUGHT_WEIGHT = 3; // Drought dries harder than midday sun and works at night
+		sdWater.EVAP_BUDGET = 24; // Surface cells swept per frame (bounded CPU cost)
+		sdWater.EVAP_DROUGHT_BUDGET = 48; // Extra cells swept per frame at full drought
+
+		sdWater.WAKE_CASCADE_MAX_DEPTH = 0; // 0 = unlimited (current behavior, byte-identical). >0 caps AwakeSelfAndNear recursion to reduce wake storms in large pools
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -210,6 +228,12 @@ class sdWater extends sdEntity
 		{
 			sdWater.all_waters.push( this );
 		}
+		this._server_water_idx = -1;
+		if ( sdWorld.is_server )
+		{
+			this._server_water_idx = sdWater.server_waters.length;
+			sdWater.server_waters.push( this );
+		}
 	}
 	
 	
@@ -286,7 +310,7 @@ class sdWater extends sdEntity
 		}
 	}
 
-	AwakeSelfAndNear( recursive_catcher=null ) // Might need array for recursion
+	AwakeSelfAndNear( recursive_catcher=null, depth=0 ) // Might need array for recursion
 	{
 		if ( recursive_catcher === null )
 		recursive_catcher = [ this ];
@@ -306,6 +330,9 @@ class sdWater extends sdEntity
 
 			let e;
 
+			// WAKE_CASCADE_MAX_DEPTH === 0 keeps the original unbounded cascade (byte-identical).
+			// A positive cap stops a single disturbance from re-waking an entire lake every move.
+			if ( sdWater.WAKE_CASCADE_MAX_DEPTH === 0 || depth < sdWater.WAKE_CASCADE_MAX_DEPTH )
 			for ( var x = -1; x <= 1; x++ )
 			for ( var y = -1; y <= 1; y++ )
 			if ( x !== 0 || y !== 0 )
@@ -313,7 +340,7 @@ class sdWater extends sdEntity
 				e = sdWater.GetWaterObjectAt( this.x + x * 16, this.y + y * 16 );
 				if ( e )
 				if ( e._hiberstate !== sdEntity.HIBERSTATE_ACTIVE ) // Make sure it is not already active?
-				e.AwakeSelfAndNear( recursive_catcher );
+				e.AwakeSelfAndNear( recursive_catcher, depth + 1 );
 			}
 		}
 		/*
@@ -1795,6 +1822,20 @@ class sdWater extends sdEntity
 			if ( id !== -1 )
 			sdWater.all_waters.splice( id, 1 );
 		}
+		if ( sdWorld.is_server )
+		{
+			let idx = this._server_water_idx;
+			if ( idx !== undefined && idx !== -1 && sdWater.server_waters[ idx ] === this )
+			{
+				let last = sdWater.server_waters.pop(); // swap-and-pop for O(1) removal
+				if ( last !== this )
+				{
+					sdWater.server_waters[ idx ] = last;
+					last._server_water_idx = idx;
+				}
+			}
+			this._server_water_idx = -1;
+		}
 		
 		this._swimmers.forEach( ( e )=>
 		{
@@ -1816,6 +1857,97 @@ class sdWater extends sdEntity
 		sdWater.all_swimmers_previous_frame_exit_swap = sdWater.all_swimmers_previous_frame_exit;
 		
 		sdWater.all_swimmers_previous_frame_exit = new Set();
+
+		sdWater.GlobalEvaporationThink( GSPEED );
+	}
+
+	// Is this cell a lone, sky-exposed, shallow surface film of natural water/acid?
+	// Only such cells evaporate - keeps player builds, deep seas and roofed/cave water intact.
+	static IsEvaporableWater( w )
+	{
+		if ( w._is_being_removed )
+		return false;
+
+		if ( w.type !== sdWater.TYPE_WATER && w.type !== sdWater.TYPE_ACID )
+		return false;
+
+		if ( w._natural !== true ) // Player-placed / moved water is left alone
+		return false;
+
+		// Must be the top of the body (surface cell) - otherwise it is interior liquid.
+		if ( sdWater.GetWaterObjectAt( w.x, w.y - 16, w.type ) )
+		return false;
+
+		// Shallow column only - if water still exists EVAP_MAX_DEPTH cells down it is a sea.
+		if ( sdWater.GetWaterObjectAt( w.x, w.y + 16 * sdWater.EVAP_MAX_DEPTH, w.type ) )
+		return false;
+
+		let weather = sdWorld.entity_classes.sdWeather.only_instance;
+		if ( !weather )
+		return false;
+
+		// Sun/rain must be able to reach it ( rain_tracer, same call the rain spawner uses ).
+		if ( !weather.TraceDamagePossibleHere( w.x + 8, w.y - 8, Infinity, false, true ) )
+		return false;
+
+		return true;
+	}
+
+	// Removes `amount` of volume; returns true and removes the entity once it drops to the floor.
+	static EvaporateOne( w, amount )
+	{
+		w._volume -= amount;
+
+		if ( w._volume <= sdWater.EVAP_MIN_VOLUME )
+		{
+			w.remove();
+			return true;
+		}
+
+		w.v = Math.ceil( w._volume * 100 );
+		w._update_version++;
+		return false;
+	}
+
+	static GlobalEvaporationThink( GSPEED )
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		// Default-on; server admins ( e.g. Booraz ) can override to false to deploy inert / profile.
+		if ( sdWorld.server_config.WaterEvaporationEnabled )
+		if ( !sdWorld.server_config.WaterEvaporationEnabled() )
+		return;
+
+		let weather = sdWorld.entity_classes.sdWeather.only_instance;
+		if ( !weather )
+		return;
+
+		let sun = weather.GetSunIntensity(); // 0..1
+		let drought = weather.drought || 0; // 0..1, set by EVENT_DROUGHT
+		let factor = sdWater.EVAP_SUN_WEIGHT * sun + sdWater.EVAP_DROUGHT_WEIGHT * drought;
+
+		if ( factor <= 0 ) // Night without drought -> nothing dries
+		return;
+
+		let reg = sdWater.server_waters;
+		if ( reg.length === 0 )
+		return;
+
+		let rate = sdWater.EVAP_BASE_RATE * GSPEED * factor;
+		let budget = Math.min( reg.length, sdWater.EVAP_BUDGET + Math.ceil( drought * sdWater.EVAP_DROUGHT_BUDGET ) );
+
+		for ( let k = 0; k < budget; k++ )
+		{
+			if ( sdWater._evap_cursor >= reg.length )
+			sdWater._evap_cursor = 0;
+
+			let w = reg[ sdWater._evap_cursor ];
+			sdWater._evap_cursor++;
+
+			if ( sdWater.IsEvaporableWater( w ) )
+			sdWater.EvaporateOne( w, rate );
+		}
 	}
 }
 //sdWater.init_class();
