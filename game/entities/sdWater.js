@@ -249,6 +249,42 @@ class sdWater extends sdEntity
 		
 		return null;
 	}
+	static RemoveWaterInFootprint( x1, y1, x2, y2 ) // Deletes any water/liquid tile overlapping the given world-space rect. Used so building something over a liquid gets rid of it instead of the two silently coexisting (water has no hard_collision, so placement never blocked on it).
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		let removed_any = false;
+
+		let gx1 = Math.floor( x1 / 16 ) * 16;
+		let gy1 = Math.floor( y1 / 16 ) * 16;
+		let gx2 = Math.ceil( x2 / 16 ) * 16;
+		let gy2 = Math.ceil( y2 / 16 ) * 16;
+
+		for ( let ty = gy1; ty < gy2; ty += 16 )
+		for ( let tx = gx1; tx < gx2; tx += 16 )
+		{
+			let water = sdWater.GetWaterObjectAt( tx + 1, ty + 1 );
+
+			if ( water )
+			{
+				water.remove();
+				removed_any = true;
+			}
+		}
+
+		if ( removed_any ) // Static world change - wake remaining nearby water manually so it re-evaluates flow/spread around the new obstacle, same as sdBlock.onRemove does for the opposite case
+		{
+			let cx = ( x1 + x2 ) / 2;
+			let cy = ( y1 + y2 ) / 2;
+			let radius = Math.max( x2 - x1, y2 - y1 ) / 2 + 16;
+
+			let nears = sdWorld.GetAnythingNear( cx, cy, radius );
+			for ( let i = 0; i < nears.length; i++ )
+			if ( nears[ i ].is( sdWater ) )
+			nears[ i ].AwakeSelfAndNear();
+		}
+	}
 
 	AwakeSelfAndNear( recursive_catcher=null ) // Might need array for recursion
 	{

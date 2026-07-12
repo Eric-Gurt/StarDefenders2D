@@ -6830,17 +6830,20 @@ THING is cosmic mic drop!`;
 				// This is used to make it include sdButton-s when putting new sdButtons on top
 				const custom_filtering_method = ( e )=>
 				{
-					if ( !fake_ent._hard_collision ) 
+					if ( e.GetClass() === 'sdWater' ) // Building over a liquid is always allowed - the liquid itself gets deleted on successful placement (see ApplyPostBuiltProperties / sdWater.RemoveWaterInFootprint). Checked before the hard_collision branches below since water never blocks placement regardless of what's being built.
+					return false;
+
+					if ( !fake_ent._hard_collision )
 					{
 						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 						if ( e.GetClass() === 'sdBone' )
 						{
 							return false;
 						}
-						
+
 						return true;
 					}
-					
+
 					return e._hard_collision;
 				};
 				
@@ -7198,6 +7201,9 @@ THING is cosmic mic drop!`;
         ent.ApplyStatusEffect({ type: sdStatusEffect.TYPE_BUILT_ENTITY });
 
 		ent.onBuilt();
+
+		if ( !demo_mode && !ent.is( sdWater ) ) // Building over a liquid gets rid of it - water has no hard_collision so placement is never blocked on it, they'd otherwise just silently coexist. Exclude sdWater itself (buildable via the admin dev-test shop options) so it doesn't delete itself on placement
+		sdWater.RemoveWaterInFootprint( ent.x + ent._hitbox_x1, ent.y + ent._hitbox_y1, ent.x + ent._hitbox_x2, ent.y + ent._hitbox_y2 );
 	}
 	
 	/*AnnounceTooManyEffectsIfNeeded()
