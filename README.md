@@ -18,30 +18,51 @@ Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9
 
 # Installation
 
-Upload files to your server, remove node_modules folder as it might appear outdated (yet should be fine as long as server is not accessible from Internet, even if your server config has password).
+For Linux servers with systemd, download only the installer and run it:
 
-Then, in command line (linux, CentOS):
+```bash
+curl -fsSL -o install-linux.sh https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/install-linux.sh
+sudo -E bash install-linux.sh
 ```
-apt update
 
-apt install nodejs
+Run the installer from the Linux account that should own and run the server. `sudo -E` preserves that invoking user for the installer, so the default service owner matches the account you started from.
 
-apt install npm
+The installer can set up Node.js through nvm, clone or reuse the repository, install production dependencies, create systemd service/timer units, configure `sslconfig.json`, verify certificate/key permissions, add optional Let's Encrypt support, create world-data backups, and write per-service admin/uninstall helper files.
+
+If you already have the game on the server, run the installer from that directory. For a real Git checkout, use:
+
+```bash
+sudo -E bash install-linux.sh --existing-checkout
 ```
-*pick directory where your Star Defenders 2D files are, index.js file specifically*
+
+If the directory has game files but no `.git`, the installer offers:
+
+- `git`: add Git metadata in place, after backing up the directory to `installerbackup`.
+- `plain`: keep it as a non-Git install, after backing up the directory to `installerbackup`; GitHub auto-updates are disabled.
+- `startfresh`: move the old directory contents aside and clone a fresh checkout.
+- `abort`: stop without changing the directory.
+
+Choosing `skip` for `sslconfig.json` leaves it unchanged, but the installer can still repair certificate/key permissions for the service user. The backup timer defaults to every two days and only backs up the selected world's snapshot/chunks data.
+
+Installed services write crash-loop diagnostics to `crash_reports` inside the server directory. After repeated failed starts within the configured window, systemd pauses restarts until the owner fixes the cause and runs `systemctl reset-failed`. Timestamped crash reports are also pruned by count and age.
+
+Each Linux install writes `<service-name>-admin-commands.txt` and `<service-name>-uninstall.sh` into the server directory. To remove only the generated service/timer files for one install, run:
+
+```bash
+sudo /path/to/StarDefenders2D/<service-name>-uninstall.sh
 ```
-npm init
 
-npm install express --save
+If an older install has the admin commands file but is missing the uninstall helper, regenerate it with:
 
-npm install socket.io --save
-
-npm install socket.io-client --save
+```bash
+sudo bash create-linux-uninstall-helper.sh /path/to/StarDefenders2D/<service-name>-admin-commands.txt
 ```
-PS: You'll probably need latest Node.JS version. If something does not work - you can contact me or discuss it at #sd-discussion at PB2's discord server.
 
-PSS: It is all pretty much same for Windows, just download Node.JS from their official website ( https://nodejs.org ), then follow the instructions towards running simple express application. Eventually just put game files instead of that index.js file and run it. For debugging using Chromium browsers you can run it with command line (cmd.exe application):
-```
+Before using Let's Encrypt, point a DNS name at the server and make sure TCP port 80 can reach it. Before exposing a world publicly, open the selected world-slot port in both the server firewall and any VPS/provider firewall.
+
+For Windows/manual development, install Node.js from https://nodejs.org, install npm dependencies from the repository directory, and run the server directly. For debugging using Chromium browsers you can run it with command line (cmd.exe application):
+
+```bash
 node --inspect index.js
 ```
 After you've done that, green cube icon will magically appear at top left of any open devtools window.
