@@ -259,9 +259,18 @@ class sdCable extends sdEntity
         // Someone fired cable tool and then dropped it onto weaponbench?
         if ( !bullet._owner || bullet._owner._is_being_removed )
         return;
-			
+
         const is_player = bullet._owner.IsPlayerClass();
-    
+
+        // Resolved through the registry rather than imported directly: sdCom.js imports sdCable.js,
+        // and sdTurret.js imports sdCom.js, so a direct `import sdTurret` here would create a real
+        // circular import chain (sdCable -> sdTurret -> sdCom -> sdCable). This also replaces the
+        // slow globalThis fallback getter (stack-trace capture + rate-limited warning on every single
+        // cable-bullet hit) that bare sdTurret/sdNode references below were silently falling through
+        // to - same registry-lookup pattern already used elsewhere in this file (see sdSteeringWheel).
+        const sdTurret = sdWorld.entity_classes.sdTurret;
+        const sdNode = sdWorld.entity_classes.sdNode;
+
         if ( bullet._owner._current_built_entity )
         if ( !bullet._owner._current_built_entity.is( sdCable ) )
         bullet._owner._current_built_entity = null;

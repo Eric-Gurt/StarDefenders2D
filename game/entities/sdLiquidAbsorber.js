@@ -196,8 +196,8 @@ class sdLiquidAbsorber extends sdEntity
 
 			if ( this.charge >= sdLiquidAbsorber.cycle_time )
 			{
-				//let liquids = sdWorld.GetAnythingNear( this.x, this.y , sdLiquidAbsorber.scan_distance, null, [ 'sdWater' ] );
-				let liquids = this.GetAnythingNearCache( this.x, this.y, sdLiquidAbsorber.scan_distance, null, [ 'sdWater' ] );
+				//let liquids = sdWorld.GetAnythingNear( this.x, this.y , sdLiquidAbsorber.scan_distance, null, sdWater.water_class_array );
+				let liquids = this.GetAnythingNearCache( this.x, this.y, sdLiquidAbsorber.scan_distance, null, sdWater.water_class_array );
 				
 				for ( let i = 0; i < liquids.length; i++ ) // Protect nearby entities inside base unit's radius
 				{

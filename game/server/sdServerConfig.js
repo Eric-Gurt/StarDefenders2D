@@ -1455,11 +1455,11 @@ class sdServerConfigFull extends sdServerConfigShort
 			// Dedicated first 60% of attempts to spawn somewhere where there is no early damage
 			if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
 			// Dedicated first 80% of attempts to spawn somewhere where can stand and there is no water
-			if ( tr > max_tr * 0.8 || ( can_stand_here && !sdWorld.CheckWallExistsBox( 
-					x + character_entity._hitbox_x1 - 16, 
-					y + character_entity._hitbox_y1 - 16, 
-					x + character_entity._hitbox_x2 + 16, 
-					y + character_entity._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
+			if ( tr > max_tr * 0.8 || ( can_stand_here && !sdWorld.CheckWallExistsBox(
+					x + character_entity._hitbox_x1 - 16,
+					y + character_entity._hitbox_y1 - 16,
+					x + character_entity._hitbox_x2 + 16,
+					y + character_entity._hitbox_y2 + 16, null, null, sdWater.water_class_array, null ) ) ) // Reuse the pre-made array (sdWater.js init_class) instead of a fresh literal every spawn-search iteration (up to max_tr=10000 per spawn) - a new array here defeats GetClassListByClassNameList's cache entirely, rebuilding the class Set from scratch every call
 			// Dedicated first 40% of attempts to spawn somewhere where ground exists
 			if ( tr > max_tr * 0.4 || 
 				 socket.command_centre || 
