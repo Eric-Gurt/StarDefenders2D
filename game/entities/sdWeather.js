@@ -1558,8 +1558,8 @@ class sdWeather extends sdEntity
 				this._invasion_spawns_con = 25; // At least 25 Event executions must happen otherwise invasion will not end
 				this._invasion_event = this._potential_invasion_events[ Math.floor( Math.random() * this._potential_invasion_events.length ) ];; // Random event which can fit the invasion is selected.
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // if the event is already active, quickly initiate something else
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 						
 		}
 
@@ -2090,8 +2090,8 @@ class sdWeather extends sdEntity
 				}*/
 
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_SARRONIANS ) // Sarronian & Zektaron factions spawn. Spawns humanoids and drones.
 		{
@@ -2197,8 +2197,8 @@ class sdWeather extends sdEntity
 				});
 				
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_COUNCIL_BOMB ) // Spawn a Council Bomb anywhere on the map outside player views which detonates in 10 minutes
 		{
@@ -2298,8 +2298,8 @@ class sdWeather extends sdEntity
 				}*/
 
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		
 		if ( r === sdWeather.EVENT_OVERLORD )
@@ -2410,8 +2410,8 @@ class sdWeather extends sdEntity
 				}*/
 
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_VELOX ) // Velox faction spawn. TO DO: Support healing drones
 		{
@@ -2495,8 +2495,8 @@ class sdWeather extends sdEntity
 					group_radius: group_rad
 				});
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_CRYSTAL_BLOCKS ) // Put crystal shards in a 30 blocks
 		{
@@ -2833,8 +2833,8 @@ class sdWeather extends sdEntity
 				}
 				
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_SETR_DESTROYER ) // Setr Destroyer, basically alternate "flying mech"
 		{
@@ -3271,8 +3271,8 @@ class sdWeather extends sdEntity
 				if ( portal_machine.length > 0 ) // Spawned the machine?
 				sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_SWORD_BOT ) // Falkonian sword bot, only one on map at the time
 		{
@@ -3561,8 +3561,8 @@ class sdWeather extends sdEntity
 					} while ( tr > 0 );
 				}*/
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_GUANAKO )
 		{
@@ -3869,8 +3869,8 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Zektaron Dreadnought, main boss of the Zektarons
 		{
@@ -3891,8 +3891,8 @@ class sdWeather extends sdEntity
 				aerial_radius: 800
 				
 			});
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_KIVORTEC_WEAPONS_POD ) // KIVORTEC Weapons Pod. Has to be hacked before being opened and giving Star Defenders random KVT weaponry.
 		{
@@ -3925,8 +3925,8 @@ class sdWeather extends sdEntity
 				aerial_radius: 128
 				
 			});
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_COUNCIL_INCINERATOR ) // Council's Incinerator, mini boss from Council faction
 		{
@@ -3948,8 +3948,8 @@ class sdWeather extends sdEntity
 				group_radius: group_rad
 				
 			});
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_STEALER ) // Spawn a Stealer which steals unattended crystals.
 		{
@@ -3977,8 +3977,8 @@ class sdWeather extends sdEntity
 				aerial_radius: 128
 				
 			});
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_PROTECT_SDBG_DRONE ) // Mothership is trying to see if old drone stockpile is effective on planet ( players need to protect the drone for 5 minutes )
 		{
@@ -4051,8 +4051,8 @@ class sdWeather extends sdEntity
 				});
 
 			}
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_SOLAR_DISTRIBUTOR ) // Solar matter distributor is placed by SD's and needs to be activated
 		{
@@ -4112,8 +4112,8 @@ class sdWeather extends sdEntity
 				min_air_height: -400 // Minimum free space above entity placement location
 				
 			});
-			else
-			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+			//else
+			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 		if ( r === sdWeather.EVENT_CUBE_BOSS )
 		{
