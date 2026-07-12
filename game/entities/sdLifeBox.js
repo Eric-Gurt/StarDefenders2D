@@ -133,11 +133,85 @@ class sdLifeBox extends sdEntity
 	}
 	onAfterDriverExcluded( slot, character )
 	{
-		character.x = this.x;
-		character.y = this.y;
-		
+		// Note: exit position is decided in ExcludeDriver (LOS-guarded against the
+		// "seal the box to phase through walls" raid exploit). Do NOT override
+		// character.x/character.y here or that protection is defeated.
 		this.occupied = 0;
 		//this._update_version++;
+	}
+	ExcludeDriver( c, force=false ) // Overridden to guarantee the player can never be ejected through a wall (anti-raid). Build blocks over an occupied Life Box used to squeeze the exiting player into a sealed base.
+	{
+		if ( !force )
+		if ( !sdWorld.is_server )
+		return;
+
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		{
+			if ( this[ 'driver' + i ] === c )
+			{
+				let exit_x = this.x;
+				let exit_y = this.y;
+
+				if ( !force )
+				{
+					// Candidate exit spots around the box, cardinal directions.
+					let cands = [
+						[ this.x,                                  this.y + this._hitbox_y1 - c._hitbox_y2 ], // above
+						[ this.x + this._hitbox_x1 - c._hitbox_x2, this.y ],                                  // left
+						[ this.x + this._hitbox_x2 - c._hitbox_x1, this.y ],                                  // right
+						[ this.x,                                  this.y + this._hitbox_y2 - c._hitbox_y1 ]   // below
+					];
+
+					let found = false;
+
+					for ( var ci = 0; ci < cands.length; ci++ )
+					{
+						let cx = cands[ ci ][ 0 ];
+						let cy = cands[ ci ][ 1 ];
+
+						// Spot must be free AND reachable in a straight line from the box
+						// center without crossing a wall, so the player can never end up
+						// on the far (interior) side of a base wall.
+						if ( c.CanMoveWithoutOverlap( cx, cy, 0 ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, sdCom.com_visibility_ignored_classes, null ) )
+						{
+							exit_x = cx;
+							exit_y = cy;
+							found = true;
+							break;
+						}
+					}
+
+					if ( !found )
+					{
+						// Box is sealed - refuse to eject rather than phase the player through walls.
+						if ( c._socket )
+						c._socket.SDServiceMessage( 'The Life Box is sealed - clear the blocks around it before exiting' );
+
+						return;
+					}
+				}
+
+				this[ 'driver' + i ] = null;
+				c.driver_of = null;
+				c.SetCameraZoom( sdWorld.default_zoom );
+
+				c.x = exit_x;
+				c.y = exit_y;
+
+				c.PhysWakeUp();
+
+				if ( c._socket )
+				c._socket.SDServiceMessage( 'Leaving vehicle' );
+
+				this.onAfterDriverExcluded( i, c );
+
+				return;
+			}
+		}
+
+		if ( c._socket )
+		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
 	GetDriverZoom()
 	{
