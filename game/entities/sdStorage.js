@@ -141,8 +141,30 @@ class sdStorage extends sdEntity
 	}
 	onSnapshotApplied() // To override
 	{
-		while ( this.is_armable.length < this._stored_items.length )
-		this.is_armable.push( 0 );
+		// Keep the three parallel arrays in lockstep on every reconstruction (not just newly-built
+		// crates), with _stored_items as ground truth for how many real items exist. Server-only:
+		// _stored_items is underscore-prefixed and never included in the normal (non-full) network
+		// snapshot, so on the client it is always empty and must not be treated as ground truth there
+		// - doing so would truncate the stored_names/is_armable the client legitimately just received
+		// over the network down to nothing. Server-side this runs unconditionally (unlike the
+		// _storage_fix_applied migration below) so it also heals crates that were already desynced by
+		// ExtractItem()'s old independent-splice bug before this fix was deployed: padding restores
+		// real stored items that had lost their stored_names/is_armable entry (and so were invisible
+		// in the item list), truncating removes stale "ghost" entries with no backing _stored_items slot.
+		if ( sdWorld.is_server )
+		{
+			while ( this.is_armable.length < this._stored_items.length )
+			this.is_armable.push( 0 );
+
+			while ( this.stored_names.length < this._stored_items.length )
+			this.stored_names.push( '?' );
+
+			if ( this.is_armable.length > this._stored_items.length )
+			this.is_armable.length = this._stored_items.length;
+
+			if ( this.stored_names.length > this._stored_items.length )
+			this.stored_names.length = this._stored_items.length;
+		}
 
         if ( !this._storage_fix_applied ) // Remove after update
         {
@@ -793,13 +815,19 @@ class sdStorage extends sdEntity
 				ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
 			}
 
-			if ( this._stored_items[ slot ] !== null && this._stored_items[ slot ] !== undefined ) // Holey array recovery test
+			// Splice all three parallel arrays together, unconditionally, whenever a slot is removed.
+			// The previous "Holey array recovery test" spliced each array independently based on its
+			// OWN null/undefined check at `slot`. That let a stray null in just ONE of the three arrays
+			// shrink only that array while the other two stayed full length, permanently shifting every
+			// later index out of alignment between _stored_items/is_armable/stored_names for the rest of
+			// this crate's lifetime. That misalignment is what produced both reported symptoms: entries
+			// in stored_names pointing at the wrong (or no) _stored_items slot - i.e. "ghost" items whose
+			// name doesn't match what Get actually returns - and the crate's real trailing item(s) losing
+			// their stored_names/is_armable entry entirely, so they never appear in the list at all despite
+			// still being present in _stored_items. Splicing all three together at the same index keeps
+			// them the same length from here on regardless of which one(s) happen to hold a stray null.
 			this._stored_items.splice( slot, 1 );
-		
-			if ( this.is_armable[ slot ] !== null && this.is_armable[ slot ] !== undefined ) // Holey array recovery test
 			this.is_armable.splice( slot, 1 );
-		
-			if ( this.stored_names[ slot ] !== null && this.stored_names[ slot ] !== undefined ) // Holey array recovery test
 			this.stored_names.splice( slot, 1 );
 
 			if ( ent )
