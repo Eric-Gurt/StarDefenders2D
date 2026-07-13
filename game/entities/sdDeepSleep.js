@@ -726,7 +726,9 @@ class sdDeepSleep extends sdEntity
 			
 			sdWorld.SolveUnresolvedEntityPointers();
 			sdWorld.unresolved_entity_pointers = null;
-			
+
+			sdWorld.entity_classes.sdGun.ReconnectHeldGuns( ents ); // Scoped to just this wake batch, not a full-world scan
+
 			for ( let i = 0; i < ents.length; i++ )
 			{
 				let ent = ents[ i ];
