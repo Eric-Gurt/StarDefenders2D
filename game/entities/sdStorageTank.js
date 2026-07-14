@@ -103,7 +103,16 @@ class sdStorageTank extends sdEntity
 	}
 	IsAttachableToSteeringWheel()
 	{ return this.type === sdStorageTank.TYPE_LARGE; }
-	
+
+	IsPhysicallyMovable() // Large tanks are static world objects (onThink applies gravity + ApplyVelocityAndCollisions only for TYPE_PORTABLE) and should move only while driven by a steering wheel. Without this the inherited "true" makes the collision resolver treat them as pushable, so colliding entities transfer momentum into a body that never moves on its own - getting caught and then catapulted on release.
+	{
+		if ( this.type === sdStorageTank.TYPE_LARGE )
+		if ( this._steering_wheel_net_id === -1 ) // not attached to a steering wheel
+		return false;
+
+		return super.IsPhysicallyMovable();
+	}
+
 	IsLiquidTypeAllowed( type )
 	{
 		if ( type === -1 )
