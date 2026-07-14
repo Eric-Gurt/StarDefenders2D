@@ -1667,7 +1667,9 @@ class sdServerConfigFull extends sdServerConfigShort
 
 			sdWorld.SolveUnresolvedEntityPointers();
 			sdWorld.unresolved_entity_pointers = null;
-			
+
+			sdGun.ReconnectHeldGuns( sdEntity.entities );
+
 			if ( sdWorld.server_config.run_patch_overlap )
 			{
 				console.log( 'Running overlap patch...' );

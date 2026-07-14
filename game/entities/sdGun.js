@@ -197,8 +197,35 @@ class sdGun extends sdEntity
 			ent._time_amplification -= GSPEED;
 			return GSPEED * sdGun.time_amplification_gspeed_scale;
 		}
-		
+
 		return GSPEED;
+	}
+	static ReconnectHeldGuns( entities ) // Guns held by sdCharacter/sdPlayerDrone don't serialize _held_by or _inventory (see ExtraSerialzableFieldTest) - only the primitive held_by_net_id/held_by_class/extra[ID_SLOT] survive a snapshot decode (world boot or a deep-sleep chunk waking up). ApplySnapshot skips reconnecting those specifically ("Old gun code handles it"), but the only code that ever did was UpdateHolderClientSide, which is client-only. Call this once over whatever batch of entities was just decoded to rebuild both pointers server-side, same rule client already applies every tick.
+	{
+		for ( let i = 0; i < entities.length; i++ )
+		{
+			let gun = entities[ i ];
+
+			if ( gun.GetClass() !== 'sdGun' ) continue;
+			if ( gun._is_being_removed ) continue;
+			if ( gun._held_by !== null ) continue; // Already resolved (e.g. non-character holders go through the generic pointer path above)
+			if ( gun.held_by_class !== 'sdCharacter' && gun.held_by_class !== 'sdPlayerDrone' ) continue;
+			if ( gun.held_by_net_id === -1 ) continue;
+			if ( sdGun.classes[ gun.class ] === undefined ) continue;
+
+			let holder = sdEntity.GetObjectByClassAndNetId( gun.held_by_class, gun.held_by_net_id );
+
+			if ( holder && !holder._is_being_removed && holder.IsPlayerClass() )
+			{
+				let slot = gun.GetSlot();
+
+				if ( holder._inventory[ slot ] === null ) // Don't clobber a slot another gun already legitimately re-occupies
+				{
+					gun._held_by = holder;
+					holder._inventory[ slot ] = gun;
+				}
+			}
+		}
 	}
 	
 	IsGunRecoverable()
