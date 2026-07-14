@@ -1584,6 +1584,20 @@ THING is cosmic mic drop!`;
 		
 		sdCharacter.characters.push( this );
 	}
+	onServerSideSnapshotLoaded() // Called whenever this character is (re)constructed from a stored snapshot - e.g. waking up from sdDeepSleep hibernation after being offline
+	{
+		// _god is only ever meant to be held by a currently-listed admin. If this character
+		// went to sleep (chunk hibernation, world save/restart) while still marked as god and
+		// was demoted/removed from the admin list in the meantime, the demote code has no way
+		// to reach an unloaded character to clear the flag - so re-validate it here, the moment
+		// the character becomes live again, instead of trusting whatever was last saved.
+		if ( this._god )
+		if ( typeof sdModeration === 'undefined' || !sdModeration.GetAdminRowByHash( this._my_hash ) )
+		{
+			this._god = false;
+			this._debug = false;
+		}
+	}
 	GetCameraZoom()
 	{
 		return this._camera_zoom / this._additional_camera_zoom_mult;
