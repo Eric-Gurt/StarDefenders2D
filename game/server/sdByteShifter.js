@@ -33,6 +33,58 @@ let vision_cells_cache = {};
 
 let ShallowClone = ( typeof structuredClone === 'undefined' ) ? ( a )=>Object.assign( {}, a ) : structuredClone;
 
+// phase-13-snapshot-01: per-client snapshot delta hoist. AddEntity ran the full per-property classification (for-in
+// enumeration + typeof + prop-name checks + rounding + force-flag) once PER CLIENT for every visible moving entity,
+// even though all of it derives purely from the (observer-independent, per-frame cached) snapshot object and is
+// identical across clients. When >1 client is connected we compute it once per entity per frame into a descriptor and
+// reuse it across clients; the per-client loop then collapses to a confirmed-vs-canonical compare. With <=1 client there
+// is no cross-client reuse to gain, so AddEntity keeps the original inline loop (zero added overhead). Output is
+// byte-identical either way. The descriptor cache is keyed on (frame, snap-object identity) so it auto-rebuilds for the
+// rare classes that override GetSnapshot to return a fresh/observer-specific object.
+const _diff_prep_cache = new WeakMap(); // entity -> { frame, snap, desc:[ { k, v, o, f } ] }
+function BuildDiffDescriptor( snap, is_held_gun, is_active_or_rare_update ) // mirrors AddEntity's per-prop value/classification EXACTLY; does NOT mutate snap
+{
+	let desc = [];
+	for ( let prop in snap )
+	{
+		let snap_value = snap[ prop ];
+		let o = false;
+		let f = false;
+		if ( typeof snap_value === 'number' )
+		{
+			let is_pos = ( prop === 'x' || prop === 'y' ) && !is_held_gun;
+			if ( is_pos )
+			{
+				snap_value = Math.round( snap_value * 100 ) / 100;
+				f = is_active_or_rare_update;
+			}
+			else
+			{
+				let is_vel = ( prop === 'sx' || prop === 'sy' ) && !is_held_gun;
+				if ( is_vel )
+				{
+					snap_value = Math.round( snap_value * 100 ) / 100;
+					f = is_active_or_rare_update;
+				}
+				else
+				{
+					if ( prop === 'scale' )
+					snap_value = Math.round( snap_value * 100 ) / 100;
+					else
+					snap_value = Math.round( snap_value );
+				}
+			}
+		}
+		else
+		if ( typeof snap_value === 'object' )
+		{
+			o = true;
+		}
+		desc.push( { k: prop, v: snap_value, o: o, f: f } );
+	}
+	return desc;
+}
+
 class sdByteShifter
 {
 	static init_class()
@@ -303,6 +355,84 @@ class sdByteShifter
 									
 									let is_active_or_rare_update = ( !ent.is_static || ent.awake ) && ( ent._phys_sleep > 0 || ent._net_id % 30 === frame % 30 );
 									
+									if ( sdWorld.sockets && sdWorld.sockets.length > 1 ) // phase-13-snapshot-01: >1 client -> hoist client-independent per-prop work (build once, reuse across clients); 1 client -> original inline loop below (no added cost).
+									{
+										let prep = _diff_prep_cache.get( ent );
+										if ( prep === undefined || prep.frame !== frame || prep.snap !== snap )
+										{
+											prep = { frame: frame, snap: snap, desc: BuildDiffDescriptor( snap, is_held_gun, is_active_or_rare_update ) };
+											_diff_prep_cache.set( ent, prep );
+										}
+										let desc = prep.desc;
+										for ( let di = 0; di < desc.length; di++ )
+										{
+											let d = desc[ di ];
+											let confirmed_value = confirmed_state[ d.k ];
+											let snap_value = d.v;
+											let mismatch = false;
+											if ( d.o )
+											{
+												mismatch = ( ( confirmed_value === null ) !== ( snap_value === null ) );
+												if ( !mismatch )
+												{
+													if ( snap_value === null )
+													{
+													}
+													else
+													if ( typeof snap_value.s !== 'undefined' )
+													mismatch = ( confirmed_value.s !== snap_value.s );
+													else
+													if ( typeof snap_value._net_id !== 'undefined' )
+													mismatch = ( confirmed_value._net_id !== snap_value._net_id );
+													else
+													if ( snap_value instanceof Array )
+													{
+														if ( snap_value.length !== confirmed_value.length )
+														mismatch = true;
+														else
+														for ( let i2 = 0; i2 < snap_value.length; i2++ )
+														{
+															if ( snap_value[ i2 ] !== confirmed_value[ i2 ] )
+															{
+																mismatch = true;
+																break;
+															}
+														}
+													}
+													else
+													{
+														for ( let i2 in snap_value )
+														{
+															if ( snap_value[ i2 ] !== confirmed_value[ i2 ] )
+															{
+																mismatch = true;
+																break;
+															}
+														}
+													}
+												}
+											}
+											else
+											{
+												mismatch = ( confirmed_value !== snap_value ) || d.f;
+											}
+											if ( mismatch )
+											{
+												if ( prop_ids === null )
+												{
+													prop_ids = [ di ];
+													values_array_partial = [ snap_value ];
+												}
+												else
+												{
+													prop_ids.push( di );
+													values_array_partial.push( snap_value );
+												}
+											}
+										}
+									}
+									else
+									{
 									let i = 0;
 									for ( let prop in snap )
 									{
@@ -413,6 +543,7 @@ class sdByteShifter
 										}
 										
 										i++;
+									}
 									}
 									
 									if ( prop_ids !== null )
