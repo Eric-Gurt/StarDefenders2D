@@ -3724,8 +3724,40 @@ class sdWorld
 	}
 	
 	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
+	// --- Phase 7 collision/LOS caller attribution (DEBUG-GATED, off in production) ---
+	// Counts which entity classes drive the collision/LOS functions, by caller. The
+	// 5th arg (ignore_entity) is almost always the calling entity, so it doubles as a
+	// cheap caller label. Counts only (not timing) so the probe barely perturbs the
+	// profile it measures. Enable at runtime via DevTools/console on the --inspect server:
+	//     globalThis.DEBUG_LOS_ATTRIBUTION = true
+	// then play heavy combat, then dump + reset with:
+	//     sdWorld.DumpLOSAttribution()
+	static DebugCountLOS( fn, ignore_entity )
+	{
+		let m = sdWorld.los_attribution || ( sdWorld.los_attribution = {} );
+		let bucket = m[ fn ] || ( m[ fn ] = { total:0, by_caller:{} } );
+		bucket.total++;
+		let key = ( ignore_entity && ignore_entity.GetClass ) ? ignore_entity.GetClass() : '(no-ignore-entity)';
+		bucket.by_caller[ key ] = ( bucket.by_caller[ key ] || 0 ) + 1;
+	}
+	static DumpLOSAttribution( reset = true )
+	{
+		let m = sdWorld.los_attribution || {};
+		let out = [ '=== LOS/collision caller attribution ===' ];
+		for ( let fn in m )
+		{
+			out.push( fn + ' : ' + m[ fn ].total + ' calls' );
+			let entries = Object.entries( m[ fn ].by_caller ).sort( ( a, b ) => b[ 1 ] - a[ 1 ] );
+			for ( let i = 0; i < entries.length && i < 15; i++ )
+			out.push( '    ' + entries[ i ][ 1 ] + '  ' + entries[ i ][ 0 ] );
+		}
+		console.log( out.join( '\n' ) );
+		if ( reset )
+		sdWorld.los_attribution = {};
+	}
 	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
 	{
+		if ( globalThis.DEBUG_LOS_ATTRIBUTION ) sdWorld.DebugCountLOS( 'CheckWallExistsBox', ignore_entity );
 		if ( y1 < sdWorld.world_bounds.y1 || 
 			 y2 > sdWorld.world_bounds.y2 || 
 			 x1 < sdWorld.world_bounds.x1 ||
@@ -3908,13 +3940,15 @@ class sdWorld
 	}
 	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met. custom_filtering_method is executed before hit detection
 	{
+		if ( globalThis.DEBUG_LOS_ATTRIBUTION ) { sdWorld.DebugCountLOS( 'CheckLineOfSight', ignore_entity ); sdWorld._los_internal = true; } // Phase 7 probe: mark internal CheckWallExists stepping calls so they attribute separately from direct ones
+
 		let r1 = true;
-		
+
 		//let t0 = performance.now();
-		
+
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		var step = 8;
-		
+
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
@@ -3925,7 +3959,9 @@ class sdWorld
 				break;
 			}
 		}
-		
+
+		if ( globalThis.DEBUG_LOS_ATTRIBUTION ) sdWorld._los_internal = false;
+
 		return r1;
 		
 		//
@@ -4253,7 +4289,9 @@ class sdWorld
 	}
 	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_class_name_strings_array=null, include_only_specific_class_name_strings_array=null, custom_filtering_method=null )
 	{
-		if ( y < sdWorld.world_bounds.y1 || 
+		if ( globalThis.DEBUG_LOS_ATTRIBUTION ) sdWorld.DebugCountLOS( sdWorld._los_internal ? 'CheckWallExists(via LOS)' : 'CheckWallExists(direct)', ignore_entity );
+
+		if ( y < sdWorld.world_bounds.y1 ||
 			 y > sdWorld.world_bounds.y2 || 
 			 x < sdWorld.world_bounds.x1 ||
 			 x > sdWorld.world_bounds.x2 )
