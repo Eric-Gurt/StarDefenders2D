@@ -202,6 +202,7 @@ class sdTask extends sdEntity
 				return -1;
 			},
 			onTaskMade: ( task, params )=>{
+				if ( task._executer ) // _executer can be null when reconstructed from a snapshot; such tasks are removed by failure_condition below, so skipping the progress string here is harmless. Without this guard, loading a snapshot throws "Cannot read properties of null (reading '_task_reward_counter')".
 				task.SetClaimRewardsProgress( Math.floor( task._executer._task_reward_counter ) ); // Also needs to update when players complete tasks, and claim rewards.
 			},
 			failure_condition: ( task )=>
