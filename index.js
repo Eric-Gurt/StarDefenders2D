@@ -3268,6 +3268,75 @@ globalThis.ExecuteParallelPromise = ( command )=>
 	return p;
 };
 
+// --- Dedicated snapshot-save worker (backup-tail-decouple) ------------------------------------
+// A single dedicated worker that runs the world-backup deflate + file write + rename off the main
+// thread, so the snapshot persists on time even when the main event loop is saturated by per-client
+// sync. Kept SEPARATE from the worker_services pool (which handles per-client LZW and would be
+// contended under exactly the load we care about) and, unlike ExecuteParallel, it NEVER falls back
+// to a synchronous main-thread deflate. If the worker is unavailable the promise rejects and the
+// caller (SaveSnapshot) transparently uses the original inline zlib.deflate path. Gated: only ever
+// invoked when SaveSnapshot runs with globalThis.SNAPSHOT_DEFLATE_MODE === 'worker'.
+let _snapshot_worker = null;
+let _snapshot_worker_seq = 0;
+let _snapshot_worker_pending = new Map(); // id -> { resolve, reject }
+
+const EnsureSnapshotWorker = ()=>
+{
+	if ( _snapshot_worker )
+	return _snapshot_worker;
+
+	let w = new Worker( __dirname + '/game/server/sdSnapshotSaveWorker.js' );
+
+	w.on( 'message', ( msg )=>
+	{
+		let waiter = _snapshot_worker_pending.get( msg.id );
+		if ( !waiter )
+		return;
+		_snapshot_worker_pending.delete( msg.id );
+		if ( msg.ok )
+		waiter.resolve( msg );
+		else
+		waiter.reject( new Error( msg.error || 'snapshot worker error' ) );
+	} );
+
+	let fail_all = ( err )=>
+	{
+		if ( _snapshot_worker === w )
+		_snapshot_worker = null;
+		for ( let waiter of _snapshot_worker_pending.values() )
+		waiter.reject( err instanceof Error ? err : new Error( String( err ) ) );
+		_snapshot_worker_pending.clear();
+	};
+	w.on( 'error', fail_all );
+	w.on( 'exit', ( code )=>{ if ( code !== 0 ) fail_all( new Error( 'snapshot worker exited with code ' + code ) ); } );
+
+	_snapshot_worker = w;
+	return w;
+};
+
+// Returns Promise<{ bytes, deflate_ms, write_ms }>. Rejects if the worker cannot be used.
+globalThis.SnapshotDeflateToFile = ( json, temp_path, final_path, do_rename )=>
+{
+	return new Promise( ( resolve, reject )=>
+	{
+		let w;
+		try { w = EnsureSnapshotWorker(); }
+		catch ( e ) { reject( e ); return; }
+
+		let id = ++_snapshot_worker_seq;
+		_snapshot_worker_pending.set( id, { resolve, reject } );
+		try
+		{
+			w.postMessage({ id, json, temp_path, final_path, do_rename: !!do_rename });
+		}
+		catch ( e )
+		{
+			_snapshot_worker_pending.delete( id );
+			reject( e );
+		}
+	});
+};
+
 let only_do_nth_connection_per_frame = 1;
 let nth_connection_shift = 0;
 
