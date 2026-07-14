@@ -127,7 +127,7 @@ class sdLost extends sdEntity
 						filter: sdLost.filters[ f ],
 						crystal_worth: f === sdLost.FILTER_GOLDEN ? 640 : 0
 					});
-					sdEntity.entities.push( new_asp );
+					sdEntity.AddEntityToEntitiesArray( new_asp );
 					return;
 				}
 
@@ -249,7 +249,7 @@ class sdLost extends sdEntity
 			//regen_rate: ent.is( sdCrystal ) ? ent.matter_regen : 0
 			
 		});
-		sdEntity.entities.push( ent2 );
+		sdEntity.AddEntityToEntitiesArray( ent2 );
 		sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
 
 		return ent2;

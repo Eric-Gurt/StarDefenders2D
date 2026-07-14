@@ -998,7 +998,7 @@ class sdBullet extends sdEntity
 				{
 					let colors = [ '#777777', '#666666', '#555555' ]
 					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_SMOKE, color:sdEffect.GetSmokeColor( colors )});
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 					
 					this._smoke_spawn_wish = 0.5;
 				}

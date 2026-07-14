@@ -268,7 +268,7 @@ class sdShurgExcavator extends sdEntity
 					bullet_obj._damage = 30;
 					bullet_obj._dirt_mult = 1;
 	
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								
 					sdSound.PlaySound({ name:'cut_droid_attack', x:this.x, y:this.y, volume: 0.1, pitch:2 });
 				}

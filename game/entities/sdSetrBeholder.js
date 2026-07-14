@@ -250,7 +250,7 @@ class sdSetrBeholder extends sdEntity
 			{
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-				sdEntity.entities.push( character_entity );
+				sdEntity.AddEntityToEntitiesArray( character_entity );
 				
 				sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SETR );
 				character_entity._potential_vehicle = this;
@@ -405,7 +405,7 @@ class sdSetrBeholder extends sdEntity
 					{
 						this.matter -= cost;
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this._bullets_reload = 2;
 

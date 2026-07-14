@@ -286,7 +286,7 @@ class sdShurgTurret extends sdEntity
 							bullet_obj._damage = 35;
 
 
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 							this.attack_frame = 1;
 							//this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;

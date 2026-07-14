@@ -698,7 +698,7 @@ class sdGuanako extends sdEntity
 
 											bullet_obj.model = 'ball';
 
-											sdEntity.entities.push( bullet_obj );
+											sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 											sdSound.PlaySound({ name:'gun_portal4', x:this.x, y:this.y, volume: 0.5, pitch:2 });
 										}

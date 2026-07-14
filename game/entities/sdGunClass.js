@@ -3072,7 +3072,7 @@ class sdGunClass
 						bullet._owner._current_built_entity = ent;
 						//bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
 
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 					}
 				}
 				
@@ -3854,12 +3854,12 @@ class sdGunClass
 						ent.gun_slot = 4;
 						ent._matter_regeneration = 5;
 						//ent._damage_mult = 1 + 3 / 3 * 1;
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 
 						let ent2 = new sdGun({ x: ent.x, y: ent.y,
 							class: sdGun.CLASS_RAILGUN
 						});
-						sdEntity.entities.push( ent2 );
+						sdEntity.AddEntityToEntitiesArray( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
@@ -5353,7 +5353,7 @@ class sdGunClass
 									attachment_y: options[ best_i ].y,
 									orientation: options[ best_i ].orientation
 								});
-								sdEntity.entities.push( portal );
+								sdEntity.AddEntityToEntitiesArray( portal );
 
 								if ( portals_by_owner.length > 0 )
 								{
@@ -5744,12 +5744,12 @@ class sdGunClass
 						ent._matter_regeneration = 5;
 						ent._matter_regeneration_multiplier = 10;
 						//ent._damage_mult = 1 + 3 / 3 * 1;
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 
 						let ent2 = new sdGun({ x: ent.x, y: ent.y,
 							class: sdGun.CLASS_LMG
 						}); // Even with LMG it seems weak compared to power-stimpack
-						sdEntity.entities.push( ent2 );
+						sdEntity.AddEntityToEntitiesArray( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
@@ -6112,7 +6112,7 @@ class sdGunClass
 							{
 								let water_ent = new sdWater({ x:0, y:0, type: liquid.type });
 								water_ent._natural = false;
-								sdEntity.entities.push( water_ent );
+								sdEntity.AddEntityToEntitiesArray( water_ent );
 	
 								water_ent._volume = Math.min( 100, liquid.amount ) / 100;
 								let extra = liquid.extra / liquid.amount * water_ent._volume * 100;
@@ -6159,7 +6159,7 @@ class sdGunClass
 							{
 								water_ent = new sdWater( bullet._gun._held_item_snapshot );
 								water_ent._natural = false;
-								sdEntity.entities.push( water_ent );
+								sdEntity.AddEntityToEntitiesArray( water_ent );
 								sdWorld.UpdateHashPosition( water_ent, false );
 								
 								bullet._gun._held_item_snapshot = null;
@@ -8435,7 +8435,7 @@ class sdGunClass
 								bullet_obj1._dirt_mult = 1;
 								bullet_obj1._hittable_by_bullets = false;
 								bullet_obj1._no_explosion_smoke = true;
-								sdEntity.entities.push( bullet_obj1 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj1 );
 			
 					let bullet_obj2 = new sdBullet({ x: bullet.x, y: bullet.y });
 								bullet_obj2.sx = 1;
@@ -8448,7 +8448,7 @@ class sdGunClass
 								bullet_obj2._dirt_mult = 1;
 								bullet_obj2._hittable_by_bullets = false;
 								bullet_obj2._no_explosion_smoke = true;
-								sdEntity.entities.push( bullet_obj2 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 			
 					let bullet_obj3 = new sdBullet({ x: bullet.x, y: bullet.y });
 								bullet_obj3.sx = -1;
@@ -8461,7 +8461,7 @@ class sdGunClass
 								bullet_obj3._dirt_mult = 1;
 								bullet_obj3._hittable_by_bullets = false;
 								bullet_obj3._no_explosion_smoke = true;
-								sdEntity.entities.push( bullet_obj3 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
 			
 					let bullet_obj4 = new sdBullet({ x: bullet.x, y: bullet.y });
 								bullet_obj4.sx = -1;
@@ -8474,7 +8474,7 @@ class sdGunClass
 								bullet_obj4._dirt_mult = 1;
 								bullet_obj4._hittable_by_bullets = false;
 								bullet_obj4._no_explosion_smoke = true;
-								sdEntity.entities.push( bullet_obj4 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj4 );
 				} };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -8610,7 +8610,7 @@ class sdGunClass
 								bullet_obj1._hittable_by_bullets = false;
 								bullet_obj1._no_explosion_smoke = true;
 
-								sdEntity.entities.push( bullet_obj1 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj1 );
 			
 					let bullet_obj2 = new sdBullet({ x: bullet.x, y: bullet.y });
 								bullet_obj2.sx = 1;
@@ -8624,7 +8624,7 @@ class sdGunClass
 								bullet_obj2._hittable_by_bullets = false;
 								bullet_obj2._no_explosion_smoke = true;
 
-								sdEntity.entities.push( bullet_obj2 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 			
 					let bullet_obj3 = new sdBullet({ x: bullet.x, y: bullet.y });
 								bullet_obj3.sx = -1;
@@ -8638,7 +8638,7 @@ class sdGunClass
 								bullet_obj3._hittable_by_bullets = false;
 								bullet_obj3._no_explosion_smoke = true;
 
-								sdEntity.entities.push( bullet_obj3 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
 			
 					let bullet_obj4 = new sdBullet({ x: bullet.x, y: bullet.y });
 								bullet_obj4.sx = -1;
@@ -8652,7 +8652,7 @@ class sdGunClass
 								bullet_obj4._hittable_by_bullets = false,
 								bullet_obj4._no_explosion_smoke = true;
 								
-								sdEntity.entities.push( bullet_obj4 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj4 );
 
 					let bullet_obj5 = new sdBullet({ x: bullet.x, y: bullet.y }); // lingering damage over time AoE projectile
 								bullet_obj5.sx = 0;
@@ -8703,7 +8703,7 @@ class sdGunClass
 										}
 									}
 								}
-								sdEntity.entities.push( bullet_obj5 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj5 );
 				} };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -10316,12 +10316,12 @@ class sdGunClass
 										_owner: owner
 									});
 									ent.gun_slot = 2;
-									sdEntity.entities.push( ent );
+									sdEntity.AddEntityToEntitiesArray( ent );
 
 									let ent2 = new sdGun({ x: ent.x, y: ent.y,
 										class: sdGun.CLASS_STALKER_RIFLE
 									}); 
-									sdEntity.entities.push( ent2 );
+									sdEntity.AddEntityToEntitiesArray( ent2 );
 									
 									ent2.fire_mode = Math.random() > 0.5 ? 1 : 2;
 
@@ -10370,7 +10370,7 @@ class sdGunClass
 										bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
 										bullet_obj._hea = 100;
 								
-										sdEntity.entities.push( bullet_obj );
+										sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									}
 								
 									setTimeout(()=>
@@ -10990,7 +10990,7 @@ class sdGunClass
                             bullet_obj._can_hit_owner = false;
                             bullet_obj.color = '#ffff00';
 
-                            sdEntity.entities.push( bullet_obj );
+                            sdEntity.AddEntityToEntitiesArray( bullet_obj );
                         }
 					}
                 };
@@ -11721,7 +11721,7 @@ class sdGunClass
                             
                             bullet_obj._extra_filtering_method = extra_filtering_method;
 
-                            sdEntity.entities.push( bullet_obj );
+                            sdEntity.AddEntityToEntitiesArray( bullet_obj );
                         }
 					}
                 };
@@ -11925,7 +11925,7 @@ class sdGunClass
                             bullet_obj._can_hit_owner = false;
                             bullet_obj.color = '#ffff00';
 
-                            sdEntity.entities.push( bullet_obj );
+                            sdEntity.AddEntityToEntitiesArray( bullet_obj );
                         } 
                     }
                 };

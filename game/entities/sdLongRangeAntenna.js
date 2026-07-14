@@ -202,7 +202,7 @@ class sdLongRangeAntenna extends sdEntity
 
 						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
 
-						sdEntity.entities.push( character_entity );
+						sdEntity.AddEntityToEntitiesArray( character_entity );
 
 						{
 							let x,y;

@@ -447,7 +447,7 @@ class sdLifeBox extends sdEntity
 					bullet_obj.color = '#ffffff';
 					bullet_obj._shield_block_mult = 10;
 
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 					*/
 					if ( this._target.is( sdBlock ) && this._target.material === sdBlock.MATERIAL_TRAPSHIELD )
 					this._target.DamageWithEffect( 300 * this.damage_mult, this ); // Bullets had a multiplier of 10 against shield blocks so it can destroy those quickly

@@ -1265,7 +1265,7 @@ class sdGun extends sdEntity
 							
 							//sdEntity.recently_build.set( ent, { by: this._held_by } );
 
-							sdEntity.entities.push( ent );
+							sdEntity.AddEntityToEntitiesArray( ent );
 							
 							// Initially object is not spawned at cursor but near it. It means that huge static objects (sdBG, sdArea) will have incorrect hash array which will cause them to not have collisions when needed)
 							if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
@@ -1418,14 +1418,14 @@ class sdGun extends sdEntity
 
 						if ( sdWorld.is_server )
 						{
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 						}
 						else
 						{
 							/*if ( sdWorld.speculative_projectiles && sdWorld.my_entity && bullet_obj._owner === sdWorld.my_entity )
 							{
 								bullet_obj._speculative = true;
-								sdEntity.entities.push( bullet_obj );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj );
 							}
 							else*/
 							{
@@ -1462,7 +1462,7 @@ class sdGun extends sdEntity
 						let offset = this._held_by.GetBulletSpawnOffset();
 
 						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel + this._held_by.sx / 4, sy:Math.cos( an ) * vel + this._held_by.sy / 4, rotation: Math.PI / 2 - initial_an });
-						sdEntity.entities.push( ef );
+						sdEntity.AddEntityToEntitiesArray( ef );
 					}
 				}
 			
@@ -1697,7 +1697,7 @@ class sdGun extends sdEntity
 				let vel = 1 + Math.random();
 					
 				let ef = new sdEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
-				sdEntity.entities.push( ef );
+				sdEntity.AddEntityToEntitiesArray( ef );
 			}*/
 			
 			if ( this.muzzle > 0 )
@@ -1824,7 +1824,7 @@ class sdGun extends sdEntity
 				// Current iteration below seems to work without issues, however I think it would be ideal if it could check if "upgrades" section of gun class has explicitly "AddGunDefaultUpgrades"
 				{
 					let gun = new sdGun({ x:this.x, y:this.y, sx: this.sx, sy: this.sy, class:this.class }); // Remove and rebuild the weapon itself
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					this.remove(); // Not sure if it should be before or after duplicate spawns
 					return;
 				}

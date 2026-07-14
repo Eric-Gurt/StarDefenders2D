@@ -455,7 +455,7 @@ class sdEnemyMech extends sdEntity
 
 							gun.sx = sx;
 							gun.sy = sy;
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 					}
@@ -476,7 +476,7 @@ class sdEnemyMech extends sdEntity
 
 							gun.sx = sx + Math.random() - Math.random();
 							gun.sy = sy + Math.random() - Math.random();
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 						shards--;
@@ -768,7 +768,7 @@ class sdEnemyMech extends sdEntity
 							bullet_obj.color = '#ffaa00';
 						}
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this._bullets--;
 
@@ -829,7 +829,7 @@ class sdEnemyMech extends sdEntity
 							bullet_obj._damage = 50;
 							bullet_obj.color = '#ff0000';
 
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 							this._rail_attack_timer = 10;
 							sdSound.PlaySound({ name:'gun_railgun', pitch: 0.5, x:this.x, y:this.y, volume:0.5 });
 						}
@@ -866,7 +866,7 @@ class sdEnemyMech extends sdEntity
 						bullet_obj.explosion_radius = 10 * 1.5;
 						bullet_obj.color = '#7acaff';
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this._rockets--;
 
@@ -937,7 +937,7 @@ class sdEnemyMech extends sdEntity
 			if ( this.hea < this._hmax / 5 )
 			{
 					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y - 24, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 5, scale:1, radius:0.5, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
-					sdEntity.entities.push( e );
+					sdEntity.AddEntityToEntitiesArray( e );
 			}
 		}
 			

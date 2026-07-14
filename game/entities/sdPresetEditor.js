@@ -909,7 +909,7 @@ class sdPresetEditor extends sdEntity
 					if ( best_score >= old_best_score )
 					{
 						editor = new sdPresetEditor({ w:preset_data.width, h:preset_data.height, x:best_new_relative_x, y:best_new_relative_y });
-						sdEntity.entities.push( editor );
+						sdEntity.AddEntityToEntitiesArray( editor );
 						editor.LoadPreset( null, preset_name, false, true, false );
 
 						let last_inserted_entities_array = editor._last_inserted_entities_array;

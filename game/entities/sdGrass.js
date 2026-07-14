@@ -302,7 +302,7 @@ class sdGrass extends sdEntity
 								yy += Math.cos( an ) * 4;
 
 								let ent = new sdCrystal({ x: xx, y: yy, tag:'deep', from_tree:this, type:sdCrystal.TYPE_CRYSTAL_BALLOON });
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 
 								if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
 								{
@@ -374,7 +374,7 @@ class sdGrass extends sdEntity
                 if ( this.snowed )
                 filter += 'saturate(0.05) brightness(2)';
 
-                sdEntity.entities.push( new sdEffect({ x: x, y: y, type: sdEffect.TYPE_LEAF, sx: 0, sy: 0, filter: filter, hue: this.hue }) );
+                sdEntity.AddEntityToEntitiesArray( new sdEffect({ x: x, y: y, type: sdEffect.TYPE_LEAF, sx: 0, sy: 0, filter: filter, hue: this.hue }) );
                 this._leaf_spawn_timer = 10 + Math.random() * 120;
             }
         }

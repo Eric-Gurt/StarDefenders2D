@@ -281,7 +281,7 @@ class sdOctopus extends sdEntity
 				ent.sx = this.sx + Math.random() * 8 - 4;
 				ent.sy = this.sy + Math.random() * 8 - 4;
 				ent.ttl = sdGun.disowned_guns_ttl;
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 				
 				this._consumed_guns.shift();
 			}*/
@@ -297,7 +297,7 @@ class sdOctopus extends sdEntity
 					ent.sy = this.sy + Math.random() * 8 - 4;
 					ent.ttl = sdGun.disowned_guns_ttl;
 					ent._held_by = null;
-					sdEntity.entities.push( ent );
+					sdEntity.AddEntityToEntitiesArray( ent );
 					
 					sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 				}

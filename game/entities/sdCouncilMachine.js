@@ -93,7 +93,7 @@ class sdCouncilMachine extends sdEntity
 			{
 				let drone = new sdDrone({ x:0, y:0 , type: 18});
 
-				sdEntity.entities.push( drone );
+				sdEntity.AddEntityToEntitiesArray( drone );
 								
 				let x,y;
 				let tr = 100;
@@ -231,7 +231,7 @@ class sdCouncilMachine extends sdEntity
 
 					//gun.sx = sx;
 					//gun.sy = sy;
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 					}, 500 );
 				}
@@ -258,7 +258,7 @@ class sdCouncilMachine extends sdEntity
 
 						gun.sx = sx;
 						gun.sy = sy;
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 
 					}, 500 );
 				}
@@ -383,7 +383,7 @@ class sdCouncilMachine extends sdEntity
 
 				setTimeout(()=>{//Just in case
 					let portal = new sdRift({x: this.x, y:this.y, type:5 });
-					sdEntity.entities.push( portal );
+					sdEntity.AddEntityToEntitiesArray( portal );
 				}, 500 );
 
 				this.remove();
@@ -410,7 +410,7 @@ class sdCouncilMachine extends sdEntity
 				bullet_obj.time_left = 90 + Math.random() * 60; // 3-5 seconds after flare spawn to summon the humanoids
 				bullet_obj._bouncy = true;
 				
-				sdEntity.entities.push( bullet_obj );
+				sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									
 				sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
 				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5, pitch:2 });
@@ -421,7 +421,7 @@ class sdCouncilMachine extends sdEntity
 					{
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
 
-						sdEntity.entities.push( drone );
+						sdEntity.AddEntityToEntitiesArray( drone );
 
 						{
 							let x,y;
@@ -475,7 +475,7 @@ class sdCouncilMachine extends sdEntity
 					{
 						let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5});
 
-						sdEntity.entities.push( worm );
+						sdEntity.AddEntityToEntitiesArray( worm );
 
 						{
 							let x,y;

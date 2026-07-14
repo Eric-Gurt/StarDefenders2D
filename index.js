@@ -716,7 +716,7 @@ if ( sdEntity.global_entities.length === 0 )
 {
 	console.log( 'Recreating sdWeather' );
 	//sdEntity.global_entities.push( new sdWeather({}) );
-	sdEntity.entities.push( new sdWeather({}) );
+	sdEntity.AddEntityToEntitiesArray( new sdWeather({}) );
 }
 
 if ( sdWorld.server_config.onAfterSnapshotLoad )
@@ -1784,7 +1784,7 @@ io.on( 'connection', ( socket )=>
 				socket.respawn_block_until = sdWorld.time + ( 1000 * 60 * 2 ); // 2 minutes respawn wait time
 				// Not sure if this is ideal solution. - Booraz149
 			}
-			sdEntity.entities.push( character_entity );
+			sdEntity.AddEntityToEntitiesArray( character_entity );
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket ) )
@@ -1984,7 +1984,7 @@ io.on( 'connection', ( socket )=>
 			if ( guns.indexOf( i ) !== -1 )
 			{
 				let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 
 				if ( i !== sdGun.CLASS_BUILD_TOOL )
 				character_entity.gun_slot = sdGun.classes[ i ].slot;

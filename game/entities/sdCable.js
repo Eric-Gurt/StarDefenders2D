@@ -369,7 +369,7 @@ class sdCable extends sdEntity
                     bullet._owner._built_cables.push( ent );
                     //bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
 
-                    sdEntity.entities.push( ent );
+                    sdEntity.AddEntityToEntitiesArray( ent );
                 }
             }
 				

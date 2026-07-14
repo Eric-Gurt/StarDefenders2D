@@ -381,7 +381,7 @@ class sdQuadro extends sdEntity
 				for ( let s = -1; s <= 1; s += 2 )
 				{
 					let wheel = new sdQuadro({ x: this.x + s * 7, y: this.y + 6, part: 1 });
-					sdEntity.entities.push( wheel );
+					sdEntity.AddEntityToEntitiesArray( wheel );
 
 					wheel.p = this;
 

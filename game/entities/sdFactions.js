@@ -46,7 +46,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.2 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 4;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -54,7 +54,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 3;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -65,7 +65,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.1 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -73,7 +73,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -89,7 +89,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.2 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 4;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -97,7 +97,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 3;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -108,7 +108,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.1 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -116,7 +116,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -135,7 +135,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.3 )
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }); // Works better for vehicle scenarios
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 2;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -143,7 +143,7 @@ class sdFactions extends sdEntity
 			else
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 1;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -157,7 +157,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.2 )
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 3;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -166,7 +166,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.5 )
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 4;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -174,7 +174,7 @@ class sdFactions extends sdEntity
 			else
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 1;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -194,7 +194,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.2 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 5;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -202,7 +202,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 4;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -212,7 +212,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.65 )
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 2;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -220,7 +220,7 @@ class sdFactions extends sdEntity
 			else
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 1;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -246,7 +246,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.25 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 4;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -254,7 +254,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -264,7 +264,7 @@ class sdFactions extends sdEntity
 			{ 
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: Math.random() < 0.15 ? sdGun.CLASS_ELECTROSHOCK : sdGun.CLASS_VELOX_PISTOL });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 1;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -287,7 +287,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.2 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -295,7 +295,7 @@ class sdFactions extends sdEntity
 			else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 3;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -309,7 +309,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.5 )
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 3;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -317,7 +317,7 @@ class sdFactions extends sdEntity
 			else
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 2;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -331,7 +331,7 @@ class sdFactions extends sdEntity
 			if ( Math.random() < 0.2 )
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_SNIPER });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 4;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -339,7 +339,7 @@ class sdFactions extends sdEntity
 			else
 			{
 				gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL });
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 					
 				character_entity._ai_gun_slot = 1;
 				gun.onMovementInRange( character_entity ); // Force pickup
@@ -363,7 +363,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.2 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 4;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -371,7 +371,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 3;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -382,7 +382,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.1 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -390,7 +390,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -406,7 +406,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.2 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 4;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -414,7 +414,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 3;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -425,7 +425,7 @@ class sdFactions extends sdEntity
 				if ( Math.random() < 0.1 )
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }); // Works better for vehicle scenarios
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -433,7 +433,7 @@ class sdFactions extends sdEntity
 				else
 				{
 					gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					character_entity._ai_gun_slot = 2;
 					gun.onMovementInRange( character_entity ); // Force pickup
@@ -448,7 +448,7 @@ class sdFactions extends sdEntity
 		if ( faction === sdFactions.FACTION_HIGH_COUNCILOR ) // High Councilor
 		{
 			let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_HIGH_COUNCIL_SWORD });
-			sdEntity.entities.push( gun );
+			sdEntity.AddEntityToEntitiesArray( gun );
 			
 			character_entity._ai_gun_slot = 0;
 			gun.onMovementInRange( character_entity ); // Force pickup

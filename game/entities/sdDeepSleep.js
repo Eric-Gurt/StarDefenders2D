@@ -301,7 +301,7 @@ class sdDeepSleep extends sdEntity
 								type: sdDeepSleep.TYPE_SCHEDULED_SLEEP
 							});
 
-							sdEntity.entities.push( cell );
+							sdEntity.AddEntityToEntitiesArray( cell );
 							
 							sdWorld.UpdateHashPosition( cell, false, false );
 						}
@@ -669,7 +669,7 @@ class sdDeepSleep extends sdEntity
 						material: sdBlock.MATERIAL_BUGGED_CHUNK,
 						texture_id: 0
 					});
-					sdEntity.entities.push( e );
+					sdEntity.AddEntityToEntitiesArray( e );
 
 					e._hmax = 1;
 					e._hea = 1;
@@ -1735,7 +1735,7 @@ class sdDeepSleep extends sdEntity
 						let cell = new sdDeepSleep({
 							x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
 						});
-						sdEntity.entities.push( cell );
+						sdEntity.AddEntityToEntitiesArray( cell );
 						
 						sdWorld.UpdateHashPosition( cell, false, false );
 					}

@@ -156,9 +156,62 @@ class sdEntity
 		return null;
 		
 		let ent = new class_ptr( params );
-		sdEntity.entities.push( ent );
+		sdEntity.AddEntityToEntitiesArray( ent );
 		sdWorld.UpdateHashPosition( ent, false, true );
 		return ent;
+	}
+	// --- sdEntity.entities registry helpers -------------------------------------------------
+	// All membership changes to the primary sdEntity.entities array go through these so that
+	// each entity's _entities_array_index stays valid, which lets removal be O(1) swap-and-pop
+	// (native pop()) instead of an O(N) indexOf/splice scan of the (production-scale) array.
+	// Order within sdEntity.entities is NOT behavior-significant: the sim think loop iterates
+	// active_entities/global_entities (sdWorld.js), while sdEntity.entities is only used for
+	// random-pick, net_id lookup, and snapshot enumeration - none order-dependent.
+	static AddEntityToEntitiesArray( ent )
+	{
+		ent._entities_array_index = sdEntity.entities.length;
+		sdEntity.entities.push( ent );
+	}
+	static RemoveEntityFromEntitiesArrayByIndex( index ) // Caller guarantees sdEntity.entities[ index ] is the entity to remove.
+	{
+		let arr = sdEntity.entities;
+		let last = arr.length - 1;
+
+		if ( index < 0 || index > last )
+		return false;
+
+		let removed = arr[ index ];
+
+		if ( index !== last )
+		{
+			let moved = arr[ last ];
+			arr[ index ] = moved;
+			moved._entities_array_index = index;
+		}
+
+		arr.pop();
+		removed._entities_array_index = -1;
+
+		return true;
+	}
+	static RemoveEntityFromEntitiesArray( ent )
+	{
+		let index = ent._entities_array_index;
+
+		// Defensive fallback: index unset (-1) or invalidated by some external mutation. Should
+		// not happen now that all inserts go through AddEntityToEntitiesArray, but a missed/foreign
+		// push would otherwise corrupt the array, so verify before trusting the cached index.
+		if ( index < 0 || index >= sdEntity.entities.length || sdEntity.entities[ index ] !== ent )
+		{
+			index = sdEntity.entities.lastIndexOf( ent );
+			if ( index === -1 )
+			{
+				ent._entities_array_index = -1;
+				return false;
+			}
+		}
+
+		return sdEntity.RemoveEntityFromEntitiesArrayByIndex( index );
 	}
 	static AllEntityClassesLoadedAndInitiated()
 	{
@@ -3015,6 +3068,7 @@ class sdEntity
 		sdWorld.UpdateHashPosition( this, true );
 		
 		this._is_being_removed = false;
+		this._entities_array_index = -1; // Position of this entity inside sdEntity.entities, maintained by AddEntityToEntitiesArray / RemoveEntityFromEntitiesArray* for O(1) swap-and-pop removal. -1 means "not in the array". Transient runtime-only value: excluded from snapshot saving (see GetSnapshot) and never network-synced (underscore-prefixed).
 		this._broken = false; // Becomes true for statics (anything now) whenever they are really broken rather than just cut out by visibility. After removal you can set it to false to prevent particles spawned on client
 		
 		this._is_bg_entity = this.IsBGEntity();
@@ -3943,10 +3997,12 @@ class sdEntity
 
 								  prop !== '_frozen' && 
 
-								  prop !== '_anything_near_range' && 
+								  prop !== '_anything_near_range' &&
 								  prop !== '_next_anything_near_rethink' &&
 
-								  ( 
+								  prop !== '_entities_array_index' && // Transient registry index - meaningless across reloads, must not be baked into saved snapshots
+
+								  (
 									typeof this[ prop ] === 'number' || 
 									typeof this[ prop ] === 'string' || 
 									this[ prop ] === null || 
@@ -4524,7 +4580,7 @@ class sdEntity
 			throw new Error( 'How?' );
 		}*/
 		
-		sdEntity.entities.push( ret );
+		sdEntity.AddEntityToEntitiesArray( ret );
 		//sdWorld.UpdateHashPosition( ret, false ); // Will prevent sdBlock from occasionally not having collisions on client-side (it will rest in hibernated state, probably because of that. It is kind of a bug though)
 	
 		return ret;
@@ -5792,9 +5848,11 @@ class sdEntity
 		
 		while ( pos < arr.length && ( t2 - t < 1 || pos < at_least ) )
 		{
-			let id = sdEntity.entities.lastIndexOf( arr[ pos ] );
-			if ( id !== -1 )
-			sdEntity.entities.splice( id, 1 );
+			// O(1) swap-and-pop per entity via the cached _entities_array_index instead of the
+			// former lastIndexOf()+splice() which scanned/shifted the whole sdEntity.entities array
+			// for every removed entity (the #1 heavy-combat hotspot). Same time-slice / at_least /
+			// force_all backlog semantics are preserved; only the per-entity cost changes.
+			sdEntity.RemoveEntityFromEntitiesArray( arr[ pos ] );
 
             pos++;
 

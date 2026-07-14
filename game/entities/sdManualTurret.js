@@ -248,7 +248,7 @@ class sdManualTurret extends sdEntity
 										bullet_obj._anti_shield_damage_bonus = 200000;
 									}
 
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 							}
 						}

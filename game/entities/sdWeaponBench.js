@@ -694,7 +694,7 @@ class sdWeaponBench extends sdEntity
 				
 					let keycard = new sdGun({ x:executer_character.x, y:executer_character.y, access_id: this._access_id, class:sdGun.CLASS_ACCESS_KEY });
 					
-					sdEntity.entities.push( keycard );
+					sdEntity.AddEntityToEntitiesArray( keycard );
 				
 					keycard.sd_filter = sdWorld.CreateSDFilter( true );
 					sdWorld.ReplaceColorInSDFilter_v2( keycard.sd_filter, '#00ff00', this._key_color );

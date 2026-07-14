@@ -163,7 +163,7 @@ class sdZektaronDreadnought extends sdEntity
 						}
 					};
 
-					sdEntity.entities.push( bullet_obj1 );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj1 );
 
 		let bullet_obj2 = new sdBullet({ x: this.x, y: this.y + 55 });
 					bullet_obj2._owner = this;
@@ -203,7 +203,7 @@ class sdZektaronDreadnought extends sdEntity
 						}
 					};
 
-					sdEntity.entities.push( bullet_obj2 );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 
 		let bullet_obj3 = new sdBullet({ x: this.x + 10, y: this.y + 50 });
 					bullet_obj3._owner = this;
@@ -243,7 +243,7 @@ class sdZektaronDreadnought extends sdEntity
 						}
 					};
 
-					sdEntity.entities.push( bullet_obj3 );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
 	}
 	CanAttackEnt( ent )
 	{
@@ -346,7 +346,7 @@ class sdZektaronDreadnought extends sdEntity
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:1.7 });
 
 				let drone = new sdDrone({ x: this.x - ( 75 * 4 * Math.random() ), y: this.y - ( 30 * 4 * Math.random() ), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
-				sdEntity.entities.push( drone );
+				sdEntity.AddEntityToEntitiesArray( drone );
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone.sx ) < 0.5 )
@@ -376,7 +376,7 @@ class sdZektaronDreadnought extends sdEntity
 				
 
 				let drone2 = new sdDrone({ x: this.x + 75 * 4 * Math.random(), y: this.y - 30 * 4 * Math.random(), type: sdDrone.DRONE_ZEKTARON_HUNTER, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
-				sdEntity.entities.push( drone2 );
+				sdEntity.AddEntityToEntitiesArray( drone2 );
 
 				// Make sure drone has any speed when deployed so drones don't get stuck into each other
 				if ( Math.abs( drone2.sx ) < 0.5 )
@@ -509,7 +509,7 @@ class sdZektaronDreadnought extends sdEntity
 
 					gun.sx = sx;
 					gun.sy = sy;
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 				}, 500 );
 			}
@@ -529,7 +529,7 @@ class sdZektaronDreadnought extends sdEntity
 
 					gun.sx = sx + Math.random() - Math.random();
 					gun.sy = sy + Math.random() - Math.random();
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 				}, 500 );
 				shards--;
@@ -779,7 +779,7 @@ class sdZektaronDreadnought extends sdEntity
 							drone.sy *= 0.1;
 							drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 			
-							sdEntity.entities.push( drone );
+							sdEntity.AddEntityToEntitiesArray( drone );
 							
 							let potential_target = drone.GetRandomTarget();
 							
@@ -805,7 +805,7 @@ class sdZektaronDreadnought extends sdEntity
 			
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 							
-							sdEntity.entities.push( drone2 );
+							sdEntity.AddEntityToEntitiesArray( drone2 );
 							
 							potential_target = drone2.GetRandomTarget();
 							
@@ -839,7 +839,7 @@ class sdZektaronDreadnought extends sdEntity
 			
 							drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 			
-							sdEntity.entities.push( drone );
+							sdEntity.AddEntityToEntitiesArray( drone );
 
 							let drone2 = new sdDrone({ x: this.x + 60, y: this.y + 25, type: ( Math.random() < 0.60 ) ? 15 /*Zektaron Corvette*/ : 14 /*Zektaron*/, _ai_team: this._ai_team, minion_of: this }); // We do a little trolling
 			
@@ -854,7 +854,7 @@ class sdZektaronDreadnought extends sdEntity
 			
 							drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 			
-							sdEntity.entities.push( drone2 );
+							sdEntity.AddEntityToEntitiesArray( drone2 );
 							
 							//this._current_minions_count++;
 							//this._current_minions_count++;
@@ -936,7 +936,7 @@ class sdZektaronDreadnought extends sdEntity
 						// bullet_obj._homing_mult = 0.04;
 						// bullet_obj.ac = 0.12;
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this._lasers--;
 

@@ -234,7 +234,7 @@ class sdSpider extends sdEntity
 
 				gun.sx = sx;
 				gun.sy = sy;
-				sdEntity.entities.push( gun );
+				sdEntity.AddEntityToEntitiesArray( gun );
 			}
 
 		}, 500 );
@@ -505,7 +505,7 @@ class sdSpider extends sdEntity
 
 					this.attack_anim = 10;
 
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 					
 					
 					this._burst_shots--;

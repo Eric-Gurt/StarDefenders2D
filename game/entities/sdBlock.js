@@ -549,7 +549,7 @@ class sdBlock extends sdEntity
 									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 									if ( parts.length < 2 ) // If worm is not corrupted, etc, spawn regular worm types
 									ent.kind = Math.random() < 0.15 ? 1 : 0; // 15% chance for the worm to be spiky
-									sdEntity.entities.push( ent );
+									sdEntity.AddEntityToEntitiesArray( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
 
@@ -601,7 +601,7 @@ class sdBlock extends sdEntity
 									}
 
 									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-									sdEntity.entities.push( ent );
+									sdEntity.AddEntityToEntitiesArray( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
 
@@ -653,7 +653,7 @@ class sdBlock extends sdEntity
 									}
 
 									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-									sdEntity.entities.push( ent );
+									sdEntity.AddEntityToEntitiesArray( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
 
@@ -704,7 +704,7 @@ class sdBlock extends sdEntity
 									}
 
 									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-									sdEntity.entities.push( ent );
+									sdEntity.AddEntityToEntitiesArray( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
 
@@ -749,7 +749,7 @@ class sdBlock extends sdEntity
 								}
 
 								ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 
 								sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 							}
@@ -2453,7 +2453,7 @@ class sdBlock extends sdEntity
 					let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter, natural:this._natural });
 					if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
 					{
-						sdEntity.entities.push( new_bg );
+						sdEntity.AddEntityToEntitiesArray( new_bg );
 						sdWorld.UpdateHashPosition( new_bg, false, true );
 					}
 					else
@@ -2542,15 +2542,15 @@ class sdBlock extends sdEntity
                         
                         
                         if ( this.material === sdBlock.MATERIAL_SNOW )
-                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, filter:'brightness(0) invert(1)', sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+                        sdEntity.AddEntityToEntitiesArray( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, filter:'brightness(0) invert(1)', sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
                         else
                         if ( this.material === sdBlock.MATERIAL_FLESH )
-                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+                        sdEntity.AddEntityToEntitiesArray( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
                         else
                         if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
-                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GLASS, sx: Math.sin(a)*s*1.5, sy: Math.cos(a)*s*1.5 }) );
+                        sdEntity.AddEntityToEntitiesArray( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GLASS, sx: Math.sin(a)*s*1.5, sy: Math.cos(a)*s*1.5 }) );
                         else
-                        sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+                        sdEntity.AddEntityToEntitiesArray( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
                     }
                 }
 			}

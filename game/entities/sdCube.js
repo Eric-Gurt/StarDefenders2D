@@ -838,7 +838,7 @@ class sdCube extends sdEntity
 
 							sdCube.ColorGunAccordingly( gun, this.kind );
 
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 							this._dropped_items.add( gun );
 
@@ -868,7 +868,7 @@ class sdCube extends sdEntity
 						gun.sy = sy;
 						//gun.extra = (this.kind === sdCube.KIND_PINK ? 3 : this.kind === sdCube.KIND_WHITE ? 2 : this.kind === sdCube.KIND_YELLOW ? 1 : 0 ); // Color it
 						sdCube.ColorGunAccordingly( gun, this.kind );
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 
 						this._dropped_items.add( gun );
 
@@ -885,7 +885,7 @@ class sdCube extends sdEntity
 						gun = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
 						gun.extra = 0;
 
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 						//sdWorld.UpdateHashPosition( gun, false );
 						
 						this._dropped_items.add( gun );
@@ -986,7 +986,7 @@ class sdCube extends sdEntity
 			bullet_obj1._custom_target_reaction = spear_targer_reaction;
             bullet_obj1._extra_filtering_method = extra_filtering_method;
 
-			sdEntity.entities.push( bullet_obj1 );
+			sdEntity.AddEntityToEntitiesArray( bullet_obj1 );
         }
 	}
 	TeleportSomewhere( dist = 1, add_x = 0, add_y = 0 ) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
@@ -1445,7 +1445,7 @@ class sdCube extends sdEntity
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
                                     bullet_obj._extra_filtering_method = extra_filtering_method;
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									
 									sdSound.PlaySound({ name:'supercharge_combined2_part2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
 								}
@@ -1585,7 +1585,7 @@ class sdCube extends sdEntity
 										sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === sdCube.KIND_RED || this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW || this.kind === sdCube.KIND_PURPLE ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
 									}
 	
-									sdEntity.entities.push( bullet_obj );
+									sdEntity.AddEntityToEntitiesArray( bullet_obj );
 								}
 								else
 								{

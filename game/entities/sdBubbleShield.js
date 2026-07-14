@@ -197,7 +197,7 @@ class sdBubbleShield extends sdEntity
 		else
 		{
 			let new_shield = new sdBubbleShield({ x:for_entity.x, y:for_entity.y, for_ent: for_entity, type: shield_type, manual_hitbox_override: manual_override, xscale: xsize, yscale: ysize });
-			sdEntity.entities.push( new_shield );
+			sdEntity.AddEntityToEntitiesArray( new_shield );
 			
 			if ( typeof for_entity._shield_ent === 'undefined' )
 			throw new Error( 'sdBubbleShield now requires entity it is made for to have property ._shield_ent = null;' );

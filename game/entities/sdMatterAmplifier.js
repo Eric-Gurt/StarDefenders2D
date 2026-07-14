@@ -150,7 +150,7 @@ class sdMatterAmplifier extends sdEntity
 			ent.matter = snapshot.matter;
 			ent.matter_regen = snapshot.matter_regen;
 			
-			sdEntity.entities.push( ent );
+			sdEntity.AddEntityToEntitiesArray( ent );
 		}
 	}
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables

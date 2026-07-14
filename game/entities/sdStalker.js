@@ -130,7 +130,7 @@ class sdStalker extends sdEntity
 		for ( let i = 0; i < count; i++ )
 		{
 			let character_entity = new sdCharacter({ x:this.x, y:this.y + 16, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-			sdEntity.entities.push( character_entity );
+			sdEntity.AddEntityToEntitiesArray( character_entity );
 		
 			character_entity.hea = 1000;
 			character_entity.hmax = 1000;
@@ -198,7 +198,7 @@ class sdStalker extends sdEntity
 					character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS }); // Permanent
 					
 					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_STALKER_RIFLE });
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 					
 					gun.fire_mode = Math.random() > 0.5 ? 1 : 2;
 					
@@ -239,7 +239,7 @@ class sdStalker extends sdEntity
 						bullet_obj.time_left = Number.MAX_SAFE_INTEGER;
 						bullet_obj._hea = 100;
 
-						sdEntity.entities.push( bullet_obj )
+						sdEntity.AddEntityToEntitiesArray( bullet_obj )
 					}
 					break;
 				}
@@ -435,7 +435,7 @@ class sdStalker extends sdEntity
 
 							gun.sx = sx;
 							gun.sy = sy;
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 					}
@@ -456,7 +456,7 @@ class sdStalker extends sdEntity
 
 							gun.sx = sx + Math.random() - Math.random();
 							gun.sy = sy + Math.random() - Math.random();
-							sdEntity.entities.push( gun );
+							sdEntity.AddEntityToEntitiesArray( gun );
 
 						}, 500 );
 						shards--;
@@ -729,7 +729,7 @@ class sdStalker extends sdEntity
 								}
 							}
 						
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 						
 							//sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 						}, 200 )
@@ -802,7 +802,7 @@ class sdStalker extends sdEntity
 							}
 						} 
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 						
 						sdSound.PlaySound({ name:'alien_laser1', x:this.x, y:this.y, volume:1, pitch: 0.2 });
 						

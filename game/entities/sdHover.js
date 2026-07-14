@@ -462,21 +462,21 @@ class sdHover extends sdEntity
 						let character_entity = new sdCharacter({ x:this.x + ( 4 * i ), y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 						let gun;
 
-						sdEntity.entities.push( character_entity );
+						sdEntity.AddEntityToEntitiesArray( character_entity );
 
 						if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 						{
 							if ( Math.random() < 0.2 )
 							{
 								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER });
-								sdEntity.entities.push( gun );
+								sdEntity.AddEntityToEntitiesArray( gun );
 								character_entity._ai_gun_slot = 4;
 								gun.onMovementInRange( character_entity );
 							}
 							else
 							{
 								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN });
-								sdEntity.entities.push( gun );
+								sdEntity.AddEntityToEntitiesArray( gun );
 								character_entity._ai_gun_slot = 3;
 								gun.onMovementInRange( character_entity );
 							}
@@ -486,14 +486,14 @@ class sdHover extends sdEntity
 							if ( Math.random() < 0.1 )
 							{
 								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG });
-								sdEntity.entities.push( gun );
+								sdEntity.AddEntityToEntitiesArray( gun );
 								character_entity._ai_gun_slot = 2;
 								gun.onMovementInRange( character_entity );
 							}
 							else
 							{
 								gun = new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE });
-								sdEntity.entities.push( gun );
+								sdEntity.AddEntityToEntitiesArray( gun );
 								character_entity._ai_gun_slot = 2;
 								gun.onMovementInRange( character_entity );
 							}
@@ -556,7 +556,7 @@ class sdHover extends sdEntity
 					{
 						let character_entity = new sdCharacter({ x:this.x + ( 4 * i ), y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-						sdEntity.entities.push( character_entity );
+						sdEntity.AddEntityToEntitiesArray( character_entity );
 						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK );
 						
 						//character_entity._potential_vehicle = this; // Select this as enterable vehicle
@@ -701,7 +701,7 @@ class sdHover extends sdEntity
 					{
 						this.matter -= cost;
 
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						this._bullets_reload = 1.5;
 
@@ -809,7 +809,7 @@ class sdHover extends sdEntity
 					{
 						this.matter -= cost;
 						
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						if ( this.type === sdHover.TYPE_TANK )
 						this._bullets_reload = 2;
@@ -936,7 +936,7 @@ class sdHover extends sdEntity
 					{
 						this.matter -= cost;
 						
-						sdEntity.entities.push( bullet_obj );
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						if ( this.type === sdHover.TYPE_TANK )
 						this._rockets_reload = 50;
@@ -980,7 +980,7 @@ class sdHover extends sdEntity
 				if ( this._eff_timer <= 0 )
 				{
 					let e = new sdEffect({ type: sdEffect.TYPE_SMOKE, x:this.x, y:this.y, sx: -Math.random() + Math.random(), sy:-1 * Math.random() * 3, scale:1, radius:0.25, color:sdEffect.GetSmokeColor( sdEffect.smoke_colors ) });
-					sdEntity.entities.push( e );
+					sdEntity.AddEntityToEntitiesArray( e );
 					
 					this._eff_timer = 1;
 				}

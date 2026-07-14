@@ -206,18 +206,18 @@ class sdDropPod extends sdEntity
 				{
 					let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
 
-					sdEntity.entities.push( character_entity );
+					sdEntity.AddEntityToEntitiesArray( character_entity );
 					sdWorld.UpdateHashPosition( character_entity, false );
 					if ( Math.random() < 0.5 ) // Random gun given to Star Defender
 					{
 						if ( Math.random() < 0.2 )
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+							sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
 							character_entity._ai_gun_slot = 4;
 						}
 						else
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+							sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
 							character_entity._ai_gun_slot = 3;
 						}
 					}
@@ -225,12 +225,12 @@ class sdDropPod extends sdEntity
 					{ 
 						if ( Math.random() < 0.1 )
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+							sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
 							character_entity._ai_gun_slot = 2;
 						}
 						else
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+							sdEntity.AddEntityToEntitiesArray( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
 							character_entity._ai_gun_slot = 2;
 						}
 					}
@@ -321,16 +321,16 @@ class sdDropPod extends sdEntity
 				let rng = Math.random(); // Value between 0 and 1 at the moment.
 				if ( rng < 0.3 ) // 30%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_AVRS }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_AVRS }) );
 				}
 				else
 				if ( rng < 0.55 ) // 25%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RAILCANNON }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RAILCANNON }) );
 				}
 				else // 45%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MMG }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MMG }) );
 				}
 			}
 			else // Random regular weapon given to Star Defenders, 60% chance
@@ -338,19 +338,19 @@ class sdDropPod extends sdEntity
 				let rng = Math.random(); // Value between 0 and 1 at the moment.
 				if ( rng < 0.15 ) // 15%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_HANDCANNON }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_HANDCANNON }) );
 				}
 				else if ( rng < 0.40 ) // 25%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MISSILE_LAUNCHER }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MISSILE_LAUNCHER }) );
 				}
 				else if ( rng < 0.75 ) // 35%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RIFLE }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RIFLE }) );
 				}
 				else // 25%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_SMG }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_SMG }) );
 				}
 			}
 		}
@@ -368,76 +368,76 @@ class sdDropPod extends sdEntity
 				let rng = Math.random(); // Value between 0 and 1 at the moment.
 				if ( rng < 0.05 ) // 5% chance for level 3 heavy armor
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_HEAVY_ARMOR }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_HEAVY_ARMOR }) );
 				}
 				else
 				if ( rng < 0.15 ) // 10%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ROCKET_MK2 }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_ROCKET_MK2 }) );
 				}
 				else
 				if ( rng < 0.25 ) // 10% chance for laser drill
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LASER_DRILL }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LASER_DRILL }) );
 				}
 				else
 				if ( rng < 0.35 ) // 10%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SNIPER }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SNIPER }) );
 				}
 				else
 				if ( rng < 0.45 ) // 10%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LASER_PISTOL }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LASER_PISTOL }) );
 				}
 				else
 				if ( rng < 0.55 ) // 10%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LMG }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LMG }) );
 				}
 				else
 				if ( rng < 0.60 ) // 5%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL2_ARMOR_REGEN }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL2_ARMOR_REGEN }) );
 				}
 				else
 				if ( rng < 0.625 ) // 2.5%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MINING_FOCUS_CUTTER }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_MINING_FOCUS_CUTTER }) );
 				}
 				else
 				if ( rng < 0.65 ) // 2.5%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_DRAIN_RIFLE }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_DRAIN_RIFLE }) );
 				}
 				else
 				if ( rng < 0.75 ) // 10%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_GRENADE_LAUNCHER_MK2 }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_GRENADE_LAUNCHER_MK2 }) );
 				}
 				else
 				if ( rng < 0.80 ) // 5%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_CUSTOM_RIFLE }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_CUSTOM_RIFLE }) );
 				}
                 else
 				if ( rng < 0.85 ) // 5%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BATTLE_RIFLE }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BATTLE_RIFLE }) );
 				}
 				else
 				if ( rng < 0.90 ) // 10%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SHOTGUN_MK2 }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_SHOTGUN_MK2 }) );
 				}
                 else
 				if ( rng < 0.95 ) // 5%
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_HEAVY_ROCKET }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_HEAVY_ROCKET }) );
 				}
 				else
 				{
-					sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL2_MEDIUM_ARMOR }) );
+					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL2_MEDIUM_ARMOR }) );
 				}
 			}
 		}

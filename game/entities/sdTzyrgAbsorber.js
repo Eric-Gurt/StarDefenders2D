@@ -112,7 +112,7 @@ class sdTzyrgAbsorber extends sdEntity
 
 					//gun.sx = sx;
 					//gun.sy = sy;
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 					}, 500 );
 				}
@@ -241,7 +241,7 @@ class sdTzyrgAbsorber extends sdEntity
 							bullet_obj._damage = 15;
 
 
-							sdEntity.entities.push( bullet_obj );
+							sdEntity.AddEntityToEntitiesArray( bullet_obj );
 						}
 
 						this.attack_frame = 1;

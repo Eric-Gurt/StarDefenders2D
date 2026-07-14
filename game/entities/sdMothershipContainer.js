@@ -202,7 +202,7 @@ class sdMothershipContainer extends sdEntity
 
 								let ent = new sdSolarMatterDistributor({ x:0, y:0 });
 
-								sdEntity.entities.push( ent );
+								sdEntity.AddEntityToEntitiesArray( ent );
 
 								{
 									let x,y;
@@ -290,7 +290,7 @@ class sdMothershipContainer extends sdEntity
 					{
 						let ent = new sdJunk({ x:0, y:0, type: sdJunk.TYPE_COUNCIL_BOMB });
 
-						sdEntity.entities.push( ent );
+						sdEntity.AddEntityToEntitiesArray( ent );
 
 						{
 							let x,y;
@@ -393,7 +393,7 @@ class sdMothershipContainer extends sdEntity
 
 							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_TEAMMATE });
 
-							sdEntity.entities.push( character_entity );
+							sdEntity.AddEntityToEntitiesArray( character_entity );
 
 							{
 								let x,y;

@@ -305,7 +305,7 @@ class sdJunk extends sdEntity
 				{
 					let drone = new sdDrone({ x:0, y:0 , type: 18});
 
-					sdEntity.entities.push( drone );
+					sdEntity.AddEntityToEntitiesArray( drone );
 								
 					let x,y;
 					let tr = 100;
@@ -393,7 +393,7 @@ class sdJunk extends sdEntity
 				if ( Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead, idea by Bandit
 				{
 					let cube = new sdCube({ x: this.x, y: this.y });
-					sdEntity.entities.push( cube );
+					sdEntity.AddEntityToEntitiesArray( cube );
 					this.remove();
 					return; // Prevents spawning cube shard when a cube stabilizes
 				}
@@ -416,7 +416,7 @@ class sdJunk extends sdEntity
 
 								bullet_obj1._damage = 150;
 
-								sdEntity.entities.push( bullet_obj1 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj1 );
 
 					let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
 								bullet_obj2._owner = this;
@@ -434,7 +434,7 @@ class sdJunk extends sdEntity
 								bullet_obj2.color = '#62c8f2';
 
 								bullet_obj2._damage = 150;
-								sdEntity.entities.push( bullet_obj2 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
 
 					let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
 								bullet_obj3._owner = this;
@@ -453,7 +453,7 @@ class sdJunk extends sdEntity
 
 								bullet_obj3._damage = 150;
 
-								sdEntity.entities.push( bullet_obj3 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
 
 					let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
 								bullet_obj4._owner = this;
@@ -471,7 +471,7 @@ class sdJunk extends sdEntity
 								bullet_obj4.color = '#62c8f2';	
 
 								bullet_obj4._damage = 150;
-								sdEntity.entities.push( bullet_obj4 );
+								sdEntity.AddEntityToEntitiesArray( bullet_obj4 );
 				}
 			}
 			if ( this.type === sdJunk.TYPE_ALIEN_BATTERY ) // Cube "barrels" explode
@@ -535,7 +535,7 @@ class sdJunk extends sdEntity
 						}
 					}
 				};
-				sdEntity.entities.push( bullet );
+				sdEntity.AddEntityToEntitiesArray( bullet );
 			}
 			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large Anti-crystal degrades into a big Anti-crystal
 			{
@@ -553,11 +553,11 @@ class sdJunk extends sdEntity
 				ent.matter_max = sdCrystal.anticrystal_value * 4;
 				ent.matter = 0;
 
-				sdEntity.entities.push( ent );
+				sdEntity.AddEntityToEntitiesArray( ent );
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 				
 				let ent2 = new sdCube({ x: this.x, y: ent.y + ent.hitbox_y1 - 5, sx: this.sx, sy: this.sy, kind: sdCube.KIND_MATTER_STEALER });
-				sdEntity.entities.push( ent2 );
+				sdEntity.AddEntityToEntitiesArray( ent2 );
 				sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
 			}
 
@@ -588,7 +588,7 @@ class sdJunk extends sdEntity
 					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 					gun.extra = this.type === sdJunk.TYPE_COUNCIL_BOMB ? 2 : 1;
 
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 				}, 500 );
 				
 				if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON && Math.random() < 0.25 ) // 25% chance for energy cell drop
@@ -597,7 +597,7 @@ class sdJunk extends sdEntity
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ERTHAL_ENERGY_CELL });
 
-					sdEntity.entities.push( gun2 );
+					sdEntity.AddEntityToEntitiesArray( gun2 );
 				}, 500 );
 
 				/*if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Council Immolator
@@ -606,7 +606,7 @@ class sdJunk extends sdEntity
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_IMMOLATOR });
 
-					sdEntity.entities.push( gun2 );
+					sdEntity.AddEntityToEntitiesArray( gun2 );
 				}, 500 );*/
 				
 				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.03 ) // 3% chance for Exalted core
@@ -615,7 +615,7 @@ class sdJunk extends sdEntity
 					let gun2;
 					gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_EXALTED_CORE });
 
-					sdEntity.entities.push( gun2 );
+					sdEntity.AddEntityToEntitiesArray( gun2 );
 				}, 500 );
                 
                 if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.10 ) // 10% chance for Eternal Shard
@@ -623,7 +623,7 @@ class sdJunk extends sdEntity
 
 					let gun3 = new sdGun({ x:x, y:y, class:sdGun.CLASS_ETERNAL_SHARD });
 
-					sdEntity.entities.push( gun3 );
+					sdEntity.AddEntityToEntitiesArray( gun3 );
 				}, 500 );
 			}
             
@@ -797,7 +797,7 @@ class sdJunk extends sdEntity
 					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SHARD });
 					gun.sx = sx;
 					gun.sy = sy;
-					sdEntity.entities.push( gun );
+					sdEntity.AddEntityToEntitiesArray( gun );
 
 				}, 500 );
 			}
@@ -818,7 +818,7 @@ class sdJunk extends sdEntity
 						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
 						gun.sx = sx;
 						gun.sy = sy;
-						sdEntity.entities.push( gun );
+						sdEntity.AddEntityToEntitiesArray( gun );
 						sdWorld.UpdateHashPosition( gun, false );
 
 					//}, 500 );
@@ -875,7 +875,7 @@ class sdJunk extends sdEntity
 			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 			{
 				let container = new sdMatterContainer({x: this.x, y: this.y, matter_max: this.matter_max, matter: this.matter});
-				sdEntity.entities.push( container );
+				sdEntity.AddEntityToEntitiesArray( container );
 				this.remove();
 				this._broken = false;
 			}
@@ -1205,7 +1205,7 @@ class sdJunk extends sdEntity
 
 					setTimeout(()=>{//Just in case
 						let worm = new sdSandWorm({x: this.x, y:this.y, kind: sdSandWorm.KIND_COUNCIL_WORM, scale: 1});
-						sdEntity.entities.push( worm );
+						sdEntity.AddEntityToEntitiesArray( worm );
 					}, 500 );
 
 					// Will ignore ones who disconnected during explosion
@@ -1272,7 +1272,7 @@ class sdJunk extends sdEntity
 					bullet_obj.time_left = 90 + Math.random() * 60; // 3-5 seconds after flare spawn to summon the humanoids
 					bullet_obj._bouncy = true;
 					
-					sdEntity.entities.push( bullet_obj );
+					sdEntity.AddEntityToEntitiesArray( bullet_obj );
 									
 					sdSound.PlaySound({ name:'explosion', x:this.x, y:this.y, volume:1, pitch:0.25 });
 					sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.5, pitch:2 });
@@ -1289,7 +1289,7 @@ class sdJunk extends sdEntity
 									{
 										let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
 
-										sdEntity.entities.push( drone );
+										sdEntity.AddEntityToEntitiesArray( drone );
 										
 										let x,y;
 										let tr = 100;
@@ -1345,7 +1345,7 @@ class sdJunk extends sdEntity
 							{
 								let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5});
 
-								sdEntity.entities.push( worm );
+								sdEntity.AddEntityToEntitiesArray( worm );
 
 								{
 									let x,y;
@@ -1456,7 +1456,7 @@ class sdJunk extends sdEntity
 
 							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-							sdEntity.entities.push( character_entity );
+							sdEntity.AddEntityToEntitiesArray( character_entity );
 
 							{
 								let x,y;
