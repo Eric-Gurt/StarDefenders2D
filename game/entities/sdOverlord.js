@@ -27,8 +27,25 @@ class sdOverlord extends sdEntity
 		sdOverlord.overlords = [];
 		
 		sdOverlord.rifle_offset_y = 14;
-		
+
+		// Per-class-name reusable single-element ignore arrays so the hot melee LOS
+		// check below doesn't allocate a fresh [ class_name ] every call and can hit
+		// the GetClassListByClassNameList ._classes cache. Keyed by class name; the
+		// returned array is only read (the LOS path attaches its cache to it), never
+		// mutated, so sharing it across calls is safe.
+		sdOverlord._self_ignore_class_arrays = new Map();
+
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	static GetSelfIgnoreClassArray( class_name )
+	{
+		let arr = sdOverlord._self_ignore_class_arrays.get( class_name );
+		if ( arr === undefined )
+		{
+			arr = [ class_name ];
+			sdOverlord._self_ignore_class_arrays.set( class_name, arr );
+		}
+		return arr;
 	}
 	get hitbox_x1() { return -13; }
 	get hitbox_x2() { return 13; }
@@ -828,7 +845,7 @@ class sdOverlord extends sdEntity
 						if ( t )
 						if ( !t._is_being_removed )
 						if ( sdWorld.inDist2D_Boolean( t.x, t.y, this.x, this.y + sdOverlord.rifle_offset_y, 50 ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, t.x, t.y, this, [ t.GetClass() ] ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, t.x, t.y, this, sdOverlord.GetSelfIgnoreClassArray( t.GetClass() ) ) )
 						{
 							if ( t === this._droppen_gun_entity )
 							{
