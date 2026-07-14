@@ -972,6 +972,34 @@ class sdCable extends sdEntity
 								Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 ) );
 	}
 	
+	HasClearLineOfSightForManagement( executer_character ) // Used to stop cables from being cut or reconfigured through walls
+	{
+		// The server does not have the sagging cable shape ( the `_points` are
+		// built on client-side only ), so cable proximity is measured against the
+		// straight segment between the two endpoints. That segment can pass right
+		// through walls, which previously let players cut or reconfigure cables
+		// from the far side of a wall they could not actually reach. Require a
+		// clear line of sight ( no sdBlock walls ) from the player to the nearest
+		// point of that segment.
+		//
+		// This is a no-op for normal play: point-blank actions ( the common case )
+		// are closer than the line-of-sight sampling step and always pass, and a
+		// player can always reach a cable's own endpoints. Only operating on a
+		// cable through a wall is rejected.
+		if ( !this.p || !this.c )
+		return true; // Malformed cable, let the existing onThink cleanup handle it
+
+		let cx = executer_character.x + ( executer_character.hitbox_x1 + executer_character.hitbox_x2 ) / 2;
+		let cy = executer_character.y + ( executer_character.hitbox_y1 + executer_character.hitbox_y2 ) / 2;
+
+		sdWorld.distToSegment(
+			{ x: cx, y: cy },
+			{ x: this.p.x + this.d[ 0 ], y: this.p.y + this.d[ 1 ] },
+			{ x: this.c.x + this.d[ 2 ], y: this.c.y + this.d[ 3 ] } ); // Parks the nearest point in sdWorld.reusable_closest_point
+
+		return sdWorld.CheckLineOfSight( cx, cy, sdWorld.reusable_closest_point.x, sdWorld.reusable_closest_point.y, null, null, sdBlock.as_class_list );
+	}
+
 	DrawBG( ctx, attached )
 	//Draw( ctx, attached )
 	{
@@ -1140,6 +1168,18 @@ class sdCable extends sdEntity
 						 ( executer_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
 						   executer_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
 					{
+						// Cables can not be cut or reconfigured through a wall. Wireless
+						// links ( managed at range near nodes ) and cables attached to the
+						// player themselves are exempt.
+						if ( this.t !== sdCable.TYPE_WIRELESS )
+						if ( this.p !== executer_character && this.c !== executer_character )
+						if ( !this.HasClearLineOfSightForManagement( executer_character ) )
+						{
+							if ( executer_socket )
+							executer_socket.SDServiceMessage( 'Cable is obstructed by a wall' );
+							return;
+						}
+
 						if ( command_name === 'CUT_CABLE' )
 						{
 							if ( this._shielded && !this._shielded._is_being_removed && this._shielded.protect_cables )
