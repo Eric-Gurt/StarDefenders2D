@@ -65,6 +65,14 @@ class sdWorld
 	{
 		//console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
+
+		// Adaptive snapshot backpressure: when the previous frame's simulation-only
+		// time (sdWorld.last_frame_time) exceeds this many ms, the per-frame client
+		// snapshot scheduler backs off (only_do_nth_connection_per_frame ramps up) so
+		// per-client snapshot generation can not collapse simulation FPS under heavy
+		// player load. Above the bundled logic_rate (16ms) so healthy servers are
+		// unaffected; engages once simulation alone drops below ~20 FPS. Tunable live.
+		sdWorld.sync_backpressure_ms = 50;
 		
 		//sdWorld.SERVER_EXPECTED_GSPEED = 1;
 		sdWorld.SERVER_AVERAGE_GSPEED_VALUES = []; // arr of { time, GSPEED, EXPECTED_GSPEED }, last second only
