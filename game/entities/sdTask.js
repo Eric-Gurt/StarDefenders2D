@@ -543,8 +543,42 @@ class sdTask extends sdEntity
 		
 		sdTask.tasks = [];
 		sdTask.sort_tasks = false;
+
+		sdTask.MAX_COMPACT_TASKS = 3; // Default HUD shows only the top-priority tasks plus a collapsed count for the rest, to avoid clogging the left side of the screen
 	}
-	
+	static DrawTaskList( ctx, scale ) // Draws sdTask.tasks as a compact HUD list (top-priority tasks + collapsed count), or the full list when the player expands it via Tab (sdRenderer.show_leader_board === 3)
+	{
+		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
+		return;
+
+		let visible_tasks = [];
+		for ( let t = 0; t < sdTask.tasks.length; t++ )
+		{
+			let task = sdTask.tasks[ t ];
+			if ( task._is_being_removed )
+			continue;
+			visible_tasks.push( task );
+		}
+
+		let expanded = sdRenderer.show_leader_board === 3; // Dedicated tasks-only view - give full details for every task
+		let shown = expanded ? visible_tasks.length : Math.min( visible_tasks.length, sdTask.MAX_COMPACT_TASKS );
+
+		for ( let t = 0; t < shown; t++ )
+		visible_tasks[ t ].DrawTaskInterface( ctx, scale );
+
+		let hidden_count = visible_tasks.length - shown;
+		if ( hidden_count > 0 )
+		{
+			ctx.globalAlpha = 0.75;
+			ctx.fillStyle = '#aaaaaa';
+			ctx.font = 11*scale + "px Verdana";
+			ctx.textAlign = 'left';
+			ctx.fillText( '+' + hidden_count + ' more ' + T('task') + ( hidden_count === 1 ? '' : 's' ) + ' (' + T('Tab to expand') + ')', 0, 11*scale );
+			ctx.translate( 0, ( 11 + 5 ) * scale );
+			ctx.globalAlpha = 1;
+		}
+	}
+
 	static WakeUpTasksFor( character )
 	{
 		for ( let i = 0; i < sdTask.tasks.length; i++ )

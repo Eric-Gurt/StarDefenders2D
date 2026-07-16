@@ -49,7 +49,7 @@ class sdGunClass
 {
 	static init_class()
 	{
-		function AddRecolorsFromColorAndCost( arr, from_color, cost, prefix='', category='' )
+		function AddRecolorsFromColorAndCost( arr, from_color, cost, prefix='', category='', also_set_projectile_color=false ) // also_set_projectile_color: for guns whose projectile/beam is drawn from gun.extra[ sdGun.ID_PROJECTILE_COLOR ] rather than a re-tinted sprite (ex. rail beams), the sd_filter recolor below never reaches the projectile - opt in per-gun instead of changing this shared helper's default behavior for everyone else
 		{
 			/*let colors = [
 				'cyan', '#00fff6',
@@ -88,7 +88,7 @@ class sdGunClass
 				//hint_color: '#ff0000', // Should be guessed from gun
 				color_picker_for: from_color,
 				action: ( gun, initiator=null, hex_color=null )=> // action method is called with 3rd parameter only because .color_picker_for is causing sdWeaponBench to send extra parameters at .AddColorPickerContextOption . It does not send first parameter from "parameters_array" which is passed to .ExecuteContextCommand as it contains just upgrade ID, which is pointless here (yes, it converts array into function arguments)
-				{ 
+				{
 					if ( typeof hex_color === 'string' && hex_color.length === 7 ) // ReplaceColorInSDFilter_v2 does the type check but just in case
 					{
 						if ( !gun.sd_filter )
@@ -98,6 +98,10 @@ class sdGunClass
 
 						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, from_color, hex_color );
 						//sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, from_color, '#00ff00' );
+
+						if ( also_set_projectile_color )
+						if ( !hasNoExtra( gun, initiator ) )
+						gun.extra[ sdGun.ID_PROJECTILE_COLOR ] = hex_color;
 					}
 				}
 			});
@@ -1990,9 +1994,9 @@ class sdGunClass
 				else
 				return false;
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30 ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30, '', '', true ) ) // also_set_projectile_color: true - this is a rail/beam weapon, its beam color comes from gun.extra[ ID_PROJECTILE_COLOR ] (see projectile_properties_dynamic above), not from the sprite recolor alone
 		};
-		
+
 		sdGun.classes[ sdGun.CLASS_CUBE_SHARD = 22 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'cube_shard2' ),

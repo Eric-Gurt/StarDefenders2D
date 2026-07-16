@@ -1108,6 +1108,9 @@ class sdRenderer
 							offsetB ? offsetB[ 2 ] : 0,
 							offsetC ? offsetC[ 2 ] : 0
 						);
+
+					if ( e._is_bg_entity === 1 ) // Background tiles/props (ex. sdBG) frequently have no ObjectOffset3D override, which ties their _sort at the same default (0) as many normal entities that also don't override it. Since visible_entities is sorted by descending _sort and drawn front-to-back-of-array (later array index paints over earlier ones), that tie was broken by incidental array order, letting BG randomly paint over normal entities. Force BG entities to the highest _sort so they always land first in the array and get painted first (i.e. behind everything else), regardless of ties.
+					e._sort += 1000000;
 				}
 				
 				/*if ( e.is( sdEffect ) )
@@ -2499,9 +2502,11 @@ class sdRenderer
 			ctx.fillText( T("Score") + ": " + sdWorld.RoundedThousandsSpaces( sdWorld.my_score ), sdRenderer.screen_width - leaderboard_width - score_bar_width - 7, 35 );
             
             if ( sdRenderer.display_coords )
+			if ( sdWorld.my_entity ) // Defensive - this whole HUD block is already gated on sdWorld.my_entity above, but keep this safe if that ever changes
 			{
+				ctx.textAlign = 'right'; // Anchor to the screen edge so the text can't run off-screen at narrow resolutions (previously left-aligned close to the edge, clipping the string)
 				ctx.fillStyle = '#ffffaa';
-				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed( 0 ) + ", Y = " + sdWorld.my_entity.y.toFixed( 0 ), sdRenderer.screen_width - 120 * scale, sdRenderer.screen_height - 15 );
+				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed( 0 ) + ", Y = " + sdWorld.my_entity.y.toFixed( 0 ), sdRenderer.screen_width - 10 * scale, sdRenderer.screen_height - 15 );
 			}
             
             //ctx, x, y, v1, v2, color = "#ff0000", width = 20, height = 3, name
@@ -2562,11 +2567,7 @@ class sdRenderer
 			
 			ctx.save();
 			ctx.translate( 15 * scale, 100 );
-			for ( let t = 0; t < sdTask.tasks.length; t++ )
-			{
-				let task = sdTask.tasks[ t ];
-				task.DrawTaskInterface( ctx, scale );
-			}
+			sdTask.DrawTaskList( ctx, scale );
 			ctx.restore();
 			
 			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
