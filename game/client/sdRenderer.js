@@ -2501,14 +2501,6 @@ class sdRenderer
             ctx.fillStyle = '#ffff00';
 			ctx.fillText( T("Score") + ": " + sdWorld.RoundedThousandsSpaces( sdWorld.my_score ), sdRenderer.screen_width - leaderboard_width - score_bar_width - 7, 35 );
             
-            if ( sdRenderer.display_coords )
-			if ( sdWorld.my_entity ) // Defensive - this whole HUD block is already gated on sdWorld.my_entity above, but keep this safe if that ever changes
-			{
-				ctx.textAlign = 'right'; // Anchor to the screen edge so the text can't run off-screen at narrow resolutions (previously left-aligned close to the edge, clipping the string)
-				ctx.fillStyle = '#ffffaa';
-				ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed( 0 ) + ", Y = " + sdWorld.my_entity.y.toFixed( 0 ), sdRenderer.screen_width - 10 * scale, sdRenderer.screen_height - 15 );
-			}
-            
             //ctx, x, y, v1, v2, color = "#ff0000", width = 20, height = 3, name
 
             ctx.textAlign = 'left';
@@ -2550,21 +2542,30 @@ class sdRenderer
 			}
 			if ( globalThis.enable_debug_info )
 			{
-				
+				let coords_line_offset = ( sdRenderer.display_coords && sdWorld.my_entity ) ? 15 : 0; // Shift this block up to leave room at the bottom corner for the coordinates line below, instead of overlapping it
+
 				ctx.fillStyle = '#ffffaa'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
-           		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
-				
-				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 70 );
-				
-				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " / " + sdEntity.global_entities.length + " :: total / active / global" , 10 * scale, sdRenderer.screen_height - 55 );
-				
-				ctx.fillText("Mouse Coordinates: X = " + sdWorld.my_entity.look_x.toFixed(0) + ", Y = " + sdWorld.my_entity.look_y.toFixed(0), 10 * scale, sdRenderer.screen_height - 40 );
-				
-				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 10 * scale, sdRenderer.screen_height - 25 );
-				
-				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 10 * scale, sdRenderer.screen_height - 10 );
+           		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );
+
+				ctx.fillText( sdRenderer.last_frame_times.length+" FPS", 10 * scale, sdRenderer.screen_height - 70 - coords_line_offset );
+
+				ctx.fillText( "Entities: " + sdEntity.entities.length + " / " + sdEntity.active_entities.length + " / " + sdEntity.global_entities.length + " :: total / active / global" , 10 * scale, sdRenderer.screen_height - 55 - coords_line_offset );
+
+				ctx.fillText("Mouse Coordinates: X = " + sdWorld.my_entity.look_x.toFixed(0) + ", Y = " + sdWorld.my_entity.look_y.toFixed(0), 10 * scale, sdRenderer.screen_height - 40 - coords_line_offset );
+
+				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 10 * scale, sdRenderer.screen_height - 25 - coords_line_offset );
+
+				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 10 * scale, sdRenderer.screen_height - 10 - coords_line_offset );
 			}
-			
+
+			if ( sdRenderer.display_coords ) // Bottom-left corner (not bottom-right - that's where the "Track: ..." now-playing indicator lives) - stacks below globalThis.enable_debug_info's lines when both are on, via coords_line_offset above
+			if ( sdWorld.my_entity )
+			{
+				ctx.textAlign = 'left';
+				ctx.fillStyle = '#ffffaa';
+				ctx.fillText( "Coordinates: X = " + sdWorld.my_entity.x.toFixed( 0 ) + ", Y = " + sdWorld.my_entity.y.toFixed( 0 ), 10 * scale, sdRenderer.screen_height - 10 );
+			}
+
 			ctx.save();
 			ctx.translate( 15 * scale, 100 );
 			sdTask.DrawTaskList( ctx, scale );
