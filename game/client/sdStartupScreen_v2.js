@@ -91,6 +91,7 @@
 	let animation_appear = 'section_appear '+(anim_duration_ms/1000)+'s ease forwards';
 	let animation_disappear = 'section_disappear '+(anim_duration_ms/1000)+'s ease forwards';
 	let current_screen = null;
+	let pending_transition_timeout = null; // Rapid GoToScreen calls (ex. double-clicking, or clicking again before the 150ms fade finishes) used to stack overlapping setTimeout-deferred Proceed() calls, which could interrupt each other's CSS animation mid-flight and leave a screen stuck at a partial opacity (looks "blank"/invisible while technically still display:block). Cancelling any still-pending one before starting a new transition keeps only the latest requested navigation in flight.
 	let settings_screen_appearance_callbacks = []; // Scroll radio buttons, which is impossible if screen has display none
 	globalThis.page_background = document.getElementById( 'page_background' );
 	globalThis.page_foreground = document.getElementById( 'page_foreground' );
@@ -186,16 +187,21 @@
 					settings_screen_appearance_callbacks.length = 0;
 				}*/
 				
-				current_screen = new_screen;
 			};
-			
+
+			if ( pending_transition_timeout !== null ) // A previous GoToScreen call hasn't finished its fade yet - drop it rather than let both Proceed() calls fire and fight over current_screen/animation state
+			{
+				clearTimeout( pending_transition_timeout );
+				pending_transition_timeout = null;
+			}
+
 			if ( current_screen )
 			{
 				current_screen.parentNode.scroll({ behavior:'smooth', top:0 });
-				
+
 				current_screen.style.animation = animation_disappear;
 				current_screen.style.display = 'none';
-				
+
 				/*if ( current_screen.id === 'screen_menu' )
 				{
 					menu_defender.style.animation = animation_disappear;
@@ -204,15 +210,15 @@
 				if ( screen_callbacks[ current_screen.id ] )
 				if ( screen_callbacks[ current_screen.id ].onLeave )
 				screen_callbacks[ current_screen.id ].onLeave();
-				
-				//current_screen = new_screen;
-			
-				setTimeout( Proceed, anim_duration_ms );
+
+				current_screen = new_screen; // Updated synchronously (not inside Proceed) so a rapid follow-up GoToScreen call always sees the correct in-flight target, instead of racing against the still-pending timeout below
+
+				pending_transition_timeout = setTimeout( ()=>{ pending_transition_timeout = null; Proceed(); }, anim_duration_ms );
 			}
 			else
 			{
-				//current_screen = new_screen;
-				
+				current_screen = new_screen;
+
 				Proceed();
 			}
 		}
@@ -858,28 +864,28 @@
 			AddHTML(`
 				<settings_line>
 					<left>Colors:</left>
-					<right style="display:flex; flex-wrap:wrap; align-items:flex-start;">
-						${ [
-							[ 'color_bright',  '#c0c0c0', 'Helmet (light)' ],
-							[ 'color_dark',    '#808080', 'Helmet (shadow)' ],
-							[ 'color_visor',   '#ff0000', 'Visor' ],
-							[ 'color_bright3', '#c0c0c0', 'Chest badge (light)' ],
-							[ 'color_dark3',   '#808080', 'Chest badge (shadow)' ],
-							[ 'color_suit',    '#000080', 'Jacket' ],
-							[ 'color_suit2',   '#000080', 'Legs' ],
-							[ 'color_dark2',   '#808080', 'Suit accent' ],
-							[ 'color_shoes',   '#000000', 'Shoes' ],
-							[ 'color_skin',    '#808000', 'Skin' ],
-							[ 'color_extra1',  '#0000ff', 'Extra accent' ]
-						].map( ( [ id, value, label ] )=>
-							`<span style="display:inline-flex; flex-direction:column; align-items:center; margin:0 0.3vw;">
-								<input type="color" id="${ id }" value="${ value }" title="${ label }">
-								<div style="font-size:0.65vw; color:#aaaaaa; white-space:nowrap; margin-top:0.1vw;">${ label }</div>
-							</span>`
-						).join('') }
-						<span style="display:inline-flex; flex-direction:column; justify-content:flex-end;">
-							<input style="width:8vw" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
-						</span>
+					<right>
+						<div style="display:grid; grid-template-columns:repeat(auto-fill, 5vw); column-gap:0.2vw; row-gap:0.4vw;">
+							${ [
+								[ 'color_bright',  '#c0c0c0', 'Helmet (light)' ],
+								[ 'color_dark',    '#808080', 'Helmet (shadow)' ],
+								[ 'color_visor',   '#ff0000', 'Visor' ],
+								[ 'color_bright3', '#c0c0c0', 'Chest badge (light)' ],
+								[ 'color_dark3',   '#808080', 'Chest badge (shadow)' ],
+								[ 'color_suit',    '#000080', 'Jacket' ],
+								[ 'color_suit2',   '#000080', 'Legs' ],
+								[ 'color_dark2',   '#808080', 'Suit accent' ],
+								[ 'color_shoes',   '#000000', 'Shoes' ],
+								[ 'color_skin',    '#808000', 'Skin' ],
+								[ 'color_extra1',  '#0000ff', 'Extra accent' ]
+							].map( ( [ id, value, label ] )=>
+								`<div style="display:flex; flex-direction:column; align-items:center;">
+									<input type="color" id="${ id }" value="${ value }" title="${ label }">
+									<div style="font-size:0.6vw; color:#aaaaaa; text-align:center; line-height:1.2; margin-top:0.1vw; background:rgba(20,20,20,0.35); border-radius:3px; padding:0.05vw 0.2vw; box-sizing:border-box;">${ label }</div>
+								</div>`
+							).join('') }
+						</div>
+						<input style="width:8vw; margin-top:0.5vw;" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
 					</right>
 				</settings_line>
 			`);
