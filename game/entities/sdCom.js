@@ -202,9 +202,17 @@ class sdCom extends sdEntity
 		}
 		
 		let snapshot = super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
-		
+
 		if ( hide_contents )
 		{
+			// Clone before mutating: snapshot is the entity's shared, persistently-cached snapshot
+			// object (same reference every call - see sdEntity.GetSnapshot's _snapshot_cache), reused
+			// regardless of observer. Mutating it in place here would let a far observer's subscriber
+			// list get trimmed for this same object other observers already hold a reference to this
+			// tick (sdByteShifter's per-entity diff-prep cache keys reuse on this object's identity,
+			// same class of bug as the sdStorage ghost-items/hide-contents race).
+			snapshot = Object.assign( {}, snapshot );
+
 			let id = snapshot.subscribers.indexOf( observer_entity.biometry );
 			
 			if ( id === -1 )

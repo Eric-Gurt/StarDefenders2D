@@ -80,13 +80,23 @@ class sdStorage extends sdEntity
 		}
 		
 		let snapshot = super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
-		
+
 		if ( hide_contents )
 		{
+			// super.GetSnapshot returns the entity's shared, persistently-cached snapshot object
+			// (same reference every call, only its properties are refreshed in place - see
+			// sdEntity.GetSnapshot's _snapshot_cache). Mutating it here would corrupt what other
+			// observers - near or far - see for this same tick: sdByteShifter's per-entity diff-prep
+			// cache (phase-13-snapshot-01) keys its reuse on this object's identity, and since it's
+			// always the same object regardless of observer, a far player's snapshot request could
+			// silently blank out stored_names/is_armable for a nearby player's already-cached diff (or
+			// vice versa leak contents to a far player), depending on per-tick observer processing
+			// order. Clone first so hiding contents for this observer can never affect another.
+			snapshot = Object.assign( {}, snapshot );
 			snapshot.stored_names = [];
 			snapshot.is_armable = [];
 		}
-		
+
 		return snapshot;
 	}
 	constructor( params )

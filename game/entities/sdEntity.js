@@ -3305,13 +3305,21 @@ class sdEntity
 		
 		let snapshot = sdEntity.prototype.GetSnapshot.call( this, current_frame, save_as_much_as_possible, observer_entity );
 		//let snapshot = super.GetSnapshot( current_frame, save_as_much_as_possible, observer_entity );
-		
+
 		if ( hide_contents )
 		{
+			// Clone before mutating: snapshot is this entity's shared, persistently-cached snapshot
+			// object (same reference every call - see GetSnapshot's _snapshot_cache), reused regardless
+			// of observer. Mutating it in place would let one observer's driver-hiding pass blank out
+			// (or leak) driver slots for another observer's already-cached copy within the same tick
+			// (sdByteShifter's per-entity diff-prep cache keys reuse on this object's identity - same
+			// class of bug as the sdStorage ghost-items/hide-contents race).
+			snapshot = Object.assign( {}, snapshot );
+
 			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 			snapshot[ 'driver' + i ] = null;
 		}
-		
+
 		return snapshot;
 	}
 	
