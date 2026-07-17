@@ -1,0 +1,1151 @@
+{
+	"_readme": "Tooltip text shown on the loading screen carousel while cycling through each entity/gun. Fill in \"tip\" for each entry (leave \"\" to skip - that entry will just show its title with no tip text). \"title\" is a suggested display name and can be edited too.",
+	"entities": {
+		"sdAbomination": {
+			"title": "sdAbomination",
+			"tip": ""
+		},
+		"sdAmphid": {
+			"title": "sdAmphid",
+			"tip": ""
+		},
+		"sdAntigravity": {
+			"title": "sdAntigravity",
+			"tip": ""
+		},
+		"sdArea": {
+			"title": "sdArea",
+			"tip": ""
+		},
+		"sdAsp": {
+			"title": "sdAsp",
+			"tip": ""
+		},
+		"sdAsteroid": {
+			"title": "sdAsteroid",
+			"tip": ""
+		},
+		"sdBG": {
+			"title": "sdBG",
+			"tip": ""
+		},
+		"sdBSUTurret": {
+			"title": "sdBSUTurret",
+			"tip": ""
+		},
+		"sdBadDog": {
+			"title": "sdBadDog",
+			"tip": ""
+		},
+		"sdBall": {
+			"title": "sdBall",
+			"tip": ""
+		},
+		"sdBarrel": {
+			"title": "sdBarrel",
+			"tip": ""
+		},
+		"sdBaseShieldingUnit": {
+			"title": "sdBaseShieldingUnit",
+			"tip": ""
+		},
+		"sdBeacon": {
+			"title": "sdBeacon",
+			"tip": ""
+		},
+		"sdBeamProjector": {
+			"title": "sdBeamProjector",
+			"tip": ""
+		},
+		"sdBiter": {
+			"title": "sdBiter",
+			"tip": ""
+		},
+		"sdBlock": {
+			"title": "sdBlock",
+			"tip": ""
+		},
+		"sdBloodDecal": {
+			"title": "sdBloodDecal",
+			"tip": ""
+		},
+		"sdBomb": {
+			"title": "sdBomb",
+			"tip": ""
+		},
+		"sdBone": {
+			"title": "sdBone",
+			"tip": ""
+		},
+		"sdBot": {
+			"title": "sdBot",
+			"tip": ""
+		},
+		"sdBotCharger": {
+			"title": "sdBotCharger",
+			"tip": ""
+		},
+		"sdBotFactory": {
+			"title": "sdBotFactory",
+			"tip": ""
+		},
+		"sdBubbleShield": {
+			"title": "sdBubbleShield",
+			"tip": ""
+		},
+		"sdBullet": {
+			"title": "sdBullet",
+			"tip": ""
+		},
+		"sdButton": {
+			"title": "sdButton",
+			"tip": ""
+		},
+		"sdCable": {
+			"title": "sdCable",
+			"tip": ""
+		},
+		"sdCamera": {
+			"title": "sdCamera",
+			"tip": ""
+		},
+		"sdCapsulePod": {
+			"title": "sdCapsulePod",
+			"tip": ""
+		},
+		"sdCaption": {
+			"title": "sdCaption",
+			"tip": ""
+		},
+		"sdCharacter": {
+			"title": "sdCharacter",
+			"tip": ""
+		},
+		"sdCom": {
+			"title": "sdCom",
+			"tip": ""
+		},
+		"sdCommandCentre": {
+			"title": "sdCommandCentre",
+			"tip": ""
+		},
+		"sdConveyor": {
+			"title": "sdConveyor",
+			"tip": ""
+		},
+		"sdCouncilIncinerator": {
+			"title": "sdCouncilIncinerator",
+			"tip": ""
+		},
+		"sdCouncilMachine": {
+			"title": "sdCouncilMachine",
+			"tip": ""
+		},
+		"sdCouncilNullifier": {
+			"title": "sdCouncilNullifier",
+			"tip": ""
+		},
+		"sdCraftingBench": {
+			"title": "sdCraftingBench",
+			"tip": ""
+		},
+		"sdCrystal": {
+			"title": "sdCrystal",
+			"tip": ""
+		},
+		"sdCrystalCombiner": {
+			"title": "sdCrystalCombiner",
+			"tip": ""
+		},
+		"sdCube": {
+			"title": "sdCube",
+			"tip": ""
+		},
+		"sdDeepSleep": {
+			"title": "sdDeepSleep",
+			"tip": ""
+		},
+		"sdDoor": {
+			"title": "sdDoor",
+			"tip": ""
+		},
+		"sdDrone": {
+			"title": "sdDrone",
+			"tip": ""
+		},
+		"sdDropPod": {
+			"title": "sdDropPod",
+			"tip": ""
+		},
+		"sdEffect": {
+			"title": "sdEffect",
+			"tip": ""
+		},
+		"sdEnemyMech": {
+			"title": "sdEnemyMech",
+			"tip": ""
+		},
+		"sdEssenceExtractor": {
+			"title": "sdEssenceExtractor",
+			"tip": ""
+		},
+		"sdExcavator": {
+			"title": "sdExcavator",
+			"tip": ""
+		},
+		"sdFaceCrab": {
+			"title": "sdFaceCrab",
+			"tip": ""
+		},
+		"sdFactionSpawner": {
+			"title": "sdFactionSpawner",
+			"tip": ""
+		},
+		"sdFactionTools": {
+			"title": "sdFactionTools",
+			"tip": ""
+		},
+		"sdFactions": {
+			"title": "sdFactions",
+			"tip": ""
+		},
+		"sdFactionskin": {
+			"title": "sdFactionskin",
+			"tip": ""
+		},
+		"sdFleshGrabber": {
+			"title": "sdFleshGrabber",
+			"tip": ""
+		},
+		"sdGib": {
+			"title": "sdGib",
+			"tip": ""
+		},
+		"sdGrass": {
+			"title": "sdGrass",
+			"tip": ""
+		},
+		"sdGrub": {
+			"title": "sdGrub",
+			"tip": ""
+		},
+		"sdGuanako": {
+			"title": "sdGuanako",
+			"tip": ""
+		},
+		"sdGuanakoStructure": {
+			"title": "sdGuanakoStructure",
+			"tip": ""
+		},
+		"sdGun": {
+			"title": "sdGun",
+			"tip": ""
+		},
+		"sdHover": {
+			"title": "sdHover",
+			"tip": ""
+		},
+		"sdJunk": {
+			"title": "sdJunk",
+			"tip": ""
+		},
+		"sdLamp": {
+			"title": "sdLamp",
+			"tip": ""
+		},
+		"sdLandMine": {
+			"title": "sdLandMine",
+			"tip": ""
+		},
+		"sdLandScanner": {
+			"title": "sdLandScanner",
+			"tip": ""
+		},
+		"sdLifeBox": {
+			"title": "sdLifeBox",
+			"tip": ""
+		},
+		"sdLiquidAbsorber": {
+			"title": "sdLiquidAbsorber",
+			"tip": ""
+		},
+		"sdLongRangeAntenna": {
+			"title": "sdLongRangeAntenna",
+			"tip": ""
+		},
+		"sdLongRangeTeleport": {
+			"title": "sdLongRangeTeleport",
+			"tip": ""
+		},
+		"sdLost": {
+			"title": "sdLost",
+			"tip": ""
+		},
+		"sdManualTurret": {
+			"title": "sdManualTurret",
+			"tip": ""
+		},
+		"sdMatterAmplifier": {
+			"title": "sdMatterAmplifier",
+			"tip": ""
+		},
+		"sdMatterContainer": {
+			"title": "sdMatterContainer",
+			"tip": ""
+		},
+		"sdMatterMatrix": {
+			"title": "sdMatterMatrix",
+			"tip": ""
+		},
+		"sdMeow": {
+			"title": "sdMeow",
+			"tip": ""
+		},
+		"sdMimic": {
+			"title": "sdMimic",
+			"tip": ""
+		},
+		"sdMothershipContainer": {
+			"title": "sdMothershipContainer",
+			"tip": ""
+		},
+		"sdNode": {
+			"title": "sdNode",
+			"tip": ""
+		},
+		"sdObelisk": {
+			"title": "sdObelisk",
+			"tip": ""
+		},
+		"sdOctopus": {
+			"title": "sdOctopus",
+			"tip": ""
+		},
+		"sdOverlord": {
+			"title": "sdOverlord",
+			"tip": ""
+		},
+		"sdPlayerDrone": {
+			"title": "sdPlayerDrone",
+			"tip": ""
+		},
+		"sdPlayerOverlord": {
+			"title": "sdPlayerOverlord",
+			"tip": ""
+		},
+		"sdPlayerSpectator": {
+			"title": "sdPlayerSpectator",
+			"tip": ""
+		},
+		"sdPortal": {
+			"title": "sdPortal",
+			"tip": ""
+		},
+		"sdPresetEditor": {
+			"title": "sdPresetEditor",
+			"tip": ""
+		},
+		"sdQuadro": {
+			"title": "sdQuadro",
+			"tip": ""
+		},
+		"sdQuickie": {
+			"title": "sdQuickie",
+			"tip": ""
+		},
+		"sdRescueTeleport": {
+			"title": "sdRescueTeleport",
+			"tip": ""
+		},
+		"sdRift": {
+			"title": "sdRift",
+			"tip": ""
+		},
+		"sdRoach": {
+			"title": "sdRoach",
+			"tip": ""
+		},
+		"sdRotator": {
+			"title": "sdRotator",
+			"tip": ""
+		},
+		"sdSampleBuilder": {
+			"title": "sdSampleBuilder",
+			"tip": ""
+		},
+		"sdSandWorm": {
+			"title": "sdSandWorm",
+			"tip": ""
+		},
+		"sdScriptInstructor": {
+			"title": "sdScriptInstructor",
+			"tip": ""
+		},
+		"sdSensorArea": {
+			"title": "sdSensorArea",
+			"tip": ""
+		},
+		"sdSetrBeholder": {
+			"title": "sdSetrBeholder",
+			"tip": ""
+		},
+		"sdSetrDestroyer": {
+			"title": "sdSetrDestroyer",
+			"tip": ""
+		},
+		"sdShark": {
+			"title": "sdShark",
+			"tip": ""
+		},
+		"sdShurgConverter": {
+			"title": "sdShurgConverter",
+			"tip": ""
+		},
+		"sdShurgExcavator": {
+			"title": "sdShurgExcavator",
+			"tip": ""
+		},
+		"sdShurgManualTurret": {
+			"title": "sdShurgManualTurret",
+			"tip": ""
+		},
+		"sdShurgTurret": {
+			"title": "sdShurgTurret",
+			"tip": ""
+		},
+		"sdSlug": {
+			"title": "sdSlug",
+			"tip": ""
+		},
+		"sdSolarMatterDistributor": {
+			"title": "sdSolarMatterDistributor",
+			"tip": ""
+		},
+		"sdSpider": {
+			"title": "sdSpider",
+			"tip": ""
+		},
+		"sdStalker": {
+			"title": "sdStalker",
+			"tip": ""
+		},
+		"sdStatusEffect": {
+			"title": "sdStatusEffect",
+			"tip": ""
+		},
+		"sdStealer": {
+			"title": "sdStealer",
+			"tip": ""
+		},
+		"sdSteeringWheel": {
+			"title": "sdSteeringWheel",
+			"tip": ""
+		},
+		"sdStorage": {
+			"title": "sdStorage",
+			"tip": ""
+		},
+		"sdStorageTank": {
+			"title": "sdStorageTank",
+			"tip": ""
+		},
+		"sdSunPanel": {
+			"title": "sdSunPanel",
+			"tip": ""
+		},
+		"sdTask": {
+			"title": "sdTask",
+			"tip": ""
+		},
+		"sdTeleport": {
+			"title": "sdTeleport",
+			"tip": ""
+		},
+		"sdTheatre": {
+			"title": "sdTheatre",
+			"tip": ""
+		},
+		"sdThruster": {
+			"title": "sdThruster",
+			"tip": ""
+		},
+		"sdTurret": {
+			"title": "sdTurret",
+			"tip": ""
+		},
+		"sdTutel": {
+			"title": "sdTutel",
+			"tip": ""
+		},
+		"sdTzyrgAbsorber": {
+			"title": "sdTzyrgAbsorber",
+			"tip": ""
+		},
+		"sdTzyrgMortar": {
+			"title": "sdTzyrgMortar",
+			"tip": ""
+		},
+		"sdUpgradeStation": {
+			"title": "sdUpgradeStation",
+			"tip": ""
+		},
+		"sdVeloxFortifier": {
+			"title": "sdVeloxFortifier",
+			"tip": ""
+		},
+		"sdVeloxMiner": {
+			"title": "sdVeloxMiner",
+			"tip": ""
+		},
+		"sdVirus": {
+			"title": "sdVirus",
+			"tip": ""
+		},
+		"sdWanderer": {
+			"title": "sdWanderer",
+			"tip": ""
+		},
+		"sdWater": {
+			"title": "sdWater",
+			"tip": ""
+		},
+		"sdWeaponBench": {
+			"title": "sdWeaponBench",
+			"tip": ""
+		},
+		"sdWeaponMerger": {
+			"title": "sdWeaponMerger",
+			"tip": ""
+		},
+		"sdWeather": {
+			"title": "sdWeather",
+			"tip": ""
+		},
+		"sdWorkbench": {
+			"title": "sdWorkbench",
+			"tip": ""
+		},
+		"sdZektaronDreadnought": {
+			"title": "sdZektaronDreadnought",
+			"tip": ""
+		}
+	},
+	"guns": {
+		"CLASS_PISTOL": {
+			"title": "Pistol",
+			"tip": ""
+		},
+		"CLASS_RIFLE": {
+			"title": "Assault rifle",
+			"tip": ""
+		},
+		"CLASS_SHOTGUN": {
+			"title": "Shotgun",
+			"tip": ""
+		},
+		"CLASS_RAILGUN": {
+			"title": "Railgun",
+			"tip": ""
+		},
+		"CLASS_ROCKET": {
+			"title": "Rocket launcher",
+			"tip": ""
+		},
+		"CLASS_MEDIKIT": {
+			"title": "Defibrillator",
+			"tip": ""
+		},
+		"CLASS_SPARK": {
+			"title": "Spark",
+			"tip": ""
+		},
+		"CLASS_BUILD_TOOL": {
+			"title": "Build tool",
+			"tip": ""
+		},
+		"CLASS_CRYSTAL_SHARD": {
+			"title": "Crystal shard",
+			"tip": ""
+		},
+		"CLASS_GRENADE_LAUNCHER": {
+			"title": "Grenade launcher",
+			"tip": ""
+		},
+		"CLASS_NEEDLE": {
+			"title": "Needle",
+			"tip": ""
+		},
+		"CLASS_SWORD": {
+			"title": "Sword",
+			"tip": ""
+		},
+		"CLASS_STIMPACK": {
+			"title": "Stimpack",
+			"tip": ""
+		},
+		"CLASS_FALKOK_RIFLE": {
+			"title": "Assault Rifle C-01r",
+			"tip": ""
+		},
+		"CLASS_TRIPLE_RAIL": {
+			"title": "Cube-gun",
+			"tip": ""
+		},
+		"CLASS_FISTS": {
+			"title": "Fists",
+			"tip": ""
+		},
+		"CLASS_SABER": {
+			"title": "Saber",
+			"tip": ""
+		},
+		"CLASS_RAIL_PISTOL": {
+			"title": "Cube-pistol",
+			"tip": ""
+		},
+		"CLASS_RAYGUN": {
+			"title": "Ray Gun C-01y",
+			"tip": ""
+		},
+		"CLASS_FALKOK_PSI_CUTTER": {
+			"title": "Falkonian PSI-cutter",
+			"tip": ""
+		},
+		"CLASS_RAIL_SHOTGUN": {
+			"title": "Cube-shotgun",
+			"tip": ""
+		},
+		"CLASS_RAIL_CANNON": {
+			"title": "Velox Rail Cannon",
+			"tip": ""
+		},
+		"CLASS_CUBE_SHARD": {
+			"title": "Cube shard",
+			"tip": ""
+		},
+		"CLASS_LASER_PISTOL": {
+			"title": "Laser Pistol",
+			"tip": ""
+		},
+		"CLASS_LMG": {
+			"title": "Light Machine Gun",
+			"tip": ""
+		},
+		"CLASS_BUILDTOOL_UPG": {
+			"title": "Build tool upgrade",
+			"tip": ""
+		},
+		"CLASS_LVL1_LIGHT_ARMOR": {
+			"title": "SD-01 Light Armor",
+			"tip": ""
+		},
+		"CLASS_LVL1_MEDIUM_ARMOR": {
+			"title": "SD-01 Duty Armor",
+			"tip": ""
+		},
+		"CLASS_LVL1_HEAVY_ARMOR": {
+			"title": "SD-01 Combat Armor",
+			"tip": ""
+		},
+		"CLASS_SHOTGUN_MK2": {
+			"title": "Shotgun MK2",
+			"tip": ""
+		},
+		"CLASS_LASER_DRILL": {
+			"title": "Laser Drill",
+			"tip": ""
+		},
+		"CLASS_SMG": {
+			"title": "Burst SMG",
+			"tip": ""
+		},
+		"CLASS_KVT_SMG": {
+			"title": "KVT SMG P49 \"The Advocate\"",
+			"tip": ""
+		},
+		"CLASS_ROCKET_MK2": {
+			"title": "Guided Rocket Launcher",
+			"tip": ""
+		},
+		"CLASS_HEALING_RAY": {
+			"title": "Cube-Medgun",
+			"tip": ""
+		},
+		"CLASS_SHOVEL": {
+			"title": "Shovel",
+			"tip": ""
+		},
+		"CLASS_SHOVEL_MK2": {
+			"title": "Shovel MK2",
+			"tip": ""
+		},
+		"CLASS_DECONSTRUCTOR_HAMMER": {
+			"title": "Deconstructor Hammer",
+			"tip": ""
+		},
+		"CLASS_ADMIN_REMOVER": {
+			"title": "Admin tool for removing",
+			"tip": ""
+		},
+		"CLASS_LOST_CONVERTER": {
+			"title": "Cube overcharge cannon",
+			"tip": ""
+		},
+		"CLASS_CABLE_TOOL": {
+			"title": "Cable management tool",
+			"tip": ""
+		},
+		"CLASS_POWER_PACK": {
+			"title": "Power pack",
+			"tip": ""
+		},
+		"CLASS_TIME_PACK": {
+			"title": "Time pack",
+			"tip": ""
+		},
+		"CLASS_LVL2_LIGHT_ARMOR": {
+			"title": "SD-02 Light Armor",
+			"tip": ""
+		},
+		"CLASS_LVL2_MEDIUM_ARMOR": {
+			"title": "SD-02 Duty Armor",
+			"tip": ""
+		},
+		"CLASS_LVL2_HEAVY_ARMOR": {
+			"title": "SD-02 Combat Armor",
+			"tip": ""
+		},
+		"CLASS_ADMIN_TELEPORTER": {
+			"title": "Admin tool for teleporting",
+			"tip": ""
+		},
+		"CLASS_POWER_STIMPACK": {
+			"title": "Power-Stimpack",
+			"tip": ""
+		},
+		"CLASS_LVL1_ARMOR_REGEN": {
+			"title": "SD-11 Armor Repair Module",
+			"tip": ""
+		},
+		"CLASS_LVL2_ARMOR_REGEN": {
+			"title": "SD-12 Armor Repair Module",
+			"tip": ""
+		},
+		"CLASS_LVL3_ARMOR_REGEN": {
+			"title": "SD-13 Armor Repair Module",
+			"tip": ""
+		},
+		"CLASS_LVL3_LIGHT_ARMOR": {
+			"title": "SD-03 Light Armor",
+			"tip": ""
+		},
+		"CLASS_LVL3_MEDIUM_ARMOR": {
+			"title": "SD-03 Duty Armor",
+			"tip": ""
+		},
+		"CLASS_LVL3_HEAVY_ARMOR": {
+			"title": "SD-03 Combat Armor",
+			"tip": ""
+		},
+		"CLASS_EMERGENCY_INSTRUCTOR": {
+			"title": "Emergency instructor",
+			"tip": ""
+		},
+		"CLASS_POPCORN": {
+			"title": "Popcorn",
+			"tip": ""
+		},
+		"CLASS_ERTHAL_BURST_RIFLE": {
+			"title": "Erthal Burst Rifle",
+			"tip": ""
+		},
+		"CLASS_ERTHAL_PLASMA_PISTOL": {
+			"title": "Erthal Plasma Pistol",
+			"tip": ""
+		},
+		"CLASS_FMECH_MINIGUN": {
+			"title": "Velox Flying Mech Minigun",
+			"tip": ""
+		},
+		"CLASS_SNIPER": {
+			"title": "Sniper rifle",
+			"tip": ""
+		},
+		"CLASS_VELOX_PISTOL": {
+			"title": "Velox Burst Pistol",
+			"tip": ""
+		},
+		"CLASS_SARRONIAN_GAUSS_RIFLE": {
+			"title": "Sarronian Gauss Rifle",
+			"tip": ""
+		},
+		"CLASS_VELOX_COMBAT_RIFLE": {
+			"title": "Velox Combat Rifle",
+			"tip": ""
+		},
+		"CLASS_F_HEAVY_RIFLE": {
+			"title": "Falkonian Heavy Rifle",
+			"tip": ""
+		},
+		"CLASS_ZAPPER": {
+			"title": "Zapper",
+			"tip": ""
+		},
+		"CLASS_COUNCIL_PISTOL": {
+			"title": "Council Pistol",
+			"tip": ""
+		},
+		"CLASS_COUNCIL_BURST_RAIL": {
+			"title": "Council Burst Rail",
+			"tip": ""
+		},
+		"CLASS_METAL_SHARD": {
+			"title": "Alienic metal shard",
+			"tip": ""
+		},
+		"CLASS_GRENADE_LAUNCHER_MK2": {
+			"title": "Grenade launcher MK2",
+			"tip": ""
+		},
+		"CLASS_TRIPLE_RAIL2": {
+			"title": "Cube-gun v2",
+			"tip": ""
+		},
+		"CLASS_RAIL_SHOTGUN2": {
+			"title": "Cube-shotgun v2",
+			"tip": ""
+		},
+		"CLASS_SARRONIAN_ENERGY_RIFLE": {
+			"title": "Sarronian Energy Rifle",
+			"tip": ""
+		},
+		"CLASS_WYRMHIDE": {
+			"title": "Wyrmhide",
+			"tip": ""
+		},
+		"CLASS_SNOWBALL": {
+			"title": "Snowball",
+			"tip": ""
+		},
+		"CLASS_PORTAL": {
+			"title": "ASHPD",
+			"tip": ""
+		},
+		"CLASS_OVERLORD_BLASTER": {
+			"title": "Overlord\\'s blaster",
+			"tip": ""
+		},
+		"CLASS_TOPS_DMR": {
+			"title": "Task Ops DMR",
+			"tip": ""
+		},
+		"CLASS_TOPS_SHOTGUN": {
+			"title": "Task Ops Shotgun",
+			"tip": ""
+		},
+		"CLASS_CUBE_SPEAR": {
+			"title": "Cube Empty Speargun",
+			"tip": ""
+		},
+		"CLASS_COMBAT_INSTRUCTOR": {
+			"title": "Combat instructor",
+			"tip": ""
+		},
+		"CLASS_SETR_PLASMA_SHOTGUN": {
+			"title": "Setr Plasma Shotgun",
+			"tip": ""
+		},
+		"CLASS_SETR_ROCKET": {
+			"title": "Setr Rocket Launcher",
+			"tip": ""
+		},
+		"CLASS_CUBE_TELEPORTER": {
+			"title": "Cube-teleporter",
+			"tip": ""
+		},
+		"CLASS_RAYRIFLE": {
+			"title": "Ray Rifle TCoRR",
+			"tip": ""
+		},
+		"CLASS_LIQUID_CARRIER": {
+			"title": "Liquid carrier",
+			"tip": ""
+		},
+		"CLASS_CUSTOM_RIFLE": {
+			"title": "Rifle",
+			"tip": ""
+		},
+		"CLASS_SCORE_SHARD": {
+			"title": "Score shard",
+			"tip": ""
+		},
+		"CLASS_LVL4_ARMOR_REGEN": {
+			"title": "Task Ops Armor Repair Module",
+			"tip": ""
+		},
+		"CLASS_ADMIN_DAMAGER": {
+			"title": "Admin tool for damaging",
+			"tip": ""
+		},
+		"CLASS_MOP": {
+			"title": "Mop",
+			"tip": ""
+		},
+		"CLASS_TELEPORT_SWORD": {
+			"title": "Time shifter blade",
+			"tip": ""
+		},
+		"CLASS_TZYRG_SHOTGUN": {
+			"title": "Tzyrg Shotgun",
+			"tip": ""
+		},
+		"CLASS_COUNCIL_SHOTGUN": {
+			"title": "Council Shotgun",
+			"tip": ""
+		},
+		"CLASS_THROWABLE_GRENADE": {
+			"title": "Hand grenade",
+			"tip": ""
+		},
+		"CLASS_MINING_FOCUS_CUTTER": {
+			"title": "Mining Focus Cutter",
+			"tip": ""
+		},
+		"CLASS_ZEKTARON_FOCUS_BEAM": {
+			"title": "Zektaron Focus Beam",
+			"tip": ""
+		},
+		"CLASS_RAIL_PISTOL2": {
+			"title": "Cube-pistol v2",
+			"tip": ""
+		},
+		"CLASS_AREA_AMPLIFIER": {
+			"title": "Area amplifier",
+			"tip": ""
+		},
+		"CLASS_ILLUSION_MAKER": {
+			"title": "Illusion maker",
+			"tip": ""
+		},
+		"CLASS_SHURG_PISTOL": {
+			"title": "Shurg Pistol",
+			"tip": ""
+		},
+		"CLASS_SETR_REPULSOR": {
+			"title": "Setr Repulsor",
+			"tip": ""
+		},
+		"CLASS_SHURG_SNIPER": {
+			"title": "Shurg sniper rifle",
+			"tip": ""
+		},
+		"CLASS_SETR_LMG": {
+			"title": "Setr Light Machine Gun",
+			"tip": ""
+		},
+		"CLASS_CRYSTAL_CUTTER": {
+			"title": "Crystal cutter",
+			"tip": ""
+		},
+		"CLASS_CRYOGUN": {
+			"title": "Cryogun",
+			"tip": ""
+		},
+		"CLASS_TZYRG_RIFLE": {
+			"title": "Tzyrg Assault Rifle",
+			"tip": ""
+		},
+		"CLASS_DRAIN_RIFLE": {
+			"title": "Drain-rifle",
+			"tip": ""
+		},
+		"CLASS_SARRONIAN_SMG": {
+			"title": "Sarronian SMG",
+			"tip": ""
+		},
+		"CLASS_SARRONIAN_RAY": {
+			"title": "Sarronian Ray",
+			"tip": ""
+		},
+		"CLASS_SARRONIAN_ENERGY_DISPLACER": {
+			"title": "Sarronian Energy Displacer",
+			"tip": ""
+		},
+		"CLASS_SARRONIAN_BIO_ENERGY_LAUNCHER": {
+			"title": "Sarronian Bio-Energy Launcher",
+			"tip": ""
+		},
+		"CLASS_ZEKTARON_COMBAT_RIFLE": {
+			"title": "Zektaron Combat Rifle",
+			"tip": ""
+		},
+		"CLASS_ZEKTARON_RAILGUN": {
+			"title": "Zektaron Railgun",
+			"tip": ""
+		},
+		"CLASS_ZEKTARON_PLASMA_CANNON": {
+			"title": "Zektaron Plasma Cannon",
+			"tip": ""
+		},
+		"CLASS_ZEKTARON_PLASMA_REPEATER": {
+			"title": "Zektaron Plasma Repeater",
+			"tip": ""
+		},
+		"CLASS_MERGER_CORE": {
+			"title": "Weapon merger core",
+			"tip": ""
+		},
+		"CLASS_TOPS_PLASMA_RIFLE": {
+			"title": "Task Ops Plasma Rifle",
+			"tip": ""
+		},
+		"CLASS_ERTHAL_ENERGY_CELL": {
+			"title": "Erthal energy cell",
+			"tip": ""
+		},
+		"CLASS_ERTHAL_DMR": {
+			"title": "Erthal Marksman Rifle",
+			"tip": ""
+		},
+		"CLASS_WELD_TOOL": {
+			"title": "Elevator weld tool",
+			"tip": ""
+		},
+		"CLASS_ADMIN_MASS_DELETER": {
+			"title": "Admin tool for mass removing",
+			"tip": ""
+		},
+		"CLASS_UPGRADE_STATION_CHIPSET": {
+			"title": "Upgrade station chipset",
+			"tip": ""
+		},
+		"CLASS_EXALTED_CORE": {
+			"title": "Exalted core",
+			"tip": ""
+		},
+		"CLASS_CUBE_FUSION_CORE": {
+			"title": "Cube fusion core",
+			"tip": ""
+		},
+		"CLASS_DRINK": {
+			"title": "Drink",
+			"tip": ""
+		},
+		"CLASS_CUBE_VOID_CAPACITOR": {
+			"title": "Cube void capacitor",
+			"tip": ""
+		},
+		"CLASS_BANANA": {
+			"title": "Banana",
+			"tip": ""
+		},
+		"CLASS_UNSTABLE_CORE": {
+			"title": "Unstable core",
+			"tip": ""
+		},
+		"CLASS_STALKER_CANNON": {
+			"title": "Stalker Annihilator",
+			"tip": ""
+		},
+		"CLASS_STALKER_BEAM": {
+			"title": "Stalker Psychotic Beam",
+			"tip": ""
+		},
+		"CLASS_STALKER_RIFLE": {
+			"title": "Stalker Rapid Rifle",
+			"tip": ""
+		},
+		"CLASS_STALKER_CLONER": {
+			"title": "Stalker Clone Ray",
+			"tip": ""
+		},
+		"CLASS_ACCESS_KEY": {
+			"title": "Access key",
+			"tip": ""
+		},
+		"CLASS_REPAIR_TOOL": {
+			"title": "Vehicle repair tool",
+			"tip": ""
+		},
+		"CLASS_TELEKINETICS": {
+			"title": "Gravity gun",
+			"tip": ""
+		},
+		"CLASS_DRAIN_SHOTGUN": {
+			"title": "Drain-shotgun",
+			"tip": ""
+		},
+		"CLASS_DRAIN_SNIPER": {
+			"title": "Drain-sniper-rifle",
+			"tip": ""
+		},
+		"CLASS_HIGH_COUNCIL_SWORD": {
+			"title": "Council Energy Blade",
+			"tip": ""
+		},
+		"CLASS_MATTER_CONTAINER_CHIPSET": {
+			"title": "Matter container chipset",
+			"tip": ""
+		},
+		"CLASS_CHAINSAW": {
+			"title": "Chainsaw",
+			"tip": ""
+		},
+		"CLASS_TOPS_GRENADE_LAUNCHER": {
+			"title": "Task Ops Grenade Launcher",
+			"tip": ""
+		},
+		"CLASS_ETERNAL_SHARD": {
+			"title": "Eternal shard",
+			"tip": ""
+		},
+		"CLASS_PHASE_RIFLE": {
+			"title": "Phased Plasma Rifle SD-74",
+			"tip": ""
+		},
+		"CLASS_SD_MINIGUN": {
+			"title": "Laser Minigun SD-134",
+			"tip": ""
+		},
+		"CLASS_IMPACTOR": {
+			"title": "SD-Impactor",
+			"tip": ""
+		},
+		"CLASS_OVERLORD_BLASTER2": {
+			"title": "Overlord\\'s shotgun",
+			"tip": ""
+		},
+		"CLASS_COUNCIL_BURST_RAIL2": {
+			"title": "Council Burst Rail v2",
+			"tip": ""
+		},
+		"CLASS_COUNCIL_SHOTGUN2": {
+			"title": "Council Shotgun v2",
+			"tip": ""
+		},
+		"CLASS_COUNCIL_PISTOL2": {
+			"title": "Council Pistol v2",
+			"tip": ""
+		},
+		"CLASS_ANTI_TANK": {
+			"title": "Anti Tank Rifle SD-57",
+			"tip": ""
+		},
+		"CLASS_TZYRG_GRENADE_LAUNCHER": {
+			"title": "Tzyrg Grenade Launcher",
+			"tip": ""
+		},
+		"CLASS_BATTLE_RIFLE": {
+			"title": "Battle Rifle SD-97",
+			"tip": ""
+		},
+		"CLASS_ELECTROSHOCK": {
+			"title": "Velox Taser",
+			"tip": ""
+		},
+		"CLASS_HEAVY_ROCKET": {
+			"title": "Rocket Launcher SD-202",
+			"tip": ""
+		}
+	}
+}
