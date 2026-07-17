@@ -178,7 +178,6 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
 		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
 		sdWeather.EVENT_STALKER =				event_counter++; // 58
-		
 		sdWeather.EVENT_DROUGHT =				event_counter++; // 59 - heatwave: accelerates natural water evaporation and melts snow. Excludable via GetDisallowedWorldEvents.
 
 		sdWeather.supported_events = [];
@@ -1433,7 +1432,7 @@ class sdWeather extends sdEntity
 			// visibly jump around (including backwards) whenever a drought rolled at night. If it rolls at
 			// night, this is just a no-op; the scheduler will try again later, most likely during the day.
 			if ( this.GetSunIntensity() >= 0.85 )
-			this._drought_amount = 30 * 15 * ( 1 + Math.random() * 3 ); // start drought for ~15-60 seconds
+			this._drought_amount = 30 * 30 * ( 1 + Math.random() * 3 ); // start drought for ~30-60 seconds
 		}
 
 		if ( r === sdWeather.EVENT_ASTEROIDS )
@@ -5024,7 +5023,7 @@ class sdWeather extends sdEntity
 
 				sdWorld.last_hit_entity = null;
 
-				for ( let i = ~~( sdBlock.natural_blocks_total / 1000 * 1.5 ); i > 0; i-- )
+				for ( let i = ~~( sdBlock.natural_blocks_total / 500 * 1.5 ); i > 0; i-- )
 				{
 					let e = sdEntity.GetRandomEntity();
 

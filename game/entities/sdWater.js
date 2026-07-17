@@ -66,7 +66,7 @@ class sdWater extends sdEntity
 		sdWater.EVAP_SUN_WEIGHT = 1; // Daytime sun contribution to drying factor
 		sdWater.EVAP_DROUGHT_WEIGHT = 3; // Drought dries harder than midday sun and works at night
 		sdWater.EVAP_BUDGET = 24; // Surface cells swept per frame (bounded CPU cost)
-		sdWater.EVAP_DROUGHT_BUDGET = 48; // Extra cells swept per frame at full drought
+		sdWater.EVAP_DROUGHT_BUDGET = 24; // Extra cells swept per frame at full drought
 
 		sdWater.WAKE_CASCADE_MAX_DEPTH = 0; // 0 = unlimited (current behavior, byte-identical). >0 caps AwakeSelfAndNear recursion to reduce wake storms in large pools
 		
