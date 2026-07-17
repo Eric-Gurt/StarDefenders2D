@@ -138,30 +138,30 @@ class sdRescueTeleport extends sdEntity
 							if ( any_is_suitable )
 							{
 								if ( !is_deeply_within_range )
-								sdTask.MakeSureCharacterHasTask({ 
-									similarity_hash:'RTP-HINT', 
+								sdTask.MakeSureCharacterHasTask({
+									similarity_hash:'RTP-HINT',
 									executer: character,
 									mission: sdTask.MISSION_GAMEPLAY_HINT,
-									title: 'Rescue Teleport signal is weak',
+									title: sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_WEAK,
 									description: 'You are likely leaving effective range of your Rescue Teleport.'
 								});
 							}
 							else
 							{
 								if ( available_rtps.length === 0 && character._score < 100 )
-								sdTask.MakeSureCharacterHasTask({ 
-									similarity_hash:'RTP-HINT', 
+								sdTask.MakeSureCharacterHasTask({
+									similarity_hash:'RTP-HINT',
 									executer: character,
 									mission: sdTask.MISSION_GAMEPLAY_HINT,
-									title: 'Rescue Teleport required',
+									title: sdTask.TITLE_RESCUE_TELEPORT_REQUIRED,
 									description: 'You\'ll need a Rescue Teleport to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (B key) to build.'
 								});
 								else
-								sdTask.MakeSureCharacterHasTask({ 
-									similarity_hash:'RTP-HINT', 
+								sdTask.MakeSureCharacterHasTask({
+									similarity_hash:'RTP-HINT',
 									executer: character,
 									mission: sdTask.MISSION_GAMEPLAY_HINT,
-									title: 'Rescue Teleport signal lost',
+									title: sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_LOST,
 									description: 'Signal with your Rescue Teleport has been lost.'
 								});
 							}

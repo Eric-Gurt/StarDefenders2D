@@ -34,8 +34,14 @@ class sdTask extends sdEntity
 		sdTask.COLOR_PROTECT = ()=>{ return sdWorld.time % 2000 < 1000 ? '#7777ff' : '#3333ff'; };
 		
 		sdTask.completed_tasks_count = 0; // Whenever someone completes a task, this increases value by 1. Used to spawn SD Item pods
-		
+
 		//sdTask.reward_claim_task_amount = 0.5; // was 1 // EG: Let's not have too many multipliers all over the project
+
+		// Shared with sdRescueTeleport.js, which creates the RTP-HINT task under one of these exact titles depending on
+		// state. Kept as constants (rather than matching literal strings at sort time) so the two can't drift apart.
+		sdTask.TITLE_RESCUE_TELEPORT_REQUIRED = 'Rescue Teleport required';
+		sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_LOST = 'Rescue Teleport signal lost';
+		sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_WEAK = 'Rescue Teleport signal is weak';
 		
 		sdTask.missions = [];
 		
@@ -1067,13 +1073,22 @@ class sdTask extends sdEntity
 		}
 	}
 	
+	static IsAlwaysTopPriority( task ) // All 3 RTP-HINT states must always rank above every other task, regardless of _difficulty - checked by title (not baked in at creation time) since MakeSureCharacterHasTask can update an existing RTP-HINT task's title in place rather than recreating it
+	{
+		return task.title === sdTask.TITLE_RESCUE_TELEPORT_REQUIRED || task.title === sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_LOST || task.title === sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_WEAK;
+	}
 	static GlobalThink( GSPEED )
 	{
 		if ( sdTask.sort_tasks )
 		{
 			sdTask.sort_tasks = false;
-			
-			sdTask.tasks.sort( (a,b)=>b._difficulty-a._difficulty );
+
+			sdTask.tasks.sort( (a,b)=>{
+				let a_top = sdTask.IsAlwaysTopPriority( a ) ? 1 : 0;
+				let b_top = sdTask.IsAlwaysTopPriority( b ) ? 1 : 0;
+
+				return ( b_top - a_top ) || ( b._difficulty - a._difficulty );
+			});
 		}
 	}
 	
