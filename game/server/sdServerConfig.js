@@ -1533,6 +1533,9 @@ class sdServerConfigFull extends sdServerConfigShort
 						ent._hea = ent._hmax - 0.1;
 						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this
 					}
+					else
+					if ( ent._merged ) // Implies block merging has happened previously
+					break; // No need to loop through everything again
 				}
 			}
 		}
@@ -1567,6 +1570,9 @@ class sdServerConfigFull extends sdServerConfigShort
 						ent._regen_timeout = 1;
 						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this
 					}
+					else
+					if ( ent._merged ) // Implies background merging has happened previously
+					break; // No need to loop through everything again
 				}
 			}
 		}
