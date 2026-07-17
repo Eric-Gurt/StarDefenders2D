@@ -563,8 +563,13 @@ class sdTask extends sdEntity
 		let expanded = sdRenderer.show_leader_board === 3; // Dedicated tasks-only view - give full details for every task
 		let shown = expanded ? visible_tasks.length : Math.min( visible_tasks.length, sdTask.MAX_COMPACT_TASKS );
 
+		// The caller (sdRenderer) translates to x = 15 * scale before this draws, so this is the width remaining
+		// to the right screen edge (with a matching margin) - null keeps the narrow, fixed-character-count wrap
+		// used by the compact HUD column, since that one was never meant to use the whole screen.
+		let max_width = expanded ? ( sdRenderer.screen_width - 30 * scale ) : null;
+
 		for ( let t = 0; t < shown; t++ )
-		visible_tasks[ t ].DrawTaskInterface( ctx, scale );
+		visible_tasks[ t ].DrawTaskInterface( ctx, scale, max_width );
 
 		let hidden_count = visible_tasks.length - shown;
 		if ( hidden_count > 0 )
@@ -1248,49 +1253,74 @@ class sdTask extends sdEntity
 		ctx.filter = 'none';
 	}
 	
-	DrawTaskInterface( ctx, scale )
+	DrawTaskInterface( ctx, scale, max_width=null ) // max_width (in pixels, post-translate): when given, wraps text by actually measured pixel width instead of the fixed 40-character guess, so it can be widened for the expanded (Tab) view instead of staying stuck in the narrow default HUD column
 	{
 		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
 		return;
-	
+
 		let mission = sdTask.missions[ this.mission ];
-		
+
 		if ( !mission )
 		{
 			return;
 		}
-		
+
 		let task_title_color = mission.task_title_color || sdTask.COLOR_NOTIFICATION;
-		
+
 		if ( task_title_color instanceof Function )
 		task_title_color = task_title_color();
 
 		ctx.font = 11*scale + "px Verdana";
-		
+
 		const PutMultilineText = ( text, subtext=false )=>
 		{
 			let later_text = null;
-			
-			const break_each = 40;
-			
-			if ( text.length > break_each )
+
+			if ( max_width !== null )
 			{
-				let parts = text.split(' ');
-				let length = 0;
-				for ( let p = 0; p < parts.length; p++ )
+				// Pixel-accurate wrap: only break once the actual rendered width would exceed max_width,
+				// so widening max_width (ex. for the expanded view) actually results in fewer/longer lines
+				// instead of always wrapping at a fixed character count regardless of available space.
+				if ( ctx.measureText( text ).width > max_width )
 				{
-					let word_size = parts[ p ].length;
-					if ( p > 0 )
-					if ( length + word_size > break_each )
+					let parts = text.split(' ');
+					let line = '';
+					for ( let p = 0; p < parts.length; p++ )
 					{
-						text = parts.slice( 0, p ).join(' ');
-						later_text = parts.slice( p ).join(' ');
-						break;
+						let candidate = line ? ( line + ' ' + parts[ p ] ) : parts[ p ];
+						if ( line && ctx.measureText( candidate ).width > max_width )
+						{
+							text = line;
+							later_text = parts.slice( p ).join(' ');
+							break;
+						}
+						line = candidate;
 					}
-					length += word_size;
 				}
 			}
-			
+			else
+			{
+				const break_each = 40;
+
+				if ( text.length > break_each )
+				{
+					let parts = text.split(' ');
+					let length = 0;
+					for ( let p = 0; p < parts.length; p++ )
+					{
+						let word_size = parts[ p ].length;
+						if ( p > 0 )
+						if ( length + word_size > break_each )
+						{
+							text = parts.slice( 0, p ).join(' ');
+							later_text = parts.slice( p ).join(' ');
+							break;
+						}
+						length += word_size;
+					}
+				}
+			}
+
 			let last_style = ctx.fillStyle;
 			ctx.fillStyle = '#000000';
 			ctx.fillText( text, subtext ? 5 * scale : 1, 1 );
