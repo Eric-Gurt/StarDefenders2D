@@ -858,19 +858,28 @@
 			AddHTML(`
 				<settings_line>
 					<left>Colors:</left>
-					<right>
-						<input type="color" id="color_bright" value="#c0c0c0">
-						<input type="color" id="color_dark" value="#808080">
-						<input type="color" id="color_visor" value="#ff0000">
-						<input type="color" id="color_bright3" value="#c0c0c0">
-						<input type="color" id="color_dark3" value="#808080">
-						<input type="color" id="color_suit" value="#000080">
-						<input type="color" id="color_suit2" value="#000080">
-						<input type="color" id="color_dark2" value="#808080">
-						<input type="color" id="color_shoes" value="#000000">
-						<input type="color" id="color_skin" value="#808000">
-						<input type="color" id="color_extra1" value="#0000ff">
-						<input style="width:8vw" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
+					<right style="display:flex; flex-wrap:wrap; align-items:flex-start;">
+						${ [
+							[ 'color_bright',  '#c0c0c0', 'Helmet (light)' ],
+							[ 'color_dark',    '#808080', 'Helmet (shadow)' ],
+							[ 'color_visor',   '#ff0000', 'Visor' ],
+							[ 'color_bright3', '#c0c0c0', 'Chest badge (light)' ],
+							[ 'color_dark3',   '#808080', 'Chest badge (shadow)' ],
+							[ 'color_suit',    '#000080', 'Jacket' ],
+							[ 'color_suit2',   '#000080', 'Legs' ],
+							[ 'color_dark2',   '#808080', 'Suit accent' ],
+							[ 'color_shoes',   '#000000', 'Shoes' ],
+							[ 'color_skin',    '#808000', 'Skin' ],
+							[ 'color_extra1',  '#0000ff', 'Extra accent' ]
+						].map( ( [ id, value, label ] )=>
+							`<span style="display:inline-flex; flex-direction:column; align-items:center; margin:0 0.3vw;">
+								<input type="color" id="${ id }" value="${ value }" title="${ label }">
+								<div style="font-size:0.65vw; color:#aaaaaa; white-space:nowrap; margin-top:0.1vw;">${ label }</div>
+							</span>`
+						).join('') }
+						<span style="display:inline-flex; flex-direction:column; justify-content:flex-end;">
+							<input style="width:8vw" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
+						</span>
 					</right>
 				</settings_line>
 			`);

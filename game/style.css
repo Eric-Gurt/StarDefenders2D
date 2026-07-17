@@ -161,9 +161,12 @@ section div, section span
 }
 section_header
 {
-    display: block;
+    display: inline-block;
     border-bottom: 1px solid rgba(255,255,255,0.4);
-    
+    background: rgba(20,20,20,0.35);
+    border-radius: 6px;
+    padding: 0.3vh 1vh;
+
     font-family: ui_font2 !important;
     font-size: 5vh;
     color: white;
@@ -199,6 +202,7 @@ menu_button, .menu_rect
     font-family: ui_font2 !important;
     font-size: 2.6vh;
     border: 0.2vh solid rgba(255,255,255,0.09);
+    background: rgba(20,20,20,0.35);
     margin-top: 1vh;
     color: white;
     text-transform: uppercase;
@@ -483,6 +487,8 @@ server_details div
     padding: 2vh;
     color: white;
     z-index: 4;
+    background: rgba(20,20,20,0.35);
+    border-bottom-right-radius: 6px;
 }
 
 body, .password_screen
@@ -1045,8 +1051,13 @@ settings_line left
     display: inline-block;
     text-align: right;
     vertical-align: top;
-    
+
     padding-right: 1vw;
+    padding-top: 0.15vw;
+    padding-bottom: 0.15vw;
+    background: rgba(20,20,20,0.35);
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 settings_line right
 {
@@ -1067,6 +1078,8 @@ settings_line right settings_option
     padding-bottom: 0.1vw;
     margin-right: 0.5vw;
     color: #ffffff66;
+    background: rgba(20,20,20,0.35);
+    border-radius: 4px;
     position: relative;
     transition: color 0.2s ease;
 }
@@ -1121,6 +1134,10 @@ settings_option.selected::after,
 div.server_info
 {
     color: #ffffff54;
+    display: inline-block;
+    background: rgba(20,20,20,0.35);
+    border-radius: 4px;
+    padding: 0.3vh 1vh;
 }
 #game_title_text, #server_playing, #server_online
 {
