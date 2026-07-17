@@ -867,25 +867,27 @@
 					<right>
 						<div style="display:grid; grid-template-columns:repeat(auto-fill, 5vw); column-gap:0.2vw; row-gap:0.4vw;">
 							${ [
-								[ 'color_bright',  '#c0c0c0', 'Helmet (light)' ],
-								[ 'color_dark',    '#808080', 'Helmet (shadow)' ],
-								[ 'color_visor',   '#ff0000', 'Visor' ],
-								[ 'color_bright3', '#c0c0c0', 'Chest badge (light)' ],
-								[ 'color_dark3',   '#808080', 'Chest badge (shadow)' ],
-								[ 'color_suit',    '#000080', 'Jacket' ],
-								[ 'color_suit2',   '#000080', 'Legs' ],
-								[ 'color_dark2',   '#808080', 'Suit accent' ],
-								[ 'color_shoes',   '#000000', 'Shoes' ],
-								[ 'color_skin',    '#808000', 'Skin' ],
-								[ 'color_extra1',  '#0000ff', 'Extra accent' ]
-							].map( ( [ id, value, label ] )=>
+								[ 'color_bright',  '#c0c0c0', 'Helmet', 'Light' ],
+								[ 'color_dark',    '#808080', 'Helmet', 'Shadow' ],
+								[ 'color_visor',   '#ff0000', 'Visor', '' ],
+								[ 'color_bright3', '#c0c0c0', 'Chest badge', 'Light' ],
+								[ 'color_dark3',   '#808080', 'Chest badge', 'Shadow' ],
+								[ 'color_suit',    '#000080', 'Jacket', '' ],
+								[ 'color_suit2',   '#000080', 'Legs', '' ],
+								[ 'color_dark2',   '#808080', 'Suit', 'Accent' ],
+								[ 'color_shoes',   '#000000', 'Shoes', '' ],
+								[ 'color_skin',    '#808000', 'Skin', '' ],
+								[ 'color_extra1',  '#0000ff', 'Extra', 'Accent' ]
+							].map( ( [ id, value, label1, label2 ] )=>
 								`<div style="display:flex; flex-direction:column; align-items:center;">
-									<input type="color" id="${ id }" value="${ value }" title="${ label }">
-									<div style="font-size:0.6vw; color:#aaaaaa; text-align:center; line-height:1.2; margin-top:0.1vw; background:rgba(20,20,20,0.35); border-radius:3px; padding:0.05vw 0.2vw; box-sizing:border-box;">${ label }</div>
+									<input type="color" id="${ id }" value="${ value }" title="${ label1 }${ label2 ? ' (' + label2 + ')' : '' }">
+									<div style="width:100%; font-size:0.9vw; color:#cccccc; text-align:center; line-height:1.3; margin-top:0.15vw; background:rgba(20,20,20,0.35); border-radius:3px; padding:0.1vw 0.2vw; box-sizing:border-box;">${ label1 }${ label2 ? '<br>' + label2 : '' }</div>
 								</div>`
 							).join('') }
 						</div>
-						<input style="width:8vw; margin-top:0.5vw;" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
+						<div style="margin-top:0.5vw;">
+							<input style="width:8vw;" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
+						</div>
 					</right>
 				</settings_line>
 			`);

@@ -19,6 +19,44 @@ class sdLoadingScreen
 {
 	static init_class()
 	{
+		// Two plain DOM layers behind the canvas, replicating #page_background / #bg_stars from the main menu (style.css)
+		// so the loading screen sits on the same nebula backdrop + blended starfield instead of a flat placeholder color.
+		// Kept as real elements (not drawn into the canvas) so mix-blend-mode:screen on the stars layer works correctly -
+		// that blend mode blends the element against whatever's behind IT, which would fall apart if it were baked into
+		// the same canvas as the card/text content sitting on top of it.
+		let bg = document.createElement( 'div' );
+		bg.id = 'loading_screen_bg';
+		bg.style.position = 'fixed';
+		bg.style.left = '0px';
+		bg.style.top = '0px';
+		bg.style.width = '100%';
+		bg.style.height = '100%';
+		bg.style.zIndex = '9998';
+		bg.style.display = 'none';
+		bg.style.background = 'url(assets/bg_menu.jpg)';
+		bg.style.backgroundSize = 'cover';
+		bg.style.backgroundPosition = 'bottom center';
+		bg.style.filter = 'blur(0.2vh)';
+		document.body.appendChild( bg );
+
+		let stars = document.createElement( 'div' );
+		stars.id = 'loading_screen_stars';
+		stars.style.position = 'fixed';
+		stars.style.left = '50%';
+		stars.style.top = '0px';
+		stars.style.transform = 'translate(-50%,-50%)';
+		stars.style.width = '100vw';
+		stars.style.height = '100vw';
+		stars.style.zIndex = '9999';
+		stars.style.display = 'none';
+		stars.style.background = 'url(assets/bg_stars.gif)';
+		stars.style.mixBlendMode = 'screen';
+		stars.style.imageRendering = 'pixelated';
+		document.body.appendChild( stars );
+
+		sdLoadingScreen.bg_el = bg;
+		sdLoadingScreen.stars_el = stars;
+
 		let canvas = document.createElement( 'canvas' );
 		canvas.id = 'loading_screen_canvas';
 
@@ -384,6 +422,8 @@ class sdLoadingScreen
 
 		sdLoadingScreen.showing = true;
 		sdLoadingScreen.canvas.style.display = 'block';
+		sdLoadingScreen.bg_el.style.display = 'block';
+		sdLoadingScreen.stars_el.style.display = 'block';
 
 		sdLoadingScreen.current_index = ~~( Math.random() * sdLoadingScreen.assets.length );
 		sdLoadingScreen.time_on_current = 0;
@@ -411,6 +451,8 @@ class sdLoadingScreen
 	{
 		sdLoadingScreen.showing = false;
 		sdLoadingScreen.canvas.style.display = 'none';
+		sdLoadingScreen.bg_el.style.display = 'none';
+		sdLoadingScreen.stars_el.style.display = 'none';
 
 		if ( sdLoadingScreen.raf_handle !== null )
 		cancelAnimationFrame( sdLoadingScreen.raf_handle );
@@ -445,6 +487,16 @@ class sdLoadingScreen
 
 		sdLoadingScreen.raf_handle = requestAnimationFrame( ()=>sdLoadingScreen.Loop() );
 	}
+	static RoundedRectPath( ctx, x, y, w, h, r )
+	{
+		ctx.beginPath();
+		ctx.moveTo( x + r, y );
+		ctx.arcTo( x + w, y, x + w, y + h, r );
+		ctx.arcTo( x + w, y + h, x, y + h, r );
+		ctx.arcTo( x, y + h, x, y, r );
+		ctx.arcTo( x, y, x + w, y, r );
+		ctx.closePath();
+	}
 	static Draw( now )
 	{
 		let ctx = sdLoadingScreen.ctx;
@@ -452,9 +504,7 @@ class sdLoadingScreen
 		let h = sdLoadingScreen.canvas.height;
 
 		ctx.setTransform( 1, 0, 0, 1, 0, 0 );
-
-		ctx.fillStyle = '#05070d';
-		ctx.fillRect( 0, 0, w, h );
+		ctx.clearRect( 0, 0, w, h ); // No solid fill anymore - #loading_screen_bg / #loading_screen_stars (behind the canvas) provide the same nebula + starfield backdrop as the main menu
 
 		let asset = sdLoadingScreen.assets[ sdLoadingScreen.current_index ];
 		let { title, tip } = sdLoadingScreen.GetTip( asset.tip_key, asset.fallback_title );
@@ -467,13 +517,15 @@ class sdLoadingScreen
 		const card_height = 320 * scale;
 		const card_x = ( w - card_width ) / 2;
 		const card_y = ( h - card_height ) / 2;
+		const card_radius = 8 * scale;
 
-		// Card background
-		ctx.fillStyle = 'rgba(255,255,255,0.04)';
-		ctx.fillRect( card_x, card_y, card_width, card_height );
-		ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-		ctx.lineWidth = 2;
-		ctx.strokeRect( card_x, card_y, card_width, card_height );
+		// Card background - same dark-panel/thin-border convention as .menu_rect / menu_button / settings panels
+		sdLoadingScreen.RoundedRectPath( ctx, card_x, card_y, card_width, card_height, card_radius );
+		ctx.fillStyle = 'rgba(20,20,20,0.45)';
+		ctx.fill();
+		ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+		ctx.lineWidth = 2 * scale;
+		ctx.stroke();
 
 		// Icon - gently bobs up/down and pulses scale, so it doesn't feel like a static screenshot
 		const bob = Math.sin( now / 600 ) * 6 * scale;
@@ -493,13 +545,13 @@ class sdLoadingScreen
 
 		// Title
 		ctx.textAlign = 'center';
-		ctx.fillStyle = '#ffffaa';
-		ctx.font = ( 22 * scale ) + 'px Verdana';
+		ctx.fillStyle = '#ffffff';
+		ctx.font = ( 22 * scale ) + "px 'ui_font2', Verdana, sans-serif";
 		ctx.fillText( title, icon_cx, card_y + 210 * scale );
 
 		// Tip (word-wrapped to the card width), or a generic placeholder if this entry has no tip filled in yet
-		ctx.fillStyle = 'rgba(255,255,255,0.8)';
-		ctx.font = ( 14 * scale ) + 'px Verdana';
+		ctx.fillStyle = 'rgba(255,255,255,0.7)';
+		ctx.font = ( 14 * scale ) + "px 'ui_font2', Verdana, sans-serif";
 
 		let tip_lines = sdLoadingScreen.WrapText( ctx, tip || 'Did you know? Every part of this world was built by players like you.', card_width - 40 * scale );
 
@@ -515,15 +567,15 @@ class sdLoadingScreen
 		{
 			let represents_current = ( sdLoadingScreen.current_index % DOT_COUNT ) === i;
 
-			ctx.fillStyle = represents_current ? '#ffffaa' : 'rgba(255,255,255,0.25)';
+			ctx.fillStyle = represents_current ? '#8bff63' : 'rgba(255,255,255,0.25)'; // Same green accent as "Connected to... / playing / online" on the main menu
 			ctx.beginPath();
 			ctx.arc( icon_cx - dots_width / 2 + i * dot_spacing + dot_spacing / 2, card_y + card_height - 20 * scale, 3 * scale, 0, Math.PI * 2 );
 			ctx.fill();
 		}
 
 		// "Loading..." label with an animated ellipsis
-		ctx.fillStyle = '#ffffff';
-		ctx.font = ( 18 * scale ) + 'px Verdana';
+		ctx.fillStyle = '#8bff63';
+		ctx.font = ( 18 * scale ) + "px 'ui_font2', Verdana, sans-serif";
 		let dots = '.'.repeat( 1 + ( Math.floor( now / 400 ) % 3 ) );
 		ctx.fillText( 'Loading' + dots, w / 2, card_y - 20 * scale );
 	}
