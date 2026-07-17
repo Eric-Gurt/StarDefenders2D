@@ -567,13 +567,45 @@ class sdTask extends sdEntity
 		}
 
 		let expanded = sdRenderer.show_leader_board === 3; // Dedicated tasks-only view - give full details for every task
-		let shown = expanded ? visible_tasks.length : Math.min( visible_tasks.length, sdTask.MAX_COMPACT_TASKS );
 
 		// The caller (sdRenderer) translates to x = 15 * scale before this draws, so this is the width remaining
 		// to the right screen edge (with a matching margin) - null keeps the narrow, fixed-character-count wrap
 		// used by the compact HUD column, since that one was never meant to use the whole screen.
 		let max_width = expanded ? ( sdRenderer.screen_width - 30 * scale ) : null;
 
+		let shown;
+
+		if ( !expanded )
+		shown = Math.min( visible_tasks.length, sdTask.MAX_COMPACT_TASKS );
+		else
+		{
+			// Full list can easily run taller than the screen (each task can span several wrapped lines) - use a
+			// denser layout (compact=true) so more fit, and hard-stop once we'd draw past the bottom of the screen
+			// instead of letting the rest silently render off-screen, listing whatever didn't fit as "+N more".
+			const bottom_margin = 40 * scale;
+			const max_y = sdRenderer.screen_height - bottom_margin;
+
+			shown = 0;
+
+			for ( let t = 0; t < visible_tasks.length; t++ )
+			{
+				let y_before = ctx.getTransform().f;
+
+				visible_tasks[ t ].DrawTaskInterface( ctx, scale, max_width, true );
+
+				if ( ctx.getTransform().f > max_y )
+				{
+					let m = ctx.getTransform();
+					m.f = y_before; // Undo this task's translate - it either didn't fit at all, or only partially did, so don't count or leave a half-drawn gap for it
+					ctx.setTransform( m );
+					break;
+				}
+
+				shown++;
+			}
+		}
+
+		if ( !expanded )
 		for ( let t = 0; t < shown; t++ )
 		visible_tasks[ t ].DrawTaskInterface( ctx, scale, max_width );
 
@@ -584,7 +616,7 @@ class sdTask extends sdEntity
 			ctx.fillStyle = '#aaaaaa';
 			ctx.font = 11*scale + "px Verdana";
 			ctx.textAlign = 'left';
-			ctx.fillText( '+' + hidden_count + ' more ' + T('task') + ( hidden_count === 1 ? '' : 's' ) + ' (' + T('Tab to expand') + ')', 0, 11*scale );
+			ctx.fillText( '+' + hidden_count + ' more ' + T('task') + ( hidden_count === 1 ? '' : 's' ) + ( expanded ? '' : ' (' + T('Tab to expand') + ')' ), 0, 11*scale );
 			ctx.translate( 0, ( 11 + 5 ) * scale );
 			ctx.globalAlpha = 1;
 		}
@@ -1268,7 +1300,7 @@ class sdTask extends sdEntity
 		ctx.filter = 'none';
 	}
 	
-	DrawTaskInterface( ctx, scale, max_width=null ) // max_width (in pixels, post-translate): when given, wraps text by actually measured pixel width instead of the fixed 40-character guess, so it can be widened for the expanded (Tab) view instead of staying stuck in the narrow default HUD column
+	DrawTaskInterface( ctx, scale, max_width=null, compact=false ) // max_width (in pixels, post-translate): when given, wraps text by actually measured pixel width instead of the fixed 40-character guess, so it can be widened for the expanded (Tab) view instead of staying stuck in the narrow default HUD column. compact: smaller font/line-pitch, used by the expanded (Tab) view so more tasks fit on screen
 	{
 		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
 		return;
@@ -1285,7 +1317,10 @@ class sdTask extends sdEntity
 		if ( task_title_color instanceof Function )
 		task_title_color = task_title_color();
 
-		ctx.font = 11*scale + "px Verdana";
+		const font_size = compact ? 9 : 11;
+		const line_pitch = compact ? ( 9 + 3 ) : ( 11 + 5 );
+
+		ctx.font = font_size*scale + "px Verdana";
 
 		const PutMultilineText = ( text, subtext=false )=>
 		{
@@ -1342,8 +1377,8 @@ class sdTask extends sdEntity
 			ctx.fillStyle = last_style;
 			
 			ctx.fillText( text, subtext ? 5 * scale : 0, 0 );
-			ctx.translate( 0, ( 11 + 5 ) * scale );
-			
+			ctx.translate( 0, line_pitch * scale );
+
 			if ( later_text !== null )
 			PutMultilineText( later_text, subtext );
 		};
@@ -1386,7 +1421,7 @@ class sdTask extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
-		ctx.translate( 0, ( 11 + 5 ) * scale );
+		ctx.translate( 0, line_pitch * scale );
 	}
 }
 export default sdTask;

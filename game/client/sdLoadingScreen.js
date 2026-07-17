@@ -268,39 +268,107 @@ class sdLoadingScreen
 
 		const SIZE = 96;
 
-		let icon_canvas = document.createElement( 'canvas' );
-		icon_canvas.width = SIZE;
-		icon_canvas.height = SIZE;
+		// Guns' hitbox is a tiny fixed pickup-collision box (~8x6px) totally unrelated to their actual sprite size
+		// (multi-part weapons can draw 100+ px wide) - scaling off of it was blowing guns up far past the icon
+		// canvas and clipping most of the sprite off. Draw at native scale into a generously-oversized scratch
+		// canvas first, then measure the ACTUAL opaque pixel bounds and scale/center based on that instead, which
+		// works correctly regardless of which of this game's several different sprite-drawing paths a given
+		// entity/gun uses.
+		const SCRATCH_SIZE = 400;
 
-		let ctx2 = icon_canvas.getContext( '2d' );
-		sdRenderer.AddCacheDrawMethod( ctx2 );
-		ctx2.imageSmoothingEnabled = false;
+		let scratch = document.createElement( 'canvas' );
+		scratch.width = SCRATCH_SIZE;
+		scratch.height = SCRATCH_SIZE;
+
+		let sctx = scratch.getContext( '2d' );
+		sdRenderer.AddCacheDrawMethod( sctx );
+		sctx.imageSmoothingEnabled = false;
 
 		try
 		{
-			ctx2.translate(
-				~~( SIZE / 2 - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 ),
-				~~( SIZE / 2 - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 )
+			sctx.translate(
+				~~( SCRATCH_SIZE / 2 - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 ),
+				~~( SCRATCH_SIZE / 2 - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 )
 			);
 
-			ctx2.save();
-			fake_ent.DrawBG( ctx2, false );
-			ctx2.restore();
+			sctx.save();
+			fake_ent.DrawBG( sctx, false );
+			sctx.restore();
 
-			ctx2.save();
-			fake_ent.Draw( ctx2, false );
-			ctx2.restore();
+			sctx.save();
+			fake_ent.Draw( sctx, false );
+			sctx.restore();
 
-			ctx2.save();
-			fake_ent.DrawFG( ctx2, false );
-			ctx2.restore();
+			sctx.save();
+			fake_ent.DrawFG( sctx, false );
+			sctx.restore();
 		}
 		catch ( e )
 		{
 			return null;
 		}
 
+		let bounds = sdLoadingScreen.MeasureOpaqueBounds( sctx, SCRATCH_SIZE, SCRATCH_SIZE );
+
+		if ( !bounds )
+		return null; // Nothing drawn yet (ex. sprite image still loading) - callers already handle a null return gracefully
+
+		let sprite_w = bounds.x2 - bounds.x1;
+		let sprite_h = bounds.y2 - bounds.y1;
+		let largest_dim = Math.max( sprite_w, sprite_h, 4 );
+
+		const TARGET_FILL = 0.7; // Sprites scale up to occupy roughly this fraction of the icon canvas along their longest edge
+		const MAX_SAFE_FILL = 0.92; // Hard ceiling so a scaled sprite can never exceed the icon canvas bounds (small margin for the alpha threshold in MeasureOpaqueBounds slightly undercounting soft/antialiased edges)
+
+		let fill_scale = ( SIZE * TARGET_FILL ) / largest_dim;
+		let safe_cap = ( SIZE * MAX_SAFE_FILL ) / largest_dim;
+
+		let sprite_scale = Math.min( safe_cap, Math.max( 1, fill_scale ) ); // Never shrink below native size, except in the rare case a sprite is so large even native size would clip - then shrink just enough to fit
+
+		if ( asset.class_name === 'sdGun' ) // Guns read as small/thin even after the general proportional scale-up above, so give them an extra boost (still bounded by the same clip-safety ceiling)
+		sprite_scale = Math.min( safe_cap, sprite_scale * 2 );
+
+		let icon_canvas = document.createElement( 'canvas' );
+		icon_canvas.width = SIZE;
+		icon_canvas.height = SIZE;
+
+		let ctx2 = icon_canvas.getContext( '2d' );
+		ctx2.imageSmoothingEnabled = false;
+
+		let draw_w = sprite_w * sprite_scale;
+		let draw_h = sprite_h * sprite_scale;
+
+		ctx2.drawImage( scratch, bounds.x1, bounds.y1, sprite_w, sprite_h, ( SIZE - draw_w ) / 2, ( SIZE - draw_h ) / 2, draw_w, draw_h );
+
 		return icon_canvas;
+	}
+	static MeasureOpaqueBounds( ctx, w, h ) // Scans for the bounding box of non-transparent pixels drawn so far - used to find a sprite's true visual extent when the entity's hitbox doesn't represent it (see MakeIcon)
+	{
+		let data;
+
+		try { data = ctx.getImageData( 0, 0, w, h ).data; }
+		catch ( e ) { return null; }
+
+		let min_x = w, min_y = h, max_x = -1, max_y = -1;
+
+		for ( let y = 0; y < h; y++ )
+		for ( let x = 0; x < w; x++ )
+		{
+			let alpha = data[ ( y * w + x ) * 4 + 3 ];
+
+			if ( alpha > 10 )
+			{
+				if ( x < min_x ) min_x = x;
+				if ( x > max_x ) max_x = x;
+				if ( y < min_y ) min_y = y;
+				if ( y > max_y ) max_y = y;
+			}
+		}
+
+		if ( max_x < 0 )
+		return null;
+
+		return { x1: min_x, y1: min_y, x2: max_x + 1, y2: max_y + 1 };
 	}
 	static BuildAssetList()
 	{
@@ -309,6 +377,14 @@ class sdLoadingScreen
 
 		let assets = [];
 		let seen_keys = new Set();
+
+		// Pure admin/dev-utility entity classes (world-editing, protection-zone markers, dev test spawner) - never
+		// something a normal player builds or encounters as a recognizable "thing", so not interesting for a
+		// gameplay-preview carousel. Small, explicit list rather than pattern-matching, since most classes referenced
+		// from sdShop.js's "Development tests" category (sdSandWorm, sdDrone, sdWorkbench, etc.) ARE real creatures/
+		// items players normally encounter in the world - that category is just a convenient admin spawn shortcut for
+		// them, not evidence the class itself is admin-only.
+		const ADMIN_ONLY_ENTITY_CLASSES = new Set([ 'sdArea', 'sdPresetEditor', 'sdVirus', 'sdFactionSpawner' ]);
 
 		// Primary source for guns: sdGun.classes directly, NOT sdShop.options. sdShop.options is populated by a
 		// 'SET sdShop.options' message sent by the server after connecting - it's still just placeholder stub
@@ -322,6 +398,9 @@ class sdLoadingScreen
 			let gun_class_entry = sdGun.classes[ class_id ];
 
 			if ( !gun_class_entry )
+			continue;
+
+			if ( gun_class_entry.matter_cost === Infinity ) // Same signal sdShop.js itself relies on ("Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins") - covers the admin remover/teleporter/damager/mass-deleter guns
 			continue;
 
 			let dedupe_key = 'gun:' + class_id;
@@ -352,6 +431,9 @@ class sdLoadingScreen
 			let cls = sdWorld.entity_classes_array[ i ];
 
 			if ( cls.name === 'sdGun' ) // Already fully covered above (154 distinct, properly-titled gun types) - a bare new sdGun({}) here would just be a generic, less useful duplicate
+			continue;
+
+			if ( ADMIN_ONLY_ENTITY_CLASSES.has( cls.name ) )
 			continue;
 
 			let dedupe_key = cls.name + ':::';
@@ -466,6 +548,18 @@ class sdLoadingScreen
 		sdLoadingScreen.current_fake_ent = null;
 		sdLoadingScreen.current_fake_ent_index = -1;
 	}
+	static PickNextRandomIndex() // Random rather than sequential, so repeat viewings of the loading screen don't always start the same cycle through the same ~300 assets in the same order
+	{
+		if ( sdLoadingScreen.assets.length <= 1 )
+		return 0;
+
+		let next_index = sdLoadingScreen.current_index;
+
+		while ( next_index === sdLoadingScreen.current_index ) // Avoid picking the same asset twice in a row
+		next_index = ~~( Math.random() * sdLoadingScreen.assets.length );
+
+		return next_index;
+	}
 	static Loop()
 	{
 		if ( !sdLoadingScreen.showing )
@@ -480,7 +574,7 @@ class sdLoadingScreen
 		if ( sdLoadingScreen.time_on_current > sdLoadingScreen.ASSET_DURATION_MS )
 		{
 			sdLoadingScreen.time_on_current = 0;
-			sdLoadingScreen.current_index = ( sdLoadingScreen.current_index + 1 ) % sdLoadingScreen.assets.length;
+			sdLoadingScreen.current_index = sdLoadingScreen.PickNextRandomIndex();
 		}
 
 		sdLoadingScreen.Draw( now );
@@ -558,18 +652,19 @@ class sdLoadingScreen
 		for ( let i = 0; i < tip_lines.length; i++ )
 		ctx.fillText( tip_lines[ i ], icon_cx, card_y + 245 * scale + i * 20 * scale );
 
-		// Progress dots
-		const DOT_COUNT = Math.min( 24, sdLoadingScreen.assets.length );
+		// Activity dots - a simple animated wave rather than a literal position-in-list indicator, since assets now
+		// cycle in random order (PickNextRandomIndex) rather than sequentially, so there's no real "progress" to show
+		const DOT_COUNT = 7;
 		const dot_spacing = 10 * scale;
 		const dots_width = DOT_COUNT * dot_spacing;
 
 		for ( let i = 0; i < DOT_COUNT; i++ )
 		{
-			let represents_current = ( sdLoadingScreen.current_index % DOT_COUNT ) === i;
+			let wave = ( Math.sin( now / 250 - i * 0.8 ) + 1 ) / 2; // 0..1
 
-			ctx.fillStyle = represents_current ? '#8bff63' : 'rgba(255,255,255,0.25)'; // Same green accent as "Connected to... / playing / online" on the main menu
+			ctx.fillStyle = `rgba(139,255,99,${ 0.25 + wave * 0.75 })`; // Same green accent as "Connected to... / playing / online" on the main menu
 			ctx.beginPath();
-			ctx.arc( icon_cx - dots_width / 2 + i * dot_spacing + dot_spacing / 2, card_y + card_height - 20 * scale, 3 * scale, 0, Math.PI * 2 );
+			ctx.arc( icon_cx - dots_width / 2 + i * dot_spacing + dot_spacing / 2, card_y + card_height - 20 * scale, ( 2 + wave * 1.5 ) * scale, 0, Math.PI * 2 );
 			ctx.fill();
 		}
 
