@@ -291,7 +291,8 @@ class sdSunPanel extends sdEntity
 
 			if ( sun_intensity > 0.2 )
 			{
-				this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity * this.multiplier * ( 1 + this.panels ) * this._sun_reaches );
+				let drought_boost = 1 + 2 * ( sdWeather.only_instance.drought || 0 ); // 200% more effective during a drought/heatwave event
+				this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity * this.multiplier * ( 1 + this.panels ) * this._sun_reaches * drought_boost );
 				this.MatterGlow( 0.01, 50, GSPEED );
 			}
 
