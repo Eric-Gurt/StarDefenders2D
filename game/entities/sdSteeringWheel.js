@@ -1477,8 +1477,8 @@ class sdSteeringWheel extends sdEntity
 			// phase-13-snapshot-02: record this rigid hull translation so the per-client snapshot can send ONE group
 			// delta ( [ -3, dx, dy, [net_ids] ] ) instead of a per-part x/y diff for every moved part. Only the `scan`
 			// members (full xx,yy movers) are recorded; stuff_to_push (possible partial movers) stay on per-part sync.
-			// Self-clearing per server frame; consumed by sdByteShifter.SendSnapshot. Gated, flag off by default.
-			if ( globalThis.RIGID_SNAPSHOT_DELTA && ( xx !== 0 || yy !== 0 ) && scan.length > 0 )
+			// Self-clearing per server frame; consumed by sdByteShifter.SendSnapshot.
+			if ( ( xx !== 0 || yy !== 0 ) && scan.length > 0 )
 			{
 				let _F = globalThis.GetFrame ? globalThis.GetFrame() : sdWorld.time;
 				let _frg = sdWorld.frame_rigid_groups;

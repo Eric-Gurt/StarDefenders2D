@@ -289,7 +289,6 @@ class sdByteShifter
 					// per-part x/y diffs. GATED on this client being synced LAST frame (consecutive) — the delta is relative, so a
 					// scheduler-skipped frame would lose displacement; a non-consecutive (resumed) frame falls back to per-part absolute.
 					let rsd_groups = null, rsd_member_map = null;
-					if ( globalThis.RIGID_SNAPSHOT_DELTA )
 					{
 						let _frg = sdWorld.frame_rigid_groups;
 						if ( this.last_snapshot_frame === frame - 1 && _frg && _frg.frame === frame && _frg.groups.length > 0 )
