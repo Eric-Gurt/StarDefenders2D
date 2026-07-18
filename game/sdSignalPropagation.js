@@ -13,16 +13,16 @@
 
 */
 
-import sdWorld from '../sdWorld.js';
-import sdEntity from './sdEntity.js';
-import sdDoor from './sdDoor.js';
-import sdAntigravity from './sdAntigravity.js';
-import sdSampleBuilder from './sdSampleBuilder.js';
-import sdSteeringWheel from './sdSteeringWheel.js';
-import sdConveyor from './sdConveyor.js';
-import sdLiquidAbsorber from './sdLiquidAbsorber.js';
-import sdTurret from './sdTurret.js';
-import sdSound from '../sdSound.js';
+import sdWorld from './sdWorld.js';
+import sdEntity from './entities/sdEntity.js';
+import sdDoor from './entities/sdDoor.js';
+import sdAntigravity from './entities/sdAntigravity.js';
+import sdSampleBuilder from './entities/sdSampleBuilder.js';
+import sdSteeringWheel from './entities/sdSteeringWheel.js';
+import sdConveyor from './entities/sdConveyor.js';
+import sdLiquidAbsorber from './entities/sdLiquidAbsorber.js';
+import sdTurret from './entities/sdTurret.js';
+import sdSound from './sdSound.js';
 
 export function PropagateSignal( source, v ) // source is whatever originated this signal (sdButton, or an sdNode AND gate whose output flipped)
 {

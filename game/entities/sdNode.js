@@ -10,7 +10,7 @@ import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCable from './sdCable.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
-import { PropagateSignal } from './sdSignalPropagation.js';
+import { PropagateSignal } from '../sdSignalPropagation.js';
 
 
 class sdNode extends sdEntity

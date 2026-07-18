@@ -17,7 +17,7 @@ import sdBlock from './sdBlock.js';
 import sdGun from './sdGun.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
-import { PropagateSignal } from './sdSignalPropagation.js';
+import { PropagateSignal } from '../sdSignalPropagation.js';
 
 import sdSound from '../sdSound.js';
 
