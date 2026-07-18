@@ -27,6 +27,7 @@ class sdAsteroid extends sdEntity
 		sdAsteroid.TYPE_SHARDS = 1;
 		sdAsteroid.TYPE_FLESH = 2;
 		sdAsteroid.TYPE_MISSILE = 3;
+		sdAsteroid.TYPE_METAL_SHARDS = 4;
 		
 		sdAsteroid.effect_colors = [ '#fffff0', '#fffff0', '#ff0000', '#80ffff' ]
 		
@@ -150,7 +151,7 @@ class sdAsteroid extends sdEntity
 		this._infestation_in = 0;
 
 		
-		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
+		this.type = ( params.type !== undefined ) ? params.type : ( Math.random() < 0.005 ) ? sdAsteroid.TYPE_FLESH : ( Math.random() < 0.0625 ) ? sdAsteroid.TYPE_METAL_SHARDS : ( Math.random() < 0.5 ) ? sdAsteroid.TYPE_SHARDS : sdAsteroid.TYPE_DEFAULT;
 		this.scale = ( this.type === sdAsteroid.TYPE_MISSILE ) ? 100 : Math.max( 0.8, Math.random() * 2 ) * 100; // Scale / size of the asteroid
 
 		this._hmax = 60 * this.scale / 100; // Asteroids that land need more HP to survive the "explosion" when they land
@@ -226,6 +227,24 @@ class sdAsteroid extends sdEntity
 							this.matter_max / 40,
 							5
 					);
+				}
+				if ( this.type === sdAsteroid.TYPE_METAL_SHARDS )
+				{
+					let r = Math.round( this.scale / 100 ) * ( 1 + Math.round( Math.random() * 1 ) ); // At least 1 shard, more depending on RNG and size
+					for( let i = 0; i < r; i++ )
+					{
+						let x = this.x + Math.random() * 4 - 2;
+						let y = this.y + Math.random() * 4 - 2;
+						let sx = this.sx + Math.random() * 2 - 1;
+						let sy = this.sy + Math.random() * 2 - 1;
+						
+						let gun;
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+						gun.sx = sx;
+						gun.sy = sy;
+						sdEntity.AddEntityToEntitiesArray( gun );
+						sdWorld.UpdateHashPosition( gun, false );
+					}
 				}
 		
 				this.remove();
@@ -554,6 +573,8 @@ class sdAsteroid extends sdEntity
 		if ( this.type === sdAsteroid.TYPE_MISSILE )
 		return ('Cruise missile');
 
+		if ( this.type === sdAsteroid.TYPE_METAL_SHARDS )
+		return ('Asteroid with metal shards');
 	
 		return ('Asteroid');
 	}

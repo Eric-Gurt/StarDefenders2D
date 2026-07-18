@@ -421,7 +421,7 @@ class sdExcavator extends sdEntity
 				from_entity.remove();
 			}
 			if ( from_entity.class === sdGun.CLASS_METAL_SHARD )
-			if ( !from_entity._is_being_removed )
+			if ( !from_entity._is_being_removed && this.hea < this.hmax * 0.65 ) // Allow only if it can fully utilize the shard
 			{
 				this.hea = Math.min( this.hea + this.hmax * 0.35, this.hmax );
 				from_entity.remove();
