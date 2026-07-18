@@ -10,6 +10,7 @@ import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCable from './sdCable.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import { PropagateSignal } from './sdSignalPropagation.js';
 
 
 class sdNode extends sdEntity
@@ -25,7 +26,8 @@ class sdNode extends sdEntity
 		sdNode.TYPE_SIGNAL_TURRET_ENABLER = 4; // Makes turret shoot in specified direction
 		sdNode.TYPE_SIGNAL_DELAYER = 5;
 		sdNode.TYPE_SIGNAL_WIRELESS = 6;
-		
+		sdNode.TYPE_SIGNAL_AND_GATE = 7; // Passes a signal onward only while every directly-wired input (button/sensor/another AND gate) is active
+
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -3; }
@@ -58,11 +60,17 @@ class sdNode extends sdEntity
 	
 		if ( this.type === sdNode.TYPE_SIGNAL_WIRELESS )
 		return 'Wireless connection node';
-	
+
+		if ( this.type === sdNode.TYPE_SIGNAL_AND_GATE )
+		return 'AND gate cable connection node';
+
 		return 'Cable connection node';
 	}
 	get description()
 	{
+		if ( this.type === sdNode.TYPE_SIGNAL_AND_GATE )
+		return 'Passes a signal onward only while every button, sensor or other AND gate directly wired into it (through plain connection nodes) is simultaneously active. Chain multiple together for multi-stage logic.';
+
 		return 'Cable connection nodes can be used to connect base equipment entities that are located far away from each other. Some types of cable connection nodes can have additional effect when used with buttons & sensors.';
 	}
 	
@@ -99,7 +107,11 @@ class sdNode extends sdEntity
 		
 		this.variation = params.variation || 0; // In case of sdNode.TYPE_SIGNAL_TURRET_ENABLER it is an angle
 		this.delay = params.delay || 500; // For sdNode.TYPE_SIGNAL_DELAYER, can't use variation because variation reflects status for these
-		
+
+		this.output = false; // For sdNode.TYPE_SIGNAL_AND_GATE - last computed AND of its live inputs
+		this._owner = null; // For sdNode.TYPE_SIGNAL_AND_GATE - inherited from an active input, so downstream doors/turrets can attribute it
+		this._and_gate_recheck_timer = 30 + Math.random() * 30; // Jittered self-heal poll, in case a cascade was missed (e.g. rewiring)
+
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._hmax = 100 * 4; // Stronger variations have more health
@@ -138,7 +150,7 @@ class sdNode extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
-		
+
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -146,11 +158,89 @@ class sdNode extends sdEntity
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		else
 		//if ( this._matter < 0.05 || this._matter >= this._matter_max )
+		if ( this.type !== sdNode.TYPE_SIGNAL_AND_GATE )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+
+		if ( this.type === sdNode.TYPE_SIGNAL_AND_GATE )
+		if ( sdWorld.is_server )
+		{
+			// Cascades already trigger an immediate Reevaluate() on relevant changes - this is just
+			// a low-cost backstop in case a topology change (cable cut/added elsewhere) was missed
+			this._and_gate_recheck_timer -= GSPEED;
+
+			if ( this._and_gate_recheck_timer <= 0 )
+			{
+				this._and_gate_recheck_timer = 30 + Math.random() * 30;
+				this.Reevaluate();
+			}
+		}
+	}
+	GetAndGateInputs() // Live list of buttons/sensors/other AND gates wired directly (through plain nodes only) into this gate
+	{
+		const sdButton = sdWorld.entity_classes.sdButton;
+
+		let candidates = this.FindObjectsInACableNetwork(
+			( e )=> e !== this && ( e.is( sdButton ) || ( e.is( sdNode ) && e.type === sdNode.TYPE_SIGNAL_AND_GATE ) ),
+			null,
+			true // return_full_paths
+		);
+
+		return candidates
+			.filter( ( c )=> c.path.slice( 1 ).every( ( n )=> n.is( sdNode ) && n.type === sdNode.TYPE_NODE ) )
+			.map( ( c )=> c.entity );
+	}
+	GetInputValue( e ) // Live current boolean state of one discovered input
+	{
+		const sdButton = sdWorld.entity_classes.sdButton;
+
+		if ( e.is( sdButton ) )
+		return e.activated;
+
+		return e.output; // Another AND gate, chained
+	}
+	Reevaluate() // Re-derive output from current live inputs, and cascade onward only if it actually changed
+	{
+		if ( this.type !== sdNode.TYPE_SIGNAL_AND_GATE )
+		return;
+
+		if ( this._is_being_removed )
+		return;
+
+		if ( !sdWorld.is_server )
+		return;
+
+		let inputs = this.GetAndGateInputs();
+
+		let new_output = inputs.length > 0 && inputs.every( ( e )=> this.GetInputValue( e ) );
+
+		if ( new_output !== this.output )
+		{
+			this.output = new_output;
+			this._update_version++;
+
+			if ( new_output )
+			{
+				let with_owner = inputs.find( ( e )=> e._owner );
+				if ( with_owner )
+				this._owner = with_owner._owner;
+			}
+
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+			PropagateSignal( this, this.output );
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title );
+
+		if ( this.type === sdNode.TYPE_SIGNAL_AND_GATE )
+		{
+			let inputs = this.GetAndGateInputs();
+			let active = inputs.filter( ( e )=> this.GetInputValue( e ) ).length;
+
+			sdEntity.TooltipUntranslated( ctx, active + '/' + inputs.length + ' inputs active', 0, 8, this.output ? '#66ff66' : '#ff6666' );
+		}
 	}
 	onRemove()
 	{
@@ -179,12 +269,21 @@ class sdNode extends sdEntity
 			
 			if ( this.variation === 1 ) ctx.sd_hue_rotation = -90;
 			if ( this.variation === 2 ) ctx.sd_hue_rotation = 120;
-			if ( this.variation === 3 ) ctx.filter = 'saturate(0)'; 
+			if ( this.variation === 3 ) ctx.filter = 'saturate(0)';
 			if ( this.variation === 4 ) ctx.sd_hue_rotation = 60;
 			if ( this.variation === 5 ) ctx.sd_hue_rotation = -60;
 		}
-		
-		ctx.drawImageFilterCache( sdNode.img_node, xx,this.type * 16,16,16, -8, -8, 16,16 );
+
+		let yy = this.type * 16;
+
+		if ( this.type === sdNode.TYPE_SIGNAL_AND_GATE )
+		{
+			// No dedicated sprite row yet - reuse the plain node icon, tinted by current output state
+			yy = sdNode.TYPE_NODE * 16;
+			ctx.sd_hue_rotation = this.output ? 120 : -50;
+		}
+
+		ctx.drawImageFilterCache( sdNode.img_node, xx,yy,16,16, -8, -8, 16,16 );
 		ctx.filter = 'none';
 		ctx.sd_hue_rotation = 0;
 	}
