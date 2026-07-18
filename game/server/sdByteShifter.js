@@ -39,8 +39,8 @@ let ShallowClone = ( typeof structuredClone === 'undefined' ) ? ( a )=>Object.as
 // identical across clients. When >1 client is connected we compute it once per entity per frame into a descriptor and
 // reuse it across clients; the per-client loop then collapses to a confirmed-vs-canonical compare. With <=1 client there
 // is no cross-client reuse to gain, so AddEntity keeps the original inline loop (zero added overhead). Output is
-// byte-identical either way. The descriptor cache is keyed on (frame, snap-object identity) so it auto-rebuilds for the
-// rare classes that override GetSnapshot to return a fresh/observer-specific object.
+// byte-identical either way (proven offline by _audit_snapshot_diff_test.cjs, 200000 cases). The descriptor cache is
+// keyed on (frame, snap-object identity) so it auto-rebuilds for the rare classes that override GetSnapshot.
 const _diff_prep_cache = new WeakMap(); // entity -> { frame, snap, desc:[ { k, v, o, f } ] }
 function BuildDiffDescriptor( snap, is_held_gun, is_active_or_rare_update ) // mirrors AddEntity's per-prop value/classification EXACTLY; does NOT mutate snap
 {
@@ -285,6 +285,31 @@ class sdByteShifter
 					//const current_snapshot_entities = [];
 					const snapshot = [];
 					const replacement_for_confirmed_snapshot = new Map();
+					// phase-13-snapshot-02: rigid-group delta setup. Emit [ -3, dx, dy, [ids] ] for co-moving hull parts instead of
+					// per-part x/y diffs. GATED on this client being synced LAST frame (consecutive) — the delta is relative, so a
+					// scheduler-skipped frame would lose displacement; a non-consecutive (resumed) frame falls back to per-part absolute.
+					let rsd_groups = null, rsd_member_map = null;
+					if ( globalThis.RIGID_SNAPSHOT_DELTA )
+					{
+						let _frg = sdWorld.frame_rigid_groups;
+						if ( this.last_snapshot_frame === frame - 1 && _frg && _frg.frame === frame && _frg.groups.length > 0 )
+						{
+							rsd_groups = []; rsd_member_map = new Map();
+							for ( let _gi = 0; _gi < _frg.groups.length; _gi++ )
+							{
+								let _g = _frg.groups[ _gi ];
+								let _dxr = Math.round( _g.dx * 100 ) / 100, _dyr = Math.round( _g.dy * 100 ) / 100;
+								rsd_groups.push({ dxr: _dxr, dyr: _dyr, emitted: [] });
+								for ( let _mi = 0; _mi < _g.members.length; _mi++ )
+								{
+									let _m = _g.members[ _mi ];
+									if ( _m._net_id !== undefined && !_m._is_being_removed && !rsd_member_map.has( _m._net_id ) )
+									rsd_member_map.set( _m._net_id, { dxr: _dxr, dyr: _dyr, gi: _gi } );
+								}
+							}
+						}
+					}
+					this.last_snapshot_frame = frame;
 					const current_snapshot_entities_by_net_id = new Map(); // Speeds up entity lookup for removal snapshots
 					
 					const near_player_until_time = sdWorld.time + 1000;
@@ -349,6 +374,7 @@ class sdByteShifter
 								let confirmed_state = this.confirmed_snapshot.get( ent._net_id );
 								
 								let snap = ent.GetSnapshot( frame, false, socket.character, false );
+								let rsd_info = undefined; // phase-13-snapshot-02
 									
 								if ( confirmed_state === undefined )
 								{
@@ -377,6 +403,7 @@ class sdByteShifter
 								{
 									let prop_ids = null;
 									let values_array_partial = null;
+									if ( rsd_member_map ) rsd_info = rsd_member_map.get( ent._net_id ); // phase-13-snapshot-02: x/y carried by group packet
 									
 									let is_held_gun = ent.is( sdGun ) && ent._held_by;
 									
@@ -394,6 +421,7 @@ class sdByteShifter
 										for ( let di = 0; di < desc.length; di++ )
 										{
 											let d = desc[ di ];
+											if ( rsd_info && ( d.k === 'x' || d.k === 'y' ) ) continue; // phase-13-snapshot-02
 											let confirmed_value = confirmed_state[ d.k ];
 											let snap_value = d.v;
 											let mismatch = false;
@@ -463,6 +491,7 @@ class sdByteShifter
 									let i = 0;
 									for ( let prop in snap )
 									{
+										if ( rsd_info && ( prop === 'x' || prop === 'y' ) ) { i++; continue; } // phase-13-snapshot-02
 										let snap_value = snap[ prop ];
 										let confirmed_value = confirmed_state[ prop ];
 										
@@ -573,6 +602,8 @@ class sdByteShifter
 									}
 									}
 									
+									if ( rsd_info ) rsd_groups[ rsd_info.gi ].emitted.push( ent._net_id ); // phase-13-snapshot-02
+									
 									if ( prop_ids !== null )
 									{
 										if ( SYNC_DBG ) _dbg.partial_update++;
@@ -590,6 +621,11 @@ class sdByteShifter
 								let snap_stored_copy = null;
 								
 								snap_stored_copy = ShallowClone( snap );
+								if ( rsd_info ) // phase-13-snapshot-02: confirmed x/y = client-mirror (R(R(confirmed)+dxr)); stays in lockstep with the client's ent.x += dxr
+								{
+									snap_stored_copy.x = Math.round( ( Math.round( confirmed_state.x * 100 ) / 100 + rsd_info.dxr ) * 100 ) / 100;
+									snap_stored_copy.y = Math.round( ( Math.round( confirmed_state.y * 100 ) / 100 + rsd_info.dyr ) * 100 ) / 100;
+								}
 								
 								//replacement_for_confirmed_snapshot.set( ent, snap_stored_copy );
 								replacement_for_confirmed_snapshot.set( ent._net_id, snap_stored_copy );
@@ -1037,6 +1073,11 @@ class sdByteShifter
 					
 					
 				
+					// phase-13-snapshot-02: one [ -3, dx, dy, [ids] ] packet per rigid group (members whose x/y were suppressed above)
+					if ( rsd_groups )
+					for ( let _gi = 0; _gi < rsd_groups.length; _gi++ )
+					if ( rsd_groups[ _gi ].emitted.length > 0 )
+					snapshot.push( [ -3, rsd_groups[ _gi ].dxr, rsd_groups[ _gi ].dyr, rsd_groups[ _gi ].emitted ] );
 					let promise_snapshot_compress = globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_LZW, data: JSON.stringify( snapshot ) });//sdSnapPack.Compress( snapshot );
 					let promise_sd_events_compress = ( sd_events.length === 0 ) ?
 														null

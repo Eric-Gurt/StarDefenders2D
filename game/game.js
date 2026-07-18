@@ -1082,7 +1082,30 @@ let enf_once = true;
 					let arr = snapshot[ i ];
 					
 					let _net_id = arr[ 0 ];
-					
+
+					if ( _net_id === -3 ) // phase-13-snapshot-02: rigid-group delta [ -3, dx, dy, [net_ids] ] — translate a whole co-moving base group at once instead of one absolute x/y diff per part. Server keeps confirmed in lockstep (confirmed += dx) so this never desyncs; sub-pixel drift vs absolute is reconciled by the periodic per-entity absolute resync.
+					{
+						let gdx = arr[ 1 ];
+						let gdy = arr[ 2 ];
+						let ids = arr[ 3 ];
+						for ( let gi = 0; gi < ids.length; gi++ )
+						{
+							let gent = sdEntity.entities_by_net_id_cache_map.get( ids[ gi ] );
+							if ( gent )
+							if ( !gent._is_being_removed )
+							{
+								gent.x = Math.round( ( gent.x + gdx ) * 100 ) / 100;
+								gent.y = Math.round( ( gent.y + gdy ) * 100 ) / 100;
+								gent._hitbox_last_update = 0;
+								gent.UpdateHitbox();
+								if ( !gent.IsGlobalEntity() )
+								gent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								sdEntity.TrackPotentialYRest( gent );
+							}
+						}
+						continue;
+					}
+
 					if ( _net_id === -1 || _net_id === -2 ) // Invisible chunk
 					{
 						let hash = arr[ 1 ];
