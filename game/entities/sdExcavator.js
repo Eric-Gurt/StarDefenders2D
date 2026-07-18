@@ -34,15 +34,15 @@ class sdExcavator extends sdEntity
 {
 	static init_class()
 	{
-		sdExcavator.img_excavator = sdWorld.CreateImageFromFile( 'sdExcavator' );
+		sdExcavator.img_excavator = sdWorld.CreateImageFromFile( 'sdExcavator2' );
 
 		
 		//sdExcavator.panels = []; // Antenna array, will be used so LRTPs can teleport to nearest one
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -15; }
-	get hitbox_x2() { return 15; }
+	get hitbox_x1() { return -23.5; }
+	get hitbox_x2() { return 23.5; }
 	get hitbox_y1() { return -18; }
 	get hitbox_y2() { return 16; }
 	
@@ -77,7 +77,7 @@ class sdExcavator extends sdEntity
 
 		this.sx = 0;
 		this.sy = 0;
-		this.hmax = 6000;
+		this.hmax = 10000;
 		this.hea = this.hmax;
 		this._check_for_players = 30;
 		this._next_dig_in = 30;
@@ -215,7 +215,7 @@ class sdExcavator extends sdEntity
 				//this.sy += 0.1; // Hopefully prevents it from freezing in place in air
 				
 				
-				let bullet_obj = new sdBullet({ x: this.x - 10, y: this.y -8, time_left: 2 }); // Left
+				let bullet_obj = new sdBullet({ x: this.x - 18, y: this.y -8, time_left: 2 }); // Left
 
 				bullet_obj._owner = this;
 				bullet_obj.sx = 0;
@@ -242,7 +242,7 @@ class sdExcavator extends sdEntity
 				
 				sdEntity.AddEntityToEntitiesArray( bullet_obj );
 				
-				let bullet_obj2 = new sdBullet({ x: this.x + 10, y: this.y - 8, time_left: 2 }); // Right
+				let bullet_obj2 = new sdBullet({ x: this.x + 18, y: this.y - 8, time_left: 2 }); // Right
 
 				bullet_obj2._owner = this;
 				bullet_obj2.sx = 0;
@@ -266,8 +266,8 @@ class sdExcavator extends sdEntity
 				};
 				
 				sdEntity.AddEntityToEntitiesArray( bullet_obj2 );
-				// Center excavating point
-				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y - 8, time_left: 2 }); // Center left
+				// Center left excavating point
+				let bullet_obj3 = new sdBullet({ x: this.x - 4, y: this.y - 8, time_left: 2 }); // Center left
 
 				bullet_obj3._owner = this;
 				bullet_obj3.sx = 0;
@@ -291,6 +291,83 @@ class sdExcavator extends sdEntity
 				};
 				
 				sdEntity.AddEntityToEntitiesArray( bullet_obj3 );
+				// Center right excavating point
+				let bullet_obj4 = new sdBullet({ x: this.x + 4, y: this.y - 8, time_left: 2 }); // Center right
+
+				bullet_obj4._owner = this;
+				bullet_obj4.sx = 0;
+				bullet_obj4.sy = 1;
+				bullet_obj4.color = 'transparent';
+				bullet_obj4._damage = 100;
+				bullet_obj4._dirt_mult = 3;
+				bullet_obj4._rail = true;
+				
+				bullet_obj4._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						bullet._damage = bullet._damage / 4;
+						if ( target_entity.is_big )
+						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
+						else
+						if ( bullet._owner )
+						bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
+					}
+				};
+				
+				sdEntity.AddEntityToEntitiesArray( bullet_obj4 );
+				// Middle left excavating point
+				let bullet_obj5 = new sdBullet({ x: this.x - 11, y: this.y -8, time_left: 2 }); // Left
+
+				bullet_obj5._owner = this;
+				bullet_obj5.sx = 0;
+				bullet_obj5.sy = 1;
+				bullet_obj5.color = 'transparent';
+				bullet_obj5._damage = 100;
+				bullet_obj5._dirt_mult = 3;
+				bullet_obj5._rail = true;
+				
+				bullet_obj5._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						if ( target_entity.is_big )
+						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
+						else
+						{
+							bullet._damage = bullet._damage / 4; // Less damage for smaller crystals
+							if ( bullet._owner )
+							bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
+						}
+					}
+				};
+				sdEntity.AddEntityToEntitiesArray( bullet_obj5 );
+				// Middle right excavating point
+				let bullet_obj6 = new sdBullet({ x: this.x + 11, y: this.y -8, time_left: 2 }); // Left
+
+				bullet_obj6._owner = this;
+				bullet_obj6.sx = 0;
+				bullet_obj6.sy = 1;
+				bullet_obj6.color = 'transparent';
+				bullet_obj6._damage = 100;
+				bullet_obj6._dirt_mult = 3;
+				bullet_obj6._rail = true;
+				
+				bullet_obj6._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCrystal ) )
+					{
+						if ( target_entity.is_big )
+						target_entity._being_sawed_time = sdWorld.time; // Allow big crystals to destroy into small clusters
+						else
+						{
+							bullet._damage = bullet._damage / 4; // Less damage for smaller crystals
+							if ( bullet._owner )
+							bullet._owner.onMovementInRange( target_entity ); // Small crystals get into the excavator if touched by those
+						}
+					}
+				};
+				sdEntity.AddEntityToEntitiesArray( bullet_obj6 );
 			}
 		}
 	}
