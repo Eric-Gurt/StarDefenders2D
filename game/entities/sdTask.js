@@ -1317,8 +1317,8 @@ class sdTask extends sdEntity
 		if ( task_title_color instanceof Function )
 		task_title_color = task_title_color();
 
-		const font_size = compact ? 9 : 11;
-		const line_pitch = compact ? ( 9 + 3 ) : ( 11 + 5 );
+		const font_size = compact ? 12 : 11; // compact (expanded Tab view) was 9 - too small to comfortably read
+		const line_pitch = compact ? ( 12 + 3 ) : ( 11 + 5 );
 
 		ctx.font = font_size*scale + "px Verdana";
 
