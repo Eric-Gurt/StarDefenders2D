@@ -461,7 +461,8 @@ class sdWeather extends sdEntity
 			//let old_n = n;
 			//let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
 			let is_already_enabled = false;
-			let weather_event_count = Math.min( allowed_event_ids.length, ~~( ( 1 - Math.pow( Math.random(), 2 ) ) * 4 ) ); // Up to 2 events, can also be 0
+			let configured_weather_event_count = sdWorld.server_config.GetAllowedWeatherEventCount ? sdWorld.server_config.GetAllowedWeatherEventCount() : null;
+			let weather_event_count = Math.min( allowed_event_ids.length, ( configured_weather_event_count !== null && configured_weather_event_count !== undefined ) ? configured_weather_event_count : ~~( ( 1 - Math.pow( Math.random(), 2 ) ) * 4 ) ); // Up to 2 events, can also be 0 - unless a server config override forces a fixed count
 			let time = 1000;
 			while ( weather_event_count > 0 && time > 0 )
 			{
@@ -5462,7 +5463,7 @@ class sdWeather extends sdEntity
 			this._time_until_weather_event -= GSPEED;
 			if ( this._time_until_weather_event < 0 )
 			{
-				this._time_until_weather_event = Math.random() * 30 * 60 * 6; // Need to add a server config option later - Booraz149
+				this._time_until_weather_event = Math.random() * sdWorld.server_config.GetWeatherEventSpeed();
 
 				let allowed_event_ids = this._daily_weather_events;
 				if ( allowed_event_ids.length > 0 )
