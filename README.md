@@ -29,11 +29,13 @@ Run the installer from the Linux account that should own and run the server. `su
 
 The installer can set up Node.js through nvm, clone or reuse the repository, install production dependencies, create systemd service/timer units, configure `sslconfig.json`, verify certificate/key permissions, add optional Let's Encrypt support, create world-data backups, and write per-service admin/uninstall helper files.
 
-If you already have the game on the server, run the installer from that directory. For a real Git checkout, use:
+If you already have the game on the server, run the installer from that directory:
 
 ```bash
-sudo -E bash install-linux.sh --existing-checkout
+sudo -E bash install-linux.sh
 ```
+
+For a real Git checkout, answer "y" when asked "Use existing checkout as-is and skip initial clone/reset" (this is asked interactively; for unattended installs set `EXISTING_CHECKOUT_ONLY=yes` in a `--config` file instead).
 
 If the directory has game files but no `.git`, the installer offers:
 
