@@ -1472,7 +1472,19 @@ class sdSteeringWheel extends sdEntity
 				}
 				
 				current.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-				
+
+			}
+			// phase-13-snapshot-02: record this rigid hull translation so the per-client snapshot can send ONE group
+			// delta ( [ -3, dx, dy, [net_ids] ] ) instead of a per-part x/y diff for every moved part. Only the `scan`
+			// members (full xx,yy movers) are recorded; stuff_to_push (possible partial movers) stay on per-part sync.
+			// Self-clearing per server frame; consumed by sdByteShifter.SendSnapshot.
+			if ( ( xx !== 0 || yy !== 0 ) && scan.length > 0 )
+			{
+				let _F = globalThis.GetFrame ? globalThis.GetFrame() : sdWorld.time;
+				let _frg = sdWorld.frame_rigid_groups;
+				if ( !_frg ) _frg = sdWorld.frame_rigid_groups = { frame: -1, groups: [] };
+				if ( _frg.frame !== _F ) { _frg.frame = _F; _frg.groups.length = 0; }
+				_frg.groups.push({ members: Array.from( scan ), dx: xx, dy: yy });
 			}
 			for ( let i = 0; i < stuff_to_push.length; i++ )
 			{
