@@ -1886,12 +1886,15 @@ send_player_notice() {
   systemctl kill --signal=SIGUSR2 "${SERVICE_NAME}.service" 2>/dev/null || log "WARNING: failed to signal ${SERVICE_NAME}.service for a player notice."
 }
 
-# Warns connected players an update is coming, then waits UPDATE_WARNING_MINUTES
-# before returning so they get a chance to finish up / find somewhere safe
-# before the service stops. A no-op if warnings are disabled (0) or the
-# service isn't currently running (nobody online to warn).
+# Warns connected players an update is coming, then re-notices every minute
+# for the remainder of UPDATE_WARNING_MINUTES so a countdown stays visible to
+# anyone who joins mid-wait or missed the first notice, before returning so
+# they get a chance to finish up / find somewhere safe before the service
+# stops. A no-op if warnings are disabled (0) or the service isn't currently
+# running (nobody online to warn).
 announce_and_wait_for_update() {
   local minutes="${UPDATE_WARNING_MINUTES:-0}"
+  local remaining
   [[ "${minutes}" =~ ^[0-9]+$ ]] || minutes=0
 
   if (( minutes <= 0 )); then
@@ -1906,7 +1909,23 @@ announce_and_wait_for_update() {
   log "Warning connected players: update in ${minutes} minute(s)."
   send_player_notice "Server: An update will be applied in ${minutes} minute(s). The server will restart briefly."
 
-  sleep "$(( minutes * 60 ))"
+  remaining="${minutes}"
+  while (( remaining > 1 )); do
+    sleep 60
+
+    # Stop counting down (and stop bothering to notice) once nobody's left to
+    # tell - an admin or a crash could have already stopped it mid-wait.
+    if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+      log "${SERVICE_NAME}.service stopped during the warning window; abandoning the countdown."
+      return 0
+    fi
+
+    remaining=$(( remaining - 1 ))
+    log "Warning connected players: update in ${remaining} minute(s)."
+    send_player_notice "Server: Update in ${remaining} minute(s)..."
+  done
+
+  sleep 60
 
   # Only send the final ping if the service is still up - an admin or a crash
   # could have already stopped it during the warning window.
