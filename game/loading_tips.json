@@ -3,27 +3,27 @@
 	"entities": {
 		"sdAbomination": {
 			"title": "sdAbomination",
-			"tip": ""
+			"tip": "A mass of flesh and bone that seeks to add more to itself."
 		},
 		"sdAmphid": {
 			"title": "sdAmphid",
-			"tip": ""
+			"tip": "Amphids are relatively weak, but traverse large distance between their jumps."
 		},
 		"sdAntigravity": {
 			"title": "sdAntigravity",
-			"tip": ""
+			"tip": "Useful for pushing things around."
 		},
 		"sdArea": {
 			"title": "sdArea",
-			"tip": ""
+			"tip": "This was once a peaceful place."
 		},
 		"sdAsp": {
 			"title": "sdAsp",
-			"tip": ""
+			"tip": "Asps are relatively mobile squishy, so precision weapons can deal with them quickly."
 		},
 		"sdAsteroid": {
 			"title": "sdAsteroid",
-			"tip": ""
+			"tip": "Asteroids can sometimes contain crystal, or metal shards."
 		},
 		"sdBG": {
 			"title": "sdBG",
@@ -31,51 +31,47 @@
 		},
 		"sdBSUTurret": {
 			"title": "sdBSUTurret",
-			"tip": ""
+			"tip": "These turrets attack entities which damage the base (green BSUs only)."
 		},
 		"sdBadDog": {
 			"title": "sdBadDog",
-			"tip": ""
+			"tip": "Bad dogs can sometimes be domesticated, and become your allies."
 		},
 		"sdBall": {
 			"title": "sdBall",
-			"tip": ""
+			"tip": "A bouncy ball which can be tossed around. These come in small and large size."
 		},
 		"sdBarrel": {
 			"title": "sdBarrel",
-			"tip": ""
+			"tip": "Explosive munitions useful for clearing out ground."
 		},
 		"sdBaseShieldingUnit": {
 			"title": "sdBaseShieldingUnit",
-			"tip": ""
+			"tip": "Prevents hostile invaders from destroying your base."
 		},
 		"sdBeacon": {
 			"title": "sdBeacon",
-			"tip": ""
+			"tip": "Never get lost again! Track one of these to mark it on the map."
 		},
 		"sdBeamProjector": {
 			"title": "sdBeamProjector",
-			"tip": ""
+			"tip": "A machine devised to stop the encroaching void-when one of these are deployed, the Council isn't far behind. Will drop an unstable core upon completion."
 		},
 		"sdBiter": {
 			"title": "sdBiter",
-			"tip": ""
+			"tip": "Biters can potentially poison you, making you take damage over time."
 		},
 		"sdBlock": {
 			"title": "sdBlock",
-			"tip": ""
+			"tip": "Ground frequently contains stuff, like crystals, junk or even enemies."
 		},
 		"sdBloodDecal": {
 			"title": "sdBloodDecal",
-			"tip": ""
+			"tip": "Blood on the walls attracts roaches and blood moths. Use mop to clear the stains!"
 		},
 		"sdBomb": {
 			"title": "sdBomb",
-			"tip": ""
-		},
-		"sdBone": {
-			"title": "sdBone",
-			"tip": ""
+			"tip": "Bombs deal massive ground damage, and can be sped up with area amplifier."
 		},
 		"sdBot": {
 			"title": "sdBot",
@@ -91,99 +87,91 @@
 		},
 		"sdBubbleShield": {
 			"title": "sdBubbleShield",
-			"tip": ""
-		},
-		"sdBullet": {
-			"title": "sdBullet",
-			"tip": ""
+			"tip": "Protects you from crystal damage."
 		},
 		"sdButton": {
 			"title": "sdButton",
-			"tip": ""
+			"tip": "Buttons can be used to manually activate a lot of base equipment when cabled with those."
 		},
 		"sdCable": {
 			"title": "sdCable",
-			"tip": ""
+			"tip": "Cables wire base equipment together."
 		},
 		"sdCamera": {
 			"title": "sdCamera",
-			"tip": ""
+			"tip": "Cameras can detect activity going on around them, like base being under attack, for example (requires Star Defender Notificator App)."
 		},
 		"sdCapsulePod": {
 			"title": "sdCapsulePod",
-			"tip": ""
+			"tip": "You can sleep in this, and it can be protected by BSU."
 		},
 		"sdCaption": {
 			"title": "sdCaption",
-			"tip": ""
+			"tip": "Leave notes for your friends!"
 		},
 		"sdCharacter": {
 			"title": "sdCharacter",
-			"tip": ""
+			"tip": "Become anyone!"
 		},
 		"sdCom": {
 			"title": "sdCom",
-			"tip": ""
+			"tip": "Used to control doors and turrets on a cable network."
 		},
 		"sdCommandCentre": {
 			"title": "sdCommandCentre",
-			"tip": ""
+			"tip": "Used to send messages at long range, and activate LRTP pads."
 		},
 		"sdConveyor": {
 			"title": "sdConveyor",
-			"tip": ""
+			"tip": "Useful for moving stuff around."
 		},
 		"sdCouncilIncinerator": {
 			"title": "sdCouncilIncinerator",
-			"tip": ""
+			"tip": "An incredibly tough machine deployed by the Council. Fires high-damage projectile bursts, summons Council drones, and occasionally ignites everything nearby it."
 		},
 		"sdCouncilMachine": {
 			"title": "sdCouncilMachine",
-			"tip": ""
+			"tip": "Summons more Council to this planet."
 		},
 		"sdCouncilNullifier": {
 			"title": "sdCouncilNullifier",
-			"tip": ""
+			"tip": "Halts progress on Mothership Matter Containers and Dark Matter Beam Projectors."
 		},
 		"sdCraftingBench": {
 			"title": "sdCraftingBench",
-			"tip": ""
+			"tip": "Used to craft weapons and armor."
 		},
 		"sdCrystal": {
 			"title": "sdCrystal",
-			"tip": ""
+			"tip": "The main source of matter on many planets."
 		},
 		"sdCrystalCombiner": {
 			"title": "sdCrystalCombiner",
-			"tip": ""
+			"tip": "Used to combine crystals into higher tiers."
 		},
 		"sdCube": {
 			"title": "sdCube",
-			"tip": ""
-		},
-		"sdDeepSleep": {
-			"title": "sdDeepSleep",
-			"tip": ""
+			"tip": "Strange alien machines that seem to protect this world. Usually neutral, until you destroy something."
 		},
 		"sdDoor": {
 			"title": "sdDoor",
-			"tip": ""
+			"tip": "You walk in and out of it."
 		},
 		"sdDrone": {
 			"title": "sdDrone",
-			"tip": ""
+			"tip": "More mobile at the cost of being less potent. Annoying in large numbers."
 		},
 		"sdDropPod": {
 			"title": "sdDropPod",
-			"tip": ""
+			"tip": "Contains useful items."
 		},
 		"sdEffect": {
 			"title": "sdEffect",
-			"tip": ""
+			"tip": "I'm in."
 		},
 		"sdEnemyMech": {
 			"title": "sdEnemyMech",
-			"tip": ""
+			"tip": "The Velox flying mech has a weakpoint in the back. Attack the weakpoint to deal massive damage!"
 		},
 		"sdEssenceExtractor": {
 			"title": "sdEssenceExtractor",
@@ -191,95 +179,83 @@
 		},
 		"sdExcavator": {
 			"title": "sdExcavator",
-			"tip": ""
+			"tip": "Excavators can be repaired with metal shards, or mining duration extended with matter storage shards like Cube shards or Erthal energy cells."
 		},
 		"sdFaceCrab": {
 			"title": "sdFaceCrab",
-			"tip": ""
+			"tip": "Face crabs attach to your head rather quickly. Rapid firing weapons quickly dispose of attached face crabs, as long as you aim up."
 		},
 		"sdFactionSpawner": {
 			"title": "sdFactionSpawner",
-			"tip": ""
-		},
-		"sdFactionTools": {
-			"title": "sdFactionTools",
-			"tip": ""
-		},
-		"sdFactions": {
-			"title": "sdFactions",
-			"tip": ""
-		},
-		"sdFactionskin": {
-			"title": "sdFactionskin",
-			"tip": ""
+			"tip": "Some factions will use methods of rapid reinforcement in form of structures. Destroy these to stop them!"
 		},
 		"sdFleshGrabber": {
 			"title": "sdFleshGrabber",
-			"tip": ""
+			"tip": "The Flesh will sometimes attempt to grab you, and devour you."
 		},
 		"sdGib": {
 			"title": "sdGib",
-			"tip": ""
+			"tip": "Some enemies can be gibbed when dealt overkill damage. Some creatures can be attracted by gibs."
 		},
 		"sdGrass": {
 			"title": "sdGrass",
-			"tip": ""
+			"tip": "Crystal crabs can be fed grass to increase their efficiency."
 		},
 		"sdGrub": {
 			"title": "sdGrub",
-			"tip": ""
+			"tip": "Grubs are mostly passive, unless they were attacked."
 		},
 		"sdGuanako": {
 			"title": "sdGuanako",
-			"tip": ""
+			"tip": "Guanakos are mostly friendly, unless provoked."
 		},
 		"sdGuanakoStructure": {
 			"title": "sdGuanakoStructure",
-			"tip": ""
+			"tip": "Guanakos like to mine crystals, and put them in their tent."
 		},
 		"sdGun": {
 			"title": "sdGun",
-			"tip": ""
+			"tip": "Select the proper weapon for proper scenario! For example, a pistol is weaker versus dirt compared to explosive weaponry."
 		},
 		"sdHover": {
 			"title": "sdHover",
-			"tip": ""
+			"tip": "Hovers require matter, but are an efficient and safer method of transportation."
 		},
 		"sdJunk": {
 			"title": "sdJunk",
-			"tip": ""
+			"tip": "Lots of junk items can be mined out of dirt, and some are even wanted by the Mothership."
 		},
 		"sdLamp": {
 			"title": "sdLamp",
-			"tip": ""
+			"tip": "Lamps brighten up areas. Make sure to place them wherever it is dark."
 		},
 		"sdLandMine": {
 			"title": "sdLandMine",
-			"tip": ""
+			"tip": "Land mines are difficult to spot, they require close proximity to be spotted, and physical contact to activate."
 		},
 		"sdLandScanner": {
 			"title": "sdLandScanner",
-			"tip": ""
+			"tip": "The Mothership will sometimes require a scan of planet's surface. These devices can also point to surface containing something inside it."
 		},
 		"sdLifeBox": {
 			"title": "sdLifeBox",
-			"tip": ""
+			"tip": "One of many places to store your character in."
 		},
 		"sdLiquidAbsorber": {
 			"title": "sdLiquidAbsorber",
-			"tip": ""
+			"tip": "Liquid absorbers evaporate liquid and convert it into gas sometimes at a small matter cost."
 		},
 		"sdLongRangeAntenna": {
 			"title": "sdLongRangeAntenna",
-			"tip": ""
+			"tip": "Antennas, when activated, can be teleported to using long range teleporters. Avoid placing them into your bases!"
 		},
 		"sdLongRangeTeleport": {
 			"title": "sdLongRangeTeleport",
-			"tip": ""
+			"tip": "Long range teleports are used in transporting items to the mothership, and vice versa."
 		},
 		"sdLost": {
 			"title": "sdLost",
-			"tip": ""
+			"tip": "Some mobs can turn you into a statue. Use a rescue cloner to have a safe way to rebuild when it happens!"
 		},
 		"sdManualTurret": {
 			"title": "sdManualTurret",
@@ -287,87 +263,71 @@
 		},
 		"sdMatterAmplifier": {
 			"title": "sdMatterAmplifier",
-			"tip": ""
+			"tip": "Matter amplifiers speed up crystal matter generation of a crystal which is put inside the amplifier, and can shield them."
 		},
 		"sdMatterContainer": {
 			"title": "sdMatterContainer",
-			"tip": ""
+			"tip": "Matter containers are a basic matter storage. Size can be extended when placing multiple next to each other."
 		},
 		"sdMatterMatrix": {
 			"title": "sdMatterMatrix",
-			"tip": ""
+			"tip": "Matter generation matrix can store value up equal up to 20 crystals of 40960 matter, making it a very good matter bank."
 		},
 		"sdMeow": {
 			"title": "sdMeow",
-			"tip": ""
+			"tip": "Meow explodes when defeated into a large cluster of small grenades. Stay distant."
 		},
 		"sdMimic": {
 			"title": "sdMimic",
-			"tip": ""
+			"tip": "Mimics can take form of almost any entity, and will pounce when their prey is close."
 		},
 		"sdMothershipContainer": {
 			"title": "sdMothershipContainer",
-			"tip": ""
+			"tip": "The Mothership matter container is frequently assaulted by the Council. Ensure container safety for maximum reward!"
 		},
 		"sdNode": {
 			"title": "sdNode",
-			"tip": ""
+			"tip": "Nodes can be used to wire a network of cables together."
 		},
 		"sdObelisk": {
 			"title": "sdObelisk",
-			"tip": ""
+			"tip": "Obelisks come in many types, and activating them causes changes to the world."
 		},
 		"sdOctopus": {
 			"title": "sdOctopus",
-			"tip": ""
+			"tip": "The octopus will try to devour you, or your weapons. Staying distant and mobile is the best way to defeat them."
 		},
 		"sdOverlord": {
 			"title": "sdOverlord",
-			"tip": ""
+			"tip": "Overlords announce what they are about to attack, and sometimes get bored of attacking something."
 		},
 		"sdPlayerDrone": {
 			"title": "sdPlayerDrone",
-			"tip": ""
+			"tip": "Star Defenders (other players) can install a weapon on a player piloted drone."
 		},
 		"sdPlayerOverlord": {
 			"title": "sdPlayerOverlord",
-			"tip": ""
-		},
-		"sdPlayerSpectator": {
-			"title": "sdPlayerSpectator",
-			"tip": ""
-		},
-		"sdPortal": {
-			"title": "sdPortal",
-			"tip": ""
-		},
-		"sdPresetEditor": {
-			"title": "sdPresetEditor",
-			"tip": ""
+			"tip": "In game settings, you can select to also play as the Overlord."
 		},
 		"sdQuadro": {
 			"title": "sdQuadro",
-			"tip": ""
+			"tip": "Quad bike, yay!"
 		},
 		"sdQuickie": {
 			"title": "sdQuickie",
-			"tip": ""
+			"tip": "Quickies generally attack everything in it's way."
 		},
 		"sdRescueTeleport": {
 			"title": "sdRescueTeleport",
-			"tip": ""
+			"tip": "Rescue teleports are called whenever you are about to die. Make sure they are charged, and stay in their range when that happens."
 		},
 		"sdRift": {
 			"title": "sdRift",
-			"tip": ""
+			"tip": "Dimensional portals spawn all sorts of creatures from them, and close over time."
 		},
 		"sdRoach": {
 			"title": "sdRoach",
-			"tip": ""
-		},
-		"sdRotator": {
-			"title": "sdRotator",
-			"tip": ""
+			"tip": "Roaches are attracted by blood on the walls. Clean your base's walls to prevent their intrusion!"
 		},
 		"sdSampleBuilder": {
 			"title": "sdSampleBuilder",
@@ -375,777 +335,753 @@
 		},
 		"sdSandWorm": {
 			"title": "sdSandWorm",
-			"tip": ""
-		},
-		"sdScriptInstructor": {
-			"title": "sdScriptInstructor",
-			"tip": ""
-		},
-		"sdSensorArea": {
-			"title": "sdSensorArea",
-			"tip": ""
+			"tip": "Worms can traverse through dirt, making them difficult to hit. Best to stay in the air to force exposure."
 		},
 		"sdSetrBeholder": {
 			"title": "sdSetrBeholder",
-			"tip": ""
+			"tip": "The Setr Beholder has a shield on top, protecting the pilot. Aim for the parts below!"
 		},
 		"sdSetrDestroyer": {
 			"title": "sdSetrDestroyer",
-			"tip": ""
+			"tip": "The Setr Destroyer can call in backup when taking damage. Wath out for purple flares!"
 		},
 		"sdShark": {
 			"title": "sdShark",
-			"tip": ""
+			"tip": "Sharks are attracted by gibs."
 		},
 		"sdShurgConverter": {
 			"title": "sdShurgConverter",
-			"tip": ""
+			"tip": "The Shurg converted converts oxygen into matter, very slowly."
 		},
 		"sdShurgExcavator": {
 			"title": "sdShurgExcavator",
-			"tip": ""
+			"tip": "A tiny excavator from Shurgs, it terraforms enviroment to fit needs of Shurg."
 		},
 		"sdShurgManualTurret": {
 			"title": "sdShurgManualTurret",
-			"tip": ""
+			"tip": "A vehicle used by the Shurgs, best to combat while in equal or higher elevation."
 		},
 		"sdShurgTurret": {
 			"title": "sdShurgTurret",
-			"tip": ""
+			"tip": "Shurg turrets generally protect the Shurg oxygen converters."
 		},
 		"sdSlug": {
 			"title": "sdSlug",
-			"tip": ""
+			"tip": "Slugs can be pat."
 		},
 		"sdSolarMatterDistributor": {
 			"title": "sdSolarMatterDistributor",
-			"tip": ""
+			"tip": "Solar matter distributors are mobile solar panels, and can give matter directly to a Mothership matter container (if there is one)"
 		},
 		"sdSpider": {
 			"title": "sdSpider",
-			"tip": ""
+			"tip": "The Erthals like to stay distant. Closing the distance is their weakness."
 		},
 		"sdStalker": {
 			"title": "sdStalker",
-			"tip": ""
-		},
-		"sdStatusEffect": {
-			"title": "sdStatusEffect",
-			"tip": ""
+			"tip": "The Stalker remains mostly invisible until provoked."
 		},
 		"sdStealer": {
 			"title": "sdStealer",
-			"tip": ""
+			"tip": "Stealers like to steal unattended crystals, weapons and more. Make sure to crate valuables outside your bases!"
 		},
 		"sdSteeringWheel": {
 			"title": "sdSteeringWheel",
-			"tip": ""
+			"tip": "Steering wheel requires skybase thrusters attached to the base to move the base around."
 		},
 		"sdStorage": {
 			"title": "sdStorage",
-			"tip": ""
+			"tip": "Storage crates can store variety of items, like weapons and crystals."
 		},
 		"sdStorageTank": {
 			"title": "sdStorageTank",
-			"tip": ""
+			"tip": "Storage tanks can be used to store all sorts of liquids."
 		},
 		"sdSunPanel": {
 			"title": "sdSunPanel",
-			"tip": ""
+			"tip": "Solar panels are a renewable way to obtain matter, when crystals are not an option."
 		},
 		"sdTask": {
 			"title": "sdTask",
-			"tip": ""
+			"tip": "Completing tasks can make you eligible for some rewards that are exclusive to the Mothership."
 		},
 		"sdTeleport": {
 			"title": "sdTeleport",
-			"tip": ""
+			"tip": "Teleport nodes can teleport almost anything, as long as it fits the size."
 		},
 		"sdTheatre": {
 			"title": "sdTheatre",
-			"tip": ""
+			"tip": "Theatres can play various videos."
 		},
 		"sdThruster": {
 			"title": "sdThruster",
-			"tip": ""
-		},
-		"sdTurret": {
-			"title": "sdTurret",
-			"tip": ""
+			"tip": "Skybase thrusters are necessary for movable bases. More thrusters makes the process faster."
 		},
 		"sdTutel": {
 			"title": "sdTutel",
-			"tip": ""
+			"tip": "Tutels are immune to lava and grow stronger per bite. Stay distant!"
 		},
 		"sdTzyrgAbsorber": {
 			"title": "sdTzyrgAbsorber",
-			"tip": ""
+			"tip": "Tzyrg devices like these are known to stop earthquakes near them."
 		},
 		"sdTzyrgMortar": {
 			"title": "sdTzyrgMortar",
-			"tip": ""
+			"tip": "Tzyrgs have mortars which can deliver a barrage of explosions in a short time. Destroy them quickly!"
 		},
 		"sdUpgradeStation": {
 			"title": "sdUpgradeStation",
-			"tip": ""
+			"tip": "Upgrade stations allow some character upgrades to reach higher level. Upgrade stations can be upgraded via chipsets from the Mothership."
 		},
 		"sdVeloxFortifier": {
 			"title": "sdVeloxFortifier",
-			"tip": ""
+			"tip": "Velox fortifiers are devices which grant shielding capabilities to all Velox units. Destroy them."
 		},
 		"sdVeloxMiner": {
 			"title": "sdVeloxMiner",
-			"tip": ""
+			"tip": "Velox miners are used by Velox to mine terrain and take crystals."
 		},
 		"sdVirus": {
 			"title": "sdVirus",
-			"tip": ""
-		},
-		"sdWanderer": {
-			"title": "sdWanderer",
-			"tip": ""
+			"tip": "Virus grows when it drinks water. Larger sizes burst into several smaller virus on death."
 		},
 		"sdWater": {
 			"title": "sdWater",
-			"tip": ""
+			"tip": "Water can be used to cool some things down, like the crystal combiner, for example."
 		},
 		"sdWeaponBench": {
 			"title": "sdWeaponBench",
-			"tip": ""
+			"tip": "Weapon bench can be used to upgrade weapons and repair armor."
 		},
 		"sdWeaponMerger": {
 			"title": "sdWeaponMerger",
-			"tip": ""
-		},
-		"sdWeather": {
-			"title": "sdWeather",
-			"tip": ""
+			"tip": "Weapon merging bench can copy power of a stronger weapon and give it to a weaker one."
 		},
 		"sdWorkbench": {
 			"title": "sdWorkbench",
-			"tip": ""
+			"tip": "Workbench is a must if you want to access stronger armor, utility tools and more."
 		},
 		"sdZektaronDreadnought": {
 			"title": "sdZektaronDreadnought",
-			"tip": ""
+			"tip": "The Zektaron Dreadnought has a weakpoint in it's triple beam railgun."
 		}
 	},
 	"guns": {
 		"CLASS_PISTOL": {
 			"title": "Pistol",
-			"tip": ""
+			"tip": "Costs 0 matter to fire. Useful in a pinch."
 		},
 		"CLASS_RIFLE": {
 			"title": "Assault rifle",
-			"tip": ""
+			"tip": "Standard-issue SD rifle since forever. High ROF, middling damage."
 		},
 		"CLASS_SHOTGUN": {
 			"title": "Shotgun",
-			"tip": ""
+			"tip": "All shotguns have a close range damage multiplier-and are quite effective at mining."
 		},
 		"CLASS_RAILGUN": {
 			"title": "Railgun",
-			"tip": ""
+			"tip": "Point and click."
 		},
 		"CLASS_ROCKET": {
 			"title": "Rocket launcher",
-			"tip": ""
+			"tip": "Deals extra damage to vehicles and mechs."
 		},
 		"CLASS_MEDIKIT": {
 			"title": "Defibrillator",
-			"tip": ""
+			"tip": "6! 6! Ayuda! 6! I need a revive!"
 		},
 		"CLASS_SPARK": {
 			"title": "Spark",
-			"tip": ""
+			"tip": "Fires explosive plasma gobs at a modest ROF."
 		},
 		"CLASS_BUILD_TOOL": {
 			"title": "Build tool",
-			"tip": ""
+			"tip": "Don't lose this-you're gonna need it."
 		},
 		"CLASS_CRYSTAL_SHARD": {
 			"title": "Crystal shard",
-			"tip": ""
+			"tip": "A little extra matter never hurt anyone."
 		},
 		"CLASS_GRENADE_LAUNCHER": {
 			"title": "Grenade launcher",
-			"tip": ""
+			"tip": "It launches grenades."
 		},
 		"CLASS_NEEDLE": {
 			"title": "Needle",
-			"tip": ""
+			"tip": "Low damage precision weapon. Can penetrate some blocks."
 		},
 		"CLASS_SWORD": {
 			"title": "Sword",
-			"tip": ""
+			"tip": "Duty calls."
 		},
 		"CLASS_STIMPACK": {
 			"title": "Stimpack",
-			"tip": ""
+			"tip": "You never know when you'll need to reload just a little faster."
 		},
 		"CLASS_FALKOK_RIFLE": {
 			"title": "Assault Rifle C-01r",
-			"tip": ""
+			"tip": "The AK of the future."
 		},
 		"CLASS_TRIPLE_RAIL": {
 			"title": "Cube-gun",
-			"tip": ""
+			"tip": "A strange high-ROF laser weapon. Perhaps it can be improved upon?"
 		},
 		"CLASS_FISTS": {
 			"title": "Fists",
-			"tip": ""
+			"tip": "The first rule about fight club..."
 		},
 		"CLASS_SABER": {
 			"title": "Saber",
-			"tip": ""
+			"tip": "Fancy."
 		},
 		"CLASS_RAIL_PISTOL": {
 			"title": "Cube-pistol",
-			"tip": ""
+			"tip": "Strange burst-fire laser weapon. Perhaps it can be improved upon?"
 		},
 		"CLASS_RAYGUN": {
 			"title": "Ray Gun C-01y",
-			"tip": ""
+			"tip": "C-01r's violent sibling. Shotgun that fires speed penetrating projectiles."
 		},
 		"CLASS_FALKOK_PSI_CUTTER": {
 			"title": "Falkonian PSI-cutter",
-			"tip": ""
+			"tip": "Trickshot machine that reflects off any impact angle."
 		},
 		"CLASS_RAIL_SHOTGUN": {
 			"title": "Cube-shotgun",
-			"tip": ""
+			"tip": "Strange weapon that fires a spread of several lasers. Perhaps it can be improved upon?"
 		},
 		"CLASS_RAIL_CANNON": {
 			"title": "Velox Rail Cannon",
-			"tip": ""
+			"tip": "Hold the trigger to charge a penetrating shot."
 		},
 		"CLASS_CUBE_SHARD": {
 			"title": "Cube shard",
-			"tip": ""
+			"tip": "Can be used to increase matter capacity, or craft other Cube items."
 		},
 		"CLASS_LASER_PISTOL": {
 			"title": "Laser Pistol",
-			"tip": ""
+			"tip": "Fancy pistol."
 		},
 		"CLASS_LMG": {
 			"title": "Light Machine Gun",
-			"tip": ""
+			"tip": "Sacrifices some ROF for much more damage."
 		},
 		"CLASS_BUILDTOOL_UPG": {
 			"title": "Build tool upgrade",
-			"tip": ""
+			"tip": "New possibilities await within."
 		},
 		"CLASS_LVL1_LIGHT_ARMOR": {
 			"title": "SD-01 Light Armor",
-			"tip": ""
+			"tip": "Slightly reduces incoming damage with no movement penalty."
 		},
 		"CLASS_LVL1_MEDIUM_ARMOR": {
 			"title": "SD-01 Duty Armor",
-			"tip": ""
+			"tip": "Modestly reduces incoming damage with a slight movement penalty."
 		},
 		"CLASS_LVL1_HEAVY_ARMOR": {
 			"title": "SD-01 Combat Armor",
-			"tip": ""
+			"tip": "Modestly reduces incoming damage in exchange for a movement penalty."
 		},
 		"CLASS_SHOTGUN_MK2": {
 			"title": "Shotgun MK2",
-			"tip": ""
+			"tip": "Now with More!"
 		},
 		"CLASS_LASER_DRILL": {
 			"title": "Laser Drill",
-			"tip": ""
+			"tip": "Deals extra damage to dirt."
 		},
 		"CLASS_SMG": {
 			"title": "Burst SMG",
-			"tip": ""
+			"tip": "High ROF pistol."
 		},
 		"CLASS_KVT_SMG": {
 			"title": "KVT SMG P49 \"The Advocate\"",
-			"tip": ""
+			"tip": "Fancy high ROF pistol."
 		},
 		"CLASS_ROCKET_MK2": {
 			"title": "Guided Rocket Launcher",
-			"tip": ""
+			"tip": "Rockets will home to your cursor."
 		},
 		"CLASS_HEALING_RAY": {
 			"title": "Cube-Medgun",
-			"tip": ""
+			"tip": "Strange device that fires a healing beam."
 		},
 		"CLASS_SHOVEL": {
 			"title": "Shovel",
-			"tip": ""
+			"tip": "Useful for digging."
 		},
 		"CLASS_SHOVEL_MK2": {
 			"title": "Shovel MK2",
-			"tip": ""
+			"tip": "Even more useful for digging."
 		},
 		"CLASS_DECONSTRUCTOR_HAMMER": {
 			"title": "Deconstructor Hammer",
-			"tip": ""
+			"tip": "A legend long forgotten."
 		},
 		"CLASS_ADMIN_REMOVER": {
 			"title": "Admin tool for removing",
-			"tip": ""
+			"tip": "[ERROR]"
 		},
 		"CLASS_LOST_CONVERTER": {
 			"title": "Cube overcharge cannon",
-			"tip": ""
+			"tip": "Fires a high-damage Lost projectile."
 		},
 		"CLASS_CABLE_TOOL": {
 			"title": "Cable management tool",
-			"tip": ""
+			"tip": "It's just bad cable management."
 		},
 		"CLASS_POWER_PACK": {
 			"title": "Power pack",
-			"tip": ""
+			"tip": "This is a power."
 		},
 		"CLASS_TIME_PACK": {
 			"title": "Time pack",
-			"tip": ""
+			"tip": "Slows time around you."
 		},
 		"CLASS_LVL2_LIGHT_ARMOR": {
 			"title": "SD-02 Light Armor",
-			"tip": ""
+			"tip": "Reduces incoming damage with no movement penalty."
 		},
 		"CLASS_LVL2_MEDIUM_ARMOR": {
 			"title": "SD-02 Duty Armor",
-			"tip": ""
+			"tip": "Modestly reduces incoming damage with a slight movement penalty."
 		},
 		"CLASS_LVL2_HEAVY_ARMOR": {
 			"title": "SD-02 Combat Armor",
-			"tip": ""
+			"tip": "Effectively reduces incoming damage in exchange for a movement penalty."
 		},
 		"CLASS_ADMIN_TELEPORTER": {
 			"title": "Admin tool for teleporting",
-			"tip": ""
+			"tip": "Now you see me, now you don't."
 		},
 		"CLASS_POWER_STIMPACK": {
 			"title": "Power-Stimpack",
-			"tip": ""
+			"tip": "I'm in."
 		},
 		"CLASS_LVL1_ARMOR_REGEN": {
 			"title": "SD-11 Armor Repair Module",
-			"tip": ""
+			"tip": "Slowly repairs equipped armor."
 		},
 		"CLASS_LVL2_ARMOR_REGEN": {
 			"title": "SD-12 Armor Repair Module",
-			"tip": ""
+			"tip": "Repairs equipped armor overtime."
 		},
 		"CLASS_LVL3_ARMOR_REGEN": {
 			"title": "SD-13 Armor Repair Module",
-			"tip": ""
+			"tip": "Repairs equipped armor overtime."
 		},
 		"CLASS_LVL3_LIGHT_ARMOR": {
 			"title": "SD-03 Light Armor",
-			"tip": ""
+			"tip": "Modestly reduces incoming damage with no movement penalty."
 		},
 		"CLASS_LVL3_MEDIUM_ARMOR": {
 			"title": "SD-03 Duty Armor",
-			"tip": ""
+			"tip": "Effectively reduces incoming damage with a slight movement penalty."
 		},
 		"CLASS_LVL3_HEAVY_ARMOR": {
 			"title": "SD-03 Combat Armor",
-			"tip": ""
+			"tip": "Drastically reduces incoming damage in exchange for a movement penalty."
 		},
 		"CLASS_EMERGENCY_INSTRUCTOR": {
 			"title": "Emergency instructor",
-			"tip": ""
+			"tip": "Just push the button to summon him once more."
 		},
 		"CLASS_POPCORN": {
 			"title": "Popcorn",
-			"tip": ""
+			"tip": "Yum."
 		},
 		"CLASS_ERTHAL_BURST_RIFLE": {
 			"title": "Erthal Burst Rifle",
-			"tip": ""
+			"tip": "Middling alien technology."
 		},
 		"CLASS_ERTHAL_PLASMA_PISTOL": {
 			"title": "Erthal Plasma Pistol",
-			"tip": ""
+			"tip": "Middling alien technology."
 		},
 		"CLASS_FMECH_MINIGUN": {
 			"title": "Velox Flying Mech Minigun",
-			"tip": ""
+			"tip": "Heavy continuous-fire projectile weapon. Has a short spool-up time before firing."
 		},
 		"CLASS_SNIPER": {
 			"title": "Sniper rifle",
-			"tip": ""
+			"tip": "Yippee-ki-yay! High damage penetrating precision weapon."
 		},
 		"CLASS_VELOX_PISTOL": {
 			"title": "Velox Burst Pistol",
-			"tip": ""
+			"tip": "Middling synthetic technology."
 		},
 		"CLASS_SARRONIAN_GAUSS_RIFLE": {
 			"title": "Sarronian Gauss Rifle",
-			"tip": ""
+			"tip": "Fires a charged explosive projectile."
 		},
 		"CLASS_VELOX_COMBAT_RIFLE": {
 			"title": "Velox Combat Rifle",
-			"tip": ""
+			"tip": "Middling synthetic burst rifle."
 		},
 		"CLASS_F_HEAVY_RIFLE": {
 			"title": "Falkonian Heavy Rifle",
-			"tip": ""
+			"tip": "Modest heavy continous-fire projectile wepaon."
 		},
 		"CLASS_ZAPPER": {
 			"title": "Zapper",
-			"tip": ""
+			"tip": "Electrified sword."
 		},
 		"CLASS_COUNCIL_PISTOL": {
 			"title": "Council Pistol",
-			"tip": ""
+			"tip": "Punishing bolt pistol when used by the right hands."
 		},
 		"CLASS_COUNCIL_BURST_RAIL": {
 			"title": "Council Burst Rail",
-			"tip": ""
+			"tip": "Punishing hitscan weapon, when in the right hands."
 		},
 		"CLASS_METAL_SHARD": {
 			"title": "Alienic metal shard",
-			"tip": ""
+			"tip": "You're gonna need a lot of these. Useful for upgrading workbenches and crafting."
 		},
 		"CLASS_GRENADE_LAUNCHER_MK2": {
 			"title": "Grenade launcher MK2",
-			"tip": ""
+			"tip": "New and improved."
 		},
 		"CLASS_TRIPLE_RAIL2": {
 			"title": "Cube-gun v2",
-			"tip": ""
+			"tip": "Improved continuous-fire laser weapon."
 		},
 		"CLASS_RAIL_SHOTGUN2": {
 			"title": "Cube-shotgun v2",
-			"tip": ""
+			"tip": "Improved spread-fire laser weapon."
 		},
 		"CLASS_SARRONIAN_ENERGY_RIFLE": {
 			"title": "Sarronian Energy Rifle",
-			"tip": ""
+			"tip": "Middling alien technology."
 		},
 		"CLASS_WYRMHIDE": {
 			"title": "Wyrmhide",
-			"tip": ""
+			"tip": "Decent armor that naturally regenerates. Will do in a pinch."
 		},
 		"CLASS_SNOWBALL": {
 			"title": "Snowball",
-			"tip": ""
+			"tip": "Winter is coming."
 		},
 		"CLASS_PORTAL": {
 			"title": "ASHPD",
-			"tip": ""
+			"tip": "When life gives you lemons, you build a portal gun."
 		},
 		"CLASS_OVERLORD_BLASTER": {
 			"title": "Overlord\\'s blaster",
-			"tip": ""
+			"tip": "Strange heavy alien blaster. Doesn't work unless unlocked at a weapon bench. Useful for crafting."
 		},
 		"CLASS_TOPS_DMR": {
 			"title": "Task Ops DMR",
-			"tip": ""
+			"tip": "Highly effective penetrating precision weapon. Request one from the Mothership today!"
 		},
 		"CLASS_TOPS_SHOTGUN": {
 			"title": "Task Ops Shotgun",
-			"tip": ""
+			"tip": "Highly effective spread-fire weapon. Request one from the Mothership today!"
 		},
 		"CLASS_CUBE_SPEAR": {
 			"title": "Cube Empty Speargun",
-			"tip": ""
+			"tip": "Fires a spread of Empty rails. Effective against unsuspecting humanoids."
 		},
 		"CLASS_COMBAT_INSTRUCTOR": {
 			"title": "Combat instructor",
-			"tip": ""
+			"tip": "In your hour of greatest need, he will appear. All you nede to do is ask."
 		},
 		"CLASS_SETR_PLASMA_SHOTGUN": {
 			"title": "Setr Plasma Shotgun",
-			"tip": ""
+			"tip": "Fires a spread of gobs of plasma."
 		},
 		"CLASS_SETR_ROCKET": {
 			"title": "Setr Rocket Launcher",
-			"tip": ""
+			"tip": "High-damage burst fire rocket launcher."
 		},
 		"CLASS_CUBE_TELEPORTER": {
 			"title": "Cube-teleporter",
-			"tip": ""
+			"tip": "Teleports you to where you click, as long as you can see it."
 		},
 		"CLASS_RAYRIFLE": {
 			"title": "Ray Rifle TCoRR",
-			"tip": ""
+			"tip": "The C-01r's bitter rival. Request one from the Mothership today!"
 		},
 		"CLASS_LIQUID_CARRIER": {
 			"title": "Liquid carrier",
-			"tip": ""
+			"tip": "Holds up to 1 full block of liquid."
 		},
 		"CLASS_CUSTOM_RIFLE": {
 			"title": "Rifle",
-			"tip": ""
+			"tip": "Mix and match parts to your heart's content at a weapon workbench!"
 		},
 		"CLASS_SCORE_SHARD": {
 			"title": "Score shard",
-			"tip": ""
+			"tip": "Collect them all! Higher scores increase your level, allowing you to build more items."
 		},
 		"CLASS_LVL4_ARMOR_REGEN": {
 			"title": "Task Ops Armor Repair Module",
-			"tip": ""
+			"tip": "Speedily repairs equipped armor."
 		},
 		"CLASS_ADMIN_DAMAGER": {
 			"title": "Admin tool for damaging",
-			"tip": ""
+			"tip": "Woodchipper of the Gods."
 		},
 		"CLASS_MOP": {
 			"title": "Mop",
-			"tip": ""
+			"tip": "Cleans blood and other strange spatters."
 		},
 		"CLASS_TELEPORT_SWORD": {
 			"title": "Time shifter blade",
-			"tip": ""
+			"tip": "Allows you to teleport wherever you can see, slashing through anything in its path."
 		},
 		"CLASS_TZYRG_SHOTGUN": {
 			"title": "Tzyrg Shotgun",
-			"tip": ""
+			"tip": "Middling synthetic shotgun."
 		},
 		"CLASS_COUNCIL_SHOTGUN": {
 			"title": "Council Shotgun",
-			"tip": ""
+			"tip": "Punishing slug shotgun, when used in the right hands."
 		},
 		"CLASS_THROWABLE_GRENADE": {
 			"title": "Hand grenade",
-			"tip": ""
+			"tip": "Useful in a pinch."
 		},
 		"CLASS_MINING_FOCUS_CUTTER": {
 			"title": "Mining Focus Cutter",
-			"tip": ""
+			"tip": "Improved dirt destroyer."
 		},
 		"CLASS_ZEKTARON_FOCUS_BEAM": {
 			"title": "Zektaron Focus Beam",
-			"tip": ""
+			"tip": "High-ROF continous-fire laser weapon with a short spool-up time. Burns targets overtime."
 		},
 		"CLASS_RAIL_PISTOL2": {
 			"title": "Cube-pistol v2",
-			"tip": ""
+			"tip": "Improved burst-fire laser weapon."
 		},
 		"CLASS_AREA_AMPLIFIER": {
 			"title": "Area amplifier",
-			"tip": ""
+			"tip": "Accelerates time for objects hit by its effect radius."
 		},
 		"CLASS_ILLUSION_MAKER": {
 			"title": "Illusion maker",
-			"tip": ""
+			"tip": "Creates a glass copy of anything you shoot it at."
 		},
 		"CLASS_SHURG_PISTOL": {
 			"title": "Shurg Pistol",
-			"tip": ""
+			"tip": "Shurg projectiles are liable to ricochet off of many surprising angles."
 		},
 		"CLASS_SETR_REPULSOR": {
 			"title": "Setr Repulsor",
-			"tip": ""
+			"tip": "High-knockback alien weapon."
 		},
 		"CLASS_SHURG_SNIPER": {
 			"title": "Shurg sniper rifle",
-			"tip": ""
+			"tip": "This Shurg weapon's projectile velocity is too high to ricochet normally. This makes it a decent penetrating weapon."
 		},
 		"CLASS_SETR_LMG": {
 			"title": "Setr Light Machine Gun",
-			"tip": ""
+			"tip": "Requires the user to be crouching to use it. Has a short spool-up time."
 		},
 		"CLASS_CRYSTAL_CUTTER": {
 			"title": "Crystal cutter",
-			"tip": ""
+			"tip": "Can cut big crystals into 4 smaller crystals."
 		},
 		"CLASS_CRYOGUN": {
 			"title": "Cryogun",
-			"tip": ""
+			"tip": "Freeze!"
 		},
 		"CLASS_TZYRG_RIFLE": {
 			"title": "Tzyrg Assault Rifle",
-			"tip": ""
+			"tip": "Middling synthetic automatic weapon."
 		},
 		"CLASS_DRAIN_RIFLE": {
 			"title": "Drain-rifle",
-			"tip": ""
+			"tip": "Fires projectiles that deal AOE damage around them. Projectiles overcharge if the user has taken any type of Lost damage."
 		},
 		"CLASS_SARRONIAN_SMG": {
 			"title": "Sarronian SMG",
-			"tip": ""
+			"tip": "Noisemaker."
 		},
 		"CLASS_SARRONIAN_RAY": {
 			"title": "Sarronian Ray",
-			"tip": ""
+			"tip": "Alien technology."
 		},
 		"CLASS_SARRONIAN_ENERGY_DISPLACER": {
 			"title": "Sarronian Energy Displacer",
-			"tip": ""
+			"tip": "Alien technology."
 		},
 		"CLASS_SARRONIAN_BIO_ENERGY_LAUNCHER": {
 			"title": "Sarronian Bio-Energy Launcher",
-			"tip": ""
+			"tip": "Fires gobs of explosive material, which detonate into crosses of 4 projectiles."
 		},
 		"CLASS_ZEKTARON_COMBAT_RIFLE": {
 			"title": "Zektaron Combat Rifle",
-			"tip": ""
+			"tip": "High-damage synthetic burst rifle."
 		},
 		"CLASS_ZEKTARON_RAILGUN": {
 			"title": "Zektaron Railgun",
-			"tip": ""
+			"tip": "Mid-damage explosive railgun."
 		},
 		"CLASS_ZEKTARON_PLASMA_CANNON": {
 			"title": "Zektaron Plasma Cannon",
-			"tip": ""
+			"tip": "Short-range plasma shotgun."
 		},
 		"CLASS_ZEKTARON_PLASMA_REPEATER": {
 			"title": "Zektaron Plasma Repeater",
-			"tip": ""
+			"tip": "Mid-damage synthetic plasma weapon."
 		},
 		"CLASS_MERGER_CORE": {
 			"title": "Weapon merger core",
-			"tip": ""
+			"tip": "Used in a merging bench to apply other components to a weapon."
 		},
 		"CLASS_TOPS_PLASMA_RIFLE": {
 			"title": "Task Ops Plasma Rifle",
-			"tip": ""
+			"tip": "High-damage plasma rifle. Request one from the Mothership today!"
 		},
 		"CLASS_ERTHAL_ENERGY_CELL": {
 			"title": "Erthal energy cell",
-			"tip": ""
+			"tip": "Can store extra energy. Potentially useful for crafting, too."
 		},
 		"CLASS_ERTHAL_DMR": {
 			"title": "Erthal Marksman Rifle",
-			"tip": ""
+			"tip": "Alien technology."
 		},
 		"CLASS_WELD_TOOL": {
 			"title": "Elevator weld tool",
-			"tip": ""
+			"tip": "Used to attach entities to an elevator or skybase steering wheel."
 		},
 		"CLASS_ADMIN_MASS_DELETER": {
 			"title": "Admin tool for mass removing",
-			"tip": ""
+			"tip": "Banned."
 		},
 		"CLASS_UPGRADE_STATION_CHIPSET": {
 			"title": "Upgrade station chipset",
-			"tip": ""
+			"tip": "Allows you to upgrade your character more at an uprade station."
 		},
 		"CLASS_EXALTED_CORE": {
 			"title": "Exalted core",
-			"tip": ""
+			"tip": "Increases a gun's damage by 25% when merged at a weapon bench."
 		},
 		"CLASS_CUBE_FUSION_CORE": {
 			"title": "Cube fusion core",
-			"tip": ""
+			"tip": "Decreases a gun's matter cost by 25% when merged at a weapon bench."
 		},
 		"CLASS_DRINK": {
 			"title": "Drink",
-			"tip": ""
+			"tip": "Refreshing."
 		},
 		"CLASS_CUBE_VOID_CAPACITOR": {
 			"title": "Cube void capacitor",
-			"tip": ""
+			"tip": "Fires crystallizing beams in rapid succession, and causes projectiles to be reflected away from its user."
 		},
 		"CLASS_BANANA": {
 			"title": "Banana",
-			"tip": ""
+			"tip": "Don't slip."
 		},
 		"CLASS_UNSTABLE_CORE": {
 			"title": "Unstable core",
-			"tip": ""
+			"tip": "Useful for increasing a weapon's power at a workbench."
 		},
 		"CLASS_STALKER_CANNON": {
 			"title": "Stalker Annihilator",
-			"tip": ""
+			"tip": "Big Gun. Boom."
 		},
 		"CLASS_STALKER_BEAM": {
 			"title": "Stalker Psychotic Beam",
-			"tip": ""
+			"tip": "Alien laser weapon with the unique ability to give your enemies schizophrenia."
 		},
 		"CLASS_STALKER_RIFLE": {
 			"title": "Stalker Rapid Rifle",
-			"tip": ""
+			"tip": "Alien energy weapon that has a homing alt-fire mode."
 		},
 		"CLASS_STALKER_CLONER": {
 			"title": "Stalker Clone Ray",
-			"tip": ""
+			"tip": "Alien technology that allows you to create Evil Clones of anyone you can touch with it."
 		},
 		"CLASS_ACCESS_KEY": {
 			"title": "Access key",
-			"tip": ""
+			"tip": "Used for locking weapon displays."
 		},
 		"CLASS_REPAIR_TOOL": {
 			"title": "Vehicle repair tool",
-			"tip": ""
+			"tip": "It ain't got no gas in it."
 		},
 		"CLASS_TELEKINETICS": {
 			"title": "Gravity gun",
-			"tip": ""
+			"tip": "Throw objects around with your mind."
 		},
 		"CLASS_DRAIN_SHOTGUN": {
 			"title": "Drain-shotgun",
-			"tip": ""
+			"tip": "Functions identically to the drain-rifle, firing a barrage of smaller projectiles."
 		},
 		"CLASS_DRAIN_SNIPER": {
 			"title": "Drain-sniper-rifle",
-			"tip": ""
+			"tip": "Functions identically to the drain-rifle, firing a single high-damage projectile."
 		},
 		"CLASS_HIGH_COUNCIL_SWORD": {
 			"title": "Council Energy Blade",
-			"tip": ""
+			"tip": "Fancy saber that projects energy arcs with each swing. Arcs can penetrate through multiple blocks."
 		},
 		"CLASS_MATTER_CONTAINER_CHIPSET": {
 			"title": "Matter container chipset",
-			"tip": ""
+			"tip": "Used to upgrade Advanced Matter Containers."
 		},
 		"CLASS_CHAINSAW": {
 			"title": "Chainsaw",
-			"tip": ""
+			"tip": "Rapid Unplanned Disassembly."
 		},
 		"CLASS_TOPS_GRENADE_LAUNCHER": {
 			"title": "Task Ops Grenade Launcher",
-			"tip": ""
+			"tip": "Request even more dakka at the Mothership today!"
 		},
 		"CLASS_ETERNAL_SHARD": {
 			"title": "Eternal shard",
-			"tip": ""
+			"tip": "Used for crafting."
 		},
 		"CLASS_PHASE_RIFLE": {
 			"title": "Phased Plasma Rifle SD-74",
-			"tip": ""
+			"tip": "Using alien technology as its power core, it can rapidly fire strong plasma projectiles. Will eventually overheat."
 		},
 		"CLASS_SD_MINIGUN": {
 			"title": "Laser Minigun SD-134",
-			"tip": ""
+			"tip": "Craftable continuous-fire projectile weapon."
 		},
 		"CLASS_IMPACTOR": {
 			"title": "SD-Impactor",
-			"tip": ""
+			"tip": "Craftable high-damage rail weapon."
 		},
 		"CLASS_OVERLORD_BLASTER2": {
 			"title": "Overlord\\'s shotgun",
-			"tip": ""
+			"tip": "Strange heavy alien blaster. Doesn't work if far away from its owner, unless unlocked at a weapon bench."
 		},
 		"CLASS_COUNCIL_BURST_RAIL2": {
 			"title": "Council Burst Rail v2",
-			"tip": ""
+			"tip": "Improved version of a punishing burst weapon."
 		},
 		"CLASS_COUNCIL_SHOTGUN2": {
 			"title": "Council Shotgun v2",
-			"tip": ""
+			"tip": "Improved version of a punishing slug weapon."
 		},
 		"CLASS_COUNCIL_PISTOL2": {
 			"title": "Council Pistol v2",
-			"tip": ""
+			"tip": "Improved version of a punishing bolt weapon."
 		},
 		"CLASS_ANTI_TANK": {
 			"title": "Anti Tank Rifle SD-57",
-			"tip": ""
+			"tip": "Craftable hitscan weapon with a generous vehicle damage multiplier."
 		},
 		"CLASS_TZYRG_GRENADE_LAUNCHER": {
 			"title": "Tzyrg Grenade Launcher",
-			"tip": ""
+			"tip": "A decent explosive weapon."
 		},
 		"CLASS_BATTLE_RIFLE": {
 			"title": "Battle Rifle SD-97",
-			"tip": ""
+			"tip": "Next-gen OICW, with select-fire rifle or grenade launcher modes."
 		},
 		"CLASS_ELECTROSHOCK": {
 			"title": "Velox Taser",
-			"tip": ""
+			"tip": "Short-range, rather poor barbequeing tool."
 		},
 		"CLASS_HEAVY_ROCKET": {
 			"title": "Rocket Launcher SD-202",
-			"tip": ""
+			"tip": "Strong rocket launcher with a homing fire alt mode."
 		}
 	}
 }
