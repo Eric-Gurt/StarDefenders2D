@@ -355,7 +355,17 @@ class sdCapsulePod extends sdEntity
 			this._sleep_timer = null;
 		}
 	}
-	ExcludeDriver( c, force=false ) // Overridden to guarantee the player can never be ejected through a wall (anti-raid). Building blocks over an occupied pod used to squeeze the exiting player into a sealed base.
+	HasNearbySlabDoor() // Thin (slab/gate) doors are the only geometry whose hitbox is narrow enough for the unstuck logic to squeeze a sealed-in player through to the far side of a wall. Regular doors and full blocks aren't exploitable this way.
+	{
+		const margin = 40; // Wide enough to catch a slab door flush against any side of the pod
+
+		return sdWorld.CheckWallExistsBox(
+			this.x + this._hitbox_x1 - margin, this.y + this._hitbox_y1 - margin,
+			this.x + this._hitbox_x2 + margin, this.y + this._hitbox_y2 + margin,
+			null, null, [ 'sdDoor' ], ( e )=>( e.w < 16 || e.h < 16 )
+		);
+	}
+	ExcludeDriver( c, force=false ) // Overridden to guard against the "seal the pod next to a slab door, then wall it in" raid exploit. Away from a slab door, exits stay as permissive as on any other vehicle (never refused) so stacked pods / corner placements can't lock the player in.
 	{
 		if ( !force )
 		if ( !sdWorld.is_server )
@@ -370,6 +380,11 @@ class sdCapsulePod extends sdEntity
 
 				if ( !force )
 				{
+					// Only near a slab door is the exit's line of sight worth checking at all -
+					// that's the only geometry thin enough for the unstuck logic to have squeezed
+					// a sealed-in player through to the far side of a wall.
+					let near_slab_door = this.HasNearbySlabDoor();
+
 					// Candidate exit spots around the pod, cardinal directions.
 					let cands = [
 						[ this.x,                                  this.y + this._hitbox_y1 - c._hitbox_y2 ], // above
@@ -385,11 +400,11 @@ class sdCapsulePod extends sdEntity
 						let cx = cands[ ci ][ 0 ];
 						let cy = cands[ ci ][ 1 ];
 
-						// Spot must be free AND reachable in a straight line from the pod
-						// center without crossing a wall, so the player can never end up
-						// on the far (interior) side of a base wall.
+						// Spot must be free and, only when a slab door is nearby, also reachable in a
+						// straight line from the pod center without crossing a wall - so the player can
+						// never be relocated to the far (interior) side of a base wall through one.
 						if ( c.CanMoveWithoutOverlap( cx, cy, 0 ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( !near_slab_door || sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, sdCom.com_visibility_ignored_classes, null ) )
 						{
 							exit_x = cx;
 							exit_y = cy;
@@ -398,14 +413,16 @@ class sdCapsulePod extends sdEntity
 						}
 					}
 
-					if ( !found )
+					if ( !found && near_slab_door )
 					{
-						// Pod is sealed - refuse to eject rather than phase the player through walls.
+						// Pod is sealed next to a slab door - refuse to eject rather than phase the player through it.
 						if ( c._socket )
 						c._socket.SDServiceMessage( 'The Capsule pod is sealed - clear the blocks around it before exiting' );
 
 						return;
 					}
+					// If nothing was found and there's no slab door nearby, exit_x/exit_y stays at the pod
+					// center - same as every other vehicle falls back to - rather than trapping the player.
 				}
 
 				this[ 'driver' + i ] = null;
