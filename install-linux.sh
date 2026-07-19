@@ -79,7 +79,6 @@ StarDefenders2D Linux installer ${SCRIPT_VERSION}
 
 Usage:
   sudo bash install-linux.sh
-  sudo bash install-linux.sh --existing-checkout
   sudo bash install-linux.sh --dry-run
   sudo bash install-linux.sh --config ./install.env --yes
   bash install-linux.sh --help
@@ -93,12 +92,15 @@ sslconfig.json certificate/key paths, or install Let's Encrypt and write
 sslconfig.json from the issued certificate paths, verify service user access,
 and create world-slot-aware file watchers for graceful restarts.
 
+Whether to reconfigure services around an existing Git checkout and skip the
+initial clone/checkout/reset step is asked interactively ("Use existing
+checkout as-is and skip initial clone/reset") rather than a command-line flag.
+For unattended installs, set EXISTING_CHECKOUT_ONLY=yes in a --config file.
+
 Options:
   --config FILE        Load shell-style installer defaults before prompting.
   --yes                Use loaded/default answers without prompting.
   --dry-run            Print the resulting plan without changing the system.
-  --existing-checkout  Reconfigure services around an existing Git checkout;
-                       skip the initial clone/checkout/reset step.
 EOF
 }
 
@@ -118,8 +120,7 @@ parse_args() {
         shift
         ;;
       --existing-checkout|--reuse-existing|--service-only)
-        EXISTING_CHECKOUT_ONLY="yes"
-        shift
+        die "$1 was removed. Answer \"Use existing checkout as-is and skip initial clone/reset\" interactively instead, or set EXISTING_CHECKOUT_ONLY=yes in a --config file for unattended installs."
         ;;
       -y|--yes|--non-interactive|--noninteractive)
         ASSUME_DEFAULTS="yes"
@@ -632,6 +633,41 @@ install_nvm_and_node() {
   run_app_shell "export NVM_DIR=$(shell_quote "${nvm_dir}"); . \"\$NVM_DIR/nvm.sh\"; nvm install $(shell_quote "${NVM_VERSION}"); nvm alias default $(shell_quote "${NVM_VERSION}"); node --version; npm --version"
 }
 
+warn_if_app_dir_shared_with_other_profile() {
+  # Multiple world-slot services deliberately sharing one checkout (same
+  # APP_DIR, different WORLD_SLOT/config) is a supported pattern -- the
+  # generated deploy/backup scripts coordinate their locks by directory so
+  # this is safe -- but each service still restarts independently, so operators
+  # should know they're doing it and keep REPO_BRANCH consistent across them.
+  local f
+  local base
+  local other_app_dir
+  local matches=()
+
+  shopt -s nullglob
+  for f in /etc/default/*; do
+    [[ -f "${f}" && -r "${f}" ]] || continue
+    base="$(basename "${f}")"
+    [[ "${base}" != "${SERVICE_NAME}" ]] || continue
+    grep -qs '^APP_DIR=' "${f}" 2>/dev/null || continue
+    grep -qs '^LAUNCH_COMMAND=' "${f}" 2>/dev/null || continue
+    other_app_dir="$(APP_DIR=""; source "${f}" 2>/dev/null; printf '%s' "${APP_DIR}")"
+    if [[ -n "${other_app_dir}" && "${other_app_dir}" == "${APP_DIR}" ]]; then
+      matches+=("${base}")
+    fi
+  done
+  shopt -u nullglob
+
+  if (( ${#matches[@]} > 0 )); then
+    warn "${APP_DIR} is already used by other service profile(s): ${matches[*]}"
+    warn "This installer supports multiple world-slot services sharing one checkout"
+    warn "(their deploy/backup locks are coordinated by directory), but each service"
+    warn "still restarts independently onto the shared code. Keep REPO_BRANCH the"
+    warn "same across every profile pointed at this directory."
+    prompt_yes_no "Continue installing another service against this same directory" "y" || die "Choose a different install directory or reconfigure the existing service profile instead."
+  fi
+}
+
 prompt_configuration() {
   local detected_user
   local current_dir
@@ -997,6 +1033,7 @@ EOF
     grep -Rsl "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null || true
     prompt_yes_no "Continue with duplicate world slot" "n" || die "Choose a different world slot or service profile."
   fi
+  warn_if_app_dir_shared_with_other_profile
 
   cat <<EOF
 
@@ -1388,6 +1425,18 @@ write_environment_file() {
   write_env_var "${env_file}" "RUN_INITIAL_UPDATE" "${RUN_INITIAL_UPDATE}"
 }
 
+write_initial_deployed_rev() {
+  # Seeds this service's "last deployed" marker (see write_deploy_script) with
+  # whatever HEAD actually is once this install/reconfigure finishes, so its
+  # first auto-update tick does not treat a checkout it just set up itself as
+  # "a sibling service must have updated this without me."
+  local rev
+  [[ -d "${APP_DIR}/.git" ]] || return 0
+  rev="$(run_as_app git -C "${APP_DIR}" rev-parse HEAD 2>/dev/null || true)"
+  [[ -n "${rev}" ]] || return 0
+  printf '%s\n' "${rev}" > "/etc/default/${SERVICE_NAME}.deployed_rev"
+}
+
 write_run_script() {
   local path="/usr/local/bin/${SERVICE_NAME}-run.sh"
   info "Writing ${path}"
@@ -1670,8 +1719,19 @@ write_deploy_script() {
 set -Eeuo pipefail
 
 source "__ENV_FILE__"
-LOCK_FILE="/run/lock/${SERVICE_NAME}-deploy.lock"
+
+# Shared by every service pointed at this same APP_DIR (multiple world slots
+# deliberately running from one checkout, differentiated only by FILE_SUFFIX/
+# config, is a supported pattern) so their deploy/backup git operations
+# mutually exclude each other instead of racing in the same working tree.
+# Keying by SERVICE_NAME alone let two co-located slots run concurrent
+# git reset --hard / npm install in the same directory with no exclusion.
+DIR_KEY="$(printf '%s' "${APP_DIR}" | sha256sum | cut -c1-16)"
+LOCK_FILE="/run/lock/sd2d-deploy-${DIR_KEY}.lock"
 SUPPRESS_FILE="/run/${SERVICE_NAME}-config-restart.suppress_until"
+DEPLOYED_REV_FILE="/etc/default/${SERVICE_NAME}.deployed_rev"
+SKIP_COUNT_FILE="/run/${SERVICE_NAME}-deploy-skip-count"
+STUCK_MARKER="${APP_DIR}/crash_reports/${SERVICE_NAME}-deploy-stuck.txt"
 
 log() {
   printf '[%s] %s\n' "$(date -Is)" "$*"
@@ -1700,9 +1760,63 @@ purge_old_backups() {
   done
 }
 
+# A busy lock used to be a single silent log line forever -- indistinguishable
+# from "nothing to update" with no operator-visible signal. Escalate loudly
+# after a long stretch of consecutive skips (a hung sibling deploy, or a
+# permanently stuck lock, looks identical to "up to date" otherwise).
+record_skip() {
+  local count=0
+  [[ -f "${SKIP_COUNT_FILE}" ]] && count="$(cat "${SKIP_COUNT_FILE}" 2>/dev/null || echo 0)"
+  [[ "${count}" =~ ^[0-9]+$ ]] || count=0
+  count=$(( count + 1 ))
+  echo "${count}" > "${SKIP_COUNT_FILE}"
+  if (( count >= 6 )); then
+    mkdir -p "${APP_DIR}/crash_reports" 2>/dev/null || true
+    {
+      echo "StarDefenders2D auto-update could not acquire its deploy lock for ${count} consecutive attempts."
+      echo "service=${SERVICE_NAME}"
+      echo "lock_file=${LOCK_FILE}"
+      echo "last_checked=$(date -Is)"
+      echo
+      echo "This usually means another process is holding the shared deploy lock for"
+      echo "${APP_DIR} (a co-located world-slot service sharing this directory, or a"
+      echo "hung previous deploy/backup run). Check:"
+      echo "  fuser ${LOCK_FILE} 2>/dev/null"
+      echo "  ls -la ${APP_DIR}/.git/index.lock 2>/dev/null"
+      echo "  systemctl status ${SERVICE_NAME}-update.service --no-pager"
+    } > "${STUCK_MARKER}"
+    chmod 640 "${STUCK_MARKER}" 2>/dev/null || true
+    log "WARNING: deploy lock has been busy for ${count} consecutive attempts; wrote ${STUCK_MARKER}"
+  fi
+}
+
+clear_skip_count() {
+  rm -f "${SKIP_COUNT_FILE}" "${STUCK_MARKER}" 2>/dev/null || true
+}
+
+# git leaves .git/index.lock behind if a git subprocess is killed mid-write
+# (systemd's TimeoutStartSec, an OOM kill, a stalled network fetch). Unlike our
+# own flock, this file does NOT get released when the process dies -- it
+# silently blocks every future git operation in this checkout until removed.
+# Only clear it once it is older than this unit's own TimeoutStartSec, so a
+# run that is genuinely still in flight is never touched.
+clear_stale_index_lock() {
+  local idx_lock="${APP_DIR}/.git/index.lock"
+  local age
+  [[ -f "${idx_lock}" ]] || return 0
+  age=$(( $(date +%s) - $(stat -c %Y "${idx_lock}" 2>/dev/null || echo "$(date +%s)") ))
+  if (( age > 900 )); then
+    log "WARNING: removing stale ${idx_lock} (age ${age}s), left by a killed/crashed git operation."
+    rm -f "${idx_lock}"
+  else
+    log "${idx_lock} is only ${age}s old; leaving it in case a git operation is genuinely still running."
+  fi
+}
+
 exec 9>"${LOCK_FILE}"
 if ! flock -n 9; then
-  log "Another deploy/config restart is already running; exiting."
+  log "Another deploy/config restart is already running for ${APP_DIR}; exiting."
+  record_skip
   exit 0
 fi
 
@@ -1713,18 +1827,36 @@ if [[ "${EXISTING_NON_GIT_ACTION:-}" == "plain" || ! -d "${APP_DIR}/.git" ]]; th
   exit 0
 fi
 
+clear_stale_index_lock
+
 log "Fetching ${REPO_URL} ${REPO_BRANCH}..."
 run_as_app git fetch --prune origin
 
 current_rev="$(run_as_app git rev-parse HEAD)"
 target_rev="$(run_as_app git rev-parse "origin/${REPO_BRANCH}")"
+deployed_rev=""
+[[ -f "${DEPLOYED_REV_FILE}" ]] && deployed_rev="$(cat "${DEPLOYED_REV_FILE}" 2>/dev/null || true)"
+
+clear_skip_count
 
 if [[ "${current_rev}" == "${target_rev}" ]]; then
-  if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
-    log "Already up to date at ${current_rev}; no restart needed."
+  if [[ "${deployed_rev}" == "${target_rev}" ]]; then
+    if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+      log "Already up to date at ${current_rev}; no restart needed."
+    else
+      log "Already up to date at ${current_rev}; starting inactive service."
+      systemctl start "${SERVICE_NAME}.service"
+    fi
   else
-    log "Already up to date at ${current_rev}; starting inactive service."
-    systemctl start "${SERVICE_NAME}.service"
+    # The checkout is already at target_rev, most likely because a co-located
+    # service sharing this APP_DIR already reset it -- but *this* service was
+    # never restarted onto it. Comparing only current_rev vs target_rev here
+    # (as before) would say "already up to date" forever and this service
+    # would silently keep running stale in-memory code. Just restart; no need
+    # to repeat the fetch/reset/npm-install a sibling already did.
+    log "Checkout already at ${current_rev}, but this service has not picked it up yet (last deployed: ${deployed_rev:-<none>}). Restarting..."
+    systemctl restart "${SERVICE_NAME}.service"
+    echo "${target_rev}" > "${DEPLOYED_REV_FILE}"
   fi
   exit 0
 fi
@@ -1750,13 +1882,26 @@ log "Backing up world snapshot/chunks before update..."
 purge_old_backups
 
 log "Resetting checkout to origin/${REPO_BRANCH}..."
-run_as_app git reset --hard "origin/${REPO_BRANCH}"
+run_as_app git reset --hard "${target_rev}"
 
 prefix="$(node_prefix)"
-run_app_shell "cd $(printf '%q' "${APP_DIR}"); ${prefix}npm install --omit=dev --no-audit --no-fund"
+if ! run_app_shell "cd $(printf '%q' "${APP_DIR}"); ${prefix}npm install --omit=dev --no-audit --no-fund"; then
+  # Code already moved to target_rev but dependencies did not finish updating
+  # to match -- starting on this combination risks a crash loop. Roll code
+  # back to what we know works together and retry on the next timer tick,
+  # rather than leaving a new-code/old-or-partial-deps mismatch running.
+  log "WARNING: npm install failed after updating to ${target_rev}; rolling checkout back to ${current_rev} to keep code and dependencies paired."
+  run_as_app git reset --hard "${current_rev}"
+  log "Starting ${SERVICE_NAME}.service on the pre-update revision..."
+  systemctl start "${SERVICE_NAME}.service"
+  deploy_finished="yes"
+  log "Deploy rolled back; still at ${current_rev}. Will retry on the next timer tick."
+  exit 1
+fi
 
 log "Starting ${SERVICE_NAME}.service..."
 systemctl start "${SERVICE_NAME}.service"
+echo "${target_rev}" > "${DEPLOYED_REV_FILE}"
 deploy_finished="yes"
 log "Deploy complete at $(run_as_app git rev-parse --short HEAD)."
 EOF
@@ -1784,7 +1929,8 @@ case "${MODE}" in
   *) echo "Usage: $0 [update|periodic] [--service-already-stopped]" >&2; exit 2 ;;
 esac
 
-LOCK_FILE="/run/lock/${SERVICE_NAME}-deploy.lock"
+DIR_KEY="$(printf '%s' "${APP_DIR}" | sha256sum | cut -c1-16)"
+LOCK_FILE="/run/lock/sd2d-deploy-${DIR_KEY}.lock"
 BACKUP_ROOT="${APP_DIR}/backups/${MODE}"
 
 log() {
@@ -1896,7 +2042,8 @@ write_config_restart_script() {
 set -Eeuo pipefail
 
 source "__ENV_FILE__"
-LOCK_FILE="/run/lock/${SERVICE_NAME}-deploy.lock"
+DIR_KEY="$(printf '%s' "${APP_DIR}" | sha256sum | cut -c1-16)"
+LOCK_FILE="/run/lock/sd2d-deploy-${DIR_KEY}.lock"
 SUPPRESS_FILE="/run/${SERVICE_NAME}-config-restart.suppress_until"
 
 log() {
@@ -2120,9 +2267,12 @@ rm -f \
   "/usr/local/bin/${SERVICE_NAME}-config-restart.sh" \
   "/usr/local/bin/${SERVICE_NAME}-fixperms.sh" \
   "/etc/default/${SERVICE_NAME}" \
+  "/etc/default/${SERVICE_NAME}.deployed_rev" \
   "/usr/local/bin/${SERVICE_NAME}-uninstall.sh" \
   "${APP_DIR}/${SERVICE_NAME}-admin-commands.txt" \
-  "${APP_DIR}/${SERVICE_NAME}-uninstall.sh"
+  "${APP_DIR}/${SERVICE_NAME}-uninstall.sh" \
+  "${APP_DIR}/crash_reports/${SERVICE_NAME}-deploy-stuck.txt"
+rm -f "/run/${SERVICE_NAME}-deploy-skip-count" "/run/${SERVICE_NAME}-config-restart.suppress_until" 2>/dev/null || true
 rm -f "/etc/letsencrypt/renewal-hooks/deploy/${SERVICE_NAME}-restart.sh" 2>/dev/null || true
 # Remove the SSL re-grant hotfix drop-in for this service (added by
 # sd2d-ssl-hotfix.sh on boxes patched before a full reinstall). Drop the shared
@@ -2196,6 +2346,16 @@ Auto-update
   Re-enable: systemctl enable --now ${SERVICE_NAME}-update.timer
   Run once now: systemctl start ${SERVICE_NAME}-update.service
   Approved during install: ${UPDATE_ENABLED}
+  Last commit this service actually restarted onto: /etc/default/${SERVICE_NAME}.deployed_rev
+  If this file's contents lag behind current origin/${REPO_BRANCH} for longer
+  than a few update-timer intervals, auto-update is stuck. Check for:
+    ${APP_DIR}/crash_reports/${SERVICE_NAME}-deploy-stuck.txt (written after
+      6+ consecutive attempts could not acquire the deploy lock -- most often
+      a hung deploy/backup run, or another world-slot service sharing this
+      same ${APP_DIR} whose own deploy/backup is mid-run)
+    ${APP_DIR}/.git/index.lock (a leftover from a killed git operation; the
+      deploy script clears it automatically once it is over 15 minutes old)
+    journalctl -u ${SERVICE_NAME}-update.service -n 100 --no-pager
 
 Periodic world backups
   Disable: systemctl disable --now ${SERVICE_NAME}-backup.timer
@@ -2361,6 +2521,7 @@ main() {
   install_npm_dependencies
   purge_old_managed_backups
   write_environment_file
+  write_initial_deployed_rev
   write_run_script
   write_backup_script
   write_deploy_script
