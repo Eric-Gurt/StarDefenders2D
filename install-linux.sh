@@ -1654,8 +1654,29 @@ echo "Starting ${SERVICE_NAME} at ${STARTED_AT}"
 echo "Working directory: ${APP_DIR}"
 echo "Launch command: ${LAUNCH_COMMAND}"
 
+# Explicitly forward stop signals to the actual node child and wait for it to
+# exit on its own, instead of relying on systemd's control-group signal
+# broadcast (KillMode=control-group) reaching node independently of this
+# wrapper. That broadcast should already do the right thing on its own, but
+# this wrapper is the one thing every stop path shares in common - a manual
+# `systemctl stop`, deploy.sh's own stop-before-update, and the uninstall
+# helper's `systemctl disable --now` all go through this same script - so
+# making the forwarding explicit here removes any dependency on KillMode
+# staying exactly as configured and gives the game's own SIGTERM/SIGINT
+# handler (world snapshot save) the best chance to run in every case.
+child_pid=""
+forward_signal() {
+  local sig="$1"
+  [[ -n "${child_pid}" ]] && kill "-${sig}" "${child_pid}" 2>/dev/null
+  return 0
+}
+trap 'forward_signal TERM' TERM
+trap 'forward_signal INT' INT
+
 set +e
-bash -lc "exec ${LAUNCH_COMMAND}"
+eval "exec ${LAUNCH_COMMAND}" &
+child_pid="$!"
+wait "${child_pid}"
 status="$?"
 set -e
 
@@ -2235,6 +2256,7 @@ WorkingDirectory=${APP_DIR}
 EnvironmentFile=/etc/default/${SERVICE_NAME}
 ExecStartPre=+/usr/local/bin/${SERVICE_NAME}-fixperms.sh
 ExecStart=/usr/local/bin/${SERVICE_NAME}-run.sh
+KillMode=control-group
 KillSignal=SIGTERM
 TimeoutStopSec=300
 Restart=always
