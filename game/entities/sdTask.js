@@ -593,11 +593,11 @@ class sdTask extends sdEntity
 
 				visible_tasks[ t ].DrawTaskInterface( ctx, scale, max_width, true );
 
-				if ( ctx.getTransform().f > max_y )
+				let y_after = ctx.getTransform().f;
+
+				if ( y_after > max_y )
 				{
-					let m = ctx.getTransform();
-					m.f = y_before; // Undo this task's translate - it either didn't fit at all, or only partially did, so don't count or leave a half-drawn gap for it
-					ctx.setTransform( m );
+					ctx.translate( 0, y_before - y_after ); // Undo this task's translate (relative, not an absolute setTransform - FakeCanvasContext's getTransform() is read-only) - it either didn't fit at all, or only partially did, so don't count or leave a half-drawn gap for it
 					break;
 				}
 

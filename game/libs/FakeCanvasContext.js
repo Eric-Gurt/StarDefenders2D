@@ -764,11 +764,18 @@ class FakeCanvasContext
 	resetTransform()
 	{
 		this.save_stack.length = 0;
-		
+
 		if ( sdRenderer.visual_settings === 4 )
 		this._matrix3.identity();
 		else
 		this.transform.identity();
+	}
+	getTransform() // Minimal, read-only - only ever used by sdTask.js's expanded-task-list overflow check, which only reads the Y-translation component (.f) to measure how far a task's render moved the cursor down. Not a full DOMMatrix - callers should use ctx.translate() to adjust position, not feed this back into setTransform().
+	{
+		if ( sdRenderer.visual_settings === 4 )
+		return { f: this._matrix3.elements[ 7 ] };
+
+		return { f: this.transform.elements[ 13 ] };
 	}
 	fillText( text, x, y, max_width=undefined )
 	{	
