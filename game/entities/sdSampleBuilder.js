@@ -465,7 +465,15 @@ class sdSampleBuilder extends sdEntity
 							{
 								let prop = props_to_compare[ i2 ];
 
-								let ent_value = from_entity[ prop ] || from_entity[ '_' + prop ] || undefined;
+								// sdBlock strips hue-rotate/brightness out of .filter on construction (onSnapshotApplied),
+								// so a live sdBlock's .filter is never comparable to a shop template's raw .filter string -
+								// the dedicated hue/br comparison below is the correct substitute for sdBlock specifically.
+								if ( prop === 'filter' && _class === 'sdBlock' )
+								continue;
+
+								let ent_value = from_entity[ prop ];
+								if ( ent_value === undefined )
+								ent_value = from_entity[ '_' + prop ]; // 0 / '' / false are valid sampled values and must not be treated as absent
 
 								if ( ent_value !== undefined )
 								{
@@ -478,16 +486,14 @@ class sdSampleBuilder extends sdEntity
 									}
 								}
 							}
-							
-							if ( _class === 'sdBlock' || _class === 'sdDoor' )
-							if ( option.filter )
-							if ( option.filter.indexOf( 'hue-rotate' ) !== -1 || option.filter.indexOf( 'brightness' ) !== -1 )
+
+							if ( _class === 'sdBlock' || _class === 'sdDoor' ) // Always compare, even when option.filter has no color in it - otherwise an uncolored sample loses every tiebreak to a same-brightness but wrong-hue option
 							{
-								let [ hue, br, filter ] = sdWorld.ExtractHueRotate( option.hue||0, option.br||100, option.filter );
-								
+								let [ hue, br ] = sdWorld.ExtractHueRotate( option.hue||0, option.br||100, option.filter||'' );
+
 								if ( from_entity.hue === hue )
 								value += 1;
-								
+
 								if ( from_entity.br === br )
 								value += 1;
 							}
