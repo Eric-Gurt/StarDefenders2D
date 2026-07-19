@@ -88,6 +88,8 @@ class sdLoadingScreen
 		sdLoadingScreen.ASSET_DURATION_MS = 4000;
 		sdLoadingScreen.SAFETY_HIDE_MS = 20000; // In case sdWorld.my_entity never resolves for some reason, don't get stuck showing this forever
 
+		sdLoadingScreen.PRELOAD_COUNT = 6; // Restrict the carousel to this many assets (half guns, half other entities - see BuildAssetList), all warmed up front in Show() - trades the ~300-asset variety for a guarantee that whichever card is showing always already has its sprite loaded, instead of a freshly-randomly-picked one sometimes showing blank for however long its image takes to fetch. This game is served over plain HTTP (no TLS, so no HTTP/2 multiplexing) - Chrome caps concurrent connections per host at ~6, so firing off more than that in one burst just queues the rest behind the first 6, defeating the point for exactly the ones queued last
+
 		sdLoadingScreen.ATTACK_PHASE_AFTER_MS = 2000; // "moving" entities show their idle/walk animation for this long, then we try to trigger their attack animation for the rest of their time on screen
 
 		sdLoadingScreen.current_fake_ent = null; // Kept alive for as long as its asset is on screen (unlike MakeIcon's per-frame throwaway instances) so muzzle flash / walk-cycle / attack state can accumulate across frames
@@ -423,6 +425,8 @@ class sdLoadingScreen
 			});
 		}
 
+		let guns_count = assets.length; // Where the gun entries end and entity entries begin, for BuildAssetList's curated sample below
+
 		// Supplementary: every OTHER registered entity class not already covered above, best-effort (many will fail
 		// to construct with no params and are silently skipped - that's fine, this is just extra visual variety)
 		if ( sdWorld.entity_classes_array )
@@ -452,6 +456,22 @@ class sdLoadingScreen
 				tip_key: 'entities.' + cls.name,
 				fallback_title: cls.name
 			});
+		}
+
+		// Curated sample rather than the full ~300 - half guns, half other entities, in whatever order
+		// they were discovered above (arbitrary, but stable run to run). See PRELOAD_COUNT.
+		if ( assets.length > sdLoadingScreen.PRELOAD_COUNT )
+		{
+			let half = Math.ceil( sdLoadingScreen.PRELOAD_COUNT / 2 );
+			let guns = assets.slice( 0, guns_count ).slice( 0, half );
+			let others = assets.slice( guns_count ).slice( 0, sdLoadingScreen.PRELOAD_COUNT - guns.length );
+
+			// If one side came up short (ex. fewer than half guns available), top back up from the other side
+			let curated = guns.concat( others );
+			if ( curated.length < sdLoadingScreen.PRELOAD_COUNT )
+			curated = curated.concat( assets.slice( curated.length, curated.length + ( sdLoadingScreen.PRELOAD_COUNT - curated.length ) ) );
+
+			assets = curated;
 		}
 
 		sdLoadingScreen.assets = assets;
@@ -501,6 +521,15 @@ class sdLoadingScreen
 
 		if ( sdLoadingScreen.assets.length === 0 )
 		return; // Nothing could be built (ex. classes not loaded yet for some reason) - just skip, leaving the old black-screen behavior rather than showing an empty overlay
+
+		// Warm every curated asset's sprite(s) right now, in one burst, instead of only ever loading
+		// the currently-displayed one - by the time the 2nd/3rd/etc. card comes up a few seconds from
+		// now, its image should already be cached rather than starting cold at the moment it's shown.
+		// MakeIcon's return value is unused here - only the side effect (triggering the image fetch via
+		// Draw() -> ctx.drawImageFilterCache -> img.RequiredNow()) matters. Wrapped per-asset so one
+		// misbehaving entry can't stop the rest from warming.
+		for ( let i = 0; i < sdLoadingScreen.assets.length; i++ )
+		try { sdLoadingScreen.MakeIcon( sdLoadingScreen.assets[ i ], i, 0 ); } catch ( e ) {}
 
 		sdLoadingScreen.showing = true;
 		sdLoadingScreen.canvas.style.display = 'block';
