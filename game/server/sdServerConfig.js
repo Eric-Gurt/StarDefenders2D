@@ -195,7 +195,23 @@ class sdServerConfigShort
 
 	// static GetEventSpeed() { return 30 * 60 * 4; } // Default: 30*60*4. Max time (in steps) until the next event roll - larger = rarer events, smaller = more frequent. Pair with GetAllowedWorldEventCount.
 
+	// static GetWeatherEventSpeed() { return 30 * 60 * 6; } // Default: 30*60*6. Max time (in steps) until the next weather-event roll (rain/snow/drought/etc). Weather events rotate their eligible pool every 20 minutes and are NOT consumed when they fire (unlike SD task events), so a frequent roll interval combined with a small pool is why one weather type (snow included) can feel like it keeps coming back the whole rotation. Raise this to make weather rolls rarer overall.
+
+	// static GetAllowedWeatherEventCount() { return 1; } // Default: null (built-in ~0-3 random count, skewed toward 2-3 out of ~9 weather-event candidates). Return a number to force a fixed max count of weather events eligible per 20-minute rotation instead. Lower (e.g. 1) makes any single weather type noticeably rarer since it shares fewer "slots" - the direct lever if snow/rain/drought feels too frequent.
+
 	// static ForceEarthquakesIfPossible() { return true; } // Default: true. Always enable earthquakes when possible. Return false to disable forced earthquakes.
+
+	// static WaterEvaporationEnabled() { return true; } // Default: true. Naturally dries out sky-exposed, shallow, natural (rain-spawned) water/acid so it does not accumulate forever and pin the CPU. Player-placed water and deep seas are never touched. Set false to disable (e.g. to profile before/after, or if your map depends on rain puddles persisting).
+
+	// Fine-tune evaporation and the drought/heatwave event from onAfterSnapshotLoad() if the defaults do not suit your map. Uncomment & adjust:
+	//   sdWorld.entity_classes.sdWater.EVAP_MAX_DEPTH = 5;         // water columns deeper than this many cells are seas -> never evaporate; raise to protect shallow natural seas
+	//   sdWorld.entity_classes.sdWater.EVAP_BASE_RATE = 0.02;      // volume dried per step at full sun; lower = slower drying
+	//   sdWorld.entity_classes.sdWater.EVAP_BUDGET = 24;           // surface cells swept per frame (CPU cap); lower = cheaper/slower
+	//   sdWorld.entity_classes.sdWater.EVAP_DROUGHT_BUDGET = 48;   // extra cells swept per frame at full drought
+	//   sdWorld.entity_classes.sdWater.WAKE_CASCADE_MAX_DEPTH = 0; // 0 = original wake behavior; set e.g. 2 to tame wake-storms in huge pools (perf)
+
+	// To exclude the drought/heatwave event entirely instead of tuning it, deny-list its id (see GetDisallowedWorldEvents above):
+	// static GetDisallowedWorldEvents() { return [ sdWorld.entity_classes.sdWeather.EVENT_DROUGHT ]; }
 
 	// static EnableForbiddenCubes() { return false; } // Default: false. Enable shield and invisibility cubes? Set true to allow these advanced/forbidden cube types.
 
@@ -523,6 +539,14 @@ class sdServerConfigFull extends sdServerConfigShort
 	static GetEventSpeed()
 	{
 		return 30 * 60 * 4; //3 * ( 3 / 2 ); // Return max possible time until next event rolls
+	}
+	static GetWeatherEventSpeed()
+	{
+		return 30 * 60 * 6; // Return max possible time (in steps) until the next weather-event roll (rain/snow/drought/etc, selected from GetAllowedWeatherEventCount() of them per 20-minute weather rotation). Pair with GetAllowedWeatherEventCount() - a small selected pool combined with frequent rolls is why a given weather type (snow included) can feel like it keeps recurring for its whole ~20-minute rotation window: fired weather events are never removed from that window's pool the way SD task events are.
+	}
+	static GetAllowedWeatherEventCount()
+	{
+		return null; // Return null/undefined to keep the default randomized count (~~((1 - Math.random()**2) * 4), skewed toward 2-3 out of ~9 weather-event candidates), or a number to force a fixed max count of concurrently-eligible weather events per 20-minute rotation. Lower (e.g. 1) makes any single weather type, including snow, noticeably rarer since it has to share fewer "slots" with other candidates.
 	}
 	static ForceEarthquakesIfPossible()
 	{
