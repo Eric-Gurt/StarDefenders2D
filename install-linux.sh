@@ -67,6 +67,7 @@ CRASH_REPORT_RETENTION_DAYS=""
 DRY_RUN="no"
 ASSUME_DEFAULTS="no"
 CONFIG_FILE=""
+CHECKOUT_MODE=""
 EXISTING_CHECKOUT_ONLY=""
 EXISTING_NON_GIT_ACTION=""
 
@@ -94,10 +95,19 @@ sslconfig.json certificate/key paths, or install Let's Encrypt and write
 sslconfig.json from the issued certificate paths, verify service user access,
 and create world-slot-aware file watchers for graceful restarts.
 
-Whether to reconfigure services around an existing Git checkout and skip the
-initial clone/checkout/reset step is asked interactively ("Use existing
-checkout as-is and skip initial clone/reset") rather than a command-line flag.
-For unattended installs, set EXISTING_CHECKOUT_ONLY=yes in a --config file.
+How to handle an already-existing Git checkout at the install directory is
+asked interactively ("How should the existing checkout be handled") rather
+than a command-line flag, with three choices:
+  keep    Leave the checkout exactly as-is; do not fetch or reset it now.
+  update  Fetch and fast-forward/hard-reset onto origin/<branch>, same as a
+          normal auto-update tick, without touching untracked files.
+  reset   Fetch, hard-reset onto origin/<branch>, AND remove untracked/
+          leftover files within the checkout (manually-copied stray files,
+          local experiments, etc.) - world data, configs, secrets, and
+          crash reports are always preserved regardless of mode.
+For unattended installs, set CHECKOUT_MODE=keep|update|reset in a --config
+file (the older EXISTING_CHECKOUT_ONLY=yes|no is still accepted as an alias
+for keep|update).
 
 Options:
   --config FILE        Load shell-style installer defaults before prompting.
@@ -122,7 +132,7 @@ parse_args() {
         shift
         ;;
       --existing-checkout|--reuse-existing|--service-only)
-        die "$1 was removed. Answer \"Use existing checkout as-is and skip initial clone/reset\" interactively instead, or set EXISTING_CHECKOUT_ONLY=yes in a --config file for unattended installs."
+        die "$1 was removed. Answer \"How should the existing checkout be handled\" interactively instead (choose \"keep\"), or set CHECKOUT_MODE=keep in a --config file for unattended installs."
         ;;
       -y|--yes|--non-interactive|--noninteractive)
         ASSUME_DEFAULTS="yes"
@@ -582,35 +592,42 @@ initialize_git_metadata_for_existing_directory() {
   info "Existing directory is now a Git checkout tracking ${target_ref}"
 }
 
+# Single source of truth for "this is server-generated runtime state, never
+# code" - used both to seed .git/info/exclude for a newly-git-initialized
+# directory and to protect the same paths from CHECKOUT_MODE=reset's cleanup
+# of untracked/leftover files. Keep in sync if new runtime paths are added.
+runtime_git_exclude_patterns() {
+  printf '%s\n' \
+    "backups/" \
+    "installerbackup/" \
+    "node_modules/" \
+    "node_modules_win10/" \
+    "server_config*.js" \
+    "sslconfig.json" \
+    "superuser_pass*.txt" \
+    "presets/*.json" \
+    "presets_users/" \
+    "moderation_data*.v" \
+    "star_defenders_snapshot*.v" \
+    "star_defenders_snapshot*.raw.v" \
+    "chunks*/" \
+    "sd2d_update_notice.txt" \
+    "crash_reports/"
+}
+
 add_local_git_excludes_for_server_runtime() {
   local exclude_file="${APP_DIR}/.git/info/exclude"
   local pattern
-  local patterns=(
-    "backups/"
-    "installerbackup/"
-    "node_modules/"
-    "node_modules_win10/"
-    "server_config*.js"
-    "sslconfig.json"
-    "superuser_pass*.txt"
-    "presets/*.json"
-    "presets_users/"
-    "moderation_data*.v"
-    "star_defenders_snapshot*.v"
-    "star_defenders_snapshot*.raw.v"
-    "chunks*/"
-    "sd2d_update_notice.txt"
-  )
 
   if [[ ! -e "${exclude_file}" ]]; then
     install -o "${APP_USER}" -g "${APP_GROUP}" -m 644 /dev/null "${exclude_file}" 2>/dev/null || touch "${exclude_file}"
   fi
   chown "${APP_USER}:${APP_GROUP}" "${exclude_file}"
-  for pattern in "${patterns[@]}"; do
+  while IFS= read -r pattern; do
     if ! grep -qxF "${pattern}" "${exclude_file}" 2>/dev/null; then
       printf '%s\n' "${pattern}" >> "${exclude_file}"
     fi
-  done
+  done < <(runtime_git_exclude_patterns)
   chown "${APP_USER}:${APP_GROUP}" "${exclude_file}"
 }
 
@@ -775,25 +792,46 @@ EOF
     EXISTING_NON_GIT_ACTION="$(prompt_choice "Existing non-Git directory action" "${EXISTING_NON_GIT_ACTION:-git}" "git" "plain" "startfresh" "abort")"
   fi
 
-  local existing_checkout_default="n"
+  local existing_checkout_default="update"
   local directory_has_git="no"
   if [[ -d "${APP_DIR}/.git" ]]; then
-    existing_checkout_default="y"
+    existing_checkout_default="keep"
     directory_has_git="yes"
   fi
+  # Migrate a reused profile written by the older yes/no installer (or a
+  # --config file still using the older EXISTING_CHECKOUT_ONLY alias): "yes"
+  # meant "keep as-is", "no" meant fetch+reset, i.e. today's "update". Neither
+  # older form could ever mean today's "reset", since that mode didn't exist.
+  if [[ -z "${CHECKOUT_MODE}" && -n "${EXISTING_CHECKOUT_ONLY:-}" ]]; then
+    case "${EXISTING_CHECKOUT_ONLY}" in
+      yes) CHECKOUT_MODE="keep" ;;
+      no) CHECKOUT_MODE="update" ;;
+    esac
+  fi
   if [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
-    EXISTING_CHECKOUT_ONLY="no"
-  elif [[ "${profile_reused}" == "yes" && "${EXISTING_CHECKOUT_ONLY:-}" == "${directory_has_git}" ]]; then
+    CHECKOUT_MODE="update"
+  elif [[ "${profile_reused}" == "yes" && "${CHECKOUT_MODE:-}" != "" && "${directory_has_git}" == "yes" ]]; then
     # The reused profile already recorded this exact choice, and ${APP_DIR}/.git
     # still agrees with it right now - re-asking would just confirm the same
     # fact a second time with nothing new to learn between the two prompts.
-    echo "Existing checkout mode: ${EXISTING_CHECKOUT_ONLY} (from the reused profile; ${APP_DIR}/.git $( [[ "${directory_has_git}" == "yes" ]] && echo "still exists" || echo "still does not exist" ), so nothing changed)."
+    echo "Existing checkout mode: ${CHECKOUT_MODE} (from the reused profile; ${APP_DIR}/.git still exists, so nothing changed)."
   else
-    if prompt_yes_no "Use existing checkout as-is and skip initial clone/reset" "${EXISTING_CHECKOUT_ONLY:-$existing_checkout_default}"; then
-      EXISTING_CHECKOUT_ONLY="yes"
-    else
-      EXISTING_CHECKOUT_ONLY="no"
-    fi
+    echo
+    echo "How should the existing checkout at ${APP_DIR} be handled?"
+    echo "  keep    Leave it exactly as-is; do not fetch or reset now (auto-updates still apply later)."
+    echo "  update  Fetch and hard-reset onto origin/<branch>, like a normal auto-update tick."
+    echo "  reset   Fetch, hard-reset onto origin/<branch>, AND remove untracked/leftover files"
+    echo "          in the checkout. World data, configs, secrets, and crash reports are never"
+    echo "          touched by any of these three modes."
+    CHECKOUT_MODE="$(prompt_choice "Existing checkout handling" "${CHECKOUT_MODE:-$existing_checkout_default}" "keep" "update" "reset")"
+  fi
+  # Keep the legacy alias in sync for anything still reading it back out of a
+  # reused profile (e.g. an older installer version run against this same
+  # /etc/default/${SERVICE_NAME} file later).
+  if [[ "${CHECKOUT_MODE}" == "keep" ]]; then
+    EXISTING_CHECKOUT_ONLY="yes"
+  else
+    EXISTING_CHECKOUT_ONLY="no"
   fi
 
   if [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
@@ -803,8 +841,12 @@ EOF
     REPO_URL="$(prompt_text "Git repository URL" "${REPO_URL:-$DEFAULT_REPO_URL}")"
     REPO_BRANCH="$(prompt_text "Git branch to deploy" "${REPO_BRANCH:-$DEFAULT_BRANCH}")"
   fi
-  if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
+  if [[ "${CHECKOUT_MODE}" == "keep" ]]; then
     warn "Initial setup will not reset ${APP_DIR}; future auto-updates still reset to origin/${REPO_BRANCH}."
+  elif [[ "${CHECKOUT_MODE}" == "update" && -d "${APP_DIR}/.git" ]]; then
+    warn "Initial setup will fetch and hard-reset ${APP_DIR} onto origin/${REPO_BRANCH}, leaving untracked files in place."
+  elif [[ "${CHECKOUT_MODE}" == "reset" ]]; then
+    warn "Initial setup will fetch and hard-reset ${APP_DIR} onto origin/${REPO_BRANCH} AND remove untracked/leftover files (world data, configs, secrets, and crash reports are preserved)."
   elif [[ "${EXISTING_NON_GIT_ACTION}" == "git" ]]; then
     warn "Initial setup will preserve ${APP_DIR} files while adding Git metadata; future auto-updates reset to origin/${REPO_BRANCH}."
   elif [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
@@ -1029,8 +1071,8 @@ EOF
   else
     warn "Installer is running from ${current_dir}, but the repo will be installed to ${APP_DIR}."
   fi
-  if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
-    [[ -d "${APP_DIR}/.git" ]] || die "Existing-checkout mode requires ${APP_DIR} to be a Git checkout."
+  if [[ "${CHECKOUT_MODE}" == "keep" || "${CHECKOUT_MODE}" == "reset" ]]; then
+    [[ -d "${APP_DIR}/.git" ]] || die "\"${CHECKOUT_MODE}\" checkout handling requires ${APP_DIR} to already be a Git checkout."
   fi
   if [[ "${EXISTING_NON_GIT_ACTION}" == "abort" ]]; then
     die "Installation cancelled because ${APP_DIR} is not configured as a Git checkout."
@@ -1059,7 +1101,7 @@ Configuration summary:
   Directory: ${APP_DIR}
   Repo: ${REPO_URL}
   Branch: ${REPO_BRANCH}
-  Existing checkout only: ${EXISTING_CHECKOUT_ONLY}
+  Existing checkout handling: ${CHECKOUT_MODE:-<n/a, no existing checkout>}
   Existing non-Git action: ${EXISTING_NON_GIT_ACTION:-<none>}
   Service: ${SERVICE_NAME}.service
   Launch: ${LAUNCH_COMMAND}
@@ -1090,15 +1132,36 @@ prepare_checkout() {
   ensure_app_user
   install -d -o "${APP_USER}" -g "${APP_GROUP}" "$(dirname "${APP_DIR}")"
 
-  if [[ "${EXISTING_CHECKOUT_ONLY}" == "yes" ]]; then
-    [[ -d "${APP_DIR}" ]] || die "Existing-checkout mode requires ${APP_DIR} to exist."
-    [[ -d "${APP_DIR}/.git" ]] || die "Existing-checkout mode requires ${APP_DIR} to be a Git checkout."
+  if [[ "${CHECKOUT_MODE}" == "keep" ]]; then
+    [[ -d "${APP_DIR}" ]] || die "\"keep\" checkout handling requires ${APP_DIR} to exist."
+    [[ -d "${APP_DIR}/.git" ]] || die "\"keep\" checkout handling requires ${APP_DIR} to be a Git checkout."
     info "Using existing Git checkout at ${APP_DIR} without initial reset"
     chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
     run_as_app git -C "${APP_DIR}" rev-parse --is-inside-work-tree >/dev/null
     if ! run_as_app git -C "${APP_DIR}" remote get-url origin >/dev/null 2>&1; then
-      die "Existing-checkout mode requires a Git remote named origin for auto-updates."
+      die "\"keep\" checkout handling requires a Git remote named origin for auto-updates."
     fi
+    return 0
+  fi
+
+  if [[ "${CHECKOUT_MODE}" == "reset" ]]; then
+    [[ -d "${APP_DIR}" ]] || die "\"reset\" checkout handling requires ${APP_DIR} to exist."
+    [[ -d "${APP_DIR}/.git" ]] || die "\"reset\" checkout handling requires ${APP_DIR} to be a Git checkout."
+    info "Resetting existing Git checkout at ${APP_DIR} onto origin/${REPO_BRANCH} and clearing untracked files"
+    chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
+    run_as_app git -C "${APP_DIR}" fetch --prune origin
+    run_as_app git -C "${APP_DIR}" checkout "${REPO_BRANCH}"
+    run_as_app git -C "${APP_DIR}" reset --hard "origin/${REPO_BRANCH}"
+    # -x also removes files matched by .gitignore (this fork's own .gitignore
+    # ignores everything untracked by default, so plain `clean -fd` would
+    # remove nothing useful) - the -e exceptions below are what actually keep
+    # world data/configs/secrets/crash reports safe, not .gitignore.
+    local clean_exclude_args=()
+    local pattern
+    while IFS= read -r pattern; do
+      clean_exclude_args+=( -e "${pattern}" )
+    done < <(runtime_git_exclude_patterns)
+    run_as_app git -C "${APP_DIR}" clean -ffdx "${clean_exclude_args[@]}"
     return 0
   fi
 
@@ -1403,6 +1466,7 @@ write_environment_file() {
   write_env_var "${env_file}" "APP_DIR" "${APP_DIR}"
   write_env_var "${env_file}" "REPO_URL" "${REPO_URL}"
   write_env_var "${env_file}" "REPO_BRANCH" "${REPO_BRANCH}"
+  write_env_var "${env_file}" "CHECKOUT_MODE" "${CHECKOUT_MODE}"
   write_env_var "${env_file}" "EXISTING_CHECKOUT_ONLY" "${EXISTING_CHECKOUT_ONLY}"
   write_env_var "${env_file}" "EXISTING_NON_GIT_ACTION" "${EXISTING_NON_GIT_ACTION}"
   write_env_var "${env_file}" "SERVICE_NAME" "${SERVICE_NAME}"
@@ -1590,8 +1654,29 @@ echo "Starting ${SERVICE_NAME} at ${STARTED_AT}"
 echo "Working directory: ${APP_DIR}"
 echo "Launch command: ${LAUNCH_COMMAND}"
 
+# Explicitly forward stop signals to the actual node child and wait for it to
+# exit on its own, instead of relying on systemd's control-group signal
+# broadcast (KillMode=control-group) reaching node independently of this
+# wrapper. That broadcast should already do the right thing on its own, but
+# this wrapper is the one thing every stop path shares in common - a manual
+# `systemctl stop`, deploy.sh's own stop-before-update, and the uninstall
+# helper's `systemctl disable --now` all go through this same script - so
+# making the forwarding explicit here removes any dependency on KillMode
+# staying exactly as configured and gives the game's own SIGTERM/SIGINT
+# handler (world snapshot save) the best chance to run in every case.
+child_pid=""
+forward_signal() {
+  local sig="$1"
+  [[ -n "${child_pid}" ]] && kill "-${sig}" "${child_pid}" 2>/dev/null
+  return 0
+}
+trap 'forward_signal TERM' TERM
+trap 'forward_signal INT' INT
+
 set +e
-bash -lc "exec ${LAUNCH_COMMAND}"
+eval "exec ${LAUNCH_COMMAND}" &
+child_pid="$!"
+wait "${child_pid}"
 status="$?"
 set -e
 
@@ -1822,12 +1907,15 @@ send_player_notice() {
   systemctl kill --signal=SIGUSR2 "${SERVICE_NAME}.service" 2>/dev/null || log "WARNING: failed to signal ${SERVICE_NAME}.service for a player notice."
 }
 
-# Warns connected players an update is coming, then waits UPDATE_WARNING_MINUTES
-# before returning so they get a chance to finish up / find somewhere safe
-# before the service stops. A no-op if warnings are disabled (0) or the
-# service isn't currently running (nobody online to warn).
+# Warns connected players an update is coming, then re-notices every minute
+# for the remainder of UPDATE_WARNING_MINUTES so a countdown stays visible to
+# anyone who joins mid-wait or missed the first notice, before returning so
+# they get a chance to finish up / find somewhere safe before the service
+# stops. A no-op if warnings are disabled (0) or the service isn't currently
+# running (nobody online to warn).
 announce_and_wait_for_update() {
   local minutes="${UPDATE_WARNING_MINUTES:-0}"
+  local remaining
   [[ "${minutes}" =~ ^[0-9]+$ ]] || minutes=0
 
   if (( minutes <= 0 )); then
@@ -1842,7 +1930,23 @@ announce_and_wait_for_update() {
   log "Warning connected players: update in ${minutes} minute(s)."
   send_player_notice "Server: An update will be applied in ${minutes} minute(s). The server will restart briefly."
 
-  sleep "$(( minutes * 60 ))"
+  remaining="${minutes}"
+  while (( remaining > 1 )); do
+    sleep 60
+
+    # Stop counting down (and stop bothering to notice) once nobody's left to
+    # tell - an admin or a crash could have already stopped it mid-wait.
+    if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+      log "${SERVICE_NAME}.service stopped during the warning window; abandoning the countdown."
+      return 0
+    fi
+
+    remaining=$(( remaining - 1 ))
+    log "Warning connected players: update in ${remaining} minute(s)."
+    send_player_notice "Server: Update in ${remaining} minute(s)..."
+  done
+
+  sleep 60
 
   # Only send the final ping if the service is still up - an admin or a crash
   # could have already stopped it during the warning window.
@@ -2152,6 +2256,7 @@ WorkingDirectory=${APP_DIR}
 EnvironmentFile=/etc/default/${SERVICE_NAME}
 ExecStartPre=+/usr/local/bin/${SERVICE_NAME}-fixperms.sh
 ExecStart=/usr/local/bin/${SERVICE_NAME}-run.sh
+KillMode=control-group
 KillSignal=SIGTERM
 TimeoutStopSec=300
 Restart=always

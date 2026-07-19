@@ -35,7 +35,13 @@ If you already have the game on the server, run the installer from that director
 sudo -E bash install-linux.sh
 ```
 
-For a real Git checkout, answer "y" when asked "Use existing checkout as-is and skip initial clone/reset" (this is asked interactively; for unattended installs set `EXISTING_CHECKOUT_ONLY=yes` in a `--config` file instead).
+For a real Git checkout, answer the interactive "How should the existing checkout be handled?" prompt:
+
+- `keep`: leave the checkout exactly as-is; don't fetch or reset it now (auto-updates still apply later).
+- `update`: fetch and hard-reset onto `origin/<branch>`, the same as a normal auto-update tick, without touching untracked files.
+- `reset`: fetch, hard-reset onto `origin/<branch>`, and also remove untracked/leftover files inside the checkout (e.g. stray manually-copied files). World data, configs, secrets, and crash reports are preserved regardless of which mode you pick.
+
+For unattended installs, set `CHECKOUT_MODE=keep|update|reset` in a `--config` file instead (the older `EXISTING_CHECKOUT_ONLY=yes|no` is still accepted as an alias for `keep`/`update`).
 
 If the directory has game files but no `.git`, the installer offers:
 
