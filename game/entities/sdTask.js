@@ -34,8 +34,14 @@ class sdTask extends sdEntity
 		sdTask.COLOR_PROTECT = ()=>{ return sdWorld.time % 2000 < 1000 ? '#7777ff' : '#3333ff'; };
 		
 		sdTask.completed_tasks_count = 0; // Whenever someone completes a task, this increases value by 1. Used to spawn SD Item pods
-		
+
 		//sdTask.reward_claim_task_amount = 0.5; // was 1 // EG: Let's not have too many multipliers all over the project
+
+		// Shared with sdRescueTeleport.js, which creates the RTP-HINT task under one of these exact titles depending on
+		// state. Kept as constants (rather than matching literal strings at sort time) so the two can't drift apart.
+		sdTask.TITLE_RESCUE_TELEPORT_REQUIRED = 'Rescue Teleport required';
+		sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_LOST = 'Rescue Teleport signal lost';
+		sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_WEAK = 'Rescue Teleport signal is weak';
 		
 		sdTask.missions = [];
 		
@@ -543,8 +549,79 @@ class sdTask extends sdEntity
 		
 		sdTask.tasks = [];
 		sdTask.sort_tasks = false;
+
+		sdTask.MAX_COMPACT_TASKS = 3; // Default HUD shows only the top-priority tasks plus a collapsed count for the rest, to avoid clogging the left side of the screen
 	}
-	
+	static DrawTaskList( ctx, scale ) // Draws sdTask.tasks as a compact HUD list (top-priority tasks + collapsed count), or the full list when the player expands it via Tab (sdRenderer.show_leader_board === 3)
+	{
+		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
+		return;
+
+		let visible_tasks = [];
+		for ( let t = 0; t < sdTask.tasks.length; t++ )
+		{
+			let task = sdTask.tasks[ t ];
+			if ( task._is_being_removed )
+			continue;
+			visible_tasks.push( task );
+		}
+
+		let expanded = sdRenderer.show_leader_board === 3; // Dedicated tasks-only view - give full details for every task
+
+		// The caller (sdRenderer) translates to x = 15 * scale before this draws, so this is the width remaining
+		// to the right screen edge (with a matching margin) - null keeps the narrow, fixed-character-count wrap
+		// used by the compact HUD column, since that one was never meant to use the whole screen.
+		let max_width = expanded ? ( sdRenderer.screen_width - 30 * scale ) : null;
+
+		let shown;
+
+		if ( !expanded )
+		shown = Math.min( visible_tasks.length, sdTask.MAX_COMPACT_TASKS );
+		else
+		{
+			// Full list can easily run taller than the screen (each task can span several wrapped lines) - use a
+			// denser layout (compact=true) so more fit, and hard-stop once we'd draw past the bottom of the screen
+			// instead of letting the rest silently render off-screen, listing whatever didn't fit as "+N more".
+			const bottom_margin = 40 * scale;
+			const max_y = sdRenderer.screen_height - bottom_margin;
+
+			shown = 0;
+
+			for ( let t = 0; t < visible_tasks.length; t++ )
+			{
+				let y_before = ctx.getTransform().f;
+
+				visible_tasks[ t ].DrawTaskInterface( ctx, scale, max_width, true );
+
+				let y_after = ctx.getTransform().f;
+
+				if ( y_after > max_y )
+				{
+					ctx.translate( 0, y_before - y_after ); // Undo this task's translate (relative, not an absolute setTransform - FakeCanvasContext's getTransform() is read-only) - it either didn't fit at all, or only partially did, so don't count or leave a half-drawn gap for it
+					break;
+				}
+
+				shown++;
+			}
+		}
+
+		if ( !expanded )
+		for ( let t = 0; t < shown; t++ )
+		visible_tasks[ t ].DrawTaskInterface( ctx, scale, max_width );
+
+		let hidden_count = visible_tasks.length - shown;
+		if ( hidden_count > 0 )
+		{
+			ctx.globalAlpha = 0.75;
+			ctx.fillStyle = '#aaaaaa';
+			ctx.font = 11*scale + "px Verdana";
+			ctx.textAlign = 'left';
+			ctx.fillText( '+' + hidden_count + ' more ' + T('task') + ( hidden_count === 1 ? '' : 's' ) + ( expanded ? '' : ' (' + T('Tab to expand') + ')' ), 0, 11*scale );
+			ctx.translate( 0, ( 11 + 5 ) * scale );
+			ctx.globalAlpha = 1;
+		}
+	}
+
 	static WakeUpTasksFor( character )
 	{
 		for ( let i = 0; i < sdTask.tasks.length; i++ )
@@ -1028,13 +1105,22 @@ class sdTask extends sdEntity
 		}
 	}
 	
+	static IsAlwaysTopPriority( task ) // All 3 RTP-HINT states must always rank above every other task, regardless of _difficulty - checked by title (not baked in at creation time) since MakeSureCharacterHasTask can update an existing RTP-HINT task's title in place rather than recreating it
+	{
+		return task.title === sdTask.TITLE_RESCUE_TELEPORT_REQUIRED || task.title === sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_LOST || task.title === sdTask.TITLE_RESCUE_TELEPORT_SIGNAL_WEAK;
+	}
 	static GlobalThink( GSPEED )
 	{
 		if ( sdTask.sort_tasks )
 		{
 			sdTask.sort_tasks = false;
-			
-			sdTask.tasks.sort( (a,b)=>b._difficulty-a._difficulty );
+
+			sdTask.tasks.sort( (a,b)=>{
+				let a_top = sdTask.IsAlwaysTopPriority( a ) ? 1 : 0;
+				let b_top = sdTask.IsAlwaysTopPriority( b ) ? 1 : 0;
+
+				return ( b_top - a_top ) || ( b._difficulty - a._difficulty );
+			});
 		}
 	}
 	
@@ -1214,57 +1300,85 @@ class sdTask extends sdEntity
 		ctx.filter = 'none';
 	}
 	
-	DrawTaskInterface( ctx, scale )
+	DrawTaskInterface( ctx, scale, max_width=null, compact=false ) // max_width (in pixels, post-translate): when given, wraps text by actually measured pixel width instead of the fixed 40-character guess, so it can be widened for the expanded (Tab) view instead of staying stuck in the narrow default HUD column. compact: smaller font/line-pitch, used by the expanded (Tab) view so more tasks fit on screen
 	{
 		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
 		return;
-	
+
 		let mission = sdTask.missions[ this.mission ];
-		
+
 		if ( !mission )
 		{
 			return;
 		}
-		
+
 		let task_title_color = mission.task_title_color || sdTask.COLOR_NOTIFICATION;
-		
+
 		if ( task_title_color instanceof Function )
 		task_title_color = task_title_color();
 
-		ctx.font = 11*scale + "px Verdana";
-		
+		const font_size = compact ? 12 : 11; // compact (expanded Tab view) was 9 - too small to comfortably read
+		const line_pitch = compact ? ( 12 + 3 ) : ( 11 + 5 );
+
+		ctx.font = font_size*scale + "px Verdana";
+
 		const PutMultilineText = ( text, subtext=false )=>
 		{
 			let later_text = null;
-			
-			const break_each = 40;
-			
-			if ( text.length > break_each )
+
+			if ( max_width !== null )
 			{
-				let parts = text.split(' ');
-				let length = 0;
-				for ( let p = 0; p < parts.length; p++ )
+				// Pixel-accurate wrap: only break once the actual rendered width would exceed max_width,
+				// so widening max_width (ex. for the expanded view) actually results in fewer/longer lines
+				// instead of always wrapping at a fixed character count regardless of available space.
+				if ( ctx.measureText( text ).width > max_width )
 				{
-					let word_size = parts[ p ].length;
-					if ( p > 0 )
-					if ( length + word_size > break_each )
+					let parts = text.split(' ');
+					let line = '';
+					for ( let p = 0; p < parts.length; p++ )
 					{
-						text = parts.slice( 0, p ).join(' ');
-						later_text = parts.slice( p ).join(' ');
-						break;
+						let candidate = line ? ( line + ' ' + parts[ p ] ) : parts[ p ];
+						if ( line && ctx.measureText( candidate ).width > max_width )
+						{
+							text = line;
+							later_text = parts.slice( p ).join(' ');
+							break;
+						}
+						line = candidate;
 					}
-					length += word_size;
 				}
 			}
-			
+			else
+			{
+				const break_each = 40;
+
+				if ( text.length > break_each )
+				{
+					let parts = text.split(' ');
+					let length = 0;
+					for ( let p = 0; p < parts.length; p++ )
+					{
+						let word_size = parts[ p ].length;
+						if ( p > 0 )
+						if ( length + word_size > break_each )
+						{
+							text = parts.slice( 0, p ).join(' ');
+							later_text = parts.slice( p ).join(' ');
+							break;
+						}
+						length += word_size;
+					}
+				}
+			}
+
 			let last_style = ctx.fillStyle;
 			ctx.fillStyle = '#000000';
 			ctx.fillText( text, subtext ? 5 * scale : 1, 1 );
 			ctx.fillStyle = last_style;
 			
 			ctx.fillText( text, subtext ? 5 * scale : 0, 0 );
-			ctx.translate( 0, ( 11 + 5 ) * scale );
-			
+			ctx.translate( 0, line_pitch * scale );
+
 			if ( later_text !== null )
 			PutMultilineText( later_text, subtext );
 		};
@@ -1307,7 +1421,7 @@ class sdTask extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
-		ctx.translate( 0, ( 11 + 5 ) * scale );
+		ctx.translate( 0, line_pitch * scale );
 	}
 }
 export default sdTask;

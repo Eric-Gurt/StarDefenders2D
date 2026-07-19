@@ -161,9 +161,12 @@ section div, section span
 }
 section_header
 {
-    display: block;
+    display: inline-block;
     border-bottom: 1px solid rgba(255,255,255,0.4);
-    
+    background: rgba(20,20,20,0.35);
+    border-radius: 6px;
+    padding: 0.3vh 1vh;
+
     font-family: ui_font2 !important;
     font-size: 5vh;
     color: white;
@@ -199,6 +202,7 @@ menu_button, .menu_rect
     font-family: ui_font2 !important;
     font-size: 2.6vh;
     border: 0.2vh solid rgba(255,255,255,0.09);
+    background: rgba(20,20,20,0.35);
     margin-top: 1vh;
     color: white;
     text-transform: uppercase;
@@ -483,6 +487,8 @@ server_details div
     padding: 2vh;
     color: white;
     z-index: 4;
+    background: rgba(20,20,20,0.35);
+    border-bottom-right-radius: 6px;
 }
 
 body, .password_screen
@@ -1045,8 +1051,13 @@ settings_line left
     display: inline-block;
     text-align: right;
     vertical-align: top;
-    
+
     padding-right: 1vw;
+    padding-top: 0.15vw;
+    padding-bottom: 0.15vw;
+    box-sizing: border-box;
+
+    text-shadow: 0 0 0.4vh rgba(0,0,0,0.9), 0 0 1vh rgba(0,0,0,0.7); /* Readability against the background image without a button-like pill shape - unlike settings_option/input[type=button] to its right, this label isn't clickable */
 }
 settings_line right
 {
@@ -1067,8 +1078,24 @@ settings_line right settings_option
     padding-bottom: 0.1vw;
     margin-right: 0.5vw;
     color: #ffffff66;
+    background: rgba(20,20,20,0.35);
+    border-radius: 4px;
     position: relative;
     transition: color 0.2s ease;
+}
+settings_line input[type=button] /* Overrides the site-wide input[type=button] default (transparent, 0.9vw, no padding) just within settings rows, so Randomize/Save/Update/etc. match the dark-gray-background treatment of the labels and settings_option words around them */
+{
+    background: rgba(20,20,20,0.35);
+    border-radius: 4px;
+    font-size: 1vw;
+    padding: 0.2vw 0.4vw;
+    box-sizing: border-box;
+    margin-right: 0.3vw;
+    margin-bottom: 0.3vw;
+}
+settings_line input[type=button]:hover
+{
+    background: rgba(40,40,40,0.55);
 }
 settings_option.selected, settings_option:hover
 {
@@ -1121,6 +1148,12 @@ settings_option.selected::after,
 div.server_info
 {
     color: #ffffff54;
+    display: block; /* Own line, so it doesn't share an inline line box with the logo <img> above it - "inline-block" let the two sit side by side and get centered together as a unit instead of independently */
+    width: fit-content;
+    margin: 0 auto;
+    background: rgba(20,20,20,0.35);
+    border-radius: 4px;
+    padding: 0.3vh 1vh;
 }
 #game_title_text, #server_playing, #server_online
 {

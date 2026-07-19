@@ -163,14 +163,13 @@ class sdTeleport extends sdEntity
 	}
     Draw( ctx, attached )
 	{
-        if ( this.delay === 0 )
-		ctx.apply_shading = false;
+        let com_near = this.GetComWiredCache();
 
         let xx = 0;
 		let yy = 0;
-		
-		
-		if ( this.GetComWiredCache() || sdShop.isDrawing )
+
+
+		if ( com_near || sdShop.isDrawing )
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )
 			yy = 0;
@@ -179,6 +178,9 @@ class sdTeleport extends sdEntity
 		}
 		else
 		yy = 2;
+
+		if ( yy === 0 ) // Only the wired-and-ready state should glow fullbright. Previously this only checked `this.delay === 0`, which is also true for an unwired/disconnected teleport (delay defaults to 0 and never changes without a com_near), making disabled teleports incorrectly render fullbright too.
+		ctx.apply_shading = false;
 		
 		if ( this.half_size === 16 )
 		{

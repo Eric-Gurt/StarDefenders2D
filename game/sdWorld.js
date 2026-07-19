@@ -8,7 +8,7 @@
 	HandleWorldLogic
 
 */
-/* global sdShop, THREE, globalThis, sdServerToServerProtocol, sdMobileKeyboard, fs, sdMusic */
+/* global sdShop, THREE, globalThis, sdServerToServerProtocol, sdMobileKeyboard, fs, sdMusic, sdLoadingScreen */
 
 // sdShop is global on client-side
 
@@ -5828,6 +5828,8 @@ class sdWorld
 	{
 		sdRenderer.canvas.style.display = 'block';
 		globalThis.page_container.style.display = 'none';
+
+		sdLoadingScreen.Show(); // Covers the gap between the canvas appearing and the first real snapshot arriving (previously just black) - hides itself once sdWorld.my_entity resolves
 
 		if ( globalThis.preview_interval !== null )
 		{

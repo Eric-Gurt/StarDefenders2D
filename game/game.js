@@ -445,6 +445,7 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 
 	import sdAtlasMaterial from './client/sdAtlasMaterial.js';
 	import sdRenderer from './client/sdRenderer.js';
+	import sdLoadingScreen from './client/sdLoadingScreen.js';
 	import sdShop from './client/sdShop.js';
 	import sdChat from './client/sdChat.js';
 	import sdContextMenu from './client/sdContextMenu.js';
@@ -656,7 +657,9 @@ let enf_once = true;
 	imported_entity_classes[ i ].init_class();
 
 	sdEntity.AllEntityClassesLoadedAndInitiated();
-	
+
+	sdLoadingScreen.init_class();
+
 	/*sdEntity.init_class();
 	sdCharacter.init_class();
 	sdPlayerDrone.init_class();
@@ -740,6 +743,7 @@ let enf_once = true;
 	globalThis.online_socket = socket;
 	
 	globalThis.sdRenderer = sdRenderer;
+	globalThis.sdLoadingScreen = sdLoadingScreen;
 	globalThis.sdSound = sdSound;
 	globalThis.sdShop = sdShop;
 	globalThis.sdChat = sdChat;

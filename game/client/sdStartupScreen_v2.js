@@ -91,6 +91,7 @@
 	let animation_appear = 'section_appear '+(anim_duration_ms/1000)+'s ease forwards';
 	let animation_disappear = 'section_disappear '+(anim_duration_ms/1000)+'s ease forwards';
 	let current_screen = null;
+	let pending_transition_timeout = null; // Rapid GoToScreen calls (ex. double-clicking, or clicking again before the 150ms fade finishes) used to stack overlapping setTimeout-deferred Proceed() calls, which could interrupt each other's CSS animation mid-flight and leave a screen stuck at a partial opacity (looks "blank"/invisible while technically still display:block). Cancelling any still-pending one before starting a new transition keeps only the latest requested navigation in flight.
 	let settings_screen_appearance_callbacks = []; // Scroll radio buttons, which is impossible if screen has display none
 	globalThis.page_background = document.getElementById( 'page_background' );
 	globalThis.page_foreground = document.getElementById( 'page_foreground' );
@@ -186,16 +187,21 @@
 					settings_screen_appearance_callbacks.length = 0;
 				}*/
 				
-				current_screen = new_screen;
 			};
-			
+
+			if ( pending_transition_timeout !== null ) // A previous GoToScreen call hasn't finished its fade yet - drop it rather than let both Proceed() calls fire and fight over current_screen/animation state
+			{
+				clearTimeout( pending_transition_timeout );
+				pending_transition_timeout = null;
+			}
+
 			if ( current_screen )
 			{
 				current_screen.parentNode.scroll({ behavior:'smooth', top:0 });
-				
+
 				current_screen.style.animation = animation_disappear;
 				current_screen.style.display = 'none';
-				
+
 				/*if ( current_screen.id === 'screen_menu' )
 				{
 					menu_defender.style.animation = animation_disappear;
@@ -204,15 +210,15 @@
 				if ( screen_callbacks[ current_screen.id ] )
 				if ( screen_callbacks[ current_screen.id ].onLeave )
 				screen_callbacks[ current_screen.id ].onLeave();
-				
-				//current_screen = new_screen;
-			
-				setTimeout( Proceed, anim_duration_ms );
+
+				current_screen = new_screen; // Updated synchronously (not inside Proceed) so a rapid follow-up GoToScreen call always sees the correct in-flight target, instead of racing against the still-pending timeout below
+
+				pending_transition_timeout = setTimeout( ()=>{ pending_transition_timeout = null; Proceed(); }, anim_duration_ms );
 			}
 			else
 			{
-				//current_screen = new_screen;
-				
+				current_screen = new_screen;
+
 				Proceed();
 			}
 		}
@@ -859,18 +865,29 @@
 				<settings_line>
 					<left>Colors:</left>
 					<right>
-						<input type="color" id="color_bright" value="#c0c0c0">
-						<input type="color" id="color_dark" value="#808080">
-						<input type="color" id="color_visor" value="#ff0000">
-						<input type="color" id="color_bright3" value="#c0c0c0">
-						<input type="color" id="color_dark3" value="#808080">
-						<input type="color" id="color_suit" value="#000080">
-						<input type="color" id="color_suit2" value="#000080">
-						<input type="color" id="color_dark2" value="#808080">
-						<input type="color" id="color_shoes" value="#000000">
-						<input type="color" id="color_skin" value="#808000">
-						<input type="color" id="color_extra1" value="#0000ff">
-						<input style="width:8vw" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
+						<div style="display:grid; grid-template-columns:repeat(auto-fill, 5vw); column-gap:0.2vw; row-gap:0.4vw;">
+							${ [
+								[ 'color_bright',  '#c0c0c0', 'Helmet', 'Light' ],
+								[ 'color_dark',    '#808080', 'Helmet', 'Shadow' ],
+								[ 'color_visor',   '#ff0000', 'Visor', '' ],
+								[ 'color_bright3', '#c0c0c0', 'Chest badge', 'Light' ],
+								[ 'color_dark3',   '#808080', 'Chest badge', 'Shadow' ],
+								[ 'color_suit',    '#000080', 'Jacket', '' ],
+								[ 'color_suit2',   '#000080', 'Legs', '' ],
+								[ 'color_dark2',   '#808080', 'Suit', 'Accent' ],
+								[ 'color_shoes',   '#000000', 'Shoes', '' ],
+								[ 'color_skin',    '#808000', 'Skin', '' ],
+								[ 'color_extra1',  '#0000ff', 'Extra', 'Accent' ]
+							].map( ( [ id, value, label1, label2 ] )=>
+								`<div style="display:flex; flex-direction:column; align-items:center;">
+									<input type="color" id="${ id }" value="${ value }" title="${ label1 }${ label2 ? ' (' + label2 + ')' : '' }">
+									<div style="width:100%; font-size:0.9vw; color:#cccccc; text-align:center; line-height:1.3; margin-top:0.15vw; background:rgba(20,20,20,0.35); border-radius:3px; padding:0.1vw 0.2vw; box-sizing:border-box;">${ label1 }${ label2 ? '<br>' + label2 : '' }</div>
+								</div>`
+							).join('') }
+						</div>
+						<div style="margin-top:0.5vw;">
+							<input style="width:8vw;" type="button" value="Undo" onclick="RandomizeSkin('undo')"><input style="width:8vw" type="button" value="Redo" onclick="RandomizeSkin('redo')">
+						</div>
 					</right>
 				</settings_line>
 			`);
@@ -951,14 +968,289 @@
 				default_option: 3
 			});
 			AddOption({ caption: `Instructor`, prefix: `hints`, condition: `entity === 1`,
-				options: { 
-					1:`Disabled`, 
-					2:`Enabled` 
+				options: {
+					1:`Disabled`,
+					2:`Enabled`
 				},
 				default_option: 2
 			});
-			
-			
+
+			// Local character profiles - lets a player keep several distinct local appearance/settings presets and switch between them,
+			// without ever letting an imported preset silently take over another server character (see safe-import notes below)
+			{
+				const LOCAL_PROFILES_KEY = 'sd_character_profiles_v1';
+				const PROFILE_IDENTITY_FIELDS = [ 'my_hash' ]; // Only ever restored from profiles that were saved on THIS browser (see SelectLocalProfile) - never from an imported file
+
+				globalThis.GetLocalProfiles = ()=>
+				{
+					try
+					{
+						let raw = localStorage.getItem( LOCAL_PROFILES_KEY );
+						if ( !raw )
+						return [];
+
+						let list = JSON.parse( raw );
+
+						if ( !Array.isArray( list ) )
+						return [];
+
+						return list;
+					}
+					catch( e )
+					{
+						return [];
+					}
+				};
+				globalThis.SetLocalProfiles = ( list )=>
+				{
+					try
+					{
+						localStorage.setItem( LOCAL_PROFILES_KEY, JSON.stringify( list ) );
+					}
+					catch( e ){}
+				};
+
+				let profile_select = null;
+
+				let RefreshProfileList = ()=>
+				{
+					if ( !profile_select )
+					return;
+
+					let list = globalThis.GetLocalProfiles();
+
+					profile_select.innerHTML = '';
+
+					let placeholder = document.createElement( 'option' );
+					placeholder.value = '';
+					placeholder.textContent = list.length ? '- Select a saved character -' : '- No saved characters yet -';
+					profile_select.append( placeholder );
+
+					for ( let i = 0; i < list.length; i++ )
+					{
+						let option_el = document.createElement( 'option' );
+						option_el.value = list[ i ].id;
+						option_el.textContent = list[ i ].name;
+						profile_select.append( option_el );
+					}
+				};
+
+				globalThis.SaveCurrentAsLocalProfile = ( existing_id=null )=>
+				{
+					let list = globalThis.GetLocalProfiles();
+
+					let previous_name = existing_id ? ( list.find( p=>p.id === existing_id ) || {} ).name : null;
+
+					let name = prompt( 'Name this character profile:', previous_name || 'My character' );
+
+					if ( !name )
+					return;
+
+					name = ( name + '' ).slice( 0, 40 );
+
+					// Captures every registered input, including my_hash - safe here because this profile is being
+					// saved FROM this browser's own current, already-in-use identity, not imported from elsewhere
+					let save = globalThis.SavePlayerSettingsAsObject();
+
+					let id = existing_id || ( 'profile_' + Date.now() + '_' + ( ~~( Math.random() * 1e9 ) ) );
+
+					let entry = { id, name, timestamp: Date.now(), save };
+
+					let idx = list.findIndex( p=>p.id === id );
+					if ( idx === -1 )
+					list.push( entry );
+					else
+					list[ idx ] = entry;
+
+					globalThis.SetLocalProfiles( list );
+					RefreshProfileList();
+					profile_select.value = id;
+				};
+
+				globalThis.SelectLocalProfile = ()=>
+				{
+					let id = profile_select ? profile_select.value : '';
+
+					if ( !id )
+					return;
+
+					let list = globalThis.GetLocalProfiles();
+					let profile = list.find( p=>p.id === id );
+
+					if ( !profile )
+					return;
+
+					// Safe to restore my_hash here too - this profile can only exist in sd_character_profiles_v1
+					// if it was saved from this same browser (SaveCurrentAsLocalProfile), so its my_hash already
+					// belongs to this device. This is a switch between your OWN local characters, not an import.
+					globalThis.LoadPlayerSettingsFromObject( profile.save );
+
+					globalThis.GetPlayerSettings();
+					globalThis.SavePlayerSettings();
+
+					globalThis.RandomizeSkin( 'push-state-only' );
+				};
+
+				globalThis.RenameLocalProfile = ()=>
+				{
+					let id = profile_select ? profile_select.value : '';
+					let list = globalThis.GetLocalProfiles();
+					let profile = list.find( p=>p.id === id );
+
+					if ( !profile )
+					{
+						alert( 'Select a saved character first.' );
+						return;
+					}
+
+					let name = prompt( 'Rename character profile:', profile.name );
+					if ( !name )
+					return;
+
+					profile.name = ( name + '' ).slice( 0, 40 );
+					globalThis.SetLocalProfiles( list );
+					RefreshProfileList();
+					profile_select.value = id;
+				};
+
+				globalThis.DeleteLocalProfile = ()=>
+				{
+					let id = profile_select ? profile_select.value : '';
+					let list = globalThis.GetLocalProfiles();
+					let profile = list.find( p=>p.id === id );
+
+					if ( !profile )
+					{
+						alert( 'Select a saved character first.' );
+						return;
+					}
+
+					if ( !confirm( 'Delete character profile "' + profile.name + '"?\n\nThis only removes the local shortcut - it does not delete or reset any server-side character.' ) )
+					return;
+
+					list = list.filter( p=>p.id !== id );
+					globalThis.SetLocalProfiles( list );
+					RefreshProfileList();
+				};
+
+				globalThis.ExportLocalProfile = ()=>
+				{
+					let id = profile_select ? profile_select.value : '';
+					let list = globalThis.GetLocalProfiles();
+					let profile = list.find( p=>p.id === id );
+
+					if ( !profile )
+					{
+						alert( 'Select a saved character first.' );
+						return;
+					}
+
+					let include_identity = confirm( 'Include your character identity in this export?\n\nChoose OK only if you are transferring this profile to your OWN other device or browser.\n\nChoose Cancel to share just the appearance/settings (recommended when sharing with someone else) - importing it elsewhere will spawn a fresh local character with this look instead of claiming your character.' );
+
+					let export_save = Object.assign( {}, profile.save );
+
+					if ( !include_identity )
+					for ( let field of PROFILE_IDENTITY_FIELDS )
+					delete export_save[ field ];
+
+					let payload = JSON.stringify({ sd_character_profile: 1, name: profile.name, save: export_save });
+
+					try
+					{
+						let blob = new Blob( [ payload ], { type: 'application/json' } );
+						let url = URL.createObjectURL( blob );
+						let a = document.createElement( 'a' );
+						a.href = url;
+						a.download = ( profile.name || 'character' ).replace( /[^a-z0-9_\- ]/gi, '_' ) + '.sdprofile.json';
+						document.body.append( a );
+						a.click();
+						a.remove();
+						setTimeout( ()=>URL.revokeObjectURL( url ), 1000 );
+					}
+					catch( e )
+					{
+						prompt( 'Copy this profile data:', payload );
+					}
+				};
+
+				globalThis.ImportLocalProfileFromFile = ( input_el )=>
+				{
+					let file = input_el.files && input_el.files[ 0 ];
+
+					if ( !file )
+					return;
+
+					let reader = new FileReader();
+					reader.onload = ()=>
+					{
+						input_el.value = '';
+
+						let parsed;
+						try
+						{
+							parsed = JSON.parse( reader.result );
+						}
+						catch( e )
+						{
+							alert( 'That file is not a valid character profile.' );
+							return;
+						}
+
+						if ( !parsed || typeof parsed.save !== 'object' || !parsed.save )
+						{
+							alert( 'That file is not a valid character profile.' );
+							return;
+						}
+
+						let imported_save = Object.assign( {}, parsed.save );
+
+						// Never adopt an imported identity - explicitly re-pin my_hash back to this device's current
+						// value (rather than deleting the key, which would let LoadPlayerSettingsFromObject write
+						// "undefined" into the field). Keeps this device's existing server character ownership intact
+						// no matter what the imported file contains.
+						imported_save.my_hash = inputs_hash[ 'my_hash' ] ? inputs_hash[ 'my_hash' ].el.value : undefined;
+
+						globalThis.LoadPlayerSettingsFromObject( imported_save );
+
+						globalThis.GetPlayerSettings();
+						globalThis.SavePlayerSettings();
+
+						globalThis.RandomizeSkin( 'push-state-only' );
+
+						// Snapshot AFTER applying (and AFTER re-pinning my_hash above), so this new local profile
+						// carries THIS device's own identity going forward, not the imported file's
+						let list = globalThis.GetLocalProfiles();
+						let id = 'profile_' + Date.now() + '_' + ( ~~( Math.random() * 1e9 ) );
+						list.push({ id, name: ( ( parsed.name || 'Imported character' ) + '' ).slice( 0, 40 ), timestamp: Date.now(), save: globalThis.SavePlayerSettingsAsObject() });
+						globalThis.SetLocalProfiles( list );
+						RefreshProfileList();
+						profile_select.value = id;
+
+						alert( 'Character appearance imported. If the server has no character under your current identity yet, you will spawn as a new character with this appearance.' );
+					};
+					reader.readAsText( file );
+				};
+
+				AddHTML(`
+					<settings_line>
+						<left>Saved characters:</left>
+						<right>
+							<select id="local_profile_select" style="width:220px" onchange="SelectLocalProfile()"></select>
+							<input style="width:120px" type="button" value="Save as new" onclick="SaveCurrentAsLocalProfile()">
+							<input style="width:100px" type="button" value="Update" onclick="SaveCurrentAsLocalProfile(document.getElementById('local_profile_select').value)">
+							<input style="width:100px" type="button" value="Rename" onclick="RenameLocalProfile()">
+							<input style="width:100px" type="button" value="Delete" onclick="DeleteLocalProfile()">
+							<input style="width:100px" type="button" value="Export" onclick="ExportLocalProfile()">
+							<input style="width:100px" type="button" value="Import" onclick="document.getElementById('local_profile_import_file').click()">
+							<input id="local_profile_import_file" type="file" accept="application/json,.json" style="display:none" onchange="ImportLocalProfileFromFile(this)">
+						</right>
+					</settings_line>
+				`);
+
+				profile_select = document.getElementById( 'local_profile_select' );
+				RefreshProfileList();
+			}
+
 			AddSoundsToNewButtons();
 		}
 		
