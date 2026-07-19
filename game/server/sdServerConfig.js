@@ -2442,9 +2442,41 @@ class sdServerConfigFull extends sdServerConfigShort
 			SaveSnapshot( sdWorld.snapshot_path_const, proceed );
 		}
 		sdWorld.onBeforeTurnOff = onBeforeTurnOff;
-		
+
 		process.on( 'SIGTERM', onBeforeTurnOff );
 		process.on( 'SIGINT', onBeforeTurnOff );
+
+		// Lets install-linux.sh's auto-update warn connected players before it stops
+		// the service to apply an update. It writes the message into this file and
+		// sends SIGUSR2 (systemctl kill --signal=SIGUSR2); this never terminates the
+		// process, it only broadcasts and cleans up the file so a stray leftover
+		// can't be re-broadcast after a later, unrelated restart.
+		function onUpdateAnnounceSignal()
+		{
+			const notice_path = 'sd2d_update_notice.txt';
+			let message = null;
+
+			try
+			{
+				if ( fs.existsSync( notice_path ) )
+				{
+					message = fs.readFileSync( notice_path, 'utf8' ).trim();
+					fs.unlinkSync( notice_path );
+				}
+			}
+			catch ( e )
+			{
+				console.warn( 'onUpdateAnnounceSignal: failed to read/remove ' + notice_path, e );
+			}
+
+			if ( !message )
+			return; // Nothing queued - ignore a stray/manual signal rather than broadcasting a generic message
+
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].SDServiceMessage( message );
+		}
+
+		process.on( 'SIGUSR2', onUpdateAnnounceSignal );
 	}
 };
 

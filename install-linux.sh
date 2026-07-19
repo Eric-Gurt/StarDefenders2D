@@ -8,6 +8,7 @@ DEFAULT_SERVICE_NAME="stardefenders"
 DEFAULT_APP_USER="stardefenders"
 DEFAULT_LAUNCH_COMMAND="node index.js"
 DEFAULT_UPDATE_INTERVAL="5min"
+DEFAULT_UPDATE_WARNING_MINUTES="5"
 DEFAULT_BACKUP_INTERVAL="2d"
 DEFAULT_NODE_VERSION="lts/*"
 DEFAULT_WORLD_SLOT="0"
@@ -33,6 +34,7 @@ NVM_VERSION=""
 NODE_ENV_VALUE="production"
 UPDATE_ENABLED=""
 UPDATE_INTERVAL=""
+UPDATE_WARNING_MINUTES=""
 BACKUP_INTERVAL=""
 CONFIG_WATCH_ENABLED=""
 WATCH_SERVER_CONFIG=""
@@ -544,6 +546,7 @@ initialize_git_metadata_for_existing_directory() {
     ":(exclude)star_defenders_snapshot*.v"
     ":(exclude)star_defenders_snapshot*.raw.v"
     ":(exclude)chunks*/**"
+    ":(exclude)sd2d_update_notice.txt"
   )
 
   [[ -d "${APP_DIR}" ]] || die "Cannot initialize Git metadata because ${APP_DIR} does not exist."
@@ -596,6 +599,7 @@ add_local_git_excludes_for_server_runtime() {
     "star_defenders_snapshot*.v"
     "star_defenders_snapshot*.raw.v"
     "chunks*/"
+    "sd2d_update_notice.txt"
   )
 
   if [[ ! -e "${exclude_file}" ]]; then
@@ -704,9 +708,11 @@ EOF
   fi
 
   local default_service_name="${DEFAULT_SERVICE_NAME}-${APP_USER}-slot${WORLD_SLOT}"
+  local profile_reused="no"
   SERVICE_NAME="$(prompt_text "systemd service name prefix (slot-specific)" "${SERVICE_NAME:-$default_service_name}")"
   if [[ -f "/etc/default/${SERVICE_NAME}" ]]; then
     if prompt_yes_no "Existing /etc/default/${SERVICE_NAME} found. Reuse it as defaults" "y"; then
+      profile_reused="yes"
       local selected_service_name="${SERVICE_NAME}"
       local selected_app_user="${APP_USER}"
       local loaded_app_user
@@ -770,11 +776,18 @@ EOF
   fi
 
   local existing_checkout_default="n"
+  local directory_has_git="no"
   if [[ -d "${APP_DIR}/.git" ]]; then
     existing_checkout_default="y"
+    directory_has_git="yes"
   fi
   if [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
     EXISTING_CHECKOUT_ONLY="no"
+  elif [[ "${profile_reused}" == "yes" && "${EXISTING_CHECKOUT_ONLY:-}" == "${directory_has_git}" ]]; then
+    # The reused profile already recorded this exact choice, and ${APP_DIR}/.git
+    # still agrees with it right now - re-asking would just confirm the same
+    # fact a second time with nothing new to learn between the two prompts.
+    echo "Existing checkout mode: ${EXISTING_CHECKOUT_ONLY} (from the reused profile; ${APP_DIR}/.git $( [[ "${directory_has_git}" == "yes" ]] && echo "still exists" || echo "still does not exist" ), so nothing changed)."
   else
     if prompt_yes_no "Use existing checkout as-is and skip initial clone/reset" "${EXISTING_CHECKOUT_ONLY:-$existing_checkout_default}"; then
       EXISTING_CHECKOUT_ONLY="yes"
@@ -831,14 +844,18 @@ EOF
   if [[ "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
     UPDATE_ENABLED="no"
     UPDATE_INTERVAL="${UPDATE_INTERVAL:-$DEFAULT_UPDATE_INTERVAL}"
+    UPDATE_WARNING_MINUTES="${UPDATE_WARNING_MINUTES:-$DEFAULT_UPDATE_WARNING_MINUTES}"
     warn "Automatic GitHub updates disabled because ${APP_DIR} will remain a plain non-Git directory."
   else
     if prompt_yes_no "Enable automatic GitHub updates" "${UPDATE_ENABLED:-y}"; then
       UPDATE_ENABLED="yes"
       UPDATE_INTERVAL="$(prompt_text "Update interval for systemd timer" "${UPDATE_INTERVAL:-$DEFAULT_UPDATE_INTERVAL}")"
+      UPDATE_WARNING_MINUTES="$(prompt_text "Minutes to warn connected players before an update restarts the server (0 to disable)" "${UPDATE_WARNING_MINUTES:-$DEFAULT_UPDATE_WARNING_MINUTES}")"
+      is_nonnegative_integer "${UPDATE_WARNING_MINUTES}" || die "Update warning minutes must be a non-negative integer."
     else
       UPDATE_ENABLED="no"
       UPDATE_INTERVAL="${DEFAULT_UPDATE_INTERVAL}"
+      UPDATE_WARNING_MINUTES="${UPDATE_WARNING_MINUTES:-$DEFAULT_UPDATE_WARNING_MINUTES}"
     fi
   fi
 
@@ -1049,7 +1066,7 @@ Configuration summary:
   World slot: ${WORLD_SLOT}
   Slot file suffix: ${FILE_SUFFIX:-<none>}
   Node runtime: nvm (${NVM_VERSION})
-  Auto-update: ${UPDATE_ENABLED} (${UPDATE_INTERVAL})
+  Auto-update: ${UPDATE_ENABLED} (${UPDATE_INTERVAL}, player warning ${UPDATE_WARNING_MINUTES}min)
   Config watch: ${CONFIG_WATCH_ENABLED}
   Watched files: server_config=${WATCH_SERVER_CONFIG}, sslconfig=${WATCH_SSLCONFIG}
   SSL config mode: ${SSLCONFIG_MODE}
@@ -1397,6 +1414,7 @@ write_environment_file() {
   write_env_var "${env_file}" "NVM_VERSION" "${NVM_VERSION}"
   write_env_var "${env_file}" "UPDATE_ENABLED" "${UPDATE_ENABLED}"
   write_env_var "${env_file}" "UPDATE_INTERVAL" "${UPDATE_INTERVAL}"
+  write_env_var "${env_file}" "UPDATE_WARNING_MINUTES" "${UPDATE_WARNING_MINUTES}"
   write_env_var "${env_file}" "CONFIG_WATCH_ENABLED" "${CONFIG_WATCH_ENABLED}"
   write_env_var "${env_file}" "WATCH_SERVER_CONFIG" "${WATCH_SERVER_CONFIG}"
   write_env_var "${env_file}" "WATCH_SSLCONFIG" "${WATCH_SSLCONFIG}"
@@ -1794,6 +1812,46 @@ clear_skip_count() {
   rm -f "${SKIP_COUNT_FILE}" "${STUCK_MARKER}" 2>/dev/null || true
 }
 
+# Writes a message to the notice file the running game process watches (see
+# sdServerConfig.js's SIGUSR2 handler) and signals it to broadcast that
+# message to every connected player via SDServiceMessage.
+send_player_notice() {
+  local message="$1"
+  printf '%s\n' "${message}" > "${APP_DIR}/sd2d_update_notice.txt"
+  chown "${APP_USER}:${APP_GROUP}" "${APP_DIR}/sd2d_update_notice.txt" 2>/dev/null || true
+  systemctl kill --signal=SIGUSR2 "${SERVICE_NAME}.service" 2>/dev/null || log "WARNING: failed to signal ${SERVICE_NAME}.service for a player notice."
+}
+
+# Warns connected players an update is coming, then waits UPDATE_WARNING_MINUTES
+# before returning so they get a chance to finish up / find somewhere safe
+# before the service stops. A no-op if warnings are disabled (0) or the
+# service isn't currently running (nobody online to warn).
+announce_and_wait_for_update() {
+  local minutes="${UPDATE_WARNING_MINUTES:-0}"
+  [[ "${minutes}" =~ ^[0-9]+$ ]] || minutes=0
+
+  if (( minutes <= 0 )); then
+    return 0
+  fi
+
+  if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+    log "${SERVICE_NAME}.service is not currently active; skipping the pre-update player warning."
+    return 0
+  fi
+
+  log "Warning connected players: update in ${minutes} minute(s)."
+  send_player_notice "Server: An update will be applied in ${minutes} minute(s). The server will restart briefly."
+
+  sleep "$(( minutes * 60 ))"
+
+  # Only send the final ping if the service is still up - an admin or a crash
+  # could have already stopped it during the warning window.
+  if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+    send_player_notice "Server: Applying the update now, back in a moment..."
+    sleep 2 # Give the broadcast a moment to reach clients before the stop below.
+  fi
+}
+
 # git leaves .git/index.lock behind if a git subprocess is killed mid-write
 # (systemd's TimeoutStartSec, an OOM kill, a stalled network fetch). Unlike our
 # own flock, this file does NOT get released when the process dies -- it
@@ -1862,6 +1920,7 @@ if [[ "${current_rev}" == "${target_rev}" ]]; then
 fi
 
 log "Update available: ${current_rev} -> ${target_rev}"
+announce_and_wait_for_update
 log "Stopping ${SERVICE_NAME}.service gracefully..."
 systemctl stop "${SERVICE_NAME}.service"
 
@@ -2111,7 +2170,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-TimeoutStartSec=900
+TimeoutStartSec=$(( 900 + UPDATE_WARNING_MINUTES * 60 + 60 ))
 ExecStart=/usr/local/bin/${SERVICE_NAME}-deploy.sh
 EOF
 
@@ -2356,6 +2415,13 @@ Auto-update
     ${APP_DIR}/.git/index.lock (a leftover from a killed git operation; the
       deploy script clears it automatically once it is over 15 minutes old)
     journalctl -u ${SERVICE_NAME}-update.service -n 100 --no-pager
+  Player warning before a restart: ${UPDATE_WARNING_MINUTES} minute(s) (0 = disabled)
+    When an update is found, connected players get an in-game notice, then
+    the service waits that many minutes (plus a final "applying now" notice)
+    before stopping to apply it. Skipped if nobody is currently connected.
+    Change it: edit UPDATE_WARNING_MINUTES in /etc/default/${SERVICE_NAME},
+    then rerun install-linux.sh (it also resizes the update unit's timeout
+    to fit the configured warning window).
 
 Periodic world backups
   Disable: systemctl disable --now ${SERVICE_NAME}-backup.timer
