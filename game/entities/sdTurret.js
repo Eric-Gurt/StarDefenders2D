@@ -128,6 +128,7 @@ class sdTurret extends sdEntity
 
 		sdTurret._targetable_classes_cache = null; // Pre-declared here (during init_class(), before sdWorld's ~1s-later Object.seal() of every entity class) so the lazy getter below only ever WRITES this existing property instead of ADDING a new one - sealed objects allow the former but throw on the latter.
 
+
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	static get targetable_classes() // Built lazily on first use (not in init_class()) since some of these classes are only reachable via sdWorld.entity_classes.X - which depends on THEIR init_class() having already run, and dynamic-import resolution order across ~150+ entity files is not guaranteed. Built eagerly here it would intermittently throw (WeakSet rejects the undefined entries) and take the whole client bootstrap down with it depending on load order.
