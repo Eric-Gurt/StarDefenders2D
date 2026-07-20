@@ -7121,8 +7121,24 @@ THING is cosmic mic drop!`;
 		
 		if ( fake_ent.RequireSpawnAlign() )
 		{
-			fake_ent.x = Math.round( fake_ent.x / fake_ent.spawn_align_x ) * fake_ent.spawn_align_x;
-			fake_ent.y = Math.round( fake_ent.y / fake_ent.spawn_align_y ) * fake_ent.spawn_align_y;
+			let align_x = fake_ent.spawn_align_x;
+			let align_y = fake_ent.spawn_align_y;
+
+			// Build tool's fire-mode toggle (N key) doubles the placement grid pitch (8px -> 16px) as
+			// a per-player preference - some players prefer the coarser grid. See ChangeFireModeStart
+			// and the CLASS_BUILD_TOOL rotation in sdGun.Draw for the other halves of this feature.
+			if ( initiator )
+			if ( initiator._inventory && initiator._inventory[ initiator.gun_slot ] )
+			if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ] )
+			if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ].is_build_gun )
+			if ( initiator._inventory[ initiator.gun_slot ].fire_mode === 2 )
+			{
+				align_x *= 2;
+				align_y *= 2;
+			}
+
+			fake_ent.x = Math.round( fake_ent.x / align_x ) * align_x;
+			fake_ent.y = Math.round( fake_ent.y / align_y ) * align_y;
 		}
 		
 		if ( check_placement_and_range )
