@@ -268,7 +268,10 @@ class sdEntity
 	
 	AttemptPlaceNearPlayer( aerial = true ) // Attempts to place the entity near player, but outside player radius. Used for mobs mostly.
 	{
-		if ( sdWorld.entity_classes.sdBaseShieldingUnit.IsMobSpawnAllowed( this.x, this.y ) ) // Not in someone's base?
+		// Deliberately NOT gated on IsMobSpawnAllowed( this.x, this.y ) here (as it used to be) - that checked the
+		// mob's OWN current position, which meant a mob already stuck inside a BSU-protected room could never be
+		// rescued out of it, since that same position always fails the check. Only candidate DESTINATIONS below are
+		// gated by IsMobSpawnAllowed, which is what actually keeps mobs from being relocated into another base.
 		{
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			if ( sdWorld.sockets[ i ].character )
@@ -277,13 +280,13 @@ class sdEntity
 				if ( sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) < 500 )
 				return;
 			}
-			
+
 			let options = [];
-			
+
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			if ( sdWorld.sockets[ i ].character )
 			options.push( sdWorld.sockets[ i ].character );
-			
+
 			//for ( i = 0; i < sdWorld.sockets.length; i++ ) Prioritizes player who has joined first, not ideal - EG
 			//if ( sdWorld.sockets[ i ].character )
 			while ( options.length > 0 )
@@ -291,7 +294,7 @@ class sdEntity
 				let i = ~~( Math.random() * options.length );
 				let character = options[ i ];
 				options.splice( i, 1 );
-				
+
 				//let character = sdWorld.sockets[ i ].character;
 				let tr = 100;
 				while( tr > 0 )
@@ -302,8 +305,8 @@ class sdEntity
 					xx = Math.random() < 0.5 ? ( character.x + 500 + Math.random() * 500 ) : ( character.x - 500 - Math.random() * 500 ); // Place left or right of the player
 					if ( rng !== 1 )
 					yy = Math.random() < 0.5 ? ( character.y + 500 + Math.random() * 500 ) : ( character.y - 500 - Math.random() * 500 ); // Place above or below the player
-				
-					if ( aerial ) 
+
+					if ( aerial )
 					{
 						if ( this.CanMoveWithoutDeepSleepTriggering( xx, yy, -32 ) ) // Probably not wake up deep sleep cells?
 						{
