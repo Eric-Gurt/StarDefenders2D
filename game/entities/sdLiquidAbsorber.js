@@ -218,11 +218,26 @@ class sdLiquidAbsorber extends sdEntity
                             sdWorld.SendEffect({ x: this.x, y: this.y, sy: -1, type: sdEffect.TYPE_SMOKE, radius: 1, scale: 2, color: '#eeeeee', spark_color: false });
                         }
                         else
-                        if ( this.IsLiquidTypeAllowed( liquids[ i ].type ) && this._liquid.amount + liquids[ i ]._volume * 100 >= this._liquid.max )
+                        if ( this.IsLiquidTypeAllowed( liquids[ i ].type ) && this._liquid.amount < this._liquid.max ) // Was inverted ( >= ) so it only ever "absorbed" once already full, silently blocking every normal partial pickup
                         {
+                            let volume_units = liquids[ i ]._volume * 100; // Same 0..100-per-block units _liquid.amount/.max use
+                            let room = this._liquid.max - this._liquid.amount;
+
+                            let absorbed_units = Math.min( volume_units, room );
+
                             this._liquid.type = liquids[ i ].type;
-                            this._liquid.amount += liquids[ i ]._volume * 100;
+                            this._liquid.amount += absorbed_units;
+
+                            if ( volume_units - absorbed_units <= 0.01 ) // Safe floating-point tolerance - whole block fit (or near enough)
                             liquids[ i ].remove();
+                            else
+                            {
+                                // Only part of the block fit - shrink it instead of destroying the remainder
+                                liquids[ i ]._volume -= absorbed_units / 100;
+                                liquids[ i ].v = Math.ceil( liquids[ i ]._volume * 100 );
+                                liquids[ i ]._update_version++;
+                                liquids[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+                            }
 
                             this._update_version++;
 						}
