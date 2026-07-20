@@ -2086,6 +2086,11 @@ THING is cosmic mic drop!`;
 					if ( this.reload_anim > 0 )
 					this.reload_anim = 0;
 
+					// Otherwise the old weapon's fire/recoil pose keeps decaying and visually plays out
+					// on the newly-drawn weapon's texture until it reaches zero on its own.
+					if ( this.fire_anim > 0 )
+					this.fire_anim = 0;
+
 					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 				}
 			}
@@ -2123,6 +2128,9 @@ THING is cosmic mic drop!`;
 					if ( this.reload_anim > 0 )
 					this.reload_anim = 0;
 
+					if ( this.fire_anim > 0 )
+					this.fire_anim = 0;
+
 					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 				}
 			}
@@ -2148,6 +2156,9 @@ THING is cosmic mic drop!`;
 
 						if ( this.reload_anim > 0 )
 						this.reload_anim = 0;
+
+						if ( this.fire_anim > 0 )
+						this.fire_anim = 0;
 
 						this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 					}
