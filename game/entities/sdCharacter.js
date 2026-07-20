@@ -1498,6 +1498,8 @@ THING is cosmic mic drop!`;
 		
 		this._key_states = new sdKeyStates();
 		this._q_held = false;
+
+		this._told_build_grid_hint = false; // Shown at most once per life - see sdGun.onThink's CLASS_BUILD_TOOL hint
 		
 		this.air = sdCharacter.air_max;
 		
@@ -6915,7 +6917,21 @@ THING is cosmic mic drop!`;
 						sdCharacter.last_build_deny_reason = 'This area is currently restricted from combat and building';
 						return false;
 					}
-					
+
+					if ( fake_ent.is( sdBlock ) )
+					if ( sdCharacter.WouldLeaveGridGap( fake_ent, initiator ) )
+					{
+						sdCharacter.last_build_deny_reason = [
+								'Maybe I should switch the firing mode to place this',
+								'Wrong placement grid for this spot',
+								'This would leave a gap - try the other grid size',
+								'Switching build tool fire mode might fix this',
+								'That won\'t sit flush on this grid'
+							][ ~~( Math.random() * 5 ) ];
+
+						return false;
+					}
+
 					return true;
 				}
 				else
@@ -7041,6 +7057,73 @@ THING is cosmic mic drop!`;
 		
 		return false;
 	}
+	static GetBuildGridMultiplier( initiator ) // 1 = base spawn_align pitch (8px), 2 = doubled (16px) - see ChangeFireModeStart (N key) and the CLASS_BUILD_TOOL rotation in sdGun.Draw
+	{
+		if ( initiator )
+		if ( initiator._inventory && initiator._inventory[ initiator.gun_slot ] )
+		if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ] )
+		if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ].is_build_gun )
+		if ( initiator._inventory[ initiator.gun_slot ].fire_mode === 2 )
+		return 2;
+
+		return 1;
+	}
+	static WouldLeaveGridGap( fake_ent, initiator ) // True if placing fake_ent here, under the CURRENTLY active grid, would leave a sub-tile gap next to an existing block that a finer grid would have avoided
+	{
+		const multiplier = sdCharacter.GetBuildGridMultiplier( initiator );
+
+		if ( multiplier <= 1 ) // The base 8px grid can never leave an unwanted gap - every existing block's edges are already multiples of 8
+		return false;
+
+		const align_x = fake_ent.spawn_align_x * multiplier;
+		const align_y = fake_ent.spawn_align_y * multiplier;
+
+		const left = fake_ent.x;
+		const right = fake_ent.x + fake_ent.width;
+		const top = fake_ent.y;
+		const bottom = fake_ent.y + fake_ent.height;
+
+		const search_radius = Math.max( fake_ent.width, fake_ent.height, align_x, align_y ) + 16;
+
+		let candidates = sdWorld.GetAnythingNear( ( left + right ) / 2, ( top + bottom ) / 2, search_radius, null, [ 'sdBlock' ] );
+
+		for ( let i = 0; i < candidates.length; i++ )
+		{
+			let n = candidates[ i ];
+
+			if ( n === fake_ent || n._is_being_removed )
+			continue;
+
+			let n_left = n.x;
+			let n_right = n.x + n.width;
+			let n_top = n.y;
+			let n_bottom = n.y + n.height;
+
+			if ( top < n_bottom && bottom > n_top ) // Vertical overlap - check for a horizontal near-miss gap
+			{
+				let gap_right = n_left - right; // n sits to the right of fake_ent
+				if ( gap_right > 0 && gap_right < align_x )
+				return true;
+
+				let gap_left = left - n_right; // n sits to the left of fake_ent
+				if ( gap_left > 0 && gap_left < align_x )
+				return true;
+			}
+
+			if ( left < n_right && right > n_left ) // Horizontal overlap - check for a vertical near-miss gap
+			{
+				let gap_below = n_top - bottom;
+				if ( gap_below > 0 && gap_below < align_y )
+				return true;
+
+				let gap_above = top - n_bottom;
+				if ( gap_above > 0 && gap_above < align_y )
+				return true;
+			}
+		}
+
+		return false;
+	}
 	CreateBuildObject( check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
 		let build_tool_level = this.build_tool_level;
@@ -7121,21 +7204,13 @@ THING is cosmic mic drop!`;
 		
 		if ( fake_ent.RequireSpawnAlign() )
 		{
-			let align_x = fake_ent.spawn_align_x;
-			let align_y = fake_ent.spawn_align_y;
-
 			// Build tool's fire-mode toggle (N key) doubles the placement grid pitch (8px -> 16px) as
-			// a per-player preference - some players prefer the coarser grid. See ChangeFireModeStart
-			// and the CLASS_BUILD_TOOL rotation in sdGun.Draw for the other halves of this feature.
-			if ( initiator )
-			if ( initiator._inventory && initiator._inventory[ initiator.gun_slot ] )
-			if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ] )
-			if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ].is_build_gun )
-			if ( initiator._inventory[ initiator.gun_slot ].fire_mode === 2 )
-			{
-				align_x *= 2;
-				align_y *= 2;
-			}
+			// a per-player preference - some players prefer the coarser grid. See GetBuildGridMultiplier,
+			// ChangeFireModeStart, and the CLASS_BUILD_TOOL rotation in sdGun.Draw for the rest of this feature.
+			const grid_multiplier = sdCharacter.GetBuildGridMultiplier( initiator );
+
+			let align_x = fake_ent.spawn_align_x * grid_multiplier;
+			let align_y = fake_ent.spawn_align_y * grid_multiplier;
 
 			fake_ent.x = Math.round( fake_ent.x / align_x ) * align_x;
 			fake_ent.y = Math.round( fake_ent.y / align_y ) * align_y;

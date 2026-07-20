@@ -1602,14 +1602,18 @@ class sdGun extends sdEntity
 		{
 			if ( this.class === sdGun.CLASS_BUILD_TOOL )
 			if ( this._held_by && this._held_by.IsPlayerClass() && this._held_by.hea > 0 )
-			if ( sdWorld.time % 5000 < GSPEED ) // Infrequent - MakeSureCharacterHasTask is idempotent per executer+similarity_hash
-			sdTask.MakeSureCharacterHasTask({
-				similarity_hash: 'BUILD-TOOL-GRID-HINT',
-				executer: this._held_by,
-				mission: sdTask.MISSION_GAMEPLAY_HINT,
-				title: 'Build tool has two placement grids',
-				description: 'Press N to switch the build tool\'s fire mode - this toggles the placement grid between 8px and 16px. Some players prefer one or the other.'
-			});
+			if ( !this._held_by._told_build_grid_hint ) // Shown at most once per life, not repeatedly while the tool is held
+			{
+				this._held_by._told_build_grid_hint = true;
+
+				sdTask.MakeSureCharacterHasTask({
+					similarity_hash: 'BUILD-TOOL-GRID-HINT',
+					executer: this._held_by,
+					mission: sdTask.MISSION_GAMEPLAY_HINT,
+					title: 'Build tool has two placement grids',
+					description: 'Press N to switch the build tool\'s fire mode - this toggles the placement grid between 8px and 16px. Some players prefer one or the other.'
+				});
+			}
 
 			if ( this._combo_timer > 0 )
 			this._combo_timer = Math.max( 0, this._combo_timer - GSPEED );
