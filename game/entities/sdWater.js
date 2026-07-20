@@ -399,6 +399,25 @@ class sdWater extends sdEntity
 
 			v = Math.ceil( v ); // Players would slide and teleport due to rounding errors
 
+			if ( v < 16 )
+			{
+				// A partial-height block only fills the bottom `v` px of its 16px cell, leaving the
+				// top `16 - v` px with no solid geometry at all. That is fine sitting in open space
+				// (a shallow puddle), but if this cell is right next to an existing solid,
+				// liquid-blocking block, that unfilled portion becomes a real sub-tile gap liquid can
+				// seep through where the two meet - so round up to a full slot in that case instead.
+				const IsLiquidBlockingSolid = ( e )=> e.is( sdBlock ) && !e.IsLetsLiquidsThrough();
+
+				const has_solid_neighbor =
+					sdWorld.CheckWallExistsBox( this.x - 16, this.y, this.x, this.y + 16, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ) || // left
+					sdWorld.CheckWallExistsBox( this.x + 16, this.y, this.x + 32, this.y + 16, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ) || // right
+					sdWorld.CheckWallExistsBox( this.x, this.y - 16, this.x + 16, this.y, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ) || // above
+					sdWorld.CheckWallExistsBox( this.x, this.y + 16, this.x + 16, this.y + 32, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ); // below
+
+				if ( has_solid_neighbor )
+				v = 16;
+			}
+
 			let ent = sdEntity.Create( sdBlock, { 
 				x: this.x, 
 				y: this.y + 16 - v, 
