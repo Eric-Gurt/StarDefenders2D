@@ -818,6 +818,11 @@ class sdStorage extends sdEntity
 	{
 		let ent = null;
 
+		// Captured so a failed placement below can restore storage to its exact pre-extraction
+		// state instead of leaving the menu looking like extraction succeeded (item data lost).
+		let did_splice = false;
+		let removed_item, removed_armable, removed_name;
+
 		if ( slot >= 0 && slot < this._stored_items.length )
 		{
 			if ( this._stored_items[ slot ] )
@@ -836,6 +841,15 @@ class sdStorage extends sdEntity
 			// their stored_names/is_armable entry entirely, so they never appear in the list at all despite
 			// still being present in _stored_items. Splicing all three together at the same index keeps
 			// them the same length from here on regardless of which one(s) happen to hold a stray null.
+			//
+			// Values are captured first (removed_item/removed_armable/removed_name, did_splice) so a
+			// failed placement further down can restore storage to its exact pre-extraction state
+			// instead of leaving the menu looking like extraction succeeded.
+			removed_item = this._stored_items[ slot ];
+			removed_armable = this.is_armable[ slot ];
+			removed_name = this.stored_names[ slot ];
+			did_splice = true;
+
 			this._stored_items.splice( slot, 1 );
 			this.is_armable.splice( slot, 1 );
 			this.stored_names.splice( slot, 1 );
@@ -958,11 +972,33 @@ class sdStorage extends sdEntity
 			}
 		}
 
-		ent.PhysWakeUp();
-        this.space_taken -= this.GetSlotsNeeded( ent );
-        
-        if ( this.space_taken < 0 )
-        this.space_taken = 0; // Could happen if slots needed per entity was updated 
+		if ( returned_ent )
+		{
+			ent.PhysWakeUp();
+			this.space_taken -= this.GetSlotsNeeded( ent );
+
+			if ( this.space_taken < 0 )
+			this.space_taken = 0; // Could happen if slots needed per entity was updated
+		}
+		else
+		{
+			// Placement failed (no space / blocked / no line of sight) - restore storage to its
+			// exact pre-extraction state instead of leaving the menu as if extraction succeeded,
+			// and discard the entity that was speculatively created for the placement attempt.
+			if ( did_splice )
+			{
+				if ( removed_item !== undefined )
+				this._stored_items.splice( slot, 0, removed_item );
+
+				if ( removed_armable !== undefined )
+				this.is_armable.splice( slot, 0, removed_armable );
+
+				if ( removed_name !== undefined )
+				this.stored_names.splice( slot, 0, removed_name );
+			}
+
+			ent.remove();
+		}
 
 		return returned_ent;
 
