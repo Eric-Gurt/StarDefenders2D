@@ -126,24 +126,32 @@ class sdTurret extends sdEntity
 		
 		sdTurret.portable_fake_com = { _net_id: 0, subscribers:[ 'sdCharacter', 'sdPlayerDrone' ] };
 		
-		sdTurret.targetable_classes = new WeakSet( [ 
-			sdCharacter, 
-			sdVirus, 
-			sdQuickie, 
-			sdOctopus, 
-			sdCube, 
-			//sdBomb, 
-			sdAsp, 
-			sdSandWorm, 
-			sdSlug, 
-			sdGrub, 
-			sdGuanako, 
-			sdShark, 
-			sdEnemyMech, 
-			sdDrone, 
-			sdBadDog, 
-			sdShark, 
-			sdSpider, 
+		
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	static get targetable_classes() // Built lazily on first use (not in init_class()) since some of these classes are only reachable via sdWorld.entity_classes.X - which depends on THEIR init_class() having already run, and dynamic-import resolution order across ~150+ entity files is not guaranteed. Built eagerly here it would intermittently throw (WeakSet rejects the undefined entries) and take the whole client bootstrap down with it depending on load order.
+	{
+		if ( sdTurret._targetable_classes_cache )
+		return sdTurret._targetable_classes_cache;
+
+		sdTurret._targetable_classes_cache = new WeakSet( [
+			sdCharacter,
+			sdVirus,
+			sdQuickie,
+			sdOctopus,
+			sdCube,
+			//sdBomb,
+			sdAsp,
+			sdSandWorm,
+			sdSlug,
+			sdGrub,
+			sdGuanako,
+			sdShark,
+			sdEnemyMech,
+			sdDrone,
+			sdBadDog,
+			sdShark,
+			sdSpider,
 			sdTutel,
 			sdFaceCrab,
 			sdSetrDestroyer,
@@ -161,12 +169,10 @@ class sdTurret extends sdEntity
 			sdStealer,
 			sdCouncilIncinerator,
 			sdMeow
-			
-		] ); // Module random load order that causes error prevention
-		
-		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+		].filter( ( cls )=>cls ) ); // Defensive: skip any class that still somehow was not registered yet, rather than throwing and losing just that one class as a valid turret target
+
+		return sdTurret._targetable_classes_cache;
 	}
-	
 	get hitbox_x1() { return this.kind === sdTurret.KIND_SENTRY ? -8 : -this.GetSize(); }
 	get hitbox_x2() { return this.kind === sdTurret.KIND_SENTRY ? 8 : this.GetSize(); }
 	get hitbox_y1() { return this.kind === sdTurret.KIND_SENTRY ? -6 : -this.GetSize(); }
