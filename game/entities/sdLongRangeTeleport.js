@@ -1279,6 +1279,14 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			if ( command_name === 'LIST_PRIVATE_STORAGE' )
 			{
+				if ( sdWorld.is_singleplayer )
+				{
+					// sdDatabase is a real server-only module (imports Node's fs, only attached in index.js) and
+					// is never available offline - fail safe with a clear message instead of throwing.
+					executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_RESET', [] );
+					executer_socket.SDServiceMessage( 'Private storage is not available in offline mode' );
+				}
+				else
 				if ( sdWorld.server_config.allow_private_storage_access )
 				{
 					let initiator_hash_or_user_uid = executer_character._my_hash;
@@ -1558,6 +1566,13 @@ class sdLongRangeTeleport extends sdEntity
 					if ( !sdWorld.server_config.allow_private_storage_access )
 					{
 						executer_socket.SDServiceMessage( 'Private storages are not available here' );
+						return;
+					}
+
+					if ( ( command_name === 'SAVE_STUFF' || command_name === 'GET_PRIVATE_STORAGE' ) && sdWorld.is_singleplayer )
+					{
+						// Both eventually call sdDatabase.Exec, a real server-only module never available offline
+						executer_socket.SDServiceMessage( 'Private storage is not available in offline mode' );
 						return;
 					}
 
@@ -2053,11 +2068,15 @@ class sdLongRangeTeleport extends sdEntity
 						}
 					}
 				}
+				// Private storage is backed by sdDatabase (a real server-only, filesystem-backed module never
+				// loaded in offline/singleplayer mode) - hide these options there instead of offering a dead end.
 				if ( this._current_category_stack.length === 0 )
+				if ( !sdWorld.is_singleplayer )
 				this.AddPromptContextOption( 'Send items to private storage on Mothership', 'SAVE_STUFF', [ undefined ], 'Enter name for item group', '', 100 );
-				
+
 				//sdMotherShipStorageManager.Open()
 				if ( this._current_category_stack.length === 0 )
+				if ( !sdWorld.is_singleplayer )
 				this.AddClientSideActionContextOption( 'Manage private storage on Mothership', ()=>
 				{
 					sdMotherShipStorageManager.Close();
