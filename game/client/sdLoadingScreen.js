@@ -88,7 +88,7 @@ class sdLoadingScreen
 		sdLoadingScreen.ASSET_DURATION_MS = 4000;
 		sdLoadingScreen.SAFETY_HIDE_MS = 20000; // In case sdWorld.my_entity never resolves for some reason, don't get stuck showing this forever
 
-		sdLoadingScreen.PRELOAD_COUNT = 12; // Restrict the carousel to this many assets (half guns, half other entities, randomly sampled fresh each time - see BuildAssetList), all warmed up front in Show() - trades the ~300-asset variety for a guarantee that whichever card is showing already has its sprite loaded, instead of a freshly-randomly-picked one sometimes showing blank for however long its image takes to fetch. This game is served over plain HTTP (no TLS, so no HTTP/2 multiplexing) - Chrome caps concurrent connections per host at ~6, so the last few of these 12 may still be mid-fetch the first time their card comes up early in the rotation
+		sdLoadingScreen.PRELOAD_COUNT = 6; // Restrict the carousel to this many assets (half guns, half other entities, randomly sampled fresh each time - see BuildAssetList), all warmed up front in Show() - trades the ~300-asset variety for a guarantee that whichever card is showing already has its sprite loaded, instead of a freshly-randomly-picked one sometimes showing blank for however long its image takes to fetch. This game is served over plain HTTP (no TLS, so no HTTP/2 multiplexing) - Chrome caps concurrent connections per host at ~6, so this stays at 6 rather than queuing more behind that cap
 
 		sdLoadingScreen.ATTACK_PHASE_AFTER_MS = 2000; // "moving" entities show their idle/walk animation for this long, then we try to trigger their attack animation for the rest of their time on screen
 
