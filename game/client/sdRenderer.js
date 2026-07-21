@@ -206,6 +206,7 @@ class sdRenderer
 		}
 		
 		sdRenderer.image_filter_cache = new Map();
+		sdRenderer.image_filter_cache_max_variants_per_image = 32; // ATLAS_LRU: cap on distinct sd_filter/tint variants baked per source image
 		
 		sdRenderer.unavailable_image_collector = null; // Fills up indefinitely if array
 	
@@ -215,9 +216,11 @@ class sdRenderer
 		{
 			ctx0.sd_filter = null;
 			ctx0.sd_tint_filter = null;
-			
+
 			ctx0.sd_status_effect_filter = null;
 			ctx0.sd_status_effect_tint_filter = null;
+
+			ctx0.sd_filter_shader_color = null; // ATLAS_SHADER_FILTER: [ r, g, b ] (0-1) set only for the duration of a flood-fill sd_filter draw, read by sdAtlasMaterial.drawImage
 			
 			ctx0.drawImageFilterCache = function( ...args )
 			{
@@ -266,7 +269,26 @@ class sdRenderer
 							sd_filter.s = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( sd_filter ).s; // Do not replace object just so it can be reused on client-side
 						}
 					}
-					
+
+					// ATLAS_SHADER_FILTER: flood-fill sd_filter (single flat recolor) skips the CPU bake entirely and instead
+					// draws the original (un-recolored) image with a shader flag telling sdAtlasMaterial to replace its color
+					// in the fragment shader. This means the same atlas dedication is reused across every recolor of a given
+					// source image instead of baking (and permanently atlas-dedicating) a new canvas per unique color.
+					// General N-pair swaps and any combination with sd_tint_filter/native filter still fall back to the CPU bake below.
+					if ( globalThis.ATLAS_SHADER_FILTER )
+					if ( sd_filter && sd_filter.s.length === 6 && !sd_tint_filter && filter === 'none' )
+					{
+						const r2 = parseInt( sd_filter.s.substring( 0, 2 ), 16 ) / 255;
+						const g2 = parseInt( sd_filter.s.substring( 2, 4 ), 16 ) / 255;
+						const b2 = parseInt( sd_filter.s.substring( 4, 6 ), 16 ) / 255;
+
+						ctx0.sd_filter_shader_color = [ r2, g2, b2 ];
+						ctx0.drawImage( ...args );
+						ctx0.sd_filter_shader_color = null;
+
+						return;
+					}
+
 					//const complex_filter_name = filter + '/' + ( sd_filter ? JSON.stringify( sd_filter ) : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
 					const complex_filter_name = 
 							sd_tint_filter ?
@@ -307,6 +329,10 @@ class sdRenderer
 					//if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
 					if ( !image_obj_cache_named_item )
 					{
+						if ( globalThis.ATLAS_LRU )
+						if ( image_obj_cache.size >= sdRenderer.image_filter_cache_max_variants_per_image )
+						image_obj_cache.delete( image_obj_cache.keys().next().value ); // Evict oldest variant (insertion-ordered Map)
+
 						if ( typeof OffscreenCanvas !== 'undefined' )
 						{
 							//image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
@@ -726,7 +752,9 @@ class sdRenderer
 			if ( userAgent[ 0 ] !== "Gecko" && userAgent[ 1 ] !== BROWSER_GECKO )
 			sdAtlasMaterial.super_texture_height = Math.min( sdRenderer.ctx.renderer.capabilities.maxTextureSize, 16384 );
 			else // Firefox takes too long on the image if the super texture's height is greater than the value that Firefox expected
-			sdAtlasMaterial.super_texture_height = 1024;
+			// ATLAS_FF_TALL (default off, needs live Firefox verification of upload/first-load time before flipping default):
+			// raises Firefox's cap from the legacy 1024 towards a middle ground rather than the other browsers' full 16384.
+			sdAtlasMaterial.super_texture_height = globalThis.ATLAS_FF_TALL ? Math.min( sdRenderer.ctx.renderer.capabilities.maxTextureSize, 4096 ) : 1024;
 			
 			if ( sdRenderer.ctx.sky.parent );
 			sdRenderer.ctx.sky.parent.remove( sdRenderer.ctx.sky );
