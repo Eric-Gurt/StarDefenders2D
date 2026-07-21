@@ -8063,7 +8063,7 @@ THING is cosmic mic drop!`;
 							
 							this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
 							{
-								if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character? This will permanently delete it and cannot be undone.' ) )
+								if ( confirm( 'Are you sure you want to forget this character? This will permanently delete it and cannot be undone.' ) )
 								{
 									globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, 'SELF_DELETE_CHARACTER', [] ] );
 
@@ -8073,7 +8073,7 @@ THING is cosmic mic drop!`;
 									globalThis.manually_disconnected = true;
 									globalThis.socket.disconnect();
 								}
-							});
+							}, true, { color:'ff0000' } );
 							this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
 
 							this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
