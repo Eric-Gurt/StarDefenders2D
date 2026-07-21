@@ -88,7 +88,7 @@ class sdLoadingScreen
 		sdLoadingScreen.ASSET_DURATION_MS = 4000;
 		sdLoadingScreen.SAFETY_HIDE_MS = 20000; // In case sdWorld.my_entity never resolves for some reason, don't get stuck showing this forever
 
-		sdLoadingScreen.PRELOAD_COUNT = 6; // Restrict the carousel to this many assets (half guns, half other entities - see BuildAssetList), all warmed up front in Show() - trades the ~300-asset variety for a guarantee that whichever card is showing always already has its sprite loaded, instead of a freshly-randomly-picked one sometimes showing blank for however long its image takes to fetch. This game is served over plain HTTP (no TLS, so no HTTP/2 multiplexing) - Chrome caps concurrent connections per host at ~6, so firing off more than that in one burst just queues the rest behind the first 6, defeating the point for exactly the ones queued last
+		sdLoadingScreen.PRELOAD_COUNT = 12; // Restrict the carousel to this many assets (half guns, half other entities, randomly sampled fresh each time - see BuildAssetList), all warmed up front in Show() - trades the ~300-asset variety for a guarantee that whichever card is showing already has its sprite loaded, instead of a freshly-randomly-picked one sometimes showing blank for however long its image takes to fetch. This game is served over plain HTTP (no TLS, so no HTTP/2 multiplexing) - Chrome caps concurrent connections per host at ~6, so the last few of these 12 may still be mid-fetch the first time their card comes up early in the rotation
 
 		sdLoadingScreen.ATTACK_PHASE_AFTER_MS = 2000; // "moving" entities show their idle/walk animation for this long, then we try to trigger their attack animation for the rest of their time on screen
 
@@ -372,6 +372,20 @@ class sdLoadingScreen
 
 		return { x1: min_x, y1: min_y, x2: max_x + 1, y2: max_y + 1 };
 	}
+	static PickRandomSample( pool, count ) // Up to `count` distinct random entries from pool, in shuffled order - partial Fisher-Yates, only shuffles as many slots as needed rather than the whole pool
+	{
+		let copy = pool.slice();
+		let picked = [];
+
+		for ( let i = 0; i < count && copy.length > 0; i++ )
+		{
+			let idx = ~~( Math.random() * copy.length );
+			picked.push( copy[ idx ] );
+			copy.splice( idx, 1 );
+		}
+
+		return picked;
+	}
 	static BuildAssetList()
 	{
 		if ( sdLoadingScreen.assets )
@@ -458,18 +472,24 @@ class sdLoadingScreen
 			});
 		}
 
-		// Curated sample rather than the full ~300 - half guns, half other entities, in whatever order
-		// they were discovered above (arbitrary, but stable run to run). See PRELOAD_COUNT.
+		// Curated sample rather than the full ~300 - half guns, half other entities, randomly picked fresh
+		// each time BuildAssetList runs (once per page load - see the cache check at the top of this method)
+		// rather than always the same first few in discovery order. See PRELOAD_COUNT.
 		if ( assets.length > sdLoadingScreen.PRELOAD_COUNT )
 		{
 			let half = Math.ceil( sdLoadingScreen.PRELOAD_COUNT / 2 );
-			let guns = assets.slice( 0, guns_count ).slice( 0, half );
-			let others = assets.slice( guns_count ).slice( 0, sdLoadingScreen.PRELOAD_COUNT - guns.length );
+			let guns = sdLoadingScreen.PickRandomSample( assets.slice( 0, guns_count ), half );
+			let others = sdLoadingScreen.PickRandomSample( assets.slice( guns_count ), sdLoadingScreen.PRELOAD_COUNT - guns.length );
 
-			// If one side came up short (ex. fewer than half guns available), top back up from the other side
 			let curated = guns.concat( others );
+
+			// If one side came up short (ex. fewer than half guns available), top back up from the other side's remainder
 			if ( curated.length < sdLoadingScreen.PRELOAD_COUNT )
-			curated = curated.concat( assets.slice( curated.length, curated.length + ( sdLoadingScreen.PRELOAD_COUNT - curated.length ) ) );
+			{
+				let picked = new Set( curated );
+				let leftover_pool = assets.filter( a=>!picked.has( a ) );
+				curated = curated.concat( sdLoadingScreen.PickRandomSample( leftover_pool, sdLoadingScreen.PRELOAD_COUNT - curated.length ) );
+			}
 
 			assets = curated;
 		}
