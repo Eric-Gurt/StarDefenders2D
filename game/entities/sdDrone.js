@@ -1904,7 +1904,7 @@ class sdDrone extends sdEntity
 									}
 									if ( entities[ i ].GetClass() === 'sdExcavator' ) // Council excavator
 									{
-										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
+										if ( entities[ i ].hea < entities[ i ].hmax && entities[ i ]._ai_team === 3 ) // Does it need repairing?
 										{
 											entities[ i ].hea = Math.min( entities[ i ].hea + 500, entities[ i ].hmax ); // In that case, repair it
 											att_anim = true;
