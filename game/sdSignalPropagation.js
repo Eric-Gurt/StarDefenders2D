@@ -74,8 +74,19 @@ export function PropagateSignal( source, v ) // source is whatever originated th
 	const IsPathTraversable = ( path )=>
 	{
 		for ( let i2 = 1; i2 < path.length; i2++ ) // 0 is the source (button/sensor/gate)
-		if ( !path[ i2 ].is( sdNode ) )
-		return false;
+		{
+			let node = path[ i2 ];
+
+			if ( !node.is( sdNode ) )
+			return false;
+
+			// An AND gate is a logical checkpoint, not a passthrough wire - a button/sensor's raw
+			// signal must not leak straight through it to whatever is wired past it. Only the gate's
+			// own Reevaluate() -> PropagateSignal( gate, gate.output ) call (where the gate itself is
+			// the source, i.e. path index 0) should represent what's downstream of it.
+			if ( node.type === sdNode.TYPE_SIGNAL_AND_GATE )
+			return false;
+		}
 
 		return true;
 	};
