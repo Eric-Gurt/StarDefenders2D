@@ -408,6 +408,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdNode', type:4, _category:'Base equipment', _min_build_tool_level:15 });
 			sdShop.options.push({ _class: 'sdNode', type:5, delay:500, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:6, _category:'Base equipment', _min_build_tool_level:32 });
+			sdShop.options.push({ _class: 'sdNode', type:7, _category:'Base equipment', _min_build_tool_level:15 });
 			sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 2, _min_build_tool_level: 3, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdSunPanel', multiplier: 4, _min_build_tool_level: 9, _category:'Base equipment' });
