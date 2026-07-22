@@ -544,6 +544,20 @@ class sdDrone extends sdEntity
 				this.SetTarget( initiator );
 			if ( 
 			}*/
+			if ( this.type === sdDrone.DRONE_COUNCIL ) // Council support drones should stick to their target
+			{
+				if ( !this._current_target )
+				{
+					if ( typeof initiator._ai_team !== 'undefined' ) // Is initiator a faction mob?
+					{
+						if ( initiator._ai_team !== this._ai_team ) // Is this not a friendly faction?
+						this.SetTarget( initiator ); // Target it
+					}
+					else
+					this.SetTarget( initiator );
+				}
+			}
+			else
 			if ( typeof initiator._ai_team !== 'undefined' ) // Is initiator a faction mob?
 			{
 				if ( initiator._ai_team !== this._ai_team ) // Is this not a friendly faction?
@@ -1057,7 +1071,7 @@ class sdDrone extends sdEntity
 								}
 							}
 
-							if ( this.type !== sdDrone.DRONE_SARRONIAN_DETONATOR || this.type !== sdDrone.DRONE_SARRONIAN_GAUSS )
+							if ( this.type !== sdDrone.DRONE_SARRONIAN_DETONATOR || this.type !== sdDrone.DRONE_SARRONIAN_GAUSS || this.type !== sdDrone.DRONE_COUNCIL )
 							if ( di < 100 + Math.random() * 100 )
 							{
 								dx *= -0.2;
@@ -1826,7 +1840,7 @@ class sdDrone extends sdEntity
 							if ( this.type === sdDrone.DRONE_COUNCIL ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
 								this._attack_timer = 75;
-								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine', 'sdCouncilIncinerator', 'sdCouncilNullifier' ] );
+								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk', 'sdCouncilMachine', 'sdCouncilIncinerator', 'sdCouncilNullifier', 'sdExcavator' ] );
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
 								{
@@ -1880,6 +1894,15 @@ class sdDrone extends sdEntity
 										}
 									}
 									if ( entities[ i ].GetClass() === 'sdCouncilNullifier' ) // Council nullifier
+									{
+										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
+										{
+											entities[ i ].hea = Math.min( entities[ i ].hea + 500, entities[ i ].hmax ); // In that case, repair it
+											att_anim = true;
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
+										}
+									}
+									if ( entities[ i ].GetClass() === 'sdExcavator' ) // Council excavator
 									{
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{

@@ -137,7 +137,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SNOW =					event_counter++; // 15
 		sdWeather.EVENT_LARGE_ANTICRYSTAL =		event_counter++; // 16
 		sdWeather.EVENT_SARRONIANS =			event_counter++; // 17
-		sdWeather.EVENT_COUNCIL_BOMB =			event_counter++; // 18
+		sdWeather.EVENT_COUNCIL_EXCAVATORS =			event_counter++; // 18
 		sdWeather.EVENT_MATTER_RAIN =			event_counter++; // 19
 		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
 		sdWeather.EVENT_ERTHAL_BEACON =			event_counter++; // 21
@@ -359,7 +359,7 @@ class sdWeather extends sdEntity
 		// EG: Do we really want players to deal with same events every day? We probably do not
 		/*if ( n === sdWeather.EVENT_SD_EXTRACTION || n === sdWeather.EVENT_LAND_SCAN || n === sdWeather.EVENT_CRYSTALS_MATTER ||
 			n === sdWeather.EVENT_BEAM_PROJECTOR || n === sdWeather.EVENT_LONG_RANGE_ANTENNA || n === sdWeather.EVENT_PROTECT_SDBG_DRONE ||
-			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION || n === sdWeather.EVENT_COUNCIL_BOMB ||
+			n === sdWeather.EVENT_SOLAR_DISTRIBUTOR || n === sdWeather.EVENT_SD_EXCAVATION || n === sdWeather.EVENT_COUNCIL_EXCAVATORS ||
 			n === sdWeather.EVENT_COUNCIL_PORTAL || n === sdWeather.EVENT_MOTHERSHIP_CONTAINER || n === sdWeather.EVENT_TASK_ASSIGNMENT )*/
 		if ( n === sdWeather.EVENT_TASK_ASSIGNMENT )
 		return true;
@@ -2291,7 +2291,7 @@ class sdWeather extends sdEntity
 			//else
 			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
-		if ( r === sdWeather.EVENT_COUNCIL_BOMB ) // Spawn a Council Bomb anywhere on the map outside player views which detonates in 10 minutes
+		if ( r === sdWeather.EVENT_COUNCIL_EXCAVATORS ) // Spawn 3-6 Council Excavators which players need to destroy in a certain timeframe
 		{
 			let chance = 0;
 			let req_char = 0;
@@ -2307,21 +2307,41 @@ class sdWeather extends sdEntity
 					req_char++;
 				}
 			}
-			chance = ( req_char / chars ) * 0.6; // Chance to execute this event depends on how many players reached 15+ , max 60% chance
+			chance = ( req_char / chars ); // 100% chance to roll if all players are level 15 or above
 
 			if ( Math.random() < chance )
 			{
-				if ( sdJunk.council_bombs < 1 )
-				sdWeather.SimpleSpawner({
+				if ( sdExcavator.council_excavators < 1 )
+				{
+					let excavators = [];
+					sdWeather.SimpleSpawner({
 
-					count: [ 1, 1 ],
-					class: sdJunk,
-					params: { type: sdJunk.TYPE_COUNCIL_BOMB },
-					min_air_height: -400, // Minimum free space above entity placement location
-					aerial: true,
-					aerial_radius: 128
+						count: [ 1, 1 ],
+						class: sdExcavator,
+						params: { type: sdExcavator.TYPE_COUNCIL },
+						min_air_height: -400, // Minimum free space above entity placement location
+						aerial: true,
+						aerial_radius: 128,
+						store_ents: excavators,
+						near_entity: near_ent,
+						group_radius: group_rad
+					});
+					
+					if ( excavators.length > 0 ) // If first successfully spawned, spawn others somewhat near it
+					sdWeather.SimpleSpawner({
 
-				});
+						count: [ 2, 5 ],
+						class: sdExcavator,
+						params: { type: sdExcavator.TYPE_COUNCIL },
+						min_air_height: -400, // Minimum free space above entity placement location
+						aerial: true,
+						aerial_radius: 128,
+						store_ents: excavators,
+						near_entity: excavators[ 0 ],
+						group_radius: 2400
+					});
+					
+				}
 				
 				/*let instances = 0;
 				let instances_tot = 1;

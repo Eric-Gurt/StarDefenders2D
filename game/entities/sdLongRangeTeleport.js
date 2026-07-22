@@ -662,6 +662,16 @@ class sdLongRangeTeleport extends sdEntity
 			
 				if ( task._target === ent && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
 				return false;
+			
+				if ( sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES ] )
+				{
+					for ( let i = 0; i < task._all_targets.length; i++ ) // Loop through all targets
+					{
+						let e = sdEntity.entities_by_net_id_cache_map.get( this._all_targets[ i ] );
+						if ( e === ent )
+						return false;
+					}
+				}
 			}
 			
 			return true;

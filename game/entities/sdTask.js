@@ -546,6 +546,98 @@ class sdTask extends sdEntity
 				}
 			}
 		};
+		sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES = id++ ] = 
+		{
+			// Alternative version of destroy entity, where players have to destroy multiple at once.
+			appearance: sdTask.APPEARANCE_ATTACK_POINT,
+	
+			task_title_color: sdTask.COLOR_WARNING,
+	
+			GetDefaultTitle: ( task )=>{
+				return 'Eliminate all';
+			},
+			GetDefaultDescription: ( task )=>{
+				return 'There is an unspecified urgency to destroy something';
+			},
+			GetDefaultTimeLeft: ( task )=>
+			{
+				return -1;
+			},
+			onTaskMade: ( task, params )=>
+			{
+				// Create extra properties here
+				
+				task._approached_target = false; // Players now need to at least get close to the target to count the task as "completed"
+				task._approach_target_check_timer = 1; // Every 2 seconds it will check if target was approached by task executor, until it does.
+				// Players that don't get close to the objective don't get rewards now.
+				//task._all_targets = params.all_targets || [];
+				
+				
+				task._initial_difficulty = task._initial_difficulty * task._all_targets.length;
+				task._difficulty = task._initial_difficulty;
+				/* Needs some sort of server side check for "task._difficulty" and "task.progress" in case players connect halfway.
+					Simplest way right now is to update "task._progress" and "task._difficulty" based off of
+					similarity hash with highest values. This way players that connect mid way and get assigned
+					task will not see something like 0/2 while initial player destroyed 3/5, and something like
+					80% reward instead of 200% (which does get divided by players contributing count so both get
+					100% rewards properly, instead of first player 100% and other 40%)
+				*/
+				task.SyncTaskWithOlder();
+				
+				if ( task.progress === '' )
+				task.SetBasicProgress( 0, task._all_targets.length );
+			},
+			onCompletion: ( task )=>
+			{
+				if ( task._difficulty !== 0 ) // Prevent multi-objective tasks granting pods before completion
+				sdTask.completed_tasks_count++;
+				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+				task._executer.UpdateClaimRewardsTaskCounter();
+			},
+			failure_condition: ( task )=>
+			{
+				//if ( !task._target && !task._approached_target )
+				//return true;
+				
+				if ( task._all_targets.length === 0 && !task._approached_target ) // Didn't approach the target at all?
+				return true;
+			
+				//if ( ( !task._target || task._target._is_being_removed ) && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
+				//return true;
+				
+				// I think I disabled LRTP teleportation for protect/destroy/destroy all tasks - Booraz149
+			
+				return false;
+			},
+			completion_condition: ( task )=>
+			{
+				if ( task._all_targets.length === 0 && task._approached_target )
+				return true;
+			
+				//if ( task._target._is_being_removed && !sdLongRangeTeleport.teleported_items.has( task._target ) && task._approached_target ) // Detects LRTP abuse
+				//return true;
+				
+				// I think I disabled LRTP teleportation for protect/destroy/destroy all tasks - Booraz149
+			
+				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				if ( sdWorld.is_server )
+				{
+					if ( task._difficulty > 0 ) // Task failed had difficulty? ( Prevents "task failed" on semi-objectives like Shurg Converter if it's not the last one )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'FAILED-' + task._similarity_hash, 
+						executer: task._executer,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
+						title: 'Task failed',
+						description: 'You\'ve failed to complete "' + task.title + '"',
+						time_left: 30 * 5
+					});
+					task.remove();
+				}
+			}
+		};
 		
 		sdTask.tasks = [];
 		sdTask.sort_tasks = false;
@@ -658,6 +750,28 @@ class sdTask extends sdEntity
 		return 1 / players;
 	}
 	
+	SyncTaskWithOlder() // Attempt to sync some values with older task of another player.
+	{
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			let task = sdTask.tasks[ i ];
+			if ( task._similarity_hash === this._similarity_hash && this !== task ) // Same hash? Same objective, different players probably
+			{
+				if ( sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES ] ) // Destroy all entities scenario - sync progress, rewards and time left
+				{
+					this._initial_difficulty = task._initial_difficulty;
+					this._difficulty = task._initial_difficulty;
+					this.progress = task.progress;
+					this.time_left = task.time_left;
+					this._update_version++;
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+					//console.log('Difficulty: ' + task._difficulty);
+				}
+			}
+		}
+		
+	}
 	GetContributingPlayers() // Alternative version of GetTaskDifficultyScaler(), instead it just checks for players eligible for reward, called when someone contributes towards task
 	{
 		let players = 0;
@@ -687,6 +801,15 @@ class sdTask extends sdEntity
 				{
 					task._difficulty = task._initial_difficulty * task.GetContributingPlayers();
 					task.SetBasicProgress(0, 1); // Update rewards displayed
+					task._update_version++;
+					task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+					//console.log('Difficulty: ' + task._difficulty);
+				}
+				if ( task._approached_target && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES ] )
+				{
+					task._difficulty = task._initial_difficulty * task.GetContributingPlayers();
+					task.SetBasicProgress( parseInt( task.progress[ 2 ] ), parseInt( task.progress[ 6 ] ) ); // Update rewards displayed
 					task._update_version++;
 					task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					
@@ -785,6 +908,7 @@ class sdTask extends sdEntity
 		if ( prop === '_executer' ) return true;
 		if ( prop === '_target' ) return true;
 		if ( prop === '_lrtp_class_proprty_value_array' ) return true;
+		if ( prop === '_all_targets' ) return true; // For "Destroy all entities" mission types
 		
 		return false;
 	}
@@ -805,7 +929,7 @@ class sdTask extends sdEntity
 	{
 		super( params );
 		
-		// Note: Do not make extra properties here since these willl appear for all kinds of tasks, which means overcomplicating them. Use .onTaskMade as part of a specific mission
+		// Note: Do not make extra properties here since these will appear for all kinds of tasks, which means overcomplicating them. Use .onTaskMade as part of a specific mission
 
 		this._executer = params.executer || null; // Who is responsible for completion of this task. Make extra task for each alive character
 		//this._is_global = params.is_global || false; // All players can execute it
@@ -827,6 +951,8 @@ class sdTask extends sdEntity
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
+		
+		this._all_targets = params.all_targets || []; // Must store array of net_id's.
 		//this._target_title = sdWorld.ClassNameToProperName( this._target.GetClass(), this._target );
 		//this.extract_target = params.extract_target || 0; // For "Extract entity tasks" , like "Rescue / Arrest Star Defender" event
 		
@@ -952,17 +1078,38 @@ class sdTask extends sdEntity
 				if ( this._approach_target_check_timer <= 0 )
 				{
 					this._approach_target_check_timer = 60;
-					if ( this._executer && !this._executer._is_being_removed && this._target && !this._target._is_being_removed ) // Make sure everything exists I guess
+					if ( this.mission !== sdTask.MISSION_DESTROY_ALL_ENTITIES )
 					{
-						if ( sdWorld.Dist2D( this._executer.x, this._executer.y, this._target.x, this._target.y ) < 600 ) // Is player close enough?
+						if ( this._executer && !this._executer._is_being_removed && this._target && !this._target._is_being_removed ) // Make sure everything exists I guess
 						{
-							this._approached_target = true;
+							if ( sdWorld.Dist2D( this._executer.x, this._executer.y, this._target.x, this._target.y ) < 600 ) // Is player close enough?
+							{
+								this._approached_target = true;
+								
+								if ( sdTask.missions[ this.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
+								this.UpdateTaskRewardsForContributors();
 							
-							if ( sdTask.missions[ this.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
-							this.UpdateTaskRewardsForContributors();
-						
-							this._update_version++;
-							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								this._update_version++;
+								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+							}
+						}
+					}
+					else
+					for ( let i = 0; i < this._all_targets.length; i++ )
+					{
+						let target = sdEntity.entities_by_net_id_cache_map.get( this._all_targets[ i ] );
+						if ( this._executer && !this._executer._is_being_removed && target && !target._is_being_removed ) // Make sure everything exists I guess
+						{
+							if ( sdWorld.Dist2D( this._executer.x, this._executer.y, target.x, target.y ) < 600 ) // Is player close enough?
+							{
+								this._approached_target = true;
+								
+								if ( sdTask.missions[ this.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES ] )
+								this.UpdateTaskRewardsForContributors();
+							
+								this._update_version++;
+								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+							}
 						}
 					}
 				}
@@ -1064,6 +1211,44 @@ class sdTask extends sdEntity
 					this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
 					
 					this._update_version++;
+				}
+			}
+			
+			if ( this._all_targets.length > 0 )
+			{
+				// For "Destroy all entities" missions - displays the closest entity to the player
+				//let closest_x = 0;
+				//let closest_y = 0;
+				let closest_di = Infinity;
+				for ( let i = 0; i < this._all_targets.length; i++ )
+				{
+					let target = sdEntity.entities_by_net_id_cache_map.get( this._all_targets[ i ] );
+					if ( !target || target._is_being_removed )
+					{
+						this._all_targets.splice( i, 1 );
+						//console.log( i, this._all_targets.length );
+						this.SetBasicProgress( 1 + parseInt( this.progress[ 2 ] ), parseInt( this.progress[ 6 ] ) ); // Update mission
+						
+						this._update_version++;
+					}
+					if ( target )
+					{
+						let di = sdWorld.Dist2D( this._executer.x, this._executer.y, target.x, target.y );
+						if ( di < closest_di )
+						{
+							//closest_x = target.x;
+							//closest_y = target.y;
+							closest_di = di;
+							
+							this.target_x = target.x + ( target._hitbox_x1 + target._hitbox_x2 ) / 2;
+							this.target_y = target.y;
+							
+							this.target_biometry = target.title || target.biometry || '';
+							this.target_biometry_censored = target.title_censored || target.biometry_censored || false;
+							
+							this._update_version++;
+						}
+					}
 				}
 			}
 			
