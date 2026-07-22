@@ -961,6 +961,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdExcavator', type: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdExcavator', type: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 17, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMothershipContainer', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMatterMatrix', _category:'Development tests' });
