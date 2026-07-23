@@ -68,6 +68,17 @@ class sdWater extends sdEntity
 		sdWater.EVAP_BUDGET = 24; // Surface cells swept per frame (bounded CPU cost)
 		sdWater.EVAP_DROUGHT_BUDGET = 24; // Extra cells swept per frame at full drought
 
+		// --- Embedded water cleanup (server) ---
+		// Self-heals natural water entities left sitting inside solid block geometry by the
+		// (now-fixed) rain-puddle spawn bug - Math.floor(e.y/16)*16 - 16 could land on a cell
+		// already occupied by a thin partial-height block or a neighboring overhang, spawning
+		// a puddle seemingly embedded/seeping into a block. Runs as a continuous bounded sweep
+		// (like evaporation, but independent of its sun/drought gating) so worlds saved before
+		// this fix get their already-affected puddles cleaned up too, not just newly spawned
+		// ones. Player-placed/moved water ( _natural === false ) is never touched.
+		sdWater._embed_cursor = 0; // Round-robin cursor, persists across frames
+		sdWater.EMBED_CLEANUP_BUDGET = 24; // Cells swept per frame (bounded CPU cost)
+
 		sdWater.WAKE_CASCADE_MAX_DEPTH = 0; // 0 = unlimited (current behavior, byte-identical). >0 caps AwakeSelfAndNear recursion to reduce wake storms in large pools
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -1880,10 +1891,48 @@ class sdWater extends sdEntity
 	static GlobalThink( GSPEED )
 	{
 		sdWater.all_swimmers_previous_frame_exit_swap = sdWater.all_swimmers_previous_frame_exit;
-		
+
 		sdWater.all_swimmers_previous_frame_exit = new Set();
 
 		sdWater.GlobalEvaporationThink( GSPEED );
+		sdWater.GlobalEmbeddedWaterCleanupThink( GSPEED );
+	}
+
+	// Is this a natural water cell currently sitting inside solid block geometry? (see the
+	// rain-puddle spawn bug this self-heals, described at EMBED_CLEANUP_BUDGET above)
+	static IsEmbeddedInSolid( w )
+	{
+		if ( w._is_being_removed )
+		return false;
+
+		if ( w._natural !== true ) // Player-placed / moved water is left alone
+		return false;
+
+		return sdWorld.CheckWallExistsBox( w.x, w.y, w.x + 16, w.y + 16, null, null, sdWater.classes_to_interact_with );
+	}
+
+	static GlobalEmbeddedWaterCleanupThink( GSPEED )
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		let reg = sdWater.server_waters;
+		if ( reg.length === 0 )
+		return;
+
+		let budget = Math.min( reg.length, sdWater.EMBED_CLEANUP_BUDGET );
+
+		for ( let k = 0; k < budget; k++ )
+		{
+			if ( sdWater._embed_cursor >= reg.length )
+			sdWater._embed_cursor = 0;
+
+			let w = reg[ sdWater._embed_cursor ];
+			sdWater._embed_cursor++;
+
+			if ( sdWater.IsEmbeddedInSolid( w ) )
+			w.remove();
+		}
 	}
 
 	// Is this cell a lone, sky-exposed, shallow surface film of natural water/acid?
