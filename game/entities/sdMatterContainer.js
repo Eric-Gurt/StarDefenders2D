@@ -142,7 +142,16 @@ class sdMatterContainer extends sdEntity
 					container.containers++; // Increase "containerss" merged by 1 (also widens its hitbox)
 					container._hitbox_last_update = -1; // Force hitbox recompute so the occupancy check below sees the post-merge size/position
 
-					if ( !container.CanMoveWithoutOverlap( container.x, container.y, 1 ) )
+					// "this" is still physically sitting right next to "container" (that's what triggered the
+					// merge) and is about to be consumed by it, so it must not count as an obstacle for the
+					// occupancy check below - otherwise container's widened/shifted hitbox always reports as
+					// blocked by "this" whenever the two are actually adjacent, and merging only ever appears
+					// to succeed when they happen to already have unnatural extra space between them.
+					this._is_being_removed = true;
+					let can_move = container.CanMoveWithoutOverlap( container.x, container.y, 1 );
+					this._is_being_removed = false;
+
+					if ( !can_move )
 					{
 						// Merging here would wedge the container inside another entity - roll back and try the next candidate instead
 						container.x = prev_x;
@@ -215,7 +224,16 @@ class sdMatterContainer extends sdEntity
 				}
 
 				if ( new_container )
-				new_container.remove();
+				{
+					// This is a rollback of a split attempt that didn't find room, not a real
+					// destruction - new_container never really "existed" from the player's
+					// perspective. remove() defaults _broken to true (set internally, so it must be
+					// overridden AFTER calling remove(), same as the merge success path below does),
+					// which would otherwise make onRemove() dump the matter it was holding as a pile
+					// of crystal shards purely as a side effect of a no-space rollback.
+					new_container.remove();
+					new_container._broken = false;
+				}
 			}
 
 			// Roll back this attempt before trying the other direction
