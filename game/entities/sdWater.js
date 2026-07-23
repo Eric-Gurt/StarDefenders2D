@@ -1651,12 +1651,18 @@ class sdWater extends sdEntity
 						let dx;
 						let dy;
 
-						let water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y - 16, this.type );
-						//let water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y, this.type );
+						// Same-row neighbor first: it is the direct, actually-adjacent continuation of
+						// this cell's own surface. Checking the diagonal "step up" position first (as
+						// before) meant an unrelated water tile sitting up-and-right of this cell (e.g. a
+						// stray rain puddle on a ledge above, sharing no edge with this pool) would win
+						// over a real same-row neighbor, drawing a bogus slope/bridge connecting this
+						// pool's surface to a completely disconnected body of water. The diagonal offsets
+						// remain as fallbacks for genuine staircase terrain where no same-row neighbor exists.
+						let water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y, this.type );
 						volume += Math.sin( sdWorld.time / 3000 + this.x / 32 ) / 16 - this._client_y;
 
 						if ( !water_right )
-						water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y, this.type );
+						water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y - 16, this.type );
 
 						if ( !water_right )
 						water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y + 16, this.type );
