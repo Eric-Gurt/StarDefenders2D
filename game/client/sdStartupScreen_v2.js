@@ -981,6 +981,12 @@
 				const LOCAL_PROFILES_KEY = 'sd_character_profiles_v1';
 				const PROFILE_IDENTITY_FIELDS = [ 'my_hash' ]; // Only ever restored from profiles that were saved on THIS browser (see SelectLocalProfile) - never from an imported file
 
+				// Reserved slot that always mirrors whatever character is currently active, kept up to date automatically
+				// (see SyncLastUsedProfile) so the list is never misleadingly empty/unselected just because the player
+				// never pressed "Save as new" - this is what makes rejoining resume the same character by default.
+				const LAST_USED_PROFILE_ID = '__last_used__';
+				const LAST_USED_PROFILE_NAME = '(Last used character)';
+
 				globalThis.GetLocalProfiles = ()=>
 				{
 					try
@@ -1026,13 +1032,27 @@
 					placeholder.textContent = list.length ? '- Select a saved character -' : '- No saved characters yet -';
 					profile_select.append( placeholder );
 
+					// Whichever saved profile's identity matches what's currently active should show as selected -
+					// a later match in the list wins, so an explicitly named profile takes priority over the
+					// reserved "(Last used character)" entry (which is unshifted to the front) when both line up.
+					// Read straight from the DOM (a static element in index.html) rather than the inputs_hash
+					// closure map - this can run before AcceptField() has populated that map for the first time.
+					let my_hash_el = document.getElementById( 'my_hash' );
+					let current_hash = my_hash_el ? my_hash_el.value : null;
+					let active_id = '';
+
 					for ( let i = 0; i < list.length; i++ )
 					{
 						let option_el = document.createElement( 'option' );
 						option_el.value = list[ i ].id;
 						option_el.textContent = list[ i ].name;
 						profile_select.append( option_el );
+
+						if ( current_hash !== null && list[ i ].save && list[ i ].save.my_hash === current_hash )
+						active_id = list[ i ].id;
 					}
+
+					profile_select.value = active_id;
 				};
 
 				globalThis.SaveCurrentAsLocalProfile = ( existing_id=null )=>
@@ -1229,6 +1249,50 @@
 						alert( 'Character appearance imported. If the server has no character under your current identity yet, you will spawn as a new character with this appearance.' );
 					};
 					reader.readAsText( file );
+				};
+
+				// Keeps the reserved "(Last used character)" slot's snapshot pinned to whatever is currently active.
+				// Called from SavePlayerSettings, so it runs on every settings change and (critically) right before
+				// connecting - meaning a character is always auto-saved even if the player never explicitly used
+				// "Save as new". This also covers players upgrading into this build with a pre-existing server-side
+				// character: their first settings save bookmarks it here instead of the list starting out empty.
+				globalThis.SyncLastUsedProfile = ()=>
+				{
+					let list = globalThis.GetLocalProfiles();
+					let save = globalThis.SavePlayerSettingsAsObject();
+
+					let entry = { id: LAST_USED_PROFILE_ID, name: LAST_USED_PROFILE_NAME, timestamp: Date.now(), save };
+
+					let idx = list.findIndex( p=>p.id === LAST_USED_PROFILE_ID );
+					if ( idx === -1 )
+					list.unshift( entry );
+					else
+					list[ idx ] = entry;
+
+					globalThis.SetLocalProfiles( list );
+					RefreshProfileList();
+				};
+
+				// Forgets the local side of a character that was just deleted server-side (see sdCharacter's
+				// "Quit and forget this character"): drops any local profile pointing at it, including the
+				// reserved slot if that's what was active, and rolls this browser onto a brand new identity so it
+				// can never stumble back into the now-deleted character by reconnecting with the old my_hash.
+				globalThis.ForgetLocalCharacterIdentity = ()=>
+				{
+					let my_hash_el = inputs_hash[ 'my_hash' ] ? inputs_hash[ 'my_hash' ].el : null;
+
+					if ( !my_hash_el )
+					return;
+
+					let old_hash = my_hash_el.value;
+
+					let list = globalThis.GetLocalProfiles().filter( p=>!p.save || p.save.my_hash !== old_hash );
+					globalThis.SetLocalProfiles( list );
+
+					my_hash_el.value = GenerateHash( 30 );
+
+					globalThis.GetPlayerSettings();
+					globalThis.SavePlayerSettings(); // Also re-syncs "(Last used character)" onto the fresh identity
 				};
 
 				AddHTML(`
@@ -1605,6 +1669,9 @@
 					localStorage.setItem( obj.el.id, obj.el.value );
 				} catch(e){}
 			}
+
+			if ( globalThis.SyncLastUsedProfile )
+			globalThis.SyncLastUsedProfile();
 	    };
 	    globalThis.SavePlayerSettingsAsObject = function() // Should be done after validation which is done by globalThis.GetPlayerSettings
 	    {
@@ -1638,9 +1705,9 @@
 	    
 	
 	    document.getElementById( 'last_local_time_start' ).value = Date.now();
-	    globalThis.SavePlayerSettings();
-	    
-	    
+	    globalThis.SavePlayerSettings(); // Also seeds/refreshes "(Last used character)" via SyncLastUsedProfile
+
+
 	    globalThis.ResetSkin = function()
 	    {
 			for ( let i = 0; i < inputs.length; i++ )

@@ -7803,6 +7803,17 @@ THING is cosmic mic drop!`;
 						this.ManualRTPSequence( false );
 					}
 
+					if ( command_name === 'SELF_DELETE_CHARACTER' ) // "Quit and forget this character" - permanently removes the character requesting its own deletion
+					{
+						if ( executer_socket )
+						executer_socket.character = null;
+
+						this._socket = null;
+						this._my_hash = undefined; // Detach identity - never to be reconnected to again, even if this entity somehow lingered
+
+						this.remove();
+					}
+
 					if ( command_name === 'EMOTE' )
 					{
 						if ( parameters_array[ 0 ] === 'HEARTS' )
@@ -8052,11 +8063,17 @@ THING is cosmic mic drop!`;
 							
 							this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
 							{
-								if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+								if ( confirm( 'Are you sure you want to forget this character? This will permanently delete it and cannot be undone.' ) )
 								{
-									sdWorld.Stop();
+									globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, 'SELF_DELETE_CHARACTER', [] ] );
+
+									if ( globalThis.ForgetLocalCharacterIdentity )
+									globalThis.ForgetLocalCharacterIdentity();
+
+									globalThis.manually_disconnected = true;
+									globalThis.socket.disconnect();
 								}
-							});
+							}, true, { color:'ff0000' } );
 							this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
 
 							this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
