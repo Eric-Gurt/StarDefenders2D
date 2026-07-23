@@ -1280,7 +1280,11 @@ class sdWeather extends sdEntity
 				steps_max-- 
 			)
 		{
-			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_hit_class_list ) )
+			// Box-checked over the full 8px step (not just the single sampled point) - solidified
+			// water/ice blocks can be as thin as 1px (sdWater.Solidify) and snow accumulates in 4px
+			// slivers, so a point-only check at each 8px-stepped yy could step clean over a thin solid
+			// slab sitting entirely between two sampled positions, letting rain/sun "see" through it.
+			if ( sdWorld.CheckWallExistsBox( x - 0.01, yy - 8.01, x + 0.01, yy + 0.01, null, null, sdWeather.rain_hit_class_list ) )
 			{
 				if ( !sdWorld.last_hit_entity ) // sdDeepSleep or world edge likely
 				if ( y - yy > 64 ) // Not on edge between 2 sdDeepSleep areas
@@ -1288,7 +1292,7 @@ class sdWeather extends sdEntity
 					//debugger;
 					return true;
 				}
-				
+
 				if ( sun_light_tracer )
 				{
 					if ( sdWorld.last_hit_entity )
@@ -1310,8 +1314,8 @@ class sdWeather extends sdEntity
 				}
 				return false;
 			}
-			
-			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_background_walls ) )
+
+			if ( sdWorld.CheckWallExistsBox( x - 0.01, yy - 8.01, x + 0.01, yy + 0.01, null, null, sdWeather.rain_background_walls ) )
 			{
 				space_until_premature_true = consider_sky_open_height;
 			}
