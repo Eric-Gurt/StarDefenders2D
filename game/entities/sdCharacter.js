@@ -1593,8 +1593,13 @@ THING is cosmic mic drop!`;
 		// was demoted/removed from the admin list in the meantime, the demote code has no way
 		// to reach an unloaded character to clear the flag - so re-validate it here, the moment
 		// the character becomes live again, instead of trusting whatever was last saved.
+		// Exception: AutoGodModeForAllPlayers (testing-only server_config hook) intentionally
+		// grants god mode to non-admins too - without this check it silently stripped that grant
+		// again the moment the character reloaded from a snapshot (which can happen almost
+		// immediately after spawn), making the feature appear to just not work.
 		if ( this._god )
 		if ( typeof sdModeration === 'undefined' || !sdModeration.GetAdminRowByHash( this._my_hash ) )
+		if ( !( sdWorld.server_config.AutoGodModeForAllPlayers && sdWorld.server_config.AutoGodModeForAllPlayers() ) )
 		{
 			this._god = false;
 			this._debug = false;

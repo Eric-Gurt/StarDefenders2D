@@ -223,6 +223,15 @@ class sdModeration
 	// Default (hook absent or returns nothing) is unchanged behavior: no extra commands allowed.
 	static IsCommandAllowedForAllPlayers( command )
 	{
+		// If AutoGodModeForAllPlayers is on, players must also be able to manually run /god
+		// themselves - to turn it off, or to re-grant it if something reset the flag (e.g. it
+		// used to get silently stripped again by sdCharacter.onServerSideSnapshotLoaded's stale-
+		// admin cleanup on the next snapshot reload) - without requiring server owners to
+		// separately remember to list 'god' in GetCommandsAllowedForAllPlayers too.
+		if ( command === 'god' )
+		if ( sdWorld.server_config.AutoGodModeForAllPlayers && sdWorld.server_config.AutoGodModeForAllPlayers() )
+		return true;
+
 		if ( !sdWorld.server_config.GetCommandsAllowedForAllPlayers )
 		return false;
 
