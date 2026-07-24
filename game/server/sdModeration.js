@@ -178,6 +178,59 @@ class sdModeration
 		return 0;
 	}
 	
+	// Extracted from the '/god 1' / '/god 2' command body so it can also be applied automatically
+	// on respawn/reconnect (see index.js's AutoGodModeForAllPlayers server_config hook usage).
+	static ApplyGodMode( socket, debug=false )
+	{
+		if ( !socket.character )
+		return;
+
+		// Skip arrival sequence
+		if ( socket.character.driver_of )
+		if ( ( socket.character.driver_of._doors_locked || socket.character.driver_of.doors_locked || false ) )
+		{
+			socket.character.driver_of.ExcludeDriver( socket.character, true );
+		}
+
+		socket.character._god = true;
+		socket.character._debug = debug;
+
+		if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
+		{
+			sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
+			sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
+			sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
+			sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
+			sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
+
+			socket.character.InstallUpgrade( 'upgrade_invisibility' );
+			socket.character.InstallUpgrade( 'upgrade_grenades' );
+
+			socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+			socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+			socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+
+			socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+			socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+			socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+		}
+
+		socket.emit('SET sdWorld.my_entity._god', socket.character._god, socket.character._debug );
+	}
+
+	// Server-config-driven allowlist letting ordinary (non-admin) players run specific admin
+	// commands - e.g. server_config.js: static GetCommandsAllowedForAllPlayers() { return [ 'event', 'spawnevent', 'zoom' ]; }
+	// Default (hook absent or returns nothing) is unchanged behavior: no extra commands allowed.
+	static IsCommandAllowedForAllPlayers( command )
+	{
+		if ( !sdWorld.server_config.GetCommandsAllowedForAllPlayers )
+		return false;
+
+		let list = sdWorld.server_config.GetCommandsAllowedForAllPlayers();
+
+		return !!list && list.indexOf( command ) !== -1;
+	}
+
 	static GetAdminRowByHash( hash )
 	{
 		if ( hash !== null )
@@ -230,7 +283,7 @@ class sdModeration
 
 			if ( !my_admin_row )
 			{
-				is_non_admin = ( sdModeration.non_admin_commands.indexOf( parts[ 0 ] ) !== -1 );
+				is_non_admin = ( sdModeration.non_admin_commands.indexOf( parts[ 0 ] ) !== -1 ) || sdModeration.IsCommandAllowedForAllPlayers( parts[ 0 ] );
 
 				if ( sdModeration.ever_loaded )
 				{
@@ -637,43 +690,7 @@ class sdModeration
 			{
 				if ( parts[ 1 ] === '1' || parts[ 1 ] === '2' )
 				{
-					// Skip arrival sequence
-					if ( socket.character.driver_of )
-					if ( ( socket.character.driver_of._doors_locked || socket.character.driver_of.doors_locked || false ) )
-					{
-						socket.character.driver_of.ExcludeDriver( socket.character, true );
-					}
-					
-					socket.character._god = true;
-					socket.character._debug = ( parts[ 1 ] === '2' );
-					
-					if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
-					{
-						//for ( let i = 0; i < sdWorld.sockets.length; i++ )
-						//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
-
-						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
-						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
-						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
-						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
-						sdEntity.AddEntityToEntitiesArray( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_MASS_DELETER }) );
-
-						//socket.character.InstallUpgrade( 'upgrade_jetpack' );
-						//socket.character.InstallUpgrade( 'upgrade_hook' );
-						//socket.character.InstallUpgrade( 'upgrade_hook' );
-						socket.character.InstallUpgrade( 'upgrade_invisibility' );
-						socket.character.InstallUpgrade( 'upgrade_grenades' );
-
-						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
-						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
-						socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
-
-						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
-						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
-						socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
-					}
-					
-					socket.emit('SET sdWorld.my_entity._god', socket.character._god, socket.character._debug );
+					sdModeration.ApplyGodMode( socket, parts[ 1 ] === '2' );
 				}
 				else
 				if ( parts[ 1 ] === '0' )
@@ -681,7 +698,7 @@ class sdModeration
 					//if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
 					//for ( let i = 0; i < sdWorld.sockets.length; i++ )
 					//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' is no longer in "godmode".' );
-				
+
 					socket.character._god = false;
 					socket.character._debug = false;
 					socket.emit('SET sdWorld.my_entity._god', socket.character._god, socket.character._debug );
