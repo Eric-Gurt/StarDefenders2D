@@ -1669,12 +1669,12 @@ class sdSteeringWheel extends sdEntity
 
 		if ( will_move || forceful )
 		{
-			// phase-13-rigid-05: when RIGID_MOVE_MODE==='on', defer hash-membership updates for ALL moved members to one
-			// batched two-stage rehash after both commit loops below, and replace the per-member callback fan-out with a
-			// scan-each-cell-once cached pass. Byte-identical to the legacy per-member path; the collision decision above
-			// is untouched so will_move / stuff_to_push / stopping are unchanged. 'off' (default) and 'verify' keep the
-			// legacy path exactly.
-			let rigid_on = ( globalThis.RIGID_MOVE_MODE === 'on' );
+			// phase-13-rigid-05: defer hash-membership updates for ALL moved members to one batched two-stage rehash
+			// after both commit loops below, and replace the per-member callback fan-out with a scan-each-cell-once
+			// cached pass. Byte-identical to the legacy per-member path; the collision decision above is untouched so
+			// will_move / stuff_to_push / stopping are unchanged. Default is ON; explicit RIGID_MOVE_MODE==='off' or
+			// 'verify' (read-only dry-run against the legacy path) opt back out.
+			let rigid_on = ( globalThis.RIGID_MOVE_MODE !== 'off' && globalThis.RIGID_MOVE_MODE !== 'verify' );
 
 			for ( let i = 0; i < scan.length; i++ )
 			{
