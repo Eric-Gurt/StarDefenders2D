@@ -5744,16 +5744,24 @@ class sdGunClass
 						});
 						ent.gun_slot = 2;
 						ent._jetpack_allowed = true;
-						ent.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) // Level 2 heavy armor
+						//ent.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) // Level 2 heavy armor
 						ent._matter_regeneration = 5;
 						ent._matter_regeneration_multiplier = 10;
 						//ent._damage_mult = 1 + 3 / 3 * 1;
 						sdEntity.AddEntityToEntitiesArray( ent );
 
 						let ent2 = new sdGun({ x: ent.x, y: ent.y,
+							class: sdGun.CLASS_LVL2_HEAVY_ARMOR
+						}); // Level 2 heavy armor
+						sdEntity.AddEntityToEntitiesArray( ent2 );
+						
+						ent.ApplyArmor( ent2 );
+						ent2.remove();
+
+						let ent3 = new sdGun({ x: ent.x, y: ent.y,
 							class: sdGun.CLASS_LMG
 						}); // Even with LMG it seems weak compared to power-stimpack
-						sdEntity.AddEntityToEntitiesArray( ent2 );
+						sdEntity.AddEntityToEntitiesArray( ent3 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });

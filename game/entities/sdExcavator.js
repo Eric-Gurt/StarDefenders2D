@@ -379,19 +379,22 @@ class sdExcavator extends sdEntity
 						excavator_net_ids.push( sdExcavator.council_excavators[ i ]._net_id );
 						// Tasks with multiple destroy objectives take arrays of net_id then fetch entities inside later.
 					}
-					for ( let i = 0; i < sdWorld.sockets.length; i++ )
-					if ( sdWorld.sockets[ i ].character && this.time_left > 30 * 10 )
+					if ( excavator_net_ids.length > 0 )
 					{
-						sdTask.MakeSureCharacterHasTask({
-								similarity_hash:'DESTROYALL-COUNCILEXCAVATORS', 
-								executer: sdWorld.sockets[ i ].character,
-								all_targets: excavator_net_ids,
-								mission: sdTask.MISSION_DESTROY_ALL_ENTITIES,
-								difficulty: 0.3, // 30% per excavator (updated in onMade inside sdTask I believe)
-								time_left: this.time_left - ( 30 * 5 ),
-								title: 'Disrupt Council excavation operations',
-								description: 'The Council wants to excavate resources and artifacts on this planet. Destroy their excavators, the resources are crucial for our survival!'
-							});
+						for ( let i = 0; i < sdWorld.sockets.length; i++ )
+						if ( sdWorld.sockets[ i ].character && this.time_left > 30 * 10 )
+						{
+							sdTask.MakeSureCharacterHasTask({
+									similarity_hash:'DESTROYALL-COUNCILEXCAVATORS', 
+									executer: sdWorld.sockets[ i ].character,
+									all_targets: excavator_net_ids,
+									mission: sdTask.MISSION_DESTROY_ALL_ENTITIES,
+									difficulty: 0.3, // 30% per excavator (updated in onMade inside sdTask I believe)
+									time_left: this.time_left - ( 30 * 5 ),
+									title: 'Disrupt Council excavation operations',
+									description: 'The Council wants to excavate resources and artifacts on this planet. Destroy their excavators, the resources are crucial for our survival!'
+								});
+						}
 					}
 					
 				}
