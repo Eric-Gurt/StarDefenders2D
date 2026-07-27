@@ -2153,9 +2153,13 @@ class sdStatusEffect extends sdEntity
 							
 							if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
 							{
-								// If has line of sight, add coords for banish attack
-								status_entity._banish_x.push( xx );
-								status_entity._banish_y.push( yy );
+								// If has line of sight, check distance then add coords for banish attack
+								let di = sdWorld.Dist2D( status_entity.for.x, status_entity.for.y, xx, yy );
+								if ( di < 200 )
+								{
+									status_entity._banish_x.push( xx );
+									status_entity._banish_y.push( yy );
+								}
 							}
 						}
 						else
@@ -2176,16 +2180,19 @@ class sdStatusEffect extends sdEntity
 												// Prevent self banishing
 												if ( nears[ i ].IsTargetable() && nears[ i ]._is_bg_entity === 0 ) // Also checked in ApplyAffection but prevents unncessessary explosions
 												{
-													if ( typeof nears[ i ]._ai_team === 'undefined' )
+													if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, nears[ i ].x, nears[ i ].y, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
 													{
-														sdLost.ApplyAffection( nears[ i ], 50, null, sdLost.FILTER_BANISHED );
-														explode = true;
-													}
-													else
-													if ( nears[ i ]._ai_team !== 3 ) // Not council?
-													{
-														sdLost.ApplyAffection( nears[ i ], 50, null, 6 );
-														explode = true;
+														if ( typeof nears[ i ]._ai_team === 'undefined' )
+														{
+															sdLost.ApplyAffection( nears[ i ], 50, null, sdLost.FILTER_BANISHED );
+															explode = true;
+														}
+														else
+														if ( nears[ i ]._ai_team !== 3 ) // Not council?
+														{
+															sdLost.ApplyAffection( nears[ i ], 50, null, 6 );
+															explode = true;
+														}
 													}
 												}
 											}
@@ -2206,7 +2213,7 @@ class sdStatusEffect extends sdEntity
 									}
 							}
 							else
-							if ( status_entity._next_banish_attack >= -25 )
+							if ( status_entity._next_banish_attack <= -25 )
 							{
 								status_entity._banish_store_timer = Math.max( 0, status_entity._banish_store_timer - GSPEED );
 								if ( status_entity._banish_store_timer === 0 )
@@ -2254,11 +2261,15 @@ class sdStatusEffect extends sdEntity
 											can_add = false;
 										}
 										if ( can_add && sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
+										{
+											// If has line of sight, check distance then add coords for banish attack
+											let di = sdWorld.Dist2D( status_entity.for.x, status_entity.for.y, xx, yy );
+											if ( di < 200 )
 											{
-												// If has line of sight, add coords for banish attack
 												status_entity._banish_x.push( xx );
 												status_entity._banish_y.push( yy );
-											}	
+											}
+										}	
 									}
 								}
 							}
