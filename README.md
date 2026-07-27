@@ -1,17 +1,17 @@
 # Star Defenders 2D
-This is a source code of my Star Defenders 2D game which you can usually play here: https://www.gevanni.com:3000
+This is the source code of my Star Defenders 2D game, which you can usually play here: https://www.gevanni.com:3000
 
-Finish it (contact me on twitter or patreon for that, I have plenty of plans, features and suggestions for bug fixes) or suggest updates as pull requests if you want to. 
+Feel free to finish it (contact me on Twitter or Patreon - I have plenty of plans, features and bug-fix suggestions to share) or submit updates as pull requests if you'd like to.
 
-Reason for that is a usual "I must go, my planet needs me". But once I'm done after working on my primary project I may revisit this one. But do you really want to wait? Players of this game do not and I woudn't either.
+The reason for that is the usual "I must go, my planet needs me". Once I'm done working on my primary project I may revisit this one. But do you really want to wait? Players of this game don't, and I wouldn't either.
 
 https://twitter.com/Eric_Gurt
 
-As for my part of code, art and sound effects - this project can be used commercially (you are allowed to get revenue from it - be it ads, donations, subscriptions or purchases of game access or in-game items). Once you are over $1 000 (USD) in total revenue - just support me via my Patreon (https://www.patreon.com/Eric_Gurt). Project uses GPL v3 so you can use it as a base for your other projects, without need to open source.
+As for my part of the code, art and sound effects - this project can be used commercially (you are allowed to get revenue from it, be it ads, donations, subscriptions, or purchases of game access or in-game items). Once you're over $1,000 (USD) in total revenue, just support me via my Patreon (https://www.patreon.com/Eric_Gurt). The project uses GPL v3, so you can use it as a base for your other projects without needing to open source them.
 
-As for other contributors - feel free to ask at our Discord server. If you are contributor - you can specify your requirements here as well.
+As for other contributors - feel free to ask on our Discord server. If you're a contributor, you can list your own requirements here as well.
 
-Currently project isn't like restricted to specific people to work on it - everyone is free to suggest pull requests or make branches and even separate games.
+The project currently isn't restricted to specific people working on it - everyone is free to suggest pull requests, make branches, or even build separate games from it.
 
 Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9E
 
@@ -73,22 +73,84 @@ For Windows/manual development, install Node.js from https://nodejs.org, install
 ```bash
 node --inspect index.js
 ```
-After you've done that, green cube icon will magically appear at top left of any open devtools window.
+After that, a green cube icon will appear at the top-left of any open DevTools window.
 
 # Start server
 
-You'll need to update SSL (https thing) info in index.js or just get rid of SSL support. It will automatically let it run on Windows without SSL on localhost:3000 .
+You'll need to update the SSL (HTTPS) info in `index.js`, or just get rid of SSL support entirely. On Windows, it will automatically fall back to running without SSL on localhost:3000.
 Then do:
 ```
 node index.js > stdout.txt 2> stderr.txt &
 ```
-But there is a better way to start server (it will prevent server turning off, though there still been cases when something sends termination signal to server):
+But there's a better way to start the server (it prevents the server from turning off, though there have still been cases where something sends it a termination signal):
 ```
 nohup node index.js > stdout.txt 2> stderr.txt & disown
 ```
-There is also alternate guide from MrMcShroom:
+There's also an alternate guide from MrMcShroom:
 https://docs.google.com/document/d/17ydIOjwjUKnHRcEVuYIYi35fBcIBid7k440I3X5fh9A/edit
 
 # Admin commands
 
-These might change so type /selfhost - it will hint you what to do next. Once you've got admin rights you can type /help for full list of commands you can execute.
+Admin commands are typed into the in-game chat box, prefixed with `/` (handled by `sdModeration.CommandReceived` in `game/server/sdModeration.js`). This list can change as the code evolves - `/help` (or `/commands`, `/?`) always prints the exact set of commands available to you in-game.
+
+## Becoming the first admin
+
+There's no `/selfhost` command in the current code. Instead:
+
+1. Join the server and spawn a character.
+2. Type `/selfpromote` (no admin rights required, works only while there are zero admins). This generates a one-time password file called `superuser_pass.v` in the server directory (if it doesn't already exist).
+3. Open `superuser_pass.v` in a text editor, copy its contents, and type `/selfpromote <paste the password here>` in chat.
+4. You are now the first (full access, `access_level` 0) admin. The password stops working once any admin exists.
+
+Once you're an admin, other players can be promoted/demoted through the `/admin` panel (see below).
+
+## Access levels
+
+- **Full admin** (`access_level` 0, the first admin and anyone they promote to level 0): can run every command below.
+- **Sub-admin** (`access_level` > 0, promoted by another admin): restricted to the commands listed in the server config's `allowed_non_full_access_level_admin_commands` array. By default that's: `commands`, `listadmins`, `announce`, `restart`, `save`, `restore`, `god`, `admin`/`a`/`adm`, `db`/`database`, `qs`/`quickstart`, `remove`, `topactive`, `scale`, `logentitycount`.
+- **Non-admin / anyone connected**: `help`/`?`/`commands`, `listadmins`, `selfpromote`, `connection`/`socket`, `kill`.
+
+## Command reference
+
+General:
+- `/help`, `/commands`, `/?` - list the commands available to you.
+- `/selfpromote <password>` - see "Becoming the first admin" above.
+- `/retry` - retry loading the admin/moderation data file if it failed to load on startup.
+- `/listadmins` - list all admins with their index (`#0`, `#1`, ...) and access level.
+- `/announce <text>` - broadcast a message to every connected player.
+- `/connection`, `/socket` - show your own update rate and dropped/sent packet counts.
+- `/password <text>` - set (or, with no text, clear) an extra join password non-admins must supply. Admins never need it.
+
+Server lifecycle:
+- `/quit`, `/shutdown`, `/exit` - stop the server process immediately.
+- `/restart`, `/reboot [nosave|0]` - restart the server process (saves a snapshot first unless `nosave`/`0` is passed).
+- `/save` - save a "timewarp" restore point (does nothing if `aggressive_hibernation` is enabled in the config).
+- `/restore`, `/load` - restore the world from the last timewarp restore point, then restarts without saving.
+- `/fullreset`, `/wipe` - delete the world snapshot and deep-sleep files, then restart without saving. Destructive.
+
+World/gameplay:
+- `/god <0|1|2>` - toggle godmode for yourself; `1` grants admin tool guns and upgrades, `2` also enables debug/sensor-area display, `0` turns it off.
+- `/chill`, `/peace`, `/peaceful`, `/stopevents`, `/pauseevents <0|1>` - `1` pauses weather/AI events and clears existing hostile AI/effects; `0` resumes them.
+- `/spawnevent`, `/event <number|sdWeather.PROPERTY>` - force-trigger a specific weather/world event, by numeric ID or by a named `sdWeather` constant (e.g. `/event sdWeather.EVENT_QUAKE`).
+- `/remove <class|*>`, `/break <class|*>` - despawn all active entities of a given class (or `*` for all non-global entities). `/remove` also clears their "broken" flag so they won't be treated as destroyed; `/break` leaves that flag as-is.
+- `/scale <10-1000>` - set your character's visual size percentage (defaults to 100 if omitted/invalid).
+- `/zoom <10-1000>` - set your camera zoom as a percentage (defaults to 100).
+- `/kill` - kill your own character and trigger the respawn sequence.
+- `/boundsmove <x> <y> [fast|wipe]` - shift the world bounds by x,y (rounded to nearest 32; positive Y is downward). With `fast`/`wipe`, the world is collapsed to a point and re-expanded at the new location instead of sliding, effectively wiping the area.
+- `/worldresize <x1|y1|x2|y2> <value>` - move one edge of the world bounds by `value` (rounded to nearest 32).
+
+Diagnostics:
+- `/topactive` - log the 10 most common active entity classes by count, once a second for 30 seconds.
+- `/distinct <class>` - break down active entities of a class by type/tier/material/etc. and show the top 10 combinations by count.
+- `/deepsleepinfo`, `/cells`, `/deepsleep`, `/ds` - show deep-sleep cell counts (unspawned, hibernated, scheduled-to-hibernate, do-not-hibernate).
+- `/logentitycount` - log a count of all entities by class to the server console.
+- `/updatecache` - force-refresh the server's global file cache.
+- `/disablecache` - disable the global file cache.
+
+Interfaces:
+- `/admin`, `/a`, `/adm` - open the admin panel UI (promote/demote players, and other moderation tools not exposed as chat commands).
+- `/database`, `/db` - open the database editor UI.
+
+Dangerous/first-admin-only:
+- `/eval <js code>` - run arbitrary JavaScript on the server. Only usable by the first admin (`access_level` 0), and only if `let_server_owner_run_eval_command` is enabled in the server config (disabled by default).
+- `/quickstart`, `/qs` - instantly max out your own character's level, matter, and all shop upgrades. Intended for testing.
