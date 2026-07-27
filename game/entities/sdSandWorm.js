@@ -1384,8 +1384,15 @@ class sdSandWorm extends sdEntity
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
 				{
-					from_entity._sickness += 30;
-					from_entity._last_sickness_from_ent = this;
+					// _sickness/_last_sickness_from_ent are dead raw properties (sdCharacter never
+					// initializes them - see the commented-out declarations in its constructor), and
+					// every entity gets Object.sealed shortly after creation (sdWorld's to_seal_list
+					// pass) for V8 hidden-class performance. Writing a raw property that was never
+					// part of the sealed shape throws "Cannot add property ..., object is not
+					// extensible" and crashes the whole server the first time a corrupted worm melees
+					// a player. sdBlock.CorruptAttack() (what this block was copy-pasted from) already
+					// goes through the proper status-effect API instead of a raw property - use that.
+					from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 30, intensity: 1, owner: this });
 				}
 			}
 		}
