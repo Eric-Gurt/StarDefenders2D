@@ -2212,10 +2212,37 @@ class sdServerConfigFull extends sdServerConfigShort
 
 				if ( one_by_one )
 				{
+					// Every individual entity snapshot above passed its own JSON.stringify test, so the
+					// unserializable value (whatever made the combined JSON.stringify( save_obj ) below throw
+					// in the first place) must be one of save_obj's OTHER top-level fields - this used to go
+					// completely untested, so this path always fell straight through to the opaque
+					// '...Did not find?' throw with no indication of where to even start looking.
+					let other_fields = [ 'bounds', 'entity_net_ids', 'seed', 'base_ground_level1', 'base_ground_level2' ];
+					let bad_field = null;
+
+					for ( let f = 0; f < other_fields.length; f++ )
+					{
+						try
+						{
+							JSON.stringify( save_obj[ other_fields[ f ] ], replacer );
+						}
+						catch ( e )
+						{
+							bad_field = other_fields[ f ];
+							console.warn( 'Object can not be json-ed! save_obj.' + bad_field + ' likely contains recursion. Error: ', e );
+							console.warn( save_obj[ bad_field ] );
+							break;
+						}
+					}
+
 					debugger;
-					
+
 					snapshot_save_busy = false;
-					throw new Error( '...Did not find?' );
+
+					if ( bad_field )
+					throw new Error( 'Stopping everything because saving is no longer possible... (save_obj.' + bad_field + ' failed to JSON-encode)' );
+					else
+					throw new Error( '...Did not find? (every entity and every other save_obj field individually passed JSON.stringify - the failure only reproduces when they are combined; check for a JSON.stringify replacer/toJSON side effect or a value that mutates between passes)' );
 				}
 
 				try
