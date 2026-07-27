@@ -12,6 +12,7 @@ import sdBullet from './sdBullet.js';
 import sdDeepSleep from './sdDeepSleep.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdCom from './sdCom.js';
+import sdGun from './sdGun.js';
 
 class sdAsteroid extends sdEntity
 {
