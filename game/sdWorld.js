@@ -139,6 +139,14 @@ class sdWorld
 		// phase-13-fanout-03: live byte-identical check for the sensor-area index (SENSOR_SCAN_MODE==='verify').
 		sdWorld.sensor_verify_profile = sdWorld.CreateSensorVerifyProfile();
 
+		// phase-13-rigid-05: monotonic counter bumped ONLY when UpdateHashPosition / the rigid batch actually change a
+		// hash-cell membership. The rigid fast-path callback fan-out (sdSteeringWheel.ComplexElevatorLikeMove when
+		// globalThis.RIGID_MOVE_MODE==='on') builds a per-cell reactive-occupant cache once and trusts it only while this
+		// counter is unchanged; if a movement callback moves/removes an entity mid-pass (real membership change) the
+		// counter advances and the remaining members fall back to a full per-cell scan, keeping the fast path
+		// byte-identical to the legacy per-member path regardless of what callbacks do.
+		sdWorld._rigid_membership_seq = 0;
+
 		sdWorld.target_scale = 2; // Current one, this one depends on screen size
 		sdWorld.default_zoom = 2;
 		sdWorld.current_zoom = sdWorld.default_zoom; // Synced from server, for example when player is in vehicle or steering wheel
@@ -2843,12 +2851,14 @@ class sdWorld
 		//if ( entity._hash_position !== new_hash_position )
 		if ( !sdWorld.ArraysEqualIgnoringOrder( entity._affected_hash_arrays, new_affected_hash_arrays ) )
 		{
+			sdWorld._rigid_membership_seq++; // phase-13-rigid-05: real hash-membership change -> invalidate any in-flight rigid reactive cache
+
 			for ( var i = 0; i < entity._affected_hash_arrays.length; i++ )
 			{
 				var ind = entity._affected_hash_arrays[ i ].arr.indexOf( entity );
 				if ( ind === -1 )
 				throw new Error('Bad hash object - it should contain this entity but it does not');
-			
+
 				entity._affected_hash_arrays[ i ].arr.splice( ind, 1 );
 				sdWorld._SensorIndexRemove( entity._affected_hash_arrays[ i ], entity ); // phase-13-fanout-03
 				//entity._affected_hash_arrays[ i ].RecreateWithout( ind );
@@ -3087,6 +3097,219 @@ class sdWorld
 				});
 			}
 		}
+	}
+	// ================================================================================================================
+	// phase-13-rigid-05: authoritative rigid-group move fast path, used ONLY by sdSteeringWheel.ComplexElevatorLikeMove
+	// when globalThis.RIGID_MOVE_MODE === 'on'. A steering-wheel move translates a whole base rigidly; the legacy code
+	// above treats it as many independent entity moves, each of which (a) rehashes its own cells and (b) re-scans all of
+	// its cells for movement-callback neighbours, so a dense base-interior cell gets re-iterated once per co-located
+	// member. These helpers rehash the whole group in two stages and scan each shared cell ONCE, producing the SAME
+	// world_hash_positions membership and the SAME onMovementInRange invocation multiset+order as the legacy per-member
+	// path. All members must already be at their FINAL x/y (the steering commit loops move them) before these run.
+	// Deliberately independent of the sensor_relevant_arr (phase-13-fanout-03) SENSOR_SCAN_MODE branch above: that branch
+	// only ever activates for an sdSensorArea mover, and sdSensorArea is never a `scan`/`stuff_to_push` member itself
+	// (sdSteeringWheel.ClassifyRigidMember buckets it as 'dependent'), so it never reaches RigidMemberCallbacks as `entity`.
+
+	static RigidComputeNewCells( entity ) // mirror of the cell-list math in UpdateHashPosition (cells the hitbox overlaps)
+	{
+		let cells = [];
+		if ( entity._is_being_removed || entity._net_id === undefined )
+		return cells;
+
+		let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) * CHUNK_SIZE_INV );
+		let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) * CHUNK_SIZE_INV );
+		let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) * CHUNK_SIZE_INV );
+		let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) * CHUNK_SIZE_INV );
+
+		if ( to_x === from_x )
+		to_x++;
+		if ( to_y === from_y )
+		to_y++;
+
+		if ( ( to_x - from_x < CHUNK_SIZE && to_y - from_y < CHUNK_SIZE ) || entity.is( sdDeepSleep ) )
+		{
+			for ( let cx = from_x; cx < to_x; cx++ )
+			for ( let cy = from_y; cy < to_y; cy++ )
+			cells.push( sdWorld.RequireHashPosition( cx * CHUNK_SIZE, cy * CHUNK_SIZE, true ) );
+		}
+		else
+		debugger; // ~~ operation overflow / object too huge (matches legacy UpdateHashPosition guard)
+
+		return cells;
+	}
+
+	// Two-stage batched rehash. Equivalent to calling UpdateHashPosition( m, false, false ) for every member IN THE
+	// GIVEN ORDER, but removes all members from their old cells first and only then adds them to their new cells, so a
+	// cell emptied by member A and refilled by member B never gets deleted-and-recreated (the churn). Skip-if-unchanged
+	// is kept per member so a member whose cells did not move keeps its exact position inside each cell's arr (legacy
+	// arr order is preserved -> future scans / Set-insertion order stay byte-identical). NOTE: the deepsleep-stuck DEBUG
+	// diagnostic in UpdateHashPosition (gated by sdDeepSleep.debug_track_entity_stucking..., off in production) is
+	// intentionally not replicated here; it has no behavioural effect.
+	static UpdateHashPositionBatchRigid( members )
+	{
+		// Stage 0: refresh hitboxes + compute each member's new cells; collect the ones whose cells actually moved.
+		// NOTE: game entities are Object.seal'd (non-extensible) so we CANNOT stash scratch state on the member -
+		// the changed members + their new cells are held in two parallel local arrays.
+		let changed_m = [];
+		let changed_nc = [];
+		for ( let i = 0; i < members.length; i++ )
+		{
+			let m = members[ i ];
+			m.UpdateHitbox();
+			let nc = sdWorld.RigidComputeNewCells( m );
+			if ( !sdWorld.ArraysEqualIgnoringOrder( m._affected_hash_arrays, nc ) ) // unchanged -> do not touch the hash for this member
+			{
+				changed_m.push( m );
+				changed_nc.push( nc );
+			}
+		}
+
+		if ( changed_m.length === 0 )
+		return; // nothing moved cells (rare for a real move, but cheap to short-circuit)
+
+		sdWorld._rigid_membership_seq++; // phase-13-rigid-05: real membership change (matches the per-member bump UpdateHashPosition would have done)
+
+		// Stage 1: remove every changed member from its OLD cells. Defer empty-cell deletion (a cell emptied here may be
+		// refilled in stage 2 by another member; deleting+recreating it would churn world_hash_positions for nothing).
+		let maybe_empty = [];
+		for ( let i = 0; i < changed_m.length; i++ )
+		{
+			let m = changed_m[ i ];
+			let old = m._affected_hash_arrays;
+			for ( let j = 0; j < old.length; j++ )
+			{
+				let cell = old[ j ];
+				let ind = cell.arr.indexOf( m );
+				if ( ind === -1 )
+				throw new Error( 'Bad hash object - rigid batch: member missing from one of its old cells' );
+				cell.arr.splice( ind, 1 );
+				sdWorld._SensorIndexRemove( cell, m ); // phase-13-fanout-03
+				maybe_empty.push( cell );
+			}
+		}
+
+		// Stage 2: add every changed member to its NEW cells, in member order (matches legacy append order), then commit.
+		for ( let i = 0; i < changed_m.length; i++ )
+		{
+			let m = changed_m[ i ];
+			let nc = changed_nc[ i ];
+			for ( let j = 0; j < nc.length; j++ )
+			{
+				nc[ j ].arr.push( m );
+				sdWorld._SensorIndexAdd( nc[ j ], m ); // phase-13-fanout-03
+				if ( nc[ j ].arr.length > 1000 ) // legacy NaN-bounds guard
+				debugger;
+			}
+			m._affected_hash_arrays = nc; // pre-existing property -> safe to assign on a sealed entity
+		}
+
+		// Stage 3: delete any old cell that ended up genuinely empty (no member or external re-added). Safe now all adds ran.
+		for ( let i = 0; i < maybe_empty.length; i++ )
+		{
+			let cell = maybe_empty[ i ];
+			if ( cell.arr.length === 0 )
+			sdWorld.world_hash_positions.delete( cell.hash );
+		}
+	}
+
+	// Scan the union of the group's final cells ONCE and record, per cell, the entities that actually have a
+	// movement-callback handler (onMovementInRange overridden). Shared dense cells are visited a single time (the win).
+	// Returns Map<Cell, Entity[]|null>; null entry = cell scanned, no reactive occupants (the common case for base hull).
+	static BuildRigidReactiveCache( members )
+	{
+		const default_handler = sdEntity.prototype.onMovementInRange;
+		let cache = new Map();
+		for ( let i = 0; i < members.length; i++ )
+		{
+			let cells = members[ i ]._affected_hash_arrays;
+			for ( let j = 0; j < cells.length; j++ )
+			{
+				let cell = cells[ j ];
+				if ( cache.has( cell ) )
+				continue; // already scanned (shared cell) -> scan-each-cell-once
+				let arr = cell.arr;
+				let reactive = null;
+				for ( let k = 0; k < arr.length; k++ )
+				if ( arr[ k ].onMovementInRange !== default_handler )
+				{
+					if ( reactive === null )
+					reactive = [];
+					reactive.push( arr[ k ] );
+				}
+				cache.set( cell, reactive );
+			}
+		}
+		return cache;
+	}
+
+	// Per-member movement-callback fan-out, byte-identical to the allow_calling_movement_in_range=true branch of
+	// UpdateHashPosition for a member whose hash membership is ALREADY final (set by the batch above). For a member with
+	// a default onMovementInRange (the rigid mass: blocks/BG/nodes) the legacy queue condition reduces to
+	// `another_has_handler && CanReactToMovement( another, member )`, so only a cell's reactive occupants can ever be
+	// queued -> iterate just those (from the cache), giving an identical Set (membership AND order, since the cache
+	// preserves arr order) with far fewer iterations. A member that DOES have a handler must still see every neighbour,
+	// so it scans the full cell. cache_seq pins the cache to the membership state at build time; if a prior callback
+	// changed hash membership (seq advanced) the cache may be stale, so this member falls back to the full per-cell scan
+	// (= legacy).
+	static RigidMemberCallbacks( entity, reactive_cache, cache_seq )
+	{
+		if ( entity._is_being_removed )
+		return;
+
+		entity._last_x = entity.x;
+		entity._last_y = entity.y;
+
+		const default_handler = sdEntity.prototype.onMovementInRange;
+		let m1 = ( entity.onMovementInRange !== default_handler );
+		let cache_ok = ( sdWorld._rigid_membership_seq === cache_seq );
+		let cells = entity._affected_hash_arrays;
+		let map = new Set();
+
+		for ( let i2 = 0; i2 < cells.length; i2++ )
+		{
+			let cell = cells[ i2 ];
+			let list = ( m1 || !cache_ok ) ? cell.arr : reactive_cache.get( cell );
+			if ( !list )
+			continue;
+			for ( let i = 0; i < list.length; i++ )
+			{
+				let another_entity = list[ i ];
+				if ( another_entity !== entity )
+				{
+					let m2 = ( another_entity.onMovementInRange !== default_handler );
+					if ( m1 || m2 )
+					if ( entity.x + entity._hitbox_x2 > another_entity.x + another_entity._hitbox_x1 &&
+						 entity.x + entity._hitbox_x1 < another_entity.x + another_entity._hitbox_x2 &&
+						 entity.y + entity._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 &&
+						 entity.y + entity._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 )
+					{
+						if ( ( m1 && sdWorld.CanReactToMovement( entity, another_entity ) ) ||
+							 ( m2 && sdWorld.CanReactToMovement( another_entity, entity ) ) )
+						map.add( another_entity );
+					}
+				}
+			}
+		}
+
+		let water = sdWater.all_swimmers.get( entity );
+		if ( water )
+		map.add( water );
+
+		map.forEach( ( another_entity )=>
+		{
+			if ( !another_entity._is_being_removed )
+			if ( !entity._is_being_removed )
+			{
+				let mm1 = ( entity.onMovementInRange !== default_handler );
+				let mm2 = ( another_entity.onMovementInRange !== default_handler );
+
+				if ( mm1 )
+				entity.onMovementInRange( another_entity );
+
+				if ( mm2 )
+				another_entity.onMovementInRange( entity );
+			}
+		});
 	}
     static GetTimeWarpSpeedForEntity( e )  // Anything distance/range base is better to handle with sdSensorArea-s, even crystal glow probably
     {
