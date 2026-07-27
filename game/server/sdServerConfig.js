@@ -2128,6 +2128,19 @@ class sdServerConfigFull extends sdServerConfigShort
 
 			while ( true )
 			{
+				// entities/saved_net_ids/duplicate_net_id_skips must be reset on every pass through this loop:
+				// when JSON.stringify(save_obj) throws below, the loop retries with one_by_one=true using the
+				// SAME entities array and saved_net_ids Set. Without this reset, the retry pass finds every
+				// entity's _net_id already present in saved_net_ids from the first pass and skips it as a
+				// "duplicate" via `continue` - before it ever reaches the one_by_one JSON.stringify try/catch
+				// further down. That both floods the log with false duplicate-_net_id warnings for virtually
+				// every entity in the world (nothing was actually duplicated - it's the same entity revisited
+				// on pass 2) and defeats the one-by-one diagnostic entirely, guaranteeing the "...Did not
+				// find?" fallback below fires instead of ever identifying the real unserializable object.
+				entities.length = 0;
+				saved_net_ids.clear();
+				duplicate_net_id_skips = 0;
+
 				for ( var i = 0; i < sdEntity.entities.length; i++ )
 				if ( !sdEntity.entities[ i ]._is_being_removed )
 				if ( !sdWorld.server_config.EntitySaveAllowedTest || sdWorld.server_config.EntitySaveAllowedTest( sdEntity.entities[ i ] ) )
