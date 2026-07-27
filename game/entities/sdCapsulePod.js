@@ -29,7 +29,9 @@ class sdCapsulePod extends sdEntity
 		sdCapsulePod.ACTION_CHECKING_PHONE_IDLING = 3;
 		sdCapsulePod.ACTION_CHECKING_PHONE_STOP1 = 4;
 		sdCapsulePod.ACTION_CHECKING_PHONE_STOP2 = 5;
-		
+
+		sdCapsulePod._door_class_name_list = [ 'sdDoor' ]; // Pre-made and reused by HasNearbySlabDoor() below - GetClassListByClassNameList caches its Set on the array instance itself, so passing a fresh literal every call defeats that cache entirely.
+
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 		
@@ -362,7 +364,7 @@ class sdCapsulePod extends sdEntity
 		return sdWorld.CheckWallExistsBox(
 			this.x + this._hitbox_x1 - margin, this.y + this._hitbox_y1 - margin,
 			this.x + this._hitbox_x2 + margin, this.y + this._hitbox_y2 + margin,
-			null, null, [ 'sdDoor' ], ( e )=>( e.w < 16 || e.h < 16 )
+			null, null, sdCapsulePod._door_class_name_list, ( e )=>( e.w < 16 || e.h < 16 )
 		);
 	}
 	ExcludeDriver( c, force=false ) // Overridden to guard against the "seal the pod next to a slab door, then wall it in" raid exploit. Away from a slab door, exits stay as permissive as on any other vehicle (never refused) so stacked pods / corner placements can't lock the player in.
