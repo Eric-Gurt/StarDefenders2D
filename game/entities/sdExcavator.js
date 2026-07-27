@@ -305,6 +305,9 @@ class sdExcavator extends sdEntity
 	
 	CollisionFiltering( from_entity )
 	{
+		if ( from_entity._is_bg_entity === 10 && from_entity._hard_collision ) // Hibernated deep sleep scenario?
+		return true;
+	
 		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
 		return false;
 		
