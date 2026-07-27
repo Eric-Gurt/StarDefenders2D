@@ -2342,7 +2342,7 @@ class sdWeather extends sdEntity
 						aerial_radius: 128,
 						store_ents: excavators,
 						near_entity: excavators[ 0 ],
-						group_radius: 2400
+						group_radius: 6000
 					});
 					
 				}
