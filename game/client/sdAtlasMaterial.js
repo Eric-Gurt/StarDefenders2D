@@ -33,7 +33,7 @@ class sdSpaceDedication
 }
 class sdSuperTexture
 {
-	constructor( is_transparent_int=sdAtlasMaterial.GROUP_OPAQUE )
+	constructor( is_transparent_int=sdAtlasMaterial.GROUP_OPAQUE, group_index=0 )
 	{
 		this.canvas = document.createElement( 'canvas' );
 		this.canvas.width = sdAtlasMaterial.super_texture_width;
@@ -60,11 +60,14 @@ class sdSuperTexture
 			is_transparent_int !== sdAtlasMaterial.GROUP_OPAQUE_DECAL 
 		);
 		
-		let depthTest = ( 
+		let depthTest = (
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE ||
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE_DECAL ||
 			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE ||
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD ||
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD ||
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND
 		);
 
 		let additive = ( is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE );
@@ -104,19 +107,22 @@ class sdSuperTexture
 				
 					attribute vec4 color; // From custom attributes
 					attribute float hue_rotation; // From custom attributes
-				
+					attribute float sd_filter_mode; // ATLAS_SHADER_FILTER: 0 = normal multiply, 1 = flat recolor (color.rgb is the target color, not a multiplier)
+
 					varying vec2 uv_current; // Give it to fragment shader
 					varying vec4 color_current; // Give it to fragment shader
 					varying float hue_rotation_current; // Give it to fragment shader
-				
-					void main() 
+					varying float sd_filter_mode_current; // Give it to fragment shader
+
+					void main()
 					{
 						uv_current = uv;
-				
+
 						color_current.rgba = color.rgba;
-				
+
 						hue_rotation_current = hue_rotation;
-				
+						sd_filter_mode_current = sd_filter_mode;
+
 						gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
 					}
 				`,
@@ -124,20 +130,32 @@ class sdSuperTexture
 				fragmentShader: `
 
 					uniform sampler2D tDiffuse;
-				
+
 					varying vec2 uv_current; // Take value from vertex shader (for fragment shader-only)
 					varying vec4 color_current; // Take value from vertex shader (for fragment shader-only)
 					varying float hue_rotation_current; // Take value from vertex shader (for fragment shader-only)
-					
+					varying float sd_filter_mode_current; // Take value from vertex shader (for fragment shader-only)
+
 					${ hueShift_function }
-					
+
 					void main()
 					{
-						if ( color_current.a <= 0.0 || texture2D( tDiffuse, uv_current ).a <= 0.0 )
+						vec4 tex_current = texture2D( tDiffuse, uv_current );
+
+						if ( color_current.a <= 0.0 || tex_current.a <= 0.0 )
 						discard;
-				
-						gl_FragColor.rgba = texture2D( tDiffuse, uv_current ).rgba * color_current.rgba;
-				
+
+						if ( sd_filter_mode_current > 0.5 )
+						{
+							// Flat recolor (shader equivalent of a 6-char sd_filter flood-fill bake): keep the texture only as an alpha mask
+							gl_FragColor.rgb = color_current.rgb;
+							gl_FragColor.a = tex_current.a * color_current.a;
+						}
+						else
+						{
+							gl_FragColor.rgba = tex_current.rgba * color_current.rgba;
+						}
+
 						if ( hue_rotation_current != 0.0 )
 						{
 							gl_FragColor.rgb = hueShift( gl_FragColor.rgb, hue_rotation_current );
@@ -277,7 +295,7 @@ class sdSuperTexture
 		this.mesh.frustumCulled = false;
 		//this.dots.frustumCulled = false;
 		
-		this.mesh.renderOrder = is_transparent_int;
+		this.mesh.renderOrder = globalThis.ATLAS_DETERMINISTIC_ORDER ? ( is_transparent_int + group_index * ( 1 / 1024 ) ) : is_transparent_int;
 		//this.dots.renderOrder = is_transparent_int;
 		
 		
@@ -315,6 +333,10 @@ class sdSuperTexture
 			geometry.hue_rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
 			geometry.hue_rotation_dataView = new DataView( geometry.hue_rotation.array.buffer );
 			geometry.setAttribute( 'hue_rotation', geometry.hue_rotation );
+
+			geometry.sd_filter_mode = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
+			geometry.sd_filter_mode_dataView = new DataView( geometry.sd_filter_mode.array.buffer );
+			geometry.setAttribute( 'sd_filter_mode', geometry.sd_filter_mode );
 		}
 		/*{
 			let geometry = this.geometry_dots;
@@ -377,12 +399,14 @@ class sdSuperTexture
 				geometry.uv.updateRange.count = geometry.offset * 2;
 				geometry.color.updateRange.count = geometry.offset * 4;
 				geometry.hue_rotation.updateRange.count = geometry.offset * 1;
+				geometry.sd_filter_mode.updateRange.count = geometry.offset * 1;
 				geometry.index.updateRange.count = geometry.offset_indices;
 
 				geometry.position.needsUpdate = true;
 				geometry.uv.needsUpdate = true;
 				geometry.color.needsUpdate = true;
 				geometry.hue_rotation.needsUpdate = true;
+				geometry.sd_filter_mode.needsUpdate = true;
 				geometry.index.needsUpdate = true;
 
 				const last_offset_indices = geometry.last_offset_indices;
@@ -514,13 +538,14 @@ class sdSuperTexture
 		   
 		return br;
 	}*/
-	GetVertex( 
-				x1,y1,z1, 
-				u1,v1, 
-				geometry,r,g,b,a, 
-				hue_rotation, 
+	GetVertex(
+				x1,y1,z1,
+				u1,v1,
+				geometry,r,g,b,a,
+				hue_rotation,
 				wx,wy,cache_slot,
-				apply_shading )
+				apply_shading,
+				sd_filter_mode=0 )
 	{
 		//trace( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
 		
@@ -559,6 +584,7 @@ class sdSuperTexture
 		const uv_dataView = geometry.uv_dataView;
 		const color_dataView = geometry.color_dataView;
 		const hue_rotation_dataView = geometry.hue_rotation_dataView;
+		const sd_filter_mode_dataView = geometry.sd_filter_mode_dataView;
 
 		position_dataView.setFloat32( offset_4_3 + 0, x1, true );
 		position_dataView.setFloat32( offset_4_3 + 4, y1, true );
@@ -900,6 +926,7 @@ class sdSuperTexture
 		color_dataView.setFloat32( offset_4_4 + 12, a, true );
 
 		hue_rotation_dataView.setFloat32( offset_4_1, hue_rotation, true );
+		sd_filter_mode_dataView.setFloat32( offset_4_1, sd_filter_mode, true );
 
 		//this.last_vertices.set( x1 + y1 + u1 + v1, { x:x1, y:y1, z:z1, u:u1, v:v1, r:r,g:g,b:b,a:a, i:offset });
 
@@ -921,19 +948,20 @@ class sdSuperTexture
 					wx1,wy1,cache_slot1, 
 					wx2,wy2,cache_slot2, 
 					wx3,wy3,cache_slot3,
-					apply_shading )
+					apply_shading,
+					sd_filter_mode=0 )
 	{
 		const geometry = this.geometry_mesh;
-		
+
 		if ( geometry.offset + 3 >= sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
-		
+
 		if ( geometry.offset_indices + 3 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
-	
-		let p1 = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a , hue_rotation, wx1,wy1,cache_slot1, apply_shading );
-		let p2 = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a2, hue_rotation, wx2,wy2,cache_slot2, apply_shading );
-		let p3 = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a3, hue_rotation, wx3,wy3,cache_slot3, apply_shading );
+
+		let p1 = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a , hue_rotation, wx1,wy1,cache_slot1, apply_shading, sd_filter_mode );
+		let p2 = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a2, hue_rotation, wx2,wy2,cache_slot2, apply_shading, sd_filter_mode );
+		let p3 = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a3, hue_rotation, wx3,wy3,cache_slot3, apply_shading, sd_filter_mode );
 		
 	
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
@@ -964,20 +992,21 @@ class sdSuperTexture
 				wx2,wy2,cache_slot2, 
 				wx3,wy3,cache_slot3, 
 				wx4,wy4,cache_slot4,
-				apply_shading ) // left-top, right-top, bottom-left, bottom-right
+				apply_shading,
+				sd_filter_mode=0 ) // left-top, right-top, bottom-left, bottom-right
 	{
 		const geometry = this.geometry_mesh;
-		
+
 		if ( geometry.offset + 4 >= sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
-		
+
 		if ( geometry.offset_indices + 6 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
-	
-		let lt = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation, wx1,wy1,cache_slot1, apply_shading );
-		let rt = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation, wx2,wy2,cache_slot2, apply_shading );
-		let lb = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation, wx3,wy3,cache_slot3, apply_shading );
-		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation, wx4,wy4,cache_slot4, apply_shading );
+
+		let lt = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation, wx1,wy1,cache_slot1, apply_shading, sd_filter_mode );
+		let rt = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation, wx2,wy2,cache_slot2, apply_shading, sd_filter_mode );
+		let lb = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation, wx3,wy3,cache_slot3, apply_shading, sd_filter_mode );
+		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation, wx4,wy4,cache_slot4, apply_shading, sd_filter_mode );
 	
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
 			lt
@@ -1104,7 +1133,41 @@ class sdSuperTexture
 		
 		return dedication;
 	}
-	
+
+	// ATLAS_LRU: if the most recently allocated line in this atlas is entirely stale (every
+	// dedication on it idle longer than ttl), free it and roll the packer cursor back so the
+	// next DedicateSpace() call overwrites it in place. Returns false (no-op) otherwise.
+	ReclaimTrailingStaleLine( ttl )
+	{
+		if ( this.dedications.length === 0 )
+		return false;
+
+		const line_y = this.dedications[ this.dedications.length - 1 ].y;
+
+		let i = this.dedications.length - 1;
+		while ( i >= 0 && this.dedications[ i ].y === line_y )
+		{
+			if ( sdWorld.time - this.dedications[ i ].last_time_used <= ttl )
+			return false; // Something on this line is still fresh - leave the whole line alone
+
+			i--;
+		}
+
+		const removed = this.dedications.splice( i + 1 );
+
+		for ( let d of removed )
+		if ( d.owner_img && d.owner_img.super_textures )
+		d.owner_img.super_textures[ this.is_transparent_int ] = null; // Forces a re-bake next time it's drawn
+
+		this.offset_y = line_y;
+		this.offset_x = 0;
+		this.max_line_height = 0;
+
+		sdAtlasMaterial.images_total_counter -= removed.length;
+
+		return true;
+	}
+
 	Preview()
 	{
 		//document.body.appendChild( this.canvas );
@@ -1141,11 +1204,19 @@ class sdAtlasMaterial
 		sdAtlasMaterial.GROUP_TRANSPARENT = 2;
 		sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE = 3;
 		sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED = 4;
-		//sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD = 2;
-		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD = 3;
-		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND = 4;
+		// New groups (ATLAS_LAYER_SPLIT): appended with new indices so legacy group ids above are unchanged.
+		// Ordered lowest-to-highest so paint order goes world -> in-game HUD -> on-screen HUD -> on-screen foreground.
+		sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD = 5;
+		sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD = 6;
+		sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND = 7;
 
-		sdAtlasMaterial.super_textures = [ [], [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
+		sdAtlasMaterial.super_textures = [ [], [], [], [], [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
+
+		// ATLAS_LRU (default off): once a group already holds this many super-textures, a failed
+		// DedicateSpace() will first try reclaiming trailing idle lines (idle longer than the TTL)
+		// before allocating yet another super-texture.
+		sdAtlasMaterial.ATLAS_LRU_SOFT_CAP = 1;
+		sdAtlasMaterial.ATLAS_LRU_TTL = 30000;
 		
 		sdAtlasMaterial.get_vertex_hits = 0;
 		sdAtlasMaterial.get_vertex_misses = 0;
@@ -1271,16 +1342,39 @@ class sdAtlasMaterial
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ is_transparent_int ].length; i++ )
 		{
 			let dedication = sdAtlasMaterial.super_textures[ is_transparent_int ][ i ].DedicateSpace( w, h );
-			
+
 			if ( dedication )
 			return dedication;
 		}
-		
-		let new_super_texture = new sdSuperTexture( is_transparent_int );
+
+		if ( globalThis.ATLAS_LRU )
+		if ( sdAtlasMaterial.super_textures[ is_transparent_int ].length >= sdAtlasMaterial.ATLAS_LRU_SOFT_CAP )
+		for ( let i = 0; i < sdAtlasMaterial.super_textures[ is_transparent_int ].length; i++ )
+		{
+			let super_texture = sdAtlasMaterial.super_textures[ is_transparent_int ][ i ];
+
+			let reclaimed_any = false;
+			while ( super_texture.ReclaimTrailingStaleLine( sdAtlasMaterial.ATLAS_LRU_TTL ) )
+			reclaimed_any = true;
+
+			if ( reclaimed_any )
+			{
+				let dedication = super_texture.DedicateSpace( w, h );
+
+				if ( dedication )
+				return dedication;
+			}
+		}
+
+		let new_super_texture = new sdSuperTexture( is_transparent_int, sdAtlasMaterial.super_textures[ is_transparent_int ].length );
 		sdAtlasMaterial.textures_total_counter++;
-		
+
 		sdAtlasMaterial.super_textures[ is_transparent_int ].push( new_super_texture );
-		
+
+		if ( globalThis.ATLAS_DEBUG_OVERFLOW )
+		if ( sdAtlasMaterial.super_textures[ is_transparent_int ].length > 1 )
+		console.warn( 'sdAtlasMaterial: group '+ is_transparent_int +' overflowed, now holds '+ sdAtlasMaterial.super_textures[ is_transparent_int ].length +' super-textures (paint order between them is undefined without ATLAS_DETERMINISTIC_ORDER)' );
+
 		return new_super_texture.DedicateSpace( w, h );
 	}
 	
@@ -1414,13 +1508,14 @@ class sdAtlasMaterial
 		{
 			dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
 			img.super_textures[ is_transparent_int ] = dedication;
+			dedication.owner_img = img; // Lets ATLAS_LRU null this back out when it evicts the dedication
 			super_texture = dedication.super_texture;
 			super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
 			super_texture.texture.needsUpdate = true;
 		}
-		
+
 		dedication.last_time_used = sdWorld.time;
-		
+
 		return [ dedication, super_texture ];
 	}
 	
@@ -1465,15 +1560,14 @@ class sdAtlasMaterial
 				
 				switch ( ctx.camera_relative_world_scale )
 				{
-					case sdRenderer.distance_scale_in_game_hud: 
-					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD;
-					//break;
-					case sdRenderer.distance_scale_on_screen_hud: 
-					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD;
-					//break;
-					case sdRenderer.distance_scale_on_screen_foreground: 
-					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND;
-						is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED;
+					case sdRenderer.distance_scale_in_game_hud:
+						is_transparent_int = globalThis.ATLAS_LAYER_SPLIT ? sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD : sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED;
+					break;
+					case sdRenderer.distance_scale_on_screen_hud:
+						is_transparent_int = globalThis.ATLAS_LAYER_SPLIT ? sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD : sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED;
+					break;
+					case sdRenderer.distance_scale_on_screen_foreground:
+						is_transparent_int = globalThis.ATLAS_LAYER_SPLIT ? sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND : sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED;
 					break;
 					default:
 						is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
@@ -1571,11 +1665,23 @@ class sdAtlasMaterial
 		const canvas_size = super_texture.canvas_size_scale_down_vector;//new THREE.Vector2( 1 / super_texture.canvas.width, 1 / super_texture.canvas.height );
 		const mat = ctx._matrix3;//.clone().invert();
 
-		const cr = ctx.sd_color_mult_r;
-		const cg = ctx.sd_color_mult_g;
-		const cb = ctx.sd_color_mult_b;
+		let cr = ctx.sd_color_mult_r;
+		let cg = ctx.sd_color_mult_g;
+		let cb = ctx.sd_color_mult_b;
 		const ca = ctx.globalAlpha / opacity_div;
 		const hue_rotation = ctx.sd_hue_rotation / 180 * Math.PI;
+
+		// ATLAS_SHADER_FILTER: sdRenderer.drawImageFilterCache sets this instead of CPU-baking a flood-fill sd_filter recolor.
+		// The base (un-recolored) image keeps its single shared atlas dedication; color.rgb becomes the flat target color
+		// and sd_filter_mode tells the fragment shader to replace instead of multiply.
+		let sd_filter_mode = 0;
+		if ( globalThis.ATLAS_SHADER_FILTER && ctx.sd_filter_shader_color )
+		{
+			sd_filter_mode = 1;
+			cr = ctx.sd_filter_shader_color[ 0 ];
+			cg = ctx.sd_filter_shader_color[ 1 ];
+			cb = ctx.sd_filter_shader_color[ 2 ];
+		}
 		
 		const side_mult = 0.8;
 		const top_mult = 1.1;
@@ -1746,13 +1852,14 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 
 							cr*side_mult,cg*side_mult,cb*side_mult,ca,hue_rotation,
-							
+
 							a_wx, a_wy, a_cache_slot,
 							a_wx, a_wy, a_cache_slot,
 							c_wx, c_wy, c_cache_slot,
 							c_wx, c_wy, c_cache_slot,
-							
-							apply_shading
+
+							apply_shading,
+							sd_filter_mode
 					);
 					/*super_texture.DrawPolygon( 
 							a.x, a.y, z0,
@@ -1794,13 +1901,14 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 
 							cr*side_mult,cg*side_mult,cb*side_mult,ca,hue_rotation,
-							
+
 							b_wx, b_wy, b_cache_slot,
 							b_wx, b_wy, b_cache_slot,
 							d_wx, d_wy, d_cache_slot,
 							d_wx, d_wy, d_cache_slot,
-							
-							apply_shading
+
+							apply_shading,
+							sd_filter_mode
 					);
 					/*super_texture.DrawPolygon( 
 							b.x, b.y, z0,
@@ -1842,13 +1950,14 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 
 							cr*bottom_mult,cg*bottom_mult,cb*bottom_mult,ca,hue_rotation,
-							
+
 							c_wx, c_wy, c_cache_slot,
 							d_wx, d_wy, d_cache_slot,
 							c_wx, c_wy, c_cache_slot,
 							d_wx, d_wy, d_cache_slot,
-							
-							apply_shading
+
+							apply_shading,
+							sd_filter_mode
 					);
 					/*
 					super_texture.DrawPolygon( 
@@ -1892,13 +2001,14 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 
 							cr*top_mult,cg*top_mult,cb*top_mult,ca,hue_rotation,
-							
+
 							a_wx, a_wy, a_cache_slot,
 							b_wx, b_wy, b_cache_slot,
 							a_wx, a_wy, a_cache_slot,
 							b_wx, b_wy, b_cache_slot,
-							
-							apply_shading
+
+							apply_shading,
+							sd_filter_mode
 					);
 					
 					/*super_texture.DrawPolygon( 
@@ -1960,13 +2070,14 @@ class sdAtlasMaterial
 						uv_d.x, uv_d.y,
 
 						cr,cg,cb,ca,hue_rotation,
-							
+
 							a_wx, a_wy, a_cache_slot,
 							b_wx, b_wy, b_cache_slot,
 							c_wx, c_wy, c_cache_slot,
 							d_wx, d_wy, d_cache_slot,
-							
-							apply_shading
+
+							apply_shading,
+							sd_filter_mode
 				);
 						
 				/*
