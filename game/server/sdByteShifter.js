@@ -339,13 +339,20 @@ class sdByteShifter
 
 								//current_snapshot_entities.push( ent );
 								current_snapshot_entities_by_net_id.set( ent._net_id, ent );
-								
+
+								// Called unconditionally here (rather than only from the "reuse cached snapshot" shortcut
+								// below) so entities like sdWeaponBench's held guns are still included the moment this
+								// client (re)gains visibility of the holder - e.g. right after walking back into range,
+								// when there is no per-client confirmed snapshot yet and neither the first-sync nor the
+								// diff-update path below would otherwise ever call it.
+								IncludeRequiredEntitiesOf( ent ); // Crystal combiners need this, many other items too
+
 								let is_static = ent.is_static;
-								
+
 								if ( is_static )
 								{
 									let old_version = this.known_statics_versions.get( ent );
-									
+
 									if ( old_version !== ent._update_version )
 									{
 										// Scan as usually. known_statics_versions.set will be done on arrival confirmation
@@ -355,7 +362,7 @@ class sdByteShifter
 										// Reuse the snapshot object
 										//let snap = this.confirmed_snapshot.get( ent );
 										let snap = this.confirmed_snapshot.get( ent._net_id );
-										
+
 										if ( snap )
 										{
 											if ( SYNC_DBG ) _dbg.static_reuse++;
@@ -363,7 +370,6 @@ class sdByteShifter
 											//replacement_for_confirmed_snapshot.set( ent, snap );
 											replacement_for_confirmed_snapshot.set( ent._net_id, snap );
 
-											IncludeRequiredEntitiesOf( ent ); // Crystal combiners need this, many other items too
 											return; // Skip
 										}
 									}

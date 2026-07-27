@@ -1457,8 +1457,8 @@ class sdBullet extends sdEntity
 									this.RemoveBullet(); // Prevent falkonian PSI cutter oneshotting lifebox
 								}
 
-								if ( from_entity.is( sdBlock ) && (
-										from_entity.DoesRegenerate() ) ) // Dirt damage bonus multiplier (relative to initial damage)
+								if ( from_entity.is( sdBlock ) && from_entity._natural && (
+										from_entity.DoesRegenerate() ) ) // Dirt damage bonus multiplier (relative to initial damage) - natural terrain only, so manually placed/built dirt doesn't inherit the excavation bonus and crumble next to walls that don't get it
 								dmg += base_damage * this._dirt_mult;
 								//from_entity.DamageWithEffect( dmg * this._dirt_mult, this._owner );
 

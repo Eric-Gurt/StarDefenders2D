@@ -1196,8 +1196,15 @@ class sdBlock extends sdEntity
 	//RequireSpawnAlign() 
 	//{ return true; }
 	
-	get spawn_align_x(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); }; // What am I doing here - Booraz
-	get spawn_align_y(){ return Math.max( 8, Math.min( Math.min( this.width / 2, this.height / 2 ), 16 ) ); };
+	// Fixed pitch, NOT derived from width/height (used to be up to 16 for 32x32 blocks, 8 for every
+	// smaller shop size). AttemptBlockMerging only merges vertically, never horizontally, so two
+	// side-by-side blocks of different shop sizes (e.g. 16x16 dirt next to a 32x32 wall) are the only
+	// thing keeping them flush - if their legal snap positions don't share a common grid, one of them
+	// can land up to 8px short of touching, leaving a permanent gap that exposes whatever is behind/
+	// below it. A single fixed 8px pitch for every block size guarantees any two blocks can always be
+	// placed perfectly flush regardless of their individual dimensions.
+	get spawn_align_x(){ return 8; };
+	get spawn_align_y(){ return 8; };
 	
 	HandleDestructionUpdate()
 	{

@@ -18,6 +18,7 @@ import sdBG from './sdBG.js';
 import sdArea from './sdArea.js';
 import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
+import sdTask from './sdTask.js';
 import sdWeaponBench from './sdWeaponBench.js';
 import sdWeaponMerger from './sdWeaponMerger.js';
 import sdCraftingBench from './sdCraftingBench.js';
@@ -824,16 +825,22 @@ class sdGun extends sdEntity
 	ChangeFireModeStart() // Can happen multiple times
 	{
 		if ( sdGun.classes[ this.class ] )
-		if ( !sdGun.classes[ this.class ].is_build_gun )
+		// Build tool used to be excluded here entirely (fire mode meant nothing for a non-firing
+		// tool). It now repurposes the same toggle as a build-placement grid switch (8px/16px) - see
+		// GeneralCreateBuildObject's use of fire_mode and the CLASS_BUILD_TOOL rotation in Draw().
 		// if ( !sdGun.classes[ this.class ].is_sword )
 		{
 			sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
 			this._held_by.reload_anim = 15;
 
 			this.fire_mode = ( this.fire_mode === 1 ) ? 2 : 1;
-            
+
             if ( sdGun.classes[ this.class ].onFireModeChange ) // Custom extra logic
             sdGun.classes[ this.class ].onFireModeChange( this, this.fire_mode );
+
+			if ( sdGun.classes[ this.class ].is_build_gun )
+			if ( this._held_by && this._held_by._socket )
+			this._held_by._socket.SDServiceMessage( this.fire_mode === 2 ? 'Build placement grid: 16px' : 'Build placement grid: 8px' );
 		}
 	}
 	
@@ -1593,6 +1600,21 @@ class sdGun extends sdEntity
 		}
 		else
 		{
+			if ( this.class === sdGun.CLASS_BUILD_TOOL )
+			if ( this._held_by && this._held_by.IsPlayerClass() && this._held_by.hea > 0 )
+			if ( !this._held_by._told_build_grid_hint ) // Shown at most once per life, not repeatedly while the tool is held
+			{
+				this._held_by._told_build_grid_hint = true;
+
+				sdTask.MakeSureCharacterHasTask({
+					similarity_hash: 'BUILD-TOOL-GRID-HINT',
+					executer: this._held_by,
+					mission: sdTask.MISSION_GAMEPLAY_HINT,
+					title: 'Build tool has two placement grids',
+					description: 'Press N to switch the build tool\'s fire mode - this toggles the placement grid between 8px and 16px. Some players prefer one or the other.'
+				});
+			}
+
 			if ( this._combo_timer > 0 )
 			this._combo_timer = Math.max( 0, this._combo_timer - GSPEED );
 			else
@@ -2073,6 +2095,10 @@ class sdGun extends sdEntity
 					else
 					ctx.rotate( - Math.PI / 8 );
 				}
+
+				if ( this.class === sdGun.CLASS_BUILD_TOOL ) // Visual indicator for the fire-mode-toggled placement grid (see GeneralCreateBuildObject): rotated = 16px, upright = 8px
+				if ( this.fire_mode !== 1 )
+				ctx.rotate( Math.PI / 2 );
 				/*
 				if ( this.class === sdGun.CLASS_SABER )
 				if ( this._held_by )

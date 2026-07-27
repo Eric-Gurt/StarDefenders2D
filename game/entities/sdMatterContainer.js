@@ -110,16 +110,19 @@ class sdMatterContainer extends sdEntity
 	}
 	onBuilt()
 	{
+		// Advanced containers only merge through an explicit context command (see ExecuteContextCommand's ADV_MERGE)
+		// so players don't lose track of matter/capacity by accidentally building next to another advanced container.
+		if ( !this.is_advanced_container )
 		this.CheckNearbyContainersForMerging();
 	}
 	CheckNearbyContainersForMerging()
 	{
 		if ( this.containers > 0 )
 		return;
-	
+
 		if ( this._is_being_removed )
 		return;
-		
+
 		let ents = sdWorld.GetAnythingNear( this.x, this.y, 48 );
 		for ( let i = 0; i < ents.length; i++ )
 		{
@@ -128,28 +131,121 @@ class sdMatterContainer extends sdEntity
 				let container = ents[ i ];
 				if ( container.y === this.y && container.containers < 3 ) // Same Y coordinate? Also container not too big?
 				{
+					let prev_x = container.x;
+					let prev_containers = container.containers;
+
 					if ( this.x > container.x )
 					container.x += 6;
 					else
 					container.x -= 6;
-				
+
+					container.containers++; // Increase "containerss" merged by 1 (also widens its hitbox)
+					container._hitbox_last_update = -1; // Force hitbox recompute so the occupancy check below sees the post-merge size/position
+
+					// "this" is still physically sitting right next to "container" (that's what triggered the
+					// merge) and is about to be consumed by it, so it must not count as an obstacle for the
+					// occupancy check below - otherwise container's widened/shifted hitbox always reports as
+					// blocked by "this" whenever the two are actually adjacent, and merging only ever appears
+					// to succeed when they happen to already have unnatural extra space between them.
+					this._is_being_removed = true;
+					let can_move = container.CanMoveWithoutOverlap( container.x, container.y, 1 );
+					this._is_being_removed = false;
+
+					if ( !can_move )
+					{
+						// Merging here would wedge the container inside another entity - roll back and try the next candidate instead
+						container.x = prev_x;
+						container.containers = prev_containers;
+						container._hitbox_last_update = -1;
+						continue;
+					}
+
 					let matter_to_add = this.matter || 0;
-				
-					container.containers++; // Increase "containerss" merged by 1
+
 					container.UpdateContainerPropertiesOnMerge( matter_to_add ); // Update properties
-					
+
 					if ( this.is_advanced_container )
 					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
-				
+
 					this.remove();
 					this._broken = false;
-					
+
 					break;
-					
+
 					// Container hitboxes increase by 16 per container merge. Stacks up to "4" containers (3 merges)
 				}
 			}
 		}
+	}
+	UnmergeOneContainer() // Splits one container off an advanced container stack, reversing CheckNearbyContainersForMerging. Returns true if it found room, false (and leaves state untouched) otherwise
+	{
+		if ( !sdWorld.is_server )
+		return false;
+
+		if ( !this.is_advanced_container )
+		return false;
+
+		if ( this.containers <= 0 )
+		return false;
+
+		if ( this._is_being_removed )
+		return false;
+
+		let split_hmax = this._hmax / ( this.containers + 1 );
+		let split_matter_max = this.matter_max / ( this.containers + 1 );
+		let split_matter = Math.min( this.matter / 2, split_matter_max ); // Even split of current matter, capacity-clamped for the new container
+
+		let old_x = this.x;
+		let old_containers = this.containers;
+		let old_hmax = this._hmax;
+		let old_matter_max = this.matter_max;
+		let old_matter = this.matter;
+
+		for ( let dir = -1; dir <= 1; dir += 2 ) // Try shrinking towards either side, whichever has room
+		{
+			this.containers = old_containers - 1;
+			this._hmax = old_hmax - split_hmax;
+			this.matter_max = old_matter_max - split_matter_max;
+			this.matter = old_matter - split_matter;
+			this.x = old_x + dir * 6;
+			this._hitbox_last_update = -1; // Force hitbox recompute for the shrunk container count/position
+
+			if ( this.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
+			{
+				let spawn_x = this.x - dir * ( Math.abs( this.hitbox_x2 ) + 11 );
+
+				let new_container = sdEntity.Create( sdMatterContainer, { x: spawn_x, y: this.y, matter_max: split_matter_max, matter: split_matter } );
+
+				if ( new_container && new_container.CanMoveWithoutOverlap( new_container.x, new_container.y, 1 ) )
+				{
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+					return true; // Committed
+				}
+
+				if ( new_container )
+				{
+					// This is a rollback of a split attempt that didn't find room, not a real
+					// destruction - new_container never really "existed" from the player's
+					// perspective. remove() defaults _broken to true (set internally, so it must be
+					// overridden AFTER calling remove(), same as the merge success path below does),
+					// which would otherwise make onRemove() dump the matter it was holding as a pile
+					// of crystal shards purely as a side effect of a no-space rollback.
+					new_container.remove();
+					new_container._broken = false;
+				}
+			}
+
+			// Roll back this attempt before trying the other direction
+			this.containers = old_containers;
+			this._hmax = old_hmax;
+			this.matter_max = old_matter_max;
+			this.matter = old_matter;
+			this.x = old_x;
+			this._hitbox_last_update = -1;
+		}
+
+		return false;
 	}
 	UpdateContainerPropertiesOnMerge( matter_to_add = 0 )
 	{
@@ -349,6 +445,11 @@ class sdMatterContainer extends sdEntity
 				{
 					this.CheckNearbyContainersForMerging();
 				}
+				if ( command_name === 'ADV_UNMERGE' )
+				{
+					if ( !this.UnmergeOneContainer() )
+					executer_socket.SDServiceMessage( 'Not enough space to unmerge this container' );
+				}
 			}
 			else
 			executer_socket.SDServiceMessage( 'Matter container is too far' );
@@ -367,6 +468,9 @@ class sdMatterContainer extends sdEntity
 			
 			if ( this.is_advanced_container && this.containers === 0 )
 			this.AddContextOptionNoTranslation( T( 'Attempt nearby container merging' ), 'ADV_MERGE' );
+
+			if ( this.is_advanced_container && this.containers > 0 )
+			this.AddContextOptionNoTranslation( T( 'Unmerge one container' ), 'ADV_UNMERGE' );
 		}
 	}
 }

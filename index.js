@@ -1909,7 +1909,15 @@ io.on( 'connection', ( socket )=>
 		socket.character = character_entity;
 		socket.camera.x = socket.character.x;
 		socket.camera.y = socket.character.y;
-		
+
+		// Test/dev servers only: server_config.js can opt every player into god mode automatically
+		// (see the AutoGodModeForAllPlayers hook in sdServerConfigFull). Guarded on !_god so it only
+		// grants the guns/upgrades once per life instead of re-adding them on every reconnect.
+		if ( sdWorld.server_config.AutoGodModeForAllPlayers )
+		if ( sdWorld.server_config.AutoGodModeForAllPlayers() )
+		if ( !character_entity._god )
+		sdModeration.ApplyGodMode( socket );
+
 		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		character_entity._frozen = 0; // Preventing results of a bug where status effects were removed but _frozen property wasn't reset. Still not sure why this happens
 		

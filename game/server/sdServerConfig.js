@@ -290,6 +290,8 @@ class sdServerConfigShort
 	// static let_non_full_access_level_admin_setup_long_range_teleports = false; // Default: false. Can connect to arbitrary LRTPs and may leak server IP if you use Cloudflare. Leave false for security.
 	// static let_non_full_access_level_admins_save_presets = true; // Default: true. Lower-level admins may save presets (cannot override top-admin presets of the same name).
 	// static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive', 'scale', 'logentitycount' ]; // Whitelist of commands non-top admins may run. Trim to lock things down.
+	// static AutoGodModeForAllPlayers() { return false; } // Default: false. TESTING ONLY - grants every player god mode (invincibility, admin build/removal/teleport/damage guns, fly/grenade/stability upgrades) automatically the instant they spawn, no admin row needed. Applied once per life (checks !_god first), so it will not re-spawn the admin guns on every reconnect. Never enable this on a real/public server - it removes all danger and hands every player admin-tier destructive tools.
+	// static GetCommandsAllowedForAllPlayers() { return []; } // Default: none allowed. Whitelist of admin-only slash commands every connected player (even without any admin row) may run - e.g. return [ 'event', 'spawnevent', 'zoom' ] to let anyone trigger weather events or change their own zoom level. Commands not in this list still require a normal admin row as usual. Pairs well with AutoGodModeForAllPlayers on a private testing server.
 	// static adsense_client = 'ca-pub-7381466440820611'; // Your AdSense client id for in-game ads (see Google ad-placement docs). Your server only shows your own ads. Replace with your own or leave default.
 
 
@@ -371,6 +373,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
 	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive', 'scale', 'logentitycount' ];
+	static AutoGodModeForAllPlayers() { return false; } // TESTING ONLY - see sdServerConfigShort documentation above. Grants every player god mode automatically on spawn, no admin row needed.
+	static GetCommandsAllowedForAllPlayers() { return []; } // See sdServerConfigShort documentation above. Whitelist of admin-only commands every player may run without an admin row, e.g. [ 'event', 'spawnevent', 'zoom' ].
 	static let_non_full_access_level_admin_setup_long_range_teleports = false; // Can potentially cause connecting server to some local LRTPs with admin shop-made items. Also can leak server IP if you are using Cloudflare.
 	static let_server_owner_run_eval_command = false; // Unsafe feature for server security in cases if admin account can end up being stolen. Lets first admin to run JavaScript commands on a server via /eval ...
 	static let_non_full_access_level_admins_save_presets = true; // These are saved into presets_users and can't override same files named same way but made by top level admin

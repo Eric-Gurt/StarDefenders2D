@@ -1280,7 +1280,11 @@ class sdWeather extends sdEntity
 				steps_max-- 
 			)
 		{
-			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_hit_class_list ) )
+			// Box-checked over the full 8px step (not just the single sampled point) - solidified
+			// water/ice blocks can be as thin as 1px (sdWater.Solidify) and snow accumulates in 4px
+			// slivers, so a point-only check at each 8px-stepped yy could step clean over a thin solid
+			// slab sitting entirely between two sampled positions, letting rain/sun "see" through it.
+			if ( sdWorld.CheckWallExistsBox( x - 0.01, yy - 8.01, x + 0.01, yy + 0.01, null, null, sdWeather.rain_hit_class_list ) )
 			{
 				if ( !sdWorld.last_hit_entity ) // sdDeepSleep or world edge likely
 				if ( y - yy > 64 ) // Not on edge between 2 sdDeepSleep areas
@@ -1288,7 +1292,7 @@ class sdWeather extends sdEntity
 					//debugger;
 					return true;
 				}
-				
+
 				if ( sun_light_tracer )
 				{
 					if ( sdWorld.last_hit_entity )
@@ -1310,8 +1314,8 @@ class sdWeather extends sdEntity
 				}
 				return false;
 			}
-			
-			if ( sdWorld.CheckWallExists( x, yy, null, null, sdWeather.rain_background_walls ) )
+
+			if ( sdWorld.CheckWallExistsBox( x - 0.01, yy - 8.01, x + 0.01, yy + 0.01, null, null, sdWeather.rain_background_walls ) )
 			{
 				space_until_premature_true = consider_sky_open_height;
 			}
@@ -4944,16 +4948,29 @@ class sdWeather extends sdEntity
 								{
 									if ( !this.matter_rain )
 									{
-										/*let water = new sdWater({ x:xx, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
-										sdEntity.AddEntityToEntitiesArray( water );
-										sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
-										*/
-										sdEntity.Create( sdWater, { 
-											x:xx, 
-											y:Math.floor(e.y/16)*16 - 16, 
-											type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER,
-											volume: 0.25 
-										} );
+										let puddle_y = Math.floor( e.y / 16 ) * 16 - 16;
+
+										// e.y is snapped down to its containing 16px grid cell before stepping one
+										// cell up - correct for a full-height block, but partial-height blocks
+										// (sdWater.Solidify can leave a block as thin as 1px, and snow accumulates
+										// in 4px slivers) have a top edge that isn't 16-aligned, so this can still
+										// land on a cell that's already got solid geometry in it (e.g. the rest of
+										// that same thin block, or an overhang from neighboring terrain) - spawning
+										// the puddle seemingly embedded/seeping into a block instead of sitting on
+										// top of it. Skip the spawn rather than materialize water inside a solid.
+										if ( !sdWorld.CheckWallExistsBox( xx, puddle_y, xx + 16, puddle_y + 16, null, null, sdWater.classes_to_interact_with ) )
+										{
+											/*let water = new sdWater({ x:xx, y:puddle_y, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
+											sdEntity.AddEntityToEntitiesArray( water );
+											sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+											*/
+											sdEntity.Create( sdWater, {
+												x:xx,
+												y:puddle_y,
+												type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER,
+												volume: 0.25
+											} );
+										}
 									}
 								}
 							}

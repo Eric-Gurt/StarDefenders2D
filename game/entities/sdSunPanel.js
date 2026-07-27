@@ -139,35 +139,87 @@ class sdSunPanel extends sdEntity
 	{
 		if ( this.panels > 0 )
 		return;
-	
+
 		if ( this._is_being_removed )
 		return;
-		
+
 		let ents = sdWorld.GetAnythingNear( this.x, this.y, 20 );
+
+		// Collect BOTH compatible neighbors (if any) before finalizing anything, instead of merging
+		// with whichever one the scan happens to hit first and stopping there - that left a panel
+		// built between two existing groups only ever merging into one side.
+		let left = null;
+		let right = null;
+
 		for ( let i = 0; i < ents.length; i++ )
 		{
 			if ( ents[ i ].is ( sdSunPanel ) && !ents[ i ]._is_being_removed && ents[ i ] !== this )
 			{
 				let panel = ents[ i ];
-				if ( panel.multiplier === this.multiplier && panel.y === this.y && ( 16 + Math.abs( panel._hitbox_x1 ) + Math.abs( panel._hitbox_x2 ) ) < 256 ) // Same Y coordinate? Also panel not too large? 
+				if ( panel.multiplier === this.multiplier && panel.y === this.y && ( 16 + Math.abs( panel._hitbox_x1 ) + Math.abs( panel._hitbox_x2 ) ) < 256 ) // Same Y coordinate? Also panel not too large?
 				{
-					if ( this.x > panel.x )
-					panel.x += 8;
+					if ( panel.x < this.x )
+					left = panel;
 					else
-					panel.x -= 8;
-				
-					panel.panels++; // Increase "panels" merged by 1
-					panel.UpdatePanelPropertiesOnMerge(); // Update properties
-					this.remove();
-					this._broken = false;
-					
-					break;
-					
-					// Panel hitboxes increase by 16 per panel merge. Sizes beyond 256 are not allowed to not complicate sdDeepSleep (though this also may complicate it though)
+					right = panel;
 				}
 			}
-			
 		}
+
+		if ( !left && !right )
+		return;
+
+		// Folding both sides together in one step must still respect the same size cap the
+		// single-side merge always enforced above (each side was already checked to have room for
+		// just `this`) - if combining everything would exceed it, only take the bigger side now and
+		// leave the other for a future manual merge/placement instead of silently doing nothing.
+		if ( left && right )
+		{
+			let other_slots = right.panels + 1; // Physical panel units right would contribute if folded into left
+			let width_after = 12 + 16 * ( left.panels + 1 + other_slots ); // 12 + 16*panels is this class's own width formula (see hitbox getters)
+
+			if ( width_after >= 256 )
+			{
+				if ( left.panels >= right.panels )
+				right = null;
+				else
+				left = null;
+			}
+		}
+
+		let host = left || right;
+
+		// Absorb `this` into host first - identical to the original single-slot merge step
+		if ( this.x > host.x )
+		host.x += 8;
+		else
+		host.x -= 8;
+
+		host.panels++;
+
+		// If both sides qualified, fold the other whole group's slots into host in the same operation
+		if ( left && right )
+		{
+			let other = ( host === left ) ? right : left;
+			let other_slots = other.panels + 1;
+
+			if ( other.x > host.x )
+			host.x += 8 * other_slots;
+			else
+			host.x -= 8 * other_slots;
+
+			host.panels += other_slots;
+
+			other.remove();
+			other._broken = false;
+		}
+
+		host.UpdatePanelPropertiesOnMerge(); // Update properties (recomputes hmax/dirt_array off the final panels count)
+
+		this.remove();
+		this._broken = false;
+
+		// Panel hitboxes increase by 16 per panel merge. Sizes beyond 256 are not allowed to not complicate sdDeepSleep (though this also may complicate it though)
 	}
 	UpdatePanelPropertiesOnMerge()
 	{
