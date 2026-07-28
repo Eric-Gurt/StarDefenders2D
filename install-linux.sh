@@ -70,6 +70,7 @@ CONFIG_FILE=""
 CHECKOUT_MODE=""
 EXISTING_CHECKOUT_ONLY=""
 EXISTING_NON_GIT_ACTION=""
+OVERWRITE_EXISTING_SERVICE=""
 
 die() {
   echo "Error: $*" >&2
@@ -108,6 +109,13 @@ than a command-line flag, with three choices:
 For unattended installs, set CHECKOUT_MODE=keep|update|reset in a --config
 file (the older EXISTING_CHECKOUT_ONLY=yes|no is still accepted as an alias
 for keep|update).
+
+To refresh an already-installed slot unattended (regenerate its helper
+scripts and systemd units in place), also set OVERWRITE_EXISTING_SERVICE=yes
+in the --config file; without it, --yes takes the safe "n" default on the
+"service already exists" prompt and aborts. A slot's own
+/etc/default/<SERVICE_NAME> file is already in this config format, so it can
+be copied and used as the basis for such a re-run.
 
 Options:
   --config FILE        Load shell-style installer defaults before prompting.
@@ -654,6 +662,28 @@ install_nvm_and_node() {
   run_app_shell "export NVM_DIR=$(shell_quote "${nvm_dir}"); . \"\$NVM_DIR/nvm.sh\"; nvm install $(shell_quote "${NVM_VERSION}"); nvm alias default $(shell_quote "${NVM_VERSION}"); node --version; npm --version"
 }
 
+# True only when EVERY process listening on the port is part of the given
+# service's own cgroup. Used so reconfiguring a running slot in place is not
+# refused because of that same slot's own listener; a port held by anything
+# else (or one we cannot attribute) still counts as a real conflict.
+port_listeners_all_belong_to_service() {
+  local port="$1" service="$2"
+  local pids pid unit found=0
+
+  command_exists ss || return 1
+
+  pids="$(ss -ltnpH "sport = :${port}" 2>/dev/null | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u)"
+  [[ -n "${pids}" ]] || return 1 # nothing attributable -> treat as a real conflict
+
+  for pid in ${pids}; do
+    unit="$(tr '\0' '\n' < "/proc/${pid}/cgroup" 2>/dev/null | grep -oE '[^/]+\.service' | tail -n1)"
+    [[ "${unit}" == "${service}.service" ]] || return 1
+    found=1
+  done
+
+  [[ "${found}" -eq 1 ]]
+}
+
 warn_if_app_dir_shared_with_other_profile() {
   # Multiple world-slot services deliberately sharing one checkout (same
   # APP_DIR, different WORLD_SLOT/config) is a supported pattern -- the
@@ -808,7 +838,16 @@ EOF
       no) CHECKOUT_MODE="update" ;;
     esac
   fi
-  if [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
+  # Only meaningful while the directory actually is non-Git. A profile can still
+  # carry EXISTING_NON_GIT_ACTION from an install done back when the directory
+  # had no .git (or one hand-set to "plain" to keep auto-updates off), and if it
+  # has since become a real checkout, forcing "update" here silently upgrades
+  # "leave this directory alone" into "git reset --hard origin/<branch>" -
+  # destroying any uncommitted work in the tree. Found on a live host whose
+  # profile still said "plain" while its checkout held 45 modified tracked files,
+  # including custom game art.
+  if [[ "${directory_has_git}" != "yes" ]] &&
+     [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
     CHECKOUT_MODE="update"
   elif [[ "${profile_reused}" == "yes" && "${CHECKOUT_MODE:-}" != "" && "${directory_has_git}" == "yes" ]]; then
     # The reused profile already recorded this exact choice, and ${APP_DIR}/.git
@@ -1080,17 +1119,40 @@ EOF
   if systemctl list-unit-files "${SERVICE_NAME}.service" --no-legend --no-pager 2>/dev/null | grep -q "^${SERVICE_NAME}[.]service"; then
     warn "${SERVICE_NAME}.service already exists."
     systemctl show "${SERVICE_NAME}.service" -p FragmentPath -p User -p ExecStart -p ActiveState --no-pager 2>/dev/null || true
-    prompt_yes_no "Overwrite/reconfigure existing ${SERVICE_NAME}.service" "n" || die "Choose a different systemd service name and rerun the installer."
+    # Backed by a config variable (like every other prompt here) so an existing
+    # install can actually be re-run unattended. It previously hard-coded "n",
+    # which under --yes always took that default and aborted -- meaning the ONLY
+    # way to refresh an existing slot's generated scripts/units was for a human
+    # to hand-walk the prompts. On a multi-slot host that is painful enough that
+    # nobody does it, and the slots silently drift apart: the box this was found
+    # on had three slots running three different generations of these scripts.
+    # Interactive behavior is unchanged -- the default is still "n".
+    prompt_yes_no "Overwrite/reconfigure existing ${SERVICE_NAME}.service" "${OVERWRITE_EXISTING_SERVICE:-n}" || die "Choose a different systemd service name and rerun the installer, or set OVERWRITE_EXISTING_SERVICE=yes in a --config file to reconfigure it in place."
   fi
+  # Both checks below exist to catch a NEW slot colliding with an established
+  # one. When reconfiguring an existing slot in place, the "conflict" they find
+  # is that slot's own running server and its own recorded profile -- expected,
+  # not a collision -- so attribute the conflict before refusing. Anything owned
+  # by a different service still prompts/aborts exactly as before.
   if command_exists ss && ss -ltn "sport = :${EXPECTED_PORT}" 2>/dev/null | grep -q LISTEN; then
-    warn "Port ${EXPECTED_PORT} is already listening."
-    ss -ltnp "sport = :${EXPECTED_PORT}" 2>/dev/null || true
-    prompt_yes_no "Continue anyway" "n" || die "Choose a different world slot, port, or stop the existing listener."
+    if port_listeners_all_belong_to_service "${EXPECTED_PORT}" "${SERVICE_NAME}"; then
+      info "Port ${EXPECTED_PORT} is already listening, but it belongs to ${SERVICE_NAME}.service itself; continuing."
+    else
+      warn "Port ${EXPECTED_PORT} is already listening."
+      ss -ltnp "sport = :${EXPECTED_PORT}" 2>/dev/null || true
+      prompt_yes_no "Continue anyway" "n" || die "Choose a different world slot, port, or stop the existing listener."
+    fi
   fi
   if grep -Rqs "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null; then
-    warn "Another StarDefenders service profile appears to use WORLD_SLOT=${WORLD_SLOT}:"
-    grep -Rsl "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null || true
-    prompt_yes_no "Continue with duplicate world slot" "n" || die "Choose a different world slot or service profile."
+    # Our own profile legitimately records this slot; only a *different* profile
+    # claiming it is a real duplicate.
+    local other_slot_profiles
+    other_slot_profiles="$(grep -Rsl "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null | grep -v "^/etc/default/${SERVICE_NAME}$" || true)"
+    if [[ -n "${other_slot_profiles}" ]]; then
+      warn "Another StarDefenders service profile appears to use WORLD_SLOT=${WORLD_SLOT}:"
+      printf '%s\n' "${other_slot_profiles}"
+      prompt_yes_no "Continue with duplicate world slot" "n" || die "Choose a different world slot or service profile."
+    fi
   fi
   warn_if_app_dir_shared_with_other_profile
 
@@ -1808,6 +1870,29 @@ regrant_ssl_read() {
 }
 regrant_ssl_read
 
+# 6) Report timers that can no longer fire. A monotonic systemd timer whose
+#    anchors have all elapsed (OnUnitActiveSec= anchors on the service's last
+#    activation, which systemd drops when it garbage-collects the inactive
+#    Type=oneshot unit) computes no next elapse at all: NextElapseUSecMonotonic
+#    reads "infinity". The unit still shows active+enabled and nothing is logged
+#    as failed, so auto-update simply stops happening with no operator-visible
+#    signal -- this went unnoticed in production for over two weeks, across three
+#    separate investigations, precisely because there was nothing to find. This
+#    runs on every service start (ExecStartPre) purely to make it visible; it
+#    never blocks startup.
+report_wedged_timers() {
+  local t next
+  for t in "${SERVICE_NAME}-update.timer" "${SERVICE_NAME}-backup.timer"; do
+    systemctl list-unit-files "${t}" >/dev/null 2>&1 || continue
+    [[ "$(systemctl is-active "${t}" 2>/dev/null)" == "active" ]] || continue
+    next="$(systemctl show "${t}" -p NextElapseUSecMonotonic --value 2>/dev/null || true)"
+    if [[ "${next}" == "infinity" ]]; then
+      echo "${SERVICE_NAME}-fixperms: WARNING ${t} is active but has no scheduled next run (NextElapseUSecMonotonic=infinity) - it will never fire again. Recover with: systemctl restart ${t}" >&2
+    fi
+  done
+}
+report_wedged_timers
+
 exit 0
 EOF
   sed -i "s#__ENV_FILE__#/etc/default/${SERVICE_NAME}#g" "${path}"
@@ -2279,13 +2364,32 @@ TimeoutStartSec=$(( 900 + UPDATE_WARNING_MINUTES * 60 + 60 ))
 ExecStart=/usr/local/bin/${SERVICE_NAME}-deploy.sh
 EOF
 
+  # OnActiveSec (relative to when THIS TIMER was activated), not OnBootSec: a
+  # monotonic timer whose only fallback anchor is boot time can never produce a
+  # next elapse again once that boot moment is in the past, so "systemctl restart
+  # <timer>" -- the obvious recovery -- silently does nothing. Anchoring the
+  # initial fire to timer activation makes a restart always re-arm it.
+  #
+  # The OnCalendar line is a self-healing floor, not the normal cadence: multiple
+  # trigger settings are OR'd and the earliest wins, so UPDATE_INTERVAL still
+  # drives scheduling in the normal case. It matters because OnUnitActiveSec
+  # anchors on the *service's* last-activation timestamp, which systemd discards
+  # when it garbage-collects the inactive Type=oneshot unit from memory. When that
+  # happened in production, both anchors were gone at once, NextElapseUSecMonotonic
+  # became "infinity", and the timer sat there active+enabled but permanently dead
+  # -- no log line, nothing failed, updates just silently stopped for weeks. A
+  # calendar trigger has no such dependency, so it always re-anchors the rest.
+  # An extra hourly run is nearly free: the deploy script early-exits after one
+  # git fetch when already up to date. (Persistent= only applies to OnCalendar=
+  # timers, so it was previously inert here.)
   cat > "/etc/systemd/system/${SERVICE_NAME}-update.timer" <<EOF
 [Unit]
 Description=Run StarDefenders2D (${SERVICE_NAME}) update timer
 
 [Timer]
-OnBootSec=2min
+OnActiveSec=2min
 OnUnitActiveSec=${UPDATE_INTERVAL}
+OnCalendar=hourly
 Persistent=true
 
 [Install]
@@ -2304,12 +2408,19 @@ TimeoutStartSec=900
 ExecStart=/usr/local/bin/${SERVICE_NAME}-backup.sh periodic
 EOF
 
+  # Same OnActiveSec rationale as the update timer above. Deliberately NO
+  # OnCalendar floor here: triggers are OR'd and the earliest wins, so any
+  # hardcoded calendar expression coarse enough to look like a safety net would
+  # still fire far sooner than a multi-day BACKUP_INTERVAL and would quietly turn
+  # a "back up every 2 days" setting into "back up every hour". Backups get the
+  # restart-recovers-it fix only; the startup check in write_fixperms_script
+  # reports a wedged backup timer so it is at least visible.
   cat > "/etc/systemd/system/${SERVICE_NAME}-backup.timer" <<EOF
 [Unit]
 Description=Run StarDefenders2D (${SERVICE_NAME}) periodic world backup timer
 
 [Timer]
-OnBootSec=10min
+OnActiveSec=10min
 OnUnitActiveSec=${BACKUP_INTERVAL}
 Persistent=true
 
