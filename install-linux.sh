@@ -662,6 +662,28 @@ install_nvm_and_node() {
   run_app_shell "export NVM_DIR=$(shell_quote "${nvm_dir}"); . \"\$NVM_DIR/nvm.sh\"; nvm install $(shell_quote "${NVM_VERSION}"); nvm alias default $(shell_quote "${NVM_VERSION}"); node --version; npm --version"
 }
 
+# True only when EVERY process listening on the port is part of the given
+# service's own cgroup. Used so reconfiguring a running slot in place is not
+# refused because of that same slot's own listener; a port held by anything
+# else (or one we cannot attribute) still counts as a real conflict.
+port_listeners_all_belong_to_service() {
+  local port="$1" service="$2"
+  local pids pid unit found=0
+
+  command_exists ss || return 1
+
+  pids="$(ss -ltnpH "sport = :${port}" 2>/dev/null | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u)"
+  [[ -n "${pids}" ]] || return 1 # nothing attributable -> treat as a real conflict
+
+  for pid in ${pids}; do
+    unit="$(tr '\0' '\n' < "/proc/${pid}/cgroup" 2>/dev/null | grep -oE '[^/]+\.service' | tail -n1)"
+    [[ "${unit}" == "${service}.service" ]] || return 1
+    found=1
+  done
+
+  [[ "${found}" -eq 1 ]]
+}
+
 warn_if_app_dir_shared_with_other_profile() {
   # Multiple world-slot services deliberately sharing one checkout (same
   # APP_DIR, different WORLD_SLOT/config) is a supported pattern -- the
@@ -1098,15 +1120,30 @@ EOF
     # Interactive behavior is unchanged -- the default is still "n".
     prompt_yes_no "Overwrite/reconfigure existing ${SERVICE_NAME}.service" "${OVERWRITE_EXISTING_SERVICE:-n}" || die "Choose a different systemd service name and rerun the installer, or set OVERWRITE_EXISTING_SERVICE=yes in a --config file to reconfigure it in place."
   fi
+  # Both checks below exist to catch a NEW slot colliding with an established
+  # one. When reconfiguring an existing slot in place, the "conflict" they find
+  # is that slot's own running server and its own recorded profile -- expected,
+  # not a collision -- so attribute the conflict before refusing. Anything owned
+  # by a different service still prompts/aborts exactly as before.
   if command_exists ss && ss -ltn "sport = :${EXPECTED_PORT}" 2>/dev/null | grep -q LISTEN; then
-    warn "Port ${EXPECTED_PORT} is already listening."
-    ss -ltnp "sport = :${EXPECTED_PORT}" 2>/dev/null || true
-    prompt_yes_no "Continue anyway" "n" || die "Choose a different world slot, port, or stop the existing listener."
+    if port_listeners_all_belong_to_service "${EXPECTED_PORT}" "${SERVICE_NAME}"; then
+      info "Port ${EXPECTED_PORT} is already listening, but it belongs to ${SERVICE_NAME}.service itself; continuing."
+    else
+      warn "Port ${EXPECTED_PORT} is already listening."
+      ss -ltnp "sport = :${EXPECTED_PORT}" 2>/dev/null || true
+      prompt_yes_no "Continue anyway" "n" || die "Choose a different world slot, port, or stop the existing listener."
+    fi
   fi
   if grep -Rqs "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null; then
-    warn "Another StarDefenders service profile appears to use WORLD_SLOT=${WORLD_SLOT}:"
-    grep -Rsl "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null || true
-    prompt_yes_no "Continue with duplicate world slot" "n" || die "Choose a different world slot or service profile."
+    # Our own profile legitimately records this slot; only a *different* profile
+    # claiming it is a real duplicate.
+    local other_slot_profiles
+    other_slot_profiles="$(grep -Rsl "^WORLD_SLOT=${WORLD_SLOT}$" /etc/default/stardefenders* 2>/dev/null | grep -v "^/etc/default/${SERVICE_NAME}$" || true)"
+    if [[ -n "${other_slot_profiles}" ]]; then
+      warn "Another StarDefenders service profile appears to use WORLD_SLOT=${WORLD_SLOT}:"
+      printf '%s\n' "${other_slot_profiles}"
+      prompt_yes_no "Continue with duplicate world slot" "n" || die "Choose a different world slot or service profile."
+    fi
   fi
   warn_if_app_dir_shared_with_other_profile
 
