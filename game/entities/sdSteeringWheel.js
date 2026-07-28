@@ -1453,11 +1453,21 @@ class sdSteeringWheel extends sdEntity
 		
 			if ( ent2.is( sdCrystal ) )
 			if ( ent2.held_by )
-			if ( ent2.held_by.is( sdGrass ) )
 			{
-				ent2.held_by.DropCrystal( ent2 );
+				// Held by a part of THIS same base (matter amplifier, crystal combiner, essence extractor, or any
+				// other current/future holder) - such holders re-derive the crystal's x/y from their own position
+				// every tick, so the crystal needs neither pushing nor scanning of its own. Without this, a held
+				// crystal's IsPhysicallyMovable() is false and it isn't itself in scan_set, so it would fall into
+				// the "foreign obstacle" branch below and permanently block the whole base from moving.
+				if ( scan_set.has( ent2.held_by ) )
+				return false;
+
+				if ( ent2.held_by.is( sdGrass ) )
+				{
+					ent2.held_by.DropCrystal( ent2 );
+				}
 			}
-			
+
 			/*if ( scan_set.has( ent2 ) )
 			return false;
 		
