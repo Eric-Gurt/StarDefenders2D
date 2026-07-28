@@ -70,6 +70,7 @@ CONFIG_FILE=""
 CHECKOUT_MODE=""
 EXISTING_CHECKOUT_ONLY=""
 EXISTING_NON_GIT_ACTION=""
+OVERWRITE_EXISTING_SERVICE=""
 
 die() {
   echo "Error: $*" >&2
@@ -108,6 +109,13 @@ than a command-line flag, with three choices:
 For unattended installs, set CHECKOUT_MODE=keep|update|reset in a --config
 file (the older EXISTING_CHECKOUT_ONLY=yes|no is still accepted as an alias
 for keep|update).
+
+To refresh an already-installed slot unattended (regenerate its helper
+scripts and systemd units in place), also set OVERWRITE_EXISTING_SERVICE=yes
+in the --config file; without it, --yes takes the safe "n" default on the
+"service already exists" prompt and aborts. A slot's own
+/etc/default/<SERVICE_NAME> file is already in this config format, so it can
+be copied and used as the basis for such a re-run.
 
 Options:
   --config FILE        Load shell-style installer defaults before prompting.
@@ -1080,7 +1088,15 @@ EOF
   if systemctl list-unit-files "${SERVICE_NAME}.service" --no-legend --no-pager 2>/dev/null | grep -q "^${SERVICE_NAME}[.]service"; then
     warn "${SERVICE_NAME}.service already exists."
     systemctl show "${SERVICE_NAME}.service" -p FragmentPath -p User -p ExecStart -p ActiveState --no-pager 2>/dev/null || true
-    prompt_yes_no "Overwrite/reconfigure existing ${SERVICE_NAME}.service" "n" || die "Choose a different systemd service name and rerun the installer."
+    # Backed by a config variable (like every other prompt here) so an existing
+    # install can actually be re-run unattended. It previously hard-coded "n",
+    # which under --yes always took that default and aborted -- meaning the ONLY
+    # way to refresh an existing slot's generated scripts/units was for a human
+    # to hand-walk the prompts. On a multi-slot host that is painful enough that
+    # nobody does it, and the slots silently drift apart: the box this was found
+    # on had three slots running three different generations of these scripts.
+    # Interactive behavior is unchanged -- the default is still "n".
+    prompt_yes_no "Overwrite/reconfigure existing ${SERVICE_NAME}.service" "${OVERWRITE_EXISTING_SERVICE:-n}" || die "Choose a different systemd service name and rerun the installer, or set OVERWRITE_EXISTING_SERVICE=yes in a --config file to reconfigure it in place."
   fi
   if command_exists ss && ss -ltn "sport = :${EXPECTED_PORT}" 2>/dev/null | grep -q LISTEN; then
     warn "Port ${EXPECTED_PORT} is already listening."
