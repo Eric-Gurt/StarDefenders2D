@@ -838,7 +838,16 @@ EOF
       no) CHECKOUT_MODE="update" ;;
     esac
   fi
-  if [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
+  # Only meaningful while the directory actually is non-Git. A profile can still
+  # carry EXISTING_NON_GIT_ACTION from an install done back when the directory
+  # had no .git (or one hand-set to "plain" to keep auto-updates off), and if it
+  # has since become a real checkout, forcing "update" here silently upgrades
+  # "leave this directory alone" into "git reset --hard origin/<branch>" -
+  # destroying any uncommitted work in the tree. Found on a live host whose
+  # profile still said "plain" while its checkout held 45 modified tracked files,
+  # including custom game art.
+  if [[ "${directory_has_git}" != "yes" ]] &&
+     [[ "${EXISTING_NON_GIT_ACTION}" == "git" || "${EXISTING_NON_GIT_ACTION}" == "plain" ]]; then
     CHECKOUT_MODE="update"
   elif [[ "${profile_reused}" == "yes" && "${CHECKOUT_MODE:-}" != "" && "${directory_has_git}" == "yes" ]]; then
     # The reused profile already recorded this exact choice, and ${APP_DIR}/.git
