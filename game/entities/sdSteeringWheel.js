@@ -1525,6 +1525,23 @@ class sdSteeringWheel extends sdEntity
 			return current.GetIgnoredEntityClasses();
 		};
 
+		// Pure (no side effects, unlike Filter above) post-move overlap predicate: only entities that are
+		// NOT part of this same rigid move count as blockers. Members of scan/stuff_to_push are expected to
+		// legitimately overlap each other by construction (e.g. a door built flush into its frame, or a
+		// merged matter container/amplifier whose hitbox was widened onto its neighbours) - without this,
+		// the wedged_after_move revalidation below treats every such base as permanently "wedged" and rolls
+		// back every move, since a null filter makes CheckWallExistsBox count ANY hard-collision overlap.
+		const IsForeignBlocker = ( ent2 )=>
+		{
+			if ( scan_set.has( ent2 ) )
+			return false;
+
+			if ( stuff_to_push_set.has( ent2 ) )
+			return false;
+
+			return true;
+		};
+
 		const AddItemToPushWithAnythingOnTop = ( ent2, ignore_physically_movable_test=false )=>
 		{
 			if ( !ent2._is_being_removed )
@@ -1802,13 +1819,13 @@ class sdSteeringWheel extends sdEntity
 			for ( let i = 0; i < scan.length && !wedged_after_move; i++ )
 			{
 				let current = scan[ i ];
-				if ( !current.CanMoveWithoutOverlap( current.x, current.y, 0, null, GetIgnoredEntityClassesFor( current ) ) )
+				if ( !current.CanMoveWithoutOverlap( current.x, current.y, 0, IsForeignBlocker, GetIgnoredEntityClassesFor( current ) ) )
 				wedged_after_move = true;
 			}
 			for ( let i = 0; i < stuff_to_push.length && !wedged_after_move; i++ )
 			{
 				let current = stuff_to_push[ i ];
-				if ( !current.CanMoveWithoutOverlap( current.x, current.y, 0, null, GetIgnoredEntityClassesFor( current ) ) )
+				if ( !current.CanMoveWithoutOverlap( current.x, current.y, 0, IsForeignBlocker, GetIgnoredEntityClassesFor( current ) ) )
 				wedged_after_move = true;
 			}
 
