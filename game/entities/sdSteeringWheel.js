@@ -1453,21 +1453,11 @@ class sdSteeringWheel extends sdEntity
 		
 			if ( ent2.is( sdCrystal ) )
 			if ( ent2.held_by )
+			if ( ent2.held_by.is( sdGrass ) )
 			{
-				// Held by a part of THIS same base (matter amplifier, crystal combiner, essence extractor, or any
-				// other current/future holder) - such holders re-derive the crystal's x/y from their own position
-				// every tick, so the crystal needs neither pushing nor scanning of its own. Without this, a held
-				// crystal's IsPhysicallyMovable() is false and it isn't itself in scan_set, so it would fall into
-				// the "foreign obstacle" branch below and permanently block the whole base from moving.
-				if ( scan_set.has( ent2.held_by ) )
-				return false;
-
-				if ( ent2.held_by.is( sdGrass ) )
-				{
-					ent2.held_by.DropCrystal( ent2 );
-				}
+				ent2.held_by.DropCrystal( ent2 );
 			}
-
+			
 			/*if ( scan_set.has( ent2 ) )
 			return false;
 		
@@ -1533,23 +1523,6 @@ class sdSteeringWheel extends sdEntity
 			return sdDoor.ignored_entity_classes_travel;
 
 			return current.GetIgnoredEntityClasses();
-		};
-
-		// Pure (no side effects, unlike Filter above) post-move overlap predicate: only entities that are
-		// NOT part of this same rigid move count as blockers. Members of scan/stuff_to_push are expected to
-		// legitimately overlap each other by construction (e.g. a door built flush into its frame, or a
-		// merged matter container/amplifier whose hitbox was widened onto its neighbours) - without this,
-		// the wedged_after_move revalidation below treats every such base as permanently "wedged" and rolls
-		// back every move, since a null filter makes CheckWallExistsBox count ANY hard-collision overlap.
-		const IsForeignBlocker = ( ent2 )=>
-		{
-			if ( scan_set.has( ent2 ) )
-			return false;
-
-			if ( stuff_to_push_set.has( ent2 ) )
-			return false;
-
-			return true;
 		};
 
 		const AddItemToPushWithAnythingOnTop = ( ent2, ignore_physically_movable_test=false )=>
@@ -1703,16 +1676,6 @@ class sdSteeringWheel extends sdEntity
 			// 'verify' (read-only dry-run against the legacy path) opt back out.
 			let rigid_on = ( globalThis.RIGID_MOVE_MODE !== 'off' && globalThis.RIGID_MOVE_MODE !== 'verify' );
 
-			// Snapshot pre-move positions so the final combined-configuration check below (which can
-			// still find scan and stuff_to_push entities wedged into each other despite each having
-			// individually passed its own probe above) can cleanly roll everything back instead of
-			// committing an invalid overlapping configuration.
-			let pre_move_positions = new Map();
-			for ( let i = 0; i < scan.length; i++ )
-			pre_move_positions.set( scan[ i ], { x: scan[ i ].x, y: scan[ i ].y } );
-			for ( let i = 0; i < stuff_to_push.length; i++ )
-			pre_move_positions.set( stuff_to_push[ i ], { x: stuff_to_push[ i ].x, y: stuff_to_push[ i ].y } );
-
 			for ( let i = 0; i < scan.length; i++ )
 			{
 				let current = scan[ i ];
@@ -1815,42 +1778,6 @@ class sdSteeringWheel extends sdEntity
 				for ( let i = 0; i < stuff_to_push.length; i++ )
 				rigid_all_moved.push( stuff_to_push[ i ] );
 				sdWorld.UpdateHashPositionBatchRigid( rigid_all_moved );
-			}
-
-			// Final revalidation of the combined configuration: each entity above only checked itself
-			// against the world *before* anything moved, exempting other scan/stuff_to_push members on
-			// the assumption they would also get out of the way - but two of them can independently end
-			// up with incompatible (e.g. differing partial-axis) resolutions and still collide with each
-			// other once actually moved. Roll back everything if that happened instead of leaving an
-			// entity wedged into a seam between blocks. Runs after the rehash above (rigid path) so the
-			// overlap probes below see each moved member's final, correctly-indexed hash position.
-			let wedged_after_move = false;
-
-			for ( let i = 0; i < scan.length && !wedged_after_move; i++ )
-			{
-				let current = scan[ i ];
-				if ( !current.CanMoveWithoutOverlap( current.x, current.y, 0, IsForeignBlocker, GetIgnoredEntityClassesFor( current ) ) )
-				wedged_after_move = true;
-			}
-			for ( let i = 0; i < stuff_to_push.length && !wedged_after_move; i++ )
-			{
-				let current = stuff_to_push[ i ];
-				if ( !current.CanMoveWithoutOverlap( current.x, current.y, 0, IsForeignBlocker, GetIgnoredEntityClassesFor( current ) ) )
-				wedged_after_move = true;
-			}
-
-			if ( wedged_after_move )
-			{
-				for ( let [ ent, pos ] of pre_move_positions )
-				{
-					ent.x = pos.x;
-					ent.y = pos.y;
-					sdWorld.UpdateHashPosition( ent, false, false ); // equivalent to UpdateHashPositionBatchRigid for a single member; safe regardless of rigid_on
-					ent._last_x = ent.x;
-					ent._last_y = ent.y;
-				}
-
-				return false;
 			}
 
 			// phase-13-rigid-01: trace-only rigid-fast-path eligibility census (gated; counting only, no behavior change).
