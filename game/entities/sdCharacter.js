@@ -6923,7 +6923,7 @@ THING is cosmic mic drop!`;
 						return false;
 					}
 
-					if ( fake_ent.is( sdBlock ) )
+					if ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_GROUND ) // Only dirt is denied for a grid-gap mismatch - other block types (walls, reinforced, etc.) are placeable regardless of grid pitch
 					if ( sdCharacter.WouldLeaveGridGap( fake_ent, initiator ) )
 					{
 						sdCharacter.last_build_deny_reason = [
