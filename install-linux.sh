@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SCRIPT_VERSION="1.0.13"
+SCRIPT_VERSION="1.0.14"
 DEFAULT_REPO_URL="https://github.com/Eric-Gurt/StarDefenders2D.git"
 DEFAULT_BRANCH="main"
 DEFAULT_SERVICE_NAME="stardefenders"
@@ -13,7 +13,14 @@ DEFAULT_BACKUP_INTERVAL="2d"
 DEFAULT_NODE_VERSION="lts/*"
 DEFAULT_WORLD_SLOT="0"
 DEFAULT_BACKUP_RETENTION_DAYS="30"
-DEFAULT_CRASH_LIMIT="5"
+# Deliberately generous: a burst of restarts in a short window is not always a
+# real crash loop (a deploy stop/start, a config-triggered restart and a cert
+# renewal can legitimately stack up), and exhausting the limit wedges the unit
+# into "Start request repeated too quickly" -- systemd then refuses to start it
+# at all, turning a transient hiccup into an extended outage that needs a manual
+# `systemctl reset-failed`. A genuine crash loop (RestartSec seconds apart) still
+# trips this well inside the window.
+DEFAULT_CRASH_LIMIT="20"
 DEFAULT_CRASH_WINDOW_SEC="600"
 DEFAULT_CRASH_RESTART_SEC="15"
 DEFAULT_CRASH_REPORT_KEEP="50"
@@ -1734,12 +1741,32 @@ forward_signal() {
 }
 trap 'forward_signal TERM' TERM
 trap 'forward_signal INT' INT
+# SIGUSR2 is the player-broadcast signal (deploy.sh's send_player_notice ->
+# sdServerConfig.js's SIGUSR2 handler). It MUST be trapped here: bash's default
+# disposition for SIGUSR2 is to terminate, so an untrapped SIGUSR2 kills this
+# wrapper outright, and KillMode=control-group then tears down the game process
+# with it -- no SIGTERM, no world save, corrupted chunks. Trapping it keeps the
+# wrapper alive and passes the signal to the game, which is all it was ever
+# meant to do.
+trap 'forward_signal USR2' USR2
 
 set +e
 eval "exec ${LAUNCH_COMMAND}" &
 child_pid="$!"
+# `wait` returns as soon as a TRAPPED signal has been handled, with status
+# 128+signum, even though the child is still running. Taking that as the child's
+# exit status made this wrapper exit the moment it forwarded a SIGTERM -- so
+# systemd saw the main process die, considered the unit stopped, and reaped the
+# rest of the control group while the game was still writing its world snapshot.
+# Keep waiting until the child has genuinely exited so the game's own
+# SIGTERM/SIGINT handler (world snapshot save) can finish, which is what the
+# forwarding above exists to guarantee in the first place.
 wait "${child_pid}"
 status="$?"
+while (( status > 128 )) && kill -0 "${child_pid}" 2>/dev/null; do
+  wait "${child_pid}"
+  status="$?"
+done
 set -e
 
 if [[ "${status}" == "0" ]]; then
@@ -1989,7 +2016,12 @@ send_player_notice() {
   local message="$1"
   printf '%s\n' "${message}" > "${APP_DIR}/sd2d_update_notice.txt"
   chown "${APP_USER}:${APP_GROUP}" "${APP_DIR}/sd2d_update_notice.txt" 2>/dev/null || true
-  systemctl kill --signal=SIGUSR2 "${SERVICE_NAME}.service" 2>/dev/null || log "WARNING: failed to signal ${SERVICE_NAME}.service for a player notice."
+  # --kill-whom=main is essential: the default is `all`, which sprays SIGUSR2 at
+  # every process in the control group -- including the `tee` used for run
+  # logging, which has no SIGUSR2 handler and dies (default disposition is
+  # terminate), breaking the game's stdout. Only the wrapper needs the signal;
+  # it traps SIGUSR2 and forwards it to the game process.
+  systemctl kill --kill-whom=main --signal=SIGUSR2 "${SERVICE_NAME}.service" 2>/dev/null || log "WARNING: failed to signal ${SERVICE_NAME}.service for a player notice."
 }
 
 # Warns connected players an update is coming, then re-notices every minute
