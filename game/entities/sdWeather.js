@@ -169,16 +169,15 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_LONG_RANGE_ANTENNA =	event_counter++; // 47
 		sdWeather.EVENT_PROTECT_SDBG_DRONE =	event_counter++; // 48
 		sdWeather.EVENT_VELOX_FORTIFIER =		event_counter++; // 49
-		sdWeather.EVENT_SOLAR_DISTRIBUTOR =		event_counter++; // 50
-		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 51
-		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 52
-		sdWeather.EVENT_MISSILES =				event_counter++; // 53
-		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 54
-		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 55
-		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 56
-		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 57
-		sdWeather.EVENT_STALKER =				event_counter++; // 58
-		sdWeather.EVENT_DROUGHT =				event_counter++; // 59 - heatwave: accelerates natural water evaporation and melts snow. Excludable via GetDisallowedWorldEvents.
+		sdWeather.EVENT_SD_EXCAVATION =			event_counter++; // 50
+		sdWeather.EVENT_EM_ANOMALIES =			event_counter++; // 51
+		sdWeather.EVENT_MISSILES =				event_counter++; // 52
+		sdWeather.EVENT_TZYRG_OUTPOST =			event_counter++; // 53
+		sdWeather.EVENT_MOTHERSHIP_CONTAINER =	event_counter++; // 54
+		sdWeather.EVENT_CUBE_BOSS =				event_counter++; // 55
+		sdWeather.EVENT_TASK_ASSIGNMENT =		event_counter++; // 56
+		sdWeather.EVENT_STALKER =				event_counter++; // 57
+		sdWeather.EVENT_DROUGHT =				event_counter++; // 58 - heatwave: accelerates natural water evaporation and melts snow. Excludable via GetDisallowedWorldEvents.
 
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -4198,18 +4197,6 @@ class sdWeather extends sdEntity
 			}
 			//else
 			//this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
-		}
-		if ( r === sdWeather.EVENT_SOLAR_DISTRIBUTOR ) // Solar matter distributor is placed by SD's and needs to be activated
-		{
-			sdWeather.SimpleSpawner({
-				
-				count: [ 1, 1 ],
-				class: sdSolarMatterDistributor,
-				min_air_height: -400, // Minimum free space above entity placement location
-				aerial: true,
-				aerial_radius: 128
-				
-			});
 		}
 		if ( r === sdWeather.EVENT_SD_EXCAVATION ) // Excavator is placed by SD's and needs to be activated
 		{

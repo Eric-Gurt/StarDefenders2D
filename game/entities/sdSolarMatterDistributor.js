@@ -152,6 +152,8 @@ class sdSolarMatterDistributor extends sdEntity
 					sdMothershipContainer.containers[ i ].matter = Math.min( sdMothershipContainer.containers[ i ].matter_max, sdMothershipContainer.containers[ i ].matter + matter_to_give );
 					this.matter -= matter_to_give;
 				}
+				// These are now exclusively made to give matter to Mothership containers.
+				/*
 				else
 				{
 					let players_in_need_of_matter = [];
@@ -172,6 +174,7 @@ class sdSolarMatterDistributor extends sdEntity
 						this.matter -= matter_to_give;
 					}
 				}
+				*/
 			}
 
 
@@ -326,9 +329,9 @@ class sdSolarMatterDistributor extends sdEntity
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			if ( sdWorld.sockets[ i ].character && this.progress < 100 )
 			{
-				let desc = 'We placed a solar powered matter distributor - to help out freshly deployed Star defenders which struggle with matter management. You need to protect it so it can start up.';
-				if ( sdMothershipContainer.containers.length > 0 )
-				desc = 'We placed a solar powered matter distributor - to speed up fueling the Mothership matter container. You need to protect it so it can start up.';
+				//let desc = 'We placed a solar powered matter distributor - to help out freshly deployed Star defenders which struggle with matter management. You need to protect it so it can start up.';
+				//if ( sdMothershipContainer.containers.length > 0 )
+				let desc = 'We placed a solar powered matter distributor - to speed up fueling the Mothership matter container. You need to protect it so it can start up.';
 				if ( this._ai_told_player )
 				desc = 'Protect the solar powered matter distributor until it starts functioning.';
 				sdTask.MakeSureCharacterHasTask({ 
@@ -365,16 +368,6 @@ class sdSolarMatterDistributor extends sdEntity
 				{
 					this._ai_told_player = true;
 					let potential_dialogue = sdWorld.AnyOf( [ 
-						'Hello, can you help start this? Let\'s do this!',
-						'Activating this we will be able to give matter to Star Defenders running low on it.',
-						'Watch out, it is known that Asps and Biters dislike this device for some reason.',
-						'I can\'t wait to get back to the Mothership after this.',
-						'This device helps Star Defenders running low on matter, as long as it can generate it.',
-						'This device streams matter into our suits if it detects we are low on it.'
-					] );
-					
-					if ( sdMothershipContainer.containers.length > 0 ) // Mothership containers exist?
-					potential_dialogue = sdWorld.AnyOf( [ 
 						'Help us boot the distributor so it can transfer matter to the Mothership matter container!',
 						'This device helps filling up the Mothership matter container we placed on this planet.',
 						'We are tasked to start this device so the Mothership matter container can fill up faster.',
