@@ -1392,7 +1392,7 @@ class sdSandWorm extends sdEntity
 					// extensible" and crashes the whole server the first time a corrupted worm melees
 					// a player. sdBlock.CorruptAttack() (what this block was copy-pasted from) already
 					// goes through the proper status-effect API instead of a raw property - use that.
-					from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 30, intensity: 1, owner: this });
+					from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 300, intensity: 1.5, owner: this });
 				}
 			}
 		}

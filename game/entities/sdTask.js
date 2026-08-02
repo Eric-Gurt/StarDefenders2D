@@ -586,6 +586,7 @@ class sdTask extends sdEntity
 				
 				if ( task.progress === '' )
 				task.SetBasicProgress( 0, task._all_targets.length );
+			
 			},
 			onCompletion: ( task )=>
 			{
@@ -755,7 +756,7 @@ class sdTask extends sdEntity
 		for ( let i = 0; i < sdTask.tasks.length; i++ )
 		{
 			let task = sdTask.tasks[ i ];
-			if ( task._similarity_hash === this._similarity_hash && this !== task ) // Same hash? Same objective, different players probably
+			if ( task._similarity_hash === this._similarity_hash && this._executer !== task._executer ) // Same hash? Same objective, different players probably
 			{
 				if ( sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES ] ) // Destroy all entities scenario - sync progress, rewards and time left
 				{
@@ -800,7 +801,7 @@ class sdTask extends sdEntity
 				if ( task._approached_target && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY ] )
 				{
 					task._difficulty = task._initial_difficulty * task.GetContributingPlayers();
-					task.SetBasicProgress(0, 1); // Update rewards displayed
+					task.SetBasicProgress( 0, 1 ); // Update rewards displayed
 					task._update_version++;
 					task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					
@@ -808,8 +809,9 @@ class sdTask extends sdEntity
 				}
 				if ( task._approached_target && sdTask.missions[ task.mission ] === sdTask.missions[ sdTask.MISSION_DESTROY_ALL_ENTITIES ] )
 				{
+					let old_target_count = task._all_targets.length;
 					task._difficulty = task._initial_difficulty * task.GetContributingPlayers();
-					task.SetBasicProgress( parseInt( task.progress[ 2 ] ), parseInt( task.progress[ 6 ] ) ); // Update rewards displayed
+					task.SetBasicProgress( 0, task._all_targets.length ); // Update mission
 					task._update_version++;
 					task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					
@@ -871,6 +873,18 @@ class sdTask extends sdEntity
 					{
 						task._allow_task_hibernation = params.allow_hibernation; // Make sure it's either set to true or false
 					}
+					
+					/*if ( typeof params.all_targets !== 'undefined' && sdTask.missions[ params.mission ] === sdTask.MISSION_DESTROY_ALL_ENTITIES )
+					{
+						if ( task.progress !== '' )
+						{
+							if ( params.all_targets.length > task._all_targets.length ) // Updates value if more ents suddenly started existing
+							{
+								task.SetBasicProgress( parseInt( task.progress[ 2 ] ), params.all_targets.length );
+							}
+						}
+					}*/
+					
 
 					return false;
 				}
@@ -915,7 +929,10 @@ class sdTask extends sdEntity
 	
 	SetBasicProgress( current, total )
 	{
+		if ( this.mission !== sdTask.MISSION_DESTROY_ALL_ENTITIES )
 		this.progress = '( ' + current + ' / ' + total + '; '+Math.round((this._difficulty*100*1000)/1000)+'% rewards )';
+		else // Display "X left" instead
+		this.progress = '( ' + total + ' left; '+Math.round((this._difficulty*100*1000)/1000)+'% rewards )';
 		this._update_version++;
 	}
 	
@@ -1227,7 +1244,7 @@ class sdTask extends sdEntity
 					{
 						this._all_targets.splice( i, 1 );
 						//console.log( i, this._all_targets.length );
-						this.SetBasicProgress( 1 + parseInt( this.progress[ 2 ] ), parseInt( this.progress[ 6 ] ) ); // Update mission
+						this.SetBasicProgress( 0, this._all_targets.length ); // Update mission
 						
 						this._update_version++;
 					}

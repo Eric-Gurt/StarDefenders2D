@@ -2344,7 +2344,6 @@ class sdWeather extends sdEntity
 						near_entity: excavators[ 0 ],
 						group_radius: 6000
 					});
-					
 				}
 				
 				/*let instances = 0;
@@ -3326,7 +3325,7 @@ class sdWeather extends sdEntity
 
 						permanents.add( possibly_lava );
 						expirations.set( possibly_lava, default_expire_after );
-						
+						/*
 						for ( let i = 0; i < sdWorld.sockets.length; i++ )
 						if ( sdWorld.sockets[ i ].character )
 						if ( sdWorld.inDist2D_Boolean( possibly_lava.x, possibly_lava.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, 2000 ) )
@@ -3339,7 +3338,11 @@ class sdWeather extends sdEntity
 							time_left: duration_seconds * 30,
 							description: 'Volcanic activity detected in your sector. Relocate equipment to high ground immediately or construct lava diversion walls around the fissures.'
 						});
-
+						*/
+						
+						// Maybe just set all permanents to display in 1 task for socket? "sdTask.MISSION_DESTROY_ALL_ENTITIES" just displays arrow to nearest one (however requires _net_id's of all the objects). Revert if any issues occur.
+						// Task assigment occurs below now, right before StartSequence()
+						
 						if ( expirations.size >= minimum_lava_entities_to_start )
 						break;
 					}
@@ -3348,7 +3351,34 @@ class sdWeather extends sdEntity
 				if ( t < give_up_collecting_after && expirations.size < minimum_lava_entities_to_start )
 				timer.ScheduleAgain( 500 );
 				else
-				StartSequence();
+				{
+					// Assign task for players after lava is done spawning
+					let all_lava_net_ids = [];
+					let spawn_task = false;
+					for ( let [ e, e_expiration_in ] of expirations )
+					{
+						all_lava_net_ids.push( e._net_id ); // We need net_id's for "Destroy all entities" tasks
+						for ( let i = 0; i < sdWorld.sockets.length; i++ )
+						if ( sdWorld.sockets[ i ].character )
+						{
+							if ( sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, 2000 ) ) // let's make sure at least 1 lava entity is close enough to player(s)
+							spawn_task = true;
+						}
+					}
+					
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					if ( sdWorld.sockets[ i ].character && spawn_task )
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'LAVA-ERUPTION', 
+						executer: sdWorld.sockets[ i ].character,
+						mission: sdTask.MISSION_DESTROY_ALL_ENTITIES,
+						all_targets: all_lava_net_ids,
+						title: 'Thermal anomaly detected',
+						time_left: duration_seconds * 30,
+						description: 'Volcanic activity detected in your sector. Relocate equipment to high ground immediately or construct lava diversion walls around the fissures.'
+					});
+					StartSequence();
+				}
 				
 			}, 500 );
 		}

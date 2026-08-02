@@ -2430,6 +2430,7 @@ class sdStatusEffect extends sdEntity
 			remove_if_for_removed: true,
 			is_emote: false,
 			is_static: false,
+			remove_on_rescue_teleport_use: true,
 	
 			onMade: ( status_entity, params )=>
 			{
@@ -2463,6 +2464,8 @@ class sdStatusEffect extends sdEntity
 				{
                     if ( status_entity._sickness > 0 )
                     {
+						if ( status_entity._sickness > 2000 )
+						status_entity._sickness = 2000; // Needs a cap to not last forever
                         status_entity._sickness -= GSPEED;
                         status_entity._sick_damage_timer -= GSPEED;
 
@@ -2481,13 +2484,12 @@ class sdStatusEffect extends sdEntity
                         
                         const targets_raw = sdWorld.GetAnythingNear( ent.x, ent.y, 90, null, [ 'sdCharacter' ] );
 					
-                        const itself = targets_raw.indexOf( this );
+                        const itself = targets_raw.indexOf( ent );
                         if ( itself !== -1 )
                         targets_raw.splice( itself, 1 );
 					
                         for ( let i = 0; i < targets_raw.length; ++i )
                         {
-                            if ( targets_raw[ i ].IsTargetable( ent ) )
                             targets_raw[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: status_entity._sickness / targets_raw.length, intensity: status_entity._intensity / targets_raw.length, owner: status_entity._owner });
                         }
 					}
