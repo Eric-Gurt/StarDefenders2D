@@ -2490,6 +2490,7 @@ class sdStatusEffect extends sdEntity
 					
                         for ( let i = 0; i < targets_raw.length; ++i )
                         {
+							if ( targets_raw[ i ].IsTargetable( ent ) )
                             targets_raw[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: status_entity._sickness / targets_raw.length, intensity: status_entity._intensity / targets_raw.length, owner: status_entity._owner });
                         }
 					}
