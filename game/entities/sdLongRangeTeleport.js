@@ -29,6 +29,7 @@ import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdCraftingBench from './sdCraftingBench.js';
 import sdMatterMatrix from './sdMatterMatrix.js';
 import sdTurret from './sdTurret.js';
+import sdExcavator from './sdExcavator.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -969,6 +970,12 @@ class sdLongRangeTeleport extends sdEntity
 			const turret = new sdTurret({ x:this.x, y:this.y - 32, kind: sdTurret.KIND_SENTRY });
 			sdEntity.AddEntityToEntitiesArray( turret );
 		}
+		else
+		if ( rewards === 'CLAIM_EXCAVATOR' )
+		{
+			let excavator = new sdExcavator({ x:this.x, y:this.y - 32, type: sdExcavator.TYPE_SMALL });
+			sdEntity.AddEntityToEntitiesArray( excavator );
+		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -1357,7 +1364,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_UPGRADE_STATION_CHIP' ||
 						command_name === 'CLAIM_MATTER_CONTAINER_CHIP' ||
 						command_name === 'CLAIM_MATTER_MATRIX' ||
-                        command_name === 'CLAIM_SENTRY_TURRET'
+                        command_name === 'CLAIM_SENTRY_TURRET' ||
+						command_name === 'CLAIM_EXCAVATOR'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -2052,6 +2060,7 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
 								this.AddContextOption( 'Claim matter generation matrix ( 5 reward cost )', 'CLAIM_MATTER_MATRIX', [] );
                                 this.AddContextOption( 'Claim sentry turret ( 3 reward cost )', 'CLAIM_SENTRY_TURRET', [] );
+								this.AddContextOption( 'Claim rewards ( excavator )', 'CLAIM_EXCAVATOR', [] );
 							}
 						}
 

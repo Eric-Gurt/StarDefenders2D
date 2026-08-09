@@ -18,6 +18,8 @@ import sdJunk from './sdJunk.js';
 import sdBomb from './sdBomb.js';
 import sdBarrel from './sdBarrel.js';
 import sdDrone from './sdDrone.js';
+import sdStorage from './sdStorage.js';
+
 import sdRenderer from '../client/sdRenderer.js';
 
 /*
@@ -39,8 +41,8 @@ class sdExcavator extends sdEntity
 	{
 		sdExcavator.img_excavator = sdWorld.CreateImageFromFile( 'sdExcavator' );
 
-		sdExcavator.TYPE_LARGE = 0;
-		sdExcavator.TYPE_SMALL = 1;
+		sdExcavator.TYPE_LARGE = 0; // Default excavator which spawns randomly via world events.
+		sdExcavator.TYPE_SMALL = 1; // Obtainable via task rewards
 		sdExcavator.TYPE_COUNCIL = 2; // Council "excavator" tasks which need to destroy these
 		
 		sdExcavator.council_excavators = [];
@@ -434,6 +436,13 @@ class sdExcavator extends sdEntity
 				
 				sdEntity.AddEntityToEntitiesArray( crystal );
 				
+				// Storage crate for the quartz
+				let storage = new sdStorage({ x: this.x, y: this.y, type: sdStorage.TYPE_QUARTZ_CARRIER });
+				
+				sdEntity.AddEntityToEntitiesArray( storage );
+				storage.onBuilt(); // Required so it doesn't get instantly removed
+				
+				storage.onMovementInRange( crystal );
 				// Make the excavator disappear
 				this.remove();
 				//this._broken = false;

@@ -138,7 +138,7 @@ class sdBeamProjector extends sdEntity
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });
 	}*/
 
-	get mass() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? 300 : 70; } // Recommended to move with vehicles if blocked by something
+	get mass() { return this.type === sdBeamProjector.TYPE_PROJECTOR ? 300 : 65; } // Recommended to move with vehicles if blocked by something
 	/*MeasureMatterCost()
 	{
 		//return 0; // Hack
@@ -456,7 +456,7 @@ class sdBeamProjector extends sdEntity
 						let tr = 100;
 						do
 						{
-							x = this.x + 96 + ( 100 - tr ) - ( Math.random() * ( 292 - tr ) ); // Potential spawn radius scales over attempts
+							x = this.x + 1000 + ( 200 - ( tr * 2 ) ) - ( Math.random() * ( 2400 - ( tr * 4 ) ) ); // Potential spawn radius scales over attempts
 
 							if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
 							x = sdWorld.world_bounds.x1 + 64 + ( Math.random() * 192 );

@@ -31,6 +31,7 @@ class sdStorage extends sdEntity
 		sdStorage.TYPE_CRYSTALS = 2;
 		sdStorage.TYPE_CARGO = 3;
 		sdStorage.TYPE_CRYSTALS_PORTAL = 4;
+		sdStorage.TYPE_QUARTZ_CARRIER = 5; // 1 slot crystal storage crate, excavators put these in quartz when the excavation is concluded.
 		
 		sdStorage.ignored_ents = [ 'sdLifeBox' ];
 		
@@ -43,7 +44,7 @@ class sdStorage extends sdEntity
 	
 	GetSlotsTotal()
 	{
-		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : 6;
+		return ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_PORTAL ) ? 24 : this.type === sdStorage.TYPE_CARGO ? 12 : this.type === sdStorage.TYPE_QUARTZ_CARRIER ? 1 : 6;
 	}
 	
 	IsPortal()
@@ -369,6 +370,9 @@ class sdStorage extends sdEntity
 
 		if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
 		return 'Crystal storage portal crate';
+	
+		if ( this.type === sdStorage.TYPE_QUARTZ_CARRIER )
+		return 'Small crystal storage crate';
 	}
 	get description()
 	{
@@ -451,6 +455,9 @@ class sdStorage extends sdEntity
 
 			if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
 			xx = 4;
+		
+			if ( this.type === sdStorage.TYPE_QUARTZ_CARRIER )
+			xx = 6;
 		
 			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, yy * 32, 32, 32, - 16, - 16, 32,32 );
 		}
@@ -543,6 +550,8 @@ class sdStorage extends sdEntity
 	
 		if ( this.type === sdStorage.TYPE_CRYSTALS_PORTAL )
 		return 980 + this._hmax * sdWorld.damage_to_matter;
+	
+		return this._hmax * sdWorld.damage_to_matter;
 	}
 
 	static GetTitleForCrystal( from_entity )
@@ -566,6 +575,8 @@ class sdStorage extends sdEntity
                     return 4;
                 case sdStorage.TYPE_PORTAL:
                     return 1;
+				case sdStorage.TYPE_QUARTZ_CARRIER:
+					return 2;
             }
         }
         
@@ -586,7 +597,7 @@ class sdStorage extends sdEntity
 		}
 		
 		let is_for_guns = ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL );
-		let is_for_crystals = ( this.type === sdStorage.TYPE_CRYSTALS || this.type === sdStorage.TYPE_CRYSTALS_PORTAL );
+		let is_for_crystals = ( this.type === sdStorage.TYPE_CRYSTALS || this.type === sdStorage.TYPE_CRYSTALS_PORTAL || this.type === sdStorage.TYPE_QUARTZ_CARRIER );
 		
 		if ( 
 				( 
@@ -796,6 +807,12 @@ class sdStorage extends sdEntity
 						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 						else
 						if ( this.type === sdStorage.TYPE_CRYSTALS )
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						else
+						if ( this.type === sdStorage.TYPE_CRYSTALS )
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						else
+						if ( this.type === sdStorage.TYPE_QUARTZ_CARRIER )
 						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 						else
 						if ( this.type === sdStorage.TYPE_CARGO )

@@ -321,8 +321,9 @@ class sdCouncilIncinerator extends sdEntity
 
 		dmg = Math.abs( dmg );
 		
-		if ( this.incinerator_attack_anim > 0 )
-		dmg = dmg * 2; // 2x damage recieved while in ignition phase
+		//if ( this.incinerator_attack_anim > 0 )
+		//dmg = dmg * 2; // 2x damage recieved while in ignition phase
+		// It has a weakpoint at all times, no need to make this a thing anymore
 		
 		let old_hp = this.hea;
 		

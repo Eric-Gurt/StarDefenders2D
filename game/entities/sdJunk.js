@@ -764,7 +764,7 @@ class sdJunk extends sdEntity
 
                             if ( e_is_organic )
                             {
-                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 1000 * mult, intensity: 2 * mult, owner: this._owner }); // Poisons nearby living entities
+                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 500 * mult, intensity: 3 * mult, owner: this._owner }); // Poisons nearby living entities
                             }
                         }
 					}
