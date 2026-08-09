@@ -997,17 +997,14 @@ class sdCube extends sdEntity
 		let xx = this.x + ( this.sx * dist ) + add_x;
 		let yy = this.y + ( this.sy * dist ) + add_y;
 
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCube.as_class_list, sdCom.cos_vision_blocking_classes ) )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCube.as_class_list, sdCom.com_vision_blocking_classes ) )
 		if ( this.CanMoveWithoutOverlap( xx, yy, 0 ) )
 		{
-			setTimeout(()=>
-			{
-				if ( this._is_being_removed || this._hea <= 0 || this._frozen > 0 )
-				return;
+			if ( this._is_being_removed || this._hea <= 0 || this._frozen > 0 )
+			return;
 
-				this.x = xx;
-				this.y = yy;
-			}, 400 );
+			this.x = xx;
+			this.y = yy;
 			
 			sdWorld.SendEffect({ x:this.x, y:this.y, x2:xx, y2:yy, type:sdEffect.TYPE_BEAM_CIRCLED, color:"#ffffff" });
 			sdSound.PlaySound({ name:'cube_teleport', pitch: ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:1 });
@@ -1195,7 +1192,7 @@ class sdCube extends sdEntity
 				if ( this._teleport_timer <= 0 && this.kind === sdCube.KIND_WHITE ) // White cubes can teleport around
 				{
 					this.TeleportSomewhere( -128 + ( Math.random() * 256), -64 + ( Math.random() * 128 ),  -64 + ( Math.random() * 128 ) );
-					this._teleport_timer = 30 + ( Math.random() * 60 );
+					this._teleport_timer = 35 + ( Math.random() * 70 );
 				}
 				else
 				if ( this._attack_timer > 10 )

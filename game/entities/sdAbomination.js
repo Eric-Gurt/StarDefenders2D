@@ -116,7 +116,8 @@ class sdAbomination extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		//dmg = Math.abs( dmg ); Can be healed now
+		if ( this._hea <= 0 ) // If it's dead, it cannot be healed (can we glue gibs back onto it?)
+		dmg = Math.abs( dmg );
 
 		if ( initiator !== null )
 		this._current_target = initiator;
@@ -232,7 +233,7 @@ class sdAbomination extends sdEntity
 			else
 			this._tenta_target = null;
 
-			if ( this._hea < this._hmax )
+			if ( this._hea < this._hmax && this._hea > 0 )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED / 10 );
 
 			if ( this.attack_timer > 0 )
@@ -345,6 +346,7 @@ class sdAbomination extends sdEntity
 								yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 			
 								from_entity.DamageWithEffect( 10, this );
+								if ( this._hea > 0 )
 								this._hea = Math.min( this._hmax, this._hea + 25 );
 
 
@@ -477,6 +479,7 @@ class sdAbomination extends sdEntity
 						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 						{
 							//from_entity.DamageWithEffect( 10, this );
+							if ( this._hea > 0 )
 							this._hea = Math.min( this._hmax, this._hea + 25 );
 
 
