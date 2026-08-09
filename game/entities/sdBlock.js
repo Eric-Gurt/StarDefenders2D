@@ -516,13 +516,26 @@ class sdBlock extends sdEntity
 					
 						let ent;
 					
-						if ( this._contains_class === 'sdSandWorm' || this._contains_class === 'sdSandWorm.corrupted' )
+						if ( this._contains_class === 'sdSandWorm' || this._contains_class === 'sdSandWorm.KIND_CORRUPTED_WORM' )
 						{
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+							let unmerged_anything = false;
+							// Needs to check for merged blocks, then unmerge and try again
+							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( blocks_near[ i ]._natural )
+							if ( !blocks_near[ i ]._is_being_removed )
+							if ( blocks_near[ i ]._merged )
+							{
+								blocks_near[ i ].UnmergeBlocks(); // Unmerge all merged blocks then we will retry again
+								unmerged_anything = true;
+							}
+							
+							if ( unmerged_anything ) // If some unmerging occured, retry
+							blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
 							for ( let i = 0; i < blocks_near.length; i++ )
-							if ( blocks_near[ i ]._natural || ( this.material === sdBlock.MATERIAL_CORRUPTION && this._contains_class === 'sdSandWorm.corrupted' && blocks_near[ i ].material === sdBlock.MATERIAL_CORRUPTION ) )
+							if ( blocks_near[ i ]._natural || ( this.material === sdBlock.MATERIAL_CORRUPTION && this._contains_class === 'sdSandWorm.KIND_CORRUPTED_WORM' && blocks_near[ i ].material === sdBlock.MATERIAL_CORRUPTION ) )
 							if ( !blocks_near[ i ]._is_being_removed )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
@@ -574,7 +587,20 @@ class sdBlock extends sdEntity
 						{
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
-
+							let unmerged_anything = false;
+							// Needs to check for merged blocks, then unmerge and try again
+							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( blocks_near[ i ]._natural )
+							if ( !blocks_near[ i ]._is_being_removed )
+							if ( blocks_near[ i ]._merged )
+							{
+								blocks_near[ i ].UnmergeBlocks(); // Unmerge all merged blocks then we will retry again
+								unmerged_anything = true;
+							}
+							
+							if ( unmerged_anything ) // If some unmerging occured, retry
+							blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+							
 							for ( let i = 0; i < blocks_near.length; i++ )
 							if ( blocks_near[ i ]._natural )
 							if ( !blocks_near[ i ]._is_being_removed )
@@ -627,6 +653,7 @@ class sdBlock extends sdEntity
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
+							// Flesh does not merge, so it should be fine to keep as is right now - Booraz
 							for ( let i = 0; i < blocks_near.length; i++ )
 							if ( blocks_near[ i ].material === sdBlock.MATERIAL_FLESH )
 							if ( !blocks_near[ i ]._is_being_removed )
@@ -674,10 +701,23 @@ class sdBlock extends sdEntity
 							}
 						}
 						else
-						if ( this._contains_class === 'sdBiter.TYPE_LARGE' ) // Infectious biter and some other things in future, maybe?
+						if ( this._contains_class === 'sdBiter.TYPE_LARGE' ) // Infectious biter
 						{
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+							let unmerged_anything = false;
+							// Needs to check for merged blocks, then unmerge and try again
+							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( blocks_near[ i ]._natural )
+							if ( !blocks_near[ i ]._is_being_removed )
+							if ( blocks_near[ i ]._merged )
+							{
+								blocks_near[ i ].UnmergeBlocks(); // Unmerge all merged blocks then we will retry again
+								unmerged_anything = true;
+							}
+							
+							if ( unmerged_anything ) // If some unmerging occured, retry
+							blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
 							for ( let i = 0; i < blocks_near.length; i++ )
 							if ( !blocks_near[ i ]._is_being_removed )
@@ -1030,7 +1070,7 @@ class sdBlock extends sdEntity
 		this._broken = false;
 
 		if ( this._contains_class === 'sdSandWorm' ) // Is there a worm spawn inside this block?
-		ent2._contains_class = 'sdSandWorm.corrupted'; // Corrupt the worm aswell
+		ent2._contains_class = 'sdSandWorm.KIND_CORRUPTED_WORM'; // Corrupt the worm aswell
 
 		if ( this._contains_class === 'sdCrystal' ) // Is there a worm spawn inside this block?
 		ent2._contains_class = 'sdCrystal.corrupted'; // Corrupt the worm aswell
