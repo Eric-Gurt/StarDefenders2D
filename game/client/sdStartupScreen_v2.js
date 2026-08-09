@@ -522,7 +522,9 @@
 			});
             AddOption({ caption: `Screen shake`, prefix: `screen_shake`,
 				options: [
-					[ 2, `Disabled` ], 
+					[ 4, `Disabled` ],
+					[ 3, `Earthquake only` ], 
+					[ 2, `Simple` ], 
 					[ 1, `Enabled` ]
 				],
 				default_option: 1

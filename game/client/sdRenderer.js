@@ -63,7 +63,7 @@ class sdRenderer
 		sdRenderer.resolution_quality = 1;
         sdRenderer.draw_in_3d = true;
         
-        sdRenderer.enable_screen_shakes = true;
+        sdRenderer.enable_screen_shakes = 1;
 	
 		var canvas = document.createElement('canvas');
 		canvas.id     = "SD2D";
@@ -954,15 +954,18 @@ class sdRenderer
     }
     static ScreenShake( intensity, ttl )
     {
-        if ( !sdRenderer.enable_screen_shakes )
+        if ( sdRenderer.enable_screen_shakes === 4 )
         return;
 
-        sdRenderer.quakes.push({ intensity, ttl });
-        sdRenderer.quake_intensity += intensity;
+		if ( sdRenderer.enable_screen_shakes !== 3 ) // Earthquake only option disallows shaking from explosions
+		{
+			sdRenderer.quakes.push({ intensity, ttl });
+			sdRenderer.quake_intensity += intensity;
+		}
     }
     static HandleScreenShakes( GSPEED )
     {
-        if ( !sdRenderer.enable_screen_shakes )
+        if ( sdRenderer.enable_screen_shakes === 4 )
         return;
 
         let decrease = 0;
@@ -1539,7 +1542,7 @@ class sdRenderer
 		
 		let quake_offset_x = 0;
 		let quake_offset_y = 0;
-        if ( sdRenderer.enable_screen_shakes )
+        if ( sdRenderer.enable_screen_shakes !== 4 )
         {
             if ( sdRenderer._quake_screen_shake_since === 0 )
             sdRenderer._quake_screen_shake_since = sdWorld.time;
@@ -1559,7 +1562,9 @@ class sdRenderer
 
                 //sdWorld.camera.x += x; These are stored and later rounded values, better not to use them - otherwise quake will affect camera position in slow camera mode
                 //sdWorld.camera.y += y;
+				if ( sdRenderer.enable_screen_shakes === 1 ) 
                 quake_offset_x += x;
+				
                 quake_offset_y += y;
             }
             else
