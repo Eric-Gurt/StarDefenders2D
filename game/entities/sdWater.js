@@ -40,6 +40,7 @@ class sdWater extends sdEntity
 		sdWater.DEBUG = false;
 		
 		sdWater.classes_to_interact_with = [ 'sdBlock', 'sdDoor' ];
+		sdWater.block_as_array = [ 'sdBlock' ];
 		sdWater.water_class_array = [ 'sdWater' ];
 		
 		sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
@@ -420,10 +421,10 @@ class sdWater extends sdEntity
 				const IsLiquidBlockingSolid = ( e )=> e.is( sdBlock ) && !e.IsLetsLiquidsThrough();
 
 				const has_solid_neighbor =
-					sdWorld.CheckWallExistsBox( this.x - 16, this.y, this.x, this.y + 16, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ) || // left
-					sdWorld.CheckWallExistsBox( this.x + 16, this.y, this.x + 32, this.y + 16, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ) || // right
-					sdWorld.CheckWallExistsBox( this.x, this.y - 16, this.x + 16, this.y, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ) || // above
-					sdWorld.CheckWallExistsBox( this.x, this.y + 16, this.x + 16, this.y + 32, this, null, [ 'sdBlock' ], IsLiquidBlockingSolid ); // below
+					sdWorld.CheckWallExistsBox( this.x - 16, this.y, this.x, this.y + 16, this, null, sdWater.block_as_array, IsLiquidBlockingSolid ) || // left
+					sdWorld.CheckWallExistsBox( this.x + 16, this.y, this.x + 32, this.y + 16, this, null, sdWater.block_as_array, IsLiquidBlockingSolid ) || // right
+					sdWorld.CheckWallExistsBox( this.x, this.y - 16, this.x + 16, this.y, this, null, sdWater.block_as_array, IsLiquidBlockingSolid ) || // above
+					sdWorld.CheckWallExistsBox( this.x, this.y + 16, this.x + 16, this.y + 32, this, null, sdWater.block_as_array, IsLiquidBlockingSolid ); // below
 
 				if ( has_solid_neighbor )
 				v = 16;

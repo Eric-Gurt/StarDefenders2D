@@ -19,7 +19,9 @@ import sdBomb from './sdBomb.js';
 import sdBarrel from './sdBarrel.js';
 import sdDrone from './sdDrone.js';
 import sdStorage from './sdStorage.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
+import sdArea from './sdArea.js';
 import sdRenderer from '../client/sdRenderer.js';
 
 /*

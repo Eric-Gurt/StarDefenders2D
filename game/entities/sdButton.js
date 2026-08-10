@@ -18,6 +18,8 @@ import sdGun from './sdGun.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import { PropagateSignal } from '../sdSignalPropagation.js';
+import sdSteeringWheel from './sdSteeringWheel.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 import sdSound from '../sdSound.js';
 
