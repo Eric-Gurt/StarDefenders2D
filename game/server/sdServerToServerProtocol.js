@@ -246,6 +246,14 @@ class sdServerToServerProtocol
 	}
 	static SendData( remote_server_url, data_object, callback=null )
 	{
+		if ( typeof remote_server_url !== 'string' || remote_server_url.trim().length === 0 )
+		{
+			if ( callback )
+			callback( null );
+
+			return;
+		}
+
 		// Connection will hang for a while actually and auto-restore it seems once established once
 		
 		let route = sdServerToServerProtocol.routes++;
