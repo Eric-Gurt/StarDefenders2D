@@ -547,8 +547,19 @@ class sdGunClass
 						if ( hasNoExtra( gun, initiator ) )
 						return false;
 					
-						gun.extra[ sdGun.ID_RECOIL_SCALE ] *= 0.95; // 5%
-						UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ sdGun.ID_RECOIL_SCALE ] > 0.5 )
+						{
+							gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.max( 0.5, gun.extra[ sdGun.ID_RECOIL_SCALE ] - 0.05 ); // 5% reduction
+							UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
+						}
 					} 
 				} 
 			);
@@ -562,8 +573,19 @@ class sdGunClass
 						if ( hasNoExtra( gun, initiator ) )
 						return false;
 					
-						gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ sdGun.ID_RECOIL_SCALE ] * 1.05 ); // Limit recoil decreasing so it doesn't crash server
-						UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ sdGun.ID_RECOIL_SCALE ] < 2 )
+						{
+							gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ sdGun.ID_RECOIL_SCALE ] + 0.05 ); // Limit recoil decreasing so it doesn't crash server
+							UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
+						}
 					} 
 				} 
 			);
@@ -754,8 +776,19 @@ class sdGunClass
 						if ( hasNoExtra( gun, initiator ) )
 						return false;
 					
-						gun.extra[ sdGun.ID_RECOIL_SCALE ] *= 0.95; // 5%
-						//UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ sdGun.ID_RECOIL_SCALE ] > 0.5 )
+						{
+							gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.max( 0.5, gun.extra[ sdGun.ID_RECOIL_SCALE ] - 0.05 ); // 5% reduction
+							//UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
+						}
 					} 
 				} 
 			);
@@ -769,8 +802,19 @@ class sdGunClass
 						if ( hasNoExtra( gun, initiator ) )
 						return false;
 					
-						gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ sdGun.ID_RECOIL_SCALE ] * 1.05 ); // Limit recoil decreasing so it doesn't crash server
-						//UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ sdGun.ID_RECOIL_SCALE ] < 2 )
+						{
+							gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ sdGun.ID_RECOIL_SCALE ] + 0.05 ); // Limit recoil decreasing so it doesn't crash server
+							//UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+					
+							return false; // Do not subtract matter
+						}
 					} 
 				} 
 			);
@@ -834,10 +878,11 @@ class sdGunClass
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _knock_scale: 0.03 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] ) // Custom projectile colors?
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -883,10 +928,11 @@ class sdGunClass
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _dirt_mult: -0.5 }; 
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -931,10 +977,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {};
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -987,10 +1033,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, _rail_circled: true, color: '#62c8f2' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -1037,10 +1083,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 19, model: 'rocket_proj', color:sdEffect.default_explosion_color, ac:1, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -1083,10 +1129,10 @@ class sdGunClass
 				
 				//let obj = { time_left: 2, color: 'transparent', _return_damage_to_owner:true };
 				let obj = { time_left: 2, color: 'transparent' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -1135,10 +1181,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 10, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				
@@ -1256,10 +1302,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', color:sdEffect.default_explosion_color, is_grenade: true, _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -1301,10 +1347,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating:true, _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -1352,10 +1398,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 1, color: 'transparent', _knock_scale:0.025 * 8 };
-				//obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				//obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -1427,10 +1473,11 @@ class sdGunClass
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color:'#afdfff', _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { color:'#afdfff', _dirt_mult: -0.5 }; // Default value for _knock_scale
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -1474,10 +1521,11 @@ class sdGunClass
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#62c8f2', _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _rail: true, color: '#62c8f2' };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -1596,10 +1644,10 @@ class sdGunClass
 					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
 				}
 				};
-				//obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				//obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -1644,10 +1692,11 @@ class sdGunClass
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#62c8f2', _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _rail: true, color: '#62c8f2' };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 			
@@ -1705,10 +1754,11 @@ class sdGunClass
 			spawnable:false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#dddddd', penetrating: true, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { color: '#dddddd', penetrating: true };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -1758,10 +1808,11 @@ class sdGunClass
 			spawnable:false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color:'#00ffff', model: 'f_psicutter_proj', penetrating: false, _bouncy: true ,_knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { color:'#00ffff', model: 'f_psicutter_proj', penetrating: false, _bouncy: true };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				// if ( gun.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
 				// obj._damage *= 1.25; // Increase damage further by 25%
@@ -1804,10 +1855,11 @@ class sdGunClass
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#62c8f2', _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _rail: true, color: '#62c8f2' };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range, not sure if this should exist for rail shotguns
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -1868,10 +1920,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, _rail_circled: true, _damage: 80, color: '#FF0000' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				obj._damage *= 1 + ( gun._combo / 60 ); // Scale damage with charging ("Combo" increases the longer player holds the trigger, up to a few seconds)
 				
@@ -2065,10 +2117,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' }; // Default value for _knock_scale
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -2118,10 +2170,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 }; // Default value for _knock_scale
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -2409,10 +2461,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -2468,10 +2520,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#ffb300', _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -2515,10 +2567,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
 				obj._critical_hit_range = 80; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 112; // 7 dirt blocks
@@ -2566,10 +2618,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
 				obj._critical_hit_range = 80; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 112; // 7 dirt blocks
@@ -2622,10 +2674,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 60, explosion_radius: 19, model: 'rocket_proj', color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				
@@ -2669,10 +2721,10 @@ class sdGunClass
 				
 				//let obj = { _rail: true, color: '#ff00ff',  _return_damage_to_owner:true };
 				let obj = { _rail: true, color: '#ff00ff' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -2728,7 +2780,7 @@ class sdGunClass
 				obj._knock_scale = 0.025 * 8;
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -2793,7 +2845,7 @@ class sdGunClass
 				obj._knock_scale = 0.025 * 8;
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -3350,10 +3402,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#92d0ec', _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -3400,10 +3452,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -3463,10 +3515,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -3519,10 +3571,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 10, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -4013,10 +4065,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#00aaff', _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4060,10 +4112,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 7, model: 'ball', color:'#00aaff', _dirt_mult: 1, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				// if ( gun.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
@@ -4194,10 +4246,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 60, _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._temperature_addition = gun.overheat > 250 ? gun.overheat / 3 : 0;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -4259,10 +4311,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating:true, _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4310,10 +4362,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#33ffff', penetrating:true, _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4368,10 +4420,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4455,10 +4507,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 24, model: 'sarronian_bolt', color: '#00c600', _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -4509,10 +4561,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4561,10 +4613,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 180, explosion_radius: 12, model: 'mini_missile_p241', color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4639,10 +4691,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'#afdfff', _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4725,10 +4777,10 @@ class sdGunClass
                         sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:2, radius:2 });
 					}
 				};
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4774,10 +4826,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4828,10 +4880,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#ffff00' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4903,10 +4955,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', color:sdEffect.default_explosion_color, is_grenade: true, _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4946,10 +4998,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#62c8f2'};
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -4999,7 +5051,7 @@ class sdGunClass
 				obj._knock_scale = 0.7 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -5053,10 +5105,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 16, _rail: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7', _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -5101,10 +5153,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _damage: 32, model: 'sarronian_ball', color: '#00c600', explosion_radius: 12, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -5489,10 +5541,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating: true, _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -5537,10 +5589,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -5864,10 +5916,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 7, model: 'ball', color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -5916,10 +5968,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { time_left: 40, explosion_radius: 19, model: 'rocket_proj', color:'#7acaff', ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -6015,10 +6067,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#afdfff', penetrating: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -6355,7 +6407,7 @@ class sdGunClass
 				}
 				
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -6958,10 +7010,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {};
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -7057,10 +7109,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -7117,10 +7169,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 }; // Default value for _knock_scale
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -7167,10 +7219,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 }; // Default value for _knock_scale
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 0.25; // 1.25x damage at closer range, same as SMG's now.
 				obj._critical_hit_range = 80; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 112; // 7 dirt blocks
@@ -7262,10 +7314,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#73ff57', _dirt_mult: 3 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -7359,7 +7411,7 @@ class sdGunClass
 				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -7407,10 +7459,11 @@ class sdGunClass
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#62c8f2', _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _rail: true, color: '#62c8f2' };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -7590,10 +7643,11 @@ class sdGunClass
 			projectile_properties: { _damage: 1, color: '#004400' }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj.affected_by_gravity = true;
 				obj.color = '#004400';
 				
@@ -7644,7 +7698,7 @@ class sdGunClass
 				obj._knock_scale = 1.8 * 20; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -7729,10 +7783,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, _rail_alt:true, _damage: 32, color: '#ffff00', _temperature_addition: 700 }; // High fire damage. Custom guns go to 500 temperature, so why not.
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -7790,10 +7844,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { penetrating:true, _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj.affected_by_gravity = true;
 				obj.color = '#004400';
 				
@@ -7902,7 +7956,7 @@ class sdGunClass
 				obj._knock_scale = 0.02 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -7964,10 +8018,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {  time_left: 1, color: 'transparent', _dirt_mult: -2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
 				{
@@ -8017,10 +8071,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { model: 'ball', _temperature_addition: -1 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
@@ -8061,10 +8115,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -8311,10 +8365,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, color: '#00c600' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have some advantage over rifles at close range - Ghost581
 				obj._critical_hit_range = 80; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 112; // 7 dirt blocks
@@ -8371,10 +8425,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				let obj = { _dirt_mult: -0.5, time_left: 30, _rail: true, color: '#00c600' };
 
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -8488,10 +8542,10 @@ class sdGunClass
 								bullet_obj4._no_explosion_smoke = true;
 								sdEntity.AddEntityToEntitiesArray( bullet_obj4 );
 				} };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -8717,10 +8771,10 @@ class sdGunClass
 								}
 								sdEntity.AddEntityToEntitiesArray( bullet_obj5 );
 				} };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				return obj;
@@ -8775,10 +8829,10 @@ class sdGunClass
 					projectile_velocity: 2, time_left: 75, _hittable_by_bullets: false, gravity_scale: 0,
 					model_size: 2, _no_explosion_smoke: true, _explosion_shrapnel: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
-					obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+					obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 					obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-					obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+					//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 
 					return obj;
 				}
@@ -8928,10 +8982,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -8978,10 +9032,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, _rail: true, color: '#cd1e1e', _rail_circled: true, explosion_radius: 4, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -9030,10 +9084,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 			
 				let obj = { _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 7, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -9083,10 +9137,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _damage: 24, _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 6, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -9173,10 +9227,10 @@ class sdGunClass
 				{ let obj = { explosion_radius: 12, color: '#ff0000', _dirt_mult: 1, _rail: true,
 					_rail_circled: true, time_left: 75, _hittable_by_bullets: false, _no_explosion_smoke: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites
 				
-					obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+					obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 					obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 					obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-					obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+					//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 					obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 					
 					if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -9191,10 +9245,10 @@ class sdGunClass
 				_custom_target_reaction_protected:spear_target_reaction_glassed,
 				_custom_target_reaction:spear_target_reaction_glassed }
 			
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_ALT_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 
 				return obj; }
@@ -9370,10 +9424,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: 7, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				
@@ -9468,10 +9522,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#00aaff', _dirt_mult: -0.5 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -10125,7 +10179,7 @@ class sdGunClass
 						}
 					} 
 				}
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.fire_mode === 2 ? gun.extra[ sdGun.ID_ALT_DAMAGE_VALUE ] : gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				
@@ -10177,7 +10231,7 @@ class sdGunClass
 			},
 			projectile_properties_dynamic: ( gun )=> { 
 				
-				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ], _custom_target_reaction:( bullet, target_entity )=>
+				let obj = { _rail: true, _rail_alt: true, color: '#00FFFF', _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.IsPlayerClass() )
 					{
@@ -10186,9 +10240,10 @@ class sdGunClass
 						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_PSYCHOSIS, ttl: 35, owner: owner, controllable: gun.fire_mode === 2 });
 					}
 				} };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ];
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -10242,10 +10297,11 @@ class sdGunClass
 			projectile_properties: { color: '#00FFFF', _damage: 1 }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { color: '#00FFFF', _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { color: '#00FFFF' };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -10409,7 +10465,7 @@ class sdGunClass
 					};
 					obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ];
 					obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-					obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+					//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 					if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 					obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -10808,7 +10864,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				let obj = { penetrating:true, color: '#00ffde', time_left: 30, _hittable_by_bullets: false, model:'energy_wave' }
 				
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
@@ -10877,10 +10933,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {  time_left: 1, color: 'transparent', _dirt_mult: -2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 
 				return obj;
 			},
@@ -11006,10 +11062,10 @@ class sdGunClass
                         }
 					}
                 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11195,10 +11251,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11274,7 +11330,7 @@ class sdGunClass
                 obj._knock_scale = 1.4 * gun.extra[ sdGun.ID_DAMAGE_MULT ] * ( gun.fire_mode === 2 ? 2 : 1 );
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ] * ( gun.fire_mode === 2 ? 2 : 1 ); // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -11402,10 +11458,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#ffff00' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11461,10 +11517,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._critical_hit_mult = 1; // 2x damage at point blank range
 				obj._critical_hit_range = 24; // guide: 16 = A dirt block
 				obj._weak_critical_hit_range = 48; // 3 dirt blocks
@@ -11520,10 +11576,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'ffff00' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11583,10 +11639,10 @@ class sdGunClass
                         } 
                     }
                 }
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11647,10 +11703,10 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: sdEffect.default_explosion_color, explosion_radius: 10, model: 'heavy_bullet' };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
                 obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -11737,10 +11793,10 @@ class sdGunClass
                         }
 					}
                 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1;
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11788,10 +11844,11 @@ class sdGunClass
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_sdGun.ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
                 
                 if ( gun.fire_mode === 2 )
                 {
@@ -11850,7 +11907,7 @@ class sdGunClass
 			projectile_properties: { _rail: true, _rail_zap: true, _damage: 16, color: '#80ffff' },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
-				let obj = { color: '#80ffff', time_left: 6, _rail: true, _rail_zap: true, _knock_scale: 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ],
+				let obj = { color: '#80ffff', time_left: 6, _rail: true, _rail_zap: true,
                     _custom_target_reaction:( bullet, target_entity )=>
                     {
                         sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:1, radius:0.5 });
@@ -11859,10 +11916,11 @@ class sdGunClass
                     {
                        sdWorld.SendEffect({ x:bullet.x, y:bullet.y, type:sdEffect.TYPE_GLOW_HIT, color:bullet.color, scale:1, radius:0.5 });
                     } 
-                }; // Default value for _knock_scale
+                };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Default value for _knock_scale
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
                 
                 if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
 				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
@@ -11941,10 +11999,10 @@ class sdGunClass
                         } 
                     }
                 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
-				obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
                 
                 if ( gun.fire_mode === 2 )

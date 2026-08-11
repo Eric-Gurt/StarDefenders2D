@@ -1067,6 +1067,10 @@ class sdGun extends sdEntity
 				this.extra[ 9 ] = 2; // Make sure recoil is toned down to prevent server crashes or absurd knockback
 			}
 		}
+		
+		if ( this.extra[ sdGun.ID_RECOIL_SCALE ] )
+		if ( this.extra[ sdGun.ID_RECOIL_SCALE ] < 0.5 )
+		this.extra[ sdGun.ID_RECOIL_SCALE ] = 0.5; // Cap recoil for previously uncapped guns
 			
 		if ( this._held_by === null )
 		{

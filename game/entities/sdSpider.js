@@ -67,7 +67,7 @@ class sdSpider extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === 1 ? 700 : 300;
+		this._hmax = this.type === 1 ? 500 : 300;
 		this._hea = this._hmax;
 		this._ai_team = 2;
 
