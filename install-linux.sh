@@ -1644,6 +1644,7 @@ record_failure() {
   local tmp_history
   local recent_count
   local report_file
+  local s2s_connect_error_lines
 
   now_epoch="$(date +%s)"
   now_iso="$(date -Is)"
@@ -1657,6 +1658,7 @@ record_failure() {
 
   recent_count="$(wc -l < "${HISTORY_FILE}" | tr -d ' ')"
   report_file="${CRASH_DIR}/${SERVICE_NAME}-crash-${now_iso//:/-}.txt"
+  s2s_connect_error_lines="$(grep -Fc 'S2SProtocolMessage :: SendData socket: connect_error due to ' "${RUN_LOG}" 2>/dev/null || true)"
 
   {
     echo "StarDefenders2D service crash report"
@@ -1680,6 +1682,11 @@ record_failure() {
     echo "  journalctl -u ${SERVICE_NAME}.service -n 200 -o cat --no-pager"
     echo "  systemctl reset-failed ${SERVICE_NAME}.service"
     echo "  systemctl start ${SERVICE_NAME}.service"
+    echo
+    echo "s2s_connect_error_lines_in_run=${s2s_connect_error_lines}"
+    echo
+    echo "Last 200 service output lines excluding S2S connect_error entries (raw tail follows):"
+    grep -Fv 'S2SProtocolMessage :: SendData socket: connect_error due to ' "${RUN_LOG}" 2>/dev/null | tail -n 200 || true
     echo
     echo "Last 200 service output lines:"
     tail -n 200 "${RUN_LOG}" 2>/dev/null || true
