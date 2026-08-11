@@ -24,6 +24,60 @@ let sdArea = null;
 //let sdDeepSleep = null;
 //let sdKeyStates = null;
 //let sdStatusEffect = null;
+
+// Crystal cable-flow caches may skip a target only while its resolved matter value remains full.
+// These backing values let pre-seal accessors invalidate only caches that depend on a target.
+const matter_flow_matter_value = Symbol( 'matter_flow_matter_value' );
+const matter_flow_private_matter_value = Symbol( 'matter_flow_private_matter_value' );
+const matter_flow_matter_max_value = Symbol( 'matter_flow_matter_max_value' );
+const matter_flow_private_matter_max_value = Symbol( 'matter_flow_private_matter_max_value' );
+
+function MatterFlowIsSaturated( e )
+{
+	return ( e.matter || e._matter || 0 ) >= ( e.matter_max || e._matter_max || 0 );
+}
+
+function MatterFlowInvalidateTarget( e )
+{
+	let cache_entries = sdEntity._matter_flow_target_caches.get( e );
+
+	if ( cache_entries )
+	{
+		for ( const cache_entry of cache_entries )
+		cache_entry.valid = false;
+
+		cache_entries.clear();
+		sdEntity._matter_flow_target_caches.delete( e );
+	}
+}
+
+function MatterFlowPropertyGetter( value_property )
+{
+	return function()
+	{
+		return this[ value_property ];
+	};
+}
+
+function MatterFlowPropertySetter( value_property )
+{
+	return function( value )
+	{
+		let was_saturated = MatterFlowIsSaturated( this );
+
+		this[ value_property ] = value;
+
+		if ( was_saturated && !MatterFlowIsSaturated( this ) )
+		MatterFlowInvalidateTarget( this );
+	};
+}
+
+const matter_flow_properties = [
+	[ 'matter', matter_flow_matter_value, MatterFlowPropertyGetter( matter_flow_matter_value ), MatterFlowPropertySetter( matter_flow_matter_value ) ],
+	[ '_matter', matter_flow_private_matter_value, MatterFlowPropertyGetter( matter_flow_private_matter_value ), MatterFlowPropertySetter( matter_flow_private_matter_value ) ],
+	[ 'matter_max', matter_flow_matter_max_value, MatterFlowPropertyGetter( matter_flow_matter_max_value ), MatterFlowPropertySetter( matter_flow_matter_max_value ) ],
+	[ '_matter_max', matter_flow_private_matter_max_value, MatterFlowPropertyGetter( matter_flow_private_matter_max_value ), MatterFlowPropertySetter( matter_flow_private_matter_max_value ) ]
+];
 			
 class sdEntity
 {
@@ -68,6 +122,10 @@ class sdEntity
 		
 		sdEntity.to_seal_list = [];
 		sdEntity.to_finalize_list = [];
+
+		sdEntity._matter_flow_tracked_entities = new WeakSet();
+		sdEntity._matter_glow_cable_cache = new WeakMap();
+		sdEntity._matter_flow_target_caches = new WeakMap();
 		
 		sdEntity.HIBERSTATE_ACTIVE = 0;
 		sdEntity.HIBERSTATE_HIBERNATED = 1;
@@ -2992,6 +3050,117 @@ class sdEntity
 	{
 		return sdEntity.flag_counter++;
 	}
+	static TrackMatterFlowProperties( e )
+	{
+		if ( sdEntity._matter_flow_tracked_entities.has( e ) )
+		return true;
+
+		let descriptors = [];
+		let has_matter = false;
+		let has_matter_max = false;
+
+		// Validate every possible TransferMatter operand before changing any descriptor.
+		for ( let i = 0; i < matter_flow_properties.length; i++ )
+		{
+			let property = matter_flow_properties[ i ][ 0 ];
+			let descriptor = Object.getOwnPropertyDescriptor( e, property );
+
+			if ( descriptor )
+			{
+				if ( !Object.prototype.hasOwnProperty.call( descriptor, 'value' ) || !descriptor.configurable || !descriptor.writable || typeof descriptor.value !== 'number' )
+				return false;
+
+				descriptors[ i ] = descriptor;
+
+				if ( i < 2 )
+				has_matter = true;
+				else
+				has_matter_max = true;
+			}
+			else
+			if ( typeof e[ property ] !== 'undefined' )
+			return false;
+		}
+
+		if ( !has_matter || !has_matter_max )
+		return false;
+
+		let tracked_descriptors = {};
+
+		for ( let i = 0; i < matter_flow_properties.length; i++ )
+		if ( descriptors[ i ] )
+		{
+			let property = matter_flow_properties[ i ][ 0 ];
+			let value_property = matter_flow_properties[ i ][ 1 ];
+
+			tracked_descriptors[ value_property ] = {
+				value: descriptors[ i ].value,
+				writable: true
+			};
+			tracked_descriptors[ property ] = {
+				get: matter_flow_properties[ i ][ 2 ],
+				set: matter_flow_properties[ i ][ 3 ],
+				enumerable: descriptors[ i ].enumerable,
+				configurable: descriptors[ i ].configurable
+			};
+		}
+
+		Object.defineProperties( e, tracked_descriptors );
+
+		sdEntity._matter_flow_tracked_entities.add( e );
+
+		return true;
+	}
+	static ClearMatterGlowCableCache( source )
+	{
+		let cache_entry = sdEntity._matter_glow_cable_cache.get( source );
+
+		if ( cache_entry )
+		{
+			for ( let i = 0; i < cache_entry.targets.length; i++ )
+			{
+				let target = cache_entry.targets[ i ];
+				let cache_entries = sdEntity._matter_flow_target_caches.get( target );
+
+				if ( cache_entries )
+				{
+					cache_entries.delete( cache_entry );
+
+					if ( cache_entries.size === 0 )
+					sdEntity._matter_flow_target_caches.delete( target );
+				}
+			}
+
+			sdEntity._matter_glow_cable_cache.delete( source );
+		}
+	}
+	static SetMatterGlowCableCache( source, connected_ents, demand_targets )
+	{
+		sdEntity.ClearMatterGlowCableCache( source );
+
+		let cache_entry = {
+			connected_ents: connected_ents,
+			targets: connected_ents.slice(),
+			demand_targets: demand_targets,
+			valid: true
+		};
+
+		sdEntity._matter_glow_cable_cache.set( source, cache_entry );
+
+		for ( let i = 0; i < cache_entry.targets.length; i++ )
+		{
+			let target = cache_entry.targets[ i ];
+			let cache_entries = sdEntity._matter_flow_target_caches.get( target );
+
+			if ( !cache_entries )
+			{
+				cache_entries = new Set();
+				sdEntity._matter_flow_target_caches.set( target, cache_entries );
+			}
+
+			cache_entries.add( cache_entry );
+		}
+	}
 	constructor( params )
 	{
 		// Warning: When adding new properties here - at least make sure you don't save them at GetSnapshot
@@ -4754,10 +4923,12 @@ class sdEntity
 			if ( this.onThink.has_cable_support )
 			{
 				let connected_ents;
+				let connected_ents_was_cached = false;
 
 				if ( this._connected_ents && sdWorld.time < this._connected_ents_next_rethink ) // This cache probably should not be rethinked at all (since cables erase it anyway)... But just in case...
 				{
 					connected_ents = this._connected_ents;
+					connected_ents_was_cached = true;
 				}
 				else
 				{
@@ -4855,21 +5026,90 @@ class sdEntity
 					this._connected_ents_next_rethink = sdWorld.time + 1000 * 60 + Math.random() * 1000; // Likely should never expire?
 				}
 
-				for ( let i = 0; i < connected_ents.length; i++ )
+				let can_use_cable_cache = ( this._class === 'sdCrystal' );
+				let cable_cache = can_use_cable_cache ? sdEntity._matter_glow_cable_cache.get( this ) : null;
+
+				if ( connected_ents_was_cached && cable_cache && cable_cache.connected_ents === connected_ents && cable_cache.valid )
 				{
-					//let keep = false;
-					
-					if ( !connected_ents[ i ]._is_being_removed )
+					// Keep the original relative order, but revisit only targets that can still accept matter.
+					let demand_targets = cable_cache.demand_targets;
+					let cache_needs_rebuild = false;
+
+					for ( let i = 0; i < demand_targets.length; i++ )
 					{
-						/*keep = */this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+						//let keep = false;
+
+						let e = demand_targets[ i ];
+
+						if ( !e._is_being_removed )
+						{
+							/*keep = */this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+							if ( MatterFlowIsSaturated( e ) )
+							{
+								demand_targets.splice( i, 1 );
+								i--;
+							}
+						}
+						else
+						//if ( !keep )
+						{
+							let connected_index = connected_ents.indexOf( e );
+
+							if ( connected_index !== -1 )
+							connected_ents.splice( connected_index, 1 );
+
+							demand_targets.splice( i, 1 );
+							i--;
+							cache_needs_rebuild = true;
+							continue;
+						}
 					}
+
+					if ( cache_needs_rebuild )
+					sdEntity.ClearMatterGlowCableCache( this );
+				}
+				else
+				{
+					let all_targets_tracked = can_use_cable_cache;
+					let demand_targets = [];
+
+					if ( can_use_cable_cache )
+					sdEntity.ClearMatterGlowCableCache( this );
+
+					for ( let i = 0; i < connected_ents.length; i++ )
+					{
+						//let keep = false;
+
+						let e = connected_ents[ i ];
+
+						if ( !e._is_being_removed )
+						{
+							/*keep = */this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+							if ( can_use_cable_cache )
+							if ( sdEntity._matter_flow_tracked_entities.has( e ) )
+							{
+								if ( !MatterFlowIsSaturated( e ) )
+								demand_targets.push( e );
+							}
+							else
+							all_targets_tracked = false;
+						}
+						else
+						//if ( !keep )
+						{
+							connected_ents.splice( i, 1 );
+							i--;
+							continue;
+						}
+					}
+
+					if ( can_use_cable_cache )
+					if ( all_targets_tracked )
+					sdEntity.SetMatterGlowCableCache( this, connected_ents, demand_targets );
 					else
-					//if ( !keep )
-					{
-						connected_ents.splice( i, 1 );
-						i--;
-						continue;
-					}
+					sdEntity.ClearMatterGlowCableCache( this );
 				}
 			}
 			
@@ -5566,6 +5806,11 @@ class sdEntity
 			if ( !this.IsGlobalEntity() )
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
+			sdEntity.ClearMatterGlowCableCache( this );
+
+			if ( sdEntity._matter_flow_tracked_entities.has( this ) )
+			MatterFlowInvalidateTarget( this );
+
 			this._is_being_removed = true;
 
 			this._broken = true; // By default, you can override it after removal was called for entity // Copy [ 1 / 2 ]
@@ -5603,6 +5848,11 @@ class sdEntity
 		// Just in case? Never needed but OnThink might return true for removal without .remove() call
 		if ( !this._is_being_removed )
 		{
+			sdEntity.ClearMatterGlowCableCache( this );
+
+			if ( sdEntity._matter_flow_tracked_entities.has( this ) )
+			MatterFlowInvalidateTarget( this );
+
 			this._is_being_removed = true;
 
 			this._broken = true; // By default, you can override it after removal was called for entity // Copy [ 2 / 2 ]
