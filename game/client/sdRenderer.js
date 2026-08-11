@@ -34,6 +34,18 @@ class sdRenderer
 		
 		if ( typeof window === 'undefined' )
 		return;
+
+		// PR #279 atlas production paths default on; explicit pre-init values keep their override/fallback behavior.
+		if ( typeof globalThis.ATLAS_DETERMINISTIC_ORDER === 'undefined' )
+		globalThis.ATLAS_DETERMINISTIC_ORDER = true;
+		if ( typeof globalThis.ATLAS_LAYER_SPLIT === 'undefined' )
+		globalThis.ATLAS_LAYER_SPLIT = true;
+		if ( typeof globalThis.ATLAS_LRU === 'undefined' )
+		globalThis.ATLAS_LRU = true;
+		if ( typeof globalThis.ATLAS_SHADER_FILTER === 'undefined' )
+		globalThis.ATLAS_SHADER_FILTER = true;
+		if ( typeof globalThis.ATLAS_FF_TALL === 'undefined' )
+		globalThis.ATLAS_FF_TALL = true;
 	
 		sdRenderer.img_sun = sdWorld.CreateImageFromFile( 'sun' );
     
