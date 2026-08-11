@@ -313,6 +313,11 @@ class sdAntigravity extends sdEntity
 
 									if ( sdWorld.is_server || !is_player )
 									{
+										// Keep storage physics on this blue field's visible cadence at sync-region edges.
+										if ( sdWorld.is_server && this.type === sdAntigravity.TYPE_SET && e.GetClass() === 'sdStorage' )
+										if ( e._near_player_until < this._near_player_until )
+										e._near_player_until = this._near_player_until;
+
 										let old_sx = e.sx;
 										let old_sy = e.sy;
 
