@@ -3445,6 +3445,9 @@ class sdWorld
 				{
 					e._has_matter_props = ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
 					e._has_liquid_props = ( typeof e.liquid !== 'undefined' || typeof e._liquid !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
+
+					if ( e._has_matter_props )
+					sdEntity.TrackMatterFlowProperties( e );
 				}
 			}
 			sdEntity.to_finalize_list.length = 0;
