@@ -1724,15 +1724,12 @@ echo "Working directory: ${APP_DIR}"
 echo "Launch command: ${LAUNCH_COMMAND}"
 
 # Explicitly forward stop signals to the actual node child and wait for it to
-# exit on its own, instead of relying on systemd's control-group signal
-# broadcast (KillMode=control-group) reaching node independently of this
-# wrapper. That broadcast should already do the right thing on its own, but
-# this wrapper is the one thing every stop path shares in common - a manual
+# exit on its own. KillMode=mixed sends the initial stop signal only to this
+# main wrapper, keeping the logging tee alive while node logs and saves; the
+# wrapper then forwards that signal to node. Every stop path - a manual
 # `systemctl stop`, deploy.sh's own stop-before-update, and the uninstall
-# helper's `systemctl disable --now` all go through this same script - so
-# making the forwarding explicit here removes any dependency on KillMode
-# staying exactly as configured and gives the game's own SIGTERM/SIGINT
-# handler (world snapshot save) the best chance to run in every case.
+# helper's `systemctl disable --now` - goes through this same script. systemd
+# still sends SIGKILL to the full control group if TimeoutStopSec is exceeded.
 child_pid=""
 forward_signal() {
   local sig="$1"
@@ -1744,8 +1741,8 @@ trap 'forward_signal INT' INT
 # SIGUSR2 is the player-broadcast signal (deploy.sh's send_player_notice ->
 # sdServerConfig.js's SIGUSR2 handler). It MUST be trapped here: bash's default
 # disposition for SIGUSR2 is to terminate, so an untrapped SIGUSR2 kills this
-# wrapper outright, and KillMode=control-group then tears down the game process
-# with it -- no SIGTERM, no world save, corrupted chunks. Trapping it keeps the
+# wrapper outright, after which systemd tears down the remaining service
+# processes -- no SIGTERM, no world save, corrupted chunks. Trapping it keeps the
 # wrapper alive and passes the signal to the game, which is all it was ever
 # meant to do.
 trap 'forward_signal USR2' USR2
@@ -2373,7 +2370,7 @@ WorkingDirectory=${APP_DIR}
 EnvironmentFile=/etc/default/${SERVICE_NAME}
 ExecStartPre=+/usr/local/bin/${SERVICE_NAME}-fixperms.sh
 ExecStart=/usr/local/bin/${SERVICE_NAME}-run.sh
-KillMode=control-group
+KillMode=mixed
 KillSignal=SIGTERM
 TimeoutStopSec=300
 Restart=always

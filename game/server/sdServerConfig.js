@@ -2043,6 +2043,7 @@ class sdServerConfigFull extends sdServerConfigShort
 
 		// World save test
 		let snapshot_save_busy = false;
+		let snapshot_save_completion_callbacks = [];
 		async function SaveSnapshot( snapshot_path, callback )
 		{
 			if ( snapshot_save_busy || is_terminating )
@@ -2293,6 +2294,11 @@ class sdServerConfigFull extends sdServerConfigShort
 
 				if ( callback )
 				callback( err );
+
+				let callbacks = snapshot_save_completion_callbacks;
+				snapshot_save_completion_callbacks = [];
+				for ( let i = 0; i < callbacks.length; i++ )
+				callbacks[ i ]( err );
 			}
 
 			// --- backup-tail-decouple: hand deflate + file write + rename to the dedicated snapshot
@@ -2370,7 +2376,7 @@ class sdServerConfigFull extends sdServerConfigShort
 						{
 							console.warn( 'Snapshot was not saved: ', err );
 
-							Report( false );
+							Report( true );
 							snapshot_save_busy = false;
 						}
 						else
@@ -2395,7 +2401,7 @@ class sdServerConfigFull extends sdServerConfigShort
 									else
 									console.log( 'TEMP file renamed.' );
 
-									Report( false );
+									Report( !!err );
 									snapshot_save_busy = false;
 								});
 							}
@@ -2505,7 +2511,7 @@ class sdServerConfigFull extends sdServerConfigShort
 			};
 
 			if ( snapshot_save_busy )
-			setTimeout( proceed, 5000 ); // Let 5 seconds to complete saving
+			snapshot_save_completion_callbacks.push( proceed );
 			else
 			SaveSnapshot( sdWorld.snapshot_path_const, proceed );
 		}
