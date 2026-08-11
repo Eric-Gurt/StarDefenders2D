@@ -288,6 +288,7 @@ class sdSampleBuilder extends sdEntity
 							this._update_version++;
 
 							sdCharacter.ApplyPostBuiltProperties( ent, s._sample_shop_item, this._owner );
+							sdEntity.AddEntityToEntitiesArray( ent );
 						}
 					}
 					else
