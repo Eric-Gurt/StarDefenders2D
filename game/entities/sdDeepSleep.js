@@ -126,6 +126,7 @@ import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdWanderer from './sdWanderer.js';
 import sdBullet from './sdBullet.js';
 import sdCable from './sdCable.js';
+import sdSampleBuilder from './sdSampleBuilder.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -1239,6 +1240,7 @@ class sdDeepSleep extends sdEntity
 								( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
 								e.is( sdRescueTeleport ) || // It looks like there is no simple solution at all for these...
 								e.is( sdBeacon ) || // It looks like there is no simple solution at all for these...
+								( e.is( sdSampleBuilder ) && e.type === sdSampleBuilder.TYPE_BUILDER && e.toggle_enabled ) ||
 								!sdWorld.server_config.AllowAggressiveHibernationFor( e )
 							)
 						{
