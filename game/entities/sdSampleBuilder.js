@@ -289,6 +289,9 @@ class sdSampleBuilder extends sdEntity
 
 							sdCharacter.ApplyPostBuiltProperties( ent, s._sample_shop_item, this._owner );
 							sdEntity.AddEntityToEntitiesArray( ent );
+
+							if ( ent._affected_hash_arrays.length > 0 )
+							sdWorld.UpdateHashPosition( ent, false, false );
 						}
 					}
 					else
