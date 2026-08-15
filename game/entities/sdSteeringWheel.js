@@ -542,6 +542,7 @@ class sdSteeringWheel extends sdEntity
 			sdSound.PlaySound({ name:'gun_buildtool2', x:entity.x, y:entity.y, volume:1, pitch:0.5 });
 		}
 		
+		if ( this.type === sdSteeringWheel.TYPE_STEERING_WHEEL )
 		this.speed = ( this._scan.length > 0 ) ? 4 : 0;
 	}
 	
