@@ -121,6 +121,7 @@ import sdSteeringWheel from './sdSteeringWheel.js';
 import sdThruster from './sdThruster.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdBeacon from './sdBeacon.js';
+import sdLongRangeAntenna from './sdLongRangeAntenna.js';
 import sdHover from './sdHover.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdWanderer from './sdWanderer.js';
@@ -1239,6 +1240,7 @@ class sdDeepSleep extends sdEntity
 								( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
 								e.is( sdRescueTeleport ) || // It looks like there is no simple solution at all for these...
 								e.is( sdBeacon ) || // It looks like there is no simple solution at all for these...
+								e.is( sdLongRangeAntenna ) || // Must stay reachable for TELEPORT_ANTENNA regardless of chunk sleep state - same reasoning as the exemptions above
 								!sdWorld.server_config.AllowAggressiveHibernationFor( e )
 							)
 						{
