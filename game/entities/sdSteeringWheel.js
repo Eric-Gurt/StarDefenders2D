@@ -318,6 +318,29 @@ class sdSteeringWheel extends sdEntity
 		
 		let reason = null;
 		
+		if ( this.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
+		{
+			for ( let i = 0; i < this._scan.length; i++ )
+			{
+				let existing = this._scan[ i ];
+
+				if ( !existing._is_being_removed )
+				if ( existing.is )
+				if ( existing.is( sdBG ) )
+				{
+					visited.add( existing );
+					collected.push( existing );
+				}
+			}
+
+			if ( collected.length > LIMIT )
+			{
+				reason = 'Entities groups is likely stuck or too big to move (over ' + LIMIT + ' entities in a scan)';
+				collected = null;
+				active.length = 0;
+			}
+		}
+
 		out:
 		while ( active.length > 0 )
 		{
