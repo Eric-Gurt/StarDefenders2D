@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SCRIPT_VERSION="1.0.14"
+SCRIPT_VERSION="1.0.15"
 DEFAULT_REPO_URL="https://github.com/Eric-Gurt/StarDefenders2D.git"
 DEFAULT_BRANCH="main"
 DEFAULT_SERVICE_NAME="stardefenders"
@@ -1595,6 +1595,40 @@ write_run_script() {
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Signal handling is installed FIRST, before any other work in this script.
+# bash's default disposition for SIGUSR2 is to terminate, so until these traps
+# exist an SIGUSR2 kills this wrapper outright -- and once the main process is
+# gone systemd tears down the rest of the service, taking the game with it: no
+# SIGTERM, no world save. Everything below (sourcing the env file, preparing the
+# crash-report directory, starting the logging tee, sourcing nvm and selecting a
+# node version) takes seconds, and the player-warning signal that the auto-update
+# sends once a minute lands in that window whenever an update follows shortly
+# after a restart. Observed in production: SIGUSR2 delivered 1s after start,
+# "Main process exited, code=killed, status=12/USR2".
+#
+# forward_signal is a deliberate no-op while child_pid is empty: a signal that
+# arrives before the game has even been launched has nothing to deliver to and
+# nobody to broadcast to, so swallowing it is exactly right.
+child_pid=""
+forward_signal() {
+  local sig="$1"
+  [[ -n "${child_pid}" ]] && kill "-${sig}" "${child_pid}" 2>/dev/null
+  return 0
+}
+# Explicitly forward stop signals to the actual node child and wait for it to
+# exit on its own. KillMode=mixed sends the initial stop signal only to this
+# main wrapper, keeping the logging tee alive while node logs and saves; the
+# wrapper then forwards that signal to node. Every stop path - a manual
+# `systemctl stop`, deploy.sh's own stop-before-update, and the uninstall
+# helper's `systemctl disable --now` - goes through this same script. systemd
+# still sends SIGKILL to the full control group if TimeoutStopSec is exceeded.
+trap 'forward_signal TERM' TERM
+trap 'forward_signal INT' INT
+# SIGUSR2 is the player-broadcast signal (deploy.sh's send_player_notice ->
+# sdServerConfig.js's SIGUSR2 handler). It never terminates the game; it only
+# makes it broadcast the queued notice.
+trap 'forward_signal USR2' USR2
+
 source "__ENV_FILE__"
 cd "${APP_DIR}"
 export NODE_ENV
@@ -1729,30 +1763,6 @@ nvm use --silent "${NVM_VERSION}"
 echo "Starting ${SERVICE_NAME} at ${STARTED_AT}"
 echo "Working directory: ${APP_DIR}"
 echo "Launch command: ${LAUNCH_COMMAND}"
-
-# Explicitly forward stop signals to the actual node child and wait for it to
-# exit on its own. KillMode=mixed sends the initial stop signal only to this
-# main wrapper, keeping the logging tee alive while node logs and saves; the
-# wrapper then forwards that signal to node. Every stop path - a manual
-# `systemctl stop`, deploy.sh's own stop-before-update, and the uninstall
-# helper's `systemctl disable --now` - goes through this same script. systemd
-# still sends SIGKILL to the full control group if TimeoutStopSec is exceeded.
-child_pid=""
-forward_signal() {
-  local sig="$1"
-  [[ -n "${child_pid}" ]] && kill "-${sig}" "${child_pid}" 2>/dev/null
-  return 0
-}
-trap 'forward_signal TERM' TERM
-trap 'forward_signal INT' INT
-# SIGUSR2 is the player-broadcast signal (deploy.sh's send_player_notice ->
-# sdServerConfig.js's SIGUSR2 handler). It MUST be trapped here: bash's default
-# disposition for SIGUSR2 is to terminate, so an untrapped SIGUSR2 kills this
-# wrapper outright, after which systemd tears down the remaining service
-# processes -- no SIGTERM, no world save, corrupted chunks. Trapping it keeps the
-# wrapper alive and passes the signal to the game, which is all it was ever
-# meant to do.
-trap 'forward_signal USR2' USR2
 
 set +e
 eval "exec ${LAUNCH_COMMAND}" &
@@ -2013,11 +2023,50 @@ clear_skip_count() {
   rm -f "${SKIP_COUNT_FILE}" "${STUCK_MARKER}" 2>/dev/null || true
 }
 
+# Seconds the service must have been up before it is safe to signal it. The
+# game only installs its SIGUSR2 handler part way through startup (module load,
+# then InstallBackupAndServerShutdownLogic, before the snapshot decode); until
+# then node's default disposition for SIGUSR2 applies and the signal terminates
+# it outright. Nobody is connected that early either, so a notice would have no
+# audience even if it were delivered.
+NOTICE_MIN_UPTIME_SEC="${UPDATE_NOTICE_MIN_UPTIME_SEC:-120}"
+[[ "${NOTICE_MIN_UPTIME_SEC}" =~ ^[0-9]+$ ]] || NOTICE_MIN_UPTIME_SEC=120
+
+# How long the service has been active, in seconds. Uses systemd's monotonic
+# timestamp rather than wall clock so an NTP step can't make a freshly started
+# service look old. Returns 0 (i.e. "treat as just started") when the value is
+# unavailable, which is the safe direction: skipping a cosmetic broadcast costs
+# nothing, signalling too early kills the server.
+service_uptime_seconds() {
+  local started now
+  started="$(systemctl show "${SERVICE_NAME}.service" -p ActiveEnterTimestampMonotonic --value 2>/dev/null || true)"
+  [[ "${started}" =~ ^[0-9]+$ ]] || started=0
+  if (( started == 0 )); then
+    printf '0\n'
+    return 0
+  fi
+  now="$(awk '{ printf "%.0f", $1 * 1000000 }' /proc/uptime 2>/dev/null || echo 0)"
+  [[ "${now}" =~ ^[0-9]+$ ]] || now=0
+  if (( now <= started )); then
+    printf '0\n'
+    return 0
+  fi
+  printf '%s\n' $(( ( now - started ) / 1000000 ))
+}
+
 # Writes a message to the notice file the running game process watches (see
 # sdServerConfig.js's SIGUSR2 handler) and signals it to broadcast that
 # message to every connected player via SDServiceMessage.
 send_player_notice() {
   local message="$1"
+  local uptime
+  uptime="$(service_uptime_seconds)"
+  if (( uptime < NOTICE_MIN_UPTIME_SEC )); then
+    # Deliberately do not queue the notice file either: it would sit there until
+    # some later, unrelated signal broadcast it out of context.
+    log "${SERVICE_NAME}.service has only been up ${uptime}s (< ${NOTICE_MIN_UPTIME_SEC}s); skipping this player notice rather than risk signalling a still-starting game."
+    return 0
+  fi
   printf '%s\n' "${message}" > "${APP_DIR}/sd2d_update_notice.txt"
   chown "${APP_USER}:${APP_GROUP}" "${APP_DIR}/sd2d_update_notice.txt" 2>/dev/null || true
   # --kill-whom=main is essential: the default is `all`, which sprays SIGUSR2 at
@@ -2674,6 +2723,10 @@ Auto-update
     Change it: edit UPDATE_WARNING_MINUTES in /etc/default/${SERVICE_NAME},
     then rerun install-linux.sh (it also resizes the update unit's timeout
     to fit the configured warning window).
+    Notices are skipped for the first 120s after the service starts, because
+    the game has not installed its notice handler yet and signalling it that
+    early terminates it. Override with UPDATE_NOTICE_MIN_UPTIME_SEC in
+    /etc/default/${SERVICE_NAME}.
 
 Periodic world backups
   Disable: systemctl disable --now ${SERVICE_NAME}-backup.timer
