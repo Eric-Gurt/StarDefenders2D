@@ -218,7 +218,10 @@ class sdRenderer
 		}
 		
 		sdRenderer.image_filter_cache = new Map();
-		sdRenderer.image_filter_cache_max_variants_per_image = 32; // ATLAS_LRU: cap on distinct sd_filter/tint variants baked per source image
+		sdRenderer.image_filter_cache_max_variants_per_image = 512; // ATLAS_LRU: cap on distinct sd_filter/tint variants baked per source image.
+		// 32 was far below realistic per-image variant counts (e.g. the godmode "Development tests
+		// crystals" shop category alone needs 324 distinct crystal-filter variants of one source sprite),
+		// which turned every frame into an evict-then-immediately-rebake loop instead of an actual cache.
 		
 		sdRenderer.unavailable_image_collector = null; // Fills up indefinitely if array
 	
@@ -233,6 +236,7 @@ class sdRenderer
 			ctx0.sd_status_effect_tint_filter = null;
 
 			ctx0.sd_filter_shader_color = null; // ATLAS_SHADER_FILTER: [ r, g, b ] (0-1) set only for the duration of a flood-fill sd_filter draw, read by sdAtlasMaterial.drawImage
+			ctx0._sd_filter_shader_color_scratch = [ 0, 0, 0 ]; // Reused across calls to avoid a per-draw allocation in the hot path
 			
 			ctx0.drawImageFilterCache = function( ...args )
 			{
@@ -290,13 +294,22 @@ class sdRenderer
 					if ( globalThis.ATLAS_SHADER_FILTER )
 					if ( sd_filter && sd_filter.s.length === 6 && !sd_tint_filter && filter === 'none' )
 					{
-						const r2 = parseInt( sd_filter.s.substring( 0, 2 ), 16 ) / 255;
-						const g2 = parseInt( sd_filter.s.substring( 2, 4 ), 16 ) / 255;
-						const b2 = parseInt( sd_filter.s.substring( 4, 6 ), 16 ) / 255;
+						const scratch = ctx0._sd_filter_shader_color_scratch;
 
-						ctx0.sd_filter_shader_color = [ r2, g2, b2 ];
-						ctx0.drawImage( ...args );
-						ctx0.sd_filter_shader_color = null;
+						scratch[ 0 ] = parseInt( sd_filter.s.substring( 0, 2 ), 16 ) / 255;
+						scratch[ 1 ] = parseInt( sd_filter.s.substring( 2, 4 ), 16 ) / 255;
+						scratch[ 2 ] = parseInt( sd_filter.s.substring( 4, 6 ), 16 ) / 255;
+
+						ctx0.sd_filter_shader_color = scratch;
+
+						try
+						{
+							ctx0.drawImage( ...args );
+						}
+						finally
+						{
+							ctx0.sd_filter_shader_color = null;
+						}
 
 						return;
 					}
@@ -343,7 +356,26 @@ class sdRenderer
 					{
 						if ( globalThis.ATLAS_LRU )
 						if ( image_obj_cache.size >= sdRenderer.image_filter_cache_max_variants_per_image )
-						image_obj_cache.delete( image_obj_cache.keys().next().value ); // Evict oldest variant (insertion-ordered Map)
+						{
+							// Map iteration order is recency order because every cache HIT below re-inserts its
+							// key at the end - so the first key really is the least-recently-used one, not just
+							// the least-recently-inserted one (those differ once a category cycles through more
+							// distinct variants than the cap: without the re-insert-on-hit touch, this evicts by
+							// pure FIFO and can evict variants still in active use every frame).
+							const evicted_key = image_obj_cache.keys().next().value;
+							const evicted_item = image_obj_cache.get( evicted_key );
+
+							image_obj_cache.delete( evicted_key );
+
+							// The evicted canvas may still hold a live atlas dedication (sdAtlasMaterial keys
+							// dedications by object identity). Force it stale now instead of leaving it to age
+							// out over the full TTL with nothing pointing at it - the next DedicateSpace() call
+							// on that group's trailing line can then reclaim it.
+							if ( evicted_item && evicted_item.super_textures )
+							for ( let g = 0; g < evicted_item.super_textures.length; g++ )
+							if ( evicted_item.super_textures[ g ] )
+							evicted_item.super_textures[ g ].last_time_used = 0;
+						}
 
 						if ( typeof OffscreenCanvas !== 'undefined' )
 						{
@@ -494,7 +526,17 @@ class sdRenderer
 						//image_obj_cache_named_item = hqx( image_obj_cache_named_item, 3 );
 						//image_obj_cache.set( complex_filter_name, image_obj_cache_named_item );
 					}
-					
+					else
+					if ( globalThis.ATLAS_LRU )
+					{
+						// Cache hit: touch this entry so it moves to the end of Map iteration order. This is
+						// what makes the eviction above true LRU instead of FIFO - without it, an entry's
+						// position only reflects when it was first baked, not when it was last used, and a
+						// variant drawn every frame could still be the next one evicted.
+						image_obj_cache.delete( complex_filter_name );
+						image_obj_cache.set( complex_filter_name, image_obj_cache_named_item );
+					}
+
 					//let sd_hue_rotation = ctx0.sd_hue_rotation; // This one is now handled by optimized rendering mode (v4)
 					
 					ctx0.filter = 'none';

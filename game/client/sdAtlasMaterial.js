@@ -60,14 +60,15 @@ class sdSuperTexture
 			is_transparent_int !== sdAtlasMaterial.GROUP_OPAQUE_DECAL 
 		);
 		
+		// GROUP_TRANSPARENT_IN_GAME_HUD/ONSCREEN_HUD/ONSCREEN_FOREGROUND replace what used to be
+		// GROUP_TRANSPARENT_UNSORTED, which had depthTest:false (all HUD/foreground content draws
+		// on one z-plane, e.g. sdShop at z_offset=0 - depth-testing it against itself corrupts render).
+		// They must NOT be depth-tested, same as UNSORTED.
 		let depthTest = (
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE ||
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE_DECAL ||
 			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE
 		);
 
 		let additive = ( is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE );
@@ -1678,9 +1679,11 @@ class sdAtlasMaterial
 		if ( globalThis.ATLAS_SHADER_FILTER && ctx.sd_filter_shader_color )
 		{
 			sd_filter_mode = 1;
-			cr = ctx.sd_filter_shader_color[ 0 ];
-			cg = ctx.sd_filter_shader_color[ 1 ];
-			cb = ctx.sd_filter_shader_color[ 2 ];
+			// Multiply (not replace) so an existing sd_color_mult (dimming, damage flash, hover/disabled
+			// state) still applies on top of the flat recolor, matching what the CPU-baked path did.
+			cr *= ctx.sd_filter_shader_color[ 0 ];
+			cg *= ctx.sd_filter_shader_color[ 1 ];
+			cb *= ctx.sd_filter_shader_color[ 2 ];
 		}
 		
 		const side_mult = 0.8;
