@@ -604,6 +604,97 @@ var sockets_by_ip = {}; // values are arrays (for easier user counting per ip)
 //var sockets_array_locked = false;
 sdWorld.sockets = sockets;
 
+// Duplicate-session probing.
+//
+// A connection that dies abruptly - browser crash, network drop, tab killed - is not noticed by the server until
+// socket.io's ping timeout (pingInterval 30000 + pingTimeout 15000, so up to 45 seconds) or the .last_ping reaper
+// further down (60 seconds) fires. Until one of them does, the dead socket still holds character._socket. That
+// matters because TryToAssignDisconnectedPlayerEntity() only reclaims a character with `if ( !ent._socket )`, so a
+// player reconnecting inside that window does not get their character back: character_entity stays null, the
+// respawn path quietly escalates to full_reset, and they are handed a brand new character while the old one - and
+// every hour of progress on it - is left behind. The zombie also keeps being counted by GetPlayingPlayersCount(),
+// which is why the online count doubles for the affected player.
+//
+// A duplicate my_hash is NOT by itself proof of a zombie: a player with two tabs open legitimately shares one hash.
+// So probe rather than assume. A live client answers the server continuously (every snapshot draws an 'M' reply,
+// which refreshes .last_ping); a dead one never answers again. If the holder answers within the probe window it is
+// a real second session and we refuse instead of silently replacing the character. If it stays silent it is a
+// zombie: evict it, releasing _socket, and let the reconnect proceed normally.
+const DUPLICATE_SESSION_PROBE_MS = 3000; // A live client replies well inside this; a dead one never will
+let duplicate_session_probes = [];
+
+// Returns the socket currently pinning a live character that belongs to my_hash, or null. This is exactly the
+// socket whose presence makes TryToAssignDisconnectedPlayerEntity() skip the character.
+const FindSocketPinningCharacterForHash = ( my_hash, except_socket )=>
+{
+	for ( let i = 0; i < sdCharacter.characters.length; i++ )
+	{
+		let ent = sdCharacter.characters[ i ];
+
+		if ( ent )
+		if ( !ent._is_being_removed )
+		if ( ent._my_hash === my_hash )
+		if ( ent._socket )
+		if ( ent._socket !== except_socket )
+		if ( ( ent.hea || ent._hea || 0 ) > 0 ) // A dead character is not worth blocking a respawn over - fall through to the normal fresh-spawn path
+		return ent._socket;
+	}
+
+	return null;
+};
+
+const ResolveDuplicateSessionProbes = ()=>
+{
+	for ( let i = 0; i < duplicate_session_probes.length; i++ )
+	{
+		let probe = duplicate_session_probes[ i ];
+
+		let challenger_gone = ( sockets.indexOf( probe.challenger ) === -1 );
+		let holder_gone = ( sockets.indexOf( probe.holder ) === -1 );
+
+		// The reconnecting player gave up (or dropped again) - nothing left to decide.
+		if ( challenger_gone )
+		{
+			duplicate_session_probes.splice( i--, 1 );
+			continue;
+		}
+
+		// The holder went away on its own: its character is free now, so just let the retry pick it up.
+		if ( holder_gone )
+		{
+			duplicate_session_probes.splice( i--, 1 );
+			probe.challenger.Respawn( probe.player_settings );
+			continue;
+		}
+
+		// The holder spoke since the probe started, so there is a real person on the other end of it.
+		if ( probe.holder.last_ping > probe.baseline_ping )
+		{
+			duplicate_session_probes.splice( i--, 1 );
+
+			probe.challenger.SDServiceMessage( 'Your character is still being played on another connection, so it was not handed over. Close the other tab and reconnect, or start a new character.' );
+			probe.challenger.emit( 'REMOVE sdWorld.my_entity' );
+			continue;
+		}
+
+		if ( sdWorld.time > probe.deadline )
+		{
+			duplicate_session_probes.splice( i--, 1 );
+
+			// Silent for the whole window while the server was actively syncing to it - a zombie. Release the
+			// character synchronously so the retry below can actually see it: the 'disconnect' handler only runs
+			// on a later tick, and it is a no-op for the character once CharacterDisconnectLogic has run.
+			trace( 'Evicting a dead connection that was still holding a character for a reconnecting player (my_hash ' + probe.holder.my_hash + ')' );
+
+			probe.holder.CharacterDisconnectLogic();
+			probe.holder.disconnect();
+
+			probe.challenger.Respawn( probe.player_settings );
+			continue;
+		}
+	}
+};
+
 
 
 
@@ -1840,7 +1931,38 @@ io.on( 'connection', ( socket )=>
 			TryToAssignDisconnectedPlayerEntity();
 			
 			if ( !character_entity )
-			player_settings.full_reset = true;
+			{
+				// Nothing reclaimable under this hash. That normally means "new player", but it also happens when
+				// the player's own character is still pinned by a previous connection that has not been noticed as
+				// dead yet - TryToAssignDisconnectedPlayerEntity() skips any character whose ._socket is set. Escalating
+				// to full_reset here is what silently hands a returning player a brand new character and abandons the
+				// old one, so establish which of the two it is before doing anything destructive.
+				let holder = FindSocketPinningCharacterForHash( player_settings.my_hash, socket );
+
+				if ( holder )
+				{
+					for ( let i = 0; i < duplicate_session_probes.length; i++ )
+					if ( duplicate_session_probes[ i ].challenger === socket )
+					duplicate_session_probes.splice( i--, 1 ); // Player retried while a probe was already running
+
+					// Clearing this lets the snapshot scheduler write to the holder again on the next frame; any
+					// reply from a still-alive client refreshes its .last_ping and settles the probe early.
+					holder.waiting_on_M_event_until = 0;
+
+					duplicate_session_probes.push({
+						challenger: socket,
+						holder: holder,
+						player_settings: player_settings,
+						baseline_ping: holder.last_ping,
+						deadline: sdWorld.time + DUPLICATE_SESSION_PROBE_MS
+					});
+
+					socket.SDServiceMessage( 'Reconnecting - checking whether your previous session is still alive...' );
+					return; // ResolveDuplicateSessionProbes() either evicts the zombie and retries this respawn, or refuses it
+				}
+
+				player_settings.full_reset = true;
+			}
 		}
 		
 		
@@ -4166,6 +4288,11 @@ const ServerMainMethod = ()=>
 			}
 		}
 		//sockets_array_locked = false;
+
+		// Settle any reconnect that is waiting on a duplicate-session probe. Runs after the sync pass above so a
+		// still-alive holder has had this frame's snapshot (and therefore a chance to reply and prove it is alive).
+		if ( duplicate_session_probes.length > 0 )
+		ResolveDuplicateSessionProbes();
 
 		if ( SYNC_SCHED_DBG && Date.now() > globalThis._sync_sched_next_log )
 		{
