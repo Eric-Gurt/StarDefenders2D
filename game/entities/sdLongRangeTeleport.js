@@ -1526,10 +1526,9 @@ class sdLongRangeTeleport extends sdEntity
 
 									this.Deactivation();
 									let nearest_antenna = null;
+									let nearest_di = Infinity;
 									for ( let i = 0; i < sdLongRangeAntenna.antennas.length; i++ )
 									{
-										//let nearest_antenna = null;
-										let nearest_di = Infinity;
 										let antenna = sdLongRangeAntenna.antennas[ i ];
 										if ( antenna.progress >= 100 ) // At least one calibrated antenna
 										{
