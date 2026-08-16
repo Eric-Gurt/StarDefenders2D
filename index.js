@@ -227,7 +227,11 @@ if ( SOCKET_IO_MODE ) // Socket.io
 {
 	io = new Server( httpsServer ? httpsServer : httpServer, {
 	  // ...
-	  pingInterval: 30000,
+	  // A dead connection is only noticed once a ping goes unanswered, so pingInterval is the dominant term in how
+	  // long a zombie keeps holding a character: 30000 + 15000 meant up to 45 seconds. Pinging every 10 seconds
+	  // brings the worst case down to ~25 while costing one extra 1-byte packet per client per 20 seconds.
+	  // pingTimeout is deliberately left at 15000 so genuinely laggy players are no more likely to be dropped.
+	  pingInterval: 10000,
 	  pingTimeout: 15000,
 	  maxHttpBufferSize: 1024 * 1024, // 2048 was good for player-to-server connections but not for server-to-server protocol // 1024 // 512 is minimum that works (but lacks long-name support on join)
 	  perMessageDeflate: {
@@ -2571,6 +2575,22 @@ io.on( 'connection', ( socket )=>
 	
 	socket.waiting_on_M_event_until = 0; // Will cause server to wait for 1 second before trying to send data again. During this 1 second server will wait for any kind of response from client. If response arrives within 1 second then server is allowed to send snapshot to client and will wait for another 1 second for any reply to arrive to server
 	socket.last_ping = sdWorld.time; // Used to disconnect dead connections
+
+	// .last_ping used to be refreshed only by in-game position updates, which made the reaper further down measure
+	// "time since the player last moved" rather than "time since this connection last proved it is alive". A player
+	// sitting on the character customization screen sends nothing at all, so the reaper could not tell them apart
+	// from a corpse - which is why its window had to be as generous as 60 seconds.
+	//
+	// Engine.IO already has a real liveness signal: the server pings every pingInterval and the client answers with
+	// a pong, whether or not anyone is playing. socket.conn emits 'packet' for every inbound packet, pongs included,
+	// so refreshing here makes .last_ping mean what the reaper wants it to mean. An idle-but-alive client now keeps
+	// itself alive, which is what lets the reaper window be tightened safely.
+	if ( SOCKET_IO_MODE )
+	socket.conn.on( 'packet', ()=>
+	{
+		socket.last_ping = sdWorld.time;
+	});
+
 	socket.next_position_correction_allowed = 0;
 	socket.OnMouseMovementAndCorrectionsSnapshot = ( arr )=>{
 	//socket.on('M', ( arr ) => { // Position corrections. Cheating can happen here. Better solution could be UDP instead of TCP connections.
@@ -4280,7 +4300,11 @@ const ServerMainMethod = ()=>
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable && sdWorld.time > socket.waiting_on_M_event_until ) // Buffering prevention?
 				socket.byte_shifter.SendSnapshot();
 
-				if ( sdWorld.time > socket.last_ping + 60000 )
+				// 40000 rather than the old 60000: .last_ping is now refreshed by Engine.IO pongs as well, so a live
+				// client refreshes it about every 10 seconds no matter what it is doing, and this can no longer fire
+				// on someone who is merely idle. Kept comfortably above pingInterval + pingTimeout so socket.io's own
+				// heartbeat stays the primary detector and this remains a backstop for sockets it somehow misses.
+				if ( sdWorld.time > socket.last_ping + 40000 )
 				//if ( sdWorld.time > socket.last_ping + 3000 ) // Hack
 				{
 					socket.disconnect();
