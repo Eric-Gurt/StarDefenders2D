@@ -1340,9 +1340,6 @@ class sdServerConfigFull extends sdServerConfigShort
 					}
 				}
 
-				let top_matter = 0;
-
-
 				for ( let i = 0; i < no_respawn_areas.length; i++ )
 				{
 					if ( sdWorld.time > no_respawn_areas[ i ].until )
@@ -1373,9 +1370,6 @@ class sdServerConfigFull extends sdServerConfigShort
 					if ( ent.hea > 0 )
 					if ( !ent._is_being_removed )
 					{
-						if ( ent.matter > top_matter )
-						top_matter = ent.matter;
-
 						if ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 > 4000 )
 						{
 							if ( ent.x < sdWorld.world_bounds.x1 + 2000 )
@@ -1458,12 +1452,6 @@ class sdServerConfigFull extends sdServerConfigShort
 				for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
 				{
 					var ent = sdCommandCentre.centres[ i ];
-
-					if ( top_matter >= sdCharacter.matter_required_to_destroy_command_center )
-					if ( ent.self_destruct_on < sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 1000 * 5 )
-					{
-						ent.self_destruct_on = Math.min( ent.self_destruct_on + world_edge_think_rate * 2, sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near );
-					}
 
 					if ( ent.x < sdWorld.world_bounds.x1 + 1000 )
 					{

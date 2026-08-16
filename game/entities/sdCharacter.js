@@ -603,8 +603,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.disowned_body_ttl = 30 * 60 * 1; // 1 min
 	
 		sdCharacter.starter_matter = 300;
-		sdCharacter.matter_required_to_destroy_command_center = 300; // Will be used to measure command centres' self-destruct if no characters with enough matter will showup near them
-		
+
 		sdCharacter.default_weapon_draw_time = 7;
 		
 		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
