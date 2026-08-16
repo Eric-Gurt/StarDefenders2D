@@ -2954,6 +2954,44 @@ class sdWorld
 		
 		if ( entity._is_being_removed )
 		return;
+
+		// Final wall/door placement can suppress generic movement callbacks for build safety. Keep existing
+		// antigravity sensor topology in sync without enabling any of the unrelated movement reactions.
+		if ( !delay_callback_calls && allow_calling_movement_in_range === false )
+		{
+			const ec = sdWorld.entity_classes;
+			if ( ( ec.sdBlock && entity.constructor === ec.sdBlock ) ||
+				 ( ec.sdDoor && entity.constructor === ec.sdDoor ) )
+			{
+				let notified_sensors = null;
+				for ( let i2 = 0; i2 < entity._affected_hash_arrays.length; i2++ )
+				{
+					const scan_src = entity._affected_hash_arrays[ i2 ].sensor_relevant_arr;
+					if ( scan_src === null )
+					continue;
+
+					for ( let i = 0; i < scan_src.length; i++ )
+					{
+					const sensor = scan_src[ i ];
+					if ( sensor !== entity && ( notified_sensors === null || !notified_sensors.has( sensor ) ) )
+					if ( ec.sdSensorArea && sensor.constructor === ec.sdSensorArea )
+					if ( !sensor._is_being_removed )
+					if ( sensor.on_movement_target && !sensor.on_movement_target._is_being_removed )
+					if ( ec.sdAntigravity && sensor.on_movement_target.constructor === ec.sdAntigravity )
+					if ( entity.x + entity._hitbox_x2 > sensor.x + sensor._hitbox_x1 &&
+						 entity.x + entity._hitbox_x1 < sensor.x + sensor._hitbox_x2 &&
+						 entity.y + entity._hitbox_y2 > sensor.y + sensor._hitbox_y1 &&
+						 entity.y + entity._hitbox_y1 < sensor.y + sensor._hitbox_y2 )
+					{
+						if ( notified_sensors === null )
+						notified_sensors = new Set();
+						notified_sensors.add( sensor );
+						sensor.onMovementInRange( entity );
+					}
+					}
+				}
+			}
+		}
 		
 		if ( delay_callback_calls || !allow_calling_movement_in_range )
 		{
