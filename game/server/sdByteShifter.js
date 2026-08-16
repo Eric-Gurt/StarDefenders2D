@@ -413,6 +413,16 @@ class sdByteShifter
 									let is_held_gun = ent.is( sdGun ) && ent._held_by;
 									
 									let is_active_or_rare_update = ( !ent.is_static || ent.awake ) && ( ent._phys_sleep > 0 || ent._net_id % 30 === frame % 30 );
+
+									if ( rsd_info )
+									{
+										let predicted_x = Math.round( ( Math.round( confirmed_state.x * 100 ) / 100 + rsd_info.dxr ) * 100 ) / 100;
+										let predicted_y = Math.round( ( Math.round( confirmed_state.y * 100 ) / 100 + rsd_info.dyr ) * 100 ) / 100;
+										let periodic_position_resync = ( !ent.is_static || ent.awake ) && ent._net_id % 30 === frame % 30;
+
+										if ( periodic_position_resync || Math.abs( predicted_x - Math.round( snap.x * 100 ) / 100 ) >= 0.5 || Math.abs( predicted_y - Math.round( snap.y * 100 ) / 100 ) >= 0.5 )
+										rsd_info = undefined; // Preserve the absolute repair/resync path when a relative delta is not a safe representation.
+									}
 									
 									if ( sdWorld.sockets && sdWorld.sockets.length > 1 ) // phase-13-snapshot-01: >1 client -> hoist client-independent per-prop work (build once, reuse across clients); 1 client -> original inline loop below (no added cost).
 									{
