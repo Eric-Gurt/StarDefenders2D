@@ -1521,6 +1521,13 @@ class sdShop
 			{
 				sdWorld.my_entity._build_params = current_shop_options[ i ];
 
+				// Cull rows scrolled outside the shop's visible clip rect instead of drawing (and, on the
+				// atlas path, live re-simulating every entity for) every entry regardless of scroll position.
+				// Margin matches the hit-test below (yy-20 .. yy+64+20) so nothing visible is ever culled.
+				let row_visible = ( yy + 64 + 20 >= 20 ) && ( yy - 20 <= sdRenderer.screen_height - 20 );
+
+				if ( row_visible )
+				{
 				ctx.save();
 				ctx.translate( xx, yy );
 				ctx.scale( 2, 2 );
@@ -1805,6 +1812,7 @@ class sdShop
 				}
 
 				ctx.restore();
+				}
 
 				xx += ( 32 + 16 ) * 2;
 				if ( xx + ( 32 ) * 2 > sdRenderer.screen_width - 40 || sdWorld.my_entity._build_params._opens_category === 'root' )
