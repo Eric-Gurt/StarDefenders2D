@@ -187,6 +187,7 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.dependence_distance_max = 500; // Anti-dependence hell measure
 		
 		sdDeepSleep.time_budget = 0; // If there was a lag spike - some of later sdDeepSleep updates will be ignored for some amount of time
+		sdDeepSleep.time_budget_min = -9; // Floor for the above. Without it a single very expensive iteration (a big cell being hibernated or decoded) can cost hundreds of frames of complete sdDeepSleep inactivity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -246,14 +247,27 @@ class sdDeepSleep extends sdEntity
 			1 
 		);
 		
-		sdDeepSleep.time_budget = Math.min( 3, sdDeepSleep.time_budget + 3 );
-		
+		// The inception catcher is documented (and warned about) as a per frame budget, yet it used to be reset only
+		// inside the loop below - which does not execute at all while .time_budget is negative. One expensive iteration
+		// drives the budget far below zero, so the reset stopped happening for many frames in a row and wake-up calls
+		// accumulated ACROSS frames instead of within one. Once that running total passed .inception_catcher_give_up_level
+		// every WakeUpArea call began returning early - vision, physical collision and forced reconnect wake-ups alike -
+		// leaving players standing inside hibernated cells that are still ThreatAsSolid(), until the budget recovered on
+		// its own and the counter finally cleared. Resetting here makes it per frame again, as intended.
 		if ( sdWorld.is_server )
-		while ( iters-- > 0 && sdDeepSleep.time_budget > 0 )
 		{
 			sdDeepSleep.inception_catcher = 0;
 			sdDeepSleep.inception_catcher_areas_awoken.length = 0;
-			
+		}
+
+		// Floor the carried-over debt too: unclamped, a single 500ms iteration buys ~166 frames during which nothing
+		// hibernates, no scheduled sleep matures and no cell is reconsidered. The clamp keeps the "skip some updates
+		// after a lag spike" intent while bounding recovery to a few frames.
+		sdDeepSleep.time_budget = Math.min( 3, Math.max( sdDeepSleep.time_budget_min, sdDeepSleep.time_budget ) + 3 );
+
+		if ( sdWorld.is_server )
+		while ( iters-- > 0 && sdDeepSleep.time_budget > 0 )
+		{
 			let t = Date.now();
 		
 			if ( sdWorld.server_config.aggressive_hibernation )
@@ -553,6 +567,12 @@ class sdDeepSleep extends sdEntity
 			}
 			
 		
+			// Forced wake-ups are never part of a runaway cascade - they come from explicit entry points only
+			// (WakeUpByArrayAndValue when a player reconnects, aggressive_hibernation being switched off). Refusing
+			// one strands a reconnecting player's character inside a sleeping cell, and since the reconnect path reads
+			// "character not found" as "spawn a brand new one", that refusal costs the player their character.
+			// Give up on cascading movement/vision wake-ups only.
+			if ( !forced )
 			if ( sdDeepSleep.inception_catcher > sdDeepSleep.inception_catcher_give_up_level )
 			{
 				console.warn( 'WakeUpArea was called over 512 times per frame - some crazy deep sleep inception has happened?' );
