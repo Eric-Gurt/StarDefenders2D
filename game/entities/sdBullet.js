@@ -476,6 +476,8 @@ class sdBullet extends sdEntity
 		this._detonate_on_impact = true;
 
 		this._bg_shooter = false;
+		this._bg_shooter_target_x = null;
+		this._bg_shooter_target_y = null;
 
 		this.penetrating = false;
 		this._penetrated_list = [];
@@ -540,6 +542,7 @@ class sdBullet extends sdEntity
 		});*/
 		this.SetMethod( 'BouncyCollisionFiltering', this.BouncyCollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 		this.SetMethod( 'RegularCollisionFiltering', this.RegularCollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+		this.SetMethod( 'BackgroundShotCollisionFiltering', this.BackgroundShotCollisionFiltering );
 	}
 	onSnapshotApplied()
 	{
@@ -703,6 +706,69 @@ class sdBullet extends sdEntity
 	{
 		return sdWorld.inDist2D_Boolean( owner_ent.x, owner_ent.y, trap_shield_block.x + trap_shield_block.width/2, trap_shield_block.y + trap_shield_block.height/2, 32 );
 	}
+	BackgroundShotCollisionFiltering( from_entity )
+	{
+		if ( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 )
+		if ( Number.isFinite( this._bg_shooter_target_x ) && Number.isFinite( this._bg_shooter_target_y ) )
+		{
+			let target_x = this._bg_shooter_target_x;
+			let target_y = this._bg_shooter_target_y;
+			let velocity = sdWorld.Dist2D_Vector( this.sx, this.sy );
+
+			if ( velocity > 0 )
+			{
+				target_x -= this.sx / velocity * 0.0001;
+				target_y -= this.sy / velocity * 0.0001;
+			}
+
+			if ( target_x < from_entity.x + from_entity._hitbox_x1 ||
+				 target_x >= from_entity.x + from_entity._hitbox_x2 ||
+				 target_y < from_entity.y + from_entity._hitbox_y1 ||
+				 target_y >= from_entity.y + from_entity._hitbox_y2 )
+			return false;
+		}
+
+		return true;
+	}
+	TryBackgroundTargetCollision()
+	{
+		if ( !this._bg_shooter || this._bouncy || !Number.isFinite( this._bg_shooter_target_x ) || !Number.isFinite( this._bg_shooter_target_y ) )
+		return;
+
+		let target_x = this._bg_shooter_target_x;
+		let target_y = this._bg_shooter_target_y;
+		let velocity = sdWorld.Dist2D_Vector( this.sx, this.sy );
+
+		if ( velocity > 0 )
+		{
+			target_x -= this.sx / velocity * 0.0001;
+			target_y -= this.sy / velocity * 0.0001;
+		}
+
+		let BG = sdWorld.entity_classes.sdBG;
+		let target_bg = BG.GetBackgroundObjectAt( target_x, target_y, false );
+		if ( !target_bg || target_bg._is_being_removed )
+		return;
+
+		let hitbox_x1 = target_bg.x + target_bg._hitbox_x1;
+		let hitbox_x2 = target_bg.x + target_bg._hitbox_x2;
+		let hitbox_y1 = target_bg.y + target_bg._hitbox_y1;
+		let hitbox_y2 = target_bg.y + target_bg._hitbox_y2;
+
+		if ( target_bg._merged )
+		{
+			hitbox_y1 = target_bg.y + Math.floor( ( target_y - target_bg.y ) / 16 ) * 16;
+			hitbox_y2 = hitbox_y1 + 16;
+		}
+
+		if ( this.x + this._hitbox_x2 <= hitbox_x1 ||
+			 this.x + this._hitbox_x1 >= hitbox_x2 ||
+			 this.y + this._hitbox_y2 <= hitbox_y1 ||
+			 this.y + this._hitbox_y1 >= hitbox_y2 )
+		return;
+
+		this.onMovementInRange( target_bg );
+	}
 
 	RegularCollisionFiltering( from_entity )
 	{
@@ -779,6 +845,9 @@ class sdBullet extends sdEntity
 		return false;
 		
 		if ( from_entity.is( sdBlock ) && from_entity._merged )
+		return false;
+
+		if ( !this.BackgroundShotCollisionFiltering( from_entity ) )
 		return false;
 
 		if ( this._admin_picker )
@@ -888,10 +957,20 @@ class sdBullet extends sdEntity
 				this.sy = this.sy * 0.95;
 			}
 
+			let collision_steps = 1;
+			if ( this._bg_shooter && !this._bouncy && Number.isFinite( this._bg_shooter_target_x ) && Number.isFinite( this._bg_shooter_target_y ) )
+			collision_steps = Math.max( 1, Math.ceil( sdWorld.Dist2D_Vector( this.sx, this.sy ) * GSPEED / 16 ) );
+			let collision_gspeed = GSPEED / collision_steps;
+
 			if ( this.is_grenade || this.affected_by_gravity )
 			{
 				this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
-				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
+				for ( let i = 0; i < collision_steps && !this._is_being_removed; i++ )
+				{
+					this.ApplyVelocityAndCollisions( collision_gspeed, 0, true, 1, this.RegularCollisionFiltering );
+					if ( !this._is_being_removed )
+					this.TryBackgroundTargetCollision();
+				}
 			}
 			else
 			{
@@ -900,7 +979,14 @@ class sdBullet extends sdEntity
 					// Old penetration logic is now handled by GetCollisionMode()
 					//this.x += this.sx * GSPEED;
 					//this.y += this.sy * GSPEED;
-					this.ApplyVelocityAndCollisions( GSPEED, 0, false, 0, null );
+					for ( let i = 0; i < collision_steps && !this._is_being_removed; i++ )
+					{
+						this.ApplyVelocityAndCollisions( collision_gspeed, 0, false, 0,
+							this._bg_shooter && Number.isFinite( this._bg_shooter_target_x ) && Number.isFinite( this._bg_shooter_target_y ) ?
+							this.BackgroundShotCollisionFiltering : null );
+						if ( !this._is_being_removed )
+						this.TryBackgroundTargetCollision();
+					}
 				}
 				else
 				{
@@ -910,7 +996,12 @@ class sdBullet extends sdEntity
 
 					sdWorld.last_hit_entity = null;
 
-					this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : this.RegularCollisionFiltering );
+					for ( let i = 0; i < collision_steps && !this._is_being_removed; i++ )
+					{
+						this.ApplyVelocityAndCollisions( collision_gspeed, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : this.RegularCollisionFiltering );
+						if ( !this._is_being_removed )
+						this.TryBackgroundTargetCollision();
+					}
 
 					let vel2 = this.sx * this.sx + this.sy * this.sy;
 
@@ -1154,29 +1245,57 @@ class sdBullet extends sdEntity
 			else
 			return;
 		}
-		// BG shooting works normally even without this, so disabled for now.
-		/*if ( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 )
+		if ( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 &&
+			 Number.isFinite( this._bg_shooter_target_x ) && Number.isFinite( this._bg_shooter_target_y ) )
 		{
-			// Essentially the backgrounds split themselves, returning an array of the new spawned backgrounds
-			let ents = from_entity.UnmergeBackgrounds();
-			if ( ents.length > 0 ) 
+			let target_x = this._bg_shooter_target_x;
+			let target_y = this._bg_shooter_target_y;
+
+			let velocity = sdWorld.Dist2D_Vector( this.sx, this.sy );
+			if ( velocity > 0 )
 			{
-				// And we need to determine which block to damage, which is the closest one.
-				let closest = sdWorld.Dist2D( this.x, this.y, ents[ 0 ].x + ( ents[ 0 ].width / 2 ), ents[ 0 ].y + ( ents[ 0 ].height / 2 ) );
-				from_entity = ents[ 0 ];
+				target_x -= this.sx / velocity * 0.0001;
+				target_y -= this.sy / velocity * 0.0001;
+			}
+
+			if ( target_x < from_entity.x + from_entity._hitbox_x1 ||
+				 target_x >= from_entity.x + from_entity._hitbox_x2 ||
+				 target_y < from_entity.y + from_entity._hitbox_y1 ||
+				 target_y >= from_entity.y + from_entity._hitbox_y2 )
+			return;
+
+			if ( from_entity._merged )
+			{
+				let ents = from_entity.UnmergeBackgrounds();
+				let target_entity = null;
+
 				for ( let i = 0; i < ents.length; i++ )
 				{
-					let distance = sdWorld.Dist2D( this.x, this.y, ents[ i ].x + ( ents[ i ].width / 2 ), ents[ i ].y + ( ents[ i ].height / 2 ) );
-					if ( distance < closest )
+					if ( target_x >= ents[ i ].x + ents[ i ]._hitbox_x1 &&
+						 target_x < ents[ i ].x + ents[ i ]._hitbox_x2 &&
+						 target_y >= ents[ i ].y + ents[ i ]._hitbox_y1 &&
+						 target_y < ents[ i ].y + ents[ i ]._hitbox_y2 )
 					{
-						closest = distance;
-						from_entity = ents[ i ];
+						target_entity = ents[ i ];
+						break;
 					}
 				}
+
+				if ( this._is_being_removed )
+				return;
+
+				if ( target_entity === null )
+				return;
+
+				if ( this.x + this._hitbox_x2 <= target_entity.x + target_entity._hitbox_x1 ||
+					 this.x + this._hitbox_x1 >= target_entity.x + target_entity._hitbox_x2 ||
+					 this.y + this._hitbox_y2 <= target_entity.y + target_entity._hitbox_y1 ||
+					 this.y + this._hitbox_y1 >= target_entity.y + target_entity._hitbox_y2 )
+				return;
+
+				from_entity = target_entity;
 			}
-			else
-			return;
-		}*/
+		}
 		
 		if ( this._last_target === from_entity )
 		return; // Prevent bouncing bullets to deal multiple damage when they stuck in something?
@@ -1777,4 +1896,3 @@ class sdBullet extends sdEntity
 //sdBullet.init_class();
 
 export default sdBullet;
-

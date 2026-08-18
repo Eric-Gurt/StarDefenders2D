@@ -1423,6 +1423,28 @@ class sdGun extends sdEntity
                             bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02 * self_recoil_scale; // 0.01
 
                             bullet_obj._bg_shooter = background_shoot ? true : false;
+                            if ( bullet_obj._bg_shooter )
+                            {
+                                bullet_obj._bg_shooter_target_x = bullet_obj._owner.look_x;
+                                bullet_obj._bg_shooter_target_y = bullet_obj._owner.look_y;
+
+                                if ( sdWorld.is_server )
+                                {
+                                    let target_x = bullet_obj._bg_shooter_target_x;
+                                    let target_y = bullet_obj._bg_shooter_target_y;
+                                    let velocity = sdWorld.Dist2D_Vector( bullet_obj.sx, bullet_obj.sy );
+
+                                    if ( velocity > 0 )
+                                    {
+                                        target_x -= bullet_obj.sx / velocity * 0.0001;
+                                        target_y -= bullet_obj.sy / velocity * 0.0001;
+                                    }
+
+                                    let target_bg = sdBG.GetBackgroundObjectAt( target_x, target_y, false );
+                                    if ( target_bg && target_bg._merged )
+                                    target_bg.UnmergeBackgrounds();
+                                }
+                            }
                             
                             bullet_obj.time_left *= bullet_obj._owner.s / 100;
                         }
