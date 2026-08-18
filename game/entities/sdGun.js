@@ -1417,6 +1417,8 @@ class sdGun extends sdEntity
                         if ( bullet_obj._owner.IsPlayerClass() )
                         {
                             let self_recoil_scale = ( sdGun.classes[ this.class ].self_recoil_scale === undefined ) ? 1 : sdGun.classes[ this.class ].self_recoil_scale;
+							
+							self_recoil_scale = self_recoil_scale * ( this.extra[ sdGun.ID_RECOIL_SCALE ] || 1 );
                             
                             bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale * self_recoil_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale * self_recoil_scale );
                             

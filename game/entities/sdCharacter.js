@@ -2964,7 +2964,7 @@ THING is cosmic mic drop!`;
         this._armor_lost_absorb_perc = 0;
         this._armor_class = null;
 		//this._armor_absorb_perc = 0;
-		//this.armor_speed_reduction = 0; 
+		this.armor_speed_reduction = 0; 
 		//this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
     
