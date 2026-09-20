@@ -2244,35 +2244,43 @@ class sdRenderer
 			if ( sdWorld.my_entity )
 			if ( sdRenderer.UseCrosshair() )
 			{
-				if ( !sdWorld.my_entity._is_being_removed && 
+				// Compensate for quake_offset_x/y: this block still draws through the same camera
+				// transform that includes earthquake screen shake, but sdWorld.mouse_world_x/y (the
+				// actual gameplay aim) is intentionally computed without it. Without compensation the
+				// crosshair visibly drifts away from the literal (OS-cursor-hidden) mouse position
+				// during a quake even though the real aim stays perfectly stable.
+				const hud_mouse_world_x = sdWorld.mouse_world_x + quake_offset_x;
+				const hud_mouse_world_y = sdWorld.mouse_world_y + quake_offset_y;
+
+				if ( !sdWorld.my_entity._is_being_removed &&
 					 sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ].is_build_gun )
 				{
-					ctx.drawImageFilterCache( sdWorld.img_crosshair_build, 
-						sdWorld.mouse_world_x - 16, 
-						sdWorld.mouse_world_y - 16, 32,32 );
-						
+					ctx.drawImageFilterCache( sdWorld.img_crosshair_build,
+						hud_mouse_world_x - 16,
+						hud_mouse_world_y - 16, 32,32 );
+
 					ctx.font = "5.5px Verdana";
 					ctx.textAlign = 'left';
-					
+
 					let item_selected = false; // Will be false for dummy objects
-					
+
 					if ( sdWorld.my_entity._build_params )
 					{
 						let cost = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].GetBulletCost( false );
-							
+
 						if ( cost === Infinity )
 						{
 						}
 						else
 						{
 							item_selected = true;
-							
+
 							ctx.fillStyle = '#ffff00';
-							ctx.fillText( T("Matter cost") + ": " + ( cost === Infinity ? '-' : sdWorld.RoundedThousandsSpaces( Math.ceil( cost ) ) ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y - 2 );
+							ctx.fillText( T("Matter cost") + ": " + ( cost === Infinity ? '-' : sdWorld.RoundedThousandsSpaces( Math.ceil( cost ) ) ), hud_mouse_world_x + 20, hud_mouse_world_y - 2 );
 							ctx.fillStyle = '#00ffff';
-							ctx.fillText( T("Matter carried") + ": " + sdWorld.RoundedThousandsSpaces( sdWorld.my_entity.matter ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 );
+							ctx.fillText( T("Matter carried") + ": " + sdWorld.RoundedThousandsSpaces( sdWorld.my_entity.matter ), hud_mouse_world_x + 20, hud_mouse_world_y + 5 );
 
 							if ( sdWorld.my_entity.matter >= cost )
 							{
@@ -2281,36 +2289,36 @@ class sdRenderer
 								if ( sdWorld.my_entity._build_params )
 								{
 									if ( sdWorld.my_entity._build_params.upgrade_name )
-									ctx.fillText( T("Click to install upgrade"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+									ctx.fillText( T("Click to install upgrade"), hud_mouse_world_x + 20, hud_mouse_world_y + 5 + 7 );
 									else
-									ctx.fillText( T("Click to build"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+									ctx.fillText( T("Click to build"), hud_mouse_world_x + 20, hud_mouse_world_y + 5 + 7 );
 								}
 							}
 							else
 							{
 								ctx.fillStyle = '#ff0000';
-								ctx.fillText( T("Not enough matter"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+								ctx.fillText( T("Not enough matter"), hud_mouse_world_x + 20, hud_mouse_world_y + 5 + 7 );
 							}
 						}
 					}
-					
+
 					if ( !item_selected )
 					{
 						ctx.fillStyle = '#ffff00';
-						ctx.fillText( T("Press B to pick item to build"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+						ctx.fillText( T("Press B to pick item to build"), hud_mouse_world_x + 20, hud_mouse_world_y + 5 + 7 );
 					}
 				}
 				else
 				{
 					ctx.save();
 					{
-						ctx.translate( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
-						
+						ctx.translate( hud_mouse_world_x, hud_mouse_world_y );
+
 						//let s = 1 + ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] && sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].muzzle > 0 ? 0.3 : 0 );
 						//ctx.scale( s, s );
-						
-						ctx.drawImageFilterCache( sdWorld.img_crosshair, 
-							- 16, 
+
+						ctx.drawImageFilterCache( sdWorld.img_crosshair,
+							- 16,
 							- 16, 32,32 );
 					}
 					ctx.restore();
