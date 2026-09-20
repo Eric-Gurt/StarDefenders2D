@@ -45,7 +45,7 @@ class sdGun extends sdEntity
 		
 		sdGun.disowned_guns_ttl = 30 * 60 * 2; // Was 1 minute before, 2 now
 		
-		sdGun.default_projectile_velocity = 20; // 16
+		sdGun.default_projectile_velocity = 24; // 16
 		
 		sdGun.tilt_scale = 200;
 		
@@ -1338,8 +1338,8 @@ class sdGun extends sdEntity
 						//if ( bullet_obj.is_grenade )
 						if ( !bullet_obj._rail )
 						{
-							bullet_obj.sx += bullet_obj._owner.sx;
-							bullet_obj.sy += bullet_obj._owner.sy;
+							bullet_obj.sx += ( bullet_obj._owner.sx / 2 );
+							bullet_obj.sy += ( bullet_obj._owner.sy / 2 );
 						}
 						
 						if ( bullet_obj.ac > 0 )

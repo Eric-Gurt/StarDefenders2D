@@ -3397,7 +3397,7 @@ class sdGunClass
 			ammo_capacity: 18,
 			count: 1,
 			spawnable: false,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.6,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			projectile_properties: { _damage: 64, color: '#92D0EC', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -4821,7 +4821,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			//fire_type: 2,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_velocity: sdGun.default_projectile_velocity,
 			projectile_properties: { _damage: 34, color:'ffff00' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -11571,7 +11571,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			//fire_type: 2,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.25,
 			projectile_properties: { _damage: 42, color:'ffff00' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
