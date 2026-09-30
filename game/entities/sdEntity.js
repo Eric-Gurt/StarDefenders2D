@@ -216,6 +216,7 @@ class sdEntity
 		let ent = new class_ptr( params );
 		sdEntity.AddEntityToEntitiesArray( ent );
 		sdWorld.UpdateHashPosition( ent, false, true );
+		
 		return ent;
 	}
 	// --- sdEntity.entities registry helpers -------------------------------------------------
@@ -229,6 +230,24 @@ class sdEntity
 	{
 		ent._entities_array_index = sdEntity.entities.length;
 		sdEntity.entities.push( ent );
+		
+		if ( ent.IsBGEntity() <= 1 )
+		{
+			const x = ent.x;
+			const y = ent.y;
+			for ( let i = 0; i < sdWorld.online_characters.length; i++ )
+			{
+				const c = sdWorld.online_characters[ i ];
+				if ( x > c.x - 800 )
+				if ( x < c.x + 800 )
+				if ( y > c.y - 400 )
+				if ( y < c.y + 400 )
+				{
+					ent._near_player_until = sdWorld.time + 1000;
+					break;
+				}
+			}
+		}
 	}
 	static RemoveEntityFromEntitiesArrayByIndex( index ) // Caller guarantees sdEntity.entities[ index ] is the entity to remove.
 	{
@@ -3970,6 +3989,14 @@ class sdEntity
 	{
 		let returned_object;
 		
+		
+		/*if ( this.GetClass() === 'sdGun' )
+		if ( this.extra )
+		if ( this.extra instanceof Array )
+		{
+			debugger;
+		}*/
+		
 		if ( current_frame !== this._snapshot_cache_frame || save_as_much_as_possible )
 		{
 			/*returned_object = {
@@ -4345,6 +4372,13 @@ class sdEntity
 	ApplySnapshot( snapshot )
 	{
 		const my_entity = sdWorld.my_entity;
+		
+		/*if ( this.GetClass() === 'sdGun' )
+		if ( this.extra )
+		//if ( this.extra instanceof Array )
+		{
+			debugger;
+		}*/
 		
 		/*if ( snapshot._class !== this.GetClass() )
 		if ( snapshot._class !== 'auto' )

@@ -1328,12 +1328,12 @@ class sdWorld
 		}
 		return false;
 	}
-	static CanAnySocketSee( ent ) // Actually used to lower think rate of some entities
+	static CanAnySocketSee( ent, except_for_character=null, alive_only=false ) // Actually used to lower think rate of some entities
 	{
 		if ( sdWorld.server_config.debug_offscreen_behavior )
 		return false;
 	
-		if ( sdWorld.is_singleplayer )
+		if ( sdWorld.is_singleplayer || except_for_character || alive_only )
 		{
 			const x = ent.x;
 			const y = ent.y;
@@ -1341,6 +1341,9 @@ class sdWorld
 			for ( let i = 0; i < sdWorld.online_characters.length; i++ )
 			{
 				const c = sdWorld.online_characters[ i ];
+				
+				if ( c !== except_for_character )
+				if ( !alive_only || c.hea > 0 )
 				if ( x > c.x - 800 )
 				if ( x < c.x + 800 )
 				if ( y > c.y - 400 )
@@ -1442,8 +1445,8 @@ class sdWorld
 						'My pet robot would have been proud.',
 						'I\'m so damn skilled now.',
 						
-						// Google Gemini time. I haven't read these much
-						"Alright, let's see what this new level brings.",
+						// Google Gemini time. I haven't read these much, some were edited
+						"Let's see what this new level brings.",
 						"Another notch on the belt.", "Time to push the boundaries further.",
 						"Higher level, higher stakes.", "Let's see what chaos I can unleash this time.",
 						"The universe just got a little more interesting.",
@@ -1452,7 +1455,7 @@ class sdWorld
 						"The galaxy trembles in anticipation of my next move.",
 						"Time to upgrade my arsenal and wreak some havoc.",
 						"Higher level, higher chance of survival. For now, at least.",
-						"This makes the universe just a little bit more afraid of me.",
+						"Universe better be a little bit more afraid of me.",
 						"New abilities, new possibilities. Let the games begin!",
 						"I just got a little bit more beautiful.",
 						"Higher level, higher stakes. Let's see if I can handle it.",
@@ -1471,7 +1474,7 @@ class sdWorld
 						"Time to rewrite the rules. And break a few along the way.",
 						"Level up! Time to become the legend I was meant to be.",
 						"Level up! Time to become the hero of my own story.",
-						"Level up! Time to become the villain of my own story.",
+						"Level up! I'll become the villain of my own story.",
 						"Time to explore the unknown. And maybe conquer it along the way.",
 						"Time to explore the unknown. And maybe change the fate of the universe.",
 						"Higher level, higher rewards. But also higher consequences.",
@@ -1490,7 +1493,7 @@ class sdWorld
 			player_entity.onScoreChange();
 		}
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=0 ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=0, initiator=null ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
 	{
 		if ( sdWorld.is_server )
 		{
@@ -1521,6 +1524,9 @@ class sdWorld
 				{
 					ent.ttl *= 4;
 				}
+				
+				//if ( initiator && initiator.IsPlayerClass() && initiator._socket )
+				//ent._near_player_until = sdWorld.time + 1000;
 			}
 		}
 	}
@@ -1849,16 +1855,18 @@ class sdWorld
 					if ( !socket.character )
 					continue;
 				
-					let params_copy = Object.assign( {}, params );
+					// Positional sound may sound better, removing sound obfuscation - E.G.
 					
-					delete params_copy.x;
-					delete params_copy.y;
+					/*let params_copy = Object.assign( {}, params );
+					
+					//delete params_copy.x;
+					//delete params_copy.y;
 					
 					params_copy.char_di = sdWorld.Dist2D( socket.camera.x, socket.camera.y, params.x, params.y );
 					
 					params_copy.char_di = Math.max( 0, params_copy.char_di + params_copy.char_di * ( Math.random() - 0.5 ) * 0.25 );
 					
-					arr[ 1 ] = params_copy;
+					arr[ 1 ] = params_copy;*/
 				}
 				
 				socket.sd_events.push( arr.slice() );
@@ -5566,8 +5574,28 @@ class sdWorld
 	
 		return true;
 	}
+	static GetPendingPlayerSettings( player_settings )
+	{
+		if ( player_settings === 'globalThis.GetPlayerSettings()' )
+		{
+			if ( globalThis.GetPlayerSettings )
+			player_settings = globalThis.GetPlayerSettings();
+		}
+		
+		return player_settings;
+	}
 	static StartOffline( player_settings, full_reset=false, retry=0 )
 	{
+		if ( ( player_settings = sdWorld.GetPendingPlayerSettings( player_settings ) ) === 'globalThis.GetPlayerSettings()' )
+		{
+			setTimeout( ()=>
+			{
+				sdWorld.StartOnline( player_settings, full_reset, retry );
+			}, 100 );
+			
+			return;
+		}
+		
 		let socket = globalThis.socket;
 		socket.close();
 		
@@ -5921,6 +5949,16 @@ class sdWorld
 	}
 	static StartOnline( player_settings, button )
 	{
+		if ( ( player_settings = sdWorld.GetPendingPlayerSettings( player_settings ) ) === 'globalThis.GetPlayerSettings()' )
+		{
+			setTimeout( ()=>
+			{
+				sdWorld.StartOnline( player_settings, button );
+			}, 100 );
+			
+			return;
+		}
+		
 		button.disabled = true; // Prevent double clicks while it might be loading ad
 		
 		

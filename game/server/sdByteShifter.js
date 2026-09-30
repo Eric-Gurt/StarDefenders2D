@@ -503,118 +503,118 @@ class sdByteShifter
 									}
 									else
 									{
-									let i = 0;
-									for ( let prop in snap )
-									{
-										if ( rsd_info && ( prop === 'x' || prop === 'y' ) ) { i++; continue; } // phase-13-snapshot-02
-										let snap_value = snap[ prop ];
-										let confirmed_value = confirmed_state[ prop ];
-										
-										let is_pos = false;
-										let is_vel = false;
-										
-										let mismatch = false;
-										
-										if ( typeof snap_value === 'number' )
+										let i = 0;
+										for ( let prop in snap )
 										{
-											is_pos = ( prop === 'x' || prop === 'y' ) && !is_held_gun;
+											if ( rsd_info && ( prop === 'x' || prop === 'y' ) ) { i++; continue; } // phase-13-snapshot-02
+											let snap_value = snap[ prop ];
+											let confirmed_value = confirmed_state[ prop ];
 
-											if ( is_pos )
-											{
-												snap_value = Math.round( snap_value * 100 ) / 100;
-												
-												mismatch = ( confirmed_value !== snap_value || ( is_active_or_rare_update && is_pos ) );
-											}
-											else
-											{
-												is_vel = ( prop === 'sx' || prop === 'sy' ) && !is_held_gun;
+											let is_pos = false;
+											let is_vel = false;
 
-												if ( is_vel )
+											let mismatch = false;
+
+											if ( typeof snap_value === 'number' )
+											{
+												is_pos = ( prop === 'x' || prop === 'y' ) && !is_held_gun;
+
+												if ( is_pos )
 												{
 													snap_value = Math.round( snap_value * 100 ) / 100;
-													mismatch = ( confirmed_value !== snap_value || ( is_active_or_rare_update && is_vel ) );
+
+													mismatch = ( confirmed_value !== snap_value || ( is_active_or_rare_update && is_pos ) );
 												}
 												else
 												{
-													if ( prop === 'scale' )
-													snap_value = Math.round( snap_value * 100 ) / 100;
-													else
-													snap_value = Math.round( snap_value );
-												
-													mismatch = ( confirmed_value !== snap_value );
-												}
-											}
-										}
-										else
-										if ( typeof snap_value === 'object' )
-										{
-											mismatch = ( ( confirmed_value === null ) !== ( snap_value === null ) );
-											
-											if ( !mismatch )
-											{
-												if ( snap_value === null )
-												{
-												}
-												else
-												if ( typeof snap_value.s !== 'undefined' )
-												{
-													mismatch = ( confirmed_value.s !== snap_value.s );
-												}
-												else
-												if ( typeof snap_value._net_id !== 'undefined' )
-												{
-													mismatch = ( confirmed_value._net_id !== snap_value._net_id );
-												}
-												else
-												if ( snap_value instanceof Array )
-												{
-													if ( snap_value.length !== confirmed_value.length )
-													mismatch = true;
-													else
-													for ( let i = 0; i < snap_value.length; i++ )
+													is_vel = ( prop === 'sx' || prop === 'sy' ) && !is_held_gun;
+
+													if ( is_vel )
 													{
-														if ( snap_value[ i ] !== confirmed_value[ i ] )
-														{
-															mismatch = true;
-															break;
-														}
+														snap_value = Math.round( snap_value * 100 ) / 100;
+														mismatch = ( confirmed_value !== snap_value || ( is_active_or_rare_update && is_vel ) );
 													}
-												}
-												else
-												{
-													// Will not track missing/extra properties...
-													for ( let i2 in snap_value )
+													else
 													{
-														if ( snap_value[ i2 ] !== confirmed_value[ i2 ] )
-														{
-															mismatch = true;
-															break;
-														}
+														if ( prop === 'scale' )
+														snap_value = Math.round( snap_value * 100 ) / 100;
+														else
+														snap_value = Math.round( snap_value );
+
+														mismatch = ( confirmed_value !== snap_value );
 													}
 												}
 											}
-										}
-										else
-										{
-											mismatch = ( confirmed_value !== snap_value );
-										}
-										
-										if ( mismatch )
-										{
-											if ( prop_ids === null )
+											else
+											if ( typeof snap_value === 'object' )
 											{
-												prop_ids = [ i ];
-												values_array_partial = [ snap_value ];
+												mismatch = ( ( confirmed_value === null ) !== ( snap_value === null ) );
+
+												if ( !mismatch )
+												{
+													if ( snap_value === null )
+													{
+													}
+													else
+													if ( typeof snap_value.s !== 'undefined' )
+													{
+														mismatch = ( confirmed_value.s !== snap_value.s );
+													}
+													else
+													if ( typeof snap_value._net_id !== 'undefined' )
+													{
+														mismatch = ( confirmed_value._net_id !== snap_value._net_id );
+													}
+													else
+													if ( snap_value instanceof Array )
+													{
+														if ( snap_value.length !== confirmed_value.length )
+														mismatch = true;
+														else
+														for ( let i = 0; i < snap_value.length; i++ )
+														{
+															if ( snap_value[ i ] !== confirmed_value[ i ] )
+															{
+																mismatch = true;
+																break;
+															}
+														}
+													}
+													else
+													{
+														// Will not track missing/extra properties...
+														for ( let i2 in snap_value )
+														{
+															if ( snap_value[ i2 ] !== confirmed_value[ i2 ] )
+															{
+																mismatch = true;
+																break;
+															}
+														}
+													}
+												}
 											}
 											else
 											{
-												prop_ids.push( i );
-												values_array_partial.push( snap_value );
+												mismatch = ( confirmed_value !== snap_value );
 											}
+
+											if ( mismatch )
+											{
+												if ( prop_ids === null )
+												{
+													prop_ids = [ i ];
+													values_array_partial = [ snap_value ];
+												}
+												else
+												{
+													prop_ids.push( i );
+													values_array_partial.push( snap_value );
+												}
+											}
+
+											i++;
 										}
-										
-										i++;
-									}
 									}
 									
 									if ( rsd_info ) rsd_groups[ rsd_info.gi ].emitted.push( ent._net_id ); // phase-13-snapshot-02

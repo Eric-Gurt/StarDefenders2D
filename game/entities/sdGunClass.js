@@ -384,6 +384,30 @@ class sdGunClass
 					} 
 				} 
 			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Randomize explosive projectile sprite', 
+					cost: 0, 
+					category: 'customize_colors',
+					action: ( gun, initiator=null )=> 
+					{ 
+						if ( hasNoExtra( gun, initiator ) )
+						return false;
+					
+						gun.extra[ sdGun.ID_PROJECTILE_MODEL ] = sdWorld.AnyOf([ 
+							'ball','ball_g','blaster_proj','rocket_proj','grenade','grenade2','snowball','f_psicutter_proj','mini_rocket',
+							'mini_rocket_green','gauss_rifle_proj','mini_missile_p241','f_hover_rocket','ball_orange','ab_tooth',
+							'bullet','flare','anti_rifle_projectile','drain_shotgun_projectile',
+							
+							'sarronian_bolt','sarronian_bio_gas',
+							
+							'ball_large','sarronian_ball','ball_orange','ball_red','banana','can_firing','council_energy_blade','cube_fusion_core','cube_shard2','present','sword2b','cube_bng'
+							
+							//'stalker_target' Won't work
+						]);
+					} 
+				} 
+			);
 			/*AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#000000', 0, '', 'customize_colors_main' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#404040', 0, '', 'customize_colors_dark' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#808080', 0, '', 'customize_colors_bright' );
@@ -422,7 +446,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -449,7 +474,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -476,7 +502,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -504,7 +531,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -519,7 +547,8 @@ class sdGunClass
 					
 						gun.extra[ sdGun.ID_FIRE_RATE ] = Math.max( 1, gun.extra[ sdGun.ID_FIRE_RATE ] - 0.1 );
 						UpdateCusomizableGunProperties( gun );
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -534,7 +563,8 @@ class sdGunClass
 					
 						gun.extra[ sdGun.ID_FIRE_RATE ] = Math.min( 10, gun.extra[ sdGun.ID_FIRE_RATE ] + 0.1 );
 						UpdateCusomizableGunProperties( gun );
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -547,9 +577,9 @@ class sdGunClass
 						if ( hasNoExtra( gun, initiator ) )
 						return false;
 					
-						if ( gun.extra[ sdGun.ID_RECOIL_SCALE ] > 0.5 )
+						if ( gun.extra[ sdGun.ID_RECOIL_SCALE ] > 0.25 )
 						{
-							gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.max( 0.5, gun.extra[ sdGun.ID_RECOIL_SCALE ] - 0.05 ); // 5% reduction
+							gun.extra[ sdGun.ID_RECOIL_SCALE ] = Math.max( 0.25, gun.extra[ sdGun.ID_RECOIL_SCALE ] - 0.05 ); // 5% reduction
 							UpdateCusomizableGunProperties( gun );
 						}
 						else
@@ -560,7 +590,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			custom_rifle_upgrades.push(
@@ -586,7 +617,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 	
@@ -738,7 +770,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			normal_rifle_upgrades.push(
@@ -762,7 +795,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 		
@@ -789,7 +823,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			normal_rifle_upgrades.push(
@@ -815,7 +850,8 @@ class sdGunClass
 					
 							return false; // Do not subtract matter
 						}
-					} 
+					}, 
+					can_hold:true
 				} 
 			);
 			/*normal_rifle_upgrades.push(
@@ -1222,7 +1258,11 @@ class sdGunClass
 			count: 0,
 			is_build_gun: true,
 			allow_aim_assist: false,
-			projectile_properties: { _damage: 0 }
+			projectile_properties: { _damage: 0 },
+			onReloadAttempt: ( gun )=>
+            {
+				return false; // Prevent "Too far" message on N press since it reloads gun, and reloading attempts to measure firing cost, which is building in this case
+			}
 		};
 		
 		sdGun.classes[ sdGun.CLASS_CRYSTAL_SHARD = 8 ] = 
@@ -6397,7 +6437,7 @@ class sdGunClass
 					obj._dirt_mult = 1;
 					obj.explosion_radius = gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 13 : 19;
 					//obj.explosion_radius = 19;
-					obj.model = 'ball';
+					obj.model = gun.extra[ sdGun.ID_PROJECTILE_MODEL ] || 'ball';
 				}
 				if ( gun.extra[ sdGun.ID_HAS_RAIL_EFFECT ] )
 				{
@@ -10276,6 +10316,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'stalker_clone_rifle' ),
 			image_alt: sdWorld.CreateImageFromFile( 'stalker_clone_rifle2' ),
 			sound: 'alien_laser1',
+			sound_volume: 0.5,
 			title: 'Stalker Rapid Rifle',
 			slot: 2,
 			reload_time: 2,

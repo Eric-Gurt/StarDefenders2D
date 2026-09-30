@@ -62,6 +62,8 @@ class sdBaseShieldingUnit extends sdEntity
 
 		sdBaseShieldingUnit.protect_distance = 350; // Used for breathing when there is no air and if BSU is enabled
 		sdBaseShieldingUnit.protect_distance_stretch = sdBaseShieldingUnit.protect_distance + 100; // If BSU moves...
+		
+		sdBaseShieldingUnit.protect_distance_lrtp = 100;
 				
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.001; // Much less than player's automatic regeneration
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.0375; // 0.15 / 1.32 * 0.66; // Was 0.15 but ( / 1.32 * 0.66 ) makes it equal to average matter cost of a weapon. It is slightly less effective for non-sword weapons such as bullets or rails
@@ -480,7 +482,7 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( initiator )
 		if ( initiator._socket )
 		{
-			if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+			/*if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 30 )
 			{
 				initiator._last_damage_upg_complain = sdWorld.time;
 
@@ -494,7 +496,7 @@ class sdBaseShieldingUnit extends sdEntity
 					case 5: initiator.Say( 'Some base shielding units can be attacked by other base shielding units', true, false, true ); break;
 					case 6: initiator.Say( 'Some base shielding units are vulnerable to anti-crystals, some are timed', true, false, true ); break;
 				}
-			}
+			}*/
 
 			if ( fx )
 			{
@@ -795,7 +797,7 @@ class sdBaseShieldingUnit extends sdEntity
 		this.enabled = enable;
 		if ( !this.enabled ) // Disabled protected blocks and doors
 		{
-			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.25 });
+			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:0.25 });
 			
 			let obj;
 			
@@ -833,7 +835,7 @@ class sdBaseShieldingUnit extends sdEntity
 		{
 			this.charge_blocked_until = sdWorld.time + 3000;
 			
-			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:0.5 });
 
 			//let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
 			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, null, sdBaseShieldingUnit.IsShieldableFilter );
@@ -1046,6 +1048,12 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let s = unfriendly_shields[ i ];
 				
+				if ( s.is( sdLongRangeTeleport ) )
+				{
+					if ( e.inRealDist2DToEntity_Boolean( s, sdBaseShieldingUnit.protect_distance_lrtp ) )
+					return true;
+				}
+				else
 				if ( e.inRealDist2DToEntity_Boolean( s, sdBaseShieldingUnit.protect_distance + 32 ) )
 				return true;
 			}

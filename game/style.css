@@ -163,8 +163,8 @@ section_header
 {
     display: inline-block;
     border-bottom: 1px solid rgba(255,255,255,0.4);
-    background: rgba(20,20,20,0.35);
-    border-radius: 6px;
+    /*background: rgba(20,20,20,0.35);*/
+    /*border-radius: 6px;*/
     padding: 0.3vh 1vh;
 
     font-family: ui_font2 !important;
@@ -202,7 +202,7 @@ menu_button, .menu_rect
     font-family: ui_font2 !important;
     font-size: 2.6vh;
     border: 0.2vh solid rgba(255,255,255,0.09);
-    background: rgba(20,20,20,0.35);
+    /*background: rgba(20,20,20,0.35);*/
     margin-top: 1vh;
     color: white;
     text-transform: uppercase;
@@ -556,9 +556,22 @@ input[type=color]
     height: 2vw;
     margin: 0;
     background: #00000000;
-    border-radius: 0.92vw;
-    margin-right: 0.5vw;
+    border-radius: 50%;
+    /*margin-right: 0.5vw;*/
     vertical-align: middle;
+}
+div.color_hint
+{
+    width: 100%;
+    font-size: 0.9vw;
+    color: #ffffff42;
+    text-align: center;
+    line-height: 1.3;
+    margin-top: 0.15vw;
+    /* background: rgba(20, 20, 20, 0.35); */
+    /* border-radius: 3px; */
+    padding: 0.1vw 0.2vw;
+    box-sizing: border-box;
 }
 input[type=color]::-webkit-color-swatch-wrapper {
     padding: 0;
@@ -1078,24 +1091,25 @@ settings_line right settings_option
     padding-bottom: 0.1vw;
     margin-right: 0.5vw;
     color: #ffffff66;
-    background: rgba(20,20,20,0.35);
+    /*background: rgba(20,20,20,0.35);*/
     border-radius: 4px;
     position: relative;
     transition: color 0.2s ease;
 }
 settings_line input[type=button] /* Overrides the site-wide input[type=button] default (transparent, 0.9vw, no padding) just within settings rows, so Randomize/Save/Update/etc. match the dark-gray-background treatment of the labels and settings_option words around them */
 {
-    background: rgba(20,20,20,0.35);
-    border-radius: 4px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 0.2vw;
     font-size: 1vw;
     padding: 0.2vw 0.4vw;
     box-sizing: border-box;
     margin-right: 0.3vw;
     margin-bottom: 0.3vw;
+    line-height: 0;
 }
 settings_line input[type=button]:hover
 {
-    background: rgba(40,40,40,0.55);
+    background: rgba(0,0,0,0.55);
 }
 settings_option.selected, settings_option:hover
 {
@@ -1235,4 +1249,31 @@ div.credits_pixelated_image
 div.credits_pixelated_image img
 {
     image-rendering: pixelated;
+}
+
+
+settings_line select, settings_line select option
+{
+    font-family: ui_font2 !important;
+    font-size: 1vw;
+    vertical-align: middle;
+    background: black;
+    color: white;
+    border:0;
+    border-radius: 0.3vw;
+    padding: 0vw 0.3vw;
+}
+
+settings_line right.flexify
+{
+    display: inline-flex;
+    align-items: stretch;
+    height: 2vw;
+    gap: 0.3vw;
+}
+settings_line right.flexify *
+{
+    height: 100%;
+    margin: 0;
+    display: block;
 }

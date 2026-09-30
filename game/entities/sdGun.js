@@ -44,6 +44,7 @@ class sdGun extends sdEntity
 		sdGun.img_present = sdWorld.CreateImageFromFile( 'present' );
 		
 		sdGun.disowned_guns_ttl = 30 * 60 * 2; // Was 1 minute before, 2 now
+		sdGun.player_auto_defib_in = 30 * 10; // Ressurect in 10 seconds
 		
 		sdGun.default_projectile_velocity = 24; // 16
 		
@@ -126,6 +127,7 @@ class sdGun extends sdEntity
 		sdGun.ID_HAS_CUBE_FUSION_CORE = 20; // Cube fusion core, final weapon matter cost reduction by 25%
         sdGun.ID_HAS_MERGED = 21; // DPS buff from weapon merging
         sdGun.ID_HAS_ETERNAL_SHARD = 22; // Reduces build-up time for charging weapons
+		sdGun.ID_PROJECTILE_MODEL = 23; // For custom guns in rocket mode
 		
 		sdGun.as_class_list = [ 'sdGun' ];
 		
@@ -819,8 +821,23 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
+		let dual = ( this._held_by && this._held_by.alt_gun_slot !== -1 );
+		
+		if ( dual )
+		{
+			sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5*0.7 });
+			
+			setTimeout(()=>{
+				
+				if ( !this._is_being_removed )
+				sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5*0.7 });
+			
+			},500);
+		}
+		else
 		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
-		this._held_by.reload_anim = this._held_by.alt_gun_slot === 10 ? 30 : 15; // Akimbo needs to reload 2 guns
+	
+		this._held_by.reload_anim = ( dual ) ? 30 : 15; // Akimbo needs to reload 2 guns
 	}
 	ChangeFireModeStart() // Can happen multiple times
 	{
@@ -840,7 +857,7 @@ class sdGun extends sdEntity
 
 			if ( sdGun.classes[ this.class ].is_build_gun )
 			if ( this._held_by && this._held_by._socket )
-			this._held_by._socket.SDServiceMessage( this.fire_mode === 2 ? 'Build placement grid: 16px' : 'Build placement grid: 8px' );
+			this._held_by._socket.SDServiceMessage( this.fire_mode === 1 ? 'Build placement grid: 16px' : 'Build placement grid: 8px' );
 		}
 	}
 	
@@ -1039,14 +1056,14 @@ class sdGun extends sdEntity
             if ( can_say )
 			this._held_by.Say( sdWorld.GetAny([
 				'I\'m out of matter...',
-				'This might be the end...',
-				'This thing could use some matter...',
+				'That is all I\'ve got...',
+				'I could use some matter...',
 				'I need matter...',
-				'I\'ll need some crystals or help...'
+				'I\'ll need to find crystals...'
 			]));
 		}
 	}
-	Shoot( background_shoot=0, offset=null, shoot_from_scenario=false ) // It becomes 1 when player holds shift
+	Shoot( background_shoot=0, offset=null, shoot_from_scenario=false ) // It becomes 1 when player holds shift // Fire
 	{
         const can_say = this._held_by.IsPlayerClass();
 
@@ -1174,24 +1191,28 @@ class sdGun extends sdEntity
 							let n = '[' + Math.ceil( ammo_cost - this._held_by.matter ) + ']';
 							
                             if ( can_say )
-							this._held_by.Say( [
-								'Need at least '+n+' more matter',
-								'What\'s the MATTER?',
-								'It does not MATTER',
-								''+n+' more matter',
-								'Maybe I could get '+n+' matter from cubes?',
-								'I am thinking about that MATTER',
-								'I\'ll reconsider the MATTER',
-								'No MATTER where I go, I get lost',
-								'No MATTER who says so, I need '+n+' more',
-								'It doesn\'t MATTER to me',
-								'I want to spend more time doing things that MATTER',
-								'I look forward to hearing your thoughts on this MATTER',
-								this._held_by.title+' is not a lazy boy. As a MATTER of fact, '+this._held_by.title+' works hard',
-								'Uh, do I go into debt?',
-								'Where would I get '+n+' more matter?',
-								'Where are my crystals again?'
-							][ ~~( Math.random() * 16 ) ] );
+							{
+								this._held_by.Say( 'Need '+n+' more matter' );
+								/*
+								this._held_by.Say( [
+									'Need at least '+n+' more matter',
+									'What\'s the MATTER?',
+									'It does not MATTER',
+									''+n+' more matter',
+									'Maybe I could get '+n+' matter from cubes?',
+									'I am thinking about that MATTER',
+									'I\'ll reconsider the MATTER',
+									'No MATTER where I go, I get lost',
+									'No MATTER who says so, I need '+n+' more',
+									'It doesn\'t MATTER to me',
+									'I want to spend more time doing things that MATTER',
+									'I look forward to hearing your thoughts on this MATTER',
+									this._held_by.title+' is not a lazy boy. As a MATTER of fact, '+this._held_by.title+' works hard',
+									'Uh, do I go into debt?',
+									'Where would I get '+n+' more matter?',
+									'Where are my crystals again?'
+								][ ~~( Math.random() * 16 ) ] );*/
+							}
 						}
 					
 						return false;
@@ -1218,9 +1239,17 @@ class sdGun extends sdEntity
 					//pitch /= scale;
 					pitch /= ( 0.75 + scale * 0.25 );
 					
+					let volume_scale = 1;
+					
+					if ( this._held_by && this._held_by.alt_gun_slot !== -1 )
+					{
+						pitch *= 0.95 + Math.random() * 0.1;
+						volume_scale *= 0.7;
+					}
+					
 					sdSound.PlaySound({ name:this._sound, 
 						x:this.x, y:this.y, 
-						volume: ( 0.75 + scale * 0.25 ) * 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), 
+						volume: volume_scale * ( 0.75 + scale * 0.25 ) * 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), 
 						pitch: pitch });
 			
 				}
@@ -1321,6 +1350,11 @@ class sdGun extends sdEntity
 						bullet_obj._owner = this._held_by;
 						
 						bullet_obj._gun = this;
+						
+						// Do not let fired bullets over-simulate their logic due to being considered offscreen
+						/*if ( bullet_obj._owner.IsPlayerClass() )
+						if ( bullet_obj._owner._socket )
+						bullet_obj._near_player_until = sdWorld.time + 1000;*/
 
 						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
 						

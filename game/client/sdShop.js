@@ -2058,6 +2058,9 @@ class sdShop
 				
 			if ( e.which === 1 )
 			{
+				if ( sdShop.potential_selection !== -1 )
+				sdSound.PlayUISound({ name:'menu_click', pitch:1, volume:0.5 });
+			
 				//
 				if ( sdShop.potential_selection === -1 )
 				{
@@ -2074,6 +2077,9 @@ class sdShop
 				{
 					if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
 					{
+						if ( sdShop.current_category !== sdShop.options[ sdShop.potential_selection ]._opens_category )
+						sdSound.PlayUISound({ name:'menu_bypass', pitch:0.8, volume:0.5 });
+						
 						sdShop.current_category = sdShop.options[ sdShop.potential_selection ]._opens_category;
 						
 						if ( sdShop.current_category === 'root' )

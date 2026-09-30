@@ -17,6 +17,9 @@ class sdContextMenu
 		sdContextMenu.x = 0;
 		sdContextMenu.y = 0;
 		
+		sdContextMenu.held_option = null;
+		sdContextMenu.hold_click_repeat_after = 0;
+		
 		sdContextMenu.current_scroll = 0;
 		sdContextMenu.max_scroll = 0;
 		sdContextMenu.scroll_y_target = 0;
@@ -190,6 +193,12 @@ class sdContextMenu
 			}
 		}
 	}
+	static MouseUp( e )
+	{
+		sdContextMenu.held_option = null;
+		
+		return false;
+	}
 	static MouseDown( e )
 	{
 		if ( !sdContextMenu.open )
@@ -214,10 +223,18 @@ class sdContextMenu
 			}
 			else
 			{
+				sdSound.PlayUISound({ name:'menu_click', pitch:1, volume:0.5 });
+				
 				sdContextMenu.potential_option.action();
 				
 				if ( sdContextMenu.potential_option.close_on_click !== false )
 				sdContextMenu.open = false;
+				else
+				if ( sdContextMenu.potential_option.can_hold )
+				{
+					sdContextMenu.held_option = sdContextMenu.potential_option;
+					sdContextMenu.hold_click_repeat_after = sdWorld.time + 700;
+				}
 			
 				sdRenderer.UpdateCursor();
 				return true;
@@ -369,6 +386,18 @@ class sdContextMenu
 				ctx.fillStyle = '#66aaff';
 				else
 				{
+					if ( sdContextMenu.options[ i ].can_hold )
+					if ( sdContextMenu.potential_option === sdContextMenu.options[ i ] )
+					{
+						ctx.fillStyle = '#ffff33';
+						ctx.font = "12px Verdana";
+						ctx.textAlign = 'right';
+
+						ctx.fillText( 'Hold to repeat', -10, 20 + ( i + 1 ) * 30, width - 20 );
+					}
+					
+					
+					
 					ctx.fillStyle = '#ffffff';
 					
 					if ( sdContextMenu.options[ i ].color )
@@ -383,6 +412,24 @@ class sdContextMenu
 			}
 		}
 		ctx.restore();
+	}
+	static Update()
+	{
+		if ( sdContextMenu.hold_click_repeat_after )
+		{
+			if ( sdContextMenu.open && sdContextMenu.options.indexOf( sdContextMenu.held_option ) !== -1 )
+			{
+				if ( sdWorld.time > sdContextMenu.hold_click_repeat_after )
+				{
+					sdContextMenu.hold_click_repeat_after = sdWorld.time + 50;
+					sdContextMenu.held_option.action();
+				}
+			}
+			else
+			{
+				sdContextMenu.held_option = null;
+			}
+		}
 	}
 }
 export default sdContextMenu;

@@ -511,12 +511,9 @@ class sdDropPod extends sdEntity
 					if ( Math.random() < 0.01 ) // 1% chance
 					{	
 						potential_dialogue = sdWorld.AnyOf( [ 
-							'Hello, any Star Defenders around here?', 
-							'Nobody seems interested in loot.', 
-							'Fresh loot here, come and get it!', 
-							'They really had to name the pod after a joke...',
-							'LRTP is more efficient than pods...'
-							] );
+							'Any Star Defenders around? Drop pod is right there!', 
+							'Attention Star Defenders - fresh loot here, come and get it!'
+						] );
 						this.Say( potential_dialogue );
 					}
 				}
@@ -555,7 +552,7 @@ class sdDropPod extends sdEntity
 		if ( this.type === sdDropPod.TYPE_KVT )
 		title = 'KVT weapons pod';
 		if ( this.type === sdDropPod.TYPE_SD )
-		title = 'SD-ZNTS item pod';
+		title = 'Star Defenders Item Pod'; // More serious titles may make more sense for potentially wider audience. Easter eggs are fine but they better be rare - E.G.
 		return title;
 	}
 	get description()
@@ -601,12 +598,12 @@ class sdDropPod extends sdEntity
 		{		
 			if (this.level < 2 )
 			{
-				sdEntity.TooltipUntranslated( ctx, T("SD-ZNTS Item Pod") + " ( " + ~~(this.metal_shards) + " / " + ~~(this.metal_shards_max) + " )", 0, -10 );
+				sdEntity.TooltipUntranslated( ctx, T("Star Defenders Item Pod") + " ( " + ~~(this.metal_shards) + " / " + ~~(this.metal_shards_max) + " )", 0, -10 );
 				sdEntity.Tooltip( ctx, T("Lock progress") + " " + this.level + " / 2", 0, -2, '#66ff66' );
 			}
 			else
 			{
-				sdEntity.TooltipUntranslated( ctx, T("SD-ZNTS Item Pod"), 0, -10 );
+				sdEntity.TooltipUntranslated( ctx, T("Star Defenders Item Pod"), 0, -10 );
 				sdEntity.Tooltip( ctx, T("UNLOCKED"), 0, -2, '#66ff66' );
 			}
 		}

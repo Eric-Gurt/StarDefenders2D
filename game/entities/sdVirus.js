@@ -431,6 +431,7 @@ class sdVirus extends sdEntity
 				
 				if ( from_entity.IsPlayerClass() || from_entity === this._current_target )
 				if ( from_entity.IsTargetable() )
+				if ( ( from_entity.hea || from_entity._hea ) > 0 )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
 					from_entity.DamageWithEffect( 20 * this.hmax / sdVirus.normal_max_health, this );

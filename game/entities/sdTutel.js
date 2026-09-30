@@ -151,7 +151,7 @@ class sdTutel extends sdEntity
 					x:this.x, 
 					y:this.y, 
 					radius:65,
-					damage_scale: 1,
+					damage_scale: 0.5,
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					can_hit_owner: false,

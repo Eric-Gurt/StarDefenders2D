@@ -637,209 +637,26 @@
 			
 				if ( str === 'colors' || str === 'everything' )
 				{
-					let palettes_raw;
-					// Hider
+					// More randomness - E.G.
+					
+					let colors = ["#4b3832","#854442","#fff4e6","#3c2f2f","#be9b7b","#ffb3ba","#ffdfba","#ffffba","#baffc9","#bae1ff","#dfdfde","#a2798f","#d7c6cf","#8caba8","#ebdada","#66545e","#a39193","#aa6f73","#eea990","#f6e0b5","#740001","#ae0001","#eeba30","#d3a625","#000000","#0e1a40","#222f5b","#5d5d5d","#946b2d","#000000","#a3c1ad","#a0d6b4","#5f9ea0","#317873","#49796b","#6e7f80","#536872","#708090","#536878","#36454f","#f8d3c5","#fceee9","#dde6d5","#a3b899","#667b68","#997a8d","#aa98a9","#b39eb5","#777696","#796878","#414a4c","#3b444b","#353839","#232b2b","#0e1111","#8b8589","#989898","#838996","#979aaa","#4c516d","#b88c8c","#ddadad","#d6c7c7","#9fb9bf","#aec8ce","#a69eb0","#efeff2","#f2e2cd","#dadae3","#000000","#dc6900","#eb8c00","#e0301e","#a32020","#602320","#e8d174","#e39e54","#d64d4d","#4d7358","#9ed670"];
+					
+					for ( let i = 0; i < inputs.length; i++ )
+					if ( inputs[ i ].el.type === 'color' )
 					{
-						palettes_raw = 
-`#4b3832
-#854442
-#fff4e6
-#3c2f2f
-#be9b7b
-
-#ffb3ba
-#ffdfba
-#ffffba
-#baffc9
-#bae1ff
-
-#dfdfde
-#a2798f
-#d7c6cf
-#8caba8
-#ebdada
-
-#66545e
-#a39193
-#aa6f73
-#eea990
-#f6e0b5
-
-#740001
-#ae0001
-#eeba30
-#d3a625
-#000000
-
-#0e1a40
-#222f5b
-#5d5d5d
-#946b2d
-#000000
-
-#a3c1ad
-#a0d6b4
-#5f9ea0
-#317873
-#49796b
-
-#6e7f80
-#536872
-#708090
-#536878
-#36454f
-
-#f8d3c5
-#fceee9
-#dde6d5
-#a3b899
-#667b68
-
-#997a8d
-#aa98a9
-#b39eb5
-#777696
-#796878
-
-#414a4c
-#3b444b
-#353839
-#232b2b
-#0e1111
-
-#8b8589
-#989898
-#838996
-#979aaa
-#4c516d
-
-#b88c8c
-#ddadad
-#d6c7c7
-#9fb9bf
-#aec8ce
-
-#a69eb0
-#efeff2
-#f2e2cd
-#dadae3
-#000000
-
-#dc6900
-#eb8c00
-#e0301e
-#a32020
-#602320
-
-#e8d174
-#e39e54
-#d64d4d
-#4d7358
-#9ed670`;
-					}
-					
-					let palettes = palettes_raw.split( '\n\n' );
-					for ( let i = 0; i < palettes.length; i++ )
-					{
-						palettes[ i ] = palettes[ i ].split( '\n' );
+						let color;
 						
-						for ( let i2 = 0; i2 < palettes[ i ].length; i2++ )
-						palettes[ i ][ i2 ] = sdWorld.hexToRgb( palettes[ i ][ i2 ] ); // ex: [ 255, 255, 255 ]
-					}
-					
-					let palette1 = palettes[ ~~( Math.random() * palettes.length ) ];
-					let palette2 = palettes[ ~~( Math.random() * palettes.length ) ];
-					let palette3 = palettes[ ~~( Math.random() * palettes.length ) ];
-					
-					let intensity1 = Math.random();
-					let intensity2 = Math.random();
-					let intensity3 = Math.random();
-					
-					if ( intensity1 + intensity2 + intensity3 > 0 )
-					{
-						let final_palette = [];
-						
-						// Create palette that is average of 3 random palettes
-						for ( let i2 = 0; i2 < palette1.length; i2++ )
+						if ( Math.random() < 0.3 )
 						{
-							final_palette[ i2 ] = [ 0,0,0 ];
-							
-							final_palette[ i2 ][ 0 ] += palette1[ i2 ][ 0 ] * intensity1;
-							final_palette[ i2 ][ 1 ] += palette1[ i2 ][ 1 ] * intensity1;
-							final_palette[ i2 ][ 2 ] += palette1[ i2 ][ 2 ] * intensity1;
-							
-							final_palette[ i2 ][ 0 ] += palette2[ i2 ][ 0 ] * intensity2;
-							final_palette[ i2 ][ 1 ] += palette2[ i2 ][ 1 ] * intensity2;
-							final_palette[ i2 ][ 2 ] += palette2[ i2 ][ 2 ] * intensity2;
-							
-							final_palette[ i2 ][ 0 ] += palette3[ i2 ][ 0 ] * intensity3;
-							final_palette[ i2 ][ 1 ] += palette3[ i2 ][ 1 ] * intensity3;
-							final_palette[ i2 ][ 2 ] += palette3[ i2 ][ 2 ] * intensity3;
-							
-							final_palette[ i2 ][ 0 ] /= intensity1 + intensity2 + intensity3;
-							final_palette[ i2 ][ 1 ] /= intensity1 + intensity2 + intensity3;
-							final_palette[ i2 ][ 2 ] /= intensity1 + intensity2 + intensity3;
+							color = '#';
+
+							for ( let i2 = 0; i2 < 6; i2++ )
+							color += (~~( Math.random() * 16 )).toString( 16 );
 						}
+						else
+						color = sdWorld.AnyOf( colors );
 						
-						// Extra step to adjust too bright palettes, which is a common thing
-						{
-							let original_max_brightness = 0;
-							let original_min_brightness = 255;
-							for ( let i2 = 0; i2 < final_palette.length; i2++ )
-							{
-								let v = ( final_palette[ i2 ][ 0 ] + final_palette[ i2 ][ 1 ] + final_palette[ i2 ][ 2 ] ) / 3;
-								
-								original_max_brightness = Math.max( original_max_brightness, v );
-								original_min_brightness = Math.min( original_min_brightness, v );
-							}
-							
-							let new_min_brightness = Math.random() * 0.5;
-							let new_max_brightness = 1 - Math.random() * 0.5;
-							
-							if ( new_max_brightness - new_min_brightness < 0.3 )
-							{
-								let av = ( new_max_brightness + new_min_brightness ) / 2;
-								new_max_brightness = av + 0.15;
-								new_min_brightness = av - 0.15;
-							}
-							
-							//trace( 'Next contrast: ', new_min_brightness, new_max_brightness );
-							
-							for ( let i2 = 0; i2 < final_palette.length; i2++ )
-							for ( let c = 0; c < 3; c++ )
-							{
-								let v = final_palette[ i2 ][ c ];
-								
-								v = ( ( v - original_min_brightness ) / ( original_max_brightness - original_min_brightness ) + new_min_brightness ) * ( new_max_brightness - new_min_brightness );
-								
-								final_palette[ i2 ][ c ] = Math.max( 0, Math.min( 255, v * 255 ) );
-							}
-						}
-						
-						let offset = 0;
-						let colors_left = final_palette.length;
-						
-						for ( let i = 0; i < inputs.length; i++ )
-						if ( inputs[ i ].el.type === 'color' )
-						{
-							let color;
-							
-							if ( colors_left > 0 )
-							{
-								color = final_palette[ ( offset++ ) % final_palette.length ];
-								colors_left--;
-							}
-							else
-							{
-								// Out of colors - generate random in-betweens
-								let a = final_palette[ ~~( Math.random() * final_palette.length ) ];
-								let b = final_palette[ ~~( Math.random() * final_palette.length ) ];
-								
-								color = [ ( a[0]+b[0] ) / 2, ( a[1]+b[1] ) / 2, ( a[2]+b[2] ) / 2 ];
-							}
-									
-							inputs[ i ].el.value = sdWorld.rgbToHex( ...color );
-						}
+						inputs[ i ].el.value = color;
 					}
 				}
 				
@@ -883,7 +700,7 @@
 							].map( ( [ id, value, label1, label2 ] )=>
 								`<div style="display:flex; flex-direction:column; align-items:center;">
 									<input type="color" id="${ id }" value="${ value }" title="${ label1 }${ label2 ? ' (' + label2 + ')' : '' }">
-									<div style="width:100%; font-size:0.9vw; color:#cccccc; text-align:center; line-height:1.3; margin-top:0.15vw; background:rgba(20,20,20,0.35); border-radius:3px; padding:0.1vw 0.2vw; box-sizing:border-box;">${ label1 }${ label2 ? '<br>' + label2 : '' }</div>
+									<div class="color_hint">${ label1 }${ label2 ? '<br>' + label2 : '' }</div>
 								</div>`
 							).join('') }
 						</div>
@@ -1300,7 +1117,7 @@
 				AddHTML(`
 					<settings_line>
 						<left>Saved characters:</left>
-						<right>
+						<right class="flexify">
 							<select id="local_profile_select" style="width:220px" onchange="SelectLocalProfile()"></select>
 							<input style="width:120px" type="button" value="Save as new" onclick="SaveCurrentAsLocalProfile()">
 							<input style="width:100px" type="button" value="Update" onclick="SaveCurrentAsLocalProfile(document.getElementById('local_profile_select').value)">

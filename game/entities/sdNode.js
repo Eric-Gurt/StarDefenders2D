@@ -17,7 +17,7 @@ class sdNode extends sdEntity
 {
 	static init_class()
 	{
-		sdNode.img_node = sdWorld.CreateImageFromFile( 'cable_node' );
+		sdNode.img_node = sdWorld.CreateImageFromFile( 'sdNode' );
 		
 		sdNode.TYPE_NODE = 0;
 		sdNode.TYPE_SIGNAL_FLIPPER = 1; // Inverts sdButton signals
@@ -279,8 +279,9 @@ class sdNode extends sdEntity
 		if ( this.type === sdNode.TYPE_SIGNAL_AND_GATE )
 		{
 			// No dedicated sprite row yet - reuse the plain node icon, tinted by current output state
-			yy = sdNode.TYPE_NODE * 16;
-			ctx.sd_hue_rotation = this.output ? 120 : -50;
+			//yy = sdNode.TYPE_NODE * 16;
+			//yy = sdNode.TYPE_NODE * 16;
+			ctx.sd_hue_rotation = ( this.output || sdShop.isDrawing ) ? -50 : 120;
 		}
 
 		ctx.drawImageFilterCache( sdNode.img_node, xx,yy,16,16, -8, -8, 16,16 );

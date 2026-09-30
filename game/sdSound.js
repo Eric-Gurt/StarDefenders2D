@@ -1,5 +1,5 @@
 
-/* global sdMusic */
+/* global sdMusic, Infinity, sdRenderer */
 
 import sdWorld from './sdWorld.js';
 import sdEntity from './entities/sdEntity.js';
@@ -9,6 +9,7 @@ import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdEffect from './entities/sdEffect.js';
 import sdCrystal from './entities/sdCrystal.js';
 import sdSteeringWheel from './entities/sdSteeringWheel.js';
+import sdBullet from './entities/sdBullet.js';
 
 /*
 
@@ -38,7 +39,7 @@ class sdSound
 				sdSound.volume = v * 1; // non-relative
 				sdSound.volume_speech = v * 1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
 				sdSound.volume_ambient = v * 0.75; // non-relative
-				sdSound.volume_music = v * 0.3; // non-relative
+				sdSound.volume_music = v * 0.2; // non-relative
 			};
 
 			//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -46,6 +47,8 @@ class sdSound
 			sdSound.sounds = {};
 
 			sdSound.sounds_played_at_frame = 0; // Prevent massive flood
+
+			sdSound.sound_muffling_classes = [ 'sdBlock', 'sdDoor' ];
 
 			/*sdSound.matter_charge_loop = new Audio( './audio/matter_charge_loop2.wav' );
 			sdSound.matter_charge_loop.volume = 0;
@@ -122,6 +125,7 @@ class sdSound
 			MakeLoopAmbient( 'fire_big', './audio/fire_big.wav' );
 			MakeLoopAmbient( 'fire_small', './audio/fire_small.wav' );
 			MakeLoopAmbient( 'motor_loop', './audio/motor_loop.wav' );
+			MakeLoopAmbient( 'rocket_loop', './audio/rocket_loop.wav' );
 
 
 			sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -509,9 +513,15 @@ zombie_idle`;
 		let count_antigravity = 0;
 		let count_fire = 0;
 		let count_motor = 0;
+		let count_rocket = 0;
 		
 		// Singleplayer entities array is huge and will damage performance there otherwise
 		const entities_array = sdWorld.is_singleplayer ? sdRenderer.single_player_visibles_array : sdEntity.entities;
+		
+		let VolumeByEntity = ( e )=>
+		{
+			return sdSound.GetDistanceMultForPosition( e.x, e.y ) * sdSound.CalculateMuffleFactor( e.x, e.y );
+		};
 			
 		//for ( let i = 0; i < sdEntity.entities.length; i++ )
 		for ( let i = 0; i < entities_array.length; i++ )
@@ -519,35 +529,36 @@ zombie_idle`;
 			//const e = sdEntity.entities[ i ];
 			const e = entities_array[ i ];
 			
-			if ( !sdWorld.is_server || sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.camera.x, sdWorld.camera.y, 1000 ) )
+			//if ( !sdWorld.is_server || sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.camera.x, sdWorld.camera.y, 1000 ) )
+			if ( !sdWorld.is_server || sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.camera.x, sdWorld.camera.y, 400 ) )
 		
 			switch ( e.GetClass() )
 			{
 				case 'sdCharacter':
 				{
 					if ( e.flying )
-					count_flying += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_flying += 1 * VolumeByEntity( e );
 				}
 				break;
 				
 				case 'sdHover':
 				{
 					if ( e.driver0 && e.matter > 1 /*&& ( e.driver0.act_x !== 0 || e.driver0.act_y !== 0 )*/ )
-					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_hover_loop += 2 * VolumeByEntity( e );
 				}
 				break;
 				
 				case 'sdThruster':
 				{
 					if ( e.enabled )
-					count_hover_loop += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_hover_loop += 1 * VolumeByEntity( e );
 				}
 				break;
 				
 				case 'sdMatterAmplifier':
 				{
 					if ( e.matter_max > 0 || e.crystal )
-					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_amplifier_loop += 0.2 * VolumeByEntity( e );
 				}
 				break;
 				
@@ -555,7 +566,7 @@ zombie_idle`;
 				{
 					if ( e.power > 0 )
 					if ( e.matter > 0 )
-					count_antigravity += 0.2 * e.power * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_antigravity += 0.2 * e.power * VolumeByEntity( e );
 				}
 				break;
 				
@@ -563,12 +574,12 @@ zombie_idle`;
 				{
 					if ( e.type === sdWater.TYPE_ACID || e.type === sdWater.TYPE_WATER )
 					{
-						count_water_loop += 0.002 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+						count_water_loop += 0.002 * VolumeByEntity( e );
 					}
 					
 					if ( e.type === sdWater.TYPE_LAVA )
 					{
-						count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+						count_lava_loop += 0.02 * VolumeByEntity( e );
 
 						if ( e._swimmers )
 						for ( let sw of e._swimmers )
@@ -582,14 +593,14 @@ zombie_idle`;
 				
 				case 'sdRift':
 				{
-					count_rift_loop += 2.5 * e.scale * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_rift_loop += 2.5 * e.scale * VolumeByEntity( e );
 				}
 				break;
 				
 				case 'sdJunk':
 				{
 					if ( e.type === 3 )
-					count_anti_crystal_ambient += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_anti_crystal_ambient += 1 * VolumeByEntity( e );
 				}
 				break;
 				
@@ -598,18 +609,18 @@ zombie_idle`;
 					if ( e.type === sdCrystal.TYPE_CRYSTAL_BIG || e.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG)
 					{
 						if ( e.matter_max === sdCrystal.anticrystal_value * 4 )
-						count_anti_crystal_ambient += 0.1 * 4 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+						count_anti_crystal_ambient += 0.1 * 4 * VolumeByEntity( e );
 					}
 					else
 					if ( e.matter_max === sdCrystal.anticrystal_value )
-					count_anti_crystal_ambient += 0.1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_anti_crystal_ambient += 0.1 * VolumeByEntity( e );
 				}
 				break;
 				
 				case 'sdEffect':
 				{
 					if ( e._type === sdEffect.TYPE_FIRE )
-					count_fire += 0.05 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_fire += 0.05 * VolumeByEntity( e );
 				}
 				break;
 				
@@ -617,7 +628,15 @@ zombie_idle`;
 				{
 					if ( e.type === sdSteeringWheel.TYPE_ELEVATOR_MOTOR )
 					if ( e.toggle_enabled )
-					count_motor += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
+					count_motor += 1 * VolumeByEntity( e );
+				}
+				break;
+				
+				case 'sdBullet':
+				{
+					if ( e.sx !== 0 || e.sy !== 0 ) // Happened for some reason on client once...
+					if ( sdBullet.images_with_smoke.hasOwnProperty( e.model ) )
+					count_rocket += 1 * VolumeByEntity( e );
 				}
 				break;
 			}
@@ -658,6 +677,9 @@ zombie_idle`;
 		sdSound.motor_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.motor_loop_volume_last, count_motor, 0.8, GSPEED );
 		sdSound.motor_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.motor_loop_volume_last ) * volume_ambient );
 		
+		sdSound.rocket_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rocket_loop_volume_last, count_rocket, 0.8, GSPEED );
+		sdSound.rocket_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.rocket_loop_volume_last ) * volume_ambient );
+		
 		if ( sdWorld.my_entity )
 		{
 			if ( sdWorld.my_entity._in_water && !sdWorld.my_entity._can_breathe )
@@ -694,6 +716,15 @@ zombie_idle`;
 		//return Math.max( 0.05, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
 		
 		return Math.max( 0.01, 200 / ( 200 + di ) );
+	}
+	static CalculateMuffleFactor( x,y )
+	{
+		if ( sdWorld.my_entity )
+		{
+			return sdWorld.CheckLineOfSight( sdWorld.my_entity.x, sdWorld.my_entity.y, x, y, null, null, sdSound.sound_muffling_classes ) ? 1 : 0.2;
+		}
+	
+		return 1;
 	}
 	static CreateSoundChannel( for_entity )
 	{
@@ -737,7 +768,7 @@ zombie_idle`;
 	{
         if ( sdWorld.is_server || sdWorld.is_singleplayer )
         {
-            if ( params.x && params.y )
+            if ( params.x !== undefined && params.y !== undefined )
             params.pitch *= sdSound.GetPitchScale( params.x, params.y );
         }
 
@@ -799,6 +830,7 @@ zombie_idle`;
 		}
 		
 		let v;
+		let stereo_balance = 0;
 		
 		if ( typeof params.x !== 'undefined' )
 		{
@@ -817,6 +849,13 @@ zombie_idle`;
 			return;*/
 
 			v = sdSound.GetDistanceMultForPosition( x,y ) * sdSound.volume * volume;
+			
+			if ( v > 0 )
+			{
+				v *= sdSound.CalculateMuffleFactor( x,y );
+			}
+			
+			stereo_balance = Math.max( -1, Math.min( 1, ( x - sdWorld.camera.x ) / 800 ) );
 		}
 		else
 		{
@@ -860,6 +899,8 @@ zombie_idle`;
 				
 				howl.volume( v );
 				howl.rate( rate );
+				howl.stereo( stereo_balance );
+
 				let playback_id = howl.play();
 				
 				if ( sound_channel )
@@ -878,8 +919,8 @@ zombie_idle`;
 	static PlayUISound( params ) // It is more of a hack than anything
 	{
 		params._server_allowed = true;
-		params.x = sdWorld.camera.x;
-		params.y = sdWorld.camera.y;
+		//params.x = sdWorld.camera.x;
+		//params.y = sdWorld.camera.y;
 		
 		sdSound.PlaySound( params );
 	}

@@ -1812,12 +1812,23 @@ class sdStatusEffect extends sdEntity
 							default:
 							{
 								let t = sdWorld.AnyOf( [ 
-									'You will die. Stop delaying the inevitable. Give in and let it happen.',
+									'Stop delaying the inevitable.',
+									'You do not belong here.',
+									'This is not your world.',
+									'You can\'t run forever.',
+									'I can see you.',
+									'You can\'t hide from me',
+									'Surrender to me.',
+									'You will not get away this time.',
+									'I\'ll make you embrace the eternal sleep.'
+									
+									// Way too real, way too long - E.G.
+									/*'You will die. Stop delaying the inevitable. Give in and let it happen.',
 									'You do not belong here. Go away, this is not your world.',
 									'You can\'t run forever.',
 									'I can see you. You can\'t hide from me',
 									'Surrender to me. You will not get away this time.',
-									'Close your eyes. Embrace the eternal sleep.'
+									'Close your eyes. Embrace the eternal sleep.'*/
 								] );
 								
 								let chat_ent = new sdEffect ({

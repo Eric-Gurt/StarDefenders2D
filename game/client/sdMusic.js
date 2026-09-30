@@ -6,11 +6,8 @@
 
 		sdMusic.situational_songs[ 0 ].play();
 
-
-	TODO: Add all these songs once again on credits screen, when that will become a thing.
-
 */
-/* global sdSound, sdWorld, sdRenderer, sdEntity */
+/* global sdSound, sdWorld, sdRenderer, sdEntity, sdTheatre */
 
 class sdMusic
 {
@@ -144,10 +141,11 @@ class sdMusic
 		// larrynachos replied with: Absolutely! Just be sure to credit me and message me a link to the game when it's up! // https://www.newgrounds.com/pm/read/13248548
 
 		//High tier crystals/score progression/adventurous
-		CreateSituationalSong({ title: 'BottleTopBillFanclub - Realm', url: 'https://www.newgrounds.com/audio/listen/1345377', file: '1345377_Realm', tags: 'crystal, score, tool upgrade, guanako, thruster, dimensional portal, Crystal storage' });
+		// CreateSituationalSong({ title: 'BottleTopBillFanclub - Realm', url: 'https://www.newgrounds.com/audio/listen/1345377', file: '1345377_Realm', tags: 'crystal, score, tool upgrade, guanako, thruster, dimensional portal, Crystal storage' });
 		// Author needs revenue share
 		// Sent DM on Newgrounds
 		// BottleTopBillFanclub replied with: Yes, 100% you can use my song.
+		// Disabled for now, feels like it does not fit a desired aesthetic - E.G.
 
 		// Base cleaning/cables
 		CreateSituationalSong({ title: 'pedkan - FACILITY OF DUST', url: 'https://www.newgrounds.com/audio/listen/1328206', file: '1328206_FACILITY-OF-DUST', tags: 'sdCable, roach, mop, antigravity, popcorn, ball, sdCamera, scanner' });
@@ -331,7 +329,7 @@ class sdMusic
 	{
 		if ( sdMusic.enabled )
 		{
-			let new_is_theatre_shown = ( sdWorld.time < sdTheatre.music_lock_until );
+			let new_is_theatre_shown = ( sdWorld.time < sdTheatre.music_lock_until || ( sdWorld.my_entity && sdWorld.my_entity.hea <= 0 ) );
 			if ( sdMusic.is_theatre_shown !== new_is_theatre_shown )
 			{
 				if ( new_is_theatre_shown )

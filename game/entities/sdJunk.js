@@ -1683,7 +1683,7 @@ class sdJunk extends sdEntity
 		return 'High yield missile';
 	
 		if ( this.type === sdJunk.TYPE_UNKNOWN_OBJECT )
-		return '???';
+		return 'Crystal regenerator';
     
         if ( this.type === sdJunk.TYPE_ENERGY_ORB )
 		return 'Resonance energy';

@@ -472,17 +472,23 @@ class sdCharacter extends sdEntity
 				
 				alert_tts: ( character, enemy )=>
 				{
-					{
-						return sdWorld.AnyOf( [ 
-							'You were never real to begin with.',
-							'You know, maybe you are just a clone.',
-							'I am you, and you are me.',
-							'I have been here before you.',
-							'I am the real you. Come back to me, before it is too late.',
-							'You were never in control of your body. Free will does not exist.',
-							'I think, therefore I am.'
-						] );
-					}
+					return sdWorld.AnyOf( [ 
+						'You were never real.',
+						'You are a clone.',
+						'We are not different.',
+						'I\'m the original.',
+						'Come back to me.',
+						'You were never in control.'
+
+						// Too real/long - E.G.
+						/*'You were never real to begin with.',
+						'You know, maybe you are just a clone.',
+						'I am you, and you are me.',
+						'I have been here before you.',
+						'I am the real you. Come back to me, before it is too late.',
+						'You were never in control of your body. Free will does not exist.',
+						'I think, therefore I am.'*/
+					] );
 				}
 			},
 			// Star Defenders
@@ -595,6 +601,9 @@ class sdCharacter extends sdEntity
 
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
+		sdCharacter.next_oxygen_ping = 0;
+		sdCharacter.last_air = 0;
+		
 		//sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
 		sdCharacter.bullet_y_spawn_offset = -5; // Not only used for sword attacks
 		
@@ -608,7 +617,20 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
 		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox', 'sdUpgradeStation', 'sdCaption', 'sdLandMine' ];
-
+							
+		sdCharacter.no_oxygen_lines = [ 
+			'I can\'t breathe here',
+			'Running low on oxygen',
+			'No oxygen',
+			'Watch out for oxygen',
+			'I really should not be out there',
+			'Can\'t... breathe...',
+			'There is no oxygen',
+			'I better stick to vehicles for oxygen sources',
+			'Base Shield Units generate oxygen',
+			'Rescue Teleports provide oxygen sources'
+		];
+		
 		sdCharacter.max_level = 60;
         
         sdCharacter.score_to_level = [];
@@ -833,7 +855,12 @@ class sdCharacter extends sdEntity
 		if ( !this.is( sdCharacter ) )
 		return;
 	
-		if ( ent.is( sdStatusEffect ) || ent.is( sdTask ) )
+		//if ( ent.is( sdStatusEffect ) || ent.is( sdTask ) )
+		//return;
+	
+		let bg_entity_class = ent.IsBGEntity();
+		
+		if ( bg_entity_class !== 0 && bg_entity_class !== 1 )
 		return;
 
 		let hash;
@@ -861,6 +888,7 @@ class sdCharacter extends sdEntity
 
 				let t = /*'<' + */sdWorld.ClassNameToProperName( ent.GetClass(), ent, true );// + '>';
 
+				/* Gets unfun quick. Maybe if it was class/type-specific
 				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15 * 60 * 1000 ) // Once in 15 minutes
 				if ( this.hea > this.hmax * 0.75 )
 				{
@@ -868,7 +896,9 @@ class sdCharacter extends sdEntity
 					
 					let i_have_ = ( ent.is( sdGun ) && ent._held_by === this ) ? 'I have ' : '';
 					
-					let options =
+					let options;
+					
+					options =
 					[
 						'Huh, '+t+'? This is something new',
 						t+' looks interesting',
@@ -876,18 +906,11 @@ class sdCharacter extends sdEntity
 						t+' is new to me',
 						'I\'ve discovered '+t,
 						'That is '+t+' for sure',
-						t+'? Gonna note that',
-						t+'? Amazing',
-						t+'? I\'m shocked',
-						'So this is how '+t+' looks like',
 						'Wow, '+i_have_+'a real '+t,
-						'Gotta screenshot '+t,
 						'Wow, '+i_have_+'a '+t+'. I\'m literally shaking',
-						t+' looks cool',
-						'We\'ve met again, '+t,
-						'Ah, '+i_have_+'the '+t,
+						'Contact with '+t,
 						
-						'They have '+t+' here? Nice',
+						'They\'ve got '+t+' here? Nice',
 						'I\'m excited to see you, '+t,
 						'I\'ve been missing you, '+t,
 						'It wasn\'t the same without you, '+t,
@@ -901,174 +924,10 @@ class sdCharacter extends sdEntity
 						'Discovering '+t,
 						'Nice, a chance to experience '+t, 
 						'I don\'t know nothing about '+t+', don\'t I?',
-						'Gotta spend some time with '+t,
-						'Nice, '+i_have_+'a '+t+'. But can I exchange '+t+' for more matter?',
-						'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide',
-						'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height',
 						'This '+t+' '+i_have_+''+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ),
-						'This '+t+' '+i_have_+''+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ),
 						t+' is right there',
 						'This day can\'t get any better with '+t+', can\'t it?'
 					];
-					
-					// EG: I didn't even read them all. // UPD: They feel way too long and way too off
-					/*let chatGPT_options = `Well, well, well, what do we have here? A wild THING appears!
-Hold onto your helmets, folks! THING sighting ahead!
-Oh, snap! Check out the latest addition to the alien fashion show - THING!
-Look alive, team! THING's dropping in, and it's a head-scratcher!
-Beam me up, THING-y! We've got a new star on the planet!
-New planet, new day, new... THING. Seriously, where do they come up with this stuff?
-Alert the space paparazzi! THING's making its red carpet debut right before our eyes!
-Captain, you won't believe it - we've got THING on the horizon and it's utterly peculiar!
-Step aside, ordinary discoveries! THING is about to steal the show!
-Gather 'round, explorers! THING's the latest gossip in the alien neighborhood.
-Well, blow me down! THING's like nothing we've encountered in this or any other galaxy!
-Attention, universe! THING just joined the party, and it's rewriting the guest list!
-Buckle up, crew! THING's giving us a one-of-a-kind welcome to this alien shindig!
-Check out the extraterrestrial oddity - THING! It's like a surprise package from the cosmos.
-Heads up, gang! THING's crash-landed in our midst, and it's a mind-boggler!
-Say cheese, THING! You're about to become the star of our otherworldly photo album!
-Move over, run-of-the-mill species! THING's rolling in, ready to rock our scientific socks off!
-Hold tight, everyone! THING's here to remind us that the universe is the ultimate prankster.
-Attention, fellow stargazers! THING's the main event in today's cosmic sideshow!
-Prepare for awe, crew! THING's dropping by unannounced, and it's a jaw-dropper!
-Calling all starship shutterbugs! THING's the newest subject for our alien photo collection!
-Brace yourselves, explorers! THING's crashed the party, and it's a game-changer!
-Time to dust off the thesaurus, folks, because THING defies description!
-I told the universe to surprise us, but THING's taken it to a whole new level!
-Huddle up, team! THING's here to remind us that predictability is overrated!
-Newsflash from the cosmos: THING's in town, and it's rewriting the rulebook!
-Someone pinch me - THING's the stuff dreams (or possibly nightmares) are made of!
-Break out the welcome wagon, crew! THING's the latest arrival in our cosmic neighborhood!
-Remember those "believe in the unbelievable" posters? Well, THING just embodied them!
-Incoming transmission: THING sighted! Prepare for maximum weirdness!
-Stop the space presses! THING's here to steal the extraterrestrial spotlight!
-Hold onto your helmets, crew! THING's crashing this alien party!
-Time to update the alien encyclopedia - THING's chapter has just begun!
-Well, paint me green and call me an alien! THING's a whole new level of strange.
-Hey there, THING! You've just become the star of our otherworldly safari!
-I've seen space oddities, but THING takes the cosmic cake!
-Buckle up, explorers! THING's here to show us the zaniest side of the universe.
-Alert the space geeks! THING's a front-row seat to an intergalactic sideshow!
-To infinity and THING-yond! This planet just got a whole lot stranger.
-What do you know? THING's making its grand entrance into the alien theater!
-Look alive, crew! THING's in town and it's rewriting the laws of weird.
-Ever wish upon a shooting star? Well, here's THING to grant your wish for oddity!
-Prepare for liftoff, because THING's a ticket to a whole new dimension of bizarre!
-And the award for "Most Unconventional Alien" goes to... you guessed it, THING!
-Brace for alien impact! THING's a one-of-a-kind collision with the unknown.
-Well, slap me with a tentacle! THING's like nothing even the holodeck could conjure.
-Fire up the curiosity engines, team! THING's here to put our imaginations to shame!
-Hold the starship phone! THING's a wakeup call to the cosmos' sense of humor.
-Quick, someone call the space paparazzi! THING's the latest sensation in the stars.
-To explore strange new worlds and seek out new life forms like THING – that's the mission!
-Commence operation "Figure Out THING"! Our scanners are in for a workout.
-What's weirder than an alien planet? Meeting THING, the embodiment of weirdness!
-Grab your space popcorn, folks! THING's the star of this otherworldly show.
-Warning: THING overload imminent! This planet's become an oddity hotspot.
-We've seen the sci-fi movies, but THING's a real-life enigma from beyond the stars.
-Alien bingo, anyone? THING's a new entry on our cosmic playing card.
-Mark this day in the space calendar! THING's like discovering a new color in the spectrum.
-Listen up, universe! THING's proof that the cosmos has a wild sense of creativity.
-Time to rewrite the textbooks, team! THING's a lesson in uncharted alien biology.
-Well, butter my space toast! THING's a breakfast surprise from the cosmos.
-What's that? It's not a bird, it's not a plane - it's THING, defying all expectations!
-Incoming transmission from the bizarre zone: THING's the new star of the show!
-Hold onto your helmets, explorers! THING's here to turn reality into science fiction.
-Attention, fellow star seekers! THING's the ultimate proof that weird knows no bounds.
-To THING or not to THING? That's the question we'll be pondering for light-years.
-Cue the alien fanfare! THING's our VIP guest in this cosmic extravaganza.
-Commander, you won't believe it! THING's a real-life emoji from the alien realm.
-Uncharted territory, meet THING - the poster child for the unexpected!
-Friendly reminder: THING's our daily dose of "what on earth... or not on earth"!
-Get your camera drones ready, crew! THING's an A-list celebrity in the alien realm.
-Well, blow me down and call me an asteroid! THING's like nothing we've seen before.
-Roll out the welcome hovercarpet, team! THING's the guest of honor at our alien soiree.
-Science fiction's got nothing on THING! This is the real deal, folks.
-Brace for cosmic oddity, explorers! THING's a walk on the wild side of the universe.
-It's official: THING's the latest sensation in the space tabloids. Move over, stars!
-Behold, the enigma known as THING! Prepare for an alien mind-bender.
-Ready for a space conundrum? THING's like an alien puzzle wrapped in mystery.
-Planet of the weird, meet THING - the crowned ruler of extraterrestrial oddities!
-Attention, starship log: THING's a remarkable entry in our cosmic chronicles.
-Greetings, THING! Your otherworldly antics have officially made our day.
-What's that, THING? The universe just hit us with a curveball of strangeness!
-Prepare for liftoff, crew! THING's our ticket to the ultimate alien rollercoaster.
-Quick, someone give THING a standing ovation for redefining the weird-o-meter!
-Hold tight, explorers! THING's here to give us a lesson in interstellar unpredictability.
-Say hello to the cosmos' favorite conversation starter: THING, the ultimate icebreaker.
-Space goggles on, crew! THING's an eye-popping spectacle from the outer realms.
-Calling all space detectives! THING's the newest case in our intergalactic mystery files.
-Well, color me intrigued! THING's a crayon outside the lines of normalcy.
-Attention, universe: THING's the cosmic cherry on top of this alien sundae!
-Break out the cosmic confetti, team! THING's a reason to celebrate the unknown.
-Ever seen a shooting star with tentacles? Say hello to THING, the galactic anomaly!
-Hold the starship phone, explorers! THING's a voice message from the far reaches of oddity.
-Brace yourselves, crew! THING's a whirlwind tour of the cosmos' creative genius.
-To boldly go where no one's gone before... and meet THING, the star attraction!
-Stop the starship! THING's here to prove that weirdness is the universal language.
-Well, slap me with a comet! THING's a cosmic curveball in the game of alien discoveries.
-Alert the cosmic art gallery! THING's a masterpiece straight from the imagination of aliens.
-Prepare for a close encounter of the THING kind! This is no ordinary rendezvous.
-Look alive, fellow star sailors! THING's the compass pointing toward the bizarre.
-Calling all explorers, code "Weird"! THING's the password to this alien wonderland.
-Quick, someone pinch me! THING's the real-life embodiment of our wildest dreams.
-Beam us up, THING! You're the star we've been waiting for in this interstellar play.
-Gather 'round, star gawkers! THING's the headline act in the cosmic circus.
-Well, space jellyfish and nebulae! THING's like a mashup of all things extraterrestrial.
-Incoming transmission from the unknown: THING's the latest message from the cosmos.
-Hold onto your helmets, crew! THING's the rollercoaster ride through alien imagination.
-Attention, starship crew: THING's the answer to the riddle of interstellar oddities.
-It's official: THING's the ultimate wild card in the deck of cosmic exploration.
-Prepare for liftoff, universe! THING's the rocket fuel for our intergalactic curiosity.
-Say hello to THING - the cosmic jigsaw puzzle piece we didn't even know was missing!
-Brace for interstellar impact, team! THING's a phenomenon from the farthest reaches.
-Well, orbit me around a star! THING's the ultimate reminder that normal's overrated.
-Get your alien dictionaries ready, folks! THING's the latest entry in the lexicon of weird.
-Incoming from the cosmos: THING's the new buzzword in the interstellar dictionary.
-Alien planet, meet THING - the visitor that puts the "extra" in extraterrestrial!
-Hold tight, explorers! THING's the invitation to a galactic masquerade of the unusual.
-Attention, star seekers! THING's the latest revelation in our quest for the cosmic unknown.
-Cue the cosmic drumroll! THING's the surprise package from the depths of space.
-What's that? It's not a meteor shower, it's not a comet - it's THING, the cosmic showstopper!
-Whoa, THING? New, right?
-Check THING out! Weird.
-Meet THING: an alien or an art?
-THING, you're unique!
-Blast! THING's here now.
-A THING! Surprise from the universe.
-THING? Never seen this.
-Look, THING's fascinating!
-Introducing THING, oddity extraordinaire!
-THING - cosmos' new face.
-Hold on, THING's unknown.
-THING? Cosmic mystery solved!
-THING: space's oddball addition.
-THING's uniqueness - astounding, huh?
-Behold THING: space's curveball!
-THING's entry: cosmic surprise.
-Explore, and find THING!
-What's up, THING? Unbelievable!
-THING's arrival: redefine weird.
-THING: space's wild card.
-Surprise, universe: THING's here!
-Encounter THING, redefine normal.
-THING: cosmic head-scratcher.
-Meet THING: space's novelty.
-THING's debut: interstellar delight!
-Whoa, THING alert! New?
-THING: space's showstopper.
-Unveiling THING: redefine strange.
-THING is cosmic mic drop!`;
-					
-					let chatGPT_options_lines = chatGPT_options.split('\n');
-					for ( let i = 0; i < chatGPT_options_lines.length; i++ )
-					{
-						if ( chatGPT_options_lines[ i ].charAt( chatGPT_options_lines[ i ].length - 1 ) === '.' )
-						options.push( chatGPT_options_lines[ i ].substring( 0, chatGPT_options_lines[ i ].length - 1 ).split( 'THING' ).join( t ) );
-						else
-						options.push( chatGPT_options_lines[ i ].split( 'THING' ).join( t ) );
-					}*/
 					
 					if ( sdCharacter.unique_discovery_indexes.length === 0 )
 					{
@@ -1079,52 +938,7 @@ THING is cosmic mic drop!`;
 					let random_id = ~~( Math.random() * sdCharacter.unique_discovery_indexes.length );
 					this.Say( options[ sdCharacter.unique_discovery_indexes[ random_id ] ], true, false, true );
 					sdCharacter.unique_discovery_indexes.splice( random_id, 1 );
-
-					/*switch ( ~~( Math.random() * 38 ) )
-					{
-						case 0: this.Say( 'Huh, '+t+'? This is something new', true, false, true ); break;
-						case 1: this.Say( t+' looks interesting', true, false, true ); break;
-						case 2: this.Say( 'I\'ve never seen '+t+' before', true, false, true ); break;
-						case 3: this.Say( t+' is new to me', true, false, true ); break;
-						case 4: this.Say( 'I\'ve discovered '+t ); break;
-						case 5: this.Say( 'That is '+t+' for sure', true, false, true ); break;
-						case 6: this.Say( t+'? Gonna note that', true, false, true ); break;
-						case 7: this.Say( t+'? Amazing', true, false, true ); break;
-						case 8: this.Say( t+'? I\'m shocked', true, false, true ); break;
-						case 9: this.Say( 'So this is how '+t+' looks like', true, false, true ); break;
-						case 10: this.Say( 'Wow, '+i_have_+'a real '+t, true, false, true ); break;
-						case 11: this.Say( 'Gotta screenshot '+t, true, false, true ); break;
-						case 12: this.Say( 'Wow, '+i_have_+'a '+t+'. I\'m literally shaking', true, false, true ); break;
-						case 13: this.Say( t+' looks cool', true, false, true ); break;
-						case 14: this.Say( 'We\'ve met again, '+t, true, false, true ); break;
-						case 15: this.Say( 'Ah, '+i_have_+'the '+t, true, false, true ); break;
-
-						case 16: this.Say( 'They have '+t+' here? Nice', true, false, true ); break;
-						case 17: this.Say( 'I\'m excited to see you, '+t, true, false, true ); break;
-						case 18: this.Say( 'I\'ve been missing you, '+t, true, false, true ); break;
-						case 19: this.Say( 'It wasn\'t the same without you, '+t, true, false, true ); break;
-						case 20: this.Say( 'Wow, the opportunity to see '+t, true, false, true ); break;
-						case 21: this.Say( 'I wonder what are you good for, '+t, true, false, true ); break;
-						case 22: this.Say( 'I\'m all ecstatic for '+t, true, false, true ); break;
-						case 23: this.Say( t+'? This is getting me upbeat', true, false, true ); break;
-						case 24: this.Say( 'What are you doing there, little '+t+'?', true, false, true ); break;
-						case 25: this.Say( 'Aha! I found '+t, true, false, true ); break;
-						case 26: this.Say( 'Contact on '+t, true, false, true ); break;
-						case 27: this.Say( 'Discovering '+t, true, false, true ); break;
-						case 28: this.Say( 'Nice, a chance to experience '+t, true, false, true ); break;
-						case 29: this.Say( 'I don\'t know nothing about '+t+', don\'t I?', true, false, true ); break;
-						case 30: this.Say( 'Gotta spend some time with '+t, true, false, true ); break;
-						case 31: this.Say( 'Nice, '+i_have_+'a '+t+'. But can I exchange '+t+' for more matter?', true, false, true ); break;
-						case 32: this.Say( 'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide', true, false, true ); break;
-						case 33: this.Say( 'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height', true, false, true ); break;
-						case 34: this.Say( 'This '+t+' '+i_have_+''+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ) ); break;
-						case 35: this.Say( 'This '+t+' '+i_have_+''+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ) ); break;
-						case 36: this.Say( t+' is right there', true, false, true ); break;
-						case 37: this.Say( 'This day can\'t get any better with '+t+', can\'t it?', true, false, true ); break;
-							
-
-					}*/
-				}
+				}*/
 
 				this.GiveScore( 1, null, false );
 
@@ -1384,6 +1198,11 @@ THING is cosmic mic drop!`;
 		this._dying = false;
 		this._dying_bleed_tim = 0;
 		//this._wb_timer = 0; // Workbench timer, used to reset player's workbench level to 0 if he's not near it.
+		
+		this._auto_defib_timer = 0; // Grows until sdGun.player_auto_defib_in, then tries to revive player
+		this._auto_defibs_total = 0;
+		this._auto_defibs_total_recovery_after = 0;
+		this._auto_defib_force_no_penalty_death = false; // Due to oxygen event for example
 
 		this.armor = 0; // Armor
 		this.armor_max = 0; // Max armor; used for drawing armor bar
@@ -1486,6 +1305,7 @@ THING is cosmic mic drop!`;
 		this._shield_allowed = false; // Through upgrade
 		
 		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting // Also prevents player from shooting
+		this._allow_combat_during_respawn_protection = false; // Resets to false on protection expiration. Lets this character fight but also lets other players attack him. Essentially enables protection against enivronment and mobs
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -1523,7 +1343,7 @@ THING is cosmic mic drop!`;
 		};
 		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
-		this._chat_color = params.chat_color || '#ffffff'
+		this._chat_color = params.chat_color || '#ffffff';
 		
 		//this.team_id = 0; // 0 is FFA team
 	
@@ -1543,7 +1363,7 @@ THING is cosmic mic drop!`;
 		
 		this._recoil = 0;
 		
-		this._ragdoll = null; // Client-side ragdolls could be here? Not ready.
+		this._ragdoll = null; // Client-side ragdolls
 		
         // Done as a status effect now
 		//this._sickness = 0; // When sick - occasionally gets random damage and when dies turns into zombie?
@@ -1597,7 +1417,7 @@ THING is cosmic mic drop!`;
 		// again the moment the character reloaded from a snapshot (which can happen almost
 		// immediately after spawn), making the feature appear to just not work.
 		if ( this._god )
-		if ( typeof sdModeration === 'undefined' || !sdModeration.GetAdminRowByHash( this._my_hash ) )
+		if ( typeof sdModeration === 'undefined' || !sdModeration.ever_loaded || !sdModeration.GetAdminRowByHash( this._my_hash ) ) // sdModeration is never initialized at this moment
 		if ( !( sdWorld.server_config.AutoGodModeForAllPlayers && sdWorld.server_config.AutoGodModeForAllPlayers() ) )
 		{
 			this._god = false;
@@ -1767,6 +1587,7 @@ THING is cosmic mic drop!`;
 				}
 				
 				if ( this._respawn_protection > 0 )
+				if ( !this._allow_combat_during_respawn_protection )
 				{
 					will_throw_grenade = false;
 					will_fire = false;
@@ -1985,6 +1806,7 @@ THING is cosmic mic drop!`;
 							this.fire_anim = 7.5;
 
 							if ( sdWorld.is_server )
+							if ( this.hea > 5 + 1 ) // What if characters would not be able to kill themselves by punching walls indefinitely. Hitting walls deals 5 damage
 							{
 								let _class = sdGun.CLASS_FISTS;
 
@@ -2829,8 +2651,8 @@ THING is cosmic mic drop!`;
 			if ( !lost_effect )
 			setTimeout( ()=>
 			{
-				if ( this.hea > 0 )
-				this.Say( [ 
+				if ( this.hea > 0 && !this._is_being_removed )
+				this.Say( sdWorld.AnyOf([ 
 					'Ok then', 
 					'That was close', 
 					'I live... Again!', 
@@ -2852,7 +2674,7 @@ THING is cosmic mic drop!`;
 					'Dying is cringe',
 					'How about not?',
 					'Not like this!'
-				][ ~~( Math.random() * 21 ) ] );
+				]) );
 			}, 2000 );
 
 			return true;
@@ -3145,10 +2967,21 @@ THING is cosmic mic drop!`;
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
 		if ( this._respawn_protection > 0 )
-		return;
+		{
+			if ( this._allow_combat_during_respawn_protection &&
+				 initiator && initiator.IsPlayerClass() && initiator._socket )
+			{
+				// Allow PvP
+			}
+			else
+			return;
+		}
+	
 	
 		if ( dmg > 0 )
 		{
+			this._auto_defib_timer = 0;
+			
 			if ( was_alive )
 			{
 				if ( this._ai )
@@ -3339,6 +3172,10 @@ THING is cosmic mic drop!`;
 			
 				this.DropWeapons();
                 this.DropArmor();
+				
+				this._auto_defib_timer = 0;
+				this._auto_defib_force_no_penalty_death = false;
+				this.PrintDeathHint();
 
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
@@ -4978,6 +4815,32 @@ THING is cosmic mic drop!`;
 		
 		return false;
 	}
+	
+	GetSelfDefibChance()
+	{
+		if ( sdWorld.time > this._auto_defibs_total_recovery_after )
+		{
+			this._auto_defibs_total = Math.floor( this._auto_defibs_total * 0.5 ); // Recovery forgives 50% of deaths only, but also rounds them down
+
+			this._auto_defibs_total_recovery_after = sdWorld.time + 1000 * 60 * 60 * 12; // Recovery after 12 hours
+		}
+		
+		if ( this._auto_defib_force_no_penalty_death )
+		{
+			return 1;
+		}
+
+		return 1 / ( Math.pow( this._auto_defibs_total, 2 ) * 0.1 + 1 );
+	}
+	
+	PrintDeathHint()
+	{
+		if ( this._socket )
+		{
+			this._socket.SDServiceMessage( 'Your character is unconcious, your self-recovery chance is {1}%. You can wait or press Space to restart with a new character', [ Math.round(this.GetSelfDefibChance()*1000)/10 ], '#ff0000' );
+		}
+	}
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.PlayerClassThinkPausedLogic( GSPEED ) )
@@ -4986,8 +4849,13 @@ THING is cosmic mic drop!`;
 		if ( sdWorld.is_server )
 		this.lst = sdLost.entities_and_affection.get( this ) || 0;
 	
+		// Copy [ 2 / 2 ]
 		if ( this._respawn_protection > 0 )
-		this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
+		{
+			this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
+			if ( this._respawn_protection <= 0 )
+			this._allow_combat_during_respawn_protection = false;
+		}
 	
 		this.ConnectedGodLogic( GSPEED );
 		
@@ -5030,6 +4898,68 @@ THING is cosmic mic drop!`;
 		{
 			if ( this.AttemptTeleportOut( null, false, this.hea ) )
 			return;
+		
+			if ( sdWorld.is_server )
+			if ( this._socket )
+			if ( !sdWorld.CanAnySocketSee( this, this, true ) )
+			{
+				this._auto_defib_timer += GSPEED;
+
+				if ( this._auto_defib_timer > sdGun.player_auto_defib_in )
+				{
+					this._auto_defib_timer = 0;
+					
+					let chance = this.GetSelfDefibChance();
+					
+					if ( Math.random() < chance )
+					{
+						let penalty = ( !this._auto_defib_force_no_penalty_death );
+
+						this._auto_defib_force_no_penalty_death = false;
+						
+						if ( penalty )
+						this._auto_defibs_total++;
+						
+						this.Damage( -1 );
+						if ( this.hea > 0 )
+						{
+							this.stability = -1000;
+							
+							if ( penalty )
+							this.matter = Math.min( this.matter, 40 ); // Allow a little bit of regeneration. Weirdly, some matter just vanishes instead of being used for regeneration
+
+							this._respawn_protection = 7 * 30; // Just 7 seconds
+							this._allow_combat_during_respawn_protection = true;
+
+							setTimeout( ()=>
+							{
+								if ( this.hea > 0 && !this._is_being_removed )
+								{
+									if ( this.air <= 0.1 )
+									this.Say( sdWorld.AnyOf( sdCharacter.no_oxygen_lines ), true, false, true );
+									else
+									this.Say( sdWorld.AnyOf([ 
+										'Never again...',
+										'What an experience...',
+										'...or we can not do that',
+										'I better get some rescue teleport...',
+										'I don\'t like these games...',
+										'Let\'s not give up just yet...',
+										'What did even happen...',
+										'I don\'t enjoy this in the slightest...'
+									]) );
+								}
+							}, 2000 );
+					
+							return;
+						}
+					}
+					else
+					{
+						this.PrintDeathHint();
+					}
+				}
+			}
 		
 			this.MatterGlow( 0.01, 30, GSPEED );
 
@@ -6136,63 +6066,62 @@ THING is cosmic mic drop!`;
 			}
 		}
 		
-		
-		if ( can_breathe )
+		if ( sdWorld.is_server )
 		{
-			if ( this.air < sdCharacter.air_max )
-			this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 8 );
-		}
-		else
-		{
-			if ( this.air > 0 )
+			if ( can_breathe )
 			{
-				this.air = Math.max( 0, this.air - ( GSPEED ) );
-				
-				//if ( this.air < 0.5 )
-				if ( !in_water )
-				{
-					if ( sdWorld.is_server )
-					{
-						if ( out_of_bounds )
-						sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'NO-AIR-HINT', 
-								executer: this,
-								mission: sdTask.MISSION_GAMEPLAY_HINT,
-								title: 'Out of playable area',
-								description: 'You have left the allowed playable area - there is no oxygen here (even near base shielding units or in vehicles).'
-						});
-						else
-						sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'NO-AIR-HINT', 
-								executer: this,
-								mission: sdTask.MISSION_GAMEPLAY_HINT,
-								title: 'No oxygen',
-								description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
-						});
-					}
-					
-					if ( this.air < sdCharacter.air_max * 0.666 || out_of_bounds )
-					if ( this._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
-					{
-						this._last_damage_upg_complain = sdWorld.time;
-
-						switch ( ~~( Math.random() * 7 ) )
-						{
-							case 0: this.Say( 'I can\'t breathe here', true, false, true ); break;
-							case 1: this.Say( 'Running low on oxygen', true, false, true ); break;
-							case 2: this.Say( 'No oxygen', true, false, true ); break;
-							case 3: this.Say( 'Watch out for oxygen', true, false, true ); break;
-							case 4: this.Say( 'I really should not be out there', true, false, true ); break;
-							case 5: this.Say( 'Can\'t... breathe...', true, false, true ); break;
-							case 6: this.Say( 'There is no air', true, false, true ); break;
-						}
-					}
-				}
+				if ( this.air < sdCharacter.air_max )
+				this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 8 );
 			}
 			else
 			{
-				if ( this.hea > 0 )
-				this.DamageWithEffect( GSPEED * 10, null, false, false );
+				if ( this.air > 0 )
+				{
+					this.air = Math.max( 0, this.air - ( GSPEED ) );
+
+					//if ( this.air < 0.5 )
+					if ( !in_water )
+					{
+						if ( sdWorld.is_server )
+						{
+							if ( out_of_bounds )
+							sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'NO-AIR-HINT', 
+									executer: this,
+									mission: sdTask.MISSION_GAMEPLAY_HINT,
+									title: 'Out of playable area',
+									description: 'You have left the allowed playable area - there is no oxygen here (even near base shielding units or in vehicles).'
+							});
+							else
+							sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'NO-AIR-HINT', 
+									executer: this,
+									mission: sdTask.MISSION_GAMEPLAY_HINT,
+									title: 'No oxygen',
+									description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
+							});
+						}
+
+						if ( this.air < sdCharacter.air_max * 0.666 || out_of_bounds )
+						if ( this._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+						{
+							this._last_damage_upg_complain = sdWorld.time;
+
+							this.Say( sdWorld.AnyOf( sdCharacter.no_oxygen_lines ), true, false, true );
+						}
+					}
+				}
+				else
+				{
+					if ( this.hea > 0 )
+					{
+						this.DamageWithEffect( GSPEED * 10, null, false, false );
+
+						if ( !out_of_bounds )
+						if ( this.hea <= 0 )
+						this._auto_defib_force_no_penalty_death = true;
+					}
+				}
 			}
 		}
 		
@@ -6258,8 +6187,13 @@ THING is cosmic mic drop!`;
 	{
 		super.onThinkFrozen( GSPEED );
 		
+		// Copy [ 1 / 2 ]
 		if ( this._respawn_protection > 0 )
-		this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
+		{
+			this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
+			if ( this._respawn_protection <= 0 )
+			this._allow_combat_during_respawn_protection = false;
+		}
 		
 		if ( this._ragdoll )
 		this._ragdoll.ThinkFrozen( GSPEED );
@@ -6327,6 +6261,8 @@ THING is cosmic mic drop!`;
 	
 		if ( this._socket )
 		{
+			this._socket.SDServiceMessage( 'Your character has died. Press Space to restart with a new character', '#ff0000' );
+			
 			this._socket.emit('REMOVE sdWorld.my_entity', this._net_id );
 		}
 		
@@ -6437,7 +6373,7 @@ THING is cosmic mic drop!`;
 	}
 	DropWeapon( i ) // by slot
 	{
-		if ( i === 1 && this._inventory[ 10 ] ) // Drop akimbo gun aswell
+		if ( i === 1 && this._inventory[ 10 ] ) // Drop akimbo gun aswell // dual
 		this.DropWeapon( 10 );
 		
 		let gun = this._inventory[ i ];
@@ -6565,6 +6501,7 @@ THING is cosmic mic drop!`;
 					return; // Can happen is very rare cases, if gun self-destructs, perhaps.
 					//throw new Error('[ 1 ] How did character touch gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 				}
+				
 				if ( this._inventory.length === 10 ) // What the hell am I doing - Booraz
 				{
 					// Make room for akimbo pistol
@@ -6580,6 +6517,7 @@ THING is cosmic mic drop!`;
 				if ( !will_ignore_pickup )
 				if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
 				if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null || ( from_entity.GetSlot() === 1 && this._inventory[ 10 ] === null && this._inventory[ from_entity.GetSlot() ].class === from_entity.class && !sdGun.classes[ from_entity.class ].no_akimbo) ) // inventory slot 10 (11) = 2nd pistol for akimbo
+				if ( !this._ai || from_entity.GetSlot() !== 9 ) // Prevent AIs from picking up build tools, for example to prevent cases like player being killed by AI and some AIs carrying his guns into their despawn areas
 				if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 					  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 				{	
@@ -6671,31 +6609,47 @@ THING is cosmic mic drop!`;
 			else
 			{
 				// Drones, overlords
-				raise = 5 + 15 * this.s / 100
+				raise = 5 + 15 * this.s / 100;
 			}
 			
 			let show_air = false;
 			
 			if ( sdWorld.my_entity === this )
-			if ( this.air < sdCharacter.air_max )
 			{
-				show_air = true;
+				if ( this.air < sdCharacter.air_max )
+				{
+					show_air = true;
+
+					ctx.font = "5.5px Verdana";
+
+					let critical = ( this.air < sdCharacter.air_max / 2 );
+
+					let t = critical ? 'No oxygen' : 'Low oxygen';
+
+					if ( sdWorld.time > sdCharacter.next_oxygen_ping )
+					if ( this.air < sdCharacter.last_air ) // Test oxygen tendency
+					{
+						sdSound.PlayUISound({ name:'oxygen_ping', pitch:1, volume:0.5 });
+
+						if ( critical )
+						sdCharacter.next_oxygen_ping = sdWorld.time + 1000;
+						else
+						sdCharacter.next_oxygen_ping = sdWorld.time + 4000;
+					}
+
+					ctx.fillStyle = '#000000';
+					ctx.fillText( t, 0, -raise - 5 - 10 + 0.5, 50 );
+
+					if ( critical )
+					ctx.fillStyle = ( sdWorld.time % 4000 < 2000 ) ? '#ff0000' : '#ff6666';
+					else
+					ctx.fillStyle = ( sdWorld.time % 4000 < 2000 ) ? '#ffff00' : '#ffff66';
+
+					ctx.fillText( t, 0, -raise - 5 - 10, 50 );
+				}
 				
-				ctx.font = "5.5px Verdana";
-				
-				let critical = ( this.air < sdCharacter.air_max / 2 );
-				
-				let t = critical ? 'No oxygen' : 'Low oxygen';
-				
-				ctx.fillStyle = '#000000';
-				ctx.fillText( t, 0, -raise - 5 - 10 + 0.5, 50 );
-				
-				if ( critical )
-				ctx.fillStyle = ( sdWorld.time % 4000 < 2000 ) ? '#ff0000' : '#ff6666';
-				else
-				ctx.fillStyle = ( sdWorld.time % 4000 < 2000 ) ? '#ffff00' : '#ffff66';
-			
-				ctx.fillText( t, 0, -raise - 5 - 10, 50 );
+				if ( sdCharacter.last_air !== this.air )
+				sdCharacter.last_air = this.air;
 			}
 			
 			let snap_frame = ( ~~( this.death_anim / 10 ) ) * 10 / 20;
@@ -6898,7 +6852,9 @@ THING is cosmic mic drop!`;
 						}
 						else
 						{
-							sdCharacter.last_build_deny_reason = [
+							sdCharacter.last_build_deny_reason = 'Can\'t build through wall';
+							
+							/*sdCharacter.last_build_deny_reason = [
 									'Can\'t build this type of entity through wall',
 									'Not through wall',
 									'No',
@@ -6908,7 +6864,7 @@ THING is cosmic mic drop!`;
 									'It can\'t be built through wall',
 									'Understandable',
 									'Wall is in the way'
-								][ ~~( Math.random() * 9 ) ];
+								][ ~~( Math.random() * 9 ) ];*/
 
 							return false;
 						}
@@ -6922,6 +6878,8 @@ THING is cosmic mic drop!`;
 						return false;
 					}
 
+					// This does not make sense to me nor seems possible - E.G.
+					/*
 					if ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_GROUND ) // Only dirt is denied for a grid-gap mismatch - other block types (walls, reinforced, etc.) are placeable regardless of grid pitch
 					if ( sdCharacter.WouldLeaveGridGap( fake_ent, initiator ) )
 					{
@@ -6934,7 +6892,7 @@ THING is cosmic mic drop!`;
 							][ ~~( Math.random() * 5 ) ];
 
 						return false;
-					}
+					}*/
 
 					return true;
 				}
@@ -7013,9 +6971,9 @@ THING is cosmic mic drop!`;
 							{
 								let s = sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle, true );
 
-								//sdCharacter.last_build_deny_reason = 'It overlaps with '+s;
+								sdCharacter.last_build_deny_reason = s+' is in the way';
 
-								sdCharacter.last_build_deny_reason = [
+								/*sdCharacter.last_build_deny_reason = [
 									'It overlaps with '+s,
 									s+' is in the way',
 									'Maybe I should break '+s+' first?',
@@ -7026,7 +6984,7 @@ THING is cosmic mic drop!`;
 									'Out of my way, '+s+'!',
 									'Uh...',
 									'Um...'
-								][ ~~( Math.random() * 10 ) ];
+								][ ~~( Math.random() * 10 ) ];*/
 							}
 						}
 					}
@@ -7049,32 +7007,44 @@ THING is cosmic mic drop!`;
 		}
 		else
 		{
+			sdCharacter.last_build_deny_reason = 'Too far';
+			/*
 			switch ( ~~( Math.random() * 4 ) )
 			{
 				case 0: sdCharacter.last_build_deny_reason = 'Can\'t build that far'; break;
 				case 1: sdCharacter.last_build_deny_reason = 'Too far'; break;
 				case 2: sdCharacter.last_build_deny_reason = 'Can\'t reach'; break;
 				case 3: sdCharacter.last_build_deny_reason = 'Maybe if I was closer'; break;
-			}
-
+			}*/
 		}
 		
 		return false;
 	}
-	static GetBuildGridMultiplier( initiator ) // 1 = base spawn_align pitch (8px), 2 = doubled (16px) - see ChangeFireModeStart (N key) and the CLASS_BUILD_TOOL rotation in sdGun.Draw
+	static ForceSmallGrid( initiator ) // 1 = base spawn_align pitch (8px), 2 = doubled (16px) - see ChangeFireModeStart (N key) and the CLASS_BUILD_TOOL rotation in sdGun.Draw
 	{
 		if ( initiator )
 		if ( initiator._inventory && initiator._inventory[ initiator.gun_slot ] )
 		if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ] )
 		if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ].is_build_gun )
 		if ( initiator._inventory[ initiator.gun_slot ].fire_mode === 2 )
+		return true;
+		
+		return false;
+	}
+	/*static GetBuildGridMultiplier( initiator, fake_ent=null ) // 1 = base spawn_align pitch (8px), 2 = doubled (16px) - see ChangeFireModeStart (N key) and the CLASS_BUILD_TOOL rotation in sdGun.Draw
+	{
+		if ( initiator )
+		if ( initiator._inventory && initiator._inventory[ initiator.gun_slot ] )
+		if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ] )
+		if ( sdGun.classes[ initiator._inventory[ initiator.gun_slot ].class ].is_build_gun )
+		if ( initiator._inventory[ initiator.gun_slot ].fire_mode === 1 )
 		return 2;
-
+		
 		return 1;
 	}
 	static WouldLeaveGridGap( fake_ent, initiator ) // True if placing fake_ent here, under the CURRENTLY active grid, would leave a sub-tile gap next to an existing block that a finer grid would have avoided
 	{
-		const multiplier = sdCharacter.GetBuildGridMultiplier( initiator );
+		const multiplier = sdCharacter.GetBuildGridMultiplier( initiator, fake_ent );
 
 		if ( multiplier <= 1 ) // The base 8px grid can never leave an unwanted gap - every existing block's edges are already multiples of 8
 		return false;
@@ -7128,6 +7098,7 @@ THING is cosmic mic drop!`;
 
 		return false;
 	}
+	*/
 	CreateBuildObject( check_placement_and_range=true, demo_mode=false, preview_for_shop=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
 		let build_tool_level = this.build_tool_level;
@@ -7211,10 +7182,24 @@ THING is cosmic mic drop!`;
 			// Build tool's fire-mode toggle (N key) doubles the placement grid pitch (8px -> 16px) as
 			// a per-player preference - some players prefer the coarser grid. See GetBuildGridMultiplier,
 			// ChangeFireModeStart, and the CLASS_BUILD_TOOL rotation in sdGun.Draw for the rest of this feature.
-			const grid_multiplier = sdCharacter.GetBuildGridMultiplier( initiator );
+			/*let grid_multiplier = sdCharacter.GetBuildGridMultiplier( initiator, fake_ent );
+			
+			if ( fake_ent.spawn_align_x <= 8 || fake_ent.spawn_align_y <= 8 )
+			{
+				grid_multiplier = 1;
+			}
 
 			let align_x = fake_ent.spawn_align_x * grid_multiplier;
-			let align_y = fake_ent.spawn_align_y * grid_multiplier;
+			let align_y = fake_ent.spawn_align_y * grid_multiplier;*/
+																																
+			let align_x = fake_ent.spawn_align_x;
+			let align_y = fake_ent.spawn_align_y;
+			
+			if ( sdCharacter.ForceSmallGrid( initiator ) )
+			{
+				align_x = Math.min( align_x, 8 );
+				align_y = Math.min( align_y, 8 );
+			}
 
 			fake_ent.x = Math.round( fake_ent.x / align_x ) * align_x;
 			fake_ent.y = Math.round( fake_ent.y / align_y ) * align_y;
@@ -7711,7 +7696,11 @@ THING is cosmic mic drop!`;
 				}
 
 				if ( kill )
-				character.Damage( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
+				{
+					character.Damage( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
+					
+					//character._auto_defib_timer = -99999; // Do not auto-defib
+				}
 				else
 				{
 					if ( !character.AttemptTeleportOut( null, false, 0 ) )

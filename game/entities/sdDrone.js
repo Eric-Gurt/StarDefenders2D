@@ -1305,6 +1305,7 @@ class sdDrone extends sdEntity
 					let nears = [];
 					let from_entity;
 					if ( this._current_target )
+					if ( ( this._current_target.hea || this._current_target._hea ) > 0 )
 					nears.push( { ent: this._current_target, rank: Math.random() * 0.1, ignore_line_of_sight: false } ); // It attacks only one target now
 				
 					if ( pathfinding_result && pathfinding_result.attack_target )

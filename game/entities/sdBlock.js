@@ -422,7 +422,7 @@ class sdBlock extends sdEntity
 		dmg = this._hea + 1;
 		
 		if ( this._hea > 0 )
-		{
+		{	
 			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
 			{
 				if ( sdWorld.time > this._last_damage + 150 )
@@ -462,6 +462,10 @@ class sdBlock extends sdEntity
 
 			if ( this._hea <= 0 )
 			{
+				// Spawns
+				
+				let ent;
+				
 				if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 				{
 					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
@@ -475,15 +479,17 @@ class sdBlock extends sdEntity
 				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				{
                     const rank = 40 * Math.pow( 2, ( this.p >> 2 ) );
-                    const speciality = this.speciality
+                    const speciality = this.speciality;
 
 					if ( this._contains_class === 'sdCrystal' )
 					{
-						sdEntity.Create( sdCrystal, { x:this.x+this.width/2, y:this.y+this.height/2, type:sdCrystal.TYPE_CRYSTAL, matter_max: rank, speciality: speciality } );
+						ent = sdEntity.Create( sdCrystal, { x:this.x+this.width/2, y:this.y+this.height/2, type:sdCrystal.TYPE_CRYSTAL, matter_max: rank, speciality: speciality } );
 						this._contains_class = null;
 					}
 					else
 					{
+						//( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null, speciality=0, initiator=null )
+						
 						sdWorld.DropShards( this.x+this.width/2, this.y+this.height/2, 0, 0, 
 							10,
 							rank / 40,
@@ -492,29 +498,28 @@ class sdBlock extends sdEntity
                             undefined,
                             null,
                             null,
-                            speciality
+                            speciality,
+							initiator
 						); // Spawn some shards
 					}
 				}
 				if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL ) // Ancient walls chain explode, they explode for more than 200 damage
 				{
 					sdWorld.SendEffect({ 
-					x:this.x + 8, 
-					y:this.y + 8, 
-					radius:16, // 80 was too much?
-					damage_scale: 12,
-					type:sdEffect.TYPE_EXPLOSION, 
-					owner:this,
-					color:'#3BD930' 
-				});
+						x:this.x + 8, 
+						y:this.y + 8, 
+						radius:16, // 80 was too much?
+						damage_scale: 12,
+						type:sdEffect.TYPE_EXPLOSION, 
+						owner:this,
+						color:'#3BD930' 
+					});
 				}
 				
 				{
 					if ( this._contains_class && typeof this._contains_class === 'string' )
 					{
 						//this._contains_class = 'sdSandWorm'; // Hack
-					
-						let ent;
 					
 						if ( this._contains_class === 'sdSandWorm' || this._contains_class === 'sdSandWorm.KIND_CORRUPTED_WORM' )
 						{
@@ -805,6 +810,59 @@ class sdBlock extends sdEntity
 					
 				}
 				this.remove();
+
+				
+				
+				// BG entity spawning, so it is not delayed visually by 1 frame
+				
+				let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );
+				for ( let i = 0; i < nears.length; i++ )
+				if ( nears[ i ] instanceof sdWater )
+				{
+					nears[ i ].AwakeSelfAndNear();
+					//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
+				}
+
+				//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				if ( this._natural )
+				{
+					//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
+					let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter, natural:this._natural });
+					if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
+					{
+						sdEntity.AddEntityToEntitiesArray( new_bg );
+						sdWorld.UpdateHashPosition( new_bg, false, true );
+					}
+					else
+					{
+						new_bg.remove();
+						new_bg._remove();
+					}
+				}
+
+				// Recursively turn these into default ground
+				if ( this.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+				{
+					sdTimer.ExecuteWithDelay( ( timer )=>{
+						
+						let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16 );
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+							if ( e instanceof sdBlock )
+							if ( e.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+							{
+								e.remove();
+							}
+						}
+					
+					}, 400 + Math.random() * 200 );
+					
+					let block = sdWorld.AttemptWorldBlockSpawn( this.x, this.y, false );
+
+					if ( block )
+					sdWorld.UpdateHashPosition( block, false, true );
+				}
 			}
 		}
 		
@@ -1243,8 +1301,12 @@ class sdBlock extends sdEntity
 	// can land up to 8px short of touching, leaving a permanent gap that exposes whatever is behind/
 	// below it. A single fixed 8px pitch for every block size guarantees any two blocks can always be
 	// placed perfectly flush regardless of their individual dimensions.
-	get spawn_align_x(){ return 8; };
-	get spawn_align_y(){ return 8; };
+	//get spawn_align_x(){ return 8; };
+	//get spawn_align_y(){ return 8; };
+	
+	// ^ What is that about? Merging is not related to building and never was - E.G.
+	get spawn_align_x(){ return Math.min( this.width, 16 ); };
+	get spawn_align_y(){ return Math.min( this.height, 16 ); };
 	
 	HandleDestructionUpdate()
 	{
@@ -2485,7 +2547,7 @@ class sdBlock extends sdEntity
 		{
 			if ( this._broken ) // Prevent this logic in shop
 			{
-				let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );
+				/*let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );
 				for ( let i = 0; i < nears.length; i++ )
 				if ( nears[ i ] instanceof sdWater )
 				{
@@ -2532,7 +2594,7 @@ class sdBlock extends sdEntity
 
 					if ( block )
 					sdWorld.UpdateHashPosition( block, false, true );
-				}
+				}*/
 			}
 
 			

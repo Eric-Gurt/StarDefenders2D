@@ -279,6 +279,7 @@ class sdQuickie extends sdEntity
 					 from_entity === this._current_target 
 				)
 				if ( from_entity.IsTargetable() )
+				if ( ( from_entity.hea || from_entity._hea ) > 0 )
 				{
 					this._last_bite = sdWorld.time;
 					if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )

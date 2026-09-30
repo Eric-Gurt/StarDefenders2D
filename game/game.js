@@ -1371,6 +1371,7 @@ let enf_once = true;
 				{
 					params._server_allowed = true;
 					
+					// Not really needed, backwards-compatibility
 					if ( typeof params.char_di !== 'undefined' )
 					if ( typeof params.x === 'undefined' || typeof params.y === 'undefined' )
 					{
@@ -1634,6 +1635,8 @@ let enf_once = true;
 			try
 			{
 				sdWorld.HandleWorldLogic( frame );
+				
+				sdContextMenu.Update();
 			}
 			catch( e )
 			{
@@ -2359,6 +2362,9 @@ let enf_once = true;
 	
 		if ( sdElement.current_hover )
 		return;*/
+		
+		if ( sdContextMenu.MouseUp( e ) )
+		return;
 		
 		if ( held_mouse_buttons[ e.which ] )
 		{

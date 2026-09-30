@@ -1125,7 +1125,7 @@ class sdWeaponBench extends sdEntity
 							
 									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
 									let normal_cost = Math.min( 500, ~~( matter_cost_dps * slot_mult ) );
-									this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+									this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color, can_hold:true } );
 								}
 								else
 								if ( upgrade.title === "Improve recoil control" && upgrade.cost === 1 ) // Non "custom" gun recoil
@@ -1136,11 +1136,11 @@ class sdWeaponBench extends sdEntity
 
 									let matter_cost_dps = Math.max( 50, 100 * ( Math.pow( this.item_dps / 200, 1.5 ) ) );
 									let normal_cost = Math.min( 250, ~~( matter_cost_dps * slot_mult ) / 2 );
-									this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+									this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color, can_hold:true } );
 								}
 								else
 								{
-									this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+									this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color, can_hold:upgrade.can_hold } );
 								}
 							}
 						}

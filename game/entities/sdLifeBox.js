@@ -565,7 +565,7 @@ class sdLifeBox extends sdEntity
 			draw_turret = true;
 		}
 
-		ctx.drawImageFilterCache( sdLifeBox.img_lifebox, xx * 48, 0, 48,96, -24, -48, 48,96 );
+		ctx.drawImageFilterCache( sdLifeBox.img_lifebox, xx * 48, 0, 48,64, -24, -48, 48,64 );
 
 		if ( draw_turret )
 		{

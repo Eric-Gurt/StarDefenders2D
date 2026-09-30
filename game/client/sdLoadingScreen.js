@@ -237,7 +237,8 @@ class sdLoadingScreen
 				GetClass: ()=>'sdCharacter',
 				IsTargetable: ()=>true,
 				IsInSafeArea: ()=>false,
-				IsAdminEntity: ()=>false
+				IsAdminEntity: ()=>false,
+				IsVisible: ()=>true
 			};
 		}
 

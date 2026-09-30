@@ -990,7 +990,7 @@ class sdRenderer
 					height - bar_vertical_padding * 2
 				);
 
-				value_previous = value_previous - GSPEED * 2;
+				value_previous = value_previous - GSPEED * 2 * value_maximum / 250;
 
 				if ( value_previous < value_current )
 				value_previous = value_current;
@@ -1123,11 +1123,12 @@ class sdRenderer
 				if ( e._is_being_removed )
 				{
 					sdEffect.client_side_effects.delete( e );
-					debugger;
+					//debugger;
 				}
 				else
 				if ( ( e.x > min_x && e.x < max_x && e.y > min_y && e.y < max_y ) || // TODO: Improve railgun effects visibility
-				     ( e.x2 > min_x && e.x2 < max_x && e.y2 > min_y && e.y2 < max_y ) )
+				     //( e.x2 > min_x && e.x2 < max_x && e.y2 > min_y && e.y2 < max_y ) )
+					 ( e._x2 > min_x && e._x2 < max_x && e._y2 > min_y && e._y2 < max_y ) )
 				{					
 					e._flag2 = is_visible_flag;
 					new_visible.add( e );
@@ -1884,10 +1885,23 @@ class sdRenderer
 				ctx.fillStyle = '#FF0000';
 		
 				let z_offset_old = ctx.z_offset;
+				let z_depth_old = ctx.z_depth;
+				
                 if ( sdRenderer.draw_in_3d )
 				ctx.z_offset += 1;
 		
 				//ctx.draw_offset = 1;
+				
+				// These values somehow end up being corrupted when cables are drawn
+				ctx.z_offset = -16 * sdWorld.camera.scale;
+				ctx.z_depth = 16 * sdWorld.camera.scale;// * (globalThis['depth_test']||1 );
+				ctx.object_offset = null;
+				
+				/*if ( globalThis['los_z_offset'] !== undefined )
+				ctx.z_offset = globalThis['los_z_offset'];
+			
+				if ( globalThis['los_z_depth'] !== undefined )
+				ctx.z_depth = globalThis['los_z_depth'];*/
                 
 				{
 					let CHUNK_SIZE = sdWorld.CHUNK_SIZE;
@@ -1928,7 +1942,11 @@ class sdRenderer
 						if ( opacity <= 0 )
 						continue;
 						
-						ctx.volumetric_mode = sdRenderer.draw_in_3d ? FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT : FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+						ctx.volumetric_mode = sdRenderer.draw_in_3d ? 
+							( ( opacity >= 1 ) ? FakeCanvasContext.DRAW_IN_3D_BOX : FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT ): 
+							FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+						
+						
 
 						ctx.globalAlpha = opacity;
 						
@@ -1945,6 +1963,7 @@ class sdRenderer
 				
 				ctx.globalAlpha = 1;
 				ctx.z_offset = z_offset_old;
+				ctx.z_depth = z_depth_old;
 				ctx.apply_shading = true;
 			}
 			/*if ( sdRenderer.line_of_sight_mode )
@@ -2283,7 +2302,13 @@ class sdRenderer
 									if ( sdWorld.my_entity._build_params.upgrade_name )
 									ctx.fillText( T("Click to install upgrade"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
 									else
-									ctx.fillText( T("Click to build"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+									{
+										ctx.fillText( T("Click to build"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 + 14 );
+										
+										
+										ctx.fillStyle = '#aaffaa';
+										ctx.fillText( T("Press N to toggle grid snapping"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 + 7 );
+									}
 								}
 							}
 							else
@@ -2753,7 +2778,7 @@ class sdRenderer
 				sdWorld.mouse_screen_y, 64,64 );
 		}
 		
-		if ( !sdWorld.my_entity || sdWorld.my_entity.hea < 0 || sdWorld.my_entity._is_being_removed )
+		if ( !sdWorld.my_entity || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
 		{
 			ctx.font = "14px Verdana";
 			ctx.textAlign = 'center';
@@ -2774,8 +2799,12 @@ class sdRenderer
 				//trace( 'sdWorld.my_entity_net_id whenever death message is visible is ',sdWorld.my_entity_net_id  );
 				ctx.fillText( T('Waiting for character sync...'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 			}
-			else
-			ctx.fillText( T('Your character has died but still can be revived (it will vanish within a minute if you disconnect). Press Space to restart or press Esc to return to main menu'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			//else
+			//ctx.fillText( T('Your character has died but still can be revived (it will vanish within a minute if you disconnect). Press Space to restart or press Esc to return to main menu'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			
+			// Keep service messages for longer for dead players
+			if ( sdRenderer.service_mesage_until >= sdWorld.time )
+			sdRenderer.service_mesage_until = Math.max( sdRenderer.service_mesage_until, sdWorld.time + 3000 );
 		}
 		
 		if ( sdWorld.time < sdRenderer.service_mesage_until )

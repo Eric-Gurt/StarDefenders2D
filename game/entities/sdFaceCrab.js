@@ -356,7 +356,7 @@ class sdFaceCrab extends sdEntity
 					
 					let on_rtp = false;
 					
-					if ( from_entity.is( sdCharacter ) && from_entity.stands && from_entity._stands_on && from_entity._stands_on.is( sdRescueTeleport ) )
+					if ( from_entity.is( sdCharacter ) && ( ( from_entity.stands && from_entity._stands_on && from_entity._stands_on.is( sdRescueTeleport ) ) || from_entity.hea <= 0 ) )
 					{
 						on_rtp = true;
 					}
@@ -390,6 +390,7 @@ class sdFaceCrab extends sdEntity
 					{
 						if ( Math.random() < 0.3 )
 						if ( from_entity.IsPlayerClass() )
+						if ( from_entity.hea > 0 )
 						{
 							if ( from_entity.is( sdCharacter ) )
 							{
