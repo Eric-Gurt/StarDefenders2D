@@ -52,6 +52,9 @@ class sdCamera extends sdEntity
 		
 		sdCamera.cameras = []; // For global detections
 		
+		sdCamera.sdMatterAmplifier_as_class_name_list = [ 'sdMatterAmplifier' ];
+		sdCamera.sdBlock_sdDoor_sdCrystal_as_class_name_list = [ 'sdBlock', 'sdDoor', 'sdCrystal' ];
+		
 		sdCamera.hook_expire_time = 60 * 60 * 24;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -192,7 +195,7 @@ class sdCamera extends sdEntity
 
 						sdWorld.last_hit_entity = null;
 						//sdWorld.TraceRayPoint( x0, y0, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking );
-						sdWorld.TraceRayPoint( x0, y0, xx, yy, this, [ 'sdMatterAmplifier' ] ); // Otherwise it won't see crystals
+						sdWorld.TraceRayPoint( x0, y0, xx, yy, this, sdCamera.sdMatterAmplifier_as_class_name_list ); // Otherwise it won't see crystals
 						let new_ent = sdWorld.last_hit_entity;
 						
 						let new_ent_crystals_only = null;
@@ -204,7 +207,7 @@ class sdCamera extends sdEntity
 							
 							let old_ent_crystals_only = this._angular_cache_crystals_only[ i ];
 							sdWorld.last_hit_entity = null;
-							sdWorld.TraceRayPoint( x0, y0, xx, yy, this, null, [ 'sdBlock', 'sdDoor', 'sdCrystal' ] ); // Otherwise it won't see crystals
+							sdWorld.TraceRayPoint( x0, y0, xx, yy, this, null, sdCamera.sdBlock_sdDoor_sdCrystal_as_class_name_list ); // Otherwise it won't see crystals
 							new_ent_crystals_only = sdWorld.last_hit_entity;
 							
 							
