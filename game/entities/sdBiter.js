@@ -346,6 +346,7 @@ class sdBiter extends sdEntity
 					
 					if ( from_entity.IsPlayerClass() || this._current_target === from_entity )
 					if ( from_entity.IsTargetable() )
+					if ( ( from_entity.hea || from_entity._hea ) > 0 )
 					{
 						this._attacking = false;
 						let dmg = this.type === sdBiter.TYPE_LARGE ? 48 : 12;
