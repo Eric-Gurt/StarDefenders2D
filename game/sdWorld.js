@@ -5255,11 +5255,19 @@ class sdWorld
 	}
 	static ConvertPlayerDescriptionToEntity( player_description )
 	{
+		//trace( 'ConvertPlayerDescriptionToEntity', sdWorld.server_config.allowed_player_spawn_classes, sdWorld.allowed_player_classes, player_description );
+		
 		let allowed = sdWorld.server_config.allowed_player_spawn_classes || sdWorld.allowed_player_classes;
 		
-		for ( var i = 0; i < allowed.length; i++ )
+		//for ( var i = 0; i < allowed.length; i++ )
+		for ( var i = 0; i < sdWorld.allowed_player_classes.length; i++ )
 		if ( player_description[ 'entity' + ( i + 1 ) ] )
-		return allowed[ i ];
+		{
+			let id_in_allowed_list = allowed.indexOf( sdWorld.allowed_player_classes[ i ] );
+			
+			if ( id_in_allowed_list !== -1 )
+			return allowed[ i ];
+		}
 
 		return allowed[ 0 ];
 	}
