@@ -329,6 +329,11 @@ globalThis.process = {
 			// Same as SIGTERM, but we should not call it twice
 		}
 		else
+		if ( command === 'SIGUSR2' )
+		{
+			// Attempt to read sd2d_update_notice.txt, server-side only thing
+		}
+		else
 		debugger;
 	},
 	exit: ()=>

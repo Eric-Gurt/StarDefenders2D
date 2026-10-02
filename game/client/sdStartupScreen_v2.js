@@ -85,6 +85,45 @@
 		}
 	}
 	
+	// scrollIntoView but works in iframe
+	function scrollIntoViewInternal( element ) 
+	{
+		try
+		{
+			let container = element.parentElement;
+			while (container && container !== document.documentElement && container !== document.body) {
+				const overflowY = window.getComputedStyle(container).overflowY;
+				if (overflowY === 'auto' || overflowY === 'scroll') {
+					break;
+				}
+				container = container.parentElement;
+			}
+
+			// Fall back to the iframe's root element if no custom scroll container exists
+			if (!container || container === document.documentElement || container === document.body) {
+				// Calculate the absolute top position relative to the iframe window
+				const targetTop = element.getBoundingClientRect().top + window.scrollY;
+
+				window.scrollTo({
+					top: targetTop,
+					behavior: 'smooth'
+				});
+			} else {
+				// Calculate the position relative to the scroll container's current viewport top
+				const containerRect = container.getBoundingClientRect();
+				const elementRect = element.getBoundingClientRect();
+				const targetTop = container.scrollTop + (elementRect.top - containerRect.top);
+
+				container.scrollTo({
+					top: targetTop,
+					behavior: 'smooth'
+				});
+			}
+		}
+		catch(e){debugger}
+	}
+
+	
 	let menu_defender = document.getElementById( 'menu_defender' );
 	let ui_back_button = document.getElementById( 'ui_back_button' );
 	let anim_duration_ms = 150;
@@ -167,14 +206,10 @@
 				if ( screen_callbacks[ screen_name ].onEnter )
 				screen_callbacks[ screen_name ].onEnter();
 				
-				/*if ( screen_name === 'screen_menu' ) 
-				{
-					menu_defender.style.animation = animation_appear;
-					menu_defender.style.display = 'block';
-				}*/
 				
-				//document.getElementById( 'game_title_text' ).scrollIntoView({ behavior:'smooth', block:'start' });
-				document.getElementById( 'section_menu' ).scrollIntoView({ behavior:'smooth', block:'start' });
+				//if ( window.self === window.top )
+				//document.getElementById( 'section_menu' ).scrollIntoView({ behavior:'smooth', block:'start' });
+				scrollIntoViewInternal( document.getElementById( 'section_menu' ) );
 				
 				if ( then )
 				then( true );
@@ -1784,6 +1819,8 @@
 			menu_chat_box.appendChild( el );
 
 
-			el.scrollIntoView({ behavior:'smooth', block:'start' });
+			//if ( window.self === window.top )
+			//el.scrollIntoView({ behavior:'smooth', block:'start' });
+			scrollIntoViewInternal( el );
 		}
 	}

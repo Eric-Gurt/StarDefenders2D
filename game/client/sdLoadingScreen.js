@@ -452,6 +452,9 @@ class sdLoadingScreen
 			if ( cls.name === 'sdGun' ) // Already fully covered above (154 distinct, properly-titled gun types) - a bare new sdGun({}) here would just be a generic, less useful duplicate
 			continue;
 
+			if ( cls.name === 'sdWeather' )
+			continue;
+
 			if ( ADMIN_ONLY_ENTITY_CLASSES.has( cls.name ) )
 			continue;
 

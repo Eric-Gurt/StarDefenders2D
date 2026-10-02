@@ -5706,12 +5706,16 @@ class sdWeather extends sdEntity
 	onBeforeRemove()
 	{
 		if ( sdWeather.only_instance === this )
-		sdWeather.only_instance = null;
+		{
+			sdWeather.only_instance = null;
+		}
 	}
 	onRemove() // Class-specific, if needed
 	{
 		if ( sdWeather.only_instance === this )
-		sdWeather.only_instance = null;
+		{
+			sdWeather.only_instance = null;
+		}
 	}
 }
 //sdWeather.init_class();
