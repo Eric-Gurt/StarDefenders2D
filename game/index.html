@@ -102,7 +102,9 @@
 		    <menu_button onclick="sdWorld.StartOffline( 'globalThis.GetPlayerSettings()' );"><icon style="background-position-y:calc( -46px * 0 )"></icon>Play Offline<button_hint>Offline sandbox mode. Your progress is saved in your browser but offline world is associated with current online server.<br><br>Beware of progress losing game bugs, these are the worst kind!</button_hint></menu_button>
 		    <menu_button onclick="GoToScreen('screen_settings')"><icon style="background-position-y:calc( -46px * 2 )"></icon>Settings</menu_button>
 		    <menu_button onclick="GoToScreen('screen_credits')"><icon style="background-position-y:calc( -46px * 3 )"></icon>Credits</menu_button>
-		    <menu_button onclick="sdMusic.Stop();setTimeout(()=>{sdSound.PlaySound({ name:sdWorld.AnyOf( sdSound.quit_sounds_str.split( '\n' ) ), x:sdWorld.camera.x, y:sdWorld.camera.y, volume:0.3, _server_allowed:true });},500);globalThis.page.style.display='none';"><icon style="background-position-y:calc( -46px * 4 )"></icon>Quit</menu_button>
+		    <!--<menu_button onclick="sdMusic.Stop();setTimeout(()=>{sdSound.PlaySound({ name:sdWorld.AnyOf( sdSound.quit_sounds_str.split( '\n' ) ), x:sdWorld.camera.x, y:sdWorld.camera.y, volume:0.3, _server_allowed:true });},500);globalThis.page.style.display='none';"><icon style="background-position-y:calc( -46px * 4 )"></icon>Quit</menu_button>-->
+		    
+		    <menu_button class="crossed_out_button" onclick="window.open('https://www.gevanni.com/projects/SD2D/star-defenders-notificator-win.zip', '_blank')" style="margin-top: 2vw;">Get Notificator App</menu_button>
 		    <!--<div style="position: absolute;left: 36vh;top: 8.5vh;width: calc(41vw - 35vh);">
 			<div id="chat_box" class="menu_rect sd_scrollbar"></div>
 			<div style="padding-top:1vh;position:relative;">
