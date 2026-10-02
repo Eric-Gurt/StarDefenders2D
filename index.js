@@ -1850,7 +1850,7 @@ io.on( 'connection', ( socket )=>
 		}
 		function SpawnNewPlayer()
 		{
-			const allowed_classes = sdWorld.allowed_player_classes;
+			//const allowed_classes = sdWorld.allowed_player_classes;
 			
 			if ( socket.forced_entity )
 			{
@@ -1867,14 +1867,24 @@ io.on( 'connection', ( socket )=>
 					let admin_row = sdModeration.GetAdminRow( socket );
 
 					if ( !admin_row )
-					preferred_entity = 'sdCharacter';
+					{
+						preferred_entity = 'sdCharacter';
+						
+						//trace( 'Socket has no admin row, can\'t be spectator' );
+					}
 				}
 
+				/* This logic exists in sdWorld.ConvertPlayerDescriptionToEntity already
 				if ( allowed_classes.indexOf( preferred_entity ) === -1 )
 				character_entity = new sdCharacter({ x:0, y:0 });
 				else
+				character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });*/
+				
+				if ( !sdWorld.entity_classes.hasOwnProperty( preferred_entity ) )
+				throw new Error( 'Can\'t create player entity of class: ' + preferred_entity );
+			
 				character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
-
+				
 				if ( preferred_entity === 'sdPlayerOverlord' )
 				socket.respawn_block_until = sdWorld.time + ( 1000 * 60 * 2 ); // 2 minutes respawn wait time
 				// Not sure if this is ideal solution. - Booraz149
