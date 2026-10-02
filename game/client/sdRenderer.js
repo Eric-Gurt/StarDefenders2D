@@ -2490,8 +2490,11 @@ class sdRenderer
 				if ( sdWorld.my_entity.driver_of )
 				keySuggestions.push({ title: 'Leave vehicle', key: 'E' });
 				else
-				if ( sdWorld.my_entity._potential_vehicle )
-				keySuggestions.push({ title: 'Enter vehicle', key: 'E' });
+				{
+					keySuggestions.push({ title: 'Interact', key: 'E' });
+
+					keySuggestions.push({ title: 'Interaction options', key: 'Right Mouse Button' });
+				}
 				
 				if ( sdWorld.my_entity._upgrade_counters.upgrade_invisibility )
 				keySuggestions.push({ title: 'Invisibility', key: 'E' });
@@ -2514,13 +2517,19 @@ class sdRenderer
 				if ( sdWorld.my_entity.is( sdCharacter ) )
 				{
 					if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] )
-					keySuggestions.push({ title: 'Fire mode', key: 'N' });
+					keySuggestions.push({ title: 'Change weapon mode', key: 'N' });
 				}
 
 				if ( sdWorld.my_entity.has_flashlight )
 				keySuggestions.push({ title: 'Flashlight', key: 'F' });
 				//else
 				//keySuggestions.push({ title: 'Flashlight', key: '- no flashlight -' });
+				
+				keySuggestions.push({ title: 'Move', key: 'WSAD' });
+				
+				keySuggestions.push({ title: 'Ragdoll', key: 'X' });
+				
+				keySuggestions.push({ title: 'Fire', key: 'Left Mouse Button' });
 				
 				keySuggestions.push({ title: 'Menu', key: 'Esc' });
 			

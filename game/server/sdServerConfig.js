@@ -1206,7 +1206,13 @@ class sdServerConfigFull extends sdServerConfigShort
 			
 			if ( sdWorld.server_config.aggressive_hibernation )
 			{
-				sdWorld.ChangeWorldBounds( -16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), -16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), 16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), 16 * Math.round( sdDeepSleep.normal_cell_size / 16 ) );
+				let up_growth = 5; // Default world often ends up not having any non-ground space to spawn players at
+				
+				sdWorld.ChangeWorldBounds( 
+						-16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), 
+						-16 * Math.round( sdDeepSleep.normal_cell_size / 16 * up_growth ), 
+						16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), 
+						16 * Math.round( sdDeepSleep.normal_cell_size / 16 * up_growth ) );
 			}
 			else
 			{
