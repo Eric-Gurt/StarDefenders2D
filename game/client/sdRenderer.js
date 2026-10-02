@@ -1126,7 +1126,8 @@ class sdRenderer
 					//debugger;
 				}
 				else
-				if ( ( e.x > min_x && e.x < max_x && e.y > min_y && e.y < max_y ) || // TODO: Improve railgun effects visibility
+				if ( e._always_visible || // CC messages
+					 ( e.x > min_x && e.x < max_x && e.y > min_y && e.y < max_y ) || // TODO: Improve railgun effects visibility
 				     //( e.x2 > min_x && e.x2 < max_x && e.y2 > min_y && e.y2 < max_y ) )
 					 ( e._x2 > min_x && e._x2 < max_x && e._y2 > min_y && e._y2 < max_y ) )
 				{					

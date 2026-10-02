@@ -996,6 +996,9 @@ class sdEffect extends sdEntity
         if ( params.screen_shake )
         sdRenderer.ScreenShake( params.screen_shake * sdSound.GetDistanceMultForPosition( this.x, this.y ), this._radius / 4 );
 	
+	
+		this._always_visible = ( params.char_di !== undefined );
+	
 		sdEffect.client_side_effects.add( this );
 	}
 	static Transliterate( word )
