@@ -2025,15 +2025,6 @@ io.on( 'connection', ( socket )=>
 
 		sdWorld.ApplyPlayerSettingsToPlayer( character_entity, player_settings, socket );
 		
-		if ( character_entity._list_online )
-		if ( socket.character === null )
-		{
-			const sdCamera = sdWorld.entity_classes.sdCamera;
-			
-			for ( let i = 0; i < sdCamera.cameras.length; i++ )
-			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS, player_settings.hero_name + ' enters the world' );
-		}
-		
 		if ( DEBUG_SOCKET_CHANGES )
 		trace( 'characters['+character_entity._net_id + ']._socket = socket');
 			
@@ -2140,22 +2131,24 @@ io.on( 'connection', ( socket )=>
 			sdWorld.server_config.onReconnect( character_entity, player_settings );
 		}
 		
-		if ( character_entity._list_online )
+		//trace( 'connecting even triggering test for ' + player_settings.hero_name, character_entity._list_online, player_settings );
+		
+		if ( character_entity._list_online && character_entity.GetClass() !== 'sdPlayerSpectator' )
 		{
-			if ( sdWorld.GetPlayingPlayersCount() >= 3 )
-			{
-				const sdCamera = sdWorld.entity_classes.sdCamera;
+			const sdCamera = sdWorld.entity_classes.sdCamera;
+			
+			let players_count = sdWorld.GetPlayingPlayersCount();
+			
+			for ( let i = 0; i < sdCamera.cameras.length; i++ )
+			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS, player_settings.hero_name + ' enters the world' );
 
-				for ( let i = 0; i < sdCamera.cameras.length; i++ )
-				sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS_3, player_settings.hero_name + ' enters the world' );
-			}
-			if ( sdWorld.GetPlayingPlayersCount() >= 6 )
-			{
-				const sdCamera = sdWorld.entity_classes.sdCamera;
-
-				for ( let i = 0; i < sdCamera.cameras.length; i++ )
-				sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS_6, player_settings.hero_name + ' enters the world' );
-			}
+			if ( players_count >= 3 )
+			for ( let i = 0; i < sdCamera.cameras.length; i++ )
+			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS_3, player_settings.hero_name + ' enters the world' );
+			
+			if ( players_count >= 6 )
+			for ( let i = 0; i < sdCamera.cameras.length; i++ )
+			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS_6, player_settings.hero_name + ' enters the world' );
 		}
 		
 		UpdateOnlineCount();
