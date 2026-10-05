@@ -373,6 +373,7 @@ class sdJunk extends sdEntity
 		
 		this._regen_timeout = Math.max( this._regen_timeout, 60 );
 
+		/*
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Recieve score for damaging the crystal or council bomb
 		{
 			if ( initiator )
@@ -385,9 +386,29 @@ class sdJunk extends sdEntity
 				}
 			}
 		}
+		*/
 		
 		if ( this.hea <= 0 && was_alive )
 		{
+			let attacker = initiator || null;
+			
+			if ( sdWorld.server_config.player_vs_player_damage_scale === 0 ) // Disabled PvP damage scenario, prevents player detonations from killing other players
+			{
+				if ( !attacker )
+				{
+					attacker = sdEntity.entities_by_net_id_cache_map.get( this._last_attacker_net_id );
+					
+					if ( attacker )
+					if ( attacker._is_being_removed || ( attacker.hea || attacker._hea || 0 ) <= 0 || !attacker.IsPlayerClass() || !attacker._socket )
+					attacker = null;
+					
+					if ( !attacker )
+					attacker = this;
+				}
+			}
+			else
+			attacker = this; // If PvP damage is enabled, just use default behaviour
+		
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ) // Actual cube corpses explode into rails.
 			{
 				if ( Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead, idea by Bandit
@@ -482,7 +503,7 @@ class sdJunk extends sdEntity
 					radius:60, // 80 was too much?
 					damage_scale: 2 + ( 1 * ( this.matter / 90 ) ), // Weaker explosion if you drain it's matter before that, more lethal than regular cube explosion if it's matter is max
 					type:sdEffect.TYPE_EXPLOSION, 
-					owner:this,
+					owner:attacker,
 					color:'#33FFFF',
 					no_smoke: true,
 					shrapnel: true
@@ -496,7 +517,7 @@ class sdJunk extends sdEntity
 					radius:80,
 					damage_scale: 150,
 					type:sdEffect.TYPE_EXPLOSION, 
-					owner:this._owner,
+					owner:attacker,
 					can_hit_owner: true,
 					color:sdEffect.default_explosion_color,
                     shrapnel: true
@@ -507,7 +528,7 @@ class sdJunk extends sdEntity
 				let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
 				bullet._damage = 0;
-				bullet.owner = this;
+				bullet._owner = attacker;
 				bullet.time_left = 0; 
 				bullet._custom_detonation_logic = ( bullet )=>
 				{
@@ -518,7 +539,7 @@ class sdJunk extends sdEntity
 							radius:30,
 							damage_scale: 0, // Just a decoration effect
 							type:sdEffect.TYPE_EXPLOSION, 
-							owner:this,
+							owner:attacker,
 							color:'#ffff66',
 							no_smoke: true,
 							shrapnel: true
@@ -657,7 +678,7 @@ class sdJunk extends sdEntity
 						radius: radius,
 						damage_scale: 0, // Just a decoration effect
 						type: sdEffect.TYPE_EXPLOSION, 
-						owner:this,
+						owner:attacker,
 						color: '#a4efe1',
 						smoke_color: '#a4efe1',
 						shrapnel: true
@@ -675,7 +696,7 @@ class sdJunk extends sdEntity
 						else
 						if ( nears[ i ].IsTargetable( this ) )
 						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
-						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250 * mult, initiator: this._owner }); // Freeze nearby objects
+						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250 * mult, initiator: attacker }); // Freeze nearby objects
 					}
                 }
                 else
@@ -701,7 +722,7 @@ class sdJunk extends sdEntity
 						radius: radius,
 						damage_scale: 0, // Just a decoration effect
 						type: sdEffect.TYPE_EXPLOSION, 
-						owner:this,
+						owner: attacker,
 						color: '#FFA840',
 						smoke_color: '#FFA840',
 						shrapnel: true
@@ -713,7 +734,7 @@ class sdJunk extends sdEntity
 					{
 						if ( nears[ i ].IsTargetable( this ) )
 						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
-						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 1000 * mult, initiator: this._owner }); // Ignites nearby objects
+						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 1000 * mult, initiator: attacker }); // Ignites nearby objects
 					}
                 }
                 else
@@ -740,7 +761,7 @@ class sdJunk extends sdEntity
 						radius: radius,
 						damage_scale: 0, // Just a decoration effect
 						type: sdEffect.TYPE_EXPLOSION, 
-						owner:this,
+						owner: attacker,
 						color: '#a277a2',
 						smoke_color: '#a277a2',
 					});
@@ -764,7 +785,7 @@ class sdJunk extends sdEntity
 
                             if ( e_is_organic )
                             {
-                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 500 * mult, intensity: 3 * mult, owner: this._owner }); // Poisons nearby living entities
+                                entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_SICKNESS, sickness: 500 * mult, intensity: 3 * mult, owner: attacker }); // Poisons nearby living entities
                             }
                         }
 					}
@@ -1195,7 +1216,7 @@ class sdJunk extends sdEntity
 						radius:150, // run
 						damage_scale: 120,
 						type:sdEffect.TYPE_EXPLOSION, 
-						owner:this._owner,
+						owner:this,
 						can_hit_owner: true,
 						color:sdEffect.default_explosion_color,
 						shrapnel: true
