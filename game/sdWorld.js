@@ -5376,7 +5376,7 @@ class sdWorld
 		
 		character_entity._allow_self_talk = ( player_settings.selftalk1 ) || false;
 		
-		character_entity._list_online = ( parseInt( player_settings.list_online ) === 2 ) ? false : true;
+		character_entity._list_online = ( sdWorld.server_config.allow_leaderboard_hiding ) ? ( ( parseInt( player_settings.list_online ) === 2 ) ? false : true ) : true;
 		
 		character_entity.onSkinChanged();
 	}
