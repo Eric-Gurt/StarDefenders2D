@@ -74,6 +74,8 @@ class sdServerConfigShort
 	static game_title = 'Star Defenders'; // Default: 'Star Defenders'. Shown as the browser tab / page title for players connecting to this server. Purely cosmetic.
 
 	static supported_languages = [ 'en', 'ua', 'hr' ]; // Default: [ 'en', 'ua', 'hr' ]. Languages offered to players (English, Ukrainian, Croatian). Removing one hides it from the client language picker; it does not add translations.
+	
+	// static allow_leaderboard_hiding = true; // Default: true. If disabled, it disallows players to hide from leaderboard rankings.
 
 	// static backgroundColor = ''; // Default: '' (game default background). USED BY THE CLIENT (index.js) even though it is not active above. Set a CSS color string, e.g. '#000000' or 'rgb(10,10,25)', to tint the page background behind the game canvas. Cosmetic only.
 
@@ -172,13 +174,18 @@ class sdServerConfigShort
 
 	// static allowed_base_shielding_unit_types = null; // Default: null (all BSU types allowed). Restrict which BSUs can be bought/activated by listing type constants, or null for all. Types: sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER (0, green), TYPE_MATTER (1, blue), TYPE_SCORE_TIMED (2, red - new-player timed shield), TYPE_DAMAGE_PERCENTAGE (3), TYPE_FACTION_SHIELD (4). Example limited-BSU: [ sdBaseShieldingUnit.TYPE_MATTER ]. Example no-BSU: [] (empty array disables all base shielding).
 
+	// static bsu_passive_drain = true; // Default: true. When false, disables passive BSU value decrease over time. Set false for a low-maintenance / builder-friendly server (bases don't lose value over time).
 	// static base_shielding_units_passive_drain_per_week_green = 0.01; // Default: 0.01. Percentage of stored value green BSUs (and matter amplifiers) passively drain per week. Raise toward 0.2 for faster decay (bases need active upkeep), lower toward 0 for near-permanent bases.
 	// static base_shielding_units_passive_drain_per_week_blue = 0.01;  // Default: 0.01. Same as above for blue (matter) BSUs. Keep green and blue in sync unless you intend one type to be more durable.
 
 	// static do_green_base_shielding_units_consume_essence = true; // Default: true. Allows green BSU essence consumption through cables (does not disable crystal consumption). Set false to stop green BSUs from draining essence.
 
-	// static base_degradation = true; // Default: true. When false, disables roach attacks, BSU value decrease, and flesh-corruption removing block protection. Set false for a low-maintenance / builder-friendly server (bases don't rot). Big gameplay change.
+	// static base_degradation = true; // Default: true. When false, disables roach attacks and flesh-corruption removing block protection. Set false for a low-maintenance / builder-friendly server (bases don't rot). Big gameplay change.
+	
+	// static allow_player_bsu_attacks = true; // Default: true. When false, it disables BSU raiding of other players' bases. Set to false only if you want non PvP gameplay.
 
+	// static max_cabled_base_shielding_units = -1; // Default: -1. Setting a value above 0 sets a cap to how many base shielding units can be cabled together to form a base, while -1 allows infinite cabling.
+	// static minimum_distance_between_uncabled_bsus = -1; // Default: -1. Setting a value above 0 sets a required distance between two uncabled base shielding units. Good for preventing area lockouts in PvE gameplay in conjunction with "max_cabled_base_shielding_units", but not much else.
 
 	// -------------------------------------------------------------------------
 	//  C. WORLD EVENTS & WEATHER
@@ -372,6 +379,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
+	static allow_leaderboard_hiding = true; // Default: true. If disabled, it disallows players to hide from leaderboard rankings.
+	
 	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'qs', 'quickstart', 'database', 'remove', 'topactive', 'scale', 'logentitycount' ];
 	static AutoGodModeForAllPlayers() { return false; } // TESTING ONLY - see sdServerConfigShort documentation above. Grants every player god mode automatically on spawn, no admin row needed.
 	static GetCommandsAllowedForAllPlayers() { return []; } // See sdServerConfigShort documentation above. Whitelist of admin-only commands every player may run without an admin row, e.g. [ 'event', 'spawnevent', 'zoom' ].
@@ -416,13 +425,19 @@ class sdServerConfigFull extends sdServerConfigShort
 		}
 	}
 	
-	static base_degradation = true; // False will disable roach attacks, BSU value decrease, flesh corruption removing protection off blocks
+	static base_degradation = true; // False will disable roach attacks, flesh corruption removing protection off blocks ( BSU passive drain is a separate config setting below )
 	static crystal_matter_regen_decrease = true; // False will disable crystal matter regeneration rate decrease
 	
+	static bsu_passive_drain = true; // Default: true. When false, disables passive BSU value decrease over time. Set false for a low-maintenance / builder-friendly server (bases don't lose value over time).
 	static base_shielding_units_passive_drain_per_week_green = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	static base_shielding_units_passive_drain_per_week_blue = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	
 	static do_green_base_shielding_units_consume_essence = true; // Allows green BSU essence consumption through cables. Does not disable crystal consumption
+	
+	static allow_player_bsu_attacks = true; // Default: true. When false, it disables BSU raiding of other players' bases. Set to false only if you want non PvP gameplay.
+
+	static max_cabled_base_shielding_units = -1; // Default: -1. Setting a value above 0 sets a cap to how many base shielding units can be cabled together to form a base, while -1 allows infinite cabling.
+	static minimum_distance_between_uncabled_bsus = -1; // Default: -1. Setting a value above 0 sets a required distance between two uncabled base shielding units. Good for preventing area lockouts in PvE gameplay in conjunction with "max_cabled_base_shielding_units", but not much else.
 	
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED, sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ] to allow specific ones or null to allow all
