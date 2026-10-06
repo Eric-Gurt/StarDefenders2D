@@ -237,6 +237,11 @@ class sdBaseShieldingUnit extends sdEntity
 		this._last_value_share = 0;
 		
 		this._last_out_of_bounds_check = 30 * 30; // Timer for checking if BSU is out of playable area
+		this._last_bounds_x_check = this.x; // Updated every time boundary checks happen (~~30 seconds)
+		this._last_bounds_y_check = this.y;
+		
+		if ( !sdWorld.server_config.allow_player_bsu_attacks ) // For now, disable attacking other units if server does not allow
+		this.attack_other_units = false;
 		
 		sdBaseShieldingUnit.all_shield_units.push( this );
 	}
@@ -268,21 +273,81 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 			if ( this.IsOutOfBounds() ) // Disable BSU if it's outside play area
 			this.SetShieldState( false );
+			
+			if ( !sdWorld.server_config.allow_player_bsu_attacks && this.attack_other_units ) // Prevents PvP attacks. When AI factions will have their own BSUs, we should check if BSUs are built by players instead.
+			this.attack_other_units = false; // This works for now
 		}
 	}
 	
 	IsOutOfBounds()
 	{
+		// Checks if BSU is out of forced play area, or doesn't have minimum distance between 2 uncabled BSUs defined by server.
+		
 		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
 		if ( ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation ) || sdWorld.server_config.forced_play_area )
 		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
 		{
+			// Display red lines from BSU in which direction player needs to move the BSU
+			let xx = this.x;
+			let yy = this.y;
+			
+			if ( this.x > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x )
+			xx = this.x - sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x;
+			if ( this.x < -sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x )
+			xx = this.x + ( -sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x )
+			if ( this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min )
+			yy = this.y - Math.abs( sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min );
+			if ( this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
+			yy = this.y - Math.abs( sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max );
+		
+			this.DisplayOutOfBoundsDirection( xx, yy );
+			
 			return true;
 		}
 		
+		if ( sdWorld.server_config.minimum_distance_between_uncabled_bsus > 0 ) // Scenario for minimum required distance between uncabled BSUs if defined by server.
+		{
+			if ( this.x !== this._last_bounds_x_check || this.y !== this._last_bounds_y_check || !this.enabled ) // BSU has moved around (steering wheel), or is not activated?
+			{
+				for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ ) // Loop through BSUs
+				{
+					let unit = sdBaseShieldingUnit.all_shield_units[ i ];
+					if ( unit.enabled ) // Make sure unit we check is enabled
+					{
+						let distance = sdWorld.Dist2D( this.x, this.y, unit.x, unit.y );
+						if ( distance < sdWorld.server_config.minimum_distance_between_uncabled_bsus && unit !== this ) // Is the distance below requirement (and isn't checking itself?)
+						{
+							// Check for friendly connected units
+							let friendly_shields = unit.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
+				
+							let id = friendly_shields.indexOf( unit );
+							if ( id === -1 )
+							friendly_shields.push( unit );
+						
+							if ( friendly_shields.indexOf( this ) === -1 ) // This BSU isn't part of the unit's cabled shields?
+							{
+								this.DisplayOutOfBoundsDirection( this.x - unit.x, this.y - unit.y ); // Point in which direction to move BSU towards
+								return true; // Then this one is too close to the other BSU, since they are not related/cabled to each other (2 separate bases by definition)
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		return false;
+	}
+	
+	DisplayOutOfBoundsDirection(x_to = this.x, y_to = this.y )
+	{
+		for( let i = 0; i < 6; i++ )
+		{
+			setTimeout(()=>{
+				sdWorld.SendEffect({ x:this.x, y:this.y, x2:( this.x + x_to ), y2:( this.y + y_to ), type:sdEffect.TYPE_BEAM, color:'#ff0000' }); // Red color
+			}, ( 500 * i ) );
+		}
 	}
 
 	ExtraSerialzableFieldTest( prop )
@@ -769,6 +834,9 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		//this._flesh_infestation_counter = 0;
 		//this._flesh_infestation_allowed_in = 0;
+		
+		if ( !sdWorld.server_config.allow_player_bsu_attacks )
+		this.attack_other_units = false;
 		
 		if ( enable )
 		{
@@ -1436,9 +1504,11 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this._last_out_of_bounds_check < 0 )
 		{
 			this._last_out_of_bounds_check = 30 * 30; // Check every 30 seconds if BSU is out of bounds
-			if ( this.IsOutOfBounds() ) // Disable BSU if it's outside play area
+			if ( this.IsOutOfBounds() ) // Disable BSU if it's outside play area (or conflicts with minimum distance between uncabled BSUs defined by server)
 			this.SetShieldState( false );
 			
+			this._last_bounds_x_check = this.x; // Updated every time boundary checks happen (~~30 seconds)
+			this._last_bounds_y_check = this.y;
 		}
 	
 	
@@ -1634,7 +1704,7 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		{
 			if ( this._enabled_shields_in_network_count > 0 ) // If connected to enabled - still drain them
-			if ( sdWorld.server_config.base_degradation )
+			if ( sdWorld.server_config.bsu_passive_drain )
 			if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week_green > 0 )
 			this.matter_crystal = sdWorld.MorphWithTimeScale( this.matter_crystal, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week_green, GSPEED / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week
 		}
@@ -2174,7 +2244,7 @@ class sdBaseShieldingUnit extends sdEntity
 					}
 					else
 					{
-						executer_socket.SDServiceMessage( 'Base shield unit of this kind does not work in this environment' );
+						executer_socket.SDServiceMessage( 'Base shield unit is either out of bounds, or too close to an uncabled BSU. Try moving it towards direction it points.' );
 					}
 				}
 				if ( command_name === 'CLAIMS_RESET' )
@@ -2218,12 +2288,12 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 				if ( command_name === 'ATTACK' )
 				{
-					//if ( this.enabled )
-					//{
+					if ( sdWorld.server_config.allow_player_bsu_attacks )
+					{
 						this.SetAttackState();
-					//}
-					//else
-					//executer_socket.SDServiceMessage( 'Base shield unit needs to be enabled' );
+					}
+					else
+					executer_socket.SDServiceMessage( 'Attacking with base shielding units is disabled on this server.' );
 				}
 				
 				if ( sdBaseShieldingUnit.enable_nearby_claiming )

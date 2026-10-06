@@ -312,39 +312,84 @@ class sdCable extends sdEntity
                         if ( is_player )
                         bullet._owner.Say( 'Connecting cable to same thing does not make sense' );
                     }
-                    else
+					else
                     {
-                        //bullet._owner._current_built_entity.SetChild( target_entity );
-                        bullet._owner._current_built_entity.c = target_entity;
-                        if ( target_entity.is( sdNode ) )
-                        {
-                            bullet._owner._current_built_entity.d[ 2 ] = 0;
-                            bullet._owner._current_built_entity.d[ 3 ] = 0;
-							}
-                        else
-                        {
-                            bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
-                            bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
-                        }
-
-                        //bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+						let allow_cabling = true; // Hopefully this also allows future additional cabling conditions to work normally
+						if ( sdWorld.server_config.max_cabled_base_shielding_units > 0 ) // Is the maximum count of "cabled together" BSUs set in the server? (Default config value is -1)
+						{
+							/* Check how many BSUs are connected on each side.
+								Needs to be done in a way that it checks the following:
+								- Connected BSUs to our target
+								- Connected BSUs from our parent
+								- Also check target/parent (add them first to the array if they are BSUs too)
+								- Must not allow duplicate values
+							*/
+							// Not entirely sure how the function works. I assume it returns cabled objects but not the object itself we check from? - Booraz
+							let bsus = target_entity.FindObjectsInACableNetwork( null, sdBaseShieldingUnit ); // Function returns arrays ( [] )
+							let other_bsus = bullet._owner._current_built_entity.p.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
 							
-                        if ( bullet._owner._current_built_entity.t === sdCable.TYPE_WIRELESS )
-                        {
-                            if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
-                            {
-                                target_entity.variation = bullet._owner._current_built_entity.v;
-                                target_entity._update_version++;
-                            }
-                            else
-                            {
-                                bullet._owner._current_built_entity.t = sdCable.TYPE_MATTER;
-                            }
-                        }
-                        
-                        bullet._owner._current_built_entity._update_version++;
+							let total_bsus = []; // All BSUs that are not duplicate go here. We also add target_entity and cable's parent if they are BSUs first.
+							
+							if ( target_entity.is( sdBaseShieldingUnit ) ) // Push target if it's a BSU
+							total_bsus.push( target_entity );
+							if ( bullet._owner._current_built_entity.p.is( sdBaseShieldingUnit ) ) // Push cable parent if it's a BSU
+							total_bsus.push( bullet._owner._current_built_entity.p );
+							//console.log( "Target BSU count:" + bsus.length );
+							//console.log( "Cable parent BSU count:" + other_bsus.length );
+							for ( let i = 0; i < bsus.length; i++ ) // Loop through first array
+							{
+								let bsu = bsus[ i ];
+								if ( total_bsus.indexOf( bsu ) === -1 ) // Not in array already?
+								total_bsus.push( bsu ); // Add it
+							}
+							for ( let i = 0; i < other_bsus.length; i++ ) // Loop through second array
+							{
+								let bsu = other_bsus[ i ];
+								if ( total_bsus.indexOf( bsu ) === -1 ) // Not in array already?
+								total_bsus.push( bsu ); // Add it
+							}
+							//console.log( "Total BSU count:" + total_bsus.length );
+							if ( ( total_bsus.length ) > sdWorld.server_config.max_cabled_base_shielding_units ) // Is crossing the maximum allowed BSU connection?
+							{
+								allow_cabling = false; // Disallow cabling
+								if ( is_player )
+								bullet._owner.Say( 'I cannot connect more base shielding units together' );
+							}
+						}
+						if ( allow_cabling )
+						{
+							//bullet._owner._current_built_entity.SetChild( target_entity );
+							bullet._owner._current_built_entity.c = target_entity;
+							if ( target_entity.is( sdNode ) )
+							{
+								bullet._owner._current_built_entity.d[ 2 ] = 0;
+								bullet._owner._current_built_entity.d[ 3 ] = 0;
+								}
+							else
+							{
+								bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
+								bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
+							}
 
-                        bullet._owner._current_built_entity = null;
+							//bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+								
+							if ( bullet._owner._current_built_entity.t === sdCable.TYPE_WIRELESS )
+							{
+								if ( target_entity.is( sdNode ) && target_entity.type === sdNode.TYPE_SIGNAL_WIRELESS )
+								{
+									target_entity.variation = bullet._owner._current_built_entity.v;
+									target_entity._update_version++;
+								}
+								else
+								{
+									bullet._owner._current_built_entity.t = sdCable.TYPE_MATTER;
+								}
+							}
+							
+							bullet._owner._current_built_entity._update_version++;
+
+							bullet._owner._current_built_entity = null;
+						}
                     }
                 }
                 else

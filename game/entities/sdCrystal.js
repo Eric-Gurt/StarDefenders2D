@@ -987,7 +987,7 @@ class sdCrystal extends sdEntity
 						if ( !e._private_props.charges_left ) // Avoid making it 0 so this condition remains false at 1 - when we don't want it to have charges
 						e._private_props.charges_left = 5;
 
-						if ( e._private_props.medusa_cooldown > 0 || e._private_props.charges_left <= 1 || e.is_depleted ) // If depleted, it cannot convert
+						if ( e._private_props.medusa_cooldown > 0 || e._private_props.charges_left <= 1 || e.is_depleted || !sdWorld.is_server ) // If depleted, it cannot convert
 						break;
 
 						if ( e2.is( sdCrystal ) )
@@ -2135,7 +2135,7 @@ class sdCrystal extends sdEntity
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
 
-		if ( sdWorld.server_config.base_degradation )
+		if ( sdWorld.server_config.bsu_passive_drain )
 		if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue > 0 )
 		if ( this.held_by.is( sdMatterAmplifier ) )
 		this.matter_regen = sdWorld.MorphWithTimeScale( this.matter_regen, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue, GSPEED * this.held_by.multiplier/8 / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week on highest tier
