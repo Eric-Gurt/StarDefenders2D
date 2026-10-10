@@ -55,6 +55,7 @@ import sdStealer from './sdStealer.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdMeow from './sdMeow.js';
 import sdSteeringWheel from './sdSteeringWheel.js';
+import sdPresetEditor from './sdPresetEditor.js';
 
 class sdTurret extends sdEntity
 {
@@ -87,6 +88,8 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret8_fire = sdWorld.CreateImageFromFile( 'turret8_fire' );
         
         sdTurret.img_turret9 = sdWorld.CreateImageFromFile( 'turret9' );
+		
+		sdTurret.img_falkok_portable_turret = sdWorld.CreateImageFromFile( 'sdPortableTurret2' ); // We should unify these sprites at some point - Booraz
 		
         
         sdTurret.disallowed_weapons = [
@@ -121,6 +124,21 @@ class sdTurret extends sdEntity
         sdTurret.KIND_AUTO_CABLE = 7;
         sdTurret.KIND_AUTO_WELD = 8;
         sdTurret.KIND_SENTRY = 9;
+		sdTurret.KIND_FALKOK_PORTABLE = 10;
+		
+		// Have to adjust hitboxes this (the sdJunk) way, otherwise sdPresetEditor crashes event-spawned outposts which contain turrets due to hitbox issues. One more beer to drink - Booraz
+		sdTurret.bounds_by_kind = [];
+		sdTurret.bounds_by_kind[ sdTurret.KIND_LASER ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_ROCKET ] = { x1: -6, x2: 6, y1: -6, y2: 6 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_RAPID_LASER ] = { x1: -4, x2: 4, y1: -4, y2: 4 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_SNIPER ] = { x1: -4, x2: 4, y1: -4, y2: 4 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_FREEZER ] = { x1: -6, x2: 6, y1: -6, y2: 6 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_ZAP ] = { x1: -4, x2: 4, y1: -4, y2: 4 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_LASER_PORTABLE ] = { x1: -6, x2: 6, y1: -6, y2: 6 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_AUTO_CABLE ] = { x1: -4, x2: 4, y1: -4, y2: 4 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_AUTO_WELD ] = { x1: -4, x2: 4, y1: -4, y2: 4 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_SENTRY ] = { x1: -10, x2: 10, y1: -10, y2: 10 };
+		sdTurret.bounds_by_kind[ sdTurret.KIND_FALKOK_PORTABLE ] = { x1: -6, x2: 6, y1: -6, y2: 6 };
 
 		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
 		
@@ -175,24 +193,24 @@ class sdTurret extends sdEntity
 
 		return sdTurret._targetable_classes_cache;
 	}
-	get hitbox_x1() { return this.kind === sdTurret.KIND_SENTRY ? -8 : -this.GetSize(); }
-	get hitbox_x2() { return this.kind === sdTurret.KIND_SENTRY ? 8 : this.GetSize(); }
-	get hitbox_y1() { return this.kind === sdTurret.KIND_SENTRY ? -6 : -this.GetSize(); }
-	get hitbox_y2() { return this.kind === sdTurret.KIND_SENTRY ? 11 : this.GetSize(); }
+	get hitbox_x1() { return sdTurret.bounds_by_kind[ this.kind ] ? sdTurret.bounds_by_kind[ this.kind ].x1 : -8; }
+	get hitbox_x2() { return sdTurret.bounds_by_kind[ this.kind ] ? sdTurret.bounds_by_kind[ this.kind ].x2 : 8; }
+	get hitbox_y1() { return sdTurret.bounds_by_kind[ this.kind ] ? sdTurret.bounds_by_kind[ this.kind ].y1 : -8; }
+	get hitbox_y2() { return sdTurret.bounds_by_kind[ this.kind ] ? sdTurret.bounds_by_kind[ this.kind ].y2 : 8; }
 	
 	get hard_collision()
 	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ 
-		if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_SENTRY )
+		if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_SENTRY || this.kind === sdTurret.KIND_FALKOK_PORTABLE )
 		return false;
 		
 		return true; 
 	}
 	IsAttachableToSteeringWheel()
 	{
-		return ( this.kind !== sdTurret.KIND_LASER_PORTABLE );
+		return ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_FALKOK_PORTABLE );
 	}
 	
 	get title()
@@ -226,6 +244,10 @@ class sdTurret extends sdEntity
     
         if ( this.kind === sdTurret.KIND_SENTRY )
 		return ( 'Automatic sentry turret' );
+	
+		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
+		return ( 'Portable Falkonian marksman turret' );
+    
 
 		return ( 'Automatic turret' );
 	}
@@ -290,6 +312,9 @@ class sdTurret extends sdEntity
 				 
 		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
 		this._hmax = 200;
+	
+		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
+		this._hmax = 300;
     
         if ( this.kind === sdTurret.KIND_SENTRY )
 		this._hmax = 2500;
@@ -313,6 +338,10 @@ class sdTurret extends sdEntity
 		this._seek_timer = Math.random() * 15;
 		this.fire_timer = 0;
 		this._target = null;
+		
+		// Temporary fix, prevents preset load crash for "this.type === 1" since it delays creating sdSensorArea for these types of turrets.
+		this._sensor_create_timer = 30;
+		
 		
 		this._sensor_detected_entities = new Set();
 		this._sensor_area = null;
@@ -533,6 +562,11 @@ class sdTurret extends sdEntity
 			dmg = 1;
 			_temperature_addition = -50;
 		}
+		
+		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
+		{
+			dmg = sdGun.classes[ sdGun.CLASS_F_MARKSMAN ].projectile_properties._damage;
+		}
 			
 		//return m * 0.1;
 
@@ -652,6 +686,20 @@ class sdTurret extends sdEntity
 		if ( sdWorld.is_server )
 		{
             let shoot_from_scenario = false;
+			
+			if ( this._sensor_create_timer > 0 ) // Prevent creating sdSensorArea if inside sdPresetEditor region. Prevents crashes on loading small outposts with sdSensorArea
+			{
+				let count_timer = true; // I hate doing it this way. Is there a better one? - Booraz
+				for ( let i = 0; i < sdPresetEditor.regions.length; i++ )
+				{
+					let region = sdPresetEditor.regions[ i ];
+					if ( this.x + this._hitbox_x1 >= region.x && this.x + this._hitbox_x2 <= region.x + region.w && this.y + this._hitbox_y1 >= region.y && this.y + this._hitbox_y2 <= region.y + region.h )
+					count_timer = false;
+				}
+				
+				if ( count_timer )
+				this._sensor_create_timer -= GSPEED;
+			}
 
             if ( this.auto_shoot_in > 0 && this.gun )
             {
@@ -682,8 +730,9 @@ class sdTurret extends sdEntity
                     this._built_cables.splice( this._built_cables.indexOf( cable ), 1 );
                 }
             }
-			if ( this.matter > this.GetShootCost() || this.type === 1 )
+			if ( this.matter > this.GetShootCost() || ( this.type === 1 && this._sensor_create_timer <= 0 ) )
 			{
+				// If "this.type = 1" turrets create sdSensorArea instantly, they can crash servers if they are in smaller sized outposts.
 				//can_hibernate = false;
 				
 				let range = this.GetTurretRange();
@@ -749,7 +798,7 @@ class sdTurret extends sdEntity
 
 				if ( ( this._target !== null || this.auto_attack >= 0 ) && this.disabled === false )
 				{
-					let vel = ( this.kind === sdTurret.KIND_SNIPER ) ? 30 : 15;
+					let vel = ( this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_FALKOK_PORTABLE ) ? 30 : 15;
 					
 					if ( this.kind === sdTurret.KIND_ZAP )
 					{
@@ -785,7 +834,7 @@ class sdTurret extends sdEntity
 						if ( this.kind === sdTurret.KIND_ROCKET )
 						vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
 
-						if ( this.kind === sdTurret.KIND_ZAP )
+						if ( this.kind === sdTurret.KIND_ZAP || this.kind === sdTurret.KIND_FALKOK_PORTABLE )
 						this.an = Math.atan2( 
 							this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 - this.y, 
 							this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 - this.x ) * 100;
@@ -795,7 +844,7 @@ class sdTurret extends sdEntity
 							this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 + this._target.sx * di / vel - this.x ) * 100;
                             
                         this.look_x = this._target.x;
-                        this.look_y = this._target.y
+                        this.look_y = this._target.y;
 					}
 
 					if ( this.fire_timer <= 0 )
@@ -831,6 +880,9 @@ class sdTurret extends sdEntity
                     
                         if ( this.kind === sdTurret.KIND_AUTO_WELD )
 						sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:0.75, pitch: 1.5 / ( 1 + this.lvl / 3 ) });
+					
+						if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
+						sdSound.PlaySound({ name:'gun_f_rifle', x:this.x, y:this.y, volume:1, pitch: 2.2 }); // Don't think we should upgrade these
 
 
                         if ( this.kind !== sdTurret.KIND_SENTRY )
@@ -929,6 +981,13 @@ class sdTurret extends sdEntity
                                 bullet_obj.color = 'transparent';
                                 bullet_obj._custom_target_reaction = bullet_obj._custom_target_reaction_protected = sdSteeringWheel.WeldProjectileLogic;
                             }
+							
+							if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
+							{
+                                bullet_obj._damage = sdGun.classes[ sdGun.CLASS_F_MARKSMAN ].projectile_properties._damage;
+
+                                bullet_obj.color = sdGun.classes[ sdGun.CLASS_F_MARKSMAN ].projectile_properties.color;
+							}
 
                             bullet_obj._damage *= 1 + this.lvl / 3;
                             bullet_obj._temperature_addition *= 1 + this.lvl / 3;
@@ -1028,12 +1087,16 @@ class sdTurret extends sdEntity
 		return 20;
         if ( this.kind === sdTurret.KIND_AUTO_CABLE )
 		return 15;
+		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
+		return sdGun.classes[ sdGun.CLASS_F_MARKSMAN ].reload_time;
     
         if ( this.kind === sdTurret.KIND_SENTRY )
 		return 0;
 
 		return 30;
 	}
+	/*
+	// Does not work with loading presets.
 	GetSize()
 	{
 		if ( this.kind === sdTurret.KIND_LASER )
@@ -1043,14 +1106,15 @@ class sdTurret extends sdEntity
 		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_ZAP )
 		return 4;
 	
-		if ( this.kind === sdTurret.KIND_LASER_PORTABLE )
+		if ( this.kind === sdTurret.KIND_LASER_PORTABLE || this.kind === sdTurret.KIND_FALKOK_PORTABLE )
 		return 6;
     
         if ( this.kind === sdTurret.KIND_SENTRY )
-        return 10
+        return 10;
 	
 		return 2;
 	}
+	*/
 	GetTurretRange()
 	{
 		//if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
@@ -1125,6 +1189,14 @@ class sdTurret extends sdEntity
 			
 			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, 0,0,32,32, -16, -16, 32,32 );
 		}
+		
+		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE ) // A, Falkok portable turret. Essnetially just a unmanned (unfalkoked?) "Falkok marksman rifle"
+		{
+			if ( Math.cos( this.an / 100 ) > 0 )
+			ctx.scale( -1, 1 );
+			
+			ctx.drawImageFilterCache( sdTurret.img_falkok_portable_turret, 0,0,32,32, -16, -16, 32,32 );
+		}
         
         if ( this.kind === sdTurret.KIND_SENTRY )
         ctx.drawImageFilterCache( sdTurret.img_turret9, 0,0,32,32, -16, -16, 32,32 );
@@ -1158,6 +1230,20 @@ class sdTurret extends sdEntity
 			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, not_firing_now ? 32 : 64,0,32,32, -16, -16, 32,32 );
 		}
 	
+		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE ) // B
+		{
+			if ( Math.cos( this.an / 100 ) > 0 )
+			{
+				ctx.rotate( -this.an / 100 );
+				ctx.rotate( -this.an / 100 );
+			}
+			else
+			{
+				ctx.rotate( Math.PI );
+			}
+
+			ctx.drawImageFilterCache( sdTurret.img_falkok_portable_turret, not_firing_now ? 32 : 64,0,32,32, -16, -16, 32,32 );
+		}
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret2 : sdTurret.img_turret2_fire, -16, -16, 32,32 );
 
@@ -1253,8 +1339,9 @@ class sdTurret extends sdEntity
         }
 	}
 	
+	// Faction outpost portable turrets have spawn align
 	RequireSpawnAlign()
-	{ return this.is_static; }
+	{ return ( this.is_static || this.kind === sdTurret.KIND_FALKOK_PORTABLE ); }
 	get spawn_align_x(){ return 4; };
 	get spawn_align_y(){ return 4; };
 	
@@ -1265,7 +1352,7 @@ class sdTurret extends sdEntity
 		//if ( this._hea > 0 )
 		if ( executer_character )
 		if ( executer_character.hea > 0 )
-		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD || this.kind !== sdTurret.KIND_SENTRY )
+		if ( this.kind !== sdTurret.KIND_LASER_PORTABLE || this.kind !== sdTurret.KIND_AUTO_CABLE || this.kind !== sdTurret.KIND_AUTO_WELD || this.kind !== sdTurret.KIND_SENTRY || this.kind !== sdTurret.KIND_FALKOK_PORTABLE )
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, executer_character.x, executer_character.y, 128 ) )
 			{
@@ -1360,7 +1447,7 @@ class sdTurret extends sdEntity
                 else
                 this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.gun._net_id ), 'GET', [] );
             }
-            if ( this.kind !== sdTurret.KIND_LASER_PORTABLE && this.kind !== sdTurret.KIND_AUTO_CABLE && this.kind !== sdTurret.KIND_AUTO_WELD && this.kind !== sdTurret.KIND_SENTRY )
+            if ( this.kind !== sdTurret.KIND_LASER_PORTABLE && this.kind !== sdTurret.KIND_AUTO_CABLE && this.kind !== sdTurret.KIND_AUTO_WELD && this.kind !== sdTurret.KIND_SENTRY || this.kind !== sdTurret.KIND_FALKOK_PORTABLE )
 			if ( this.lvl < 3 )
 			{
 				this.AddContextOption( 'Upgrade damage to level 3 ('+ (3-this.lvl)*100 +' matter)', 'UPGRADE_MAX', [] );

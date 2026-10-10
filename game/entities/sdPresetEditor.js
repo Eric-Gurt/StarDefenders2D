@@ -582,7 +582,26 @@ class sdPresetEditor extends sdEntity
 			let hitbox_x2 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_x2' ).get.call( s );
 			let hitbox_y1 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_y1' ).get.call( s );
 			let hitbox_y2 = Object.getOwnPropertyDescriptor( class_proto, 'hitbox_y2' ).get.call( s );
-			
+				
+			/*
+			if ( hitbox_x1 === 0 && hitbox_x2 === 600 )
+			{
+				console.log( 'Suspicious preset entity:', {
+					class: s._class,
+					x: s.x,
+					y: s.y,
+					kind: s.kind,
+					type: s.type,
+					relative_x: preset_data.relative_x,
+					preset_width: preset_data.width,
+					bit_width,
+					hitbox_x1,
+					hitbox_x2,
+					snapshot: s
+				});
+			}
+			*/
+						
 			let x = Math.floor( ( s.x - preset_data.relative_x + hitbox_x1 ) / 16 );
 			let x2 = Math.floor( ( s.x - preset_data.relative_x + hitbox_x2 ) / 16 );
 			let y = Math.floor( ( s.y - preset_data.relative_y + hitbox_y1 ) / 16 );
@@ -598,7 +617,12 @@ class sdPresetEditor extends sdEntity
 			for ( let xx = x; xx < x2; xx++ )
 			{
 				if ( xx >= bit_width )
+				{
+				console.log( 'hitboxes X1, X2:' + hitbox_x1 + ', '+ hitbox_x2 );
+				console.log( 'x:' + x +', x2:' + x2 );
+				console.log( 'xx:' + xx +', bit_width:' + bit_width );
 				throw new Error();
+				}
 			
 				if ( yy >= bit_height )
 				throw new Error();
