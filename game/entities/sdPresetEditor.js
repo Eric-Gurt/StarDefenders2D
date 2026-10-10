@@ -617,12 +617,7 @@ class sdPresetEditor extends sdEntity
 			for ( let xx = x; xx < x2; xx++ )
 			{
 				if ( xx >= bit_width )
-				{
-				console.log( 'hitboxes X1, X2:' + hitbox_x1 + ', '+ hitbox_x2 );
-				console.log( 'x:' + x +', x2:' + x2 );
-				console.log( 'xx:' + xx +', bit_width:' + bit_width );
 				throw new Error();
-				}
 			
 				if ( yy >= bit_height )
 				throw new Error();
