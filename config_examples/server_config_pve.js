@@ -132,7 +132,7 @@ class sdServerConfigShort
 	static player_vs_player_damage_scale = 0; // Default: 3. Multiplier for player-vs-player damage. 1 = normal damage, 0 = effectively no PvP damage, higher = deadlier PvP. Set to 0 for a soft PvE-ish server (also see GetHitAllowed for a hard block).
 	// 0 PvP damage multiplier, just in case hits are possible
 	
-	// static com_node_hack_success_rate = 0.0015; // Default: 0.0015. Chance per attempt that a Communication Node hack succeeds (0 = never, 1 = always). Lower it to make bases harder to breach via com-node hacking (anti-raid), raise for chaos.
+	 static com_node_hack_success_rate = 0; // Default: 0.0015. Chance per attempt that a Communication Node hack succeeds (0 = never, 1 = always). Lower it to make bases harder to breach via com-node hacking (anti-raid), raise for chaos.
 
 	// Hard-cancel damage between players/entities. Return false to block a hit. This is the strongest anti-grief / PvE lever. Copy the whole method to override:
 	static GetHitAllowed( bullet_or_sword, target )
