@@ -1007,6 +1007,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDoor', w:32, h:32, model: sdDoor.MODEL_FALKOK, open_type: 1, _ai_team: 1, _spawn_with_full_hp: true, _category:'Faction outpost tools' });
 			sdShop.options.push({ _class: 'sdDoor', w:8, h:32, model: sdDoor.MODEL_FALKOK, open_type: 1, _ai_team: 1, _spawn_with_full_hp: true, _category:'Faction outpost tools' });
 			sdShop.options.push({ _class: 'sdDoor', w:32, h:8, model: sdDoor.MODEL_FALKOK, open_type: 1, _ai_team: 1, _spawn_with_full_hp: true, _category:'Faction outpost tools' });
+			sdShop.options.push({ _class: 'sdTurret', kind: sdTurret.KIND_FALKOK_PORTABLE, type: 1, _ai_team: 1, _spawn_with_full_hp: true, _category:'Faction outpost tools' });
 			// Tzyrg
 			sdShop.options.push({ _class: 'sdTzyrgMortar', _spawn_with_full_hp: true, _category:'Faction outpost tools' });
 			sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _spawn_with_full_hp: true, _category:'Faction outpost tools' });
