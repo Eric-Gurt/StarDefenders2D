@@ -1088,7 +1088,7 @@ class sdTurret extends sdEntity
         if ( this.kind === sdTurret.KIND_AUTO_CABLE )
 		return 15;
 		if ( this.kind === sdTurret.KIND_FALKOK_PORTABLE )
-		return sdGun.classes[ sdGun.CLASS_F_MARKSMAN ].reload_time;
+		return sdGun.classes[ sdGun.CLASS_F_MARKSMAN ].reload_time * 1.5;
     
         if ( this.kind === sdTurret.KIND_SENTRY )
 		return 0;
