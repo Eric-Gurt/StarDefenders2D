@@ -200,6 +200,18 @@ class sdGibClass
 			blood: 1 // 1 = green blood
 			
 		};
+		sdGib.classes[ sdGib.CLASS_ERTHAL_PARTS = 13 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gibs/erthal_parts' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -4,
+			hitbox_x2: 4,
+			hitbox_y1: -4,
+			hitbox_y2: 4,
+			mass: 25,
+			health: 100,
+			blood: 1 // 1 = green blood
+			
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];

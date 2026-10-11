@@ -1826,7 +1826,7 @@ class sdWeather extends sdEntity
 					
 		if ( r === sdWeather.EVENT_ERTHALS ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 		{
-			let spider_type = Math.random() < 0.35 ? 1 : 0; // 35% chance for it to be a mini tank bot
+			let spider_type = Math.random() < 0.25 ? 2 : Math.random() < 0.4 ? 1 : 0; // 25% for it to be Erthal jumper, then 30% of it are Erthal mini tanks
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 2 ],

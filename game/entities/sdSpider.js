@@ -10,6 +10,7 @@ import sdCube from './sdCube.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
 import sdDrone from './sdDrone.js';
+import sdGib from './sdGib.js';
 
 import sdBlock from './sdBlock.js';
 
@@ -19,6 +20,9 @@ class sdSpider extends sdEntity
 	{
 		sdSpider.img_spider_anim = sdWorld.CreateImageFromFile( 'sdSpider' );
 		sdSpider.img_minitank_anim = sdWorld.CreateImageFromFile( 'sdSpider2' );
+		sdSpider.img_jumper_anim = sdWorld.CreateImageFromFile( 'sdSpider3' );
+		
+		sdSpider.img_dmr = sdWorld.CreateImageFromFile( '/guns/erthal_dmr' );
 		
 		sdSpider.frame_idle1 = 0;
 		sdSpider.frame_idle2 = 1;
@@ -38,15 +42,19 @@ class sdSpider extends sdEntity
 		
 		sdSpider.spider_counter = 0;
 		
+		sdSpider.TYPE_SPIDER_BOT = 0;
+		sdSpider.TYPE_MINI_TANK = 1;
+		sdSpider.TYPE_JUMPER = 2;
+		
 		sdSpider.ignored_classes_alive = [];
 		sdSpider.ignored_classes_dead = [ 'sdDrone', 'sdSpider' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 1 ? -8 : -13; }
-	get hitbox_x2() { return this.type === 1 ? 8 : 13; }
-	get hitbox_y1() { return this.type === 1 ? ( this.death_anim === 0 ? -10 : -6 ) : ( this.death_anim === 0 ? -6 : -2 ); }
-	get hitbox_y2() { return 4; }
+	get hitbox_x1() { return this.type === sdSpider.TYPE_JUMPER ? -9 : this.type === sdSpider.TYPE_MINI_TANK ? -8 : -13; }
+	get hitbox_x2() { return this.type === sdSpider.TYPE_JUMPER ? 9 : this.type === sdSpider.TYPE_MINI_TANK ? 8 : 13; }
+	get hitbox_y1() { return this.type === sdSpider.TYPE_JUMPER ? -10 : this.type === sdSpider.TYPE_MINI_TANK ? ( this.death_anim === 0 ? -10 : -6 ) : ( this.death_anim === 0 ? -6 : -2 ); }
+	get hitbox_y2() { return this.type === sdSpider.TYPE_JUMPER ? 10 : 4; }
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -67,7 +75,7 @@ class sdSpider extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === 1 ? 500 : 300;
+		this._hmax = this.type === sdSpider.TYPE_MINI_TANK ? 450 : 300;
 		this._hea = this._hmax;
 		this._ai_team = 2;
 
@@ -92,7 +100,7 @@ class sdSpider extends sdEntity
 		//this._last_stand_on = null;
 		this._last_jump = 0;
 		this._attack_in = 0;
-		this._burst_shots = 3;
+		this._burst_shots = this.type === sdSpider.TYPE_JUMPER ? 2 : 3;
 		//this.bites = false;
 		//this.jumps = false;
 
@@ -192,6 +200,32 @@ class sdSpider extends sdEntity
 			sdSpider.StartErthalDrop( this, 1 );
 			
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
+			
+			if ( this.type === sdSpider.TYPE_JUMPER ) // Jumpers just get gibbed
+			{
+				sdWorld.SpawnGib( this.x, this.y + 9, this.sx - this.side + Math.random() - Math.random() * 2, this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this );
+				sdWorld.SpawnGib( this.x, this.y + 9, this.sx - this.side + Math.random() - Math.random() * 2, this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this );
+				sdWorld.SpawnGib( this.x + ( this.side * 2 ), this.y - 3, this.sx + this.side, this.sy - ( 1.5 + Math.random() * 2 ), this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 1 );
+				
+				this.remove();
+			}
+			else
+			if ( dmg >= this._hmax * 0.5 ) // Overkill damage? Gib the Erthal a little
+			{
+				if ( this.type === sdSpider.TYPE_SPIDER_BOT )
+				{
+					sdWorld.SpawnGib( this.x, this.y, this.sx - this.side, this.sy - ( 1.5 + Math.random() * 2 ), this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 2 );
+					sdWorld.SpawnGib( this.x - ( this.side * 8 ), this.y + 2, this.sx - this.side - Math.random(), this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 3 );
+					sdWorld.SpawnGib( this.x + ( this.side * 12 ), this.y + 2, this.sx - this.side, this.sy , this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 4 );
+				}
+				if ( this.type === sdSpider.TYPE_MINI_TANK )
+				{
+					sdWorld.SpawnGib( this.x, this.y - 6, this.sx - this.side, this.sy - ( 1.5 + Math.random() * 2 ), this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 2 );
+					sdWorld.SpawnGib( this.x, this.y + Math.random() * 2, this.sx - this.side, this.sy , this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 4 );
+					sdWorld.SpawnGib( this.x, this.y - 2, this.sx - this.side, this.sy , -this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 4 );
+				}
+				this.remove();
+			}
 		}
 		else
 		if ( this._hea > 0 )
@@ -224,6 +258,9 @@ class sdSpider extends sdEntity
 				let gun;
 				
 				let gun_class = sdGun.CLASS_ERTHAL_PLASMA_PISTOL;
+				if ( random_value < ( 0.15 * luck_scale * 0.1 ) )
+				gun_class = sdGun.CLASS_ERTHAL_DMR;
+				else
 				if ( random_value < ( 0.15 * luck_scale * 0.25 ) )
 				gun_class = sdGun.CLASS_ERTHAL_ENERGY_CELL;
 				else
@@ -240,7 +277,7 @@ class sdSpider extends sdEntity
 		}, 500 );
 	}
 	
-	get mass() { return this.type === 1 ? 200 : 80; }
+	get mass() { return this.type === sdSpider.TYPE_MINI_TANK ? 200 : 80; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -314,10 +351,17 @@ class sdSpider extends sdEntity
 								let di = sdWorld.Dist2D_Vector( dx, dy );
 							
 								if ( dx > 0 )
-								dx = this.type === 1 ? 0.5 : 1;
+								dx = this.type === sdSpider.TYPE_JUMPER ? 3.5 : this.type === sdSpider.TYPE_MINI_TANK ? 0.5 : 1;
 								else
-								dx = this.type === 1 ? -0.5 : -1;
+								dx = this.type === sdSpider.TYPE_JUMPER ? -3.5 : this.type === sdSpider.TYPE_MINI_TANK ? -0.5 : -1;
 							
+								if ( this.type === sdSpider.TYPE_JUMPER )
+								{
+									if ( Math.random() < 0.125 ) // No need for it to jump constantly
+									this.sy = -6 - ( Math.random() * 4 );
+									else
+									dx = 0;
+								}
 								if ( di > 300 )
 								{
 								}
@@ -431,8 +475,8 @@ class sdSpider extends sdEntity
 			let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 			let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-			this.look_x = xx + ( from_entity.sx || 0 ) * 15;
-			this.look_y = yy + ( from_entity.sy || 0 ) * 15;
+			this.look_x = xx + ( from_entity.sx || 0 ) * ( this.type === sdSpider.TYPE_JUMPER ? 1 : 15 );
+			this.look_y = yy + ( from_entity.sy || 0 ) * ( this.type === sdSpider.TYPE_JUMPER ? 1 : 15 );
 
 			if ( this.death_anim === 0 )
 			//if ( this._current_target )
@@ -441,84 +485,135 @@ class sdSpider extends sdEntity
 				this._last_attack = sdWorld.time;
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, from_entity.x, from_entity.y, 410 ) )
 				{
-
-					let bullet_obj = new sdBullet({ x: this.x - this.side * 3, y: this.y - 8 });
-
-					bullet_obj._owner = this;
-
-					let dx = this.side;
-					let dy = -3;
-
-					let di = sdWorld.Dist2D_Vector( dx, dy ) * ( 0.75 + Math.random() * 0.5 );
-					dx /= di;
-					dy /= di;
-
-					bullet_obj.sx = dx * 10;
-					bullet_obj.sy = dy * 10;
-
-					bullet_obj._damage = 0.0001; // To allow ._custom_target_reaction calls
-					bullet_obj._homing = true;
-					bullet_obj._homing_mult = 0.01; // increases missiles travel speed when higher
-					bullet_obj.ac = 0.11; // increases missile travel speed but also offsets tracking accuracy when higher?
-					
-					if ( this.HasMercyFor( from_entity ) )
+					if ( this.type !== sdSpider.TYPE_JUMPER )
 					{
-						bullet_obj.explosion_radius = 6; // 16 is hard for new players, but too low damage is not challenging
+						let bullet_obj = new sdBullet({ x: this.x - this.side * 3, y: this.y - 8 });
+
+						bullet_obj._owner = this;
+
+						let dx = this.side;
+						let dy = -3;
+
+						let di = sdWorld.Dist2D_Vector( dx, dy ) * ( 0.75 + Math.random() * 0.5 );
+						dx /= di;
+						dy /= di;
+
+						bullet_obj.sx = dx * 10;
+						bullet_obj.sy = dy * 10;
+
+						bullet_obj._damage = 0.0001; // To allow ._custom_target_reaction calls
+						bullet_obj._homing = true;
+						bullet_obj._homing_mult = 0.01; // increases missiles travel speed when higher
+						bullet_obj.ac = 0.11; // increases missile travel speed but also offsets tracking accuracy when higher?
 						
-						if ( this._burst_shots > 1 )
-						this._burst_shots = 1;
-
-						bullet_obj.model = 'mini_rocket_green';
-						bullet_obj.color = '#66ff66';
-					}
-					else
-					{
-						bullet_obj.explosion_radius = 12; // 16 is hard for new players, but too low damage is not challenging
-
-						bullet_obj.model = 'mini_rocket';
-						bullet_obj.color = '#00aaff';
-					}
-
-					bullet_obj.time_left = 60;
-					
-					//this._high_fire_rate = 90;
-					
-					bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
-					{
-						if ( target_entity === from_entity )
+						if ( this.HasMercyFor( from_entity ) )
 						{
-							this._high_fire_rate = 180;
-							if ( this._attack_in > 90 )
-							this._attack_in = 45;
-						
+							bullet_obj.explosion_radius = 6; // 16 is hard for new players, but too low damage is not challenging
 							
-							if ( sdWorld.time > this._last_celebrate + 60000 )
-							{
-								this._last_celebrate = sdWorld.time;
-								sdSound.PlaySound({ name:'spider_celebrateC', x:this.x, y:this.y, volume:1 });
-							}
+							if ( this._burst_shots > 1 )
+							this._burst_shots = 1;
+
+							bullet_obj.model = 'mini_rocket_green';
+							bullet_obj.color = '#66ff66';
 						}
-					};
+						else
+						{
+							bullet_obj.explosion_radius = 12; // 16 is hard for new players, but too low damage is not challenging
 
-					//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.2, pitch:2 });
-					sdSound.PlaySound({ name:'spider_attackC', x:this.x, y:this.y, volume:1 });
+							bullet_obj.model = 'mini_rocket';
+							bullet_obj.color = '#00aaff';
+						}
 
-					this.attack_anim = 10;
+						bullet_obj.time_left = 60;
+						
+						//this._high_fire_rate = 90;
+						
+						bullet_obj._custom_target_reaction = ( bullet, target_entity )=>
+						{
+							if ( target_entity === from_entity )
+							{
+								this._high_fire_rate = 180;
+								if ( this._attack_in > 90 )
+								this._attack_in = 45;
+							
+								
+								if ( sdWorld.time > this._last_celebrate + 60000 )
+								{
+									this._last_celebrate = sdWorld.time;
+									sdSound.PlaySound({ name:'spider_celebrateC', x:this.x, y:this.y, volume:1 });
+								}
+							}
+						};
 
-					sdEntity.AddEntityToEntitiesArray( bullet_obj );
-					
-					
-					this._burst_shots--;
-					
-					if ( this._high_fire_rate > 0 )
-					this._attack_in = ( ( this._burst_shots > 0 ) ? 100 : ( 1000 + Math.random() * 2000 ) ) / 1000 * 30;
+						//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.2, pitch:2 });
+						sdSound.PlaySound({ name:'spider_attackC', x:this.x, y:this.y, volume:1 });
+
+						this.attack_anim = 10;
+
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
+						
+						
+						this._burst_shots--;
+						
+						if ( this._high_fire_rate > 0 )
+						this._attack_in = ( ( this._burst_shots > 0 ) ? 100 : ( 1000 + Math.random() * 2000 ) ) / 1000 * 30;
+						else
+						{
+							this._attack_in = ( 5000 + Math.random() * 10000 ) / 1000 * 60;
+						}
+
+						if ( this._burst_shots <= 0 )
+						this._burst_shots = 3;
+					}
 					else
 					{
-						this._attack_in = ( 5000 + Math.random() * 10000 ) / 1000 * 60;
-					}
+						let an = Math.atan2( yy - this.y - 8, xx - this.x );
+						let dx = Math.cos( an );
+						let dy = Math.sin( an );
 
-					if ( this._burst_shots <= 0 )
-					this._burst_shots = 3;
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+
+						//dx += ( from_entity.sx || 0 ) * di / 12;
+						//dy += ( from_entity.sy || 0 ) * di / 12;
+
+						di = sdWorld.Dist2D_Vector( dx, dy );
+
+						if ( di > 1 )
+						{
+							dx /= di;
+							dy /= di;
+						}
+						// Jumper has DMR which fires a 2 round burst almost instantly.
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y - 9 });
+
+						bullet_obj._owner = this;
+
+						bullet_obj.sx = dx;
+						bullet_obj.sy = dy;
+						bullet_obj.x += bullet_obj.sx * 6;
+						bullet_obj.y += bullet_obj.sy * 6;
+						bullet_obj.sx = bullet_obj.sx * 24;
+						bullet_obj.sy = bullet_obj.sy * 24;
+						bullet_obj.color = '#00aaff';
+						bullet_obj._damage = 45;
+						
+						sdEntity.AddEntityToEntitiesArray( bullet_obj );
+						
+						this._burst_shots--;
+
+						this._attack_in = 1;
+						
+						sdSound.PlaySound({ name:'spider_deathC3', pitch:0.35, volume:1.5, x:this.x, y:this.y, volume:1 });
+
+						this.attack_anim = 10;
+
+						if ( this._burst_shots <= 0 )
+						{
+							this._burst_shots = 2;
+							this._attack_in = 40;
+						}
+						
+					}
 				}
 			}
         }
@@ -531,10 +626,12 @@ class sdSpider extends sdEntity
 	{
 		if ( this.death_anim === 0 )
 		{
-			if ( this.type === 0 )
+			if ( this.type === sdSpider.TYPE_SPIDER_BOT )
 			sdEntity.Tooltip( ctx, 'Erthal Spider Bot' );
-			if ( this.type === 1 )
+			if ( this.type === sdSpider.TYPE_MINI_TANK )
 			sdEntity.Tooltip( ctx, 'Erthal Mini-tank Bot' );
+			if ( this.type === sdSpider.TYPE_JUMPER )
+			sdEntity.Tooltip( ctx, 'Erthal Jumper Bot' );
 		}
 	}
 	Draw( ctx, attached )
@@ -546,56 +643,95 @@ class sdSpider extends sdEntity
 		
 		ctx.scale( this.side, 1 );
 		
-		var frame = sdSpider.frame_idle;
+		var frame = sdSpider.frame_idle1;
 		
-		if ( this.death_anim > 0 )
+		if ( this.type !== sdSpider.TYPE_JUMPER )
 		{
-			if ( this.death_anim > sdSpider.death_duration + sdSpider.post_death_ttl - 30 )
+			if ( this.death_anim > 0 )
 			{
-				ctx.globalAlpha = 0.5;
+				if ( this.death_anim > sdSpider.death_duration + sdSpider.post_death_ttl - 30 )
+				{
+					ctx.globalAlpha = 0.5;
+				}
+				
+				frame = sdSpider.frame_death + Math.min( sdSpider.frame_death_frames - 1, ~~( ( this.death_anim / sdSpider.death_duration ) * sdSpider.frame_death_frames ) );
+				//ctx.drawImageFilterCache( sdSpider.death_imgs[ frame ], - 16, - 16, 32,32 );
 			}
+			else
+			{
+				if ( this.hurt_anim > 0 )
+				frame = sdSpider.frame_hurt;
+				else
+				if ( this.attack_anim > 0 )
+				frame = sdSpider.frame_attack;
+				else
+				if ( Math.abs( this.sx ) > 0.5 )
+				{
+					/*if ( sdWorld.time % 500 < 250 )
+					frame = sdSpider.frame_walk1;
+					else
+					frame = sdSpider.frame_walk2;*/
+					if ( sdWorld.time % 500 < 500 / 4 )
+					frame = sdSpider.frame_walk1;
+					else
+					if ( sdWorld.time % 500 < 500 / 4 * 2 )
+					frame = sdSpider.frame_idle2;
+					else
+					if ( sdWorld.time % 500 < 500 / 4 * 3 )
+					frame = sdSpider.frame_walk2;
+					else
+					frame = sdSpider.frame_idle2;
+				}
+				else
+				{
+					if ( sdWorld.time % 2000 < 1000 )
+					frame = sdSpider.frame_idle1;
+					else
+					frame = sdSpider.frame_idle2;
+				}
+			}
+			if ( this.type === sdSpider.TYPE_SPIDER_BOT )
+			ctx.drawImageFilterCache( sdSpider.img_spider_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
+			if ( this.type === sdSpider.TYPE_MINI_TANK )
+			ctx.drawImageFilterCache( sdSpider.img_minitank_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
 			
-			frame = sdSpider.frame_death + Math.min( sdSpider.frame_death_frames - 1, ~~( ( this.death_anim / sdSpider.death_duration ) * sdSpider.frame_death_frames ) );
-			//ctx.drawImageFilterCache( sdSpider.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		{
+			if ( this.CanMoveWithoutOverlap( this.x, this.y, -3 ) ) 
+			frame += 2;
+			else
+			if ( Math.abs( this.sx ) > 0.25 )
+				{
+					if ( sdWorld.time % 100 < 500 )
+					frame++;
+				}
+			// Erthal jumper has different animation set
 			if ( this.hurt_anim > 0 )
-			frame = sdSpider.frame_hurt;
+			frame += 6;
 			else
 			if ( this.attack_anim > 0 )
-			frame = sdSpider.frame_attack;
-			else
-			if ( Math.abs( this.sx ) > 0.5 )
-			{
-				/*if ( sdWorld.time % 500 < 250 )
-				frame = sdSpider.frame_walk1;
-				else
-				frame = sdSpider.frame_walk2;*/
-				if ( sdWorld.time % 500 < 500 / 4 )
-				frame = sdSpider.frame_walk1;
-				else
-				if ( sdWorld.time % 500 < 500 / 4 * 2 )
-				frame = sdSpider.frame_idle2;
-				else
-				if ( sdWorld.time % 500 < 500 / 4 * 3 )
-				frame = sdSpider.frame_walk2;
-				else
-				frame = sdSpider.frame_idle2;
-			}
-			else
-			{
-				if ( sdWorld.time % 2000 < 1000 )
-				frame = sdSpider.frame_idle1;
-				else
-				frame = sdSpider.frame_idle2;
-			}
-		}
-		if ( this.type === 0 )
-		ctx.drawImageFilterCache( sdSpider.img_spider_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
-		if ( this.type === 1 )
-		ctx.drawImageFilterCache( sdSpider.img_minitank_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
+			frame += 3;
 		
+			ctx.drawImageFilterCache( sdSpider.img_jumper_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
+			
+			// DMR itself
+			ctx.save();
+			
+			if ( frame % 3 === 2 ) // Jump anim?
+			ctx.translate( 6, -10 );
+			else
+			ctx.translate( 0, -9 );
+		
+			let dx = this.look_x - ( frame % 3 === 2 ? this.x + ( this.side * 6 ) : this.x );
+			let dy = this.look_y - ( frame % 3 === 2 ? this.y -10 : this.y - 9 );
+			
+			ctx.rotate( Math.atan2( dy, Math.abs( dx ) ) );
+			frame = this.attack_anim > 0 ? 1 : 0;
+			ctx.drawImageFilterCache( sdSpider.img_dmr, frame*32,0,32,32, - 16, - 16, 32,32 );
+		
+			ctx.restore();
+		}
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';
 	}

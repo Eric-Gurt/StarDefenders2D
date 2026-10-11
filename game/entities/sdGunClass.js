@@ -9544,7 +9544,8 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_ERTHAL_DMR = 135 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'erthal_dmr' ), // Sprite by Flora / Gravel
+			image: sdWorld.CreateImageFromFile( '/guns/erthal_dmr' ), // Sprite by Flora / Gravel
+			spritesheet:true,
 			sound: 'spider_deathC3',
 			sound_pitch: 0.35,
 			sound_volume: 1.5,

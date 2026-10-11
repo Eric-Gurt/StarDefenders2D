@@ -917,6 +917,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSpider', _ai_team: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSpider', type: 1, _ai_team: 2, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdSpider', type: 2, _ai_team: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdPlayerDrone', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdObelisk', type: 2, _category:'Development tests' });
