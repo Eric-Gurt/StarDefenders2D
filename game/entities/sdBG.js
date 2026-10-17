@@ -107,7 +107,10 @@ class sdBG extends sdEntity
 		}
 		
 		if ( sdWorld.server_config.enable_background_merging )
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		{
+			this._attempted_merge = false; // Allow merge attempt after taking damage
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
 	}
 	onSnapshotApplied() // To override
 	{
@@ -137,7 +140,9 @@ class sdBG extends sdEntity
 		this._hea = 200 * ( this.width / 32 * this.height / 32 );
 		
 		this._regen_timeout = 60; // Used for merging backgrounds.
+		
 		this._merged = false;
+		this._attempted_merge = false; // Attempted merge previously? Prevents unhibernating by server config setting
 		// Same name as health regen variable in case we someday introduce health regen to backgrounds?
 		
 		this.hue = params.hue || 0;
@@ -341,6 +346,8 @@ class sdBG extends sdEntity
 	}
 	AttemptBackgroundMerging()
 	{
+		this._attempted_merge = true; // Prevents unhibernating by server config loop and by onSnapshotApplied()
+		
 		if ( this._merged )
 		return false;
 	

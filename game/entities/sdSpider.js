@@ -203,8 +203,8 @@ class sdSpider extends sdEntity
 			
 			if ( this.type === sdSpider.TYPE_JUMPER ) // Jumpers just get gibbed
 			{
-				sdWorld.SpawnGib( this.x, this.y + 9, this.sx - this.side + Math.random() - Math.random() * 2, this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this );
-				sdWorld.SpawnGib( this.x, this.y + 9, this.sx - this.side + Math.random() - Math.random() * 2, this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this );
+				sdWorld.SpawnGib( this.x, this.y + 6, this.sx - this.side + Math.random() - Math.random() * 2, this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this );
+				sdWorld.SpawnGib( this.x, this.y + 6, this.sx - this.side + Math.random() - Math.random() * 2, this.sy, this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this );
 				sdWorld.SpawnGib( this.x + ( this.side * 2 ), this.y - 3, this.sx + this.side, this.sy - ( 1.5 + Math.random() * 2 ), this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 1 );
 				
 				this.remove();
@@ -220,9 +220,9 @@ class sdSpider extends sdEntity
 				}
 				if ( this.type === sdSpider.TYPE_MINI_TANK )
 				{
-					sdWorld.SpawnGib( this.x, this.y - 6, this.sx - this.side, this.sy - ( 1.5 + Math.random() * 2 ), this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 2 );
+					sdWorld.SpawnGib( this.x, this.y - 8, this.sx - this.side, this.sy - ( 1.5 + Math.random() * 2 ), this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 2 );
 					sdWorld.SpawnGib( this.x, this.y + Math.random() * 2, this.sx - this.side, this.sy , this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 4 );
-					sdWorld.SpawnGib( this.x, this.y - 2, this.sx - this.side, this.sy , -this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 4 );
+					sdWorld.SpawnGib( this.x, this.y - 3, this.sx - this.side, this.sy , -this.side, sdGib.CLASS_ERTHAL_PARTS ,'', 'hue-rotate(100deg)', 100, this, 4 );
 				}
 				this.remove();
 			}

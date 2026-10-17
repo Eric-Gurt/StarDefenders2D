@@ -1565,7 +1565,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				if ( ent.is( sdBlock ) )
 				{
 					//console.log( i +',' +  sdEntity.entities.length );
-					if ( ent._merged === false && ent.SupportsMerging() )
+					if ( ent._merged === false && ent.SupportsMerging() && !ent._attempted_merge ) // Do not unhibernate/reattempt merging for blocks which weren't successful earlier
 					{
 						ent._hea = ent._hmax - 0.1;
 						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this
@@ -1602,7 +1602,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				if ( ent.is( sdBG ) )
 				{
 					//console.log( i +',' +  sdEntity.entities.length );
-					if ( ent._merged === false && ent.SupportsMerging() )
+					if ( ent._merged === false && ent.SupportsMerging() && !ent._attempted_merge ) // Do not unhibernate/reattempt merging for backgrounds which weren't successful earlier
 					{
 						ent._regen_timeout = 1;
 						ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attempt merge without this

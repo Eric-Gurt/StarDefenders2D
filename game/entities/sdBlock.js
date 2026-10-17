@@ -414,6 +414,7 @@ class sdBlock extends sdEntity
 			// TODO: Deal damage to the block closest to initiator after unmerging
 		}
 
+		
 		// Uses health scale instead now
 		if ( affects_armor )
 		dmg = Math.abs( dmg / ( 1 + this._reinforced_level ) ); // Reinforced blocks have damage reduction
@@ -865,7 +866,7 @@ class sdBlock extends sdEntity
 				}
 			}
 		}
-		
+		this._attempted_merge = false; // Allow merge attempt after taking damage
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	onSnapshotApplied() // To override
@@ -885,7 +886,7 @@ class sdBlock extends sdEntity
 			if ( sdWorld.server_config.enable_block_merging )
 			{
 				if ( this._hea === this._hmax )
-				if ( this._merged === false && this.SupportsMerging() ) // SupportsMerging does not work in constructor
+				if ( this._merged === false && this.SupportsMerging() && !this._attempted_merge ) // SupportsMerging does not work in constructor
 				{
 					this._hea = this._hmax - 0.1;
 					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Does not attmpt merge without this
@@ -986,6 +987,7 @@ class sdBlock extends sdEntity
 		this._next_spread = -1; // Only used by Corruption
 		
 		this._merged = false; // Has this block merged with any other blocks?
+		this._attempted_merge = false; // Attempted merge previously?
 
 		this._ai_team === params._ai_team || 0; // For faction outposts, so AI doesn't attack their own bases
 		
@@ -1484,6 +1486,8 @@ class sdBlock extends sdEntity
 	}
 	AttemptBlockMerging()
 	{
+		this._attempted_merge = true; // Prevents unhibernating by server config loop and by onSnapshotApplied()
+		
 		if ( this._merged )
 		return false;
 	
