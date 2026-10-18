@@ -3595,22 +3595,21 @@ class sdGunClass
 			image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			has_images: true,*/
-			sound: 'gun_railgun_malicestorm_terrorphaser4',
+			sound: 'gun_railgun_malicestorm_terrorphaser5',
 			title: 'KVT Railcannon P03 "Stormbringer"',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8,
             reload_time: 5,
-			burst: 3,
-			burst_reload: 60,
             muzzle_x: null,
-            ammo_capacity: -1,
+            ammo_capacity: 10,
             count: 1,
+			recoil_scale: 2, // This gun NEEDS more recoil since it's just a slot 4 masquerading as a slot 8, while reaping all the slot 8 benefits - Booraz
 			spawnable: false,
-            projectile_properties: { _rail: true, _damage: 76, color: '#62c8f2', explosion_radius: 10, _no_explosion_smoke: true },
+            projectile_properties: { _rail: true, _damage: 35, color: '#62c8f2', explosion_radius: 6, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 10, _no_explosion_smoke: true };
+				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 6, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
@@ -3636,7 +3635,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 76 // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 35; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -4140,7 +4139,7 @@ class sdGunClass
 			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
 			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
-			reload_time: 8.5,
+			reload_time: 11.5,
 			muzzle_x: 8,
 			ammo_capacity: 8,
 			spread: 0.01,
@@ -5945,17 +5944,17 @@ class sdGunClass
 			sound_volume: 1.5,
 			title: 'Setr Plasma Shotgun',
 			slot: 3,
-			reload_time: 23,
+			reload_time: 32,
 			muzzle_x: 7,
 			ammo_capacity: 10,
 			count: 4,
 			spread: 0.18,
 			spawnable: false,
 			projectile_velocity: 16,
-			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true },
+			projectile_properties: { explosion_radius: 6, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 7, model: 'ball', color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true };
+				let obj = { explosion_radius: 6, model: 'ball', color:'#0000c8', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
@@ -7400,6 +7399,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 3,
 			spawnable: false,
+			recoil_scale: 0.4, // This gun needs less recoil, goes up too much - Booraz
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -7408,7 +7408,7 @@ class sdGunClass
 				if ( gun._held_by.auto_shoot_in > 0 )
 				return 0;
 				
-				return 5.5;
+				return 4;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -7419,7 +7419,7 @@ class sdGunClass
 					{
 						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by.auto_shoot_in = 1700 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by.auto_shoot_in = 1200 / 1000 * 30 / ( 1 + gun._combo / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -7432,19 +7432,19 @@ class sdGunClass
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
 					sdSound.PlaySound({ name: 'alien_laser1', x:gun.x, y:gun.y, volume: 0.7, pitch: 1.42 });
 					
-					if ( gun._held_by.matter >= 6 )
+					if ( gun._held_by.matter >= 4 )
 					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
-						gun._held_by.matter -= 6;
+						gun._held_by.matter -= 4;
 						gun._combo_timer = 75;
-						if ( gun._combo < 75 )
+						if ( gun._combo < 60 )
 						gun._combo += 3; // Speed up rate of fire, the longer it shoots
 					}
 				}
 				return true;
 			},
-			projectile_properties: { _rail: true, _damage: 39 / 3, color: '#cd1e1e', _dirt_mult: -0.2, _temperature_addition: 120 / 3 }, // Combined with fire rate
+			projectile_properties: { _rail: true, _damage: 33 / 3, color: '#cd1e1e', _dirt_mult: -0.2, _temperature_addition: 120 / 3 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _rail: true, color: '#cd1e1e', _dirt_mult: -0.2, _temperature_addition: 120 / 3 };
@@ -7468,10 +7468,10 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
 					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
-					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 34.5 / 3; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 33 / 3; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					gun.extra[ sdGun.ID_TEMPERATURE_APPLIED ] = 120 / 3;
 					//UpdateCusomizableGunProperties( gun );
-					gun._max_dps = ( 30 / ( 5 / ( 1 + (75 / 40 ) ) ) ) * gun.extra[ sdGun.ID_DAMAGE_VALUE ] * 3; // Copied from _auto_shoot then multiplied with damage value and bullet count.
+					gun._max_dps = ( 30 / ( 5 / ( 1 + ( 60 / 40 ) ) ) ) * gun.extra[ sdGun.ID_DAMAGE_VALUE ] * 3; // Copied from _auto_shoot then multiplied with damage value and bullet count.
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
@@ -9463,7 +9463,7 @@ class sdGunClass
 			projectile_properties: { _damage: 1 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 7, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
+				let obj = { explosion_radius: 5, model: 'ball', color:'#00ffff', _dirt_mult: 1, _no_explosion_smoke: true };
 				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
@@ -10086,10 +10086,10 @@ class sdGunClass
 				return 0;
 				
 				if ( gun.fire_mode === 1 )
-				return 250;
+				return 300;
 			
 				if ( gun.fire_mode === 2 )
-				return 500; 
+				return 600; 
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -11065,11 +11065,12 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 16,
             spawnable: false,
-			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade3', _damage: 20 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,affected_by_gravity: true },
+			projectile_properties: { explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', _damage: 22 * 2, color:sdEffect.default_explosion_color, is_grenade: false, _dirt_mult: 2,affected_by_gravity: true },
 			projectile_properties_dynamic: ( gun ) => { 
 				let obj = 
                 {
-                    explosion_radius: 13, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, affected_by_gravity: true, _custom_detonation_logic:( bullet )=>
+                    explosion_radius: 20, time_left: 30 * 3, model: 'grenade3', color:sdEffect.default_explosion_color, is_grenade: gun.fire_mode === 2, _dirt_mult: 2, affected_by_gravity: true
+					/*, _custom_detonation_logic:( bullet )=>
 					{
                         const initial_rand = Math.random() * Math.PI * 2;
                         const count = 6;
@@ -11103,6 +11104,8 @@ class sdGunClass
                             sdEntity.AddEntityToEntitiesArray( bullet_obj );
                         }
 					}
+					*/
+					// The explosion already exists and the logic explosions use, have invisible bullets, this just messes with the DPS formula - Booraz
                 };
 				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
@@ -11391,7 +11394,7 @@ class sdGunClass
 					//gun.extra[ sdGun.ID_SLOT ] = 1;
 					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 120; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
-					gun._max_dps = 235; // Realistic damage per bullet is 235 on normal fire mode + fire.
+					//gun._max_dps = 235; // Realistic damage per bullet is 235 on normal fire mode + fire.
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost

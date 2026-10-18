@@ -319,16 +319,16 @@ class sdDropPod extends sdEntity
 			if ( Math.random() < 0.4 ) // Random power weapon given to Star Defenders, 40% chance
 			{
 				let rng = Math.random(); // Value between 0 and 1 at the moment.
-				if ( rng < 0.3 ) // 30%
+				if ( rng < 0.40 ) // 40%
 				{
 					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_AVRS }) );
 				}
 				else
-				if ( rng < 0.55 ) // 25%
+				if ( rng < 0.65 ) // 25%
 				{
 					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_RAILCANNON }) );
 				}
-				else // 45%
+				else // 35%
 				{
 					sdEntity.AddEntityToEntitiesArray( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_KVT_MMG }) );
 				}

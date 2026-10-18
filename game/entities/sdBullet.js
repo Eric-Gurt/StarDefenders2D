@@ -209,6 +209,27 @@ class sdBullet extends sdEntity
 			//this._client_side_hide_until = sdWorld.time + 100;
 		}
 	}
+	static CalculateAverageExplosionDamage( radius = 6, damage_scale = 1 )
+	{
+		// Just calculates total explosion damage of an explosion, used in DPS calculation for weapons with explosions.
+		// Most parameters taken from sdWorld.SendEffect's explosion properties. So if that changes, this should also be manually changed too - Booraz149
+		let initial_rand = Math.random() * Math.PI * 2;
+		let steps = Math.min( 50, Math.max( 16, radius / 70 * 50 ) );
+		let an;
+		
+		let dmg = 0;
+			
+		if ( damage_scale === 0 )
+		steps = 0;
+			
+		for ( let s = 0; s < steps; s++ )
+		{
+			an = s / steps * Math.PI * 2;
+				
+			dmg += 140 * ( damage_scale || 1 ) * ( radius / 19 ) / steps;
+		}
+		return dmg / 2; // On average, it seems a maximum of half the explosion "bullets" can hit a single target.
+	}
 	SpawnFlareSquad()
 	{
 		// Spawn a faction near the flare, depending on "damage" value to determine which faction.
@@ -585,19 +606,23 @@ class sdBullet extends sdEntity
 		}
 
 		if ( this.explosion_radius > 0 )
-		sdWorld.SendEffect({
-			x:this.x,
-			y:this.y,
-			radius:this.explosion_radius,
-			//damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ),
-			damage_scale: 2 * this._explosion_mult,
-			type:sdEffect.TYPE_EXPLOSION,
-			armor_penetration_level: this._armor_penetration_level,
-			owner:this._owner,
-			color:this.color,
-			no_smoke:this._no_explosion_smoke,
-			shrapnel: this._explosion_shrapnel
-		});
+		{
+			sdWorld.SendEffect({
+				x:this.x,
+				y:this.y,
+				radius:this.explosion_radius,
+				//damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ),
+				damage_scale: 2 * this._explosion_mult,
+				type:sdEffect.TYPE_EXPLOSION,
+				armor_penetration_level: this._armor_penetration_level,
+				owner:this._owner,
+				color:this.color,
+				no_smoke:this._no_explosion_smoke,
+				shrapnel: this._explosion_shrapnel
+			});
+			
+			//console.log( 'Explosion damage:' + sdBullet.CalculateAverageExplosionDamage( this.explosion_radius, 2 * this._explosion_mult ) );
+		}
 		
 		if ( this.model === 'flare' )
 		sdWorld.SendEffect({

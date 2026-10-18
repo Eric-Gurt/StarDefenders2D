@@ -162,6 +162,10 @@ class sdWeaponMerger extends sdEntity
 			let mult = 1;
 			if ( this.item1.class === sdGun.CLASS_UNSTABLE_CORE ) // Adjust multiplier/power depending on weapon slot
 			{
+				if ( this.item0.GetSlot() === 8 )
+				mult = 1.2; // 540 DPS at max power core
+				if ( this.item0.GetSlot() === 5 )
+				mult = 1.1; // 495 DPS at max power core
 				if ( this.item0.GetSlot() === 4 )
 				mult = 0.8; // 360 max DPS at max power cores.
 				if ( this.item0.GetSlot() === 3 )
@@ -170,8 +174,8 @@ class sdWeaponMerger extends sdEntity
 				mult = 0.5; // 225 max DPS at max power cores
 			
 				
-				console.log( sdGun.classes[ this.item0.class ].slot );
-				console.log( mult);
+				//console.log( sdGun.classes[ this.item0.class ].slot );
+				//console.log( mult );
 				// Unstable core + unstable core scenario
 				// Take stronger core's power and add 15% value of the weaker, capping at 450 power
 				if ( this.item0.class === sdGun.CLASS_UNSTABLE_CORE )
@@ -199,8 +203,16 @@ class sdWeaponMerger extends sdEntity
 				this.item0._max_dps = ( this.item0._max_dps / this.item0.extra[ 21 ] ); // Reset DPS
 				this.item0.extra[ 21 ] = 1;
 				
-				if ( this.item0._max_dps * dps_proportions > ( 450 * 0.95 ) )
-				dps_proportions = ( 450 * 0.95 ) / this.item0._max_dps;
+				if ( this.item0.GetSlot() === 1 || this.item0.GetSlot() === 2 || this.item0.GetSlot() === 3 || this.item0.GetSlot() === 4 ) // Cap for these exists still just in case
+				{
+					if ( this.item0._max_dps * dps_proportions > ( 450 * 0.95 ) )
+					dps_proportions = ( 450 * 0.95 ) / this.item0._max_dps;
+				}
+				else // Slot 8 and 5, capped to 95% of 540 since that's current max value for unstable cores
+				{
+					if ( this.item0._max_dps * dps_proportions > ( 540 * 0.95 ) )
+					dps_proportions = ( 540 * 0.95 ) / this.item0._max_dps;
+				}
 			
 				this.item0.extra[ 21 ] *= dps_proportions; // So we can apply the right weapon's DPS to the left one
 				this.item0._max_dps *= dps_proportions; // Even out max DPS
@@ -248,10 +260,11 @@ class sdWeaponMerger extends sdEntity
 		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE )
 		return true;
 	
-		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 5 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 || weapon.GetSlot() === 8 ) // Exclude these slots at the moment
+		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 ) // Exclude these slots at the moment
 		return false;
 		
-		if ( weapon.class === sdGun.CLASS_SETR_REPULSOR || weapon.class === sdGun.CLASS_CUSTOM_RIFLE || weapon.class === sdGun.CLASS_LIGHT_CANNON || weapon.class === sdGun.CLASS_PISTOL || weapon.class === sdGun.CLASS_ELECTROSHOCK ) // Disabled guns due to balance reasons
+		if ( weapon.class === sdGun.CLASS_SETR_REPULSOR || weapon.class === sdGun.CLASS_CUSTOM_RIFLE || weapon.class === sdGun.CLASS_LIGHT_CANNON || weapon.class === sdGun.CLASS_PISTOL || weapon.class === sdGun.CLASS_ELECTROSHOCK
+			|| weapon.class === sdGun.CLASS_DRAIN_RIFLE || weapon.class === sdGun.CLASS_DRAIN_SHOTGUN || weapon.class === sdGun.CLASS_DRAIN_SNIPER  || weapon.class === sdGun.CLASS_STALKER_CANNON ) // Disabled guns due to balance reasons
 		return false;
 		
 		if ( weapon._max_dps === 1 ) // Exclude armor, shards, etc...

@@ -604,7 +604,7 @@ class sdGun extends sdEntity
 		
 		this._max_dps = 1; // Should be decided when class parameters are given. Usually it should be 30 / reload time * gun.extra[ ID_DAMAGE_MULT ].
 		// However in some cases like charge up weapons it can't be decided like that so manual override works too.
-		// Will be used for weapon merger, which will equalize one gun's DPS with other. Only same slot guns though. Probably no slots 8 because I think slot 8 guns are a mess to calculate DPS - Booraz149
+		// Will be used for weapon merger, which will equalize one gun's DPS with other. Only same slot guns though.
 		
 		
 		this._unblocked_for_drones = false; // Only to prevent bug that is making server restart drop all guns of all players
@@ -661,12 +661,24 @@ class sdGun extends sdEntity
 
 			if ( this._max_dps === 1 && this.extra[ 17 ] ) // If not overridden by has_class.onMade and it has a damage value
 			{
+				// Calculate explosion damage, if there is explosion_radius available.
+				let explosion_damage = 0;
+				if ( sdGun.classes[ this.class ].projectile_properties )
+				if ( sdGun.classes[ this.class ].projectile_properties.explosion_radius )
+				explosion_damage = sdBullet.CalculateAverageExplosionDamage( sdGun.classes[ this.class ].projectile_properties.explosion_radius, 2 );
+					
+				if ( sdGun.classes[ this.class ].projectile_properties_dynamic( this ) )
+				if ( sdGun.classes[ this.class ].projectile_properties_dynamic( this ).explosion_radius )
+				explosion_damage = sdBullet.CalculateAverageExplosionDamage( sdGun.classes[ this.class ].projectile_properties_dynamic( this ).explosion_radius, 2 );
+					
 				if ( this.GetAmmoCapacity() === -1 ) // Infinite ammo scenario
 				{
+					
+						
 					if ( !sdGun.classes[ this.class ].burst )
-					this._max_dps = ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
+					this._max_dps = ( 30 / this._reload_time ) * ( this.extra[ 17 ] + explosion_damage ) * this._count; // Set it automatically. Should work for most non charge guns, if not all.
 					else // Burst fire gun scenario
-					this._max_dps = ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
+					this._max_dps = ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * ( this.extra[ 17 ] + explosion_damage ) * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
 				}
 				else
 				{
@@ -674,14 +686,14 @@ class sdGun extends sdEntity
 					if ( !sdGun.classes[ this.class ].burst )
 					{
 						let time_to_empty_mag = this.GetAmmoCapacity() / ( 30 / this._reload_time );
-						this._max_dps = ( time_to_empty_mag / ( time_to_empty_mag + 0.5 ) ) * ( 30 / this._reload_time ) * this.extra[ 17 ] * this._count; // Set it automatically. Should work for most non charge guns, if not all.
+						this._max_dps = ( time_to_empty_mag / ( time_to_empty_mag + 0.5 ) ) * ( 30 / this._reload_time ) * ( this.extra[ 17 ] + explosion_damage ) * this._count; // Set it automatically. Should work for most non charge guns, if not all.
 					}
 					else // Burst fire gun scenario
 					{
 						let time_to_empty_mag = this.GetAmmoCapacity() / ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) );
-						this._max_dps = ( time_to_empty_mag / ( time_to_empty_mag + 0.5 ) ) * ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * this.extra[ 17 ] * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
+						this._max_dps = ( time_to_empty_mag / ( time_to_empty_mag + 0.5 ) ) * ( 30 / ( this._reload_time * sdGun.classes[ this.class ].burst + sdGun.classes[ this.class ].burst_reload ) ) * ( this.extra[ 17 ] + explosion_damage ) * this._count * sdGun.classes[ this.class ].burst; // Burst fire scenario
 					}
-					
+						
 				}
 
 				if ( this._max_dps === Infinity )
@@ -694,7 +706,7 @@ class sdGun extends sdEntity
 
 				// Should be the correct formulas.
 
-				// WARNING - for special cases like charge weapons and explosive weapons, we should probably test how much damage does a single shot of the weapon deal then probably divide with minimum time between shots.
+				// WARNING - for special cases like charge weapons, we should probably test how much damage does a single shot of the weapon deal then probably divide with minimum time between shots.
 				// You have to override _max_dps inside that class inside onMade:(gun, params)
 			}
 			//console.log( sdGun.classes[ this.class ].title + ": " + this._max_dps );
@@ -992,7 +1004,7 @@ class sdGun extends sdEntity
 		
 		return ( Math.abs( projectile_properties._damage + temperature_damage ) * _count + 
 				( projectile_properties._rail ? 30 : 0 ) + 
-				( projectile_properties.explosion_radius > 0 ? 400 : 0 ) ) * sdWorld.damage_to_matter + bonus;
+				( projectile_properties.explosion_radius > 0 ? ( Math.min( 500, 20 * projectile_properties.explosion_radius ) ) : 0 ) ) * sdWorld.damage_to_matter + bonus;
 				//( projectile_properties.explosion_radius > 0 ? 250 : 0 ) ) * sdWorld.damage_to_matter;
 	}
 	
@@ -1315,8 +1327,8 @@ class sdGun extends sdEntity
 						}
 					}
 					
-                    
-					let initial_an = this._held_by.IsPlayerClass() ?  this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) ) : 
+                    let recoil_mult = sdGun.classes[ this.class ].recoil_scale || 1; // Some guns like Zektaron focus beam needs less innate recoil
+					let initial_an = this._held_by.IsPlayerClass() ?  this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5 * recoil_mult, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) ) : 
                                     this._held_by.GetLookAngle();
 					
 					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
@@ -1395,11 +1407,19 @@ class sdGun extends sdEntity
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
 					
 						if ( this.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core infused?
-						bullet_obj._damage *= 1.25; // Increase damage by 25%
+						{
+							bullet_obj._damage *= 1.25; // Increase bullet damage by 25%
+							if ( bullet_obj.explosion_radius > 0 )
+							bullet_obj._explosion_mult *= 1.25; // Increase explosion damage by 25%
+						}
 						
 						// Weapon merging DPS application
 						if ( this.extra[ 21 ] ) // Has weapon merging been used to alter DPS?
-						bullet_obj._damage *= this.extra[ 21 ]; // Multiply the DPS overall with the stored value
+						{
+							bullet_obj._damage *= this.extra[ 21 ]; // Multiply the bullet DPS overall with the stored value
+							if ( bullet_obj.explosion_radius > 0 )
+							bullet_obj._explosion_mult *= this.extra[ 21 ]; // Multiply the explosion DPS with the stored value
+						}
 						/*
 							It is now a separate multiplier instead of directly changing this.extra damage value
 							so that the slow firing weapons, small DPS weapons have capped DPS increase
