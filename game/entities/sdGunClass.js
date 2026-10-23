@@ -6098,11 +6098,15 @@ class sdGunClass
 			slot: 2,
 			reload_time: 2.8,
 			muzzle_x: 7,
-			ammo_capacity: 16,
+			ammo_capacity: 30,
 			count: 1,
 			spread: 0.01, // 0.03
 			projectile_properties: { _damage: 34, color: '#afdfff', penetrating: true },
 			spawnable:false,
+			BulletCostMultiplier: ( gun )=>
+			{
+				return 1.5; // It has penetration
+			},
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#afdfff', penetrating: true };
@@ -11161,7 +11165,7 @@ class sdGunClass
             //sound_pitch:  1.4,
 			title: 'Phased Plasma Rifle SD-74',
 			slot: 8,
-			reload_time: 6,
+			reload_time: 9,
 			count: 1,
 			spread: 0,
 			muzzle_x: 13,
@@ -11172,7 +11176,7 @@ class sdGunClass
             projectile_properties: { color: '#6ac2ff' },
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
-				return gun.fire_mode === 1 ? 15 : 45;
+				return gun.fire_mode === 1 ? 4 * gun.extra [ sdGun.ID_DAMAGE_MULT ] : 4 * gun.extra [ sdGun.ID_DAMAGE_MULT ];
 			},
 			projectile_properties_dynamic: ( gun )=>
 			{
@@ -11182,7 +11186,7 @@ class sdGunClass
 					_hittable_by_bullets: false,
 					color: '#6ac2ff',
                     _no_explosion_smoke: true,
-                    explosion_radius: 16,
+                    explosion_radius: 12,
                     //_explosion_mult: gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1,
 					_custom_detonation_logic:( bullet )=>
 					{
@@ -11210,8 +11214,8 @@ class sdGunClass
             },
             onShootAttempt: ( gun, shoot_from_scenario ) =>
 			{
-                gun.overheat += 7.5 * gun._count;
-                
+                gun.overheat += 8.5 * gun._count;
+                gun._reload_time = sdGun.classes[ gun.class ].reload_time * gun._count; // Remove later;
                 sdSound.PlaySound({ name:'gun_anti_rifle_fireC', x: gun.x, y: gun.y, volume: 0.9, pitch: gun.fire_mode === 1 ? 1.4 : 2.1 });
 
                 if ( sdWorld.is_server )
