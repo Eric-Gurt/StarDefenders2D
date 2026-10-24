@@ -372,6 +372,10 @@ class sdWeaponMerger extends sdEntity
 					else
 					{
 						let mult = 1;
+						if ( this.item0.GetSlot() === 8 )
+						mult = 1.2; // 540 DPS at max power core
+						if ( this.item0.GetSlot() === 5 )
+						mult = 1.1; // 495 DPS at max power core
 						if ( this.item0.GetSlot() === 4 )
 						mult = 0.8; // 360 max DPS at max power cores.
 						if ( this.item0.GetSlot() === 3 )
