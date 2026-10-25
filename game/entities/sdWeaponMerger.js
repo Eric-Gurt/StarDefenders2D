@@ -191,6 +191,8 @@ class sdWeaponMerger extends sdEntity
 					this.item0._max_dps = Math.min( 450, this.item0._max_dps ); // Cap the power
 				}
 			}
+			
+			dps_proportions *= mult;
 		
 			if ( this.item0.class !== sdGun.CLASS_UNSTABLE_CORE )
 			{
