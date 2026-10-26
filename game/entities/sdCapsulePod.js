@@ -230,6 +230,7 @@ class sdCapsulePod extends sdEntity
 	{
 	}
 	
+	/*
 	ExecuteContextCommand( command_name, parameters_array, executer_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). executer_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -262,6 +263,7 @@ class sdCapsulePod extends sdEntity
 			this.AddContextOption( 'Enter', 'PRESS_BUTTON', [] );
 		}
 	}
+	*/
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
