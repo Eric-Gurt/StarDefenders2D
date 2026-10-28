@@ -4728,7 +4728,8 @@ class sdCharacter extends sdEntity
 				}
 				else
 				{
-					if ( this._potential_vehicle && ( this._potential_vehicle.hea || this._potential_vehicle._hea ) > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
+					if ( this._potential_vehicle && ( this._potential_vehicle.hea || this._potential_vehicle._hea ) > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius )
+						 && sdWorld.CheckLineOfSight( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, this, null, sdCom.com_vision_blocking_classes ) )
 					{
 						this._potential_vehicle.AddDriver( this );
 

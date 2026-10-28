@@ -937,6 +937,9 @@ class sdEntity
 		if ( c.driver_of )
 		return;
 	
+		if ( sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1, this.x + this._hitbox_x2, this.y + this._hitbox_y2, this, null, sdCom.com_vision_blocking_classes ) )
+		return;
+	
 		if ( !force )// && !c._god )
 		if ( ( this._doors_locked || this.doors_locked || false ) )
 		{
