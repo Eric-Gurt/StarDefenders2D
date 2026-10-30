@@ -1746,8 +1746,45 @@ class sdBullet extends sdEntity
 					}
 				}
 
-				if ( this.model !== 'flare' )
+				if ( this.model !== 'flare' && this.model !== 'ball' )
 				ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 16, - 16, 32, 32 );
+			
+				if ( this.model === 'ball' ) // Ball/plasma projectile (Spark/Setr shotgun)
+				{
+					{
+						if ( this._sd_tint_filter === null )
+						{
+							this._sd_tint_filter = sdWorld.hexToRgb( this.color );
+							if ( this._sd_tint_filter )
+							{
+								this._sd_tint_filter[ 0 ] /= 255;
+								this._sd_tint_filter[ 1 ] /= 255;
+								this._sd_tint_filter[ 2 ] /= 255;
+								
+								//this._sd_tint_filter[ 0 ] += 0.2;
+								//this._sd_tint_filter[ 1 ] += 0.2;
+								//this._sd_tint_filter[ 2 ] += 0.2;
+								
+								//this._sd_tint_filter[ 0 ] *= 1.5;
+								//this._sd_tint_filter[ 1 ] *= 1.5;
+								//this._sd_tint_filter[ 2 ] *= 1.5;
+							}
+						}
+						ctx.blend_mode = THREE.AdditiveBlending;
+						{
+							ctx.sd_tint_filter = this._sd_tint_filter;
+							//let dist_travelled = sdWorld.Dist2D( this._start_x, this._start_y, this.x, this.y );
+							//ctx.scale( 1 * dist_travelled / 32, 0.5 );
+							if ( this.model === 'ball' )
+							{
+								ctx.drawImageFilterCache( sdBullet.images[ this.model ], 0, 0, 32, 32, -16, -16, 32, 32 );
+								ctx.sd_tint_filter = null;
+								ctx.drawImageFilterCache( sdBullet.images[ this.model ], 32, 0, 32, 32, -16, -16, 32, 32 );
+							}
+							ctx.sd_tint_filter = null;
+						}
+					}
+				}
 
 				ctx.sd_tint_filter = null;
 				ctx.blend_mode = THREE.NormalBlending;

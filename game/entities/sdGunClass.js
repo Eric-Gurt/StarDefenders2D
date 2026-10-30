@@ -432,7 +432,7 @@ class sdGunClass
 						if ( hasNoExtra( gun, initiator ) )
 						return false;
 					
-						if ( gun.extra[ sdGun.ID_DAMAGE_MULT ] < 3 )
+						if ( gun.extra[ sdGun.ID_DAMAGE_MULT ] < 2 )
 						{
 							gun.extra[ sdGun.ID_DAMAGE_MULT ] += 0.05; // 5%
 							//gun.extra[ sdGun.ID_RECOIL_SCALE ] *= 0.95; // 5%
@@ -1223,9 +1223,9 @@ class sdGunClass
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
-				
-				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
-				
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+			
 				return obj;
 			},
 
@@ -4157,10 +4157,8 @@ class sdGunClass
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
-				// if ( gun.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
-				// obj._damage *= 1.25; // Increase damage further by 25%
-				
-				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
 				return obj;
 			},
@@ -5964,7 +5962,8 @@ class sdGunClass
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
 				
-				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
 				
 				return obj;
 			},
@@ -8119,8 +8118,9 @@ class sdGunClass
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				
-				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
-				
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+			
 				return obj;
 			},
 
@@ -9472,10 +9472,9 @@ class sdGunClass
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
 				obj._explosion_mult = gun.extra[ sdGun.ID_DAMAGE_MULT ] || 1;
-				
-				
-				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
-				
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+			
 				return obj;
 			},
 

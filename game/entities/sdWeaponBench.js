@@ -228,9 +228,14 @@ class sdWeaponBench extends sdEntity
                         let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
 
                         let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
-                    
 
-                        sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 30 * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
+
+						// Calculate explosion damage, if there is explosion_radius available.
+						let explosion_damage = 0;
+						if ( gun.extra[ sdGun.ID_HAS_EXPLOSION ] > 0 )
+						explosion_damage = sdBullet.CalculateAverageExplosionDamage( gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 13 : 19 );
+
+                        sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( ( 30 + explosion_damage ) * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
                         sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ sdGun.ID_DAMAGE_MULT ] * item.extra[ sdGun.ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
                     
                         const reload_time = ( gun.extra[ sdGun.ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ sdGun.ID_MAGAZINE ] ].rate ) * gun.extra[ sdGun.ID_FIRE_RATE ];
@@ -256,9 +261,20 @@ class sdWeaponBench extends sdEntity
                             let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
                                     
                             let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
+							
+														
+							// Calculate explosion damage, if there is explosion_radius available.
+							let explosion_damage = 0;
+							if ( sdGun.classes[ gun.class ].projectile_properties )
+							if ( sdGun.classes[ gun.class ].projectile_properties.explosion_radius )
+							explosion_damage = sdBullet.CalculateAverageExplosionDamage( sdGun.classes[ gun.class ].projectile_properties.explosion_radius, 2 );
+								
+							if ( sdGun.classes[ gun.class ].projectile_properties_dynamic( gun ) )
+							if ( sdGun.classes[ gun.class ].projectile_properties_dynamic( gun ).explosion_radius )
+							explosion_damage = sdBullet.CalculateAverageExplosionDamage( sdGun.classes[ gun.class ].projectile_properties_dynamic( gun ).explosion_radius, 2 );
 
                             if ( item.extra[ sdGun.ID_DAMAGE_VALUE ] )
-                            sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( item.extra[ sdGun.ID_DAMAGE_VALUE ] * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
+                            sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( ( item.extra[ sdGun.ID_DAMAGE_VALUE ] + explosion_damage ) * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -40, '#ffaaaa' );
                                 
                             if ( item.extra[ sdGun.ID_ALT_DAMAGE_VALUE ] )
                             sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( item.extra[ sdGun.ID_ALT_DAMAGE_VALUE ] * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult ), 0, -50, '#ffaaaa' );
