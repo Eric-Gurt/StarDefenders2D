@@ -139,7 +139,11 @@ class sdCraftingBench extends sdEntity
                     gun.sd_filter = sdWorld.CreateSDFilter();
                     gun.sd_filter.s = gun.sd_filter.s = sdCraftingBench.cube_items_filter.s;
                 }
-            }
+            },
+			{
+                needed: [ sdGun.CLASS_RAIL_CANNON, sdGun.CLASS_RAIL_CANNON, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD, sdGun.CLASS_METAL_SHARD ],
+                options: [ sdGun.CLASS_OVERCHARGED_RAIL_CANNON ]
+            },
         ]
     }
 	Damage( dmg, initiator=null )
@@ -238,7 +242,67 @@ class sdCraftingBench extends sdEntity
 	
         return true;
     }
-    
+    GetPotentialOptions( weapons )
+    {
+		// Tries to find partial matches of crafting recipes so players can actually try and see what they can craft
+		
+        if ( this.item8 )
+        return false; // No crafts if theres a result already
+
+        const input = [];
+
+        for ( const weapon of weapons )
+        input.push( weapon.class );
+
+        input.sort(); // so they are always on the same order regardless of how they were entered
+		
+		if ( input.length === 0 )
+		return false;
+
+		const crafts = [];
+        for ( const craft of this.GetCrafts() )
+        {
+            const needed = craft.needed;
+            const sorted = needed.slice().sort();
+
+			let found_match = true;
+			if ( input.length < sorted.length )
+			{
+				// Check every weapon put inside the bench with the recipe. If one weapon does not match, it does not appear as an option
+				for( let i = 0; i < input.length; i++ )
+				{
+					if ( !sorted.includes( input[ i ] ) ) // No element inside the needed array?
+					found_match = false;
+				}
+				if ( found_match )
+				crafts.push( craft );
+			}
+        }
+		if ( crafts.length > 0 )
+		return crafts;
+
+        return false; // No crafts with given items
+    }
+	GetMissingRequirements( weapons, needed )
+	{
+		let input = [];
+		for ( const weapon of weapons )
+        input.push( weapon.class );
+	
+		if ( input.length > needed.length )
+		return [];
+	
+		let remainder = needed;
+		
+		for( let i = 0; i < input.length; i++ )
+		{	
+			var weap = remainder.indexOf( input[ i ] );
+			if ( weap !== -1 ) {
+			  remainder.splice( weap, 1 );
+			}
+		}
+		return remainder;
+	}
     GetAnyCraft( weapons )
     {
         if ( this.item8 )
@@ -401,6 +465,88 @@ class sdCraftingBench extends sdEntity
 
             ctx.filter = 'none';
         }
+		else
+		{
+			const potential_crafts = this.GetPotentialOptions( this.GetItems( false ) );
+			if ( potential_crafts )
+			{
+				let i = Math.floor( ( sdWorld.time / 9000 ) % potential_crafts.length ) 
+				const option = potential_crafts[ i ].options[ Math.floor( ( sdWorld.time / 3000 ) % potential_crafts[ i ].options.length ) ];
+				const cost = sdGun.classes[ option ].matter_cost ?? 0;
+				const has_matter = this.matter - cost > -0.01; // Hack due to float rounding problems
+				//const gun = sdGun.classes[ option ];
+
+				//ctx.sd_color_mult_r = has_matter ? 0 : 1;
+				//ctx.sd_color_mult_g = ctx.sd_color_mult_b = has_matter ? 1 : 0;
+				
+				const r = has_matter ? 0 : 1;
+				const g = has_matter ? 1 : 0;
+				const b = g;
+
+				ctx.filter = 'brightness(1.5) saturate(0.5)'
+				ctx.sd_status_effect_tint_filter = [ r, g, b ];
+				ctx.apply_shading = false;
+				ctx.globalAlpha = Math.sin( ( sdWorld.time % 3000 ) / 3000 * Math.PI );
+				
+				const fake_ent = new sdGun({ class: option, x: this.x, y: this.y });
+				fake_ent.Draw( ctx, true );
+				fake_ent.remove();
+				fake_ent._broken = false;
+				fake_ent._remove();
+
+				// Now we draw missing crafting requirements
+				let missing_slots = [];
+				let fake_offsets = { x: 0, y: 0 };
+				let k = 0;
+				let requirements = this.GetMissingRequirements( this.GetItems( false ), potential_crafts[ i ].needed );
+				if ( requirements )
+				for( let j = 0; j < requirements.length; j++ )
+				{
+					ctx.save();
+					// Let's get the missing slots first
+					while ( this[ 'item' + k ] )
+					{
+						k++;
+						if ( k >= sdCraftingBench.slots_tot - 1 ) // Just in case
+						k = 0;
+					}
+					fake_offsets = this.GetItemOffset( k );
+					ctx.translate( fake_offsets.x, fake_offsets.y ); // Does this break anything? I feel like this is illegal - Booraz
+					// just putting fake_offset.x into new sdGun doesn't work, but this does. Okay.
+					let fake_ent2 = new sdGun({ class: requirements[ j ], x: this.x, y: this.y });
+					fake_ent2.Draw( ctx, true );
+					fake_ent2.remove();
+					fake_ent2._broken = false;
+					fake_ent2._remove();
+					
+					k++;
+					ctx.restore();
+				}
+			  /*  if ( gun.image )
+				ctx.drawImageFilterCache( gun.image, -16, -16, 32, 32 );
+				
+				if ( gun.image_body )
+				ctx.drawImageFilterCache( gun.image_body, -16, -16, 32, 32 );
+
+				if ( gun.image_blade )
+				ctx.drawImageFilterCache( gun.image_blade, -16, -16, 32, 32 );
+
+				if ( gun.image_barrel )
+				ctx.drawImageFilterCache( gun.image_barrel, -16, -16, 32, 32 );
+				
+				if ( gun.image_glow )
+				ctx.drawImageFilterCache( gun.image_glow, -16, -16, 32, 32 );*/
+
+				ctx.globalAlpha = 1;
+
+				//ctx.sd_color_mult_r = 1;
+				//ctx.sd_color_mult_g = 1;
+				//ctx.sd_color_mult_b = 1;
+				ctx.sd_status_effect_tint_filter = null;
+
+				ctx.filter = 'none';
+			}
+		}
 	}
 	onRemove() // Class-specific, if needed
 	{
@@ -474,6 +620,7 @@ class sdCraftingBench extends sdEntity
 					}
 					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 					
+					//console.log( this.GetPotentialOptions( this.GetItems( false ) ) );
 					this._update_version++;
 				}
 			}

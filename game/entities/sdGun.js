@@ -1327,8 +1327,7 @@ class sdGun extends sdEntity
 						}
 					}
 					
-                    let recoil_mult = sdGun.classes[ this.class ].recoil_scale || 1; // Some guns like Zektaron focus beam needs less innate recoil
-					let initial_an = this._held_by.IsPlayerClass() ?  this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5 * recoil_mult, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) ) : 
+					let initial_an = this._held_by.IsPlayerClass() ?  this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) ) : 
                                     this._held_by.GetLookAngle();
 					
 					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
@@ -2289,7 +2288,7 @@ class sdGun extends sdEntity
 				{
 					if ( image.loaded )
 					{
-						let frame = this._net_id % ~~( image.width / image.height );
+						let frame = ( this._net_id % ~~( image.width / image.height ) || 0 );
 						ctx.drawImageFilterCache( image, frame * image.height,0, image.height, image.height, - 16, - 16, 32,32 );
 					}
 					else

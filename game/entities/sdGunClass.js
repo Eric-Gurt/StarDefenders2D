@@ -3598,13 +3598,13 @@ class sdGunClass
 			sound: 'gun_railgun_malicestorm_terrorphaser5',
 			title: 'KVT Railcannon P03 "Stormbringer"',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
-			sound_volume: 1.5,
+			sound_volume: 1,
             slot: 8,
             reload_time: 5,
             muzzle_x: null,
             ammo_capacity: 10,
             count: 1,
-			recoil_scale: 2, // This gun NEEDS more recoil since it's just a slot 4 masquerading as a slot 8, while reaping all the slot 8 benefits - Booraz
+			self_recoil_scale: 2, // This gun NEEDS more recoil since it's just a slot 4 masquerading as a slot 8, while reaping all the slot 8 benefits - Booraz
 			spawnable: false,
             projectile_properties: { _rail: true, _damage: 35, color: '#62c8f2', explosion_radius: 6, _no_explosion_smoke: true },
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -5080,7 +5080,6 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.1,
 			count: 5,
-			self_recoil_scale: 0.1,
             matter_cost: 4500, // Used in crafting bench
 			projectile_properties: { _rail: true, _damage: 20 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
@@ -7403,7 +7402,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 3,
 			spawnable: false,
-			recoil_scale: 0.4, // This gun needs less recoil, goes up too much - Booraz
+			self_recoil_scale: 0.4, // This gun needs less recoil, goes up too much - Booraz
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -12085,6 +12084,56 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost(
                 [], '#ffc400', 20 ),
                 '#ff0000', 20 ), )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_OVERCHARGED_RAIL_CANNON = 174 ] = { // sprite by Booraz149
+			image: sdWorld.CreateImageFromFile( '/guns/rail_cannon2' ),
+			spritesheet:true,
+			sound: 'gun_railgun',
+			sound_pitch: 0.45,
+			title: 'Overcharged Velox Rail Cannon',
+			slot: 4,
+			reload_time: 18,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			count: 2,
+			spread: 0.005,
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 80, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
+			spawnable: false,
+			matter_cost: 10000, // Used in crafting bench
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, _rail_circled: true, _damage: 80, color: '#FF0000' };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ sdGun.ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
+				
+				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
+				obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+			
+				// if ( gun.extra[ sdGun.ID_HAS_EXALTED_CORE ] ) // Has exalted core been infused?
+				// obj._damage *= 1.25; // Increase damage further by 25%
+				
+				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ sdGun.ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ sdGun.ID_FIRE_RATE ] = 1;
+					gun.extra[ sdGun.ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ sdGun.ID_SLOT ] = 1;
+					gun.extra[ sdGun.ID_DAMAGE_VALUE ] = 80; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+					//gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 60 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds. Regular fire mode is weaker in DPS.
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30, '', '', true ) ) // also_set_projectile_color: true - this is a rail/beam weapon, its beam color comes from gun.extra[ ID_PROJECTILE_COLOR ] (see projectile_properties_dynamic above), not from the sprite recolor alone
 		};
 
 		// Add new gun classes above this line //
