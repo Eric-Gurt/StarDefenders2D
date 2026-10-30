@@ -115,7 +115,7 @@ class sdLongRangeAntenna extends sdEntity
 			xx = this.x - 64 + Math.random() * 128;
 			yy = this.y - 64 + Math.random() * 128;
 									
-			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, ent, sdCom.com_visibility_ignored_classes, null ) && ent.CanMoveWithoutOverlap( xx, yy, 4 ) )
+			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, ent, null, sdCom.com_vision_blocking_classes ) && ent.CanMoveWithoutOverlap( xx, yy, 4 ) )
 			{
 				sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
 				sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
@@ -238,7 +238,7 @@ class sdLongRangeAntenna extends sdEntity
 								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, null, sdCom.com_vision_blocking_classes ) )
 								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 								{

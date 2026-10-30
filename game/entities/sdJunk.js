@@ -329,7 +329,7 @@ class sdJunk extends sdEntity
 						y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 						if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( sdWorld.CheckLineOfSight( x, y, initiator.x, initiator.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+						if ( sdWorld.CheckLineOfSight( x, y, initiator.x, initiator.y, drone, null, sdCom.com_vision_blocking_classes ) )
 						//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 						{
@@ -1391,7 +1391,7 @@ class sdJunk extends sdEntity
 										y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 										if ( worm.CanMoveWithoutOverlap( x, y, 0 ) )
-										if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, worm, sdCom.com_visibility_ignored_classes, null ) )
+										if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, worm, null, sdCom.com_vision_blocking_classes ) )
 										//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 										//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 										{
@@ -1513,7 +1513,7 @@ class sdJunk extends sdEntity
 									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 									if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, null, sdCom.com_vision_blocking_classes ) )
 									//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 									{

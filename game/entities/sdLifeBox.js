@@ -188,7 +188,7 @@ class sdLifeBox extends sdEntity
 						// straight line from the box center without crossing a wall - so the player can
 						// never be relocated to the far (interior) side of a base wall through one.
 						if ( c.CanMoveWithoutOverlap( cx, cy, 0 ) )
-						if ( !near_slab_door || sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( !near_slab_door || sdWorld.CheckLineOfSight( this.x, this.y, cx, cy, this, null, sdCom.com_vision_blocking_classes ) )
 						{
 							exit_x = cx;
 							exit_y = cy;

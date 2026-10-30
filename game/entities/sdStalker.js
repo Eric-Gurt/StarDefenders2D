@@ -181,7 +181,7 @@ class sdStalker extends sdEntity
 				y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 			
 				if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-				if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+				if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, null, sdCom.com_vision_blocking_classes ) )
 				//if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 				{
 					character_entity.x = x;

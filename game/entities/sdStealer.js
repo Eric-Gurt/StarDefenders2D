@@ -208,7 +208,7 @@ class sdStealer extends sdEntity
 						let can_steal = true;
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, null, sdCom.com_vision_blocking_classes ) )
 						{
 							if ( sdWorld.last_hit_entity )
 							{

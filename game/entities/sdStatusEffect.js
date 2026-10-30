@@ -1134,7 +1134,7 @@ class sdStatusEffect extends sdEntity
 								xx = status_entity.for._ai.target.x - 128 + Math.random() * 256;
 								yy = status_entity.for._ai.target.y - 128 + Math.random() * 256;
 														
-								if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) && status_entity.for.CanMoveWithoutOverlap( xx, yy, 4 ) )
+								if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, null, sdCom.com_vision_blocking_classes ) && status_entity.for.CanMoveWithoutOverlap( xx, yy, 4 ) )
 								{
 									//sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
 									sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT });
@@ -2162,7 +2162,7 @@ class sdStatusEffect extends sdEntity
 								yy = status_entity.for._ai.target.y;
 							}
 							
-							if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, sdCom.com_visibility_ignored_classes, null ) ) // Check LoS
+							if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, xx, yy, status_entity.for, null, sdCom.com_vision_blocking_classes ) ) // Check LoS
 							{
 								// If has line of sight, check distance then add coords for banish attack
 								let di = sdWorld.Dist2D( status_entity.for.x, status_entity.for.y, xx, yy );

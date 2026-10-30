@@ -356,7 +356,7 @@ class sdZektaronDreadnought extends sdEntity
 
 				drone._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 
-				if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, sdCom.com_visibility_ignored_classes, null ) )
+				if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, null, sdCom.com_vision_blocking_classes ) )
 				//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 				//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 				{
@@ -386,7 +386,7 @@ class sdZektaronDreadnought extends sdEntity
 
 				drone2._ignore_collisions_with = this; // Make sure it can pass through the dreadnought 
 
-				if ( drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone2.x, drone2.y, this, sdCom.com_visibility_ignored_classes, null ) )
+				if ( drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone2.x, drone2.y, this, null, sdCom.com_vision_blocking_classes ) )
 				//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 				//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 				{
@@ -786,7 +786,7 @@ class sdZektaronDreadnought extends sdEntity
 							if ( potential_target )
 							drone.SetTarget( potential_target );
 						
-							if ( !drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) || !sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							if ( !drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) || !sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, null, sdCom.com_vision_blocking_classes ) )
 							{
 								drone.remove();
 								drone._broken = false; // Remove drones if they can't spawn without getting stuck
@@ -812,7 +812,7 @@ class sdZektaronDreadnought extends sdEntity
 							if ( potential_target )
 							drone2.SetTarget( potential_target );
 						
-							if ( !drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) || !sdWorld.CheckLineOfSight( this.x, this.y, drone2.x, drone2.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							if ( !drone2.CanMoveWithoutOverlap( drone2.x, drone2.y, 0 ) || !sdWorld.CheckLineOfSight( this.x, this.y, drone2.x, drone2.y, this, null, sdCom.com_vision_blocking_classes ) )
 							{
 								drone2.remove();
 								drone2._broken = false; // Remove drones if they can't spawn without getting stuck

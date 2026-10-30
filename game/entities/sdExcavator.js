@@ -108,7 +108,7 @@ class sdExcavator extends sdEntity
 							y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-							if ( sdWorld.CheckLineOfSight( x, y, initiator.x, initiator.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+							if ( sdWorld.CheckLineOfSight( x, y, initiator.x, initiator.y, drone, null, sdCom.com_vision_blocking_classes ) )
 							if ( sdArea.CheckPointDamageAllowed( x, y ) )
 							if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
@@ -175,7 +175,7 @@ class sdExcavator extends sdEntity
 							y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-							if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, sdCom.com_visibility_ignored_classes, null ) )
+							if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, null, sdCom.com_vision_blocking_classes ) )
 							if ( sdArea.CheckPointDamageAllowed( x, y ) )
 							if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )

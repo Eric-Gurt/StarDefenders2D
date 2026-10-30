@@ -276,7 +276,7 @@ class sdBullet extends sdEntity
 					y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 					if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
-					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, ent, sdCom.com_visibility_ignored_classes, null ) )
+					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, ent, null, sdCom.com_vision_blocking_classes ) )
 					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 					{
@@ -367,7 +367,7 @@ class sdBullet extends sdEntity
 					y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 					if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
-					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, ent, sdCom.com_visibility_ignored_classes, null ) )
+					if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, ent, null, sdCom.com_vision_blocking_classes ) )
 					//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 					//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 					{

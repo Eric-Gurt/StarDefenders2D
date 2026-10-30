@@ -576,7 +576,7 @@ class sdCouncilIncinerator extends sdEntity
 					//drone._ignore_collisions_with = this; // Make sure it can pass through the immolator
 
 
-					if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, sdCom.com_visibility_ignored_classes, null ) )
+					if ( drone.CanMoveWithoutOverlap( drone.x, drone.y, 0 ) && sdWorld.CheckLineOfSight( this.x, this.y, drone.x, drone.y, this, null, sdCom.com_vision_blocking_classes ) )
 					{
 						sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
 						sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(170deg)' });
