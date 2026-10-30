@@ -11185,7 +11185,7 @@ class sdGunClass
 					color: '#6ac2ff',
                     _no_explosion_smoke: true,
                     explosion_radius: 12,
-                    //_explosion_mult: gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1,
+                    _explosion_mult: gun.extra[ sdGun.ID_DAMAGE_MULT ] ?? 1,
 					_custom_detonation_logic:( bullet )=>
 					{
 						sdSound.PlaySound({ name:'gun_anti_rifle_hit', x: bullet.x, y: bullet.y, volume: 0.5, pitch: 1.4 });
