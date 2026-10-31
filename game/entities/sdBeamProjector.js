@@ -11,7 +11,6 @@ import sdGun from './sdGun.js';
 import sdTask from './sdTask.js';
 import sdFactions from './sdFactions.js';
 import sdDrone from './sdDrone.js';
-import sdSandWorm from './sdSandWorm.js';
 import sdJunk from './sdJunk.js';
 import sdCouncilIncinerator from './sdCouncilIncinerator.js';
 import sdCouncilMachine from './sdCouncilMachine.js';
@@ -85,7 +84,7 @@ class sdBeamProjector extends sdEntity
 		
 		this.type = params.type || sdBeamProjector.TYPE_PROJECTOR;
 		
-		this.hmax = this.type === sdBeamProjector.TYPE_PROJECTOR ? 15000 : 2000;
+		this.hmax = this.type === sdBeamProjector.TYPE_PROJECTOR ? 18000 : 3000;
 		this.hea = this.hmax;
 		this._regen_timeout = 30;
 		//this.has_anticrystal = false;
@@ -216,10 +215,11 @@ class sdBeamProjector extends sdEntity
 			if ( this._add_difficulty ) // Add difficulty? Only if event entity spawned and was destroyed.
 			{
 				this._add_difficulty = false;
-				this._drone_count += 50; // 50 drones will spawn over time if a task event was destroyed
+				this._drone_count += 40; // 40 drones will spawn over time if a task event was destroyed
 				this._spawn_drones_timer = 30;
 				this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
 				
+				/*
 				if ( this.progress >= 50 ) // 2nd phase? Spawn a mini Council worm aswell
 				if ( !sdWeather.only_instance._chill )
 				{
@@ -279,6 +279,7 @@ class sdBeamProjector extends sdEntity
 						} while( true );
 					}
 				}
+				*/
 			}
 		}
 		
@@ -366,10 +367,10 @@ class sdBeamProjector extends sdEntity
 				this._drones_to_spawn = 2;
 				// Doubt the drones will ever reach this count, but just in case of further changes. 
 				if ( this._drone_count < 55 )
-				this._spawn_drones_timer = 180 + ( Math.random() * 60 );
+				this._spawn_drones_timer = 200 + ( Math.random() * 60 );
 				else
 				if ( this._drone_count < 85 )
-				this._spawn_drones_timer = 180 + ( Math.random() * 60 );
+				this._spawn_drones_timer = 190 + ( Math.random() * 60 );
 				else
 				if ( this._drone_count < 105 )
 				{
@@ -380,7 +381,7 @@ class sdBeamProjector extends sdEntity
 				{
 					// Over 105 drones?
 					this._spawn_drones_timer = 180 + ( Math.random() * 60 );
-					this._drones_to_spawn = 6;
+					this._drones_to_spawn = 5;
 				}
 				
 				

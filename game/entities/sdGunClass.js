@@ -10058,7 +10058,7 @@ class sdGunClass
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
 				// Unstable core has randomized power/dps
-					gun._max_dps = Math.max( 200, ( 100 + Math.random() * 350 ) * ( Math.random() < 0.8 ? 0.9 : 1 ) );
+					gun._max_dps = Math.max( 150, ( 100 + Math.random() * 250 ) * ( Math.random() < 0.8 ? 0.9 : 1 ) );
 					// It can be merged with other unstable cores to raise power, reaching up to 450 DPS. (Still lose 5% on merging though)
 					//console.log( gun._max_dps );
 			}
