@@ -91,7 +91,7 @@ class sdCouncilMachine extends sdEntity
 			if ( initiator )
 			if ( !sdWeather.only_instance._chill )
 			{
-				let drone = new sdDrone({ x:0, y:0 , type: 18});
+				let drone = new sdDrone({ x:0, y:0, type: sdDrone.DRONE_COUNCIL_ATTACK });
 
 				sdEntity.AddEntityToEntitiesArray( drone );
 								
@@ -417,7 +417,7 @@ class sdCouncilMachine extends sdEntity
 				// Spawn a council support drone
 				if ( this.hea < ( this.hmax * 0.75 ) )
 				{
-					if ( Math.random() < 0.8 ) // 80% it spawns a support healing Drone
+					//if ( Math.random() < 0.8 ) // 80% it spawns a support healing Drone
 					{
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
 
@@ -444,8 +444,9 @@ class sdCouncilMachine extends sdEntity
 								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, null, sdCom.com_vision_blocking_classes ) )
+								if ( sdArea.CheckPointDamageAllowed( x, y ) )
+								if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 								{
 									drone.x = x;
 									drone.y = y;
@@ -471,9 +472,10 @@ class sdCouncilMachine extends sdEntity
 							} while( true );
 						}
 					}
+					/*
 					else // Worm time
 					{
-						let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5});
+						let worm = new sdSandWorm({ x:0, y:0 , kind:3, scale:0.5 });
 
 						sdEntity.AddEntityToEntitiesArray( worm );
 
@@ -528,6 +530,7 @@ class sdCouncilMachine extends sdEntity
 							} while( true );
 						}
 					}
+					*/
 				}
 			}
 		}

@@ -20,6 +20,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdMatterContainer from './sdMatterContainer.js';
 import sdMatterMatrix from './sdMatterMatrix.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdArea from './sdArea.js';
 import sdFactions from './sdFactions.js';
 
 class sdJunk extends sdEntity
@@ -303,7 +304,7 @@ class sdJunk extends sdEntity
 			{
 				if ( initiator && ( sdWorld.Dist2D( initiator.x, initiator.y, this.x, this.y ) < 600 ) )
 				{
-					let drone = new sdDrone({ x:0, y:0 , type: 18});
+					let drone = new sdDrone({ x:0, y:0, type: sdDrone.DRONE_COUNCIL_ATTACK });
 
 					sdEntity.AddEntityToEntitiesArray( drone );
 								
@@ -330,6 +331,8 @@ class sdJunk extends sdEntity
 
 						if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( sdWorld.CheckLineOfSight( x, y, initiator.x, initiator.y, drone, null, sdCom.com_vision_blocking_classes ) )
+						if ( sdArea.CheckPointDamageAllowed( x, y ) )
+						if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 						//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 						{
@@ -1308,7 +1311,7 @@ class sdJunk extends sdEntity
 								{
 									if ( this._current_minions_count < 3 )
 									{
-										let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6, minion_of: this });
+										let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: sdDrone.DRONE_COUNCIL, minion_of: this });
 
 										sdEntity.AddEntityToEntitiesArray( drone );
 										
@@ -1333,7 +1336,9 @@ class sdJunk extends sdEntity
 											if ( y > sdWorld.world_bounds.y2 - 32 )
 											y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-											if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+											if ( drone.CanMoveWithoutOverlap( x, y, 0 ) && sdWorld.CheckLineOfSight( x, y, this.x, this.y, drone, null, sdCom.com_vision_blocking_classes ) )
+											if ( sdArea.CheckPointDamageAllowed( x, y ) )
+											if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 											//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 											//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 											{
@@ -1390,8 +1395,9 @@ class sdJunk extends sdEntity
 										if ( y > sdWorld.world_bounds.y2 - 32 )
 										y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-										if ( worm.CanMoveWithoutOverlap( x, y, 0 ) )
-										if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, worm, null, sdCom.com_vision_blocking_classes ) )
+										if ( worm.CanMoveWithoutOverlap( x, y, 0 ) && sdWorld.CheckLineOfSight( x, y, this.x, this.y, worm, null, sdCom.com_vision_blocking_classes ) )
+										if ( sdArea.CheckPointDamageAllowed( x, y ) )
+										if ( sdBaseShieldingUnit.IsMobSpawnAllowed( x, y ) )
 										//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 										//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
 										{
