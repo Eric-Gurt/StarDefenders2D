@@ -18,6 +18,9 @@ import sdWeather from './sdWeather.js';
 import sdRift from './sdRift.js';
 import sdBlock from './sdBlock.js';
 import sdSandWorm from './sdSandWorm.js';
+import sdArea from './sdArea.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+
 import sdFactions from './sdFactions.js';
 
 class sdCouncilMachine extends sdEntity
