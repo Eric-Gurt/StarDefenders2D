@@ -1891,6 +1891,7 @@ class sdGunClass
 			spread: 0.15,
 			count: 5,
             matter_cost: 1500, // Used in crafting bench
+			self_recoil_scale: 0.1,
 			projectile_properties: { _rail: true, _damage: 20, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -2265,7 +2266,8 @@ class sdGunClass
 					{
 						//character.Say( "Score" );
 						//character._score += 100000;
-						character.GiveScore( sdEntity.SCORE_REWARD_ADMIN_CRATE, gun );
+						character._task_reward_counter += 555;
+						character.UpdateClaimRewardsTaskCounter();
 						gun.remove(); 
 
 						if ( character._socket )
@@ -5079,6 +5081,7 @@ class sdGunClass
 			spread: 0.1,
 			count: 5,
             matter_cost: 4500, // Used in crafting bench
+			self_recoil_scale: 0.1,
 			projectile_properties: { _rail: true, _damage: 20 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -12092,11 +12095,11 @@ class sdGunClass
 			sound_pitch: 0.45,
 			title: 'Overcharged Velox Rail Cannon',
 			slot: 4,
-			reload_time: 18,
+			reload_time: 9,
 			muzzle_x: 10,
 			ammo_capacity: -1,
-			count: 2,
-			spread: 0.005,
+			count: 1,
+			spread: 0,
 			projectile_properties: { _rail: true, _rail_circled: true, _damage: 80, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			matter_cost: 10000, // Used in crafting bench
@@ -12132,6 +12135,13 @@ class sdGunClass
 					//gun._max_dps = ( gun.extra[ 17 ] * ( 1 + ( 360 / 60 ) ) / 3 ); // Optimal DPS is charging it up for 3 seconds. Regular fire mode is weaker in DPS.
 				}
 			},
+			onFireModeChange: ( gun, fire_mode ) =>
+            {
+				// Default fire mode = 2x faster rail cannon.
+				// Alt fire mode = 2x slower, but fires 2 shots pinpoint accurate, giving "pseudo" penetration.
+                gun._reload_time = sdGun.classes[ gun.class ].reload_time * ( fire_mode === 2 ? 2 : 1 );
+				gun._count = sdGun.classes[ gun.class ].count * ( fire_mode === 2 ? 2 : 1 );
+            },
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30, '', '', true ) ) // also_set_projectile_color: true - this is a rail/beam weapon, its beam color comes from gun.extra[ ID_PROJECTILE_COLOR ] (see projectile_properties_dynamic above), not from the sprite recolor alone
 		};
 
