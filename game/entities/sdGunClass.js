@@ -900,7 +900,7 @@ class sdGunClass
 		*/
 		sdGun.classes[ sdGun.CLASS_PISTOL = 0 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'pistol' ),
+			image: sdWorld.CreateImageFromFile( 'guns/pistol' ),
 			sound: 'gun_pistol',
 			title: 'Pistol',
 			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
@@ -951,7 +951,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_RIFLE = 1 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'rifle' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rifle' ),
 			sound: 'gun_rifle',
 			title: 'Assault rifle',
 			slot: 2,
@@ -997,7 +997,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_SHOTGUN = 2 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shotgun' ),
 			sound: 'gun_shotgun',
 			sound_volume: 1,
 			title: 'Shotgun',
@@ -1051,10 +1051,10 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_RAILGUN = 3 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'railgun' ),
-			image0: [ sdWorld.CreateImageFromFile( 'railgun_reload0' ), sdWorld.CreateImageFromFile( 'railgun_reload1' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'railgun_reload0' ), sdWorld.CreateImageFromFile( 'railgun_reload1' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'railgun' ), sdWorld.CreateImageFromFile( 'railgun' ) ],
+			image: sdWorld.CreateImageFromFile( 'guns/railgun' ),
+			image0: [ sdWorld.CreateImageFromFile( 'guns/railgun_reload0' ), sdWorld.CreateImageFromFile( 'guns/railgun_reload1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'guns/railgun_reload0' ), sdWorld.CreateImageFromFile( 'guns/railgun_reload1' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'guns/railgun' ), sdWorld.CreateImageFromFile( 'guns/railgun' ) ],
 			has_images: true,
 			sound: 'gun_railgun',
 			title: 'Railgun',
@@ -1103,7 +1103,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_ROCKET = 4 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'rocket' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rocket' ),
 			sound: 'gun_rocket',
 			title: 'Rocket launcher',
 			slot: 5,
@@ -1151,7 +1151,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_MEDIKIT = 5 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'defibrillator' ),
+			image: sdWorld.CreateImageFromFile( 'guns/defibrillator' ),
 			sound: 'gun_defibrillator',
 			title: 'Defibrillator',
 			slot: 6,
@@ -1203,7 +1203,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_SPARK = 6 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'spark' ),
+			image: sdWorld.CreateImageFromFile( 'guns/spark' ),
 			sound: 'gun_spark',
 			title: 'Spark',
 			slot: 8,
@@ -1247,7 +1247,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_BUILD_TOOL = 7 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'buildtool' ),
+			image: sdWorld.CreateImageFromFile( 'guns/buildtool' ),
 			sound: 'gun_buildtool2',
 			title: 'Build tool',
 			slot: 9,
@@ -1267,7 +1267,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_CRYSTAL_SHARD = 8 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'crystal_shard_variative' ),
+			image: sdWorld.CreateImageFromFile( 'guns/crystal_shard_variative' ),
 			image_variative: true, // version depends on _net_id, can't be controlled manually
 			
 			title: 'Crystal shard',
@@ -1326,7 +1326,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER = 9 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
+			image: sdWorld.CreateImageFromFile( 'guns/grenade_launcher' ),
 			sound: 'gun_grenade_launcher',
 			title: 'Grenade launcher',
 			slot: 5,
@@ -1371,7 +1371,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_NEEDLE = 10 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'needle' ),
+			image: sdWorld.CreateImageFromFile( 'guns/needle' ),
 			sound: 'gun_needle',
 			sound_volume: 0.4,
 			title: 'Needle',
@@ -1421,11 +1421,11 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'sword' ),
+			image: sdWorld.CreateImageFromFile( 'guns/sword' ),
 			//sound: 'gun_medikit',
 			title: 'Sword',
 			sound: 'sword_attack2',
-			image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/sword_disabled' ),
 			slot: 0,
 			reload_time: 8,
 			muzzle_x: null,
@@ -1466,7 +1466,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_STIMPACK = 12 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'stimpack' ),
+			image: sdWorld.CreateImageFromFile( 'guns/stimpack' ),
 			sound: 'gun_defibrillator',
 			title: 'Stimpack',
 			sound_pitch: 0.5,
@@ -1500,7 +1500,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_FALKOK_RIFLE = 13 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'f_rifle' ),
+			image: sdWorld.CreateImageFromFile( 'guns/f_rifle' ),
 			sound: 'gun_f_rifle',
 			title: 'Assault Rifle C-01r',
 			slot: 2,
@@ -1548,7 +1548,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_TRIPLE_RAIL = 14 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'triple_rail' ),
+			image: sdWorld.CreateImageFromFile( 'guns/triple_rail' ),
 			sound: 'cube_attack',
 			title: 'Cube-gun',
 			slot: 4,
@@ -1608,10 +1608,10 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_FISTS = 15 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'sword' ),
+			image: sdWorld.CreateImageFromFile( 'guns/sword' ),
 			//sound: 'gun_medikit',
 			title: 'Fists',
-			image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/sword_disabled' ),
 			slot: 0,
 			reload_time: 8,
 			muzzle_x: null,
@@ -1647,11 +1647,11 @@ class sdGunClass
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SABER = 16 ] = { // Original weapon idea & pull request by Booraz149 ( https://github.com/Booraz149 ), image editing & sound effects by Eric Gurt
-			image: sdWorld.CreateImageFromFile( 'sword2b' ),
+			image: sdWorld.CreateImageFromFile( 'guns/sword2b' ),
 			sound: 'saber_attack',
 			sound_volume: 1.5,
 			title: 'Saber',
-			image_no_matter: sdWorld.CreateImageFromFile( 'sword2b_disabled' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/sword2b_disabled' ),
 			slot: 0,
 			reload_time: 10,
 			muzzle_x: null,
@@ -1713,7 +1713,7 @@ class sdGunClass
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_PISTOL = 17 ] = { // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
-			image: sdWorld.CreateImageFromFile( 'rail_pistol' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rail_pistol' ),
 			sound: 'cube_attack',
 			sound_pitch: 0.9,
 			title: 'Cube-pistol',
@@ -1776,10 +1776,10 @@ class sdGunClass
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAYGUN = 18 ] = { // Original sprite and weapon balancing by The_Commander 
-			image: sdWorld.CreateImageFromFile( 'raygun_c01y' ),
-			image0: [ sdWorld.CreateImageFromFile( 'raygun_c01y0' ), sdWorld.CreateImageFromFile( 'raygun_c01y0b' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'raygun_c01y1' ), sdWorld.CreateImageFromFile( 'raygun_c01y1b' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
+			image: sdWorld.CreateImageFromFile( 'guns/raygun_c01y' ),
+			image0: [ sdWorld.CreateImageFromFile( 'guns/raygun_c01y0' ), sdWorld.CreateImageFromFile( 'guns/raygun_c01y0b' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'guns/raygun_c01y1' ), sdWorld.CreateImageFromFile( 'guns/raygun_c01y1b' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'guns/raygun_c01y2' ), sdWorld.CreateImageFromFile( 'guns/raygun_c01y2b' ) ],
 			has_images: true,
 			sound: 'gun_raygun',
 			title: 'Ray Gun C-01y',
@@ -1833,7 +1833,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_FALKOK_PSI_CUTTER = 19 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'f_psicutter' ),
+			image: sdWorld.CreateImageFromFile( 'guns/f_psicutter' ),
 			sound: 'gun_psicutter',
 			sound_volume: 1.5,
 			title: 'Falkonian PSI-cutter',
@@ -1879,7 +1879,7 @@ class sdGunClass
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_SHOTGUN = 20 ] = { // Image by LazyRain
-			image: sdWorld.CreateImageFromFile( 'rail_shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rail_shotgun' ),
 			sound: 'cube_attack',
 			sound_pitch: 0.4,
 			sound_volume: 2,
@@ -2266,8 +2266,7 @@ class sdGunClass
 					{
 						//character.Say( "Score" );
 						//character._score += 100000;
-						character._task_reward_counter += 555;
-						character.UpdateClaimRewardsTaskCounter();
+						character.GiveScore( sdEntity.SCORE_REWARD_ADMIN_CRATE, gun );
 						gun.remove(); 
 
 						if ( character._socket )
@@ -5022,7 +5021,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_TRIPLE_RAIL2 = 75 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'triple_rail2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/triple_rail2' ),
 			sound: 'cube_attack',
 			sound_pitch: 0.8,
 			title: 'Cube-gun v2',
@@ -5069,7 +5068,7 @@ class sdGunClass
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_SHOTGUN2 = 76 ] = { // Image by LazyRain
-			image: sdWorld.CreateImageFromFile( 'rail_shotgun2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rail_shotgun2' ),
 			sound: 'cube_attackB',
 			sound_pitch: 1,
 			sound_volume: 2,
@@ -7486,7 +7485,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_RAIL_PISTOL2 = 109 ] = { // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
-			image: sdWorld.CreateImageFromFile( 'rail_pistol2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rail_pistol2' ),
 			sound: 'cube_attack',
 			sound_pitch: 0.9,
 			title: 'Cube-pistol v2',
@@ -9416,7 +9415,7 @@ class sdGunClass
 		};
 		sdGun.classes[ sdGun.CLASS_ANCIENT_TRIPLE_RAIL = 131 ] = // Cube gun but deals lost damage. Cannot be upgraded. Obtainable only via Ancient cubes.
 		{
-			image: sdWorld.CreateImageFromFile( 'triple_rail3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/triple_rail3' ),
 			sound: 'cube_attack',
 			title: 'Ancient Cube-gun',
 			slot: 4,
