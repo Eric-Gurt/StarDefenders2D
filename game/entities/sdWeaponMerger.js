@@ -144,6 +144,32 @@ class sdWeaponMerger extends sdEntity
 			}
 		}
 		else
+		if ( this.item1.class === sdGun.CLASS_ETERNAL_SHARD ) // Eternal shard
+		{
+			// Eternal shards remove initial "startup" on some weapons which do support it
+			let has_shard_support = sdGun.classes[ this.item0.class ].supports_eternal_shard || false;
+			if ( !this.item0.extra[ 22 ] || this.item0.extra[ 22 ] === 0 && has_shard_support ) // Maybe prevent wasting shards this way?
+			{
+				this.item2.remove(); // Remove merger core
+			
+				this.item0.extra[ 22 ] = 1; // Add "has eternal shard" stat to the weapon
+			
+				this.item1.remove(); // Also destroy the item on the right
+		
+				this.item1 = null; // Needed? Not sure.
+		
+				this.item2 = this.item0; // Move gun to the middle
+		
+				this.item0 = null;
+		
+				this.matter = 0;
+				
+				sdWorld.SendEffect({ x:this.x - 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				sdWorld.SendEffect({ x:this.x, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+				sdWorld.SendEffect({ x:this.x + 16, y:this.y - 1, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
+			}
+		}
+		else
 		{
 			this.item2.remove();
 			let dps_proportions = this.item1._max_dps / ( this.item0._max_dps / ( this.item0.extra[ 21 ] || 1 ) ); // Basically DPS of the right item should be measured / divided by one on the left
@@ -252,6 +278,8 @@ class sdWeaponMerger extends sdEntity
 		if ( weapon.class === sdGun.CLASS_UNSTABLE_CORE )
 		return true;
 	
+		if ( weapon.class === sdGun.CLASS_ETERNAL_SHARD )
+		return true;
 	
 		return false;
 		
@@ -259,7 +287,22 @@ class sdWeaponMerger extends sdEntity
 	
 	IsWeaponCompatible( weapon )// Is weapon allowed to be merged in any way?
 	{
-		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE )
+		if ( this.item0 ) // Initial Eternal shard checks
+		{
+			let has_shard_support = sdGun.classes[ this.item0.class ].supports_eternal_shard || false;
+			if ( weapon.class === sdGun.CLASS_ETERNAL_SHARD && !has_shard_support )
+			return false; // Disallow shard fusing if weapon does not support it
+		}
+		
+		if ( this.item1 )
+		{
+			let has_shard_support = sdGun.classes[ weapon.class ].supports_eternal_shard || false;
+			if ( this.item1.class === sdGun.CLASS_ETERNAL_SHARD && !has_shard_support && weapon.class !== sdGun.CLASS_MERGER_CORE )
+			return false; // Disallow shard fusing if weapon does not support it
+		}
+		
+		if ( weapon.class === sdGun.CLASS_MERGER_CORE || weapon.class === sdGun.CLASS_EXALTED_CORE || weapon.class === sdGun.CLASS_CUBE_FUSION_CORE || weapon.class === sdGun.CLASS_UNSTABLE_CORE
+			|| weapon.class === sdGun.CLASS_ETERNAL_SHARD )
 		return true;
 	
 		if ( weapon.GetSlot() === 0 || weapon.GetSlot() === 6 || weapon.GetSlot() === 7 ) // Exclude these slots at the moment
@@ -277,6 +320,8 @@ class sdWeaponMerger extends sdEntity
 		
 		if ( this.item1 && ( weapon.GetSlot() !== this.item1.GetSlot() && !this.IgnoresSlot( this.item1 ) ) ) // Only allow same slot merging, or cores
 		return false;
+
+		
 		
 		return true;
 	}

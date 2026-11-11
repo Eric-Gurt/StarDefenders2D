@@ -28,7 +28,6 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdArea from './sdArea.js';
 import sdWeaponBench from './sdWeaponBench.js';
 import sdSteeringWheel from './sdSteeringWheel.js';
-
 /*
 
 	Spritesheet suggestion:
@@ -1946,8 +1945,8 @@ class sdGunClass
 		};		
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_CANNON = 21 ] = { // sprite by Booraz149
-			image: sdWorld.CreateImageFromFile( 'rail_cannon' ),
-			image_charging: sdWorld.CreateImageFromFile( 'rail_cannon_charging' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rail_cannon' ),
+			image_charging: sdWorld.CreateImageFromFile( 'guns/rail_cannon_charging' ),
 			sound: 'gun_railgun',
 			sound_pitch: 0.5,
 			title: 'Velox Rail Cannon',
@@ -2092,7 +2091,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_CUBE_SHARD = 22 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'cube_shard2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cube_shard2' ),
 			title: 'Cube shard',
 			no_tilt: true,
 			slot: 0,
@@ -2140,7 +2139,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_LASER_PISTOL = 23 ] = { // sprite by Booraz149, resprite by Gravel
-			image: sdWorld.CreateImageFromFile( 'laser_pistol' ),
+			image: sdWorld.CreateImageFromFile( 'guns/laser_pistol' ),
 			sound: 'turret',
             sound_volume: 2,
 			sound_pitch: 1,
@@ -2194,7 +2193,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_LMG = 24 ] = { // sprite by LazyRain
-			image: sdWorld.CreateImageFromFile( 'lmg' ),
+			image: sdWorld.CreateImageFromFile( 'guns/lmg' ),
 			sound: 'gun_pistol',
 			sound_pitch: 0.85,
 			sound_volume: 1.2,
@@ -2245,9 +2244,9 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade2' ),
-			image0: sdWorld.CreateImageFromFile( 'buildtool_upgrade' ),
-			image1: sdWorld.CreateImageFromFile( 'buildtool_upgrade3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/buildtool_upgrade2' ),
+			image0: sdWorld.CreateImageFromFile( 'guns/buildtool_upgrade' ),
+			image1: sdWorld.CreateImageFromFile( 'guns/buildtool_upgrade3' ),
 			title: 'Build tool upgrade',
 			slot: 0,
 			reload_time: 25,
@@ -2367,7 +2366,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL1_LIGHT_ARMOR = 26 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_light' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_light' ),
 			title: 'SD-01 Light Armor',
 			slot: 0,
 			reload_time: -1,
@@ -2406,7 +2405,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL1_MEDIUM_ARMOR = 27 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_medium' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_medium' ),
 			title: 'SD-01 Duty Armor',
 			slot: 0,
 			reload_time: -1,
@@ -2445,7 +2444,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL1_HEAVY_ARMOR = 28 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_heavy' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_heavy' ),
 			title: 'SD-01 Combat Armor',
 			slot: 0,
 			reload_time: -1,
@@ -2484,7 +2483,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SHOTGUN_MK2 = 29 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shotgun_mk2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shotgun_mk2' ),
 			sound: 'gun_shotgun_mk2',
 			sound_volume: 1,
 			title: 'Shotgun MK2',
@@ -2539,7 +2538,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_LASER_DRILL = 30 ] = { // Sprite made by Silk1 / AdibAdrian
-			image: sdWorld.CreateImageFromFile( 'laser_drill' ),
+			image: sdWorld.CreateImageFromFile( 'guns/laser_drill' ),
 			sound: 'saber_attack',
 			sound_pitch: 0.6,
 			sound_volume: 1,
@@ -2591,7 +2590,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_SMG = 31 ] = { // Sprite made by LazyRain
-			image: sdWorld.CreateImageFromFile( 'smg' ),
+			image: sdWorld.CreateImageFromFile( 'guns/smg' ),
 			sound: 'gun_pistol',
 			title: 'Burst SMG',
 			slot_dynamic: ( gun )=> { return gun.extra[ sdGun.ID_SLOT ] ? gun.extra[ sdGun.ID_SLOT ] : 1; },
@@ -2699,7 +2698,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ROCKET_MK2 = 33 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'rocket_mk2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rocket_mk2' ),
 			sound: 'gun_rocket',
 			title: 'Guided Rocket Launcher',
 			slot: 5,
@@ -2746,7 +2745,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
-			image: sdWorld.CreateImageFromFile( 'cube_healing_ray' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cube_healing_ray' ),
 			sound: 'cube_attack',
 			title: 'Cube-Medgun',
 			slot: 6,
@@ -2802,11 +2801,11 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHOVEL = 35 ] = { // Sprite made by Silk
-			image: sdWorld.CreateImageFromFile( 'shovel' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shovel' ),
 			//sound: 'gun_medikit',
 			title: 'Shovel',
 			sound: 'sword_attack2',
-			image_no_matter: sdWorld.CreateImageFromFile( 'shovel' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/shovel' ),
 			slot: 0,
 			reload_time: 9,
 			muzzle_x: null,
@@ -2846,12 +2845,12 @@ class sdGunClass
 
 
 		sdGun.classes[ sdGun.CLASS_SHOVEL_MK2 = 36 ] = { // Sprite made by LazyRain
-			image: sdWorld.CreateImageFromFile( 'shovel_mk2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shovel_mk2' ),
 			//sound: 'gun_medikit',
 			title: 'Shovel MK2',
 			sound: 'sword_attack2',
 			sound_pitch: 1.5,
-			image_no_matter: sdWorld.CreateImageFromFile( 'shovel_mk2' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/shovel_mk2' ),
 			slot: 0,
 			reload_time: 11,
 			muzzle_x: null,
@@ -2911,11 +2910,11 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_DECONSTRUCTOR_HAMMER = 37 ] = { // Sprite by LazyRain
-			image: sdWorld.CreateImageFromFile( 'deconstructor_hammer' ),
+			image: sdWorld.CreateImageFromFile( 'guns/deconstructor_hammer' ),
 			//sound: 'gun_medikit',
 			title: 'Deconstructor Hammer',
 			sound: 'sword_attack2',
-			image_no_matter: sdWorld.CreateImageFromFile( 'deconstructor_hammer' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/deconstructor_hammer' ),
 			slot: 0,
 			reload_time: 8,
 			muzzle_x: null,
@@ -2929,7 +2928,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ADMIN_REMOVER = 38 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shark' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shark' ),
 			sound: 'gun_defibrillator',
 			title: 'Admin tool for removing',
 			sound_pitch: 2,
@@ -2979,8 +2978,8 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LOST_CONVERTER = 39 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'cube_bng' ),
-			image_charging: sdWorld.CreateImageFromFile( 'cube_bng_charging' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cube_bng' ),
+			image_charging: sdWorld.CreateImageFromFile( 'guns/cube_bng_charging' ),
 			//sound: 'supercharge_combined2',
 			title: 'Cube overcharge cannon',
 			//sound_pitch: 0.5,
@@ -3193,7 +3192,7 @@ class sdGunClass
         
 		sdGun.classes[ sdGun.CLASS_CABLE_TOOL = 40 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'cable_tool' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cable_tool' ),
 			sound: 'gun_defibrillator',
 			title: 'Cable management tool',
 			sound_pitch: 0.25,
@@ -3243,7 +3242,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_POWER_PACK = 41 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'powerpack' ),
+			image: sdWorld.CreateImageFromFile( 'guns/powerpack' ),
 			sound: 'gun_defibrillator',
 			title: 'Power pack',
 			sound_pitch: 0.5,
@@ -3279,7 +3278,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_TIME_PACK = 42 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'timepack' ),
+			image: sdWorld.CreateImageFromFile( 'guns/timepack' ),
 			sound: 'gun_defibrillator',
 			title: 'Time pack',
 			sound_pitch: 0.5,
@@ -3311,7 +3310,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_LVL2_LIGHT_ARMOR = 43 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_light_lvl2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_light_lvl2' ),
 			title: 'SD-02 Light Armor',
 			slot: 0,
 			reload_time: -1,
@@ -3350,7 +3349,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL2_MEDIUM_ARMOR = 44 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_medium_lvl2' ),
 			title: 'SD-02 Duty Armor',
 			slot: 0,
 			reload_time: -1,
@@ -3389,7 +3388,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL2_HEAVY_ARMOR = 45 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_heavy_lvl2' ),
 			title: 'SD-02 Combat Armor',
 			slot: 0,
 			reload_time: -1,
@@ -3428,7 +3427,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_F_MARKSMAN = 46 ] =  // sprite made by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'f_marksman' ),
+			image: sdWorld.CreateImageFromFile( 'guns/f_marksman' ),
 			sound: 'gun_f_rifle',
 			sound_pitch: 2.2,
 			title: 'Falkonian Marksman Rifle',
@@ -3647,7 +3646,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ADMIN_TELEPORTER = 50 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shark' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shark' ),
 			sound: 'gun_defibrillator',
 			title: 'Admin tool for teleporting',
 			sound_pitch: 2,
@@ -3684,7 +3683,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_POWER_STIMPACK = 51 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'power_stimpack' ),
+			image: sdWorld.CreateImageFromFile( 'guns/power_stimpack' ),
 			sound: 'gun_defibrillator',
 			title: 'Power-Stimpack',
 			sound_pitch: 0.5,
@@ -3721,7 +3720,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL1_ARMOR_REGEN = 52 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl1' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_repair_module_lvl1' ),
 			title: 'SD-11 Armor Repair Module',
 			slot: 0,
 			reload_time: -1,
@@ -3744,7 +3743,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL2_ARMOR_REGEN = 53 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_repair_module_lvl2' ),
 			title: 'SD-12 Armor Repair Module',
 			slot: 0,
 			reload_time: -1,
@@ -3767,7 +3766,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL3_ARMOR_REGEN = 54 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_repair_module_lvl3' ),
 			title: 'SD-13 Armor Repair Module',
 			slot: 0,
 			reload_time: -1,
@@ -3790,7 +3789,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL3_LIGHT_ARMOR = 55 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_light_lvl3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_light_lvl3' ),
 			title: 'SD-03 Light Armor',
 			slot: 0,
 			reload_time: -1,
@@ -3829,7 +3828,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL3_MEDIUM_ARMOR = 56 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_medium_lvl3' ),
 			title: 'SD-03 Duty Armor',
 			slot: 0,
 			reload_time: -1,
@@ -3868,7 +3867,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL3_HEAVY_ARMOR = 57 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_heavy_lvl3' ),
 			title: 'SD-03 Combat Armor',
 			slot: 0,
 			reload_time: -1,
@@ -3907,7 +3906,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_EMERGENCY_INSTRUCTOR = 58 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'emergency_instructor' ),
+			image: sdWorld.CreateImageFromFile( 'guns/emergency_instructor' ),
 			sound: 'gun_defibrillator',
 			title: 'Emergency instructor',
 			sound_pitch: 0.5,
@@ -4038,8 +4037,8 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_POPCORN = 59 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'popcorn' ),
-			image_no_matter: sdWorld.CreateImageFromFile( 'popcorn_disabled' ),
+			image: sdWorld.CreateImageFromFile( 'guns/popcorn' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/popcorn_disabled' ),
 			title: 'Popcorn',
 			slot: 7,
 			reload_time: 30,
@@ -4083,11 +4082,8 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ERTHAL_BURST_RIFLE = 60 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'erthal_burst_rifle' ),
-			image0: [ sdWorld.CreateImageFromFile( 'erthal_burst_rifle0' ), sdWorld.CreateImageFromFile( 'erthal_burst_rifle0b' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'erthal_burst_rifle1' ), sdWorld.CreateImageFromFile( 'erthal_burst_rifle1b' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'erthal_burst_rifle2' ), sdWorld.CreateImageFromFile( 'erthal_burst_rifle2b' ) ],
-			has_images: true,
+			image: sdWorld.CreateImageFromFile( 'guns/erthal_burst_rifle' ),
+			spritesheet: true,
 			sound: 'spider_attackC',
 			sound_pitch: 6,
 			title: 'Erthal Burst Rifle',
@@ -4135,7 +4131,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ERTHAL_PLASMA_PISTOL = 61 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'erthal_plasma_pistol' ),
+			image: sdWorld.CreateImageFromFile( 'guns/erthal_plasma_pistol' ),
 			sound: 'spider_attackC',
 			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
@@ -4182,9 +4178,9 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
 		{
 			// Split gun sprite into 2 files for proper overheating filter on barrel
-			image: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
-			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2_base' ),
-			image_barrel: sdWorld.CreateImageFromFile( 'fmech_lmg2_barrel' ), // Used for overheating barrel filter
+			image: sdWorld.CreateImageFromFile( 'guns/fmech_lmg2_base' ),
+			image_charging: sdWorld.CreateImageFromFile( 'guns/fmech_lmg2_base' ),
+			image_barrel: sdWorld.CreateImageFromFile( 'guns/fmech_lmg2_barrel' ), // Used for overheating barrel filter
 			//sound: 'supercharge_combined2',
 			title: 'Velox Flying Mech Minigun',
 			//sound_pitch: 0.5,
@@ -4195,6 +4191,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 16,
 			spawnable: false,
+			supports_eternal_shard: true,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -4225,7 +4222,8 @@ class sdGunClass
 
 				if ( gun._overheat_cooldown )
 				return false;
-
+			
+			
 				if ( !shoot_from_scenario )
 				{
 					if ( gun._held_by )
@@ -4235,8 +4233,9 @@ class sdGunClass
 						//return; // hack
 						gun._held_by.auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun.overheat / 60 );
 
-
-						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 0.1; // Start firing immediaetly
+						else
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5 });
 					}
 					return false;
@@ -4251,10 +4250,12 @@ class sdGunClass
 					if ( gun._held_by.matter >= matter_cost )
 					if ( gun._held_by.IsAttemptingShoot() )
 					{
-						gun._held_by.auto_shoot_in = ( 3 / ( 1 + Math.min(1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 30 per second? (GSPEED limit?)
-						gun._held_by.matter -= matter_cost;
+						gun._held_by.auto_shoot_in = ( 3 / ( 1 + Math.min( 1, gun.overheat / 100 ) ) ); // Faster rate of fire when shooting more, up to 20 per second?
 						
-						if ( gun.overheat < 300 )
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 3 / 2; // Always at max possible rate of fire
+						
+						if ( gun.overheat < 400 )
 						gun.overheat += 5.5; // Speed up rate of fire, the longer it shoots
 						else
 						{
@@ -4330,11 +4331,8 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'sniper' ),
-			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
-			has_images: true,
+			image: sdWorld.CreateImageFromFile( 'guns/sniper' ),
+			spritesheet: true,
 			sound: 'gun_sniper',
 			title: 'Sniper rifle',
 			slot: 4,
@@ -4382,7 +4380,7 @@ class sdGunClass
     
 		sdGun.classes[ sdGun.CLASS_DMR = 64 ] =  // sprite made by The Commander
 		{
-			image: sdWorld.CreateImageFromFile( 'dmr' ),
+			image: sdWorld.CreateImageFromFile( 'guns/dmr' ),
 			sound: 'gun_dmr',
 			sound_volume: 2.4,
 			sound_pitch: 1.3,
@@ -4438,10 +4436,10 @@ class sdGunClass
     
 		sdGun.classes[ sdGun.CLASS_VELOX_PISTOL = 65 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'burst_pistol3' ),
-			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'burst_pistol3' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'burst_pistol3' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'burst_pistol3' ) ],
+			image: sdWorld.CreateImageFromFile( 'guns/burst_pistol3' ),
+			image0: [ sdWorld.CreateImageFromFile( 'guns/burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'guns/burst_pistol3' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'guns/burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'guns/burst_pistol3' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'guns/burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'guns/burst_pistol3' ) ],
 			sound: 'gun_f_rifle',
 			sound_pitch: 1.5,
 			title: 'Velox Burst Pistol',
@@ -4495,7 +4493,7 @@ class sdGunClass
     
 		sdGun.classes[ sdGun.CLASS_SARRONIAN_GAUSS_RIFLE = 66 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'sarronian_gauss_rifle' ),  // sprite by Gravel
+			image: sdWorld.CreateImageFromFile( 'guns/sarronian_gauss_rifle' ),  // sprite by Gravel
 			// image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ), // no charging animation for now
 			// image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
 			// image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
@@ -4582,7 +4580,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_VELOX_COMBAT_RIFLE = 67 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'combat_rifle' ),
+			image: sdWorld.CreateImageFromFile( 'guns/combat_rifle' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 2,
 			title: 'Velox Combat Rifle',
@@ -4679,8 +4677,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'f_heavy_rifle' ),
-			image_charging: sdWorld.CreateImageFromFile( 'f_heavy_rifle' ),
+			image: sdWorld.CreateImageFromFile( 'guns/f_heavy_rifle' ),
 			title: 'Falkonian Heavy Rifle',
 			slot: 2,
 			reload_time: 0,
@@ -4689,6 +4686,7 @@ class sdGunClass
 			count: 2,
 			spread: 0.05,
 			spawnable: false,
+			supports_eternal_shard: true,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -4707,7 +4705,10 @@ class sdGunClass
 					if ( gun._held_by.auto_shoot_in <= 0 )
 					{
 						gun._held_by.auto_shoot_in = 1000 / 1000 * 30;
-
+						
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 0.1; // Start firing immediaetly
+						else
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 3 });
 					}
 					return false;
@@ -4767,16 +4768,16 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_ZAPPER = 70 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'zapper' ),
-			image0: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'zapper2' ), sdWorld.CreateImageFromFile( 'zapper2' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
+			image: sdWorld.CreateImageFromFile( 'guns/zapper' ),
+			image0: [ sdWorld.CreateImageFromFile( 'guns/zapper0' ), sdWorld.CreateImageFromFile( 'guns/zapper1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'guns/zapper2' ), sdWorld.CreateImageFromFile( 'guns/zapper2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'guns/zapper0' ), sdWorld.CreateImageFromFile( 'guns/zapper1' ) ],
 			has_images: true,
 			title: 'Zapper',
 			sound: 'cube_attack',
 			sound_volume: 0.5,
 			sound_pitch: 1.5,
-			image_no_matter: sdWorld.CreateImageFromFile( 'zapper_disabled' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/zapper_disabled' ),
 			slot: 0,
 			reload_time: 10,
 			muzzle_x: null,
@@ -4847,7 +4848,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 71 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_pistol3' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_pistol3' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Pistol',
@@ -4902,7 +4903,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_BURST_RAIL = 72 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_gun2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_gun2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Burst Rail',
@@ -4955,7 +4956,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_METAL_SHARD = 73 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'metal_shard' ),
+			image: sdWorld.CreateImageFromFile( 'guns/metal_shard' ),
 			image_variative: true,
 			sound: 'gun_defibrillator',
 			title: 'Alienic metal shard',
@@ -4976,7 +4977,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER_MK2 = 74 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'grenade_launcher_mk2' ), // Sprite by LazyRain
+			image: sdWorld.CreateImageFromFile( 'guns/grenade_launcher_mk2' ), // Sprite by LazyRain
 			sound: 'gun_grenade_launcher',
 			title: 'Grenade launcher MK2',
 			slot: 5,
@@ -5177,7 +5178,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_SARRONIAN_ENERGY_RIFLE = 78 ] = 
 		{
-			image: sdWorld.CreateImageFromFile ( 'sarronian_energy_rifle' ),
+			image: sdWorld.CreateImageFromFile ( 'guns/sarronian_energy_rifle' ),
 			sound: 'gun_spark',
 			sound_pitch: 0.5,
 			title: 'Sarronian Energy Rifle',
@@ -5229,7 +5230,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_WYRMHIDE = 79 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'wyrmhide' ),
+			image: sdWorld.CreateImageFromFile( 'guns/wyrmhide' ),
 			title: 'Wyrmhide',
 			slot: 0,
 			reload_time: -1,
@@ -5268,7 +5269,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_SNOWBALL = 80 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'snowball' ),
+			image: sdWorld.CreateImageFromFile( 'guns/snowball' ),
 			sound: 'sword_attack2',
 			title: 'Snowball',
 			slot: 7,
@@ -5334,7 +5335,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_PORTAL = 81 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'portalgun' ),
+			image: sdWorld.CreateImageFromFile( 'guns/portalgun' ),
 			sound: 'gun_portal4',
 			sound_volume: 4,
 			title: 'ASHPD',
@@ -5463,13 +5464,13 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER = 82 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'overlord_blaster' ),
+			image: sdWorld.CreateImageFromFile( 'guns/overlord_blaster' ),
 			sound: 'overlord_cannon4',
 			title: 'Overlord\'s blaster',
 			slot: 8,
 			reload_time: 5,
 			//muzzle_x: 11,
-			image_firing: sdWorld.CreateImageFromFile( 'overlord_blaster_fire' ),
+			image_firing: sdWorld.CreateImageFromFile( 'guns/overlord_blaster_fire' ),
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 60,
@@ -5562,7 +5563,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_TOPS_DMR = 83 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'tops_dmr' ),
+			image: sdWorld.CreateImageFromFile( 'guns/tops_dmr' ),
 			sound: 'gun_dmr',
 			sound_volume: 2.5,
 			sound_pitch: 0.8,
@@ -5611,7 +5612,7 @@ class sdGunClass
 		};
 		sdGun.classes[ sdGun.CLASS_TOPS_SHOTGUN = 84 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'tops_shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'guns/tops_shotgun' ),
 			sound: 'gun_shotgun',
 			sound_pitch: 1.2,
 			sound_volume: 1.5,
@@ -5695,9 +5696,9 @@ class sdGunClass
 		};
 		sdGun.classes[ sdGun.CLASS_CUBE_SPEAR = 89 ] = 
         { 
-			image: sdWorld.CreateImageFromFile( 'cube_spear2' ),
-			image_charging: sdWorld.CreateImageFromFile( 'cube_spear2_charging' ),
-			image_no_matter: sdWorld.CreateImageFromFile( 'cube_spear2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cube_spear2' ),
+			image_charging: sdWorld.CreateImageFromFile( 'guns/cube_spear2_charging' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/cube_spear2' ),
 			sound: 'saber_attack',
 			sound_volume: 1.5,
 			title: 'Cube Empty Speargun',
@@ -5777,7 +5778,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COMBAT_INSTRUCTOR = 90 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'emergency_instructor2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/emergency_instructor2' ),
 			sound: 'gun_defibrillator',
 			title: 'Combat instructor',
 			sound_pitch: 0.5,
@@ -5937,7 +5938,7 @@ class sdGunClass
 		};
 		sdGun.classes[ sdGun.CLASS_SETR_PLASMA_SHOTGUN = 91 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'setr_plasma_shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'guns/setr_plasma_shotgun' ),
 			sound: 'gun_spark',
 			sound_pitch: 1.5,
 			sound_volume: 1.5,
@@ -5990,7 +5991,7 @@ class sdGunClass
 		};
 		sdGun.classes[ sdGun.CLASS_SETR_ROCKET = 92 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'setr_homing_launcher' ),
+			image: sdWorld.CreateImageFromFile( 'guns/setr_homing_launcher' ),
 			sound: 'gun_rocket',
 			title: 'Setr Rocket Launcher',
 			slot: 5,
@@ -6040,7 +6041,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_CUBE_TELEPORTER = 93 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'cube_teleporter' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cube_teleporter' ),
 			sound: 'cube_teleport',
 			title: 'Cube-teleporter',
 			sound_pitch: 0.5,
@@ -6090,7 +6091,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_RAYRIFLE = 94 ] =
 		{
-			image: sdWorld.CreateImageFromFile( 'rayrifle_tcorr' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rayrifle_tcorr' ),
 			sound: 'gun_rayrifle',
 			//sound_volume: 1.2,
 			//sound_pitch: 0.2,
@@ -6149,8 +6150,8 @@ class sdGunClass
 		// sdWater.reference_colors
 		sdGun.classes[ sdGun.CLASS_LIQUID_CARRIER = 95 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'liquid_carrier' ),
-			image_no_matter: sdWorld.CreateImageFromFile( 'liquid_carrier' ),
+			image: sdWorld.CreateImageFromFile( 'guns/liquid_carrier' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/liquid_carrier' ),
 			sound: 'sword_attack2',
 			title: 'Liquid carrier',
 			slot: 7,
@@ -6382,7 +6383,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_CUSTOM_RIFLE = 96 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'rifle_parts' ),
+			image: sdWorld.CreateImageFromFile( 'guns/rifle_parts' ),
 			
 			image_offset_x: -2,
 			image_offset_y: 0,
@@ -6677,7 +6678,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LVL4_ARMOR_REGEN = 98 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl4' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_repair_module_lvl4' ),
 			title: 'Task Ops Armor Repair Module',
 			slot: 0,
 			reload_time: -1,
@@ -6700,7 +6701,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_ADMIN_DAMAGER = 99 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shark' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shark' ),
 			sound: 'gun_defibrillator',
 			title: 'Admin tool for damaging',
 			sound_pitch: 2,
@@ -6746,8 +6747,8 @@ class sdGunClass
 		// sdWater.reference_colors
 		sdGun.classes[ sdGun.CLASS_MOP = 100 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'mop' ),
-			image_no_matter: sdWorld.CreateImageFromFile( 'mop' ),
+			image: sdWorld.CreateImageFromFile( 'guns/mop' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/mop' ),
 			sound: 'sword_attack2',
 			title: 'Mop',
 			slot: 7,
@@ -6845,11 +6846,11 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_TELEPORT_SWORD = 101 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'time_shifter_sword' ),
+			image: sdWorld.CreateImageFromFile( 'guns/time_shifter_sword' ),
 			//sound: 'gun_medikit',
 			title: 'Time shifter blade',
 			sound: 'sword_attack2',
-			image_no_matter: sdWorld.CreateImageFromFile( 'time_shifter_sword' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'guns/time_shifter_sword' ),
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
@@ -7031,7 +7032,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_TZYRG_SHOTGUN = 102 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'tzyrg_shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'guns/tzyrg_shotgun' ),
 	
 			//sound: 'gun_shotgun',
 			//sound_pitch: 1.25,
@@ -7094,7 +7095,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_SHOTGUN = 103 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_shotgun2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_shotgun2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.2,
 			sound_volume: 1.5,
@@ -7301,7 +7302,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_THROWABLE_GRENADE = 106 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
+			image: sdWorld.CreateImageFromFile( 'guns/grenade_launcher' ),
 			sound: 'gun_grenade_launcher',
 			title: 'Hand grenade',
 			slot: 5,
@@ -7335,7 +7336,7 @@ class sdGunClass
 		};
 
 		sdGun.classes[ sdGun.CLASS_MINING_FOCUS_CUTTER = 107 ] = { // Sprite by Glek, edited by Ghost581
-			image: sdWorld.CreateImageFromFile( 'mining_focus_cutter' ),
+			image: sdWorld.CreateImageFromFile( 'guns/mining_focus_cutter' ),
 			sound: 'gun_psicutter_bounce',
 			sound_pitch: 0.4,
 			sound_volume: 1,
@@ -7390,7 +7391,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ZEKTARON_FOCUS_BEAM = 108 ] =
 		{
-			image: sdWorld.CreateImageFromFile( 'zektaron_focus_beam' ), // sprite by Gravel
+			image: sdWorld.CreateImageFromFile( 'guns/zektaron_focus_beam' ), // sprite by Gravel
 			// image_charging: sdWorld.CreateImageFromFile( 'zektaron_focus_beam' ), // no animation for now
 			//sound: 'supercharge_combined2',
 			title: 'Zektaron Focus Beam',
@@ -7403,6 +7404,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 3,
 			spawnable: false,
+			supports_eternal_shard: true,
 			self_recoil_scale: 0.4, // This gun needs less recoil, goes up too much - Booraz
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
@@ -7424,9 +7426,10 @@ class sdGunClass
 						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
 						gun._held_by.auto_shoot_in = 1200 / 1000 * 30 / ( 1 + gun._combo / 60 );
-
-
-						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 0.1; // Start firing immediaetly
+						else
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 0.9, pitch: 0.7 });
 					}
 					return false;
@@ -7440,6 +7443,10 @@ class sdGunClass
 					if ( gun._held_by.IsAttemptingShoot() )
 					{
 						gun._held_by.auto_shoot_in = ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
+						
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 5 / 2.5; // Always fire at max possible rate of fire
+						
 						gun._held_by.matter -= 4;
 						gun._combo_timer = 75;
 						if ( gun._combo < 60 )
@@ -7538,7 +7545,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_AREA_AMPLIFIER = 110 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'area_amplifier' ),
+			image: sdWorld.CreateImageFromFile( 'guns/area_amplifier' ),
 			sound_pitch: 4,
 			sound: 'supercharge_combined2_part2',
 			title: 'Area amplifier',
@@ -7636,7 +7643,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_ILLUSION_MAKER = 111 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'illusion_maker' ),
+			image: sdWorld.CreateImageFromFile( 'guns/illusion_maker' ),
 			sound_pitch: 6,
 			sound: 'supercharge_combined2_part2',
 			
@@ -7671,7 +7678,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SHURG_PISTOL = 112 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shurg_pistol' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shurg_pistol' ),
 			sound: 'tzyrg_fire',
 			sound_pitch: 2,
 			title: 'Shurg Pistol',
@@ -7724,7 +7731,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SETR_REPULSOR = 113 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'setr_repulsor' ),
+			image: sdWorld.CreateImageFromFile( 'guns/setr_repulsor' ),
 			sound: 'gun_railgun',
 			title: 'Setr Repulsor',
 			sound_pitch: 5, volume: 0.33,
@@ -7772,7 +7779,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_IMMOLATOR = 114 ] = // Sprite by Flora/Gravel
 		{
-			image: sdWorld.CreateImageFromFile( 'council_chargerail' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_chargerail' ),
 			//sound: 'supercharge_combined2',
 			title: 'Council Immolator',
 			//sound_pitch: 0.5,
@@ -7782,6 +7789,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
+			supports_eternal_shard: true,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -7803,8 +7811,9 @@ class sdGunClass
 						//return; // hack
 						gun._held_by.auto_shoot_in = 750 / 1000 * 30;
 
-
-						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 0.1; // Start firing immediaetly
+						else
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.7 });
 					}
 					return false;
@@ -7873,7 +7882,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SHURG_SNIPER = 115 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shurg_sniper' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shurg_sniper' ),
 			sound: 'gun_sniper',
 			sound_pitch: 1.7,
 			title: 'Shurg sniper rifle',
@@ -7925,7 +7934,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SETR_LMG = 116 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'setr_lmg' ),
+			image: sdWorld.CreateImageFromFile( 'guns/setr_lmg' ),
 			//sound: 'supercharge_combined2',
 			title: 'Setr Light Machine Gun',
 			//sound_pitch: 0.5,
@@ -7934,8 +7943,9 @@ class sdGunClass
 			muzzle_x: 11,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_velocity: sdGun.default_projectile_velocity,
 			spawnable: false,
+			supports_eternal_shard: true,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -7950,10 +7960,17 @@ class sdGunClass
 			{
                 if ( gun._held_by.IsPlayerClass() )
                 {
-                    gun._held_by._key_states.SetKey( 'KeyA', 0 );
-                    gun._held_by._key_states.SetKey( 'KeyD', 0 );
-                    gun._held_by._key_states.SetKey( 'KeyW', 0 );
-                    gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+					if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+					{
+						// Allow movement with this weapon
+					}
+					else
+					{
+						gun._held_by._key_states.SetKey( 'KeyA', 0 );
+						gun._held_by._key_states.SetKey( 'KeyD', 0 );
+						gun._held_by._key_states.SetKey( 'KeyW', 0 );
+						gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+					}
                 }
 				if ( !shoot_from_scenario )
 				{
@@ -7963,16 +7980,27 @@ class sdGunClass
 						//gun._held_by.auto_shoot_in = 15;
 						//return; // hack
 						gun._held_by.auto_shoot_in = 1200 / 1000 * 30;
-
-						sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1, pitch: 1.5 });
-						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.2 });
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						gun._held_by.auto_shoot_in = 0.1; // Start firing immediaetly
+						else
+						{
+							sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1, pitch: 1.5 });
+							sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 1.2 });
+						}
 					}
                     if ( gun._held_by.IsPlayerClass() )
                     {
-                        gun._held_by._key_states.SetKey( 'KeyA', 0 );
-                        gun._held_by._key_states.SetKey( 'KeyD', 0 );
-                        gun._held_by._key_states.SetKey( 'KeyW', 0 );
-                        gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+						if ( ( gun.extra[ 22 ] || 0 ) === 1 ) // Has a merged Eternal shard?
+						{
+							// Allow movement with this weapon
+						}
+						else
+						{
+							gun._held_by._key_states.SetKey( 'KeyA', 0 );
+							gun._held_by._key_states.SetKey( 'KeyD', 0 );
+							gun._held_by._key_states.SetKey( 'KeyW', 0 );
+							gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+						}
                     }
 					return false;
 				}
@@ -7997,7 +8025,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
-				obj._knock_scale = 0.02 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
+				obj._knock_scale = 0.01 * 8 * gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
@@ -8144,7 +8172,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_TZYRG_RIFLE = 119 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'tzyrg_rifle' ),
+			image: sdWorld.CreateImageFromFile( 'guns/tzyrg_rifle' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 3,
 			title: 'Tzyrg Assault Rifle',
@@ -9660,7 +9688,7 @@ class sdGunClass
 		let deleter_previous_hits = [];
 		sdGun.classes[ sdGun.CLASS_ADMIN_MASS_DELETER = 137 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shark' ),
+			image: sdWorld.CreateImageFromFile( 'guns/shark' ),
 			sound: 'gun_defibrillator',
 			title: 'Admin tool for mass removing',
 			sound_pitch: 2,
@@ -9983,7 +10011,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_ARMOR_STARTER = 143 ] = // Sprite and concept by Booraz
 		{
-			image: sdWorld.CreateImageFromFile( 'armor_starter' ),
+			image: sdWorld.CreateImageFromFile( 'guns/armor_starter' ),
 			title: 'SD-00 Scout Armor',
 			slot: 0,
 			reload_time: 25,
@@ -11030,7 +11058,7 @@ class sdGunClass
 		};
 		sdGun.classes[ sdGun.CLASS_CUBE_ARMOR = 158 ] = // Sprite by flora
 		{
-			image: sdWorld.CreateImageFromFile( 'cube_armor' ),
+			image: sdWorld.CreateImageFromFile( 'guns/cube_armor' ),
 			title: 'Cube lost armor',
 			slot: 0,
 			reload_time: -1,
@@ -11149,6 +11177,7 @@ class sdGunClass
 			spawnable: false,
 			ignore_slot: true,
 			apply_shading: false,
+			has_description: [ 'Can be merged with some weapons to speed up startup time' ],
             onPickupAttempt: ( character, gun ) => // Currently does nothing
 			{ 
 				return false; 
@@ -11490,7 +11519,7 @@ class sdGunClass
         
         sdGun.classes[ sdGun.CLASS_COUNCIL_BURST_RAIL2 = 165 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_gun_v2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_gun_v2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Burst Rail v2',
@@ -11545,7 +11574,7 @@ class sdGunClass
         
         sdGun.classes[ sdGun.CLASS_COUNCIL_SHOTGUN2 = 166 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_shotgun_v2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_shotgun_v2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.2,
 			sound_volume: 1.5,
@@ -11608,7 +11637,7 @@ class sdGunClass
         
         sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL2 = 167 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_pistol_v2' ),
+			image: sdWorld.CreateImageFromFile( 'guns/council_pistol_v2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.25,
 			title: 'Council Pistol v2',
@@ -11780,7 +11809,7 @@ class sdGunClass
 
         sdGun.classes[ sdGun.CLASS_TZYRG_GRENADE_LAUNCHER = 170 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'tzyrg_grenade_launcher' ),
+			image: sdWorld.CreateImageFromFile( 'guns/tzyrg_grenade_launcher' ),
 			sound: 'tzyrg_fire',
             sound_pitch: 0.5,
 			title: 'Tzyrg Grenade Launcher',
