@@ -28,6 +28,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdArea from './sdArea.js';
 import sdWeaponBench from './sdWeaponBench.js';
 import sdSteeringWheel from './sdSteeringWheel.js';
+
 /*
 
 	Spritesheet suggestion:
@@ -2611,9 +2612,9 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
-				obj._critical_hit_range = 80; // guide: 16 = A dirt block
-				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				//obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
+				//obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				//obj._weak_critical_hit_range = 112; // 7 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -2662,9 +2663,9 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
-				obj._critical_hit_range = 80; // guide: 16 = A dirt block
-				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				//obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have an advantage over rifles at close range imo - Ghost581
+				//obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				//obj._weak_critical_hit_range = 112; // 7 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -7267,9 +7268,9 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._critical_hit_mult = 0.25; // 1.25x damage at closer range, same as SMG's now.
-				obj._critical_hit_range = 80; // guide: 16 = A dirt block
-				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				//obj._critical_hit_mult = 0.25; // 1.25x damage at closer range, same as SMG's now.
+				//obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				//obj._weak_critical_hit_range = 112; // 7 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -7849,12 +7850,15 @@ class sdGunClass
 				// obj._damage *= 1.25; // Increase damage further by 25%
 				
 				//obj.color = gun.extra[ sdGun.ID_PROJECTILE_COLOR ];
+				/*
 				obj._custom_target_reaction_before_damage_tests = ( bullet, target_entity )=>
 				{
 					let temp = sdStatusEffect.GetTemperature( target_entity ) || 0; // Check entity temperature
 					if ( temp > 700 ) // On fire?
 					bullet._damage = bullet._damage * 1.25; // 25% more damage on targets set on fire
 				};
+				// Removed due to unbound unstable cores to prevent power creep.
+				*/
 				
 				return obj;
 			},
@@ -8442,9 +8446,9 @@ class sdGunClass
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
-				obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have some advantage over rifles at close range - Ghost581
-				obj._critical_hit_range = 80; // guide: 16 = A dirt block
-				obj._weak_critical_hit_range = 112; // 7 dirt blocks
+				//obj._critical_hit_mult = 0.25; // 1.25x damage at effective range - makes sense for SMGs to have some advantage over rifles at close range - Ghost581
+				//obj._critical_hit_range = 80; // guide: 16 = A dirt block
+				//obj._weak_critical_hit_range = 112; // 7 dirt blocks
 				obj._dirt_mult = -0.25; // To not make it too strong vs dirt
 				
 				if ( gun.extra[ sdGun.ID_PROJECTILE_COLOR ] )
@@ -10069,7 +10073,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_UNSTABLE_CORE = 145 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'unstable_core' ),
+			image: sdWorld.CreateImageFromFile( 'guns/unstable_core' ),
 			sound: 'gun_defibrillator',
 			title: 'Unstable core',
 			sound_pitch: 1,
@@ -11405,7 +11409,7 @@ class sdGunClass
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { explosion_radius: gun.fire_mode === 2 ? 24 : 16, _rail: true, _rail_circled: true, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#aaffff', _no_explosion_smoke: true, _explosion_shrapnel: gun.fire_mode === 2, _temperature_addition: gun.fire_mode === 2 ? 15000 : 5000 };
-                obj._knock_scale = 1.4 * gun.extra[ sdGun.ID_DAMAGE_MULT ] * ( gun.fire_mode === 2 ? 2 : 1 );
+                obj._knock_scale = 1 * gun.extra[ sdGun.ID_DAMAGE_MULT ] * ( gun.fire_mode === 2 ? 2 : 1 );
 				obj._damage = gun.extra[ sdGun.ID_DAMAGE_VALUE ] * ( gun.fire_mode === 2 ? 2 : 1 ); // Damage value is set onMade
 				obj._damage *= gun.extra[ sdGun.ID_DAMAGE_MULT ];
 				//obj._knock_scale *= gun.extra[ sdGun.ID_RECOIL_SCALE ];
@@ -12171,6 +12175,33 @@ class sdGunClass
 				gun._count = sdGun.classes[ gun.class ].count * ( fire_mode === 2 ? 2 : 1 );
             },
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#bf1d00', 30, '', '', true ) ) // also_set_projectile_color: true - this is a rail/beam weapon, its beam color comes from gun.extra[ ID_PROJECTILE_COLOR ] (see projectile_properties_dynamic above), not from the sprite recolor alone
+		};
+		
+		sdGun.classes[ sdGun.CLASS_UNBOUND_UNSTABLE_CORE = 175 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'guns/unbound_unstable_core' ),
+			sound: 'gun_defibrillator',
+			title: 'Unbound unstable core',
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Can be merged with weapons to alter power', 'Power determined at weapon merging bench' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup, made to put in crates or weapon merger
+			{ 
+				return false; 
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				// Unstable core has randomized power/dps
+					gun._max_dps = 600;
+					// Maxed out unstable core, obtained by fusing 2 max regular unstable cores.
+					//console.log( gun._max_dps );
+			}
 		};
 
 		// Add new gun classes above this line //

@@ -128,6 +128,7 @@ class sdGun extends sdEntity
         sdGun.ID_HAS_MERGED = 21; // DPS buff from weapon merging
         sdGun.ID_HAS_ETERNAL_SHARD = 22; // Reduces build-up time for charging weapons
 		sdGun.ID_PROJECTILE_MODEL = 23; // For custom guns in rocket mode
+		sdGun.ID_HAS_MERGED_FIRERATE = 24; // DPS buff from weapon merging, used in slot 4's when they exceed 2x multiplier with unbound unstable cores.
 		
 		sdGun.as_class_list = [ 'sdGun' ];
 		
@@ -1410,6 +1411,8 @@ class sdGun extends sdEntity
 							bullet_obj._damage *= 1.25; // Increase bullet damage by 25%
 							if ( bullet_obj.explosion_radius > 0 )
 							bullet_obj._explosion_mult *= 1.25; // Increase explosion damage by 25%
+						
+							bullet_obj._knock_scale *= 0.8; // Keep knockback scale same as before it had exalted core. (0.8 * 1.25 = 1)
 						}
 						
 						// Weapon merging DPS application
@@ -1419,6 +1422,9 @@ class sdGun extends sdEntity
 							if ( bullet_obj.explosion_radius > 0 )
 							bullet_obj._explosion_mult *= this.extra[ 21 ]; // Multiply the explosion DPS with the stored value
 						}
+						
+						// Knockback reduction based off weapon projectile count.
+						bullet_obj._knock_scale *= Math.max( 0.1, bullet_obj._knock_scale / count );
 						/*
 							It is now a separate multiplier instead of directly changing this.extra damage value
 							so that the slow firing weapons, small DPS weapons have capped DPS increase
@@ -1757,7 +1763,8 @@ class sdGun extends sdEntity
 							}
 						}
 					}
-					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && is_stimmed ) ? 2 : 1 ) );
+					let rof_mult = this.extra[ sdGun.ID_HAS_MERGED_FIRERATE ] || 1; // ROF multiplier given to guns when base damage mult exceeded value of 2
+					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * rof_mult * ( ( this._held_by && is_stimmed ) ? 2 : 1 ) );
 				}
 			}
 		}

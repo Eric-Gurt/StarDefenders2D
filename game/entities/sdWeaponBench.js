@@ -228,6 +228,8 @@ class sdWeaponBench extends sdEntity
                         let has_exalted_core = ( gun.extra[ 19 ] ) ? gun.extra[ 19 ] : 0;
 
                         let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
+						
+						let merge_rof_mult = ( gun.extra[ 24 ] ) ? gun.extra[ 24 ] : 1; // ROF multiplier from merging weapons
 
 
 						// Calculate explosion damage, if there is explosion_radius available.
@@ -238,7 +240,7 @@ class sdWeaponBench extends sdEntity
                         sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( ( 30 + explosion_damage ) * item.extra[ sdGun.ID_DAMAGE_MULT ] * merge_mult * ( ( has_exalted_core === 1 ) ? 1.25 : 1 ) ), 0, -50, '#ffaaaa' );
                         sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * item.extra[ sdGun.ID_DAMAGE_MULT ] * item.extra[ sdGun.ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
                     
-                        const reload_time = ( gun.extra[ sdGun.ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ sdGun.ID_MAGAZINE ] ].rate ) * gun.extra[ sdGun.ID_FIRE_RATE ];
+                        const reload_time = ( gun.extra[ sdGun.ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ sdGun.ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ sdGun.ID_MAGAZINE ] ].rate ) * gun.extra[ sdGun.ID_FIRE_RATE ] / merge_rof_mult;
                         let shots_per_second = Math.min( 30, 30 / reload_time );
                         shots_per_second = Math.round( shots_per_second * 100 ) / 100;
 
@@ -262,6 +264,8 @@ class sdWeaponBench extends sdEntity
                                     
                             let merge_mult = ( gun.extra[ 21 ] ) ? gun.extra[ 21 ] : 1; // Multiplier from merging weapons
 							
+							let merge_rof_mult = ( gun.extra[ 24 ] ) ? gun.extra[ 24 ] : 1; // ROF multiplier from merging weapons
+							
 														
 							// Calculate explosion damage, if there is explosion_radius available.
 							let explosion_damage = 0;
@@ -282,7 +286,7 @@ class sdWeaponBench extends sdEntity
                             if ( item.extra[ sdGun.ID_RECOIL_SCALE ] )
                             sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * item.extra[ sdGun.ID_DAMAGE_MULT ] * item.extra[ sdGun.ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
 
-                            const reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
+                            const reload_time = sdGun.classes[ gun.class ].reload_time / merge_rof_mult; // Best to keep it simple.
                             
                             let shots_per_second = Math.min( 30, 30 / reload_time );
                             shots_per_second = Math.round( shots_per_second * 100 ) / 100;
