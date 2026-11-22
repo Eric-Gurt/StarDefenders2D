@@ -180,7 +180,7 @@ class sdFactionSpawner extends sdEntity
 			let drones = 0;
 			
 			for ( i = 0; i < sdDrone.drones.length; i++ )
-			if ( sdDrone.drones[ i ].hea > 0 )
+			if ( sdDrone.drones[ i ]._hea > 0 )
 			if ( !sdDrone.drones[ i ]._is_being_removed )
 			if ( sdDrone.drones[ i ]._ai_team === this._ai_team )
 			{
