@@ -92,6 +92,8 @@ class sdCouncilIncinerator extends sdEntity
 		this._current_minions_count = 0; // Minion counter
 		this._max_drone_spawns = 12;
 		
+		this._veh_check_timer = 1;
+		
 		this.left_attack_an = 0;
 		this.right_attack_an = 0;
 		
@@ -550,6 +552,65 @@ class sdCouncilIncinerator extends sdEntity
 					this._follow_target = null;
 				
 					//this._follow_target = this.GetRandomEntityNearby();
+				}
+				
+				if ( this._veh_check_timer > 0 ) // Vehicle and turret disabling mechanic
+				this._veh_check_timer = Math.max( 0, this._veh_check_timer - GSPEED );
+				else
+				if ( this._veh_check_timer === 0 ) // This fight should be more personal. Vehicles and turrets are too easy to use.
+				{
+					this._veh_check_timer = 6;
+					if ( this._follow_target ) // Target exists?
+					{
+						if ( sdWorld.Dist2D( this.x, this.y, this._follow_target.x, this._follow_target.y ) < sdCouncilIncinerator.attack_range )
+						{
+							let target_ent = this._follow_target;
+							let disabled_ent = false;
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, this._follow_target.x, this._follow_target.y, this, null, sdCom.com_vision_blocking_classes ) )
+							{
+								// Requires line of sight check for vehicles
+								if ( target_ent.driver_of && typeof target_ent.driver_of.disabled_timeout !== 'undefined' )
+								{
+									// Apply "EMP" like effect which disables vehicle over time, rather than instantly
+									{
+										target_ent.driver_of.disabled_timeout += 100;
+										sdCrystal.ZapLine( this.x, this.y, target_ent.driver_of.x, target_ent.driver_of.y, '#FFFFFF' );
+										disabled_ent = true;
+									}
+								}
+								if ( target_ent.IsVehicle() && typeof target_ent.disabled_timeout !== 'undefined' )
+								{
+									// Apply "EMP" like effect which disables vehicle over time, rather than instantly
+									{
+										target_ent.disabled_timeout += 100;
+										sdCrystal.ZapLine( this.x, this.y, target_ent.x, target_ent.y, '#FFFFFF' );
+										disabled_ent = true;
+									}
+								}
+							}
+							if ( target_ent.GetClass() === 'sdTurret' ) // Turret?
+							{
+								// Should probably disable in AOE radius these.
+								let nears = sdWorld.GetAnythingNear( target_ent.x, target_ent.y, 96 );
+								for ( let i = 0; i < nears.length; i++ )
+								{
+									let ent = nears[ i ];
+									if ( ent.GetClass() === 'sdTurret' )
+									if ( !ent.disabled )
+									{
+										ent.disabled = true;
+										ent._disabled_timeout = 30 * 60; // 1 minute
+										sdCrystal.ZapLine( this.x, this.y, ent.x, ent.y, '#FFFFFF' );
+										disabled_ent = true;
+									}
+								}
+							}
+							if ( disabled_ent )
+							{
+								sdSound.PlaySound({ name:'bsu_attack', x:this.x, y:this.y, volume:0.75, pitch: 3 });
+							}
+						}
+					}
 				}
 				
 				if ( this._next_drone_spawn > 0 )

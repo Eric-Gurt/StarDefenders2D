@@ -343,6 +343,9 @@ class sdMothershipContainer extends sdEntity
 							count: [ 1, 1 ],
 							class: sdCouncilNullifier,
 							store_ents: nullifier,
+							near_entity: this,
+							group_radius: 6000,
+							min_air_height: -400, // Minimum free space above entity placement location
 							aerial: true,
 							aerial_radius: 128
 						});

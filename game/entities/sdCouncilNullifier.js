@@ -161,7 +161,7 @@ class sdCouncilNullifier extends sdEntity
 				} while( true );
 			}
 		}
-		if ( Math.round( old_hea / ( this.hmax / 4 ) ) > Math.round( this.hea / ( this.hmax / 4 ) ) ) // And about 4 support drones
+		if ( Math.round( old_hea / ( this.hmax / 3 ) ) > Math.round( this.hea / ( this.hmax / 3 ) ) ) // And about 3 support drones
 		if ( !sdWeather.only_instance._chill )
 		{
 			//if ( initiator )
@@ -428,7 +428,7 @@ class sdCouncilNullifier extends sdEntity
 					// Spawn a Council drone
 					{
 						{
-							let drone_type = ( this.hea > this.hmax / 2 ) ? sdDrone.DRONE_COUNCIL_ATTACK : sdDrone.DRONE_COUNCIL;
+							let drone_type = ( this.hea > this.hmax / 2.5 ) ? sdDrone.DRONE_COUNCIL_ATTACK : sdDrone.DRONE_COUNCIL;
 							//let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: drone_type });
 							//sdEntity.entities.push( drone );
 							

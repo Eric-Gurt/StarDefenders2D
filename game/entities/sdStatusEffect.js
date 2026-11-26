@@ -2084,45 +2084,52 @@ class sdStatusEffect extends sdEntity
 					else
 					if ( status_entity._veh_check_timer === 0 ) // This fight should be more personal. Vehicles and turrets are too easy to use.
 					{
-						status_entity._veh_check_timer = 4;
+						status_entity._veh_check_timer = 6;
 						if ( status_entity.for._ai && typeof status_entity.for._ai.target !== 'undefined' ) // Target exists?
 						{
 							if ( status_entity.for._ai.target )
 							{
 								let target_ent = status_entity.for._ai.target;
 								let disabled_ent = false;
-								if ( target_ent.driver_of && typeof target_ent.driver_of.matter !== 'undefined' )
+								if ( sdWorld.Dist2D( status_entity.for.x, status_entity.for.y, target_ent.x, target_ent.y ) < 500 )
 								{
-									if ( target_ent.driver_of.matter > 0 )
+									if ( sdWorld.CheckLineOfSight( status_entity.for.x, status_entity.for.y, target_ent.x, target_ent.y, status_entity.for, null, sdCom.com_vision_blocking_classes ) )
 									{
-										target_ent.driver_of.matter = 0;
-										sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, target_ent.driver_of.x, target_ent.driver_of.y, '#FFFFFF' );
-										disabled_ent = true;
-									}
-								}
-								if ( target_ent.IsVehicle() && typeof target_ent.matter !== 'undefined' )
-								{
-									if ( target_ent.matter > 0 )
-									{
-										target_ent.matter = 0;
-										sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, target_ent.x, target_ent.y, '#FFFFFF' );
-										disabled_ent = true;
-									}
-								}
-								if ( target_ent.GetClass() === 'sdTurret' ) // Turret?
-								{
-									// Should probably disable in AOE radius these.
-									let nears = sdWorld.GetAnythingNear( target_ent.x, target_ent.y, 96 );
-									for ( let i = 0; i < nears.length; i++ )
-									{
-										let ent = nears[ i ];
-										if ( ent.GetClass() === 'sdTurret' )
-										if ( !ent.disabled )
+										// Requires line of sight check for vehicles
+										if ( target_ent.driver_of && typeof target_ent.driver_of.disabled_timeout !== 'undefined' )
 										{
-											ent.disabled = true;
-											ent._disabled_timeout = 30 * 60; // 1 minute
-											sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, ent.x, ent.y, '#FFFFFF' );
-											disabled_ent = true;
+											// Apply "EMP" like effect which disables vehicle over time, rather than instantly
+											{
+												target_ent.driver_of.disabled_timeout += 100;
+												sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, target_ent.driver_of.x, target_ent.driver_of.y, '#FFFFFF' );
+												disabled_ent = true;
+											}
+										}
+										if ( target_ent.IsVehicle() && typeof target_ent.disabled_timeout !== 'undefined' )
+										{
+											// Apply "EMP" like effect which disables vehicle over time, rather than instantly
+											{
+												target_ent.disabled_timeout += 100;
+												sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, target_ent.x, target_ent.y, '#FFFFFF' );
+												disabled_ent = true;
+											}
+										}
+									}
+									if ( target_ent.GetClass() === 'sdTurret' ) // Turret?
+									{
+										// Should probably disable in AOE radius these.
+										let nears = sdWorld.GetAnythingNear( target_ent.x, target_ent.y, 96 );
+										for ( let i = 0; i < nears.length; i++ )
+										{
+											let ent = nears[ i ];
+											if ( ent.GetClass() === 'sdTurret' )
+											if ( !ent.disabled )
+											{
+												ent.disabled = true;
+												ent._disabled_timeout = 30 * 60; // 1 minute
+												sdCrystal.ZapLine( status_entity.for.x, status_entity.for.y, ent.x, ent.y, '#FFFFFF' );
+												disabled_ent = true;
+											}
 										}
 									}
 								}

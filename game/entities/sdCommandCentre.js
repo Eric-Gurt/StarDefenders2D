@@ -9,6 +9,10 @@ import sdGun from './sdGun.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
+import sdBeamProjector from './sdBeamProjector.js';
+
+import sdWeather from './sdWeather.js';
+
 import sdRenderer from '../client/sdRenderer.js';
 
 
@@ -105,6 +109,12 @@ class sdCommandCentre extends sdEntity
         this.nickname_censored = false;
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
+		
+		this._disk_value = -1; // Inserted disk value. Determines task to "authorize"/spawn when disk is inserted into CC.
+		this._reject_disk_until = 0;
+		this._event_spawn_timer = -1; // Spawn task timer when a disk is inserted.
+		this._say_allowed_in = 0;
+		this._speak_id = -1; // Required by speak effects // last voice message
 		
 		//this.signal_strength = 100000000;
 		
@@ -238,13 +248,151 @@ class sdCommandCentre extends sdEntity
 				}
 			}
 			else
+			if ( this._disk_value === -1 ) // Only if no task spawn is underway
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 		
+		if ( sdWorld.is_server )
+		{
+			if ( this._disk_value !== -1 )	// Disk inserted?
+			{
+				if ( this._event_spawn_timer < 0 )
+				{
+					// Acknowledgement message
+					this._event_spawn_timer = Math.max( -30, this._event_spawn_timer - ( GSPEED * ( 0.1 + 0.5 * Math.random() ) ) )
+					if ( this._event_spawn_timer === -30 )
+					{
+						this._event_spawn_timer = 270 + Math.random() * 210;
+						// Mothership task unit (MO-TU) to CC name
+						let	potential_dialogue;
+						potential_dialogue = sdWorld.AnyOf( [ 
+						'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Disk insertion acknowledged, attempting to authorize operation...',
+						'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Disk acknowledged, preparing task perimeters...'
+							] );
+							
+						this.Say( potential_dialogue );
+					}
+				}
+				if ( this._event_spawn_timer > 0 )
+				{
+					this._event_spawn_timer = Math.max( 0, this._event_spawn_timer - GSPEED )
+					if ( this._event_spawn_timer === 0 )
+					{
+						let event_ent = [];
+						// Spawn event depending on disk value/type near the CC
+						if ( this._disk_value === 0 ) // 0 value = random event disk
+						this._disk_value = 1 + Math.floor( ( Math.random() * 0 ) ); // Select random available event
+						if ( this._disk_value === 1 && sdBeamProjector.big_projector_counter < 1 ) // Large dark matter beam projector
+						{
+							sdWeather.SimpleSpawner({
+							count: [ 1, 1 ],
+							class: sdBeamProjector,
+							params: { type: sdBeamProjector.TYPE_LARGE_PROJECTOR }, // Spawn the big version
+							store_ents: event_ent,
+							near_entity: this,
+							group_radius: 3000,
+							min_air_height: -400, // Minimum free space above entity placement location
+							aerial: true,
+							aerial_radius: 128
+						});
+						}
+						
+						if ( event_ent.length > 0 ) // Successful spawn?
+						{
+							let	potential_dialogue;
+							potential_dialogue = sdWorld.AnyOf( [ 
+							'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Operation authorized, get to it.',
+							'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Perimeters set, location marked. Good luck.',
+							'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Location and objectives established. We\'re counting on you.'
+								] );
+								
+							this.Say( potential_dialogue );
+						}
+						else
+						{
+							let	potential_dialogue;
+							potential_dialogue = sdWorld.AnyOf( [ 
+							'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Unable to authorize at the moment. Try again.',
+							'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Failed to establish perimeters. Attempt again shortly.',
+							'MO-TU-'+ ~~( 1 + Math.random() * 98 ) + ' to CC-' + this.nickname +'. Authorization failed, please try again.'
+								] );
+								
+							this.Say( potential_dialogue );
+							
+							
+							// Refund the disk
+							let disk = new sdGun({ x:this.x, y:this.y + this._hitbox_y1 - 3, class:sdGun.CLASS_CC_DISK });
+							
+							if ( disk.extra ) // Might not be needed anymore - keep it just in case to prevent crashes
+							disk.extra[ 0 ] = this._disk_value;
+
+							sdEntity.AddEntityToEntitiesArray( disk );
+						}
+						this._reject_disk_until = sdWorld.time + 10000;
+						this._disk_value = -1;
+						this._event_spawn_timer = -1;
+						this._update_version++;
+					}
+				}
+			}
+		}
+	}
+	Say( t, force_say=true )
+	{
+		// For disk insertion acknowledgement.
+		//if ( ( this.state_hp === 0 && this.sentence_to_speak.length === 0 ) || force_say )
+		{
+			
+			let params = { 
+				x:this.x, 
+				y:this.y - 20, 
+				type:sdEffect.TYPE_CHAT, 
+				attachment:this, 
+				attachment_x: 0,
+				attachment_y: -20,
+				text:t,
+				text_censored: 0,
+				voice: { 
+				 wordgap: 0,
+				 pitch: 10,
+				 speed: 150,
+				 variant: 'klatt3',
+				 voice: 'en'
+				}
+			};
+			
+			if ( sdWorld.is_server )
+			{
+				if ( sdWorld.time > this._say_allowed_in )
+				{
+					this._say_allowed_in = sdWorld.time + t.length * 50;
+					sdWorld.SendEffect( params );
+				}
+			}
+		}
 	}
 	get title()
 	{
 		return 'Command Centre';
+	}
+	onMovementInRange( from_entity )
+	{
+		if ( !sdWorld.is_server )
+		return;
+		// CC disks are inserted into CC, then CC checks "task authorization"
+		if ( from_entity.is ( sdGun ) && this._disk_value === -1 && sdWorld.time > this._reject_disk_until )
+		{
+			if ( from_entity.class === sdGun.CLASS_CC_DISK )
+			{
+				this._disk_value = from_entity.extra[ 0 ] || 0;
+				from_entity.remove();
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // For spawn logic to work properly
+				
+				//console.log( this._disk_value );
+				this._update_version++;
+				
+			}
+		}
 	}
 	get description()
 	{

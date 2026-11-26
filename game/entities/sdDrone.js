@@ -797,7 +797,7 @@ class sdDrone extends sdEntity
 				}, 100 );
 			}
 
-			if ( ( Math.random() < 0.3 && this.type !== sdDrone.DRONE_COUNCIL_ATTACK ) || ( Math.random() < 0.2 && this.type === sdDrone.DRONE_COUNCIL_ATTACK ) ) // 30% chance to drop a metal shard on destruction, 20% if Council assault drone
+			if ( ( Math.random() < 0.3 && this.type !== sdDrone.DRONE_COUNCIL_ATTACK ) || ( Math.random() < 0.05 && this.type === sdDrone.DRONE_COUNCIL_ATTACK ) ) // 30% chance to drop a metal shard on destruction, 5% if Council assault drone
 			{
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
@@ -811,6 +811,12 @@ class sdDrone extends sdEntity
 
 				}, 100 );
 			}
+			if ( this.type === sdDrone.DRONE_COUNCIL_ATTACK || this.type === sdDrone.DRONE_COUNCIL ) // Council drones now drop small crystal shards to refuel players with matter
+			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+						Math.ceil( Math.max( 4, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+							40 / 40,
+							5
+					);
 		}
 		else
 		{

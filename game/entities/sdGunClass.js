@@ -10075,7 +10075,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'guns/unstable_core' ),
 			sound: 'gun_defibrillator',
-			title: 'Unstable core',
+			title: 'Unstable Core',
 			sound_pitch: 1,
 			slot: 0,
 			reload_time: 30,
@@ -12181,7 +12181,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'guns/unbound_unstable_core' ),
 			sound: 'gun_defibrillator',
-			title: 'Unbound unstable core',
+			title: 'Unbound Unstable Core',
 			sound_pitch: 1,
 			slot: 0,
 			reload_time: 30,
@@ -12201,6 +12201,47 @@ class sdGunClass
 					gun._max_dps = 600;
 					// Maxed out unstable core, obtained by fusing 2 max regular unstable cores.
 					//console.log( gun._max_dps );
+			}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_CC_DISK = 176 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'guns/disk' ),
+			sound: 'gun_defibrillator',
+			title: 'Command Centre Disk',
+			title_dynamic: ( gun )=>
+			{
+				if ( gun.extra && gun.extra[ 0 ] === 1 )
+				return 'Command Centre Disk - Dark Matter Beam Projector';
+				
+				
+				// Value 0 will give randomized available task
+				return 'Command Centre Disk';
+			},
+			sound_pitch: 1,
+			slot: 0,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			ignore_slot: true,
+			has_description: [ 'Can be inserted inside a command centre to authorize task clearance' ],
+			onPickupAttempt: ( character, gun )=> // Cancels pickup
+			{ 
+				if ( !( gun.extra && gun.extra[ 0 ] >= 0 ) ) // Remove incorrect disks
+				return gun.remove();
+
+				return false; 
+			},
+			onMade: ( gun )=>
+			{
+				// Ensure disks have "extra" property
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ 0 ] = 0;
+				}
 			}
 		};
 

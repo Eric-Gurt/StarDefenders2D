@@ -960,6 +960,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDropPod', type: 0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDropPod', type: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdBeamProjector', type: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdBeamProjector', type: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLongRangeAntenna', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSolarMatterDistributor', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdExcavator', _category:'Development tests' });

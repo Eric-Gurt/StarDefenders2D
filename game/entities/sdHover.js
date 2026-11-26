@@ -102,7 +102,19 @@ class sdHover extends sdEntity
 	{
 		return true;
 	}
+	IsDisabled()
+	{
+		if ( this.type === sdHover.TYPE_HOVER )
+		return ( this.disabled_timeout > 1400 );
+		if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
+		return ( this.disabled_timeout > 1800 );
+		if ( this.type === sdHover.TYPE_TANK )
+		return ( this.disabled_timeout > 2200 );
+		if ( this.type === sdHover.TYPE_BIKE )
+		return ( this.disabled_timeout > 800 );
 	
+		return ( this.disabled_timeout > 1400 );
+	}
 	getRequiredEntities()
 	{
 		let arr = [];
@@ -136,7 +148,7 @@ class sdHover extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this.hmax = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 1200 : this.type === sdHover.TYPE_TANK ? 2400 : this.type === sdHover.TYPE_BIKE ? 300 : 600 ) * 4;
+		this.hmax = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 1200 : this.type === sdHover.TYPE_TANK ? 2100 : this.type === sdHover.TYPE_BIKE ? 300 : 600 ) * 4;
 		this.hea = this.hmax;
 		
 		this.guns = ( params.guns !== undefined ) ? params.guns : 1;
@@ -178,11 +190,15 @@ class sdHover extends sdEntity
 		this._disable_custom_ai_logic = false; // For AI piloting vehicles
 		// 0 = nothing, 1 = SD criminals, 2 = falkoks
 		
+		// For things like High Councilor, Incinerator to not instantly disable vehicles.
+		//this.disabled = false;
+		this.disabled_timeout = 0; // Countdown timer. If it crosses a threshold, it disables the vehicle
+		
 		this.matter = 300; // Should be less than Hover cost
-		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
+		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 4000 :
 			this.type === sdHover.TYPE_TANK ? 12000 :
-			this.type === sdHover.TYPE_BIKE ? 400 :
-			1000
+			this.type === sdHover.TYPE_BIKE ? 600 :
+			1200
 		);
 		
 		if ( this._spawn_with_ents )
@@ -191,8 +207,6 @@ class sdHover extends sdEntity
 		// client-sided
 		this._eff_timer = 0;
 	}
-	
-	
 	IsVehicle()
 	{
 		return true;
@@ -436,8 +450,8 @@ class sdHover extends sdEntity
 	
 	get mass() { 
 		return this.type === sdHover.TYPE_BIKE ? 150 : 
-			   this.type === sdHover.TYPE_TANK ? 2000 : 
-			   this.type === sdHover.TYPE_FIGHTER_HOVER ? 1200 : 
+			   this.type === sdHover.TYPE_TANK ? 1600 : 
+			   this.type === sdHover.TYPE_FIGHTER_HOVER ? 800 : 
 			   500; 
 	}
 	Impulse( x, y )
@@ -571,6 +585,10 @@ class sdHover extends sdEntity
 			this.AdditionalAIBehaviour(); // Additional AI behaviour script, for example Falkok Hover pilots leaving when no co-pilots are left inside
 			
 		}
+		if ( this.disabled_timeout > 0 )
+		{
+			this.disabled_timeout = Math.min( 4000, this.disabled_timeout - GSPEED );
+		}
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -599,7 +617,7 @@ class sdHover extends sdEntity
 			if ( this.driver0._ai )
 			cost = 0; // AI should have no cost for piloting, or it will stop driving in a minute or two
 			
-			if ( this.matter >= cost )
+			if ( this.matter >= cost && !this.IsDisabled() )
 			{
 				this.matter -= cost;
 				
@@ -614,9 +632,9 @@ class sdHover extends sdEntity
 
 				this.sx += x_force * GSPEED;
 				this.sy += y_force * GSPEED;
-
+					
 				this._tilt = sdWorld.MorphWithTimeScale( this._tilt, ( this.driver0.act_x ) * Math.PI / 4 * 100, 0.93, GSPEED );
-
+					
 				if ( this.driver0.act_x === 0 )
 				if ( Math.abs( this._tilt ) < 1 )
 				this._tilt = ( this._tilt > 0 ? 1 : -1 );
@@ -632,8 +650,11 @@ class sdHover extends sdEntity
 
 				this._tilt = sdWorld.MorphWithTimeScale( this._tilt, 0, 0.93, GSPEED );
 				
-				if ( this.driver0._socket )
+				if ( this.driver0._socket && this.matter < cost )
 				this.driver0._socket.SDServiceMessage( 'Vehicle is out of matter' );
+			
+				if ( this.driver0._socket && this.IsDisabled() )
+				this.driver0._socket.SDServiceMessage( 'Vehicle controls are affected by EMP' );
 			}
 		}
 		else
@@ -645,7 +666,7 @@ class sdHover extends sdEntity
 			this._tilt = ( this._tilt > 0 ? 1 : -1 );
 		}
 		
-		if ( this.guns )
+		if ( this.guns && !this.IsDisabled() )
 		if ( sdWorld.is_server && this.hea > 0 )
 		{
 			if ( this._bullets_reload > 0 )
@@ -812,7 +833,7 @@ class sdHover extends sdEntity
 						sdEntity.AddEntityToEntitiesArray( bullet_obj );
 
 						if ( this.type === sdHover.TYPE_TANK )
-						this._bullets_reload = 2;
+						this._bullets_reload = 3;
 						else
 						this._bullets_reload = 1.5;
 
@@ -969,7 +990,6 @@ class sdHover extends sdEntity
 				}
 			}
 		}
-		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			if ( this.hea < 0 && this.hea > -300 || this.driver0 && this.hea < this.hmax / 5 )
