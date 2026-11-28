@@ -1142,7 +1142,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_DESTROY_ENTITY,
-										difficulty: 1, // Task difficulty scaling now scales when someone is "eligible" for reward
+										difficulty: 0.5, // Task difficulty scaling now scales when someone is "eligible" for reward
 										title: 'Destroy planetary matter drainer',
 										description: 'There is a planetary matter drainer spotted nearby. Destroy it before it drains all our matter!'
 									});
@@ -1200,7 +1200,7 @@ class sdJunk extends sdEntity
 								executer: sdWorld.sockets[ i ].character,
 								target: this,
 								mission: sdTask.MISSION_DESTROY_ENTITY,
-								difficulty: 3, // Task difficulty scaling now scales when someone is "eligible" for reward
+								difficulty: 2, // Task difficulty scaling now scales when someone is "eligible" for reward
 								time_left: ( this.detonation_in - 30 * 2 ),
 								title: 'Disarm Council bomb',
 								description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'

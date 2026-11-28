@@ -327,6 +327,8 @@ class sdCommandCentre extends sdEntity
 							disk.extra[ 0 ] = this._disk_value;
 
 							sdEntity.AddEntityToEntitiesArray( disk );
+							
+							sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 						}
 						this._reject_disk_until = sdWorld.time + 10000;
 						this._disk_value = -1;
@@ -387,6 +389,7 @@ class sdCommandCentre extends sdEntity
 				this._disk_value = from_entity.extra[ 0 ] || 0;
 				from_entity.remove();
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // For spawn logic to work properly
+				sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 				
 				//console.log( this._disk_value );
 				this._update_version++;

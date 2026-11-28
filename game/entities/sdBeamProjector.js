@@ -170,6 +170,36 @@ class sdBeamProjector extends sdEntity
 		}
 		return false;
 	}
+
+	DisallowedEntitiesOnTop(ents = [], x = this.x ){
+		// Checks for some additional entities on top
+		// Used in beam projection Check
+		for( let i = 0; i < ents.length; i++ )
+		{
+			if ( ents[ i ] !== this )
+			{
+				let ent = ents[ i ];
+				// Check if entity intersects coordinates
+				if ( x > ( ent.x + ent._hitbox_x1 ) && x < ( ent.x + ent._hitbox_x2 ) ) // Entity hitbox has X?
+				{
+					if ( this.y > ( ent.y + ent._hitbox_y2 ) && this.y - 200 < ( ent.y + ent._hitbox_y1 ) ) // Entity hitbox is in Y bounds?
+					{
+						// Check for whitelisted entities
+						if ( !ent.IsPlayerClass() && ( ( ent.hmax || ent._hmax || 0 ) > 500 ) ) // Not a player, council humanoid etc
+						{
+							if ( this._last_event_entities.length === 0 )
+							return true;
+							else
+							if ( this._last_event_entities.indexOf( ent._net_id ) === -1 ) // Not part of the spawned events?
+							return true;
+						}
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
 	ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === '_last_event_entities' ) return true;
@@ -252,7 +282,7 @@ class sdBeamProjector extends sdEntity
 		
 		for ( let i = 0; i < this._last_event_entities.length; i++ )
 		{
-			let ent = sdEntity.entities_by_net_id_cache_map.get( this._last_event_entities[ 0 ] );
+			let ent = sdEntity.entities_by_net_id_cache_map.get( this._last_event_entities[ i ] );
 			if ( !ent || ent._is_being_removed )
 			{
 				this._last_event_entities.splice( i, 1 ); // Remove from array
@@ -274,7 +304,7 @@ class sdBeamProjector extends sdEntity
 					this._drone_count += 5;
 					
 					this._spawn_drones_timer = 30;
-					if ( this._last_event_entities.length === 0 )
+					//if ( this._last_event_entities.length === 0 ) // Let's just spawn 1 event if 1 is still left
 					this._spawn_event_timer = 30 * 60 + Math.random() * 30 * 20; // Spawn next event in 60-80 seconds
 					
 					/*
@@ -556,7 +586,7 @@ class sdBeamProjector extends sdEntity
 						//gun.sy = sy;
 						sdEntity.AddEntityToEntitiesArray( gun );
 
-						gun._max_dps = Math.min( gun._max_dps * mult, 450 ); // Increase core power if pylons were used
+						gun._max_dps = Math.min( gun._max_dps * mult, 450 ); // Increase core power
 					}, 500 );
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 						
@@ -566,7 +596,7 @@ class sdBeamProjector extends sdEntity
 						//gun.sy = sy;
 						sdEntity.AddEntityToEntitiesArray( gun );
 
-						gun._max_dps = Math.min( gun._max_dps * mult, 450 ); // Increase core power if pylons were used
+						gun._max_dps = Math.min( gun._max_dps * mult, 450 ); // Increase core power
 					}, 500 );
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 						
@@ -576,7 +606,7 @@ class sdBeamProjector extends sdEntity
 						//gun.sy = sy;
 						sdEntity.AddEntityToEntitiesArray( gun );
 
-						gun._max_dps = Math.min( gun._max_dps * mult, 450 ); // Increase core power if pylons were used
+						gun._max_dps = Math.min( gun._max_dps * mult, 450 ); // Increase core power
 					}, 500 );
 			}
 			this.remove();
@@ -651,7 +681,7 @@ class sdBeamProjector extends sdEntity
 			this._spawn_event_timer = 30 * 60 * 8 + ( Math.random() * 30 * 60 * 4 ); // 8-12 minutes per event
 			let event_type = Math.floor( Math.random() * 4 ); // Declared here in case of nullifier scenario
 			let ents = 0;
-			let ents_tot = this.type === sdBeamProjector.TYPE_LARGE_PROJECTOR ? 2 : 1;
+			let ents_tot = this.type === sdBeamProjector.TYPE_LARGE_PROJECTOR ? ( this._last_event_entities.length === 0 ? 2 : 1 ) : 1;
 			let spawned_events = 0;
 
 			while ( ents < ents_tot )
@@ -666,7 +696,7 @@ class sdBeamProjector extends sdEntity
 					event_type = 1 + Math.floor( Math.random() * 3 ); // Switch event
 				}					
 				
-				if ( event_type === 1 && this._bombs_to_spawn > 0 ) // Council bomb? (if allowed)
+				if ( event_type === 1 ) // Council bomb?
 				{
 					// Check if there's enough time Left
 					let enough_time = true;
@@ -685,7 +715,7 @@ class sdBeamProjector extends sdEntity
 						if ( ( 100 - this.progress ) < 25 )
 						enough_time = false;
 					}
-					if ( enough_time )
+					if ( enough_time && this._bombs_to_spawn > 0 )
 					ent = new sdJunk({ x:0, y:0, type: sdJunk.TYPE_COUNCIL_BOMB, detonation_in: 30 * 60 * 4.5 });
 					else
 					event_type = 3; // Spawn incinerator instead
@@ -911,13 +941,14 @@ class sdBeamProjector extends sdEntity
 			this._regen_timeout -= GSPEED;
 			else
 			{
-				this._regen_timeout = 10;
+				this._regen_timeout = 20;
+				let ents_on_top = sdWorld.GetAnythingNear( this.x, this.y - 96, 96 );
 				{
 					let mult = 1;
 					//if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, this.x, sdWorld.world_bounds.y1, this, sdCom.com_visibility_ignored_classes, null ) || sdWorld.last_hit_entity === null )
 					if ( this.type === sdBeamProjector.TYPE_PROJECTOR )
 					{
-						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y - 16 ) )
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x ) ) // Ensure no entities are blocking the beam
 						{
 							sdWorld.SendEffect({ x:this.x, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						}
@@ -929,7 +960,7 @@ class sdBeamProjector extends sdEntity
 						}
 						if ( this.pylons === 1 || this.pylons === 3 )
 						{
-							if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 18, this.y - 16 ) )
+							if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 18, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x - 18 ) ) // Ensure no entities are blocking the beam
 							{
 								mult++;
 								sdWorld.SendEffect({ x:this.x - 18, y:this.y - 27, x2:this.x - 18, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
@@ -942,7 +973,7 @@ class sdBeamProjector extends sdEntity
 						}
 						if ( this.pylons >= 2 )
 						{
-							if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 18, this.y - 16 ) )
+							if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 18, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x + 18 ) ) // Ensure no entities are blocking the beam
 							{
 								mult++;
 								sdWorld.SendEffect({ x:this.x + 18, y:this.y - 27, x2:this.x + 18, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
@@ -956,31 +987,31 @@ class sdBeamProjector extends sdEntity
 					}
 					if ( this.type === sdBeamProjector.TYPE_LARGE_PROJECTOR )
 					{
-						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 1, this.y - 16 ) )
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 1, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x - 1 ) ) // Ensure no entities are blocking the beam
 						{
 							sdWorld.SendEffect({ x:this.x - 1, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						}
 						else
 						mult-= 0.2;
-						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 20, this.y - 16 ) )
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 20, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x + 20 ) ) // Ensure no entities are blocking the beam
 						{
 							sdWorld.SendEffect({ x:this.x + 20, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						}
 						else
 						mult-= 0.2;
-						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 41, this.y - 16 ) )
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 41, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x + 41 ) ) // Ensure no entities are blocking the beam
 						{
 							sdWorld.SendEffect({ x:this.x + 41, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						}
 						else
 						mult-= 0.2;
-						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 22, this.y - 16 ) )
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 22, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x - 22 ) ) // Ensure no entities are blocking the beam
 						{
 							sdWorld.SendEffect({ x:this.x - 22, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						}
 						else
 						mult-= 0.2;
-						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 43, this.y - 16 ) )
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x - 43, this.y - 16 ) && !this.DisallowedEntitiesOnTop( ents_on_top, this.x - 43 ) ) // Ensure no entities are blocking the beam
 						{
 							sdWorld.SendEffect({ x:this.x - 43, y:this.y - 27, x2:this.x, y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						}
@@ -991,10 +1022,10 @@ class sdBeamProjector extends sdEntity
 					this.hea = Math.min( this.hmax, this.hea + ( 2 * mult ) ); // About 6 HP per second, since it regenerates only when beams are sent
 				
 					if ( this.type === sdBeamProjector.TYPE_PROJECTOR )
-					this.progress = Math.min( 101, this.progress + ( GSPEED * mult / ( 3 * 6 ) ) ); // 10 minutes without pylons
+					this.progress = Math.min( 101, this.progress + ( GSPEED * mult / ( 3 * 3 ) ) ); // 10 minutes without pylons
 				
 					if ( this.type === sdBeamProjector.TYPE_LARGE_PROJECTOR )
-					this.progress = Math.min( 101, this.progress + ( GSPEED * mult / ( 3 * 6 * 2 ) ) ); // 20 minutes
+					this.progress = Math.min( 101, this.progress + ( GSPEED * mult / ( 3 * 6 ) ) ); // 20 minutes
 				}
 			}
 		}

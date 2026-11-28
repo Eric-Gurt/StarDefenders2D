@@ -977,6 +977,14 @@ class sdLongRangeTeleport extends sdEntity
 			let excavator = new sdExcavator({ x:this.x, y:this.y - 32, type: sdExcavator.TYPE_SMALL });
 			sdEntity.AddEntityToEntitiesArray( excavator );
 		}
+		else
+		if ( rewards === 'CLAIM_REWARD_DMBP' )
+		{
+			let disk;
+			disk = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CC_DISK });
+			disk.extra[ 0 ] = 1; // Set it to spawn beam projector when inserted into CC
+			sdEntity.AddEntityToEntitiesArray( disk );
+		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -1366,7 +1374,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_MATTER_CONTAINER_CHIP' ||
 						command_name === 'CLAIM_MATTER_MATRIX' ||
                         command_name === 'CLAIM_SENTRY_TURRET' ||
-						command_name === 'CLAIM_EXCAVATOR'
+						command_name === 'CLAIM_EXCAVATOR' ||
+						command_name === 'CLAIM_REWARD_DMBP'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1392,6 +1401,9 @@ class sdLongRangeTeleport extends sdEntity
 
                                 if ( command_name === 'CLAIM_SENTRY_TURRET' )
                                 claim_cost = 3;
+							
+								if ( command_name === 'CLAIM_REWARD_DMBP' )
+								claim_cost = 10;
 								
 								if ( this.delay === 0 && executer_character._task_reward_counter >= claim_cost )
 								{
@@ -2029,6 +2041,11 @@ class sdLongRangeTeleport extends sdEntity
 								//this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
                                 this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
 								this.AddContextOption( 'Claim rewards ( merger core )', 'CLAIM_MERGER_CORE', [] );
+								this.AddClientSideActionContextOption( 'Claim rewards ( command centre disks )', ()=>
+								{
+									this._current_category_stack.push( 'cc_disks' );
+									this.RebuildContextMenu();
+								}, false );
 								//this.AddContextOption( 'Claim rewards ( upgrade station chipset )', 'CLAIM_UPGRADE_STATION_CHIP', [] );
 								//this.AddContextOption( 'Claim rewards ( advanced matter container chipset )', 'CLAIM_MATTER_CONTAINER_CHIP', [] );
 							}
@@ -2061,6 +2078,10 @@ class sdLongRangeTeleport extends sdEntity
 								this.AddContextOption( 'Claim matter generation matrix ( 5 reward cost )', 'CLAIM_MATTER_MATRIX', [] );
                                 this.AddContextOption( 'Claim sentry turret ( 3 reward cost )', 'CLAIM_SENTRY_TURRET', [] );
 								this.AddContextOption( 'Claim rewards ( excavator )', 'CLAIM_EXCAVATOR', [] );
+							}
+							if ( this._current_category_stack[ 1 ] === 'cc_disks' ) // Selected " Claim rewards ( command centre disks ) "?
+							{
+								this.AddContextOption( 'Claim CC disk - Dark matter beam projector ( 10 reward cost )', 'CLAIM_REWARD_DMBP', [] );
 							}
 						}
 
